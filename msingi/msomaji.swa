@@ -1,0 +1,603 @@
+husisha "kumbukumbu.swa";
+husisha "mfuatano.swa";
+
+// ==========================================================
+// msomaji.swa :: Swa lexer (self-hosting milestone)
+// Tokenizes Swa source code into Tokeni structs.
+// ==========================================================
+
+// Token type constants.
+N32 TOKENI_NAMBARI     = 1;
+N32 TOKENI_MFUATANO    = 2;
+N32 TOKENI_KITAMBULISHO = 3;
+N32 TOKENI_MANENO      = 4;
+N32 TOKENI_ISHARA      = 5;
+N32 TOKENI_MWISHO      = 6;
+
+muundo Tokeni {
+    N32 aina;
+    N8* mwanzo;
+    N64 urefu;
+    N32 mstari;
+    N32 safu;
+};
+
+muundo Msomaji {
+    N8* chanzo;
+    N64 nafasi;
+    N64 urefu;
+    N32 mstari;
+    N32 safu;
+};
+
+// ==========================================================
+// Constructor
+// ==========================================================
+
+Msomaji msomaji_mpya(N8* chanzo, N64 urefu) {
+    Msomaji m;
+    m.chanzo = chanzo;
+    m.nafasi = 0;
+    m.urefu = urefu;
+    m.mstari = 1;
+    m.safu = 1;
+    rudisha m;
+}
+
+// ==========================================================
+// EOF check
+// ==========================================================
+
+N32 msomaji_imeisha(Msomaji* m) {
+    kama (m->nafasi >= m->urefu) {
+        rudisha 1;
+    }
+    rudisha 0;
+}
+
+// ==========================================================
+// Character helpers - work on a single byte from source.
+// ==========================================================
+
+N32 ni_tarakimu(N8 c) {
+    kama (c >= 48) {
+        kama (c <= 57) {
+            rudisha 1;
+        }
+    }
+    rudisha 0;
+}
+
+N32 ni_alfabeti(N8 c) {
+    kama (c >= 65) {
+        kama (c <= 90) {
+            rudisha 1;
+        }
+    }
+    kama (c >= 97) {
+        kama (c <= 122) {
+            rudisha 1;
+        }
+    }
+    rudisha 0;
+}
+
+N32 ni_alfabeti_tarakimu(N8 c) {
+    kama (ni_alfabeti(c) != 0) {
+        rudisha 1;
+    }
+    kama (ni_tarakimu(c) != 0) {
+        rudisha 1;
+    }
+    kama (c == 95) {
+        rudisha 1;
+    }
+    rudisha 0;
+}
+
+N32 ni_nafasi(N8 c) {
+    kama (c == 32) {
+        rudisha 1;
+    }
+    kama (c == 9) {
+        rudisha 1;
+    }
+    kama (c == 10) {
+        rudisha 1;
+    }
+    kama (c == 13) {
+        rudisha 1;
+    }
+    rudisha 0;
+}
+
+N32 ni_neno_muhimu(N8* neno, N64 urefu) {
+    // Manually compare against each keyword by length then bytes.
+    // Kumbukumbu compare is better but this avoids function call overhead.
+
+    kama (urefu == 2) {
+        kama (neno[0] == 110) {
+            kama (neno[1] == 97) {
+                rudisha 1;  // na
+            }
+        }
+        kama (neno[0] == 97) {
+            kama (neno[1] == 117) {
+                rudisha 1;  // au
+            }
+        }
+        kama (neno[0] == 115) {
+            kama (neno[1] == 105) {
+                rudisha 1;  // si
+            }
+        }
+    }
+    kama (urefu == 3) {
+        kama (neno[0] == 107) {
+            kama (neno[1] == 119) {
+                kama (neno[2] == 97) {
+                    rudisha 1;  // kwa
+                }
+            }
+        }
+        kama (neno[0] == 111) {
+            kama (neno[1] == 109) {
+                kama (neno[2] == 98) {
+                    rudisha 1;  // omb
+                }
+            }
+        }
+    }
+    kama (urefu == 4) {
+        kama (neno[0] == 107) {
+            kama (neno[1] == 97) {
+                kama (neno[2] == 109) {
+                    kama (neno[3] == 97) {
+                        rudisha 1;  // kama
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 116) {
+            kama (neno[1] == 101) {
+                kama (neno[2] == 116) {
+                    kama (neno[3] == 101) {
+                        rudisha 1;  // tete
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 107) {
+            kama (neno[1] == 119) {
+                kama (neno[2] == 101) {
+                    kama (neno[3] == 108) {
+                        rudisha 1;  // kwel
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 117) {
+            kama (neno[1] == 111) {
+                kama (neno[2] == 110) {
+                    kama (neno[3] == 103) {
+                        rudisha 1;  // uong
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 101) {
+            kama (neno[1] == 110) {
+                kama (neno[2] == 101) {
+                    kama (neno[3] == 111) {
+                        rudisha 1;  // eneo
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 104) {
+            kama (neno[1] == 97) {
+                kama (neno[2] == 108) {
+                    kama (neno[3] == 105) {
+                        rudisha 1;  // hali
+                    }
+                }
+            }
+        }
+    }
+    kama (urefu == 5) {
+        kama (neno[0] == 115) {
+            kama (neno[1] == 105) {
+                kama (neno[2] == 118) {
+                    kama (neno[3] == 121) {
+                        kama (neno[4] == 111) {
+                            rudisha 1;  // sivyo
+                        }
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 116) {
+            kama (neno[1] == 101) {
+                kama (neno[2] == 110) {
+                    kama (neno[3] == 103) {
+                        kama (neno[4] == 97) {
+                            rudisha 1;  // tenga
+                        }
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 102) {
+            kama (neno[1] == 105) {
+                kama (neno[2] == 99) {
+                    kama (neno[3] == 104) {
+                        kama (neno[4] == 101) {
+                            rudisha 1;  // fiche
+                        }
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 118) {
+            kama (neno[1] == 117) {
+                kama (neno[2] == 110) {
+                    kama (neno[3] == 106) {
+                        kama (neno[4] == 97) {
+                            rudisha 1;  // vunja
+                        }
+                    }
+                }
+            }
+        }
+    }
+    kama (urefu == 6) {
+        kama (neno[0] == 119) {
+            kama (neno[1] == 97) {
+                kama (neno[2] == 107) {
+                    kama (neno[3] == 97) {
+                        kama (neno[4] == 116) {
+                            kama (neno[5] == 105) {
+                                rudisha 1;  // wakati
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 109) {
+            kama (neno[1] == 117) {
+                kama (neno[2] == 117) {
+                    kama (neno[3] == 110) {
+                        kama (neno[4] == 100) {
+                            kama (neno[5] == 111) {
+                                rudisha 1;  // muundo
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 99) {
+            kama (neno[1] == 104) {
+                kama (neno[2] == 97) {
+                    kama (neno[3] == 103) {
+                        kama (neno[4] == 117) {
+                            kama (neno[5] == 97) {
+                                rudisha 1;  // chagua
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    kama (urefu == 7) {
+        kama (neno[0] == 97) {
+            kama (neno[1] == 99) {
+                kama (neno[2] == 104) {
+                    kama (neno[3] == 105) {
+                        kama (neno[4] == 108) {
+                            kama (neno[5] == 105) {
+                                kama (neno[6] == 97) {
+                                    rudisha 1;  // achilia
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 114) {
+            kama (neno[1] == 117) {
+                kama (neno[2] == 100) {
+                    kama (neno[3] == 105) {
+                        kama (neno[4] == 115) {
+                            kama (neno[5] == 104) {
+                                kama (neno[6] == 97) {
+                                    rudisha 1;  // rudisha
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 104) {
+            kama (neno[1] == 117) {
+                kama (neno[2] == 115) {
+                    kama (neno[3] == 104) {
+                        kama (neno[4] == 105) {
+                            kama (neno[5] == 115) {
+                                kama (neno[6] == 104) {
+                                    rudisha 1;  // husisha
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 107) {
+            kama (neno[1] == 105) {
+                kama (neno[2] == 116) {
+                    kama (neno[3] == 101) {
+                        kama (neno[4] == 110) {
+                            kama (neno[5] == 103) {
+                                kama (neno[6] == 111) {
+                                    rudisha 1;  // kitengo
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 116) {
+            kama (neno[1] == 104) {
+                kama (neno[2] == 97) {
+                    kama (neno[3] == 98) {
+                        kama (neno[4] == 105) {
+                            kama (neno[5] == 116) {
+                                kama (neno[6] == 105) {
+                                    rudisha 1;  // thabiti
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 101) {
+            kama (neno[1] == 110) {
+                kama (neno[2] == 100) {
+                    kama (neno[3] == 101) {
+                        kama (neno[4] == 108) {
+                            kama (neno[5] == 101) {
+                                kama (neno[6] == 97) {
+                                    rudisha 1;  // endelea
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        kama (neno[0] == 107) {
+            kama (neno[1] == 97) {
+                kama (neno[2] == 119) {
+                    kama (neno[3] == 97) {
+                        kama (neno[4] == 105) {
+                            kama (neno[5] == 100) {
+                                kama (neno[6] == 97) {
+                                    rudisha 1;  // kawaida
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    rudisha 0;
+}
+
+// ==========================================================
+// Core lexer: return the next token.
+// ==========================================================
+
+Tokeni tokeni_inayofuata(Msomaji* m) {
+    Tokeni t;
+
+    // Outer loop: restart after skipping comments.
+    wakati (1 == 1) {
+        // Skip whitespace and newlines.
+        wakati (msomaji_imeisha(m) == 0) {
+            N8 c = m->chanzo[m->nafasi];
+            kama (ni_nafasi(c) == 0) {
+                vunja;
+            }
+            kama (c == 10) {
+                m->mstari = m->mstari + 1;
+                m->safu = 0;
+            }
+            m->nafasi = m->nafasi + 1;
+            m->safu = m->safu + 1;
+        }
+
+        // Skip line comments (// to end of line).
+        kama (msomaji_imeisha(m) == 0) {
+            kama (m->chanzo[m->nafasi] == 47) {
+                kama (m->nafasi + 1 < m->urefu) {
+                    kama (m->chanzo[m->nafasi + 1] == 47) {
+                        m->nafasi = m->nafasi + 2;
+                        m->safu = m->safu + 2;
+                        wakati (msomaji_imeisha(m) == 0) {
+                            kama (m->chanzo[m->nafasi] == 10) {
+                                vunja;
+                            }
+                            m->nafasi = m->nafasi + 1;
+                        }
+                        // Restart: skip whitespace/comments after comment line.
+                        endelea;
+                    }
+                }
+            }
+        }
+        vunja;
+    }
+
+    // Check EOF.
+    kama (msomaji_imeisha(m) != 0) {
+        t.aina = TOKENI_MWISHO;
+        t.mwanzo = m->chanzo;
+        t.urefu = 0;
+        t.mstari = m->mstari;
+        t.safu = m->safu;
+        rudisha t;
+    }
+
+    t.mstari = m->mstari;
+    t.safu = m->safu;
+    t.mwanzo = m->chanzo + m->nafasi;
+    N64 mwanzo_nafasi = m->nafasi;
+
+    N8 c = m->chanzo[m->nafasi];
+
+    // String literal: "..."
+    kama (c == 34) {
+        m->nafasi = m->nafasi + 1;
+        m->safu = m->safu + 1;
+        wakati (msomaji_imeisha(m) == 0) {
+            N8 ch = m->chanzo[m->nafasi];
+            // Backslash escape: skip \ and the following character.
+            kama (ch == 92) {
+                m->nafasi = m->nafasi + 1;
+                m->safu = m->safu + 1;
+                kama (msomaji_imeisha(m) == 0) {
+                    m->nafasi = m->nafasi + 1;
+                    m->safu = m->safu + 1;
+                }
+                endelea;
+            }
+            kama (ch == 10) {
+                m->mstari = m->mstari + 1;
+                m->safu = 0;
+            }
+            kama (ch == 34) {
+                m->nafasi = m->nafasi + 1;
+                m->safu = m->safu + 1;
+                vunja;
+            }
+            m->nafasi = m->nafasi + 1;
+            m->safu = m->safu + 1;
+        }
+        t.aina = TOKENI_MFUATANO;
+        t.urefu = m->nafasi - mwanzo_nafasi;
+        rudisha t;
+    }
+
+    // Single-quoted character literal: '.'
+    kama (c == 39) {
+        m->nafasi = m->nafasi + 1;
+        m->safu = m->safu + 1;
+        kama (msomaji_imeisha(m) == 0) {
+            kama (m->chanzo[m->nafasi] == 92) {
+                m->nafasi = m->nafasi + 1;
+                m->safu = m->safu + 1;
+            }
+            kama (msomaji_imeisha(m) == 0) {
+                m->nafasi = m->nafasi + 1;
+                m->safu = m->safu + 1;
+            }
+        }
+        kama (msomaji_imeisha(m) == 0) {
+            kama (m->chanzo[m->nafasi] == 39) {
+                m->nafasi = m->nafasi + 1;
+                m->safu = m->safu + 1;
+            }
+        }
+        t.aina = TOKENI_NAMBARI;
+        t.urefu = m->nafasi - mwanzo_nafasi;
+        rudisha t;
+    }
+
+    // Character check: determine if this position starts a keyword/identifier.
+    kama (ni_alfabeti(c)) {
+        N64 anza = m->nafasi;
+        wakati (msomaji_imeisha(m) == 0) {
+            N8 ch2 = m->chanzo[m->nafasi];
+            kama (ni_alfabeti_tarakimu(ch2) == 0) { vunja; }
+            m->nafasi = m->nafasi + 1;
+            m->safu = m->safu + 1;
+        }
+        t.urefu = m->nafasi - anza;
+        t.mwanzo = m->chanzo + anza;
+        kama (ni_neno_muhimu(t.mwanzo, t.urefu)) {
+            t.aina = TOKENI_MANENO;
+        } sivyo {
+            t.aina = TOKENI_KITAMBULISHO;
+        }
+        rudisha t;
+    }
+
+    // Number
+    kama (ni_tarakimu(c)) {
+        N64 anza = m->nafasi;
+        wakati (msomaji_imeisha(m) == 0) {
+            N8 ch2 = m->chanzo[m->nafasi];
+            kama (ni_tarakimu(ch2) == 0) { vunja; }
+            m->nafasi = m->nafasi + 1;
+            m->safu = m->safu + 1;
+        }
+        kama (msomaji_imeisha(m) == 0) {
+            kama (m->chanzo[m->nafasi] == 46) {
+                m->nafasi = m->nafasi + 1;
+                m->safu = m->safu + 1;
+                wakati (msomaji_imeisha(m) == 0) {
+                    N8 ch2 = m->chanzo[m->nafasi];
+                    kama (ni_tarakimu(ch2) == 0) { vunja; }
+                    m->nafasi = m->nafasi + 1;
+                    m->safu = m->safu + 1;
+                }
+            }
+        }
+        t.aina = TOKENI_NAMBARI;
+        t.urefu = m->nafasi - anza;
+        rudisha t;
+    }
+
+    // Punctuation: ; , : ( ) [ ] { }
+    kama (c == 59 || c == 44 || c == 58 || c == 40 || c == 41 ||
+          c == 91 || c == 93 || c == 123 || c == 125) {
+        m->nafasi = m->nafasi + 1;
+        m->safu = m->safu + 1;
+        t.aina = TOKENI_ISHARA;
+        t.urefu = 1;
+        rudisha t;
+    }
+
+    // Multi-char operators: first check for 2-char, then 1-char.
+    kama (msomaji_imeisha(m) == 0) {
+        N8 c1 = m->chanzo[m->nafasi];
+        N8 c2 = 0;
+        kama (m->nafasi + 1 < m->urefu) {
+            c2 = m->chanzo[m->nafasi + 1];
+        }
+        // 2-char operators
+        kama ((c1 == 61 && c2 == 61) || (c1 == 33 && c2 == 61) ||
+              (c1 == 60 && c2 == 61) || (c1 == 62 && c2 == 61) ||
+              (c1 == 38 && c2 == 38) || (c1 == 124 && c2 == 124) ||
+              (c1 == 60 && c2 == 60) || (c1 == 62 && c2 == 62)) {
+            m->nafasi = m->nafasi + 2;
+            m->safu = m->safu + 2;
+            t.urefu = 2;
+            rudisha t;
+        }
+    }
+
+    // Single-char operator.
+    m->nafasi = m->nafasi + 1;
+    m->safu = m->safu + 1;
+    t.urefu = 1;
+    rudisha t;
+}

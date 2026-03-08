@@ -1,0 +1,38 @@
+husisha "kumbukumbu.swa";
+
+muundo Orodha {
+    N32* data;
+    N32 idadi;
+    N32 uwezo;
+};
+
+Orodha orodha_mpya(N32 uwezo_awali) {
+    Orodha o;
+    o.data = tenga(ukubwa(N32) * uwezo_awali);
+    o.idadi = 0;
+    o.uwezo = uwezo_awali;
+    rudisha o;
+}
+
+W0 orodha_ongeza(Orodha* o, N32 thamani) {
+    kama (o->idadi >= o->uwezo) {
+        o->uwezo = o->uwezo * 2;
+        o->data = badili(o->data, ukubwa(N32) * o->uwezo);
+    }
+    o->data[o->idadi] = thamani;
+    o->idadi = o->idadi + 1;
+}
+
+N32 orodha_pata(Orodha* o, N32 faharisi) {
+    kama (faharisi < 0 || faharisi >= o->idadi) {
+        rudisha 0;
+    }
+    rudisha o->data[faharisi];
+}
+
+W0 orodha_huru(Orodha* o) {
+    achilia(o->data);
+    o->data = tupu;
+    o->idadi = 0;
+    o->uwezo = 0;
+}
