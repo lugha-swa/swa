@@ -1,0 +1,142 @@
+husisha "msambazaji.swa";
+
+// ==========================================================
+// mkaguzi.swa — semantic checker (self-hosting milestone 5)
+// Checks for ownership violations, argument count mismatches,
+// and other semantic errors in the parsed AST.
+// ==========================================================
+
+N32 mkaguzi_makosa = 0;
+
+N32 mkaguzi_angalia(N32 mzizi) {
+    mkaguzi_makosa = 0;
+    // Walk all functions and check them.
+    N32 node = ast_kushoto[mzizi];
+    wakati (node != -1) {
+        kama (ast_aina[node] == 2) {
+            mkaguzi_kagua_kazi(node);
+        }
+        node = ast_nne[node];
+    }
+    rudisha mkaguzi_makosa;
+}
+
+// Track which function names exist for arg-count checking.
+N32 kazi_idadi = 0;
+N8  kazi_jina_pool[2048];
+N32 kazi_jina_pool_wapi = 1;
+N32 kazi_jina_off[128];
+N32 kazi_param_count[128];
+
+W0 mkaguzi_sajili_kazi(N32 kazi_node) {
+    kama (kazi_idadi >= 128) { rudisha; }
+    N32 name_node = ast_kushoto[kazi_node];
+    N8* jina = ast_pool + ast_jina_off[name_node];
+    // Count params
+    N32 pc = 0;
+    N32 p = ast_kulia[name_node];
+    wakati (p != -1) {
+        pc = pc + 1;
+        p = ast_kulia[p];
+    }
+    N32 off = kazi_jina_pool_wapi;
+    N32 i = 0;
+    wakati (jina[i] != 0) {
+        kazi_jina_pool[off + i] = jina[i];
+        i = i + 1;
+    }
+    kazi_jina_pool[off + i] = 0;
+    kazi_jina_pool_wapi = off + i + 1;
+    kazi_jina_off[kazi_idadi] = off;
+    kazi_param_count[kazi_idadi] = pc;
+    kazi_idadi = kazi_idadi + 1;
+}
+
+N32 mkaguzi_tafuta_kazi(N8* jina) {
+    N32 i = 0;
+    wakati (i < kazi_idadi) {
+        N8* kj = kazi_jina_pool + kazi_jina_off[i];
+        kama (jina_linganisha(kj, jina)) { rudisha kazi_param_count[i]; }
+        i = i + 1;
+    }
+    rudisha -1;
+}
+
+W0 mkaguzi_kagua_kazi(N32 kazi_node) {
+    // Register this function for arg-count checking.
+    mkaguzi_sajili_kazi(kazi_node);
+    // Check the body.
+    N32 body = ast_tiga[kazi_node];
+    kama (body != -1) {
+        mkaguzi_kagua_taarifa(body);
+    }
+}
+
+W0 mkaguzi_kagua_taarifa(N32 node) {
+    kama (node == -1) { rudisha; }
+
+    N32 aina = ast_aina[node];
+
+    kama (aina == 9) {  // KAMA
+        mkaguzi_kagua_usemi(ast_kushoto[node]);
+        mkaguzi_kagua_taarifa(ast_kulia[node]);
+        mkaguzi_kagua_taarifa(ast_tiga[node]);
+        rudisha;
+    }
+    kama (aina == 10) {  // WAKATI
+        mkaguzi_kagua_usemi(ast_kushoto[node]);
+        mkaguzi_kagua_taarifa(ast_kulia[node]);
+        rudisha;
+    }
+    kama (aina == 14) {  // CHAGUA
+        mkaguzi_kagua_usemi(ast_kushoto[node]);
+        N32 h = ast_kushoto[ast_kulia[node]];
+        wakati (h != -1) {
+            mkaguzi_kagua_taarifa(ast_tiga[h]);
+            h = ast_nne[h];
+        }
+        rudisha;
+    }
+    kama (aina == 18) {  // TENGA
+        // Check that achilia is eventually called on this pointer.
+        // For now, just check the expression and continue.
+        mkaguzi_kagua_usemi(ast_kulia[node]);
+        mkaguzi_kagua_taarifa(ast_nne[node]);
+        rudisha;
+    }
+    kama (aina == 8) {  // WITO (function call)
+        N32 name_node = ast_kushoto[node];
+        kama (name_node != -1) {
+            N8* jina = ast_pool + ast_jina_off[name_node];
+            N32 expected = mkaguzi_tafuta_kazi(jina);
+            kama (expected >= 0) {
+                // Count arguments
+                N32 argc = 0;
+                N32 a = ast_kulia[name_node];
+                wakati (a != -1) {
+                    argc = argc + 1;
+                    a = ast_kulia[a];
+                }
+                kama (argc != expected) {
+                    andika("kosa: idadi ya hoja si sahihi kwa '%s': inategemewa %d, ilipatikana %d\n", jina, expected, argc);
+                    mkaguzi_makosa = mkaguzi_makosa + 1;
+                }
+            }
+        }
+    }
+    kama (aina == 3) {  // RUDISHA
+        mkaguzi_kagua_usemi(ast_kushoto[node]);
+        rudisha;
+    }
+
+    // Walk siblings
+    mkaguzi_kagua_taarifa(ast_nne[node]);
+}
+
+W0 mkaguzi_kagua_usemi(N32 node) {
+    kama (node == -1) { rudisha; }
+    // Expression checking — for now just walk sub-expressions.
+    mkaguzi_kagua_usemi(ast_kushoto[node]);
+    mkaguzi_kagua_usemi(ast_kulia[node]);
+    mkaguzi_kagua_usemi(ast_tiga[node]);
+}
