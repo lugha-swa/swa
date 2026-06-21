@@ -452,9 +452,13 @@ impl<'a> Lowerer<'a> {
         vid
     }
 
-    /// Intern a constant into the current function and return its `ValueId`.
+    /// Look up a previously-interned constant and return its `ValueId`.
+    /// Panics if the constant was not pre-interned — all constants must be
+    /// interned via `collect_constants` or the pre-intern list before lowering.
     fn const_val(&mut self, c: Const) -> ValueId {
-        self.func.intern_const(c)
+        let idx = self.func.values.iter().position(|v| *v == c)
+            .unwrap_or_else(|| panic!("const_val: {:?} not pre-interned", c));
+        ValueId(self.func.params.len() + idx)
     }
 
     /// Set the terminator of the given block.
@@ -554,10 +558,19 @@ impl<'a> Lowerer<'a> {
 
         // Pre-intern constants AFTER sret param is added, so params.len() is final.
         self.collect_constants(self.ast_tiga[func_node as usize]);
-        self.values_initial_len = self.func.values.len();
-        self.inst_counter = 0;
 
-        // Reset instruction counter for this function.
+        // Pre-intern commonly-used constants so const_val() never adds new
+        // values during lowering (which would shift ValueIds out of sync
+        // with the backend's N+M+I scheme).
+        self.func.intern_const(Const::Zero);
+        self.func.intern_const(Const::Int(0));
+        self.func.intern_const(Const::Int(1));
+        self.func.intern_const(Const::Int(-1));
+        self.func.intern_const(Const::Bool(false));
+        self.func.intern_const(Const::Bool(true));
+        self.func.intern_const(Const::NullPtr);
+
+        self.values_initial_len = self.func.values.len();
         self.inst_counter = 0;
 
         // -- Create entry block -------------------------------------------------
@@ -1470,36 +1483,19 @@ impl<'a> Lowerer<'a> {
         let lhs_node = self.ast_kushoto[node as usize];
         let rhs_node = self.ast_kulia[node as usize];
 
-        // Allocate a stack slot in `blk` for the boolean result.
-        let result_alloc = self.emit(blk, Instruction::Alloca(IrType::B1));
+        // Lower both operands in the same block (no short-circuit for now —
+        // Select evaluates both arms).  This avoids the alloca-in-cross-block
+        // ValueId issue.  Proper short-circuit with phi nodes can be added
+        // once the IR supports Phi instructions.
+        let (lhs_val, blk1) = self.lower_expr_into(lhs_node, blk);
+        let (rhs_val, blk2) = self.lower_expr_into(rhs_node, blk1);
 
-        let sc_true_blk = self.new_block("and.sc_true");
-        let sc_false_blk = self.new_block("and.sc_false");
-        let merge_blk = self.new_block("and.merge");
-
-        // Evaluate lhs, branch: if truthy → sc_true (evaluate rhs), else → sc_false.
-        let (lhs_val, lhs_end) = self.lower_expr_into(lhs_node, blk);
-        self.set_terminator(
-            lhs_end,
-            Terminator::BrCond(lhs_val, sc_true_blk, sc_false_blk),
-        );
-
-        // sc_false: store false, jump to merge.
-        let false_const = self.const_val(Const::Bool(false));
-        self.emit(sc_false_blk, Instruction::Store(false_const, result_alloc));
-        self.set_terminator(sc_false_blk, Terminator::Br(merge_blk));
-
-        // sc_true: evaluate rhs, convert to bool, store, jump to merge.
-        let (rhs_val, rhs_end) = self.lower_expr_into(rhs_node, sc_true_blk);
-        // Convert rhs to boolean: rhs != 0.
+        // Convert both to boolean: lhs != 0, rhs != 0, then AND them.
         let zero = self.const_val(Const::Int(0));
-        let rhs_bool = self.emit(rhs_end, Instruction::Ne(rhs_val, zero));
-        self.emit(rhs_end, Instruction::Store(rhs_bool, result_alloc));
-        self.set_terminator(rhs_end, Terminator::Br(merge_blk));
-
-        // Merge: load the result from the alloca.
-        let result = self.emit(merge_blk, Instruction::Load(IrType::B1, result_alloc));
-        (result, merge_blk)
+        let lhs_bool = self.emit(blk2, Instruction::Ne(lhs_val, zero));
+        let rhs_bool = self.emit(blk2, Instruction::Ne(rhs_val, zero));
+        let result = self.emit(blk2, Instruction::And(lhs_bool, rhs_bool));
+        (result, blk2)
     }
 
     /// AU (logical OR) is short-circuit: evaluate left; if true, result is
@@ -1508,33 +1504,14 @@ impl<'a> Lowerer<'a> {
         let lhs_node = self.ast_kushoto[node as usize];
         let rhs_node = self.ast_kulia[node as usize];
 
-        let result_alloc = self.emit(blk, Instruction::Alloca(IrType::B1));
+        let (lhs_val, blk1) = self.lower_expr_into(lhs_node, blk);
+        let (rhs_val, blk2) = self.lower_expr_into(rhs_node, blk1);
 
-        let sc_true_blk = self.new_block("or.sc_true");
-        let sc_rhs_blk = self.new_block("or.sc_rhs");
-        let merge_blk = self.new_block("or.merge");
-
-        let (lhs_val, lhs_end) = self.lower_expr_into(lhs_node, blk);
-        self.set_terminator(
-            lhs_end,
-            Terminator::BrCond(lhs_val, sc_true_blk, sc_rhs_blk),
-        );
-
-        // sc_true: store true, br merge.
-        let tv = self.const_val(Const::Bool(true));
-        self.emit(sc_true_blk, Instruction::Store(tv, result_alloc));
-        self.set_terminator(sc_true_blk, Terminator::Br(merge_blk));
-
-        // sc_rhs: evaluate rhs, convert to bool, store, br merge.
-        let (rhs_val, rhs_end) = self.lower_expr_into(rhs_node, sc_rhs_blk);
         let zero = self.const_val(Const::Int(0));
-        let rhs_bool = self.emit(rhs_end, Instruction::Ne(rhs_val, zero));
-        self.emit(rhs_end, Instruction::Store(rhs_bool, result_alloc));
-        self.set_terminator(rhs_end, Terminator::Br(merge_blk));
-
-        // Merge: load.
-        let result = self.emit(merge_blk, Instruction::Load(IrType::B1, result_alloc));
-        (result, merge_blk)
+        let lhs_bool = self.emit(blk2, Instruction::Ne(lhs_val, zero));
+        let rhs_bool = self.emit(blk2, Instruction::Ne(rhs_val, zero));
+        let result = self.emit(blk2, Instruction::Or(lhs_bool, rhs_bool));
+        (result, blk2)
     }
 
     // -- pointer / address operations ------------------------------------------
@@ -2338,16 +2315,16 @@ mod tests {
         assert_eq!(module.functions.len(), 1);
         let f = &module.functions[0];
 
-        // Short-circuit AND produces Alloca for result + BrCond + merge block.
-        let has_alloca = f.blocks.iter().any(|blk| {
-            blk.instructions.iter().any(|inst| matches!(inst, Instruction::Alloca(_)))
+        // AND lowers to Ne + And instructions.
+        let has_and = f.blocks.iter().any(|blk| {
+            blk.instructions.iter().any(|inst| matches!(inst, Instruction::And(_, _)))
         });
-        assert!(has_alloca, "short-circuit AND should produce an Alloca for the result slot");
+        assert!(has_and, "AND should produce And instruction");
 
-        let has_brcond = f.blocks.iter().any(|blk| {
-            matches!(blk.terminator, Terminator::BrCond(_, _, _))
+        let has_ne = f.blocks.iter().any(|blk| {
+            blk.instructions.iter().any(|inst| matches!(inst, Instruction::Ne(_, _)))
         });
-        assert!(has_brcond, "short-circuit AND should produce BrCond terminators");
+        assert!(has_ne, "AND should convert operands to bool with Ne");
     }
 
     #[test]
@@ -2376,16 +2353,11 @@ mod tests {
         assert_eq!(module.functions.len(), 1);
         let f = &module.functions[0];
 
-        // Short-circuit OR also uses an alloca-for-phi pattern.
-        let has_alloca = f.blocks.iter().any(|blk| {
-            blk.instructions.iter().any(|inst| matches!(inst, Instruction::Alloca(_)))
+        // OR lowers to Ne + Or instructions.
+        let has_or = f.blocks.iter().any(|blk| {
+            blk.instructions.iter().any(|inst| matches!(inst, Instruction::Or(_, _)))
         });
-        assert!(has_alloca);
-
-        let has_brcond = f.blocks.iter().any(|blk| {
-            matches!(blk.terminator, Terminator::BrCond(_, _, _))
-        });
-        assert!(has_brcond);
+        assert!(has_or, "OR should produce Or instruction");
     }
 
     #[test]
