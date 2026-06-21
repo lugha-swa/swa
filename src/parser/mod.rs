@@ -163,7 +163,9 @@ impl<'a> Parser<'a> {
             mshale += self.sasa().lexeme.len() as u32;
             self.sogeza();
         }
-        (((familia & 255) << 8) | (upana & 255) | (mshale & 1)) as i32
+        // Encode: familia << 11 | upana_idx << 3 | mshale (0-7)
+        fn upana_idx(w: u32) -> u32 { match w { 0=>0, 1=>1, 8=>2, 16=>3, 32=>4, 64=>5, 128=>6, _=>4 } }
+        (((familia & 255) << 11) | (upana_idx(upana) << 3) | (mshale & 7)) as i32
     }
 
     // -- expression parser (precedence climbing) -----------------------------

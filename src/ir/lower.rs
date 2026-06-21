@@ -372,9 +372,10 @@ impl<'a> Lowerer<'a> {
         if enc == 0 {
             return IrType::Void;
         }
-        let familia = (enc >> 8) & 255;
-        let upana = (enc as u8 & 254) as u32; // low byte, clear mshale flag
-        let mshale = enc & 1;
+        let familia = (enc >> 11) & 255;
+        let upana_idx = (enc >> 3) & 7;
+        let mshale = enc & 7;
+        let upana = match upana_idx { 0=>0, 1=>1, 2=>8, 3=>16, 4=>32, 5=>64, 6=>128, _=>32 };
         let base = match familia {
             1 => match upana { 8 => IrType::I8, 16 => IrType::I16, 32 => IrType::I32, 64 => IrType::I64, 128 => IrType::I128, _ => IrType::I32 },
             2 => match upana { 8 => IrType::U8, 16 => IrType::U16, 32 => IrType::U32, 64 => IrType::U64, 128 => IrType::U128, _ => IrType::U32 },
@@ -382,13 +383,15 @@ impl<'a> Lowerer<'a> {
             4 => match upana { 1 => IrType::B1, 8 => IrType::B8, 16 => IrType::B16, 32 => IrType::B32, 64 => IrType::B64, _ => IrType::B1 },
             5 => match upana { 0 => IrType::Void, _ => IrType::Void },
             6 => {
-                // User struct — look up in the struct registry.
-                // For now return a placeholder struct type.
                 IrType::Struct { name: format!("struct_{}", enc), fields: vec![] }
             }
             _ => IrType::I32,
         };
-        if mshale != 0 { IrType::Ptr(Box::new(base)) } else { base }
+        let mut ty = base;
+        for _ in 0..mshale {
+            ty = IrType::Ptr(Box::new(ty));
+        }
+        ty
     }
 
     /// Read a type from a node's `ast_thamani` field (the node IS the type
@@ -1350,12 +1353,9 @@ impl<'a> Lowerer<'a> {
 
     fn lower_int_literal(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let val = self.ast_thamani[node as usize] as i128;
-        // Find the already-interned constant (from collect_constants pre-pass)
-        // instead of creating a duplicate.
         let c = Const::Int(val);
-        let pos = self.func.values.iter().position(|v| *v == c)
-            .unwrap_or_else(|| { self.func.values.len() });
-        let vid = ValueId(self.func.params.len() + pos);
+        let vid = self.func.intern_const(c);
+        self.values_initial_len = self.func.values.len();
         (vid, blk)
     }
 
@@ -2028,7 +2028,7 @@ mod tests {
         let mut b = AstBuilder::new();
         let jina_kuu = b.pool_name("kuu");
         // Encoded type for W0 (Void): familia=5, upana=0, mshale=0 → (5<<8)|0 = 1280
-        let w0_enc: i32 = 1280;
+        let w0_enc: i32 = 10240; // (5<<11)|(0<<3)|0
 
         let name_node = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_kuu);
         let func_node = b.node(
@@ -2060,7 +2060,7 @@ mod tests {
         let mut b = AstBuilder::new();
         let jina_jumlisha = b.pool_name("jumlisha");
         // Encoded type for N32: familia=1, upana=32, mshale=0 → (1<<8)|32 = 288
-        let n32_enc: i32 = 288;
+        let n32_enc: i32 = 2080; // (1<<11)|(4<<3)|0
 
         // Parameter nodes: each has jina_off for name, thamani for type encoding.
         let jina_a = b.pool_name("a");
@@ -2518,7 +2518,7 @@ mod tests {
         let mut b = AstBuilder::new();
         let jina_kikomo = b.pool_name("KIKOMO");
         // Encoded type for N32: familia=1, upana=32, mshale=0 → (1<<8)|32 = 288
-        let n32_enc: i32 = 288;
+        let n32_enc: i32 = 2080; // (1<<11)|(4<<3)|0
 
         let global = b.node(
             AST_TANGAZO_ULIMWENGU,
@@ -2772,9 +2772,9 @@ mod tests {
         // }
         let mut b = AstBuilder::new();
         // Encoded types
-        let n32_enc: i32 = (1 << 8) | 32;   // N32 = 288
-        let n64_enc: i32 = (1 << 8) | 64;   // N64 = 320
-        let w0_enc: i32 = (5 << 8) | 0;     // W0 = 1280 (not used here)
+        let n32_enc: i32 = (1 << 11) | (4 << 3) | 0;   // N32
+        let n64_enc: i32 = (1 << 11) | (5 << 3) | 0;   // N64
+        let w0_enc: i32 = (5 << 11) | (0 << 3) | 0;     // W0 (not used here)
 
         // Names
         let jina_jaribio = b.pool_name("jaribio");
