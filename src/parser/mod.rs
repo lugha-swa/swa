@@ -291,7 +291,7 @@ impl<'a> Parser<'a> {
 
         if self.ni_aina() {
             let va = self.changanua_aina();
-            if matches!(self.sasa().kind, TokenKind::Kitambulisho(_)) {
+            if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) {
                 let name = self.sasa().lexeme.clone(); self.sogeza();
                 let mut init: i32 = NO_NODE;
                 if self.tokeni_ni("=") { self.sogeza(); init = self.changanua_usemi(); }
