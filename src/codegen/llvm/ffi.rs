@@ -491,6 +491,10 @@ extern "C" {
         builder: LLVMBuilderRef, agg: LLVMValueRef, val: LLVMValueRef,
         index: u32, name: *const c_char,
     ) -> LLVMValueRef;
+    pub fn LLVMBuildSelect(
+        builder: LLVMBuilderRef, cond: LLVMValueRef, then_val: LLVMValueRef,
+        else_val: LLVMValueRef, name: *const c_char,
+    ) -> LLVMValueRef;
 
     // -- phi -----------------------------------------------------------------
 

@@ -197,6 +197,9 @@ pub enum Instruction {
     BuildStruct(Vec<ValueId>),
     ExtractField(ValueId, usize),
 
+    // -- select (ternary) ---------------------------------------------------
+    Select(ValueId, ValueId, ValueId),  // (cond, true_val, false_val)
+
     // -- calls --------------------------------------------------------------
     Call(String, Vec<ValueId>),         // direct call
     CallIndirect(ValueId, Vec<ValueId>), // indirect call
