@@ -1353,7 +1353,6 @@ impl<'a> Lowerer<'a> {
         let val = self.ast_thamani[node as usize] as i128;
         let c = Const::Int(val);
         let vid = self.func.intern_const(c);
-        self.values_initial_len = self.func.values.len();
         (vid, blk)
     }
 

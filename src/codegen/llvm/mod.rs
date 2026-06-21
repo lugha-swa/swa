@@ -500,7 +500,7 @@ fn lower_function(
         let param_count = func.params.len();
         for (i, const_val) in func.values.iter().enumerate() {
             let val_id = ValueId(param_count + i);
-            let llvm_val = materialize_const(const_val, LLVMInt64Type()); // default i64 placeholder
+            let llvm_val = materialize_const(const_val, LLVMInt64Type());
             value_map.insert(val_id, llvm_val);
         }
 

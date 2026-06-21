@@ -338,6 +338,9 @@ impl Function {
     /// ValueIds for constants start after the parameter slots:
     ///   ValueId(params.len() + position_in_values)
     pub fn intern_const(&mut self, c: Const) -> ValueId {
+        if let Some(pos) = self.values.iter().position(|v| *v == c) {
+            return ValueId(self.params.len() + pos);
+        }
         let pos = self.values.len();
         let id = ValueId(self.params.len() + pos);
         self.values.push(c);
