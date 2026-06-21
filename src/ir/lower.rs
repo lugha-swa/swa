@@ -1469,10 +1469,13 @@ impl<'a> Lowerer<'a> {
         let true_node = self.ast_kulia[node as usize];
         let false_node = self.ast_tiga[node as usize];
 
-        let (cond, blk1) = self.lower_expr_into(cond_node, blk);
+        let (cond_val, blk1) = self.lower_expr_into(cond_node, blk);
+        // Convert condition to i1 (LLVM select requires i1 condition).
+        let zero = self.const_val(Const::Int(0));
+        let cond_bool = self.emit(blk1, Instruction::Ne(cond_val, zero));
         let (true_val, blk2) = self.lower_expr_into(true_node, blk1);
         let (false_val, blk3) = self.lower_expr_into(false_node, blk2);
-        let result = self.emit(blk3, Instruction::Select(cond, true_val, false_val));
+        let result = self.emit(blk3, Instruction::Select(cond_bool, true_val, false_val));
         (result, blk3)
     }
 
