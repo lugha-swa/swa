@@ -207,6 +207,9 @@ impl LlvmBackend {
             for global in &ir_module.globals {
                 let is_string_like = !global.bytes.is_empty()
                     && global.bytes.last() == Some(&0)
+                    // No null bytes before the final position — it's a real
+                    // C string, not an arbitrary byte array with nulls.
+                    && !global.bytes[..global.bytes.len()-1].contains(&0)
                     && global.bytes.iter().all(|&b| {
                         b == 0 || b == b'\n' || b == b'\t' || b == b'\r'
                             || (b >= 0x20 && b <= 0x7e)
