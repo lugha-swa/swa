@@ -1199,7 +1199,10 @@ fn lower_instruction(
                         "free" => LLVMVoidType(),
                         "printf" => LLVMInt32Type(),
                         "andika" => LLVMInt32Type(),
-                        _ => LLVMInt32Type(), // safe default for Swa functions
+                        "fopen" => ptr_type(),
+                        "fread" => LLVMInt64Type(),
+                        "fclose" => LLVMInt32Type(),
+                        _ => LLVMInt32Type(),
                     }
                 };
                 let call_fn_ty = LLVMFunctionType(
@@ -1662,6 +1665,36 @@ fn pre_declare_libc(module: LLVMModuleRef) {
             if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
                 let mut param_tys = [ptr_type()];
                 let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 1, 1);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // fopen: ptr (ptr, ptr) → FILE*
+        {
+            let name = c_str("fopen");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type(), ptr_type()];
+                let fn_ty = LLVMFunctionType(ptr_type(), param_tys.as_mut_ptr(), 2, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // fread: i64 (ptr, i64, i64, ptr) → size_t
+        {
+            let name = c_str("fread");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type(), LLVMInt64Type(), LLVMInt64Type(), ptr_type()];
+                let fn_ty = LLVMFunctionType(LLVMInt64Type(), param_tys.as_mut_ptr(), 4, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // fclose: i32 (ptr) → int
+        {
+            let name = c_str("fclose");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type()];
+                let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 1, 0);
                 LLVMAddFunction(module, name.as_ptr(), fn_ty);
             }
         }

@@ -1792,18 +1792,15 @@ impl<'a> Lowerer<'a> {
         let ary_ptr = self.lower_lvalue(array_node, blk);
         let (idx_val, end_blk) = self.lower_expr_into(index_node, blk);
 
-        // Determine element type from the array variable's declared type.
-        let elem_ty = if array_node >= 0 && self.ast_aina[array_node as usize] == AST_KITAMBULISHO {
-            let arr_name = self.read_pool_name(self.ast_jina_off[array_node as usize]);
-            self.lookup(&arr_name).and_then(|info| {
-                match &info.ty {
-                    IrType::Ptr(pointee) => Some((**pointee).clone()),
-                    _ => None,
-                }
-            }).unwrap_or(IrType::I32)
-        } else {
-            IrType::I32
-        };
+        // Determine element type from the array's declared type.
+        let arr_ty = self.resolve_expr_type(array_node);
+        let elem_ty = arr_ty.and_then(|ty| {
+            match &ty {
+                // Pointer: decay to pointee type (e.g. N8** → N8* → N8)
+                IrType::Ptr(pointee) => Some((**pointee).clone()),
+                _ => None,
+            }
+        }).unwrap_or(IrType::I32);
 
         // GEP to element, then load.
         let elem_ptr = self.emit(end_blk, Instruction::Gep(ary_ptr, vec![idx_val]));
