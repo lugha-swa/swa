@@ -160,6 +160,8 @@ struct Lowerer<'a> {
 
     /// Types for global variables (for lower_identifier).
     global_types: std::collections::HashMap<String, IrType>,
+    /// Optional pre-allocated sret destination for the next struct-return call.
+    sret_dest: Option<ValueId>,
 }
 
 // ---------------------------------------------------------------------------
@@ -216,6 +218,7 @@ pub fn lower(
         values_initial_len: 0,
         block_counter: 0,
         global_types: std::collections::HashMap::new(),
+        sret_dest: None,
     };
 
     // Root is the last node allocated; it must be AST_PROGRAMU.
@@ -1147,8 +1150,16 @@ impl<'a> Lowerer<'a> {
 
         // Evaluate initialiser and store.
         if init_node != NO_NODE && init_node >= 0 {
+            // For struct-typed variables, provide the alloca directly as the
+            // sret destination so the call writes straight into the variable.
+            if matches!(&var_ty, IrType::Struct { .. }) {
+                self.sret_dest = Some(alloc);
+            }
             let (init_val, end_blk) = self.lower_expr_into(init_node, blk);
-            self.emit(end_blk, Instruction::Store(init_val, alloc));
+            // If sret_dest was used, init_val IS alloc and we skip the store.
+            if init_val != alloc {
+                self.emit(end_blk, Instruction::Store(init_val, alloc));
+            }
             self.define_var(var_name, alloc, var_ty);
             self.set_terminator(end_blk, Terminator::Br(end_blk));
             end_blk
@@ -1552,14 +1563,19 @@ impl<'a> Lowerer<'a> {
                     self.find_function_return_type(&callee_name)
                 })
                 .unwrap_or(IrType::I32);
-            // Alloca space for the struct result and pass as first arg (sret).
-            let sret_alloca = self.emit(current_block, Instruction::Alloca(struct_ty.clone()));
+            // Use pre-allocated sret destination if the caller provided one
+            // (e.g., for `Msambazaji p = call()` where p_alloca is already allocated).
+            let sret_alloca = if let Some(dest) = self.sret_dest.take() {
+                dest
+            } else {
+                self.emit(current_block, Instruction::Alloca(struct_ty.clone()))
+            };
             let mut sret_args = vec![sret_alloca];
             sret_args.extend(arg_vals);
             let cv = self.emit(current_block, Instruction::Call(callee_name.clone(), sret_args));
-            // Load the struct from the alloca to get the value.
-            let loaded = self.emit(current_block, Instruction::Load(struct_ty, sret_alloca));
-            (loaded, current_block)
+            // Return the sret alloca pointer as the call result.  The caller
+            // (e.g. lower_local_decl) knows whether it provided the alloca.
+            (sret_alloca, current_block)
         } else {
             let cv = self.emit(current_block, Instruction::Call(callee_name.clone(), arg_vals));
             (cv, current_block)
@@ -1753,7 +1769,16 @@ impl<'a> Lowerer<'a> {
                 let (struct_ptr, end_blk) = self.lower_expr_into(ptr_node, blk);
                 let field_idx = self.guess_field_index(&field_name);
 
-                self.emit(end_blk, Instruction::FieldAddr(struct_ptr, field_idx, None))
+                // Resolve the struct type from the pointer's pointee.
+                let struct_ty = self.resolve_expr_type(ptr_node).and_then(|ty| {
+                    match &ty {
+                        IrType::Ptr(pointee) => Some((**pointee).clone()),
+                        IrType::Struct { .. } => Some(ty.clone()),
+                        _ => None,
+                    }
+                });
+
+                self.emit(end_blk, Instruction::FieldAddr(struct_ptr, field_idx, struct_ty))
             }
             AST_SAFU => {
                 // array[index] — compute element address via GEP.
@@ -1859,8 +1884,17 @@ impl<'a> Lowerer<'a> {
         let base_ptr = self.lower_lvalue(struct_node, blk);
         let field_idx = self.guess_field_index(&field_name);
 
+        // Try to get the struct type for correct field offset computation.
+        let struct_ty = self.resolve_expr_type(struct_node).and_then(|ty| {
+            match &ty {
+                IrType::Ptr(pointee) => Some((**pointee).clone()),
+                IrType::Struct { .. } => Some(ty.clone()),
+                _ => None,
+            }
+        });
+
         // Compute address of field, then load with correct type.
-        let field_ptr = self.emit(blk, Instruction::FieldAddr(base_ptr, field_idx, None));
+        let field_ptr = self.emit(blk, Instruction::FieldAddr(base_ptr, field_idx, struct_ty));
         let val = self.emit(blk, Instruction::Load(field_ty, field_ptr));
         (val, blk)
     }
@@ -2000,9 +2034,29 @@ impl<'a> Lowerer<'a> {
     /// Guess a field index from a field name using a trivial hash.
     /// In a production compiler this would be replaced by proper type
     /// resolution during semantic analysis.
-    fn guess_field_index(&self, _name: &str) -> usize {
-        // Placeholder: LLVM's GEP just needs a consistent index — the backend
-        // computes the actual byte offset from the struct layout.
+    fn guess_field_index(&self, name: &str) -> usize {
+        // Search the module's registered types for a struct that contains
+        // a field with the given name.
+        for (_, ty) in &self.types {
+            if let IrType::Struct { fields, .. } = ty {
+                if let Some(idx) = fields.iter().position(|(n, _)| n == name) {
+                    return idx;
+                }
+            }
+        }
+        // Fallback: if the field name is also a struct name, field 0.
+        0
+    }
+
+    /// Return the byte offset of a named field within a struct type.
+    fn field_byte_offset(struct_ty: &IrType, field_name: &str) -> usize {
+        if let IrType::Struct { fields, .. } = struct_ty {
+            let mut off = 0usize;
+            for (n, ty) in fields {
+                if n == field_name { return off; }
+                off += ty.width_bytes();
+            }
+        }
         0
     }
 }
@@ -2770,6 +2824,7 @@ mod tests {
         values_initial_len: 0,
             block_counter: 0,
             global_types: std::collections::HashMap::new(),
+            sret_dest: None,
         };
         assert_eq!(lr.node_aina(NO_NODE), 0);
         assert_eq!(lr.node_aina(-1), 0);
@@ -2798,6 +2853,7 @@ mod tests {
         values_initial_len: 0,
             block_counter: 0,
             global_types: std::collections::HashMap::new(),
+            sret_dest: None,
         };
         assert_eq!(lr.read_pool_name(0), "hello");
         assert_eq!(lr.read_pool_name(6), "world");
@@ -2829,6 +2885,7 @@ mod tests {
         values_initial_len: 0,
             block_counter: 0,
             global_types: std::collections::HashMap::new(),
+            sret_dest: None,
         };
         let bytes = lr.read_pool_bytes(0);
         assert_eq!(bytes, b"hello");
@@ -2858,6 +2915,7 @@ mod tests {
         values_initial_len: 0,
             block_counter: 0,
             global_types: std::collections::HashMap::new(),
+            sret_dest: None,
         };
         // The pool has no length prefix, so the 4 bytes [104, 97, 98, 97] (= "haba")
         // would be interpreted as a length.  That length is huge, so it falls
