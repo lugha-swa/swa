@@ -1264,20 +1264,31 @@ fn lower_terminator(
             Terminator::BrCond(cond, true_block, false_block) => {
                 let cond_val = vv(value_map, cond);
                 // Coerce condition to i1.
-                let cond_i1 = if LLVMGetTypeKind(LLVMTypeOf(cond_val)) as u32
-                    != LLVMTypeKind::Integer as u32
-                {
-                    cond_val
-                } else if LLVMGetIntTypeWidth(LLVMTypeOf(cond_val)) != 1 {
-                    LLVMBuildIntCast2(
-                        builder,
-                        cond_val,
-                        LLVMInt1Type(),
-                        0,
-                        c_str("tobool").as_ptr(),
-                    )
-                } else {
-                    cond_val
+                let cond_i1 = {
+                    let cond_ty = LLVMTypeOf(cond_val);
+                    let kind = LLVMGetTypeKind(cond_ty) as u32;
+                    if kind == LLVMTypeKind::Pointer as u32 {
+                        // Compare pointer to null → i1.
+                        LLVMBuildICmp(
+                            builder,
+                            LLVMIntPredicate::NE,
+                            cond_val,
+                            LLVMConstNull(LLVMPointerType(LLVMInt8Type(), 0)),
+                            c_str("ptr_to_bool").as_ptr(),
+                        )
+                    } else if kind != LLVMTypeKind::Integer as u32 {
+                        cond_val
+                    } else if LLVMGetIntTypeWidth(cond_ty) != 1 {
+                        LLVMBuildIntCast2(
+                            builder,
+                            cond_val,
+                            LLVMInt1Type(),
+                            0,
+                            c_str("tobool").as_ptr(),
+                        )
+                    } else {
+                        cond_val
+                    }
                 };
                 let then_bb = llvm_blocks.get(&true_block.0).copied();
                 let else_bb = llvm_blocks.get(&false_block.0).copied();
@@ -1461,7 +1472,19 @@ fn coerce_int_binop(
         let lhs_kind = LLVMGetTypeKind(lhs_ty) as u32;
         let rhs_kind = LLVMGetTypeKind(rhs_ty) as u32;
 
-        // Only coerce if both are integers.
+        // If one side is pointer and the other is integer (common for null checks),
+        // convert the integer to a pointer of the same type.
+        let lhs_is_ptr = lhs_kind == LLVMTypeKind::Pointer as u32;
+        let rhs_is_ptr = rhs_kind == LLVMTypeKind::Pointer as u32;
+        if lhs_is_ptr && !rhs_is_ptr {
+            let coerced = LLVMBuildIntToPtr(builder, rhs, lhs_ty, c_str("inttoptr").as_ptr());
+            return (lhs, coerced, lhs_ty);
+        }
+        if rhs_is_ptr && !lhs_is_ptr {
+            let coerced = LLVMBuildIntToPtr(builder, lhs, rhs_ty, c_str("inttoptr").as_ptr());
+            return (coerced, rhs, rhs_ty);
+        }
+        // Non-integer types — return as-is.
         if lhs_kind != LLVMTypeKind::Integer as u32
             || rhs_kind != LLVMTypeKind::Integer as u32
         {
