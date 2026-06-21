@@ -242,8 +242,10 @@ impl LlvmBackend {
                 let all_zero = global.bytes.iter().all(|&b| b == 0);
                 let init = if global.bytes.is_empty() || all_zero {
                     LLVMConstNull(ty)
-                } else if !is_string_like && global.bytes.len() <= 8 {
-                    // Small non-string globals: create a single integer constant.
+                } else if !is_string_like && matches!(global.bytes.len(), 1 | 2 | 4 | 8) {
+                    // Small non-string globals with integer type: create an
+                    // integer constant.  Other sizes (3,5,6,7) get array type
+                    // and must use ConstArray below.
                     let mut val: u64 = 0;
                     for (i, &b) in global.bytes.iter().enumerate() {
                         val |= (b as u64) << (i * 8);
