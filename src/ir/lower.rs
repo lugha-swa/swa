@@ -687,13 +687,20 @@ impl<'a> Lowerer<'a> {
 
         // Initialiser: parser stores in kulia (not tiga — tiga is array size above).
         let init_node = self.ast_kulia[glob_node as usize];
-        let _init_node = init_node;
 
-        // Evaluate initialiser if present.  Since we can't run code at compile
-        // time, we only support constant initialisers.  For now just create
-        // zero-initialised globals.
+        // Evaluate constant initialisers (integer literals only for now).
         let size = ty.width_bytes();
-        let bytes = vec![0u8; size];
+        let bytes = if init_node != NO_NODE && init_node >= 0
+            && self.node_aina(init_node) == AST_NAMBARI {
+            let val = self.ast_thamani[init_node as usize] as i128;
+            let mut b = vec![0u8; size];
+            for i in 0..size.min(8) {
+                b[i] = ((val >> (i * 8)) & 0xFF) as u8;
+            }
+            b
+        } else {
+            vec![0u8; size]
+        };
 
         self.globals.push(IrGlobal {
             name,
