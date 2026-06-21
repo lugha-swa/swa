@@ -174,6 +174,7 @@ pub enum Instruction {
     Alloca(IrType),
     Load(IrType, ValueId),  // (pointee_type, ptr)
     Store(ValueId, ValueId), // (value, ptr)
+    MemCopy(ValueId, ValueId, u64), // (dest_ptr, src_ptr, size_bytes)
 
     // -- heap ---------------------------------------------------------------
     HeapAlloc(ValueId), // size in bytes → ptr

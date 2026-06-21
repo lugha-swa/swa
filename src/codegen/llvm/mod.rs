@@ -544,12 +544,21 @@ fn lower_function(
 
             // Handle param stores for entry block.
             if block_idx == func.entry.0 {
+                let has_sret = func.return_class == IrReturnClass::HiddenPtr;
                 let mut alloca_idx = 0;
                 for (param_i, _param) in func.params.iter().enumerate() {
+                    // Skip sret hidden pointer — the lowerer does not emit
+                    // an Alloca for it, so the indices are offset by one.
+                    if has_sret && param_i == 0 {
+                        continue;
+                    }
                     let mut inst_pos = 0;
                     for inst in &block.instructions {
                         if matches!(inst, crate::ir::Instruction::Alloca(_)) {
-                            if alloca_idx == param_i {
+                            // Adjust for sret: sret param (index 0) has no alloca,
+                            // so alloca #0 matches param #1, alloca #1 matches param #2, etc.
+                            let target_param = if has_sret { alloca_idx + 1 } else { alloca_idx };
+                            if target_param == param_i {
                                 let alloc_vid = ValueId(param_count + func.values.len() + inst_pos);
                                 if let Some(&alloca) = value_map.get(&alloc_vid) {
                                     let param_val = LLVMGetParam(llvm_func, param_i as u32);
@@ -896,7 +905,6 @@ fn lower_instruction(
             }
             crate::ir::Instruction::Load(pointee_ty, ptr) => {
                 let p = v(value_map, ptr);
-                // For struct types, use opaque pointer load to avoid LLVM crashes.
                 let llvm_ty = match pointee_ty {
                     IrType::Struct { .. } => ptr_type(),
                     _ => ir_type_to_llvm(pointee_ty, struct_types),
@@ -906,8 +914,26 @@ fn lower_instruction(
             crate::ir::Instruction::Store(val, ptr) => {
                 let value = v(value_map, val);
                 let p = v(value_map, ptr);
-                // For struct values, store via opaque pointer to avoid crashes.
                 LLVMBuildStore(builder, value, p)
+            }
+            crate::ir::Instruction::MemCopy(dest, src, size) => {
+                let dest_ptr = v(value_map, dest);
+                let src_ptr = v(value_map, src);
+                let sz = *size;
+                // Emit a call to the C memcpy function.
+                let memcpy_name = c_str("memcpy");
+                let mut param_tys = [ptr_type(), ptr_type(), LLVMInt64Type()];
+                let fn_ty = LLVMFunctionType(ptr_type(), param_tys.as_mut_ptr(), 3, 0);
+                let callee = LLVMGetNamedFunction(module, memcpy_name.as_ptr());
+                let callee = if callee.is_null() {
+                    LLVMAddFunction(module, memcpy_name.as_ptr(), fn_ty)
+                } else {
+                    callee
+                };
+                let size_val = LLVMConstInt(LLVMInt64Type(), sz, 0);
+                let mut args = [dest_ptr, src_ptr, size_val];
+                LLVMBuildCall2(builder, fn_ty, callee, args.as_mut_ptr(), 3, std::ptr::null());
+                LLVMConstInt(LLVMInt8Type(), 0, 0)
             }
 
             // -- heap -------------------------------------------------------------
@@ -1052,13 +1078,21 @@ fn lower_instruction(
             }
             crate::ir::Instruction::FieldAddr(base, field_idx, struct_ty_opt) => {
                 let base_val = v(value_map, base);
-                let zero = LLVMConstInt(LLVMInt32Type(), 0, 0);
-                let idx = LLVMConstInt(LLVMInt32Type(), *field_idx as u64, 0);
-                let indices = [zero, idx];
-                // Always use byte-level GEP: offset by field_idx * 4 (assume i32 fields).
-                // This avoids crashes from struct type resolution mismatches.
-                let byte_off = LLVMConstInt(LLVMInt32Type(), (*field_idx * 4) as u64, 0);
-                let byte_indices = [byte_off];
+                // Compute the byte offset of the field.  If struct type info is
+                // available, sum field widths.  Otherwise fall back to field_idx*4.
+                let byte_off: u64 = match struct_ty_opt {
+                    Some(IrType::Struct { fields, .. }) => {
+                        let mut off: u64 = 0;
+                        for (fi, (_, fty)) in fields.iter().enumerate() {
+                            if fi == *field_idx as usize { break; }
+                            off += fty.width_bytes() as u64;
+                        }
+                        off
+                    }
+                    _ => (*field_idx * 4) as u64,
+                };
+                let byte_off_val = LLVMConstInt(LLVMInt32Type(), byte_off, 0);
+                let byte_indices = [byte_off_val];
                 LLVMBuildGEP2(builder, LLVMInt8Type(), base_val,
                     byte_indices.as_ptr() as *mut LLVMValueRef, 1,
                     c_str("fieldptr").as_ptr())
