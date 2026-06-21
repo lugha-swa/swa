@@ -1941,7 +1941,6 @@ mod tests {
     // -----------------------------------------------------------------------
 
     #[test]
-    #[ignore = "requires precise ValueId ordering for Store/HeapFree chain"]
     fn test_compile_heap_alloc_free() {
         let b = backend();
         let mut m = IrModule::new("heap_free_test");
@@ -1953,11 +1952,18 @@ mod tests {
         let entry = f.push_block(IrBlock::new("entry", Terminator::RetVoid));
         f.entry = entry;
 
-        let size = f.intern_const(Const::Int(32));
-        let val = f.intern_const(Const::Int(1));
-        f.blocks[entry.0].push(Instruction::HeapAlloc(size));   // ValueId(2)
-        f.blocks[entry.0].push(Instruction::Store(val, ValueId(2))); // ValueId(3)
-        f.blocks[entry.0].push(Instruction::HeapFree(ValueId(2)));   // ValueId(4)
+        // Compute ValueIds dynamically: constants first, then instructions.
+        let param_count = f.params.len();
+        let size_vid = f.intern_const(Const::Int(32));
+        let val_vid = f.intern_const(Const::Int(1));
+        let const_count = f.values.len();
+        let heap_alloc_vid = ValueId(param_count + const_count + 0);
+        let store_vid = ValueId(param_count + const_count + 1);
+        let _heap_free_vid = ValueId(param_count + const_count + 2);
+
+        f.blocks[entry.0].push(Instruction::HeapAlloc(size_vid));
+        f.blocks[entry.0].push(Instruction::Store(val_vid, heap_alloc_vid));
+        f.blocks[entry.0].push(Instruction::HeapFree(heap_alloc_vid));
         f.blocks[entry.0].terminator = Terminator::RetVoid;
 
         m.push_function(f);
