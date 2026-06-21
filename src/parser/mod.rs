@@ -191,7 +191,7 @@ impl<'a> Parser<'a> {
                     let mut first: i32 = NO_NODE; let mut prev: i32 = NO_NODE;
                     if !self.tokeni_ni(")") { loop {
                         let a = self.changanua_usemi();
-                        if prev == NO_NODE { first = a; } else { self.ast.kulia[prev as usize] = a; }
+                        if prev == NO_NODE { first = a; } else { self.ast.nne[prev as usize] = a; }
                         prev = a;
                         if self.tokeni_ni(",") { self.sogeza(); continue; } else { break; }
                     }}

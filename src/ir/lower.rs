@@ -1385,7 +1385,8 @@ impl<'a> Lowerer<'a> {
             String::new()
         };
 
-        // Evaluate arguments.  Parser chains args via ast_kulia, not ast_nne.
+        // Evaluate arguments.  Parser chains args via ast_nne to avoid
+        // conflicting with each arg node's own ast_kulia children.
         let mut arg_vals: Vec<ValueId> = Vec::new();
         let mut current_block = blk;
         let mut arg_node = first_arg;
@@ -1393,7 +1394,7 @@ impl<'a> Lowerer<'a> {
             let (arg_val, end_blk) = self.lower_expr_into(arg_node, current_block);
             arg_vals.push(arg_val);
             current_block = end_blk;
-            arg_node = self.ast_kulia[arg_node as usize];
+            arg_node = self.ast_nne[arg_node as usize];
         }
 
         // Check if the called function returns a struct (needs sret pointer).
