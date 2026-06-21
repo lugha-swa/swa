@@ -1,0 +1,89 @@
+husisha C::stdio
+husisha "msingi/msambazaji.swa"
+husisha "msingi/mteremko.swa"
+
+N8 chanzo_buf[524288];
+N32 chanzo_urefu = 0;
+
+W0 ongeza_faili(N8* njia) {
+    N8* hali = "r";
+    N8* f = fopen(njia, hali);
+    kama (f == tupu) {
+        andika("; KOSA: faili halifunguki: %s\n", njia);
+        rudisha;
+    }
+    N64 n = fread(chanzo_buf + chanzo_urefu, 1, 262144, f);
+    fclose(f);
+    chanzo_urefu = chanzo_urefu + n;
+}
+
+W0 ondoa_husisha() {
+    N32 i = 0;
+    N32 j = 0;
+    wakati (i < chanzo_urefu) {
+        N32 ni_husisha = 0;
+        // Only match "husisha" at column 0 (start of line).
+        // i == 0 means buffer start; chanzo_buf[i-1] == 10 means
+        // preceded by newline. This prevents false matches on
+        // mid-line occurrences like "// husisha" inside comments.
+        N32 ni_mwanzo_mstari = 0;
+        kama (i == 0) { ni_mwanzo_mstari = 1; }
+        sivyo {
+            kama (chanzo_buf[i-1] == 10) { ni_mwanzo_mstari = 1; }
+        }
+        kama (ni_mwanzo_mstari == 1) {
+            kama (chanzo_buf[i] == 104) {
+                kama (chanzo_buf[i+1] == 117) {
+                    kama (chanzo_buf[i+2] == 115) {
+                        kama (chanzo_buf[i+3] == 105) {
+                            kama (chanzo_buf[i+4] == 115) {
+                                kama (chanzo_buf[i+5] == 104) {
+                                    kama (chanzo_buf[i+6] == 97) {
+                                        ni_husisha = 1;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        kama (ni_husisha == 1) {
+            wakati (i < chanzo_urefu) {
+                kama (chanzo_buf[i] == 10) {
+                    i = i + 1;
+                    vunja;
+                }
+                i = i + 1;
+            }
+        }
+        kama (ni_husisha == 0) {
+            chanzo_buf[j] = chanzo_buf[i];
+            j = j + 1;
+            i = i + 1;
+        }
+    }
+    chanzo_urefu = j;
+    chanzo_buf[j] = 0;
+}
+
+N32 main(N32 argc, N8** argv) {
+    kama (argc < 2) {
+        andika("matumizi: stage1 faili.swa\n");
+        rudisha 1;
+    }
+    ongeza_faili("msingi/kumbukumbu.swa");
+    ongeza_faili("msingi/mfuatano.swa");
+    ongeza_faili("msingi/msomaji.swa");
+    ongeza_faili(argv[1]);
+    ondoa_husisha();
+    chanzo_buf[chanzo_urefu] = 0;
+    Msambazaji p = msambazaji_mpya(chanzo_buf, chanzo_urefu);
+    N32 mzizi = changanua(&p);
+    kama (p.kosa != 0) {
+        andika("; KOSA: msambazaji alishindwa\n");
+        rudisha 1;
+    }
+    teremsha(mzizi);
+    rudisha 0;
+}
