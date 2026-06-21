@@ -974,7 +974,7 @@ impl<'a> Lowerer<'a> {
     /// * `ast_tiga[node]`    → loop body
     fn lower_while(&mut self, node: i32) -> BlockId {
         let cond_node = self.ast_kushoto[node as usize];
-        let body_node = self.ast_tiga[node as usize];
+        let body_node = self.ast_kulia[node as usize];
 
         let header_blk = self.new_block("while.header");
         let body_blk = self.new_block("while.body");
@@ -1021,7 +1021,7 @@ impl<'a> Lowerer<'a> {
         self.ensure_br(last, header_blk);
 
         self.loops.pop();
-        exit_blk
+        header_blk
     }
 
     /// Lower `KIPINDI` (for loop): `kipindi (init; cond; step) { body }`.
@@ -1089,7 +1089,7 @@ impl<'a> Lowerer<'a> {
         self.set_terminator(step_end, Terminator::Br(header_blk));
 
         self.loops.pop();
-        exit_blk
+        header_blk
     }
 
     /// Lower `RUDISHA` (return): `rudisha [expr]`.
