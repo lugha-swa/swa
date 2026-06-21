@@ -1628,14 +1628,25 @@ impl<'a> Lowerer<'a> {
         // Field name is stored on the dot-access node itself via hifadhi_jina.
         let field_name = self.read_pool_name(self.ast_jina_off[node as usize]);
 
+        // Look up the struct variable's type from the scope to find the field type.
+        let field_ty = if struct_node >= 0 && self.ast_aina[struct_node as usize] == AST_KITAMBULISHO {
+            let struct_name = self.read_pool_name(self.ast_jina_off[struct_node as usize]);
+            self.lookup(&struct_name).and_then(|info| {
+                if let IrType::Struct { fields, .. } = &info.ty {
+                    fields.iter().find(|(n, _)| n == &field_name).map(|(_, t)| t.clone())
+                } else { None }
+            }).unwrap_or(IrType::I32)
+        } else {
+            IrType::I32
+        };
+
         // First, get the address of the struct (as lvalue).
         let base_ptr = self.lower_lvalue(struct_node, blk);
         let field_idx = self.guess_field_index(&field_name);
 
-        // Compute address of field, then load.
+        // Compute address of field, then load with correct type.
         let field_ptr = self.emit(blk, Instruction::FieldAddr(base_ptr, field_idx, None));
-        // Load I32 as default — in a real compiler we'd track the field type.
-        let val = self.emit(blk, Instruction::Load(IrType::I32, field_ptr));
+        let val = self.emit(blk, Instruction::Load(field_ty, field_ptr));
         (val, blk)
     }
 
