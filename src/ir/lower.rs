@@ -1863,9 +1863,9 @@ impl<'a> Lowerer<'a> {
         let arr_ty = self.resolve_expr_type(array_node);
         let elem_ty = arr_ty.and_then(|ty| {
             match &ty {
-                // Pointer: decay to pointee type (e.g. N8** → N8* → N8)
                 IrType::Ptr(pointee) => Some((**pointee).clone()),
-                _ => None,
+                // For non-pointer types (e.g. I8 for N8 arrays), use the type directly.
+                other => Some(other.clone()),
             }
         }).unwrap_or(IrType::I32);
 
