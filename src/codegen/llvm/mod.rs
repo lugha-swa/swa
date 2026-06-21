@@ -1355,9 +1355,10 @@ fn ir_type_to_llvm(
         match ty {
             IrType::Void => LLVMVoidType(),
 
-            IrType::I8 | IrType::U8 | IrType::B8 | IrType::W8 | IrType::B1 => {
+            IrType::I8 | IrType::U8 | IrType::B8 | IrType::W8 => {
                 LLVMInt8Type()
             }
+            IrType::B1 => LLVMInt1Type(),
             IrType::I16 | IrType::U16 | IrType::B16 | IrType::W16 => {
                 LLVMInt16Type()
             }
