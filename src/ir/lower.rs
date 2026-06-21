@@ -1386,7 +1386,27 @@ impl<'a> Lowerer<'a> {
 
     fn lower_string_literal(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let offset = self.ast_jina_off[node as usize];
-        let bytes = self.read_pool_bytes(offset);
+        let raw_bytes = self.read_pool_bytes(offset);
+        // Process escape sequences: \n \t \r \\ \" \0
+        let mut bytes: Vec<u8> = Vec::with_capacity(raw_bytes.len());
+        let mut i = 0;
+        while i < raw_bytes.len() {
+            if raw_bytes[i] == b'\\' && i + 1 < raw_bytes.len() {
+                i += 1;
+                match raw_bytes[i] {
+                    b'n' => bytes.push(b'\n'),
+                    b't' => bytes.push(b'\t'),
+                    b'r' => bytes.push(b'\r'),
+                    b'\\' => bytes.push(b'\\'),
+                    b'"' => bytes.push(b'"'),
+                    b'0' => bytes.push(b'\0'),
+                    other => { bytes.push(b'\\'); bytes.push(other); }
+                }
+            } else {
+                bytes.push(raw_bytes[i]);
+            }
+            i += 1;
+        }
         // Generate a label and record the string (the global is emitted later).
         let label = format!("@str.{}", self.strings.len());
         self.strings.push((label.clone(), bytes));
