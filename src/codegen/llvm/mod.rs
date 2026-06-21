@@ -1403,26 +1403,26 @@ fn ir_type_to_llvm(
         match ty {
             IrType::Void => LLVMVoidType(),
 
-            IrType::I8 | IrType::U8 | IrType::B8 | IrType::W8 => {
+            IrType::I8 | IrType::A8 | IrType::B8 | IrType::W8 => {
                 LLVMInt8Type()
             }
             IrType::B1 => LLVMInt1Type(),
-            IrType::I16 | IrType::U16 | IrType::B16 | IrType::W16 => {
+            IrType::I16 | IrType::A16 | IrType::B16 | IrType::W16 => {
                 LLVMInt16Type()
             }
             IrType::F16 => LLVMHalfType(),
 
-            IrType::I32 | IrType::U32 | IrType::B32 | IrType::W32 => {
+            IrType::I32 | IrType::A32 | IrType::B32 | IrType::W32 => {
                 LLVMInt32Type()
             }
             IrType::F32 => LLVMFloatType(),
 
-            IrType::I64 | IrType::U64 | IrType::B64 | IrType::W64 => {
+            IrType::I64 | IrType::A64 | IrType::B64 | IrType::W64 => {
                 LLVMInt64Type()
             }
             IrType::F64 => LLVMDoubleType(),
 
-            IrType::I128 | IrType::U128 => LLVMInt128Type(),
+            IrType::I128 | IrType::A128 => LLVMInt128Type(),
             IrType::F128 => LLVMFP128Type(),
 
             IrType::Ptr(_) | IrType::FnPtr { .. } => ptr_type(),
@@ -2357,11 +2357,11 @@ mod tests {
             IrType::I32,
             IrType::I64,
             IrType::I128,
-            IrType::U8,
-            IrType::U16,
-            IrType::U32,
-            IrType::U64,
-            IrType::U128,
+            IrType::A8,
+            IrType::A16,
+            IrType::A32,
+            IrType::A64,
+            IrType::A128,
             IrType::F16,
             IrType::F32,
             IrType::F64,
