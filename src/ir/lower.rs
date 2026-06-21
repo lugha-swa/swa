@@ -667,17 +667,23 @@ impl<'a> Lowerer<'a> {
         } else {
             self.read_pool_name(self.ast_jina_off[glob_node as usize])
         };
-        let ty = self.read_type_from_thamani(glob_node);
+        let base_ty = self.read_type_from_thamani(glob_node);
+
+        // Check for array size stored in tiga (set by parser for Type name[size]).
+        let saizi_node = self.ast_tiga[glob_node as usize];
+        let ty = if saizi_node != NO_NODE && self.node_aina(saizi_node) == AST_NAMBARI {
+            let count = self.ast_thamani[saizi_node as usize] as u32;
+            IrType::Array { element: Box::new(base_ty), count: count as u64 }
+        } else {
+            base_ty
+        };
+
         if !name.is_empty() {
             self.global_types.insert(name.clone(), ty.clone());
         }
 
-        // Initialiser: parser stores in kulia; fallback to tiga (test format).
-        let init_node = if self.ast_kulia[glob_node as usize] != NO_NODE {
-            self.ast_kulia[glob_node as usize]
-        } else {
-            self.ast_tiga[glob_node as usize]
-        };
+        // Initialiser: parser stores in kulia (not tiga — tiga is array size above).
+        let init_node = self.ast_kulia[glob_node as usize];
         let _init_node = init_node;
 
         // Evaluate initialiser if present.  Since we can't run code at compile
@@ -1266,6 +1272,28 @@ impl<'a> Lowerer<'a> {
 // ============================================================================
 
 impl<'a> Lowerer<'a> {
+    /// Scale an array index by the element width so that GEP byte-offset
+    /// indexing produces the correct element address.
+    ///
+    /// Uses repeated addition to avoid interning new constants (which would
+    /// shift `values_initial_len` and break ValueId mapping).
+    fn scale_index(&mut self, elem_ty: &IrType, raw_idx: ValueId, blk: BlockId) -> ValueId {
+        match elem_ty.width_bytes() {
+            1 => raw_idx,
+            2 => self.emit(blk, Instruction::Add(raw_idx, raw_idx)),
+            4 => {
+                let x2 = self.emit(blk, Instruction::Add(raw_idx, raw_idx));
+                self.emit(blk, Instruction::Add(x2, x2))
+            }
+            8 => {
+                let x2 = self.emit(blk, Instruction::Add(raw_idx, raw_idx));
+                let x4 = self.emit(blk, Instruction::Add(x2, x2));
+                self.emit(blk, Instruction::Add(x4, x4))
+            }
+            _ => raw_idx,
+        }
+    }
+
     /// Lower an expression node.
     ///
     /// Returns `(ValueId, BlockId)` where `ValueId` holds the expression result
@@ -1430,10 +1458,9 @@ impl<'a> Lowerer<'a> {
             (val, blk)
         } else if let Some(gty) = self.global_types.get(&name).cloned() {
             let addr = self.emit(blk, Instruction::GlobalAddr(name.clone()));
-            // For array types (I8 = byte array like N8 chanzo_buf[524288]),
-            // return the pointer directly (array-to-pointer decay).
+            // For array types, return the pointer directly (array-to-pointer decay).
             // For scalar types (I32 = N32 chanzo_urefu), load the value.
-            if gty == IrType::I8 || gty == IrType::A8 {
+            if matches!(&gty, IrType::Array { .. }) {
                 (addr, blk)
             } else {
                 let val = self.emit(blk, Instruction::Load(gty, addr));
@@ -1739,12 +1766,24 @@ impl<'a> Lowerer<'a> {
                 let arr_ty = self.resolve_expr_type(array_node);
                 let is_ptr = matches!(&arr_ty, Some(IrType::Ptr(_)));
                 let ary_ptr = if is_ptr {
-                    let loaded_ty = arr_ty.unwrap();
+                    let loaded_ty = arr_ty.clone().unwrap();
                     self.emit(blk, Instruction::Load(loaded_ty, raw_ptr))
                 } else {
                     raw_ptr
                 };
-                let (idx_val, end_blk) = self.lower_expr_into(index_node, blk);
+                let (raw_idx, end_blk) = self.lower_expr_into(index_node, blk);
+
+                // Determine element type for index scaling.
+                let elem_ty = arr_ty.and_then(|ty| {
+                    match &ty {
+                        IrType::Ptr(pointee) => Some((**pointee).clone()),
+                        IrType::Array { element, .. } => Some((**element).clone()),
+                        other => Some(other.clone()),
+                    }
+                }).unwrap_or(IrType::I32);
+
+                // Scale index by element width — GEP uses byte offsets.
+                let idx_val = self.scale_index(&elem_ty, raw_idx, end_blk);
 
                 self.emit(end_blk, Instruction::Gep(ary_ptr, vec![idx_val]))
             }
@@ -1877,16 +1916,19 @@ impl<'a> Lowerer<'a> {
         } else {
             raw_ptr
         };
-        let (idx_val, end_blk) = self.lower_expr_into(index_node, blk);
+        let (raw_idx, end_blk) = self.lower_expr_into(index_node, blk);
 
         // Determine element type from the array's declared type.
         let elem_ty = arr_ty.and_then(|ty| {
             match &ty {
                 IrType::Ptr(pointee) => Some((**pointee).clone()),
-                // For non-pointer types (e.g. I8 for N8 arrays), use the type directly.
+                IrType::Array { element, .. } => Some((**element).clone()),
                 other => Some(other.clone()),
             }
         }).unwrap_or(IrType::I32);
+
+        // Scale index by element width — GEP uses byte offsets.
+        let idx_val = self.scale_index(&elem_ty, raw_idx, end_blk);
 
         // GEP to element, then load.
         let elem_ptr = self.emit(end_blk, Instruction::Gep(ary_ptr, vec![idx_val]));

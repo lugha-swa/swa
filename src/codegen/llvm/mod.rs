@@ -1654,13 +1654,32 @@ fn pre_declare_libc(module: LLVMModuleRef) {
             }
         }
 
-        // andika: Swa printf-alias — i32 (ptr, ...)
+        // __chkstk: stack-probing stub needed by MinGW for large frames.
+        {
+            let name = c_str("__chkstk");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let fn_ty = LLVMFunctionType(LLVMVoidType(), std::ptr::null_mut(), 0, 0);
+                let func = LLVMAddFunction(module, name.as_ptr(), fn_ty);
+                // Minimal body: just return (stack probing skipped).
+                let bb = LLVMAppendBasicBlockInContext(
+                    LLVMGetModuleContext(module),
+                    func,
+                    c_str("entry").as_ptr(),
+                );
+                let builder = LLVMCreateBuilder();
+                LLVMPositionBuilderAtEnd(builder, bb);
+                LLVMBuildRetVoid(builder);
+                LLVMDisposeBuilder(builder);
+            }
+        }
+
+        // andika: declared as separate function; linker maps to printf.
         {
             let name = c_str("andika");
             if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
                 let mut param_tys = [ptr_type()];
                 let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 1, 1);
-                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+                unsafe { LLVMAddFunction(module, name.as_ptr(), fn_ty); }
             }
         }
 

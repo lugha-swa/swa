@@ -31,9 +31,30 @@ fn try_link(obj: &Path, exe: &Path) -> Option<i32> {
     };
     // Use GNU target on Windows — matches the IR triple set by the backend.
     let target = if cfg!(windows) { "x86_64-pc-windows-gnu" } else { "x86_64-unknown-linux-gnu" };
+    // Find libgcc for __chkstk (large stack frames from big arrays).
+    let gcc_base = if cfg!(windows) {
+        std::path::PathBuf::from("C:\\ProgramData\\mingw64\\mingw64\\lib\\gcc\\x86_64-w64-mingw32")
+    } else {
+        std::path::PathBuf::from("/usr/lib/gcc/x86_64-linux-gnu")
+    };
+    let gcc_lib = if gcc_base.exists() {
+        std::fs::read_dir(&gcc_base).ok()
+            .and_then(|d| {
+                d.filter_map(|e| e.ok())
+                    .filter(|e| e.path().is_dir())
+                    .map(|e| e.path())
+                    .next()
+            })
+            .unwrap_or(gcc_base.clone())
+    } else {
+        gcc_base.clone()
+    };
     let status = std::process::Command::new(clang)
         .arg("-target").arg(target)
         .arg(obj).arg("-o").arg(exe)
+        .arg("-L").arg(&gcc_lib)
+        .arg("-lgcc")  // for __chkstk (large stack frames)
+        .arg("-Wl,--defsym,andika=printf")  // map Swa printf to libc printf
         .status()
         .ok()?;
     Some(status.code().unwrap_or(1))
