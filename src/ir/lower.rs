@@ -1385,6 +1385,17 @@ impl<'a> Lowerer<'a> {
             String::new()
         };
 
+        // Handle builtins that look like function calls.
+        if callee_name == "ukubwa" {
+            let (_, end_blk) = if first_arg != NO_NODE && first_arg >= 0 {
+                self.lower_expr_into(first_arg, blk)
+            } else {
+                (self.const_val(Const::Int(0)), blk)
+            };
+            let size = self.const_val(Const::Int(4)); // default N32 size
+            return (size, end_blk);
+        }
+
         // Evaluate arguments.  Parser chains args via ast_nne to avoid
         // conflicting with each arg node's own ast_kulia children.
         let mut arg_vals: Vec<ValueId> = Vec::new();
