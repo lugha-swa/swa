@@ -236,7 +236,8 @@ impl LlvmBackend {
                 let name_c = c_str(&global.name);
                 let llvm_global = LLVMAddGlobal(module, ty, name_c.as_ptr());
 
-                let init = if global.bytes.is_empty() {
+                let all_zero = global.bytes.iter().all(|&b| b == 0);
+                let init = if global.bytes.is_empty() || all_zero {
                     LLVMConstNull(ty)
                 } else if !is_string_like && global.bytes.len() <= 8 {
                     // Small non-string globals: create a single integer constant.
