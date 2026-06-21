@@ -223,14 +223,24 @@ pub fn lower(
         root_kind
     );
 
-    // Walk children via sibling chain starting at ast_kushoto[root].
+    // Pre-pass: register all struct types first, so function parameter types
+    // can resolve struct references via self.types.
+    let mut child = lr.ast_kushoto[root as usize];
+    while child != NO_NODE {
+        if lr.node_aina(child) == AST_MUUNDO {
+            lr.lower_muundo(child);
+        }
+        child = lr.ast_nne[child as usize];
+    }
+
+    // Main pass: lower functions and globals (structs already done).
     let mut child = lr.ast_kushoto[root as usize];
     while child != NO_NODE {
         let kind = lr.node_aina(child);
         match kind {
             AST_KAZI => lr.lower_function(child),
             AST_TANGAZO_ULIMWENGU => lr.lower_global(child),
-            AST_MUUNDO => lr.lower_muundo(child),
+            AST_MUUNDO => {} // already done in pre-pass
             other => {
                 let _ = other;
             }
