@@ -567,32 +567,7 @@ fn lower_function(
             }
         }
 
-        // -- 8. Lower non-entry blocks ----------------------------------------
-        for (block_idx, _block) in func.blocks.iter().enumerate() {
-            if block_idx == func.entry.0 {
-                continue; // already lowered
-            }
-
-            let bb = llvm_blocks[&block_idx];
-            LLVMPositionBuilderAtEnd(builder, bb);
-
-            for (inst_idx, inst) in _block.instructions.iter().enumerate() {
-                // Instruction values are numbered: after constants, sequentially
-                // across all instructions in all blocks. Compute the global index.
-                let global_inst_idx: usize = func.blocks[..block_idx]
-                    .iter()
-                    .map(|b| b.instructions.len())
-                    .sum::<usize>()
-                    + inst_idx;
-                let val_id = ValueId(param_count + func.values.len() + global_inst_idx);
-
-                let llvm_val =
-                    lower_instruction(inst, builder, &value_map, module, struct_types, &fn_return_types);
-                value_map.insert(val_id, llvm_val);
-            }
-        }
-
-        // -- 9. Lower terminators for all blocks ------------------------------
+        // -- 8. Lower terminators for all blocks ------------------------------
         for (block_idx, block) in func.blocks.iter().enumerate() {
             let bb = llvm_blocks[&block_idx];
             LLVMPositionBuilderAtEnd(builder, bb);
