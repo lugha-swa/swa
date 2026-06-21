@@ -916,6 +916,20 @@ fn lower_instruction(
                 let p = v(value_map, ptr);
                 LLVMBuildStore(builder, value, p)
             }
+            crate::ir::Instruction::StoreTyped(val, ptr, store_ty) => {
+                let value = v(value_map, val);
+                let p = v(value_map, ptr);
+                // Truncate the value to fit the field type if needed.
+                let llvm_ty = ir_type_to_llvm(store_ty, struct_types);
+                let val_ty = LLVMTypeOf(value);
+                let trunc = if LLVMGetTypeKind(val_ty) as u32 == LLVMTypeKind::Integer as u32
+                    && LLVMGetIntTypeWidth(val_ty) > LLVMGetIntTypeWidth(llvm_ty) {
+                    LLVMBuildTrunc(builder, value, llvm_ty, c_str("trunc").as_ptr())
+                } else {
+                    value
+                };
+                LLVMBuildStore(builder, trunc, p)
+            }
             crate::ir::Instruction::MemCopy(dest, src, size) => {
                 // Use the LLVM memcpy intrinsic: @llvm.memcpy.p0.p0.i64
                 let dest_ptr = v(value_map, dest);

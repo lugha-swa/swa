@@ -916,8 +916,8 @@ impl<'a> Lowerer<'a> {
 
         let (rhs_val, end_blk) = self.lower_expr_into(rhs_node, blk);
 
-        // If sret_dest was consumed by lower_call (take returned Some),
-        // the struct was written directly to ptr and no Store is needed.
+        // If sret_dest was consumed by lower_call, the struct was written
+        // directly to ptr and no Store is needed.
         let sret_consumed = is_struct_assign && self.sret_dest.is_none();
         if !sret_consumed {
             self.emit(end_blk, Instruction::Store(rhs_val, ptr));
@@ -1186,9 +1186,7 @@ impl<'a> Lowerer<'a> {
         let blk = self.new_block("decl");
 
         // If this is the return-value struct of an sret function, use the
-        // sret pointer directly instead of allocating a local slot.  This
-        // way the struct is built directly in the caller's frame and no
-        // copy is needed on return.
+        // sret pointer directly instead of allocating a local slot.
         let alloc = if matches!(&var_ty, IrType::Struct { .. })
             && self.func.sret_value_id.is_some()
         {
@@ -1199,8 +1197,8 @@ impl<'a> Lowerer<'a> {
 
         // Evaluate initialiser and store.
         if init_node != NO_NODE && init_node >= 0 {
-            // For struct-typed variables, provide the alloca directly as the
-            // sret destination so the call writes straight into the variable.
+            // For struct vars, provide the alloca as sret_dest so calls
+            // write directly to the destination (no Load+Store needed).
             if matches!(&var_ty, IrType::Struct { .. }) {
                 self.sret_dest = Some(alloc);
             }
