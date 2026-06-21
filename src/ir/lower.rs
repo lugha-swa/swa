@@ -1852,17 +1852,19 @@ mod tests {
     fn test_simple_function_no_body() {
         // kazi kuu() { } → function with no body
         let mut b = AstBuilder::new();
-        let name_off = b.pool_name("kuu");
-        let ret_off = b.pool_name("W0"); // Void return
+        let jina_kuu = b.pool_name("kuu");
+        // Encoded type for W0 (Void): familia=5, upana=0, mshale=0 → (5<<8)|0 = 1280
+        let w0_enc: i32 = 1280;
 
+        let name_node = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_kuu);
         let func_node = b.node(
             AST_KAZI,
-            NO_NODE,  // kushoto
-            NO_NODE,  // kulia = no params
-            NO_NODE,  // tiga = no body
-            NO_NODE,  // nne
-            ret_off,  // thamani = return type "W0"
-            name_off, // jina_off = "kuu"
+            name_node, // kushoto = name node
+            NO_NODE,   // kulia = no params
+            NO_NODE,   // tiga = no body
+            NO_NODE,   // nne
+            w0_enc,    // thamani = encoded W0 type
+            0,         // jina_off unused on func
         );
 
         let (aina, kushoto, kulia, tiga, nne, thamani, jina_off, pool, idadi) =
@@ -1882,33 +1884,36 @@ mod tests {
     fn test_function_with_params() {
         // kazi jumlisha(a: N32, b: N32): N32 { ... }
         let mut b = AstBuilder::new();
-        let name_off = b.pool_name("jumlisha");
-        let ret_off = b.pool_name("N32");
-        let n32_off = b.pool_name("N32");
+        let jina_jumlisha = b.pool_name("jumlisha");
+        // Encoded type for N32: familia=1, upana=32, mshale=0 → (1<<8)|32 = 288
+        let n32_enc: i32 = 288;
 
-        // Parameter nodes: each has jina_off for name, thamani for type offset.
+        // Parameter nodes: each has jina_off for name, thamani for type encoding.
+        let jina_a = b.pool_name("a");
         let param_a = b.node(
             0, // dummy kind for param
             NO_NODE, NO_NODE, NO_NODE, NO_NODE,
-            n32_off,                    // thamani = "N32"
-            b.pool_name("a"),           // jina_off = "a"
+            n32_enc,                    // thamani = encoded N32 type
+            jina_a,                     // jina_off = "a"
         );
+        let jina_b = b.pool_name("b");
         let param_b = b.node(
             0, NO_NODE, NO_NODE, NO_NODE, NO_NODE,
-            n32_off,
-            b.pool_name("b"),
+            n32_enc,
+            jina_b,
         );
-        // Chain params: a → b via nne.
-        b.nne[param_a as usize] = param_b;
+        // Chain params: a → b via kulia (matching parser convention).
+        b.kulia[param_a as usize] = param_b;
 
+        let name_node = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_jumlisha);
         let func_node = b.node(
             AST_KAZI,
-            NO_NODE,     // kushoto
+            name_node,   // kushoto = name node
             param_a,     // kulia = first param
             NO_NODE,     // tiga = no body
             NO_NODE,     // nne
-            ret_off,     // thamani = "N32"
-            name_off,    // jina_off = "jumlisha"
+            n32_enc,     // thamani = encoded N32 type
+            0,           // jina_off unused on func
         );
 
         let (aina, kushoto, kulia, tiga, nne, thamani, jina_off, pool, idadi) =
@@ -1928,7 +1933,7 @@ mod tests {
     fn test_function_with_return_expr() {
         // kazi tatu(): N32 { rudisha 3 }
         let mut b = AstBuilder::new();
-        let name_off = b.pool_name("tatu");
+        let jina_tatu = b.pool_name("tatu");
         let ret_off = b.pool_name("N32");
 
         // Integer literal "3": AST_NAMBARI, thamani = 3
@@ -1937,14 +1942,15 @@ mod tests {
         // Return statement: AST_RUDISHA, kushoto = lit
         let ret_stmt = b.node(AST_RUDISHA, lit, NO_NODE, NO_NODE, NO_NODE, 0, 0);
 
+        let name_node = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_tatu);
         let func_node = b.node(
             AST_KAZI,
-            NO_NODE,    // kushoto
+            name_node,  // kushoto = name node
             NO_NODE,    // kulia = no params
             ret_stmt,   // tiga = body (return stmt)
             NO_NODE,    // nne
             ret_off,    // thamani = "N32"
-            name_off,   // jina_off = "tatu"
+            0,          // jina_off unused on func
         );
 
         let (aina, kushoto, kulia, tiga, nne, thamani, jina_off, pool, idadi) =
@@ -1972,7 +1978,7 @@ mod tests {
         //   rudisha x;
         // }
         let mut b = AstBuilder::new();
-        let name_off = b.pool_name("hesabu");
+        let jina_hesabu = b.pool_name("hesabu");
         let ret_off = b.pool_name("N32");
         let n32_off = b.pool_name("N32");
 
@@ -2018,14 +2024,15 @@ mod tests {
         b.nne[decl as usize] = assign;
         b.nne[assign as usize] = ret_stmt;
 
+        let name_node = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_hesabu);
         let func_node = b.node(
             AST_KAZI,
-            NO_NODE,    // kushoto
+            name_node,  // kushoto = name node
             NO_NODE,    // kulia = no params
             decl,       // tiga = first stmt in body
             NO_NODE,    // nne
             ret_off,    // thamani = "N32"
-            name_off,   // jina_off = "hesabu"
+            0,          // jina_off unused on func
         );
 
         let (aina, kushoto, kulia, tiga, nne, thamani, jina_off, pool, idadi) =
@@ -2055,12 +2062,13 @@ mod tests {
         //   rudisha 0;
         // }
         let mut b = AstBuilder::new();
-        let name_off = b.pool_name("kadirifu");
+        let jina_kadirifu = b.pool_name("kadirifu");
         let ret_off = b.pool_name("N32");
         let n32_off = b.pool_name("N32");
 
         // Param x
-        let param_x = b.node(0, NO_NODE, NO_NODE, NO_NODE, NO_NODE, n32_off, b.pool_name("x"));
+        let jina_x = b.pool_name("x");
+        let param_x = b.node(0, NO_NODE, NO_NODE, NO_NODE, NO_NODE, n32_off, jina_x);
 
         // Literals
         let lit1 = b.node(AST_NAMBARI, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 1, 0);
@@ -2084,14 +2092,15 @@ mod tests {
             NO_NODE, 0, 0,
         );
 
+        let name_node = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_kadirifu);
         let func_node = b.node(
             AST_KAZI,
-            NO_NODE,    // kushoto
+            name_node,  // kushoto = name node
             param_x,    // kulia = first param
             if_stmt,    // tiga = body
             NO_NODE,    // nne
             ret_off,    // thamani = "N32"
-            name_off,   // jina_off = "kadirifu"
+            0,          // jina_off unused on func
         );
 
         let (aina, kushoto, kulia, tiga, nne, thamani, jina_off, pool, idadi) =
@@ -2230,9 +2239,10 @@ mod tests {
         let ret_off = b.pool_name("W0");
 
         // Callee identifier "chapisha"
+        let jina_chapisha = b.pool_name("chapisha");
         let callee = b.node(
             AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0,
-            b.pool_name("chapisha"),
+            jina_chapisha,
         );
 
         let call = b.node(AST_WITO, callee, NO_NODE, NO_NODE, NO_NODE, 0, 0);
@@ -2337,8 +2347,9 @@ mod tests {
     fn test_global_variable() {
         // Global: N32 KIKOMO = 0;
         let mut b = AstBuilder::new();
-        let name_off = b.pool_name("KIKOMO");
-        let n32_off = b.pool_name("N32");
+        let jina_kikomo = b.pool_name("KIKOMO");
+        // Encoded type for N32: familia=1, upana=32, mshale=0 → (1<<8)|32 = 288
+        let n32_enc: i32 = 288;
 
         let global = b.node(
             AST_TANGAZO_ULIMWENGU,
@@ -2346,8 +2357,8 @@ mod tests {
             NO_NODE,    // kulia
             NO_NODE,    // tiga = no init
             NO_NODE,    // nne
-            n32_off,    // thamani = "N32"
-            name_off,   // jina_off = "KIKOMO"
+            n32_enc,    // thamani = encoded N32 type
+            jina_kikomo,// jina_off = "KIKOMO"
         );
 
         let (aina, kushoto, kulia, tiga, nne, thamani, jina_off, pool, idadi) =
@@ -2408,13 +2419,17 @@ mod tests {
         let mut b = AstBuilder::new();
         let w0_off = b.pool_name("W0");
 
+        let jina_a2 = b.pool_name("a");
+        let name_a = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_a2);
         let func_a = b.node(
-            AST_KAZI, NO_NODE, NO_NODE, NO_NODE, NO_NODE,
-            w0_off, b.pool_name("a"),
+            AST_KAZI, name_a, NO_NODE, NO_NODE, NO_NODE,
+            w0_off, 0,
         );
+        let jina_b2 = b.pool_name("b");
+        let name_b = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_b2);
         let func_b = b.node(
-            AST_KAZI, NO_NODE, NO_NODE, NO_NODE, NO_NODE,
-            w0_off, b.pool_name("b"),
+            AST_KAZI, name_b, NO_NODE, NO_NODE, NO_NODE,
+            w0_off, 0,
         );
         // Chain a → b as siblings.
         b.nne[func_a as usize] = func_b;
@@ -2458,7 +2473,7 @@ mod tests {
     #[test]
     fn test_node_aina_no_node() {
         // Unit test for the node_aina helper with NO_NODE sentinel.
-        let b = AstBuilder::new();
+        let _b = AstBuilder::new();
         let lr = Lowerer {
             ast_aina: &[],
             ast_kushoto: &[],
