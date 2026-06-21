@@ -629,6 +629,23 @@ impl<'a> Lowerer<'a> {
         self.set_terminator(entry_id, Terminator::Br(body_block_id));
 
         // -- Finalise -----------------------------------------------------------
+        // Replace self-loop placeholder terminators with proper returns.
+        let is_void = matches!(self.func.return_ty, IrType::Void);
+        let block_count = self.func.blocks.len();
+        for i in 0..block_count {
+            let blk_id = BlockId(i);
+            let term = &self.func.blocks[i].terminator;
+            let is_self_loop = matches!(term, Terminator::Br(b) if *b == blk_id);
+            if is_self_loop {
+                if is_void {
+                    self.set_terminator(blk_id, Terminator::RetVoid);
+                } else {
+                    let zero = self.const_val(Const::Int(0));
+                    self.set_terminator(blk_id, Terminator::Ret(zero));
+                }
+            }
+        }
+
         self.pop_scope();
         self.functions.push(std::mem::replace(
             &mut self.func,
@@ -791,22 +808,25 @@ impl<'a> Lowerer<'a> {
             let next_stmt = self.ast_nne[current as usize];
             let stmt_blk = self.lower_stmt(current);
 
+            // If stmt_blk is a condition block (BrCond), the real fall-through
+            // is the merge block, not the condition block.
+            let actual_prev = match &self.func.blocks[stmt_blk.0].terminator {
+                Terminator::BrCond(_, _, merge) => *merge,
+                _ => stmt_blk,
+            };
+
             if is_first {
-                // The first statement's entry IS our block's entry.
-                // Patch the empty entry to branch to the first statement.
                 self.set_terminator(prev_block, Terminator::Br(stmt_blk));
-                prev_block = stmt_blk;
+                prev_block = actual_prev;
                 is_first = false;
             } else {
-                // Chain prev block → stmt_blk when prev has a fall-through
-                // (RetVoid default or self-loop placeholder Br(prev)).
                 let prev_term = &self.func.blocks[prev_block.0].terminator;
                 let needs_chain = matches!(prev_term, Terminator::RetVoid)
                     || matches!(prev_term, Terminator::Br(b) if *b == prev_block);
                 if needs_chain {
                     self.set_terminator(prev_block, Terminator::Br(stmt_blk));
                 }
-                prev_block = stmt_blk;
+                prev_block = actual_prev;
             }
 
             current = next_stmt;
@@ -906,8 +926,6 @@ impl<'a> Lowerer<'a> {
                 cond_end,
                 Terminator::BrCond(cond_val, then_blk, else_blk),
             );
-            // Link then → merge and else → merge.
-            // Only link if they don't already have a non-placeholder terminator.
             self.patch_br_if_needed(then_blk, merge_blk);
             self.patch_br_if_needed(else_blk, merge_blk);
         } else {
@@ -917,8 +935,11 @@ impl<'a> Lowerer<'a> {
             );
             self.patch_br_if_needed(then_blk, merge_blk);
         }
+        // Ensure merge_blk can be patched by lower_block's caller.
+        self.set_terminator(merge_blk, Terminator::Br(merge_blk));
 
-        merge_blk
+        // Return cond_blk so lower_block chains entry → condition, not entry → merge.
+        cond_blk
     }
 
     /// Lower `WAKATI` (while loop): `wakati (cond) { body }`.
