@@ -302,8 +302,8 @@ impl IrTypeExt for IrType {
             self,
             IrType::I8
                 | IrType::I16 | IrType::I32 | IrType::I64 | IrType::I128
-                | IrType::U8 | IrType::U16 | IrType::U32 | IrType::U64
-                | IrType::U128 | IrType::F16 | IrType::F32 | IrType::F64
+                | IrType::A8 | IrType::A16 | IrType::A32 | IrType::A64
+                | IrType::A128 | IrType::F16 | IrType::F32 | IrType::F64
                 | IrType::F128 | IrType::B8 | IrType::B16 | IrType::B32
                 | IrType::B64 | IrType::W8 | IrType::W16 | IrType::W32
                 | IrType::W64
