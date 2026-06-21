@@ -207,17 +207,30 @@ impl LlvmBackend {
             for global in &ir_module.globals {
                 let is_string_like = !global.bytes.is_empty()
                     && global.bytes.last() == Some(&0)
-                    && global.bytes.iter().all(|&b| b == 0 || (b >= 0x20 && b <= 0x7e));
+                    && global.bytes.iter().all(|&b| {
+                        b == 0 || b == b'\n' || b == b'\t' || b == b'\r'
+                            || (b >= 0x20 && b <= 0x7e)
+                    });
                 let str_len = if is_string_like && !global.bytes.is_empty() {
-                    global.bytes.len() - 1 // exclude null terminator
+                    global.bytes.len() - 1
                 } else {
                     global.bytes.len()
                 };
-                let ty = if global.bytes.is_empty() {
-                    LLVMInt8Type()
-                } else {
-                    // Match the array length to the initializer.
+
+                // Determine the correct LLVM type for this global.
+                // String globals always use array type.  Small non-string globals
+                // use integer types matching their width.  Large globals use arrays.
+                let ty = if is_string_like {
                     LLVMArrayType(LLVMInt8Type(), global.bytes.len() as u32)
+                } else {
+                    match global.bytes.len() {
+                        0 => LLVMInt8Type(),
+                        1 => LLVMInt8Type(),
+                        2 => LLVMInt16Type(),
+                        4 => LLVMInt32Type(),
+                        8 => LLVMInt64Type(),
+                        _ => LLVMArrayType(LLVMInt8Type(), global.bytes.len() as u32),
+                    }
                 };
 
                 let name_c = c_str(&global.name);
@@ -225,8 +238,14 @@ impl LlvmBackend {
 
                 let init = if global.bytes.is_empty() {
                     LLVMConstNull(ty)
+                } else if !is_string_like && global.bytes.len() <= 8 {
+                    // Small non-string globals: create a single integer constant.
+                    let mut val: u64 = 0;
+                    for (i, &b) in global.bytes.iter().enumerate() {
+                        val |= (b as u64) << (i * 8);
+                    }
+                    LLVMConstInt(ty, val, 0)
                 } else if is_string_like && !global.bytes.iter().all(|&b| b == 0) {
-                    // Truncate at the first interior null to avoid NulError.
                     let effective_len = global.bytes.iter().position(|&b| b == 0).unwrap_or(global.bytes.len());
                     let effective_len = effective_len.min(str_len);
                     let c_str_val = CString::new(&global.bytes[..effective_len]).unwrap_or_else(|_| CString::new("").unwrap());
