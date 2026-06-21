@@ -40,6 +40,11 @@ const AST_GAWANYA: u32 = 32;
 const AST_SEHEMU_DOT: u32 = 33;
 const AST_SEHEMU_MSHALE: u32 = 34;
 const AST_TANGAZO_ULIMWENGU: u32 = 35;
+const AST_HAMISHA_KUSHOTO: u32 = 36;
+const AST_HAMISHA_KULIA: u32 = 39;
+const AST_BIT_AU: u32 = 41;
+const AST_BIT_NA: u32 = 42;
+const AST_TERNARY: u32 = 43;
 const AST_ASIMILIA: u32 = 37;
 const AST_SAFU: u32 = 38;
 const AST_MFUATANO: u32 = 40;
@@ -211,10 +216,10 @@ impl<'a> Parser<'a> {
         if node == NO_NODE { return NO_NODE; }
         loop {
             if self.tokeni_ni("[") { self.sogeza(); let i = self.changanua_usemi(); if self.tokeni_ni("]") { self.sogeza(); } node = self.ast.node_mpya(AST_SAFU, 0, node, i); continue; }
-            if self.tokeni_ni(".") { self.sogeza(); if let TokenKind::Kitambulisho(f) = &self.sasa().kind { let fname = f.clone(); self.sogeza(); let n = self.ast.node_mpya(AST_SEHEMU_DOT, 0, node, NO_NODE); self.ast.hifadhi_jina(n, &fname); node = n; continue; } break; }
+            if self.tokeni_ni(".") { self.sogeza(); if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) { let fname = self.sasa().lexeme.clone(); self.sogeza(); let n = self.ast.node_mpya(AST_SEHEMU_DOT, 0, node, NO_NODE); self.ast.hifadhi_jina(n, &fname); node = n; continue; } break; }
             if self.tokeni_ni("->") || (self.tokeni_ni("-") && self.pos+1 < self.tokens.len() && self.tokens[self.pos+1].lexeme == ">") {
                 if self.tokeni_ni("-") { self.sogeza(); self.sogeza(); } else { self.sogeza(); }
-                if let TokenKind::Kitambulisho(f) = &self.sasa().kind { let fname = f.clone(); self.sogeza(); let n = self.ast.node_mpya(AST_SEHEMU_MSHALE, 0, node, NO_NODE); self.ast.hifadhi_jina(n, &fname); node = n; continue; } break;
+                if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) { let fname = self.sasa().lexeme.clone(); self.sogeza(); let n = self.ast.node_mpya(AST_SEHEMU_MSHALE, 0, node, NO_NODE); self.ast.hifadhi_jina(n, &fname); node = n; continue; } break;
             }
             break;
         }
@@ -242,11 +247,27 @@ impl<'a> Parser<'a> {
 
     fn changanua_zidisha(&mut self) -> i32 { self.binop(Self::changanua_unary, &[("*", AST_ZIDISHA), ("/", AST_GAWANYA), ("%", AST_GAWANYA)]) }
     fn changanua_jumlisha(&mut self) -> i32 { self.binop(Self::changanua_zidisha, &[("+", AST_JUMLISHA), ("-", AST_TOFAUTI)]) }
-    fn changanua_linganisha(&mut self) -> i32 { self.binop(Self::changanua_jumlisha, &[("<", AST_CHINI), (">", AST_JUU), ("<=", AST_CHINI_SAWA), (">=", AST_JUU_SAWA)]) }
+    fn changanua_hamisha(&mut self) -> i32 { self.binop(Self::changanua_jumlisha, &[("<<", AST_HAMISHA_KUSHOTO), (">>", AST_HAMISHA_KULIA)]) }
+    fn changanua_linganisha(&mut self) -> i32 { self.binop(Self::changanua_hamisha, &[("<", AST_CHINI), (">", AST_JUU), ("<=", AST_CHINI_SAWA), (">=", AST_JUU_SAWA)]) }
     fn changanua_sawa(&mut self) -> i32 { self.binop(Self::changanua_linganisha, &[("==", AST_SAWA), ("!=", AST_TOFAUTI_SI)]) }
-    fn changanua_na(&mut self) -> i32 { self.binop(Self::changanua_sawa, &[("&&", AST_NA)]) }
+    fn changanua_bit_na(&mut self) -> i32 { self.binop(Self::changanua_sawa, &[("&", AST_BIT_NA)]) }
+    fn changanua_bit_au(&mut self) -> i32 { self.binop(Self::changanua_bit_na, &[("|", AST_BIT_AU)]) }
+    fn changanua_na(&mut self) -> i32 { self.binop(Self::changanua_bit_au, &[("&&", AST_NA)]) }
     fn changanua_au(&mut self) -> i32 { self.binop(Self::changanua_na, &[("||", AST_AU)]) }
-    fn changanua_asimilia(&mut self) -> i32 { self.binop(Self::changanua_au, &[("=", AST_ASIMILIA), ("+=", AST_ASIMILIA), ("-=", AST_ASIMILIA)]) }
+    fn changanua_ternary(&mut self) -> i32 {
+        let cond = self.changanua_au();
+        if self.tokeni_ni("?") {
+            self.sogeza();
+            let true_val = self.changanua_ternary();
+            if self.tokeni_ni(":") { self.sogeza(); }
+            let false_val = self.changanua_ternary();
+            let n = self.ast.node_mpya(AST_TERNARY, 0, cond, true_val);
+            self.ast.tiga[n as usize] = false_val;
+            return n;
+        }
+        cond
+    }
+    fn changanua_asimilia(&mut self) -> i32 { self.binop(Self::changanua_ternary, &[("=", AST_ASIMILIA), ("+=", AST_ASIMILIA), ("-=", AST_ASIMILIA)]) }
     fn changanua_usemi(&mut self) -> i32 { self.changanua_asimilia() }
 
     // -- statement parser ----------------------------------------------------
@@ -254,6 +275,19 @@ impl<'a> Parser<'a> {
     fn changanua_taarifa(&mut self) -> i32 {
         if matches!(self.sasa().kind, TokenKind::Mwisho) { return NO_NODE; }
         if self.tokeni_ni("}") { return NO_NODE; }
+
+        // Bare block: { stmt; stmt; ... }
+        if self.tokeni_ni("{") {
+            self.sogeza();
+            let mut first: i32 = NO_NODE; let mut prev: i32 = NO_NODE;
+            while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
+                let s = self.changanua_taarifa(); if s == NO_NODE { break; }
+                if prev == NO_NODE { first = s; } else { self.ast.nne[prev as usize] = s; } prev = s;
+            }
+            if self.tokeni_ni("}") { self.sogeza(); }
+            // Return the first statement; the chain encodes the block.
+            return first;
+        }
 
         if self.ni_aina() {
             let va = self.changanua_aina();
@@ -325,7 +359,7 @@ impl<'a> Parser<'a> {
     fn changanua_kazi(&mut self) -> i32 {
         if !self.ni_aina() { return NO_NODE; }
         let ret_a = self.changanua_aina();
-        if !matches!(self.sasa().kind, TokenKind::Kitambulisho(_)) { self.kosa = true; return NO_NODE; }
+        if !matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) { self.kosa = true; return NO_NODE; }
         let name = self.sasa().lexeme.clone(); self.sogeza();
 
         // === THE FIX: check for ( vs = / ; ===
@@ -353,7 +387,7 @@ impl<'a> Parser<'a> {
         while !self.tokeni_ni(")") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
             if self.ni_aina() {
                 let pa = self.changanua_aina();
-                if matches!(self.sasa().kind, TokenKind::Kitambulisho(_)) {
+                if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) {
                     let pn = self.sasa().lexeme.clone(); self.sogeza();
                     let pnode = self.ast.node_mpya(AST_KITAMBULISHO, 0, NO_NODE, NO_NODE);
                     self.ast.hifadhi_jina(pnode, &pn);
@@ -386,7 +420,7 @@ impl<'a> Parser<'a> {
 
     fn changanua_muundo(&mut self) -> i32 {
         self.sogeza();
-        if !matches!(self.sasa().kind, TokenKind::Kitambulisho(_)) { self.kosa = true; return NO_NODE; }
+        if !matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) { self.kosa = true; return NO_NODE; }
         let sname = self.sasa().lexeme.clone(); self.sogeza();
         if !self.tokeni_ni("{") { self.kosa = true; return NO_NODE; } self.sogeza();
 
@@ -399,7 +433,7 @@ impl<'a> Parser<'a> {
         while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
             if self.ni_aina() {
                 let fa = self.changanua_aina();
-                if matches!(self.sasa().kind, TokenKind::Kitambulisho(_)) {
+                if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) {
                     let fname = self.sasa().lexeme.clone(); self.sogeza();
                     let fn_n = self.ast.node_mpya(AST_KITAMBULISHO, 0, NO_NODE, NO_NODE);
                     self.ast.hifadhi_jina(fn_n, &fname);

@@ -70,9 +70,14 @@ const AST_GAWANYA: u32 = 32;
 const AST_SEHEMU_DOT: u32 = 33;
 const AST_SEHEMU_MSHALE: u32 = 34;
 const AST_TANGAZO_ULIMWENGU: u32 = 35;
+const AST_HAMISHA_KUSHOTO: u32 = 36;
 const AST_ASIMILIA: u32 = 37;
 const AST_SAFU: u32 = 38;
+const AST_HAMISHA_KULIA: u32 = 39;
 const AST_MFUATANO: u32 = 40;
+const AST_BIT_AU: u32 = 41;
+const AST_BIT_NA: u32 = 42;
+const AST_TERNARY: u32 = 43;
 
 /// Sentinel used in `ast_kushoto`, `ast_kulia`, `ast_tiga`, and `ast_nne` to
 /// indicate "no child / no sibling".
@@ -1255,6 +1260,11 @@ impl<'a> Lowerer<'a> {
             AST_GAWANYA => self.lower_binary_op(node, current_block, |l, r| Instruction::DivS(l, r)),
 
             // -- bitwise -------------------------------------------------------
+            AST_HAMISHA_KUSHOTO => self.lower_binary_op(node, current_block, |l, r| Instruction::Shl(l, r)),
+            AST_HAMISHA_KULIA => self.lower_binary_op(node, current_block, |l, r| Instruction::ShrS(l, r)),
+            AST_BIT_NA => self.lower_binary_op(node, current_block, |l, r| Instruction::And(l, r)),
+            AST_BIT_AU => self.lower_binary_op(node, current_block, |l, r| Instruction::Or(l, r)),
+            AST_TERNARY => self.lower_ternary(node, current_block),
             AST_NA => self.lower_short_circuit_and(node, current_block),
             AST_AU => self.lower_short_circuit_or(node, current_block),
 
@@ -1438,6 +1448,21 @@ impl<'a> Lowerer<'a> {
     /// NA (logical AND) is short-circuit: evaluate left; if false, result is
     /// false; otherwise evaluate right.
     ///
+    /// Lower ternary `cond ? true_val : false_val`.
+    /// Uses the IR `Select` instruction — all three operands evaluated in the
+    /// same block (no short-circuit).
+    fn lower_ternary(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
+        let cond_node = self.ast_kushoto[node as usize];
+        let true_node = self.ast_kulia[node as usize];
+        let false_node = self.ast_tiga[node as usize];
+
+        let (cond, blk1) = self.lower_expr_into(cond_node, blk);
+        let (true_val, blk2) = self.lower_expr_into(true_node, blk1);
+        let (false_val, blk3) = self.lower_expr_into(false_node, blk2);
+        let result = self.emit(blk3, Instruction::Select(cond, true_val, false_val));
+        (result, blk3)
+    }
+
     /// We lower short-circuit operators using an alloca for the result (phi
     /// replacement), storing the outcome from each predecessor and loading at
     /// the merge block.
