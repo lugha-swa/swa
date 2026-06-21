@@ -157,6 +157,9 @@ struct Lowerer<'a> {
     values_initial_len: usize,
     /// Monotonically increasing block-id counter used for fresh labels.
     block_counter: usize,
+
+    /// Types for global variables (for lower_identifier).
+    global_types: std::collections::HashMap<String, IrType>,
 }
 
 // ---------------------------------------------------------------------------
@@ -212,6 +215,7 @@ pub fn lower(
         inst_counter: 0,
         values_initial_len: 0,
         block_counter: 0,
+        global_types: std::collections::HashMap::new(),
     };
 
     // Root is the last node allocated; it must be AST_PROGRAMU.
@@ -646,6 +650,9 @@ impl<'a> Lowerer<'a> {
             self.read_pool_name(self.ast_jina_off[glob_node as usize])
         };
         let ty = self.read_type_from_thamani(glob_node);
+        if !name.is_empty() {
+            self.global_types.insert(name.clone(), ty.clone());
+        }
 
         // Initialiser: parser stores in kulia; fallback to tiga (test format).
         let init_node = if self.ast_kulia[glob_node as usize] != NO_NODE {
@@ -1376,6 +1383,17 @@ impl<'a> Lowerer<'a> {
             let loaded_ty = info.ty.clone();
             let val = self.emit(blk, Instruction::Load(loaded_ty, alloca_ptr));
             (val, blk)
+        } else if let Some(gty) = self.global_types.get(&name).cloned() {
+            let addr = self.emit(blk, Instruction::GlobalAddr(name.clone()));
+            // For array types (I8 = byte array like N8 chanzo_buf[524288]),
+            // return the pointer directly (array-to-pointer decay).
+            // For scalar types (I32 = N32 chanzo_urefu), load the value.
+            if gty == IrType::I8 || gty == IrType::U8 {
+                (addr, blk)
+            } else {
+                let val = self.emit(blk, Instruction::Load(gty, addr));
+                (val, blk)
+            }
         } else {
             let v = self.const_val(Const::Zero);
             (v, blk)
@@ -1614,6 +1632,8 @@ impl<'a> Lowerer<'a> {
                 let name = self.read_pool_name(self.ast_jina_off[node as usize]);
                 if let Some(info) = self.lookup(&name) {
                     info.ptr
+                } else if self.global_types.contains_key(&name) {
+                    self.emit(blk, Instruction::GlobalAddr(name.clone()))
                 } else {
                     // Undefined — return null pointer.
                     self.const_val(Const::NullPtr)
@@ -1690,6 +1710,7 @@ impl<'a> Lowerer<'a> {
             AST_KITAMBULISHO => {
                 let name = self.read_pool_name(self.ast_jina_off[node as usize]);
                 self.lookup(&name).map(|info| info.ty.clone())
+                    .or_else(|| self.global_types.get(&name).cloned())
             }
             AST_SEHEMU_DOT => {
                 // p.x → resolve p's type, find field x.
@@ -2641,6 +2662,7 @@ mod tests {
             inst_counter: 0,
         values_initial_len: 0,
             block_counter: 0,
+            global_types: std::collections::HashMap::new(),
         };
         assert_eq!(lr.node_aina(NO_NODE), 0);
         assert_eq!(lr.node_aina(-1), 0);
@@ -2668,6 +2690,7 @@ mod tests {
             inst_counter: 0,
         values_initial_len: 0,
             block_counter: 0,
+            global_types: std::collections::HashMap::new(),
         };
         assert_eq!(lr.read_pool_name(0), "hello");
         assert_eq!(lr.read_pool_name(6), "world");
@@ -2698,6 +2721,7 @@ mod tests {
             inst_counter: 0,
         values_initial_len: 0,
             block_counter: 0,
+            global_types: std::collections::HashMap::new(),
         };
         let bytes = lr.read_pool_bytes(0);
         assert_eq!(bytes, b"hello");
@@ -2726,6 +2750,7 @@ mod tests {
             inst_counter: 0,
         values_initial_len: 0,
             block_counter: 0,
+            global_types: std::collections::HashMap::new(),
         };
         // The pool has no length prefix, so the 4 bytes [104, 97, 98, 97] (= "haba")
         // would be interpreted as a length.  That length is huge, so it falls
