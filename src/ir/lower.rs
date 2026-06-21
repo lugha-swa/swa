@@ -399,10 +399,14 @@ impl<'a> Lowerer<'a> {
                     IrType::Void
                 } else {
                     IrType::from_swa_type(&name).unwrap_or_else(|| {
-                        IrType::Struct {
-                            name,
-                            fields: Vec::new(),
-                        }
+                        // Look up the struct definition in already-registered types.
+                        self.types.iter()
+                            .find(|(n, _)| n == &name)
+                            .map(|(_, t)| t.clone())
+                            .unwrap_or_else(|| IrType::Struct {
+                                name,
+                                fields: Vec::new(),
+                            })
                     })
                 }
             }
@@ -1678,7 +1682,15 @@ impl<'a> Lowerer<'a> {
         let field_ty = if struct_node >= 0 && self.ast_aina[struct_node as usize] == AST_KITAMBULISHO {
             let struct_name = self.read_pool_name(self.ast_jina_off[struct_node as usize]);
             self.lookup(&struct_name).and_then(|info| {
-                if let IrType::Struct { fields, .. } = &info.ty {
+                // Handle both direct struct and pointer-to-struct.
+                let struct_ty = match &info.ty {
+                    IrType::Struct { .. } => Some(info.ty.clone()),
+                    IrType::Ptr(inner) if matches!(**inner, IrType::Struct { .. }) => {
+                        Some((**inner).clone())
+                    }
+                    _ => None,
+                };
+                if let Some(IrType::Struct { fields, .. }) = struct_ty {
                     fields.iter().find(|(n, _)| n == &field_name).map(|(_, t)| t.clone())
                 } else { None }
             }).unwrap_or(IrType::I32)
@@ -1719,8 +1731,15 @@ impl<'a> Lowerer<'a> {
             None
         };
 
+        // Determine field type from the resolved struct pointee.
+        let field_ty = struct_ty_opt.as_ref().and_then(|sty| {
+            if let IrType::Struct { fields, .. } = sty {
+                fields.iter().find(|(n, _)| n == &field_name).map(|(_, t)| t.clone())
+            } else { None }
+        }).unwrap_or(IrType::I32);
+
         let field_ptr = self.emit(end_blk, Instruction::FieldAddr(struct_ptr, field_idx, struct_ty_opt));
-        let val = self.emit(end_blk, Instruction::Load(IrType::I32, field_ptr));
+        let val = self.emit(end_blk, Instruction::Load(field_ty, field_ptr));
         (val, end_blk)
     }
 
@@ -1732,9 +1751,22 @@ impl<'a> Lowerer<'a> {
         let ary_ptr = self.lower_lvalue(array_node, blk);
         let (idx_val, end_blk) = self.lower_expr_into(index_node, blk);
 
+        // Determine element type from the array variable's declared type.
+        let elem_ty = if array_node >= 0 && self.ast_aina[array_node as usize] == AST_KITAMBULISHO {
+            let arr_name = self.read_pool_name(self.ast_jina_off[array_node as usize]);
+            self.lookup(&arr_name).and_then(|info| {
+                match &info.ty {
+                    IrType::Ptr(pointee) => Some((**pointee).clone()),
+                    _ => None,
+                }
+            }).unwrap_or(IrType::I32)
+        } else {
+            IrType::I32
+        };
+
         // GEP to element, then load.
         let elem_ptr = self.emit(end_blk, Instruction::Gep(ary_ptr, vec![idx_val]));
-        let val = self.emit(end_blk, Instruction::Load(IrType::I32, elem_ptr));
+        let val = self.emit(end_blk, Instruction::Load(elem_ty, elem_ptr));
         (val, end_blk)
     }
 
