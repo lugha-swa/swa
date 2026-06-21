@@ -51,11 +51,6 @@ use crate::ir::IrReturnClass;
 /// struct).  This indicates a malformed type and should be caught during
 /// semantic analysis.
 pub fn classify_return(ty: &IrType) -> IrReturnClass {
-    // Force sret (HiddenPtr) for all struct types to avoid LLVM crashes
-    // with direct struct returns in LLVM 18's opaque pointer mode.
-    if matches!(ty, IrType::Struct { .. }) {
-        return IrReturnClass::HiddenPtr;
-    }
     let fields = flatten_struct(ty);
     if fields.len() <= 2 {
         IrReturnClass::Direct
