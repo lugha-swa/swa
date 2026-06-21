@@ -381,7 +381,7 @@ impl<'a> Lowerer<'a> {
             2 => match upana { 8 => IrType::A8, 16 => IrType::A16, 32 => IrType::A32, 64 => IrType::A64, 128 => IrType::A128, _ => IrType::A32 },
             3 => match upana { 16 => IrType::F16, 32 => IrType::F32, 64 => IrType::F64, 80 => IrType::F64, 128 => IrType::F64, _ => IrType::F64 },
             4 => match upana { 1 => IrType::B1, 8 => IrType::B8, 16 => IrType::B16, 32 => IrType::B32, 64 => IrType::B64, _ => IrType::B1 },
-            5 => match upana { 0 => IrType::Void, _ => IrType::Void },
+            5 => match upana { 0 => IrType::Void, 8 => IrType::W8, 16 => IrType::W16, 32 => IrType::W32, 64 => IrType::W64, _ => IrType::Void },
             6 => {
                 IrType::Struct { name: format!("struct_{}", enc), fields: vec![] }
             }
