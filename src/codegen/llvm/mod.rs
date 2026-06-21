@@ -917,23 +917,31 @@ fn lower_instruction(
                 LLVMBuildStore(builder, value, p)
             }
             crate::ir::Instruction::MemCopy(dest, src, size) => {
+                // Use the LLVM memcpy intrinsic: @llvm.memcpy.p0.p0.i64
                 let dest_ptr = v(value_map, dest);
                 let src_ptr = v(value_map, src);
-                let sz = *size;
-                // Emit a call to the C memcpy function.
-                let memcpy_name = c_str("memcpy");
-                let mut param_tys = [ptr_type(), ptr_type(), LLVMInt64Type()];
-                let fn_ty = LLVMFunctionType(ptr_type(), param_tys.as_mut_ptr(), 3, 0);
-                let callee = LLVMGetNamedFunction(module, memcpy_name.as_ptr());
+                let sz_val = LLVMConstInt(LLVMInt64Type(), *size, 0);
+                let volatile_flag = LLVMConstInt(LLVMInt1Type(), 0, 0);
+                let intrinsic_name = c_str("llvm.memcpy.p0.p0.i64");
+                let callee = LLVMGetNamedFunction(module, intrinsic_name.as_ptr());
                 let callee = if callee.is_null() {
-                    LLVMAddFunction(module, memcpy_name.as_ptr(), fn_ty)
+                    let mut param_tys = [ptr_type(), ptr_type(), LLVMInt64Type(), LLVMInt1Type()];
+                    let fn_ty = LLVMFunctionType(LLVMVoidType(), param_tys.as_mut_ptr(), 4, 0);
+                    LLVMAddFunction(module, intrinsic_name.as_ptr(), fn_ty)
                 } else {
                     callee
                 };
-                let size_val = LLVMConstInt(LLVMInt64Type(), sz, 0);
-                let mut args = [dest_ptr, src_ptr, size_val];
-                LLVMBuildCall2(builder, fn_ty, callee, args.as_mut_ptr(), 3, std::ptr::null());
-                LLVMConstInt(LLVMInt8Type(), 0, 0)
+                // Re-derive the function type for the call.
+                let param_count = LLVMCountParams(callee);
+                let mut rebuilt: Vec<LLVMTypeRef> = (0..param_count)
+                    .map(|i| LLVMTypeOf(LLVMGetParam(callee, i)))
+                    .collect();
+                let fn_ty = LLVMFunctionType(LLVMVoidType(),
+                    if rebuilt.is_empty() { std::ptr::null_mut() } else { rebuilt.as_mut_ptr() },
+                    rebuilt.len() as u32, 0);
+                let mut args = [dest_ptr, src_ptr, sz_val, volatile_flag];
+                LLVMBuildCall2(builder, fn_ty, callee, args.as_mut_ptr(), 4, std::ptr::null());
+                LLVMConstNull(LLVMInt8Type())
             }
 
             // -- heap -------------------------------------------------------------

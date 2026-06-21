@@ -902,12 +902,28 @@ impl<'a> Lowerer<'a> {
         let rhs_node = self.ast_kulia[node as usize];
 
         let blk = self.new_block("assign");
+
+        // Compute the LHS pointer first.
+        let ptr = self.lower_lvalue(lhs_node, blk);
+
+        // If the LHS is a struct type, provide it as sret_dest so a
+        // struct-returning call on the RHS writes directly to the LHS.
+        let lhs_ty = self.resolve_expr_type(lhs_node);
+        let is_struct_assign = matches!(&lhs_ty, Some(IrType::Struct { .. }));
+        if is_struct_assign {
+            self.sret_dest = Some(ptr);
+        }
+
         let (rhs_val, end_blk) = self.lower_expr_into(rhs_node, blk);
 
-        // Lower the lvalue to get a pointer to store into.
-        let ptr = self.lower_lvalue(lhs_node, end_blk);
-        self.emit(end_blk, Instruction::Store(rhs_val, ptr));
-        self.set_terminator(end_blk, Terminator::Br(end_blk)); // fall-through placeholder, caller chains
+        // If sret_dest was consumed by lower_call (take returned Some),
+        // the struct was written directly to ptr and no Store is needed.
+        let sret_consumed = is_struct_assign && self.sret_dest.is_none();
+        if !sret_consumed {
+            self.emit(end_blk, Instruction::Store(rhs_val, ptr));
+        }
+        self.sret_dest = None;
+        self.set_terminator(end_blk, Terminator::Br(end_blk));
         end_blk
     }
 
@@ -1086,9 +1102,33 @@ impl<'a> Lowerer<'a> {
 
         if val_node != NO_NODE && val_node >= 0 {
             let (val, end_blk) = self.lower_expr_into(val_node, blk);
-            // If sret, store to the sret pointer then RetVoid.
+            // If sret and the value is not already the sret pointer,
+            // copy struct bytes to the sret pointer.
             if let Some(sret_vid) = self.func.sret_value_id {
-                self.emit(end_blk, Instruction::Store(val, sret_vid));
+                if val != sret_vid {
+                    let struct_size = self.func.source_return_ty.width_bytes() as u64;
+                    let mut off: u64 = 0;
+                    while off < struct_size {
+                        let rem = struct_size - off;
+                        let (chunk_size, chunk_ty) = if rem >= 8 {
+                            (8u64, IrType::I64)
+                        } else if rem >= 4 {
+                            (4u64, IrType::I32)
+                        } else if rem >= 2 {
+                            (2u64, IrType::I16)
+                        } else {
+                            (1u64, IrType::I8)
+                        };
+                        self.func.intern_const(Const::Int(off as i128));
+                        self.values_initial_len = self.func.values.len();
+                        let off_val = self.const_val(Const::Int(off as i128));
+                        let src_gep = self.emit(end_blk, Instruction::Gep(val, vec![off_val]));
+                        let dest_gep = self.emit(end_blk, Instruction::Gep(sret_vid, vec![off_val]));
+                        let chunk_val = self.emit(end_blk, Instruction::Load(chunk_ty, src_gep));
+                        self.emit(end_blk, Instruction::Store(chunk_val, dest_gep));
+                        off += chunk_size;
+                    }
+                }
                 self.set_terminator(end_blk, Terminator::RetVoid);
             } else {
                 self.set_terminator(end_blk, Terminator::Ret(val));
@@ -1145,8 +1185,17 @@ impl<'a> Lowerer<'a> {
 
         let blk = self.new_block("decl");
 
-        // Allocate stack slot.
-        let alloc = self.emit(blk, Instruction::Alloca(var_ty.clone()));
+        // If this is the return-value struct of an sret function, use the
+        // sret pointer directly instead of allocating a local slot.  This
+        // way the struct is built directly in the caller's frame and no
+        // copy is needed on return.
+        let alloc = if matches!(&var_ty, IrType::Struct { .. })
+            && self.func.sret_value_id.is_some()
+        {
+            self.func.sret_value_id.unwrap()
+        } else {
+            self.emit(blk, Instruction::Alloca(var_ty.clone()))
+        };
 
         // Evaluate initialiser and store.
         if init_node != NO_NODE && init_node >= 0 {
