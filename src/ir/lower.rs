@@ -354,7 +354,7 @@ impl<'a> Lowerer<'a> {
         if enc_raw < 0 {
             let neg = (-enc_raw) as u32;
             let mshale = neg & 1;
-            let off = (neg & !1) as usize;
+            let off = (neg >> 1) as usize;
             let name = self.read_pool_name(off as i32);
             // Try to find the struct in the registered types, otherwise create placeholder.
             let struct_ty = self.types.iter()
@@ -1683,29 +1683,60 @@ impl<'a> Lowerer<'a> {
     // -- field access as rvalue ------------------------------------------------
 
     /// Lower `struct.field` (dot access) as an rvalue.
+    /// Resolve the type of an expression node by walking the AST.
+    fn resolve_expr_type(&self, node: i32) -> Option<IrType> {
+        if node < 0 { return None; }
+        match self.ast_aina[node as usize] {
+            AST_KITAMBULISHO => {
+                let name = self.read_pool_name(self.ast_jina_off[node as usize]);
+                self.lookup(&name).map(|info| info.ty.clone())
+            }
+            AST_SEHEMU_DOT => {
+                // p.x → resolve p's type, find field x.
+                let lhs = self.ast_kushoto[node as usize];
+                let field = self.read_pool_name(self.ast_jina_off[node as usize]);
+                self.resolve_expr_type(lhs).and_then(|ty| {
+                    let st = match &ty {
+                        IrType::Struct { .. } => ty.clone(),
+                        IrType::Ptr(i) if matches!(**i, IrType::Struct { .. }) => (**i).clone(),
+                        _ => return None,
+                    };
+                    if let IrType::Struct { fields, .. } = st {
+                        fields.iter().find(|(n, _)| n == &field).map(|(_, t)| t.clone())
+                    } else { None }
+                })
+            }
+            AST_SEHEMU_MSHALE => {
+                // p->x → resolve p's type (pointer), get pointee struct, find field x.
+                let lhs = self.ast_kushoto[node as usize];
+                let field = self.read_pool_name(self.ast_jina_off[node as usize]);
+                self.resolve_expr_type(lhs).and_then(|ty| {
+                    let st = match &ty {
+                        IrType::Ptr(inner) => (**inner).clone(),
+                        _ => return None,
+                    };
+                    if let IrType::Struct { fields, .. } = st {
+                        fields.iter().find(|(n, _)| n == &field).map(|(_, t)| t.clone())
+                    } else { None }
+                })
+            }
+            _ => None,
+        }
+    }
+
     fn lower_field_access(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let struct_node = self.ast_kushoto[node as usize];
         // Field name is stored on the dot-access node itself via hifadhi_jina.
         let field_name = self.read_pool_name(self.ast_jina_off[node as usize]);
 
-        // Look up the struct variable's type from the scope to find the field type.
-        let field_ty = if struct_node >= 0 && self.ast_aina[struct_node as usize] == AST_KITAMBULISHO {
-            let struct_name = self.read_pool_name(self.ast_jina_off[struct_node as usize]);
-            self.lookup(&struct_name).and_then(|info| {
-                // Handle both direct struct and pointer-to-struct.
-                let struct_ty = match &info.ty {
-                    IrType::Struct { .. } => Some(info.ty.clone()),
-                    IrType::Ptr(inner) if matches!(**inner, IrType::Struct { .. }) => {
-                        Some((**inner).clone())
-                    }
-                    _ => None,
-                };
-                if let Some(IrType::Struct { fields, .. }) = struct_ty {
-                    fields.iter().find(|(n, _)| n == &field_name).map(|(_, t)| t.clone())
-                } else { None }
-            }).unwrap_or(IrType::I32)
-        } else {
-            IrType::I32
+        // Resolve the type of the left-hand-side expression, then find the field.
+        let lhs_ty = self.resolve_expr_type(struct_node);
+        let field_ty = match &lhs_ty {
+            Some(IrType::Struct { fields, .. }) => {
+                fields.iter().find(|(n, _)| n == &field_name).map(|(_, t)| t.clone())
+                    .unwrap_or(IrType::I32)
+            }
+            _ => IrType::I32,
         };
 
         // First, get the address of the struct (as lvalue).
