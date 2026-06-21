@@ -904,12 +904,32 @@ impl<'a> Lowerer<'a> {
             Terminator::BrCond(cond_val, body_blk, exit_blk),
         );
 
-        // Lower the body, then wire the body's end back to the header.
-        let body_end = self.lower_block(body_node);
-        // If the body lowered to a single block with a placeholder terminator
-        // (or ended with Ret/RetVoid), we must be careful.  `ensure_br` only
-        // overwrites placeholder or identical targets.
-        self.ensure_br(body_end, header_blk);
+        // Lower the body statements — returns the entry block of the body chain.
+        let body_entry = self.lower_block(body_node);
+        // Wire the while.body block to the lowered body's entry.
+        self.set_terminator(body_blk, Terminator::Br(body_entry));
+
+        // Find the last block in the body chain (the one that falls through)
+        // and wire it back to the loop header.
+        let mut last = body_entry;
+        loop {
+            let term = &self.func.blocks[last.0].terminator;
+            match term {
+                Terminator::Br(target) if *target != last => {
+                    // Follow the chain forward.
+                    last = *target;
+                }
+                Terminator::Br(_) => {
+                    // Self-loop placeholder — this is the last block.
+                    break;
+                }
+                _ => {
+                    // Real terminator (Ret, BrCond, Switch) — stop here.
+                    break;
+                }
+            }
+        }
+        self.ensure_br(last, header_blk);
 
         self.loops.pop();
         exit_blk
@@ -2585,5 +2605,107 @@ mod tests {
         let bytes = lr.read_pool_bytes(0);
         // Falls back to null-terminated: reads from offset 0 to null at index 6.
         assert_eq!(bytes, b"habari");
+    }
+
+    #[test]
+    fn test_while_with_if_return_inside() {
+        // N32 jaribio(N64 n) {
+        //     N64 i = 0;
+        //     wakati (i < n) {
+        //         kama (i == 0) { rudisha 1; }
+        //         i = i + 1;
+        //     }
+        //     rudisha 0;
+        // }
+        let mut b = AstBuilder::new();
+        // Encoded types
+        let n32_enc: i32 = (1 << 8) | 32;   // N32 = 288
+        let n64_enc: i32 = (1 << 8) | 64;   // N64 = 320
+        let w0_enc: i32 = (5 << 8) | 0;     // W0 = 1280 (not used here)
+
+        // Names
+        let jina_jaribio = b.pool_name("jaribio");
+        let jina_n = b.pool_name("n");
+        let jina_i = b.pool_name("i");
+        let lit0 = b.pool_name("0");   // not a real lit, just for pool
+        let lit1 = b.pool_name("1");
+
+        // -- Param n: N64 --
+        let p_n = b.node(0, NO_NODE, NO_NODE, NO_NODE, NO_NODE, n64_enc, jina_n);
+
+        // -- Body: N64 i = 0; wakati ...; rudisha 0; --
+        // Identifier i
+        let id_i_off = jina_i;
+        let name_i = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, id_i_off);
+
+        // Literals
+        let lit_0 = b.node(AST_NAMBARI, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, 0);
+        let lit_1 = b.node(AST_NAMBARI, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 1, 0);
+
+        // Type node N64 for declaration
+        let ty_n64 = b.node(0, NO_NODE, NO_NODE, NO_NODE, NO_NODE, n64_enc, 0);
+
+        // Decl: N64 i = 0
+        let decl = b.node(AST_TANGAZO, name_i, ty_n64, lit_0, NO_NODE, 0, 0);
+
+        // -- wakati body --
+        // Condition: i < n
+        let id_i_cond = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, id_i_off);
+        let id_n_cond = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_n);
+        let cond = b.node(AST_CHINI, id_i_cond, id_n_cond, NO_NODE, NO_NODE, 0, 0);
+
+        // -- if body --
+        // Condition: i == 0
+        let id_i_eq = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, id_i_off);
+        let if_cond = b.node(AST_SAWA, id_i_eq, lit_0, NO_NODE, NO_NODE, 0, 0);
+        // then: rudisha 1
+        let ret1 = b.node(AST_RUDISHA, lit_1, NO_NODE, NO_NODE, NO_NODE, 0, 0);
+        // if stmt
+        let if_stmt = b.node(AST_KAMA, if_cond, ret1, NO_NODE, NO_NODE, 0, 0);
+
+        // i = i + 1 (ASIMILIA)
+        let id_i_assign = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, id_i_off);
+        let id_i_rhs = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, id_i_off);
+        let add_expr = b.node(AST_JUMLISHA, id_i_rhs, lit_1, NO_NODE, NO_NODE, 0, 0);
+        let assign = b.node(AST_ASIMILIA, id_i_assign, add_expr, NO_NODE, NO_NODE, 0, 0);
+
+        // Chain if → assign inside while body
+        b.nne[if_stmt as usize] = assign;
+
+        // while (cond) { body }
+        let while_node = b.node(AST_WAKATI, cond, NO_NODE, if_stmt, NO_NODE, 0, 0);
+
+        // rudisha 0
+        let ret0 = b.node(AST_RUDISHA, lit_0, NO_NODE, NO_NODE, NO_NODE, 0, 0);
+
+        // Chain decl → while → ret0
+        b.nne[decl as usize] = while_node;
+        b.nne[while_node as usize] = ret0;
+
+        // Function
+        let name_f = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_jaribio);
+        let func = b.node(AST_KAZI, name_f, p_n, decl, NO_NODE, n32_enc, 0);
+
+        let (aina, kushoto, kulia, tiga, nne, thamani, jina_off, pool, idadi) = b.finish(func);
+        let module = lower(&aina, &kushoto, &kulia, &tiga, &nne, &thamani, &jina_off, &pool, idadi);
+
+        assert_eq!(module.functions.len(), 1);
+        let f = &module.functions[0];
+        assert_eq!(f.name, "jaribio");
+        assert_eq!(f.return_ty, IrType::I32);
+
+        // Verify there's no RetVoid in a non-void function.
+        let retvoid_blocks: Vec<_> = f.blocks.iter()
+            .filter(|blk| matches!(blk.terminator, Terminator::RetVoid))
+            .map(|blk| blk.label.as_str())
+            .collect();
+        assert!(retvoid_blocks.is_empty(),
+            "non-void function should not have RetVoid blocks, found: {:?}", retvoid_blocks);
+
+        // Verify it has Ret terminators with values.
+        let has_ret_val = f.blocks.iter().any(|blk| {
+            matches!(blk.terminator, Terminator::Ret(_))
+        });
+        assert!(has_ret_val, "function should have at least one Ret(value)");
     }
 }

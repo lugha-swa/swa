@@ -441,6 +441,8 @@ impl<'a> Parser<'a> {
                 } else if matches!(self.sasa().kind, TokenKind::Mfuato(_)) {
                     self.sogeza();
                 }
+                // Skip trailing semicolon if present.
+                if self.tokeni_ni(";") { self.sogeza(); }
                 continue;
             }
             if self.tokeni_ni("muundo") { node = self.changanua_muundo(); }
