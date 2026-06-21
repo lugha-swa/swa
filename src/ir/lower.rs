@@ -1370,6 +1370,26 @@ impl<'a> Lowerer<'a> {
 
     // -- call ------------------------------------------------------------------
 
+    /// Scan the AST for a function definition by name to check struct return.
+    fn find_function_returns_struct(&self, name: &str) -> bool {
+        let root = (self.ast_aina.len() - 1) as i32;
+        let mut child = self.ast_kushoto[root as usize];
+        while child != NO_NODE {
+            if self.node_aina(child) == AST_KAZI {
+                let name_node = self.ast_kushoto[child as usize];
+                if name_node != NO_NODE {
+                    let fname = self.read_pool_name(self.ast_jina_off[name_node as usize]);
+                    if fname == name {
+                        let ret_ty = self.read_type_from_thamani(child);
+                        return matches!(ret_ty, IrType::Struct { .. });
+                    }
+                }
+            }
+            child = self.ast_nne[child as usize];
+        }
+        false
+    }
+
     fn lower_call(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let callee_node = self.ast_kushoto[node as usize];
         // Parser stores args on callee_node's kulia: ast_kulia[callee_node] = first_arg.
@@ -1409,8 +1429,9 @@ impl<'a> Lowerer<'a> {
         }
 
         // Check if the called function returns a struct (needs sret pointer).
-        // Look up the function in our already-lowered functions list.
-        let needs_sret = self.functions.iter().any(|f| f.name == callee_name && matches!(f.source_return_ty, IrType::Struct { .. }));
+        // First check already-lowered functions, then scan AST for forward refs.
+        let needs_sret = self.functions.iter().any(|f| f.name == callee_name && matches!(f.source_return_ty, IrType::Struct { .. }))
+            || self.find_function_returns_struct(&callee_name);
         let (call_val, final_block) = if needs_sret {
             // Alloca space for the struct result and pass as first arg (sret).
             let sret_alloca = self.emit(current_block, Instruction::Alloca(IrType::Ptr(Box::new(IrType::I8)))); // placeholder
