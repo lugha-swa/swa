@@ -1186,6 +1186,7 @@ fn lower_instruction(
                     "malloc" => ptr_type(),
                     "free" => LLVMVoidType(),
                     "printf" => LLVMInt32Type(),
+                    "andika" => LLVMInt32Type(),
                     _ => ptr_type(),
                 };
                 let call_fn_ty = LLVMFunctionType(
@@ -1196,7 +1197,7 @@ fn lower_instruction(
                         rebuilt_param_tys.as_mut_ptr()
                     },
                     rebuilt_param_tys.len() as u32,
-                    if callee == "printf" { 1 } else { 0 },
+                    if callee == "printf" || callee == "andika" { 1 } else { 0 },
                 );
 
                 let name = if inferred_ret_ty == LLVMVoidType() {
@@ -1635,6 +1636,16 @@ fn pre_declare_libc(module: LLVMModuleRef) {
         // printf: i32 (ptr, ...)
         {
             let name = c_str("printf");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type()];
+                let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 1, 1);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // andika: Swa printf-alias — i32 (ptr, ...)
+        {
+            let name = c_str("andika");
             if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
                 let mut param_tys = [ptr_type()];
                 let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 1, 1);
