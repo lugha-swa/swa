@@ -177,8 +177,9 @@ impl<'a> Parser<'a> {
                 self.sogeza();
                 self.ast.node_mpya(AST_NAMBARI, v, NO_NODE, NO_NODE)
             }
-            TokenKind::Mfuato(_) => {
-                let s = self.sasa().lexeme.clone();
+            TokenKind::Mfuato(inner) => {
+                // inner is the unescaped content without surrounding quotes
+                let s = inner.clone();
                 let n = self.ast.node_mpya(AST_MFUATANO, 0, NO_NODE, NO_NODE);
                 self.ast.hifadhi_jina(n, &s);
                 self.sogeza();
