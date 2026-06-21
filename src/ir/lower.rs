@@ -1451,9 +1451,10 @@ impl<'a> Lowerer<'a> {
             let (_, end_blk) = if first_arg != NO_NODE && first_arg >= 0 {
                 self.lower_expr_into(first_arg, blk)
             } else {
-                (self.const_val(Const::Int(0)), blk)
+                (self.func.intern_const(Const::Int(0)), blk)
             };
-            let size = self.const_val(Const::Int(4)); // default N32 size
+            let size = self.func.intern_const(Const::Int(4)); // N32 sizeof
+            self.values_initial_len = self.func.values.len();
             return (size, end_blk);
         }
 
