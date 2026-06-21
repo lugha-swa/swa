@@ -713,7 +713,10 @@ impl<'a> Lowerer<'a> {
         if kind == AST_NAMBARI {
             let val = self.ast_thamani[idx] as i128;
             self.func.intern_const(Const::Int(val));
-            return; // leaf node, don't recurse into children
+            // Also visit nne: call argument chains use nne, so a literal
+            // may be followed by another argument (e.g. fread(..., 1, 262144)).
+            self.collect_constants(self.ast_nne[idx]);
+            return;
         }
         self.collect_constants(self.ast_kushoto[idx]);
         self.collect_constants(self.ast_kulia[idx]);
@@ -1352,7 +1355,11 @@ impl<'a> Lowerer<'a> {
     fn lower_int_literal(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let val = self.ast_thamani[node as usize] as i128;
         let c = Const::Int(val);
+        let prev_len = self.func.values.len();
         let vid = self.func.intern_const(c);
+        if self.func.values.len() > prev_len {
+            self.values_initial_len = self.func.values.len();
+        }
         (vid, blk)
     }
 
