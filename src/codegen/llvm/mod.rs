@@ -743,61 +743,61 @@ fn lower_instruction(
             crate::ir::Instruction::Eq(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
-                let (cl, cr, _) = coerce_int_binop(builder, l, r);
+                let (cl, cr) = coerce_cmp_operands(builder, l, r);
                 LLVMBuildICmp(builder, LLVMIntPredicate::EQ, cl, cr, c_str("eq").as_ptr())
             }
             crate::ir::Instruction::Ne(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
-                let (cl, cr, _) = coerce_int_binop(builder, l, r);
+                let (cl, cr) = coerce_cmp_operands(builder, l, r);
                 LLVMBuildICmp(builder, LLVMIntPredicate::NE, cl, cr, c_str("ne").as_ptr())
             }
             crate::ir::Instruction::LtS(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
-                let (cl, cr, _) = coerce_int_binop(builder, l, r);
+                let (cl, cr) = coerce_cmp_operands(builder, l, r);
                 LLVMBuildICmp(builder, LLVMIntPredicate::SLT, cl, cr, c_str("lts").as_ptr())
             }
             crate::ir::Instruction::LtU(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
-                let (cl, cr, _) = coerce_int_binop(builder, l, r);
+                let (cl, cr) = coerce_cmp_operands(builder, l, r);
                 LLVMBuildICmp(builder, LLVMIntPredicate::ULT, cl, cr, c_str("ltu").as_ptr())
             }
             crate::ir::Instruction::LeS(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
-                let (cl, cr, _) = coerce_int_binop(builder, l, r);
+                let (cl, cr) = coerce_cmp_operands(builder, l, r);
                 LLVMBuildICmp(builder, LLVMIntPredicate::SLE, cl, cr, c_str("les").as_ptr())
             }
             crate::ir::Instruction::LeU(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
-                let (cl, cr, _) = coerce_int_binop(builder, l, r);
+                let (cl, cr) = coerce_cmp_operands(builder, l, r);
                 LLVMBuildICmp(builder, LLVMIntPredicate::ULE, cl, cr, c_str("leu").as_ptr())
             }
             crate::ir::Instruction::GtS(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
-                let (cl, cr, _) = coerce_int_binop(builder, l, r);
+                let (cl, cr) = coerce_cmp_operands(builder, l, r);
                 LLVMBuildICmp(builder, LLVMIntPredicate::SGT, cl, cr, c_str("gts").as_ptr())
             }
             crate::ir::Instruction::GtU(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
-                let (cl, cr, _) = coerce_int_binop(builder, l, r);
+                let (cl, cr) = coerce_cmp_operands(builder, l, r);
                 LLVMBuildICmp(builder, LLVMIntPredicate::UGT, cl, cr, c_str("gtu").as_ptr())
             }
             crate::ir::Instruction::GeS(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
-                let (cl, cr, _) = coerce_int_binop(builder, l, r);
+                let (cl, cr) = coerce_cmp_operands(builder, l, r);
                 LLVMBuildICmp(builder, LLVMIntPredicate::SGE, cl, cr, c_str("ges").as_ptr())
             }
             crate::ir::Instruction::GeU(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
-                let (cl, cr, _) = coerce_int_binop(builder, l, r);
+                let (cl, cr) = coerce_cmp_operands(builder, l, r);
                 LLVMBuildICmp(builder, LLVMIntPredicate::UGE, cl, cr, c_str("geu").as_ptr())
             }
 
@@ -1480,6 +1480,29 @@ fn coerce_int(
 /// Coerce both operands of a binary operation to the wider type.
 ///
 /// Returns `(coerced_lhs, coerced_rhs, common_type)`.
+/// Coerce operands for comparison (ICmp).  Handles pointer-vs-integer
+/// by converting the integer to a pointer (common in null checks).
+fn coerce_cmp_operands(
+    builder: LLVMBuilderRef,
+    lhs: LLVMValueRef,
+    rhs: LLVMValueRef,
+) -> (LLVMValueRef, LLVMValueRef) {
+    unsafe {
+        let lhs_kind = LLVMGetTypeKind(LLVMTypeOf(lhs)) as u32;
+        let rhs_kind = LLVMGetTypeKind(LLVMTypeOf(rhs)) as u32;
+        if lhs_kind == LLVMTypeKind::Pointer as u32 && rhs_kind != LLVMTypeKind::Pointer as u32 {
+            let coerced = LLVMBuildIntToPtr(builder, rhs, LLVMTypeOf(lhs), c_str("inttoptr").as_ptr());
+            return (lhs, coerced);
+        }
+        if rhs_kind == LLVMTypeKind::Pointer as u32 && lhs_kind != LLVMTypeKind::Pointer as u32 {
+            let coerced = LLVMBuildIntToPtr(builder, lhs, LLVMTypeOf(rhs), c_str("inttoptr").as_ptr());
+            return (coerced, rhs);
+        }
+        let (cl, cr, _) = coerce_int_binop(builder, lhs, rhs);
+        (cl, cr)
+    }
+}
+
 fn coerce_int_binop(
     builder: LLVMBuilderRef,
     lhs: LLVMValueRef,
@@ -1492,17 +1515,9 @@ fn coerce_int_binop(
         let lhs_kind = LLVMGetTypeKind(lhs_ty) as u32;
         let rhs_kind = LLVMGetTypeKind(rhs_ty) as u32;
 
-        // If one side is pointer and the other is integer (common for null checks),
-        // convert the integer to a pointer of the same type.
-        let lhs_is_ptr = lhs_kind == LLVMTypeKind::Pointer as u32;
-        let rhs_is_ptr = rhs_kind == LLVMTypeKind::Pointer as u32;
-        if lhs_is_ptr && !rhs_is_ptr {
-            let coerced = LLVMBuildIntToPtr(builder, rhs, lhs_ty, c_str("inttoptr").as_ptr());
-            return (lhs, coerced, lhs_ty);
-        }
-        if rhs_is_ptr && !lhs_is_ptr {
-            let coerced = LLVMBuildIntToPtr(builder, lhs, rhs_ty, c_str("inttoptr").as_ptr());
-            return (coerced, rhs, rhs_ty);
+        // If both are pointers, return as-is (comparison will handle them).
+        if lhs_kind == LLVMTypeKind::Pointer as u32 && rhs_kind == LLVMTypeKind::Pointer as u32 {
+            return (lhs, rhs, lhs_ty);
         }
         // Non-integer types — return as-is.
         if lhs_kind != LLVMTypeKind::Integer as u32
