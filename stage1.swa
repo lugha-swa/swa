@@ -9,11 +9,12 @@ W0 ongeza_faili(N8* njia) {
     N8* hali = "r";
     N8* f = fopen(njia, hali);
     kama (f == tupu) {
-        andika("; KOSA: faili halifunguki: %s\n", njia);
+        andika("; KOSA: %s\n", njia);
         rudisha;
     }
     N64 n = fread(chanzo_buf + chanzo_urefu, 1, 262144, f);
     fclose(f);
+    andika("; +%d %s\n", n, njia);
     chanzo_urefu = chanzo_urefu + n;
 }
 
@@ -68,23 +69,24 @@ W0 ondoa_husisha() {
 }
 
 N32 main(N32 argc, N8** argv) {
-    kama (argc < 2) {
-        andika("matumizi: stage1 faili.swa\n");
-        rudisha 1;
-    }
+    // Load all library files in dependency order.
+    // kumbukumbu and mfuatano have no includes.
     ongeza_faili("msingi/kumbukumbu.swa");
     ongeza_faili("msingi/mfuatano.swa");
+    // msomaji defines Tokeni, Msomaji — needed by msambazaji.
     ongeza_faili("msingi/msomaji.swa");
-    // ongeza_faili(argv[1]); // TODO: fix N8** GEP for pointer indexing
+    // msambazaji defines Msambazaji, AST globals, changanua.
+    ongeza_faili("msingi/msambazaji.swa");
+    // mteremko defines teremsha (LLVM IR lowering).
+    ongeza_faili("msingi/mteremko.swa");
+    // mkaguzi — the self-hosting semantic checker.
     ongeza_faili("msingi/mkaguzi.swa");
-    ondoa_husisha();
+    // TODO: ongeza_faili(argv[1]); — fix N8** GEP for pointer indexing
+    // ondoa_husisha(); // skip — test if parser works without stripping
     chanzo_buf[chanzo_urefu] = 0;
     Msambazaji p = msambazaji_mpya(chanzo_buf, chanzo_urefu);
+    andika("; parser created, buf=%d bytes\n", chanzo_urefu);
     N32 mzizi = changanua(&p);
-    kama (p.kosa != 0) {
-        andika("; KOSA: msambazaji alishindwa\n");
-        rudisha 1;
-    }
-    teremsha(mzizi);
+    andika("; parse done, kosa=%d mzizi=%d\n", p.kosa, mzizi);
     rudisha 0;
 }
