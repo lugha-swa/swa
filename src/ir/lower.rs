@@ -465,8 +465,6 @@ impl<'a> Lowerer<'a> {
     fn emit(&mut self, block_id: BlockId, inst: Instruction) -> ValueId {
         let block = &mut self.func.blocks[block_id.0];
         block.push(inst);
-        // Reserve ValueId slots for params (0..N-1) and constants (N..N+M-1).
-        // Instructions start at N+M + inst_counter.
         let base = self.func.params.len() + self.values_initial_len;
         let vid = ValueId(base + self.inst_counter);
         self.inst_counter += 1;
