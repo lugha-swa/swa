@@ -247,8 +247,28 @@ impl LlvmBackend {
                 LLVMSetLinkage(llvm_global, LLVMLinkage::Private);
             }
 
-            // -- 4. Pre-declare libc functions ---------------------------------
+            // -- 4. Pre-declare ALL functions (libc + user) ---------------------
             pre_declare_libc(module);
+
+            // Forward-declare every user function so forward references resolve.
+            for func in &ir_module.functions {
+                let name_c = c_str(&func.name);
+                if LLVMGetNamedFunction(module, name_c.as_ptr()).is_null() {
+                    let llvm_ret = ir_type_to_llvm(&func.return_ty, &struct_types);
+                    let mut param_tys: Vec<LLVMTypeRef> = func
+                        .params
+                        .iter()
+                        .map(|(_, ty)| ir_type_to_llvm(ty, &struct_types))
+                        .collect();
+                    let fn_ty = LLVMFunctionType(
+                        llvm_ret,
+                        if param_tys.is_empty() { std::ptr::null_mut() } else { param_tys.as_mut_ptr() },
+                        param_tys.len() as u32,
+                        if func.variadic { 1 } else { 0 },
+                    );
+                    LLVMAddFunction(module, name_c.as_ptr(), fn_ty);
+                }
+            }
 
             // -- 5. Order function lowering: process main LAST -----------------
             // Collect function indices, putting main at the end.
