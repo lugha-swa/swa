@@ -1107,6 +1107,16 @@ fn lower_instruction(
                 )
             }
 
+            crate::ir::Instruction::Select(cond, true_val, false_val) => {
+                LLVMBuildSelect(
+                    builder,
+                    v(value_map, cond),
+                    v(value_map, true_val),
+                    v(value_map, false_val),
+                    c_str("select").as_ptr(),
+                )
+            }
+
             // -- calls ------------------------------------------------------------
             crate::ir::Instruction::Call(callee, args) => {
                 let name_c = c_str(callee);
