@@ -251,6 +251,8 @@ impl LlvmBackend {
             pre_declare_libc(module);
 
             // Forward-declare every user function so forward references resolve.
+            // Also save their return types for the call-instruction fallback path.
+            let mut fn_return_types: HashMap<String, LLVMTypeRef> = HashMap::new();
             for func in &ir_module.functions {
                 let name_c = c_str(&func.name);
                 if LLVMGetNamedFunction(module, name_c.as_ptr()).is_null() {
@@ -267,6 +269,11 @@ impl LlvmBackend {
                         if func.variadic { 1 } else { 0 },
                     );
                     LLVMAddFunction(module, name_c.as_ptr(), fn_ty);
+                    fn_return_types.insert(func.name.clone(), llvm_ret);
+                } else {
+                    // Function already declared (e.g. libc) — still record its return type.
+                    let llvm_ret = ir_type_to_llvm(&func.return_ty, &struct_types);
+                    fn_return_types.insert(func.name.clone(), llvm_ret);
                 }
             }
 
@@ -282,7 +289,7 @@ impl LlvmBackend {
             // Lower each function.
             for idx in ordered_indices {
                 let func = &ir_module.functions[idx];
-                if let Err(diags) = lower_function(module, func, &struct_types) {
+                if let Err(diags) = lower_function(module, func, &struct_types, &fn_return_types) {
                     LLVMDisposeModule(module);
                     return Err(diags);
                 }
@@ -401,6 +408,7 @@ fn lower_function(
     module: LLVMModuleRef,
     func: &Function,
     struct_types: &HashMap<String, LLVMTypeRef>,
+    fn_return_types: &HashMap<String, LLVMTypeRef>,
 ) -> Result<(), Vec<Diagnostic>> {
     unsafe {
         // -- 1. Build LLVM function type --------------------------------------
@@ -508,7 +516,7 @@ fn lower_function(
                 let val_id = ValueId(param_count + func.values.len() + global_inst_idx);
                 global_inst_idx += 1;
                 let llvm_val =
-                    lower_instruction(inst, builder, &value_map, module, struct_types);
+                    lower_instruction(inst, builder, &value_map, module, struct_types, &fn_return_types);
                 if !llvm_val.is_null() {
                     value_map.insert(val_id, llvm_val);
                 }
@@ -559,7 +567,7 @@ fn lower_function(
                 let val_id = ValueId(param_count + func.values.len() + global_inst_idx);
 
                 let llvm_val =
-                    lower_instruction(inst, builder, &value_map, module, struct_types);
+                    lower_instruction(inst, builder, &value_map, module, struct_types, &fn_return_types);
                 value_map.insert(val_id, llvm_val);
             }
         }
@@ -589,6 +597,7 @@ fn lower_instruction(
     value_map: &HashMap<ValueId, LLVMValueRef>,
     module: LLVMModuleRef,
     struct_types: &HashMap<String, LLVMTypeRef>,
+    fn_return_types: &HashMap<String, LLVMTypeRef>,
 ) -> LLVMValueRef {
     unsafe {
         /// Helper to resolve a ValueId operand.
@@ -1180,14 +1189,18 @@ fn lower_instruction(
                 for pi in 0..param_count {
                     rebuilt_param_tys.push(LLVMTypeOf(LLVMGetParam(callee_fn, pi)));
                 }
-                // Determine return: if the IR Call has no result_ty info, default to ptr.
-                // For known libc functions, we can infer: malloc→ptr, printf→i32, free→void.
-                let inferred_ret_ty = match callee.as_str() {
-                    "malloc" => ptr_type(),
-                    "free" => LLVMVoidType(),
-                    "printf" => LLVMInt32Type(),
-                    "andika" => LLVMInt32Type(),
-                    _ => ptr_type(),
+                // Determine return type: look up in the pre-computed map first,
+                // then fall back to known libc functions.
+                let inferred_ret_ty = if let Some(&ret_ty) = fn_return_types.get(callee) {
+                    ret_ty
+                } else {
+                    match callee.as_str() {
+                        "malloc" => ptr_type(),
+                        "free" => LLVMVoidType(),
+                        "printf" => LLVMInt32Type(),
+                        "andika" => LLVMInt32Type(),
+                        _ => LLVMInt32Type(), // safe default for Swa functions
+                    }
                 };
                 let call_fn_ty = LLVMFunctionType(
                     inferred_ret_ty,
