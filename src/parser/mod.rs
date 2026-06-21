@@ -153,7 +153,7 @@ impl<'a> Parser<'a> {
                 mshale += self.sasa().lexeme.len() as u32;
                 self.sogeza();
             }
-            return if mshale != 0 { -(name_off | 1) } else { -name_off };
+            return -(name_off * 2 + mshale as i32);
         };
         self.sogeza();
         let mut mshale: u32 = 0;
