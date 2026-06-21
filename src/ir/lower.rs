@@ -1733,7 +1733,17 @@ impl<'a> Lowerer<'a> {
                 let array_node = self.ast_kushoto[node as usize];
                 let index_node = self.ast_kulia[node as usize];
 
-                let ary_ptr = self.lower_lvalue(array_node, blk);
+                let raw_ptr = self.lower_lvalue(array_node, blk);
+                // If the array is actually a pointer variable (N8**), lower_lvalue
+                // returns the alloca. Load the pointer value for correct GEP.
+                let arr_ty = self.resolve_expr_type(array_node);
+                let is_ptr = matches!(&arr_ty, Some(IrType::Ptr(_)));
+                let ary_ptr = if is_ptr {
+                    let loaded_ty = arr_ty.unwrap();
+                    self.emit(blk, Instruction::Load(loaded_ty, raw_ptr))
+                } else {
+                    raw_ptr
+                };
                 let (idx_val, end_blk) = self.lower_expr_into(index_node, blk);
 
                 self.emit(end_blk, Instruction::Gep(ary_ptr, vec![idx_val]))
@@ -1856,11 +1866,20 @@ impl<'a> Lowerer<'a> {
         let array_node = self.ast_kushoto[node as usize];
         let index_node = self.ast_kulia[node as usize];
 
-        let ary_ptr = self.lower_lvalue(array_node, blk);
+        let raw_ptr = self.lower_lvalue(array_node, blk);
+        // If this is a pointer variable (N8**), lower_lvalue returns the alloca.
+        // Load the actual pointer value for correct GEP.
+        let arr_ty = self.resolve_expr_type(array_node);
+        let is_ptr = matches!(&arr_ty, Some(IrType::Ptr(_)));
+        let ary_ptr = if is_ptr {
+            let loaded_ty = arr_ty.clone().unwrap();
+            self.emit(blk, Instruction::Load(loaded_ty, raw_ptr))
+        } else {
+            raw_ptr
+        };
         let (idx_val, end_blk) = self.lower_expr_into(index_node, blk);
 
         // Determine element type from the array's declared type.
-        let arr_ty = self.resolve_expr_type(array_node);
         let elem_ty = arr_ty.and_then(|ty| {
             match &ty {
                 IrType::Ptr(pointee) => Some((**pointee).clone()),
