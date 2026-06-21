@@ -138,7 +138,7 @@ impl<'a> Parser<'a> {
         let n = txt.len();
         let (familia, upana): (u32, u32) = if n >= 2 && txt[1..].chars().all(|c| c.is_ascii_digit()) {
             let c0 = txt.as_bytes()[0];
-            let fam = match c0 { b'N' => 1, b'A'|b'S' => 2, b'D' => 3, b'B' => 4, b'W' => 5, b'H' => 2, b'K' => 4, _ => 6 };
+            let fam = match c0 { b'N' => 1, b'A' => 2, b'D' => 3, b'B' => 4, b'W' => 5, _ => 6 };
             let w = txt[1..].parse().unwrap_or(32);
             (fam, w)
         } else {

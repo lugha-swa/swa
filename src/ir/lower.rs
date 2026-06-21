@@ -378,7 +378,7 @@ impl<'a> Lowerer<'a> {
         let upana = match upana_idx { 0=>0, 1=>1, 2=>8, 3=>16, 4=>32, 5=>64, 6=>128, _=>32 };
         let base = match familia {
             1 => match upana { 8 => IrType::I8, 16 => IrType::I16, 32 => IrType::I32, 64 => IrType::I64, 128 => IrType::I128, _ => IrType::I32 },
-            2 => match upana { 8 => IrType::U8, 16 => IrType::U16, 32 => IrType::U32, 64 => IrType::U64, 128 => IrType::U128, _ => IrType::U32 },
+            2 => match upana { 8 => IrType::A8, 16 => IrType::A16, 32 => IrType::A32, 64 => IrType::A64, 128 => IrType::A128, _ => IrType::A32 },
             3 => match upana { 16 => IrType::F16, 32 => IrType::F32, 64 => IrType::F64, 80 => IrType::F64, 128 => IrType::F64, _ => IrType::F64 },
             4 => match upana { 1 => IrType::B1, 8 => IrType::B8, 16 => IrType::B16, 32 => IrType::B32, 64 => IrType::B64, _ => IrType::B1 },
             5 => match upana { 0 => IrType::Void, _ => IrType::Void },
@@ -1392,7 +1392,7 @@ impl<'a> Lowerer<'a> {
             // For array types (I8 = byte array like N8 chanzo_buf[524288]),
             // return the pointer directly (array-to-pointer decay).
             // For scalar types (I32 = N32 chanzo_urefu), load the value.
-            if gty == IrType::I8 || gty == IrType::U8 {
+            if gty == IrType::I8 || gty == IrType::A8 {
                 (addr, blk)
             } else {
                 let val = self.emit(blk, Instruction::Load(gty, addr));

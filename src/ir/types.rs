@@ -8,7 +8,7 @@
 //! | Swa prefix | Meaning          | Rust prefix |
 //! |------------|------------------|-------------|
 //! | `N`        | Namba (signed)   | `I`         |
-//! | `U`        | (unsigned)       | `U`         |
+//! | `A`        | Asili (unsigned)  | `U`         |
 //! | `D`        | Desimali (float) | `F`         |
 //! | `B`        | Buli (boolean)   | `B`         |
 //! | `W`        | Wosia (word)     | `W`         |
@@ -39,11 +39,11 @@ pub enum IrType {
     I128,
 
     // -- unsigned integers -------------------------------------------------
-    U8,
-    U16,
-    U32,
-    U64,
-    U128,
+    A8,
+    A16,
+    A32,
+    A64,
+    A128,
 
     // -- floating-point (Desimali) -----------------------------------------
     F16,
@@ -130,12 +130,12 @@ impl IrType {
             "N64" => Some(IrType::I64),
             "N128" => Some(IrType::I128),
 
-            // Unsigned
-            "U8" => Some(IrType::U8),
-            "U16" => Some(IrType::U16),
-            "U32" => Some(IrType::U32),
-            "U64" => Some(IrType::U64),
-            "U128" => Some(IrType::U128),
+            // Unsigned (A = Asili — natural/non-negative integers)
+            "A8" => Some(IrType::A8),
+            "A16" => Some(IrType::A16),
+            "A32" => Some(IrType::A32),
+            "A64" => Some(IrType::A64),
+            "A128" => Some(IrType::A128),
 
             // Desimali (float)
             "D16" => Some(IrType::F16),
@@ -176,11 +176,11 @@ impl IrType {
                 | IrType::I32
                 | IrType::I64
                 | IrType::I128
-                | IrType::U8
-                | IrType::U16
-                | IrType::U32
-                | IrType::U64
-                | IrType::U128
+                | IrType::A8
+                | IrType::A16
+                | IrType::A32
+                | IrType::A64
+                | IrType::A128
                 | IrType::B1
                 | IrType::B8
                 | IrType::B16
@@ -224,11 +224,11 @@ impl IrType {
         match self {
             IrType::Void => 0,
 
-            IrType::I8 | IrType::U8 | IrType::B8 | IrType::W8 => 1,
-            IrType::I16 | IrType::U16 | IrType::B16 | IrType::W16 | IrType::F16 => 2,
-            IrType::I32 | IrType::U32 | IrType::B32 | IrType::W32 | IrType::F32 => 4,
-            IrType::I64 | IrType::U64 | IrType::B64 | IrType::W64 | IrType::F64 => 8,
-            IrType::I128 | IrType::U128 | IrType::F128 => 16,
+            IrType::I8 | IrType::A8 | IrType::B8 | IrType::W8 => 1,
+            IrType::I16 | IrType::A16 | IrType::B16 | IrType::W16 | IrType::F16 => 2,
+            IrType::I32 | IrType::A32 | IrType::B32 | IrType::W32 | IrType::F32 => 4,
+            IrType::I64 | IrType::A64 | IrType::B64 | IrType::W64 | IrType::F64 => 8,
+            IrType::I128 | IrType::A128 | IrType::F128 => 16,
 
             IrType::B1 => 1, // stored as a byte
 
@@ -254,11 +254,11 @@ impl IrType {
         match self {
             IrType::Void => 1,
 
-            IrType::I8 | IrType::U8 | IrType::B1 | IrType::B8 | IrType::W8 => 1,
-            IrType::I16 | IrType::U16 | IrType::B16 | IrType::W16 | IrType::F16 => 2,
-            IrType::I32 | IrType::U32 | IrType::B32 | IrType::W32 | IrType::F32 => 4,
-            IrType::I64 | IrType::U64 | IrType::B64 | IrType::W64 | IrType::F64 => 8,
-            IrType::I128 | IrType::U128 | IrType::F128 => 16,
+            IrType::I8 | IrType::A8 | IrType::B1 | IrType::B8 | IrType::W8 => 1,
+            IrType::I16 | IrType::A16 | IrType::B16 | IrType::W16 | IrType::F16 => 2,
+            IrType::I32 | IrType::A32 | IrType::B32 | IrType::W32 | IrType::F32 => 4,
+            IrType::I64 | IrType::A64 | IrType::B64 | IrType::W64 | IrType::F64 => 8,
+            IrType::I128 | IrType::A128 | IrType::F128 => 16,
 
             IrType::Ptr(_) | IrType::FnPtr { .. } => 8,
 
@@ -277,11 +277,11 @@ impl IrType {
             IrType::I32 => "N32".to_string(),
             IrType::I64 => "N64".to_string(),
             IrType::I128 => "N128".to_string(),
-            IrType::U8 => "U8".to_string(),
-            IrType::U16 => "U16".to_string(),
-            IrType::U32 => "U32".to_string(),
-            IrType::U64 => "U64".to_string(),
-            IrType::U128 => "U128".to_string(),
+            IrType::A8 => "A8".to_string(),
+            IrType::A16 => "A16".to_string(),
+            IrType::A32 => "A32".to_string(),
+            IrType::A64 => "A64".to_string(),
+            IrType::A128 => "A128".to_string(),
             IrType::F16 => "D16".to_string(),
             IrType::F32 => "D32".to_string(),
             IrType::F64 => "D64".to_string(),
@@ -344,8 +344,8 @@ mod tests {
         assert_eq!(IrType::from_swa_type("W0"), Some(IrType::Void));
         assert_eq!(IrType::from_swa_type("N32"), Some(IrType::I32));
         assert_eq!(IrType::from_swa_type("N64"), Some(IrType::I64));
-        assert_eq!(IrType::from_swa_type("U8"), Some(IrType::U8));
-        assert_eq!(IrType::from_swa_type("U64"), Some(IrType::U64));
+        assert_eq!(IrType::from_swa_type("A8"), Some(IrType::A8));
+        assert_eq!(IrType::from_swa_type("A64"), Some(IrType::A64));
         assert_eq!(IrType::from_swa_type("D32"), Some(IrType::F32));
         assert_eq!(IrType::from_swa_type("D64"), Some(IrType::F64));
         assert_eq!(IrType::from_swa_type("B1"), Some(IrType::B1));
@@ -368,11 +368,11 @@ mod tests {
         }
         // Unsigned — all widths
         for (name, expected) in [
-            ("U8", IrType::U8),
-            ("U16", IrType::U16),
-            ("U32", IrType::U32),
-            ("U64", IrType::U64),
-            ("U128", IrType::U128),
+            ("A8", IrType::A8),
+            ("A16", IrType::A16),
+            ("A32", IrType::A32),
+            ("A64", IrType::A64),
+            ("A128", IrType::A128),
         ] {
             assert_eq!(IrType::from_swa_type(name), Some(expected), "failed for {name}");
         }
@@ -418,7 +418,7 @@ mod tests {
     #[test]
     fn test_abi_class_integer() {
         assert_eq!(IrType::I32.abi_class(), Some(AbiClass::Integer));
-        assert_eq!(IrType::U64.abi_class(), Some(AbiClass::Integer));
+        assert_eq!(IrType::A64.abi_class(), Some(AbiClass::Integer));
         assert_eq!(IrType::B8.abi_class(), Some(AbiClass::Integer));
         assert_eq!(IrType::W32.abi_class(), Some(AbiClass::Integer));
         assert_eq!(
@@ -505,7 +505,7 @@ mod tests {
     fn test_display_primitives() {
         assert_eq!(IrType::Void.to_string(), "W0");
         assert_eq!(IrType::I32.to_string(), "N32");
-        assert_eq!(IrType::U64.to_string(), "U64");
+        assert_eq!(IrType::A64.to_string(), "A64");
         assert_eq!(IrType::F64.to_string(), "D64");
         assert_eq!(IrType::B1.to_string(), "B1");
         assert_eq!(IrType::W32.to_string(), "W32");

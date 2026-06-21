@@ -77,7 +77,7 @@ pub fn flatten_struct(ty: &IrType) -> Vec<AbiClass> {
         }
 
         // Unsigned integers.
-        IrType::U8 | IrType::U16 | IrType::U32 | IrType::U64 | IrType::U128 => {
+        IrType::A8 | IrType::A16 | IrType::A32 | IrType::A64 | IrType::A128 => {
             vec![AbiClass::Integer]
         }
 
@@ -159,7 +159,7 @@ mod tests {
         assert_eq!(classify_return(&IrType::I32), IrReturnClass::Direct);
         assert_eq!(flatten_struct(&IrType::I32), vec![AbiClass::Integer]);
 
-        assert_eq!(classify_return(&IrType::U64), IrReturnClass::Direct);
+        assert_eq!(classify_return(&IrType::A64), IrReturnClass::Direct);
         assert_eq!(classify_return(&IrType::B1), IrReturnClass::Direct);
         assert_eq!(classify_return(&IrType::W32), IrReturnClass::Direct);
         assert_eq!(classify_return(&ptr_ty()), IrReturnClass::Direct);
