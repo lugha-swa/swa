@@ -1372,6 +1372,11 @@ impl<'a> Lowerer<'a> {
 
     /// Scan the AST for a function definition by name to check struct return.
     fn find_function_returns_struct(&self, name: &str) -> bool {
+        matches!(self.find_function_return_type(name), Some(IrType::Struct { .. }))
+    }
+
+    /// Scan the AST for a function's return type by name.
+    fn find_function_return_type(&self, name: &str) -> Option<IrType> {
         let root = (self.ast_aina.len() - 1) as i32;
         let mut child = self.ast_kushoto[root as usize];
         while child != NO_NODE {
@@ -1381,13 +1386,13 @@ impl<'a> Lowerer<'a> {
                     let fname = self.read_pool_name(self.ast_jina_off[name_node as usize]);
                     if fname == name {
                         let ret_ty = self.read_type_from_thamani(child);
-                        return matches!(ret_ty, IrType::Struct { .. });
+                        return Some(ret_ty);
                     }
                 }
             }
             child = self.ast_nne[child as usize];
         }
-        false
+        None
     }
 
     fn lower_call(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
@@ -1433,13 +1438,22 @@ impl<'a> Lowerer<'a> {
         let needs_sret = self.functions.iter().any(|f| f.name == callee_name && matches!(f.source_return_ty, IrType::Struct { .. }))
             || self.find_function_returns_struct(&callee_name);
         let (call_val, final_block) = if needs_sret {
+            // Determine the actual struct type for the sret alloca.
+            let struct_ty = self.functions.iter()
+                .find(|f| f.name == callee_name)
+                .map(|f| f.source_return_ty.clone())
+                .or_else(|| {
+                    // Forward ref: scan AST for the return type.
+                    self.find_function_return_type(&callee_name)
+                })
+                .unwrap_or(IrType::I32);
             // Alloca space for the struct result and pass as first arg (sret).
-            let sret_alloca = self.emit(current_block, Instruction::Alloca(IrType::Ptr(Box::new(IrType::I8)))); // placeholder
+            let sret_alloca = self.emit(current_block, Instruction::Alloca(struct_ty.clone()));
             let mut sret_args = vec![sret_alloca];
             sret_args.extend(arg_vals);
             let cv = self.emit(current_block, Instruction::Call(callee_name.clone(), sret_args));
             // Load the struct from the alloca to get the value.
-            let loaded = self.emit(current_block, Instruction::Load(IrType::I32, sret_alloca)); // approximate type
+            let loaded = self.emit(current_block, Instruction::Load(struct_ty, sret_alloca));
             (loaded, current_block)
         } else {
             let cv = self.emit(current_block, Instruction::Call(callee_name.clone(), arg_vals));
