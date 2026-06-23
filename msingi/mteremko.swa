@@ -844,6 +844,23 @@ N32 teremsha_usemi(N32 node) {
         rudisha vid;
     }
 
+    // Bit shift operators
+    kama (aina == 39 || aina == 41) {  // <<  >>
+        N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
+        N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
+        N32 lhs_enc = vid_aina_arr[lhs_vid];
+        N32 upana = lhs_enc & 254;
+
+        N8* inst = "shl";
+        kama (aina == 41) { inst = "ashr"; }  // >>
+
+        N32 vid = vid_mpya();
+        vid_aina_arr[vid] = lhs_enc;
+        andika("  %%v%d = %s i%d %%v%d, %%v%d\n",
+               vid, inst, upana, lhs_vid, rhs_vid);
+        rudisha vid;
+    }
+
     // Comparison operators
     kama (aina == 20 || aina == 21 || aina == 22 || aina == 23 ||
           aina == 24 || aina == 25) {  // == != < > <= >=
@@ -874,6 +891,34 @@ N32 teremsha_usemi(N32 node) {
         N32 vid = vid_mpya();
         vid_aina_arr[vid] = (4 << 8) | 1; // i1
         andika("  %%v%d = icmp eq i32 %%v%d, 0\n", vid, operand_vid);
+        rudisha vid;
+    }
+
+    // Bitwise AND (&)
+    kama (aina == 43) {  // AST_BIT_NA
+        N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
+        N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
+        N32 lhs_enc = vid_aina_arr[lhs_vid];
+        N32 upana = lhs_enc & 254;
+
+        N32 vid = vid_mpya();
+        vid_aina_arr[vid] = lhs_enc;
+        andika("  %%v%d = and i%d %%v%d, %%v%d\n",
+               vid, upana, lhs_vid, rhs_vid);
+        rudisha vid;
+    }
+
+    // Bitwise OR (|)
+    kama (aina == 42) {  // AST_BIT_AU
+        N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
+        N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
+        N32 lhs_enc = vid_aina_arr[lhs_vid];
+        N32 upana = lhs_enc & 254;
+
+        N32 vid = vid_mpya();
+        vid_aina_arr[vid] = lhs_enc;
+        andika("  %%v%d = or i%d %%v%d, %%v%d\n",
+               vid, upana, lhs_vid, rhs_vid);
         rudisha vid;
     }
 
@@ -1011,6 +1056,31 @@ N32 teremsha_usemi(N32 node) {
             rudisha vid;
         }
         rudisha last_vid;
+    }
+
+    // Ternary (?:)
+    kama (aina == 44) {  // AST_TERNARY
+        N32 cond_node = ast_kushoto[node];
+        N32 kweli_node = ast_kulia[node];
+        N32 sikweli_node = ast_tiga[node];
+
+        N32 cond_vid = teremsha_usemi(cond_node);
+        // Convert condition to i1
+        N32 cond_bool = vid_mpya();
+        vid_aina_arr[cond_bool] = (4 << 8) | 1;
+        andika("  %%v%d = icmp ne i32 %%v%d, 0\n", cond_bool, cond_vid);
+
+        N32 kweli_vid = teremsha_usemi(kweli_node);
+        N32 kweli_enc = vid_aina_arr[kweli_vid];
+        N32 upana = kweli_enc & 254;
+
+        N32 sikweli_vid = teremsha_usemi(sikweli_node);
+
+        N32 vid = vid_mpya();
+        vid_aina_arr[vid] = kweli_enc;
+        andika("  %%v%d = select i1 %%v%d, i%d %%v%d, i%d %%v%d\n",
+               vid, cond_bool, upana, kweli_vid, upana, sikweli_vid);
+        rudisha vid;
     }
 
     // Assignment expression (=)
