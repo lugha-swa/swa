@@ -55,6 +55,7 @@ fn try_link(obj: &Path, exe: &Path) -> Option<i32> {
         .arg("-L").arg(&gcc_lib)
         .arg("-lgcc")  // for __chkstk (large stack frames)
         .arg("-Wl,--defsym,andika=printf")  // map Swa printf to libc printf
+        .arg("-Wl,--stack,8388608") // 8MB stack reserve for large BSS
         .status()
         .ok()?;
     Some(status.code().unwrap_or(1))

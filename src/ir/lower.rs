@@ -240,12 +240,32 @@ pub fn lower(
         child = lr.ast_nne[child as usize];
     }
 
+    // Pre-pass 2: collect names of functions that have bodies.  Forward
+    // declarations (no body) whose name appears in this set are redundant
+    // and must be skipped during lowering, otherwise they produce empty
+    // stubs that shadow the real implementations.
+    let mut has_body: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let mut child = lr.ast_kushoto[root as usize];
+    while child != NO_NODE {
+        if lr.node_aina(child) == AST_KAZI {
+            let body_node = lr.ast_tiga[child as usize];
+            if body_node != NO_NODE {
+                let name_node = lr.ast_kushoto[child as usize];
+                if name_node != NO_NODE {
+                    let name = lr.read_pool_name(lr.ast_jina_off[name_node as usize]);
+                    has_body.insert(name);
+                }
+            }
+        }
+        child = lr.ast_nne[child as usize];
+    }
+
     // Main pass: lower functions and globals (structs already done).
     let mut child = lr.ast_kushoto[root as usize];
     while child != NO_NODE {
         let kind = lr.node_aina(child);
         match kind {
-            AST_KAZI => lr.lower_function(child),
+            AST_KAZI => lr.lower_function(child, &has_body),
             AST_TANGAZO_ULIMWENGU => lr.lower_global(child),
             AST_MUUNDO => {} // already done in pre-pass
             other => {
@@ -267,10 +287,12 @@ pub fn lower(
             if data.last() != Some(&0) {
                 data.push(0);
             }
+            let data_len = data.len();
             IrGlobal {
                 name,
                 bytes: data,
                 is_const: true,
+                ty: IrType::Array { element: Box::new(IrType::I8), count: data_len as u64 },
             }
         })
         .collect();
@@ -375,6 +397,7 @@ impl<'a> Lowerer<'a> {
         if enc == 0 {
             return IrType::Void;
         }
+        // Encoding from Rust parser: ((familia & 255) << 11) | (upana_idx << 3) | (mshale & 7)
         let familia = (enc >> 11) & 255;
         let upana_idx = (enc >> 3) & 7;
         let mshale = enc & 7;
@@ -529,7 +552,21 @@ impl<'a> Lowerer<'a> {
     /// * `ast_thamani[node]`   → return-type pool offset
     /// * `ast_kulia[node]`     → first parameter node (chained via `ast_nne`)
     /// * `ast_tiga[node]`      → function body (block or expression)
-    fn lower_function(&mut self, func_node: i32) {
+    fn lower_function(&mut self, func_node: i32, has_body: &std::collections::HashSet<String>) {
+        // Skip forward declarations whose name has a corresponding definition
+        // with a body elsewhere in the same compilation unit.  Lowering them
+        // would create an empty stub that shadows the real implementation.
+        let body_node = self.ast_tiga[func_node as usize];
+        if body_node == NO_NODE {
+            let name_node = self.ast_kushoto[func_node as usize];
+            if name_node != NO_NODE {
+                let name = self.read_pool_name(self.ast_jina_off[name_node as usize]);
+                if has_body.contains(&name) {
+                    return; // forward declaration — real definition exists
+                }
+            }
+        }
+
         // The function's name is stored on the name_node (ast_kushoto),
         // not on the AST_KAZI node itself.
         let name_node = self.ast_kushoto[func_node as usize];
@@ -706,6 +743,7 @@ impl<'a> Lowerer<'a> {
             name,
             bytes,
             is_const: false,
+            ty,
         });
     }
 
@@ -854,7 +892,9 @@ impl<'a> Lowerer<'a> {
         let last_block = prev_block;
         let needs_term = match &self.func.blocks[last_block.0].terminator {
             Terminator::Br(b) if *b == last_block => true, // placeholder
-            Terminator::RetVoid => true, // default from new_block
+            // RetVoid is a valid terminator (from new_block default or
+            // from an explicit rudisha;).  Do NOT replace it with a
+            // self-loop — that would prevent rudisha from returning.
             _ => false,
         };
         if needs_term {
@@ -927,7 +967,12 @@ impl<'a> Lowerer<'a> {
         // directly to ptr and no Store is needed.
         let sret_consumed = is_struct_assign && self.sret_dest.is_none();
         if !sret_consumed {
-            self.emit(end_blk, Instruction::Store(rhs_val, ptr));
+            // Always use StoreTyped with the field width.  If type resolution
+            // failed, default to I32 (the most common field width) rather than
+            // falling back to untyped Store which would write an i64 constant
+            // as 8 bytes and corrupt adjacent struct fields.
+            let store_ty = lhs_ty.unwrap_or(IrType::I32);
+            self.emit(end_blk, Instruction::StoreTyped(rhs_val, ptr, store_ty));
         }
         self.sret_dest = None;
         self.set_terminator(end_blk, Terminator::Br(end_blk));
@@ -1019,8 +1064,13 @@ impl<'a> Lowerer<'a> {
                     // Self-loop placeholder — this is the last block.
                     break;
                 }
+                Terminator::BrCond(_, _, merge) => {
+                    // The fall-through path of a conditional is the merge block.
+                    // Continue walking from there to find the real last block.
+                    last = *merge;
+                }
                 _ => {
-                    // Real terminator (Ret, BrCond, Switch) — stop here.
+                    // Real terminator (Ret, Switch) — stop here.
                     break;
                 }
             }
@@ -1212,16 +1262,23 @@ impl<'a> Lowerer<'a> {
             let (init_val, end_blk) = self.lower_expr_into(init_node, blk);
             // If sret_dest was used, init_val IS alloc and we skip the store.
             if init_val != alloc {
-                self.emit(end_blk, Instruction::Store(init_val, alloc));
+                self.emit(end_blk, Instruction::StoreTyped(init_val, alloc, var_ty.clone()));
             }
             self.define_var(var_name, alloc, var_ty);
             self.set_terminator(end_blk, Terminator::Br(end_blk));
             end_blk
         } else {
             self.define_var(var_name, alloc, var_ty.clone());
-            // Zero-initialise.
-            let zero = self.const_val(Const::Zero);
-            self.emit(blk, Instruction::Store(zero, alloc));
+            // Zero-initialise local variables, but skip the sret pointer
+            // itself — the sret slot may already contain data from the
+            // caller (e.g. when a helper writes partial results before
+            // calling another helper).  Zeroing it here would overwrite
+            // those results and cause corrupted return values at O1.
+            let is_sret_slot = self.func.sret_value_id == Some(alloc);
+            if !is_sret_slot {
+                let zero = self.const_val(Const::Zero);
+                self.emit(blk, Instruction::StoreTyped(zero, alloc, var_ty.clone()));
+            }
             self.set_terminator(blk, Terminator::Br(blk));
             blk
         }
@@ -1977,10 +2034,22 @@ impl<'a> Lowerer<'a> {
         };
 
         // Determine field type from the resolved struct pointee.
+        // If we can't find it via the scope chain, try the module type table.
         let field_ty = struct_ty_opt.as_ref().and_then(|sty| {
             if let IrType::Struct { fields, .. } = sty {
                 fields.iter().find(|(n, _)| n == &field_name).map(|(_, t)| t.clone())
             } else { None }
+        }).or_else(|| {
+            // Fallback: try module-level type table by struct name
+            struct_ty_opt.as_ref().and_then(|sty| {
+                if let IrType::Struct { name, .. } = sty {
+                    self.types.iter().find(|(n, _)| n == name).and_then(|(_, t)| {
+                        if let IrType::Struct { fields, .. } = t {
+                            fields.iter().find(|(n, _)| n == &field_name).map(|(_, ft)| ft.clone())
+                        } else { None }
+                    })
+                } else { None }
+            })
         }).unwrap_or(IrType::I32);
 
         let field_ptr = self.emit(end_blk, Instruction::FieldAddr(struct_ptr, field_idx, struct_ty_opt));
@@ -2060,10 +2129,34 @@ impl<'a> Lowerer<'a> {
     /// If `block`'s current terminator is a self-looping placeholder
     /// (`Br(block)`), replace it with `Br(target)`.
     fn patch_br_if_needed(&mut self, block: BlockId, target: BlockId) {
-        let current_term = &self.func.blocks[block.0].terminator;
-        let needs_patch = matches!(current_term, Terminator::Br(b) if *b == block);
-        if needs_patch {
-            self.set_terminator(block, Terminator::Br(target));
+        // Walk the chain through unconditional branches and through the
+        // merge (fall-through) path of conditional branches, patching every
+        // self-loop placeholder to `target`.  This ensures that nested if /
+        // while statements inside a then-block all eventually reach the
+        // correct continuation.
+        let mut visited: Vec<BlockId> = Vec::new();
+        let mut work = vec![block];
+        while let Some(blk) = work.pop() {
+            if visited.contains(&blk) { continue; }
+            visited.push(blk);
+            let term = &self.func.blocks[blk.0].terminator;
+            match term {
+                Terminator::Br(b) if *b == blk => {
+                    // Self-loop placeholder — patch to target.
+                    self.set_terminator(blk, Terminator::Br(target));
+                }
+                Terminator::Br(next) => {
+                    // Follow the unconditional chain.
+                    work.push(*next);
+                }
+                Terminator::BrCond(_, _, merge) => {
+                    // Follow the fall-through (merge) path.
+                    work.push(*merge);
+                }
+                _ => {
+                    // Real terminator (Ret, Switch) — stop.
+                }
+            }
         }
     }
 
