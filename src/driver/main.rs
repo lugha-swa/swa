@@ -49,15 +49,21 @@ fn try_link(obj: &Path, exe: &Path) -> Option<i32> {
     } else {
         gcc_base.clone()
     };
-    let status = std::process::Command::new(clang)
-        .arg("-target").arg(target)
-        .arg(obj).arg("-o").arg(exe)
-        .arg("-L").arg(&gcc_lib)
-        .arg("-lgcc")  // for __chkstk (large stack frames)
-        .arg("-Wl,--defsym,andika=printf")  // map Swa printf to libc printf
-        .arg("-Wl,--stack,8388608") // 8MB stack reserve for large BSS
-        .status()
-        .ok()?;
+    let mut cmd = std::process::Command::new(clang);
+    cmd.arg("-target").arg(target)
+       .arg(obj).arg("-o").arg(exe)
+       .arg("-Wl,--defsym,andika=printf");  // map Swa printf to libc printf
+
+    if cfg!(windows) {
+        cmd.arg("-L").arg(&gcc_lib)
+           .arg("-lgcc")                     // for __chkstk (large stack frames)
+           .arg("-Wl,--stack,8388608");      // 8MB stack reserve for large BSS
+    } else {
+        // Linux: stack size is controlled by ulimit, no explicit flag needed.
+        // libgcc is linked automatically by clang on Linux.
+    }
+
+    let status = cmd.status().ok()?;
     Some(status.code().unwrap_or(1))
 }
 
