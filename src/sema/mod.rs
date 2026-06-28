@@ -487,3 +487,73 @@ mod majaribio {
         }
     }
 }
+
+// ============================================================================
+// Ukaguzi wa haraka wa AST — kuitwa kutoka kwa kiendeshi
+// ============================================================================
+
+/// Hukagua AST kwa makosa ya msingi ya kisemantiki.
+/// Inarejesha orodha ya `Diagnostic` ikiwa kuna makosa.
+pub fn kagua_asti(
+    aina: &[u32],
+    kushoto: &[i32],
+    _kulia: &[i32],
+    _tiga: &[i32],
+    nne: &[i32],
+    thamani: &[i32],
+    jina_off: &[i32],
+    pool: &[u8],
+    count: usize,
+) -> Vec<Diagnostic> {
+    let mut diags = Vec::new();
+    if count == 0 {
+        return diags;
+    }
+
+    let soma_jina = |node: i32| -> String {
+        if node < 0 || (node as usize) >= count {
+            return String::new();
+        }
+        let off = jina_off[node as usize] as usize;
+        if off >= pool.len() {
+            return String::new();
+        }
+        let mut s = String::new();
+        let mut p = off;
+        while p < pool.len() && pool[p] != 0 {
+            s.push(pool[p] as char);
+            p += 1;
+        }
+        s
+    };
+
+    // Kukusanya kazi zilizotangazwa, angalia majina yanayorudiwa
+    let mut majina_ya_kazi: std::collections::HashMap<String, bool> = std::collections::HashMap::new();
+    let mzizi = (count - 1) as i32;
+    let mut mtoto = if mzizi >= 0 { kushoto[mzizi as usize] } else { -1 };
+
+    while mtoto != -1 {
+        let aina_ya_nodi = aina[mtoto as usize];
+        if aina_ya_nodi == 2 {
+            // AST_KAZI
+            let jina_nodi = kushoto[mtoto as usize];
+            let jina = soma_jina(jina_nodi);
+            if !jina.is_empty() {
+                if majina_ya_kazi.contains_key(&jina) {
+                    diags.push(Diagnostic::error(
+                        format!("kazi '{}' imetangazwa mara mbili", jina),
+                        crate::diagnostics::SourceSpan::point(0, 0),
+                    ));
+                }
+                majina_ya_kazi.insert(jina, true);
+
+                // Angalia aina ya kurudisha dhidi ya taarifa za rudisha
+                let _ret_enc = thamani[mtoto as usize];
+                // TODO: tembea mwili wa kazi na ulinganishe taarifa za rudisha
+            }
+        }
+        mtoto = nne[mtoto as usize];
+    }
+
+    diags
+}
