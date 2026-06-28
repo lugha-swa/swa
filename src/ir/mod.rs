@@ -174,6 +174,8 @@ pub enum Instruction {
     Alloca(IrType),
     Load(IrType, ValueId),  // (pointee_type, ptr)
     Store(ValueId, ValueId), // (value, ptr)
+    StoreTyped(ValueId, ValueId, IrType), // (value, ptr, stored_type)
+    MemCopy(ValueId, ValueId, u64), // (dest_ptr, src_ptr, size_bytes)
 
     // -- heap ---------------------------------------------------------------
     HeapAlloc(ValueId), // size in bytes → ptr
@@ -273,6 +275,8 @@ pub struct IrGlobal {
     pub bytes: Vec<u8>,
     /// Whether this global is constant (read-only).
     pub is_const: bool,
+    /// The Swa IR type (used to construct the correct LLVM type).
+    pub ty: IrType,
 }
 
 // ---------------------------------------------------------------------------
@@ -827,6 +831,7 @@ mod tests {
             name: "salamu".into(),
             bytes: b"habari\0".to_vec(),
             is_const: true,
+            ty: IrType::Array { element: Box::new(IrType::I8), count: 7 },
         });
         m.push_function(Function::new("kuu", IrType::I32, vec![]));
 
