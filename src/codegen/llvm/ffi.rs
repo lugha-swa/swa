@@ -209,6 +209,7 @@ extern "C" {
     pub fn LLVMGetIntTypeWidth(ty: LLVMTypeRef) -> u32;
     pub fn LLVMPrintTypeToString(ty: LLVMTypeRef) -> *const c_char;
     pub fn LLVMTypeOf(val: LLVMValueRef) -> LLVMTypeRef;
+    pub fn LLVMGetElementType(ty: LLVMTypeRef) -> LLVMTypeRef;
     pub fn LLVMFunctionType(
         return_ty: LLVMTypeRef,
         params: *mut LLVMTypeRef,

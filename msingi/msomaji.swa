@@ -59,7 +59,7 @@ N32 msomaji_imeisha(Msomaji* m) {
 // Character helpers - work on a single byte from source.
 // ==========================================================
 
-N32 ni_tarakimu(N8 c) {
+N32 ni_tarakimu(N32 c) {
     kama (c >= 48) {
         kama (c <= 57) {
             rudisha 1;
@@ -68,7 +68,7 @@ N32 ni_tarakimu(N8 c) {
     rudisha 0;
 }
 
-N32 ni_alfabeti(N8 c) {
+N32 ni_alfabeti(N32 c) {
     kama (c >= 65) {
         kama (c <= 90) {
             rudisha 1;
@@ -82,7 +82,7 @@ N32 ni_alfabeti(N8 c) {
     rudisha 0;
 }
 
-N32 ni_alfabeti_tarakimu(N8 c) {
+N32 ni_alfabeti_tarakimu(N32 c) {
     kama (ni_alfabeti(c) != 0) {
         rudisha 1;
     }
@@ -95,7 +95,7 @@ N32 ni_alfabeti_tarakimu(N8 c) {
     rudisha 0;
 }
 
-N32 ni_nafasi(N8 c) {
+N32 ni_nafasi(N32 c) {
     kama (c == 32) {
         rudisha 1;
     }
@@ -402,20 +402,26 @@ N32 ni_neno_muhimu(N8* neno, N64 urefu) {
 }
 
 // ==========================================================
-// Core lexer: return the next token.
+// Forward declarations for lexer helpers
 // ==========================================================
 
-Tokeni tokeni_inayofuata(Msomaji* m) {
-    Tokeni t;
+W0 ruka_nafasi_na_maelezo(Msomaji* m);
+W0 tokeni_soma_mfuatano(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi);
+W0 tokeni_soma_herufi(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi);
+W0 tokeni_soma_kitambulisho(Tokeni* t, Msomaji* m);
+W0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi);
+W0 tokeni_soma_ishara(Tokeni* t, Msomaji* m, N32 c);
 
-    // Outer loop: restart after skipping comments.
+// ==========================================================
+// Helper: skip whitespace and // line comments
+// ==========================================================
+
+W0 ruka_nafasi_na_maelezo(Msomaji* m) {
     wakati (1 == 1) {
         // Skip whitespace and newlines.
         wakati (msomaji_imeisha(m) == 0) {
             N8 c = m->chanzo[m->nafasi];
-            kama (ni_nafasi(c) == 0) {
-                vunja;
-            }
+            kama (ni_nafasi(c) == 0) { vunja; }
             kama (c == 10) {
                 m->mstari = m->mstari + 1;
                 m->safu = 0;
@@ -424,7 +430,7 @@ Tokeni tokeni_inayofuata(Msomaji* m) {
             m->safu = m->safu + 1;
         }
 
-        // Skip line comments (// to end of line).
+        // Skip // line comments.
         kama (msomaji_imeisha(m) == 0) {
             kama (m->chanzo[m->nafasi] == 47) {
                 kama (m->nafasi + 1 < m->urefu) {
@@ -432,9 +438,7 @@ Tokeni tokeni_inayofuata(Msomaji* m) {
                         m->nafasi = m->nafasi + 2;
                         m->safu = m->safu + 2;
                         wakati (msomaji_imeisha(m) == 0) {
-                            kama (m->chanzo[m->nafasi] == 10) {
-                                vunja;
-                            }
+                            kama (m->chanzo[m->nafasi] == 10) { vunja; }
                             m->nafasi = m->nafasi + 1;
                         }
                         // Restart: skip whitespace/comments after comment line.
@@ -445,159 +449,202 @@ Tokeni tokeni_inayofuata(Msomaji* m) {
         }
         vunja;
     }
+}
 
-    // Check EOF.
-    kama (msomaji_imeisha(m) != 0) {
-        t.aina = TOKENI_MWISHO;
-        t.mwanzo = m->chanzo;
-        t.urefu = 0;
-        t.mstari = m->mstari;
-        t.safu = m->safu;
-        rudisha t;
-    }
+// ==========================================================
+// Helper: string literal "..."
+// ==========================================================
 
-    t.mstari = m->mstari;
-    t.safu = m->safu;
-    t.mwanzo = m->chanzo + m->nafasi;
-    N64 mwanzo_nafasi = m->nafasi;
-
-    N8 c = m->chanzo[m->nafasi];
-
-    // String literal: "..."
-    kama (c == 34) {
-        m->nafasi = m->nafasi + 1;
-        m->safu = m->safu + 1;
-        wakati (msomaji_imeisha(m) == 0) {
-            N8 ch = m->chanzo[m->nafasi];
-            // Backslash escape: skip \ and the following character.
-            kama (ch == 92) {
-                m->nafasi = m->nafasi + 1;
-                m->safu = m->safu + 1;
-                kama (msomaji_imeisha(m) == 0) {
-                    m->nafasi = m->nafasi + 1;
-                    m->safu = m->safu + 1;
-                }
-                endelea;
-            }
-            kama (ch == 10) {
-                m->mstari = m->mstari + 1;
-                m->safu = 0;
-            }
-            kama (ch == 34) {
-                m->nafasi = m->nafasi + 1;
-                m->safu = m->safu + 1;
-                vunja;
-            }
+W0 tokeni_soma_mfuatano(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi) {
+    m->nafasi = m->nafasi + 1;
+    m->safu = m->safu + 1;
+    wakati (msomaji_imeisha(m) == 0) {
+        N8 ch = m->chanzo[m->nafasi];
+        // Backslash escape: skip \ and the following character.
+        kama (ch == 92) {
             m->nafasi = m->nafasi + 1;
             m->safu = m->safu + 1;
-        }
-        t.aina = TOKENI_MFUATANO;
-        t.urefu = m->nafasi - mwanzo_nafasi;
-        rudisha t;
-    }
-
-    // Single-quoted character literal: '.'
-    kama (c == 39) {
-        m->nafasi = m->nafasi + 1;
-        m->safu = m->safu + 1;
-        kama (msomaji_imeisha(m) == 0) {
-            kama (m->chanzo[m->nafasi] == 92) {
-                m->nafasi = m->nafasi + 1;
-                m->safu = m->safu + 1;
-            }
             kama (msomaji_imeisha(m) == 0) {
                 m->nafasi = m->nafasi + 1;
                 m->safu = m->safu + 1;
             }
+            endelea;
         }
-        kama (msomaji_imeisha(m) == 0) {
-            kama (m->chanzo[m->nafasi] == 39) {
-                m->nafasi = m->nafasi + 1;
-                m->safu = m->safu + 1;
-            }
+        kama (ch == 10) {
+            m->mstari = m->mstari + 1;
+            m->safu = 0;
         }
-        t.aina = TOKENI_NAMBARI;
-        t.urefu = m->nafasi - mwanzo_nafasi;
-        rudisha t;
-    }
-
-    // Character check: determine if this position starts a keyword/identifier.
-    kama (ni_alfabeti(c)) {
-        N64 anza = m->nafasi;
-        wakati (msomaji_imeisha(m) == 0) {
-            N8 ch2 = m->chanzo[m->nafasi];
-            kama (ni_alfabeti_tarakimu(ch2) == 0) { vunja; }
+        kama (ch == 34) {
             m->nafasi = m->nafasi + 1;
             m->safu = m->safu + 1;
+            vunja;
         }
-        t.urefu = m->nafasi - anza;
-        t.mwanzo = m->chanzo + anza;
-        kama (ni_neno_muhimu(t.mwanzo, t.urefu)) {
-            t.aina = TOKENI_MANENO;
-        } sivyo {
-            t.aina = TOKENI_KITAMBULISHO;
-        }
-        rudisha t;
-    }
-
-    // Number
-    kama (ni_tarakimu(c)) {
-        N64 anza = m->nafasi;
-        wakati (msomaji_imeisha(m) == 0) {
-            N8 ch2 = m->chanzo[m->nafasi];
-            kama (ni_tarakimu(ch2) == 0) { vunja; }
-            m->nafasi = m->nafasi + 1;
-            m->safu = m->safu + 1;
-        }
-        kama (msomaji_imeisha(m) == 0) {
-            kama (m->chanzo[m->nafasi] == 46) {
-                m->nafasi = m->nafasi + 1;
-                m->safu = m->safu + 1;
-                wakati (msomaji_imeisha(m) == 0) {
-                    N8 ch2 = m->chanzo[m->nafasi];
-                    kama (ni_tarakimu(ch2) == 0) { vunja; }
-                    m->nafasi = m->nafasi + 1;
-                    m->safu = m->safu + 1;
-                }
-            }
-        }
-        t.aina = TOKENI_NAMBARI;
-        t.urefu = m->nafasi - anza;
-        rudisha t;
-    }
-
-    // Punctuation: ; , : ( ) [ ] { }
-    kama (c == 59 || c == 44 || c == 58 || c == 40 || c == 41 ||
-          c == 91 || c == 93 || c == 123 || c == 125) {
         m->nafasi = m->nafasi + 1;
         m->safu = m->safu + 1;
-        t.aina = TOKENI_ISHARA;
-        t.urefu = 1;
-        rudisha t;
     }
+    t->aina = TOKENI_MFUATANO;
+    t->urefu = m->nafasi - mwanzo_nafasi;
+    rudisha;
+}
 
-    // Multi-char operators: first check for 2-char, then 1-char.
-    kama (msomaji_imeisha(m) == 0) {
-        N8 c1 = m->chanzo[m->nafasi];
-        N8 c2 = 0;
-        kama (m->nafasi + 1 < m->urefu) {
-            c2 = m->chanzo[m->nafasi + 1];
-        }
-        // 2-char operators
-        kama ((c1 == 61 && c2 == 61) || (c1 == 33 && c2 == 61) ||
-              (c1 == 60 && c2 == 61) || (c1 == 62 && c2 == 61) ||
-              (c1 == 38 && c2 == 38) || (c1 == 124 && c2 == 124) ||
-              (c1 == 60 && c2 == 60) || (c1 == 62 && c2 == 62)) {
-            m->nafasi = m->nafasi + 2;
-            m->safu = m->safu + 2;
-            t.urefu = 2;
-            rudisha t;
-        }
-    }
+// ==========================================================
+// Helper: character literal '.'
+// ==========================================================
 
-    // Single-char operator.
+W0 tokeni_soma_herufi(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi) {
     m->nafasi = m->nafasi + 1;
     m->safu = m->safu + 1;
-    t.urefu = 1;
-    rudisha t;
+    kama (msomaji_imeisha(m) == 0) {
+        kama (m->chanzo[m->nafasi] == 92) {
+            m->nafasi = m->nafasi + 1;
+            m->safu = m->safu + 1;
+        }
+        kama (msomaji_imeisha(m) == 0) {
+            m->nafasi = m->nafasi + 1;
+            m->safu = m->safu + 1;
+        }
+    }
+    kama (msomaji_imeisha(m) == 0) {
+        kama (m->chanzo[m->nafasi] == 39) {
+            m->nafasi = m->nafasi + 1;
+            m->safu = m->safu + 1;
+        }
+    }
+    t->aina = TOKENI_NAMBARI;
+    t->urefu = m->nafasi - mwanzo_nafasi;
+    rudisha;
+}
+
+// ==========================================================
+// Helper: identifier / keyword
+// ==========================================================
+
+W0 tokeni_soma_kitambulisho(Tokeni* t, Msomaji* m) {
+    N64 anza = m->nafasi;
+    wakati (msomaji_imeisha(m) == 0) {
+        N8 ch2 = m->chanzo[m->nafasi];
+        kama (ni_alfabeti_tarakimu(ch2) == 0) { vunja; }
+        m->nafasi = m->nafasi + 1;
+        m->safu = m->safu + 1;
+    }
+    t->urefu = m->nafasi - anza;
+    t->mwanzo = m->chanzo + anza;
+    kama (ni_neno_muhimu(t->mwanzo, t->urefu)) {
+        t->aina = TOKENI_MANENO;
+    } sivyo {
+        t->aina = TOKENI_KITAMBULISHO;
+    }
+    rudisha;
+}
+
+// ==========================================================
+// Helper: number literal
+// ==========================================================
+
+W0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi) {
+    N64 anza = m->nafasi;
+    wakati (msomaji_imeisha(m) == 0) {
+        N8 ch2 = m->chanzo[m->nafasi];
+        kama (ni_tarakimu(ch2) == 0) { vunja; }
+        m->nafasi = m->nafasi + 1;
+        m->safu = m->safu + 1;
+    }
+    kama (msomaji_imeisha(m) == 0) {
+        kama (m->chanzo[m->nafasi] == 46) {
+            m->nafasi = m->nafasi + 1;
+            m->safu = m->safu + 1;
+            wakati (msomaji_imeisha(m) == 0) {
+                N8 ch2 = m->chanzo[m->nafasi];
+                kama (ni_tarakimu(ch2) == 0) { vunja; }
+                m->nafasi = m->nafasi + 1;
+                m->safu = m->safu + 1;
+            }
+        }
+    }
+    t->aina = TOKENI_NAMBARI;
+    t->urefu = m->nafasi - anza;
+    rudisha;
+}
+
+// ==========================================================
+// Helper: operator / punctuation
+// ==========================================================
+
+W0 tokeni_soma_ishara(Tokeni* t, Msomaji* m, N32 c) {
+    // Single-char punctuation: ; , : ( ) [ ] { }
+    kama (c == 59) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
+    kama (c == 44) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
+    kama (c == 58) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
+    kama (c == 40) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
+    kama (c == 41) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
+    kama (c == 91) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
+    kama (c == 93) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
+    kama (c == 123) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
+    kama (c == 125) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
+
+    // Multi-char operators: try 2-char first, then fall through to 1-char.
+    kama (msomaji_imeisha(m) == 0) {
+        N8 c2 = 0;
+        kama (m->nafasi + 1 < m->urefu) { c2 = m->chanzo[m->nafasi + 1]; }
+        N32 ni_mbili = 0;
+        kama (c == 61) { kama (c2 == 61) { ni_mbili = 1; } }
+        kama (c == 33) { kama (c2 == 61) { ni_mbili = 1; } }
+        kama (c == 60) { kama (c2 == 61) { ni_mbili = 1; } kama (c2 == 60) { ni_mbili = 1; } }
+        kama (c == 62) { kama (c2 == 61) { ni_mbili = 1; } kama (c2 == 62) { ni_mbili = 1; } }
+        kama (c == 38) { kama (c2 == 38) { ni_mbili = 1; } }
+        kama (c == 124) { kama (c2 == 124) { ni_mbili = 1; } }
+        kama (ni_mbili) { m->nafasi = m->nafasi + 2; m->safu = m->safu + 2; t->aina = TOKENI_ISHARA; t->urefu = 2; rudisha; }
+    }
+
+    // Single-char operator fallback.
+    m->nafasi = m->nafasi + 1;
+    m->safu = m->safu + 1;
+    t->aina = TOKENI_ISHARA;
+    t->urefu = 1;
+    rudisha;
+}
+
+// ==========================================================
+// Core lexer: return the next token.
+// ==========================================================
+
+W0 tokeni_inayofuata(Tokeni* t, Msomaji* m) {
+    ruka_nafasi_na_maelezo(m);
+
+    // Check EOF.
+    kama (msomaji_imeisha(m) != 0) {
+        t->aina = TOKENI_MWISHO;
+        t->mwanzo = m->chanzo;
+        t->urefu = 0;
+        t->mstari = m->mstari;
+        t->safu = m->safu;
+        rudisha;
+    }
+
+    t->mstari = m->mstari;
+    t->safu = m->safu;
+    t->mwanzo = m->chanzo + m->nafasi;
+    N64 mwanzo_nafasi = m->nafasi;
+
+    N8 c = m->chanzo[m->nafasi];
+
+    // Dispatch to helpers based on first character.
+    kama (c == 34) {
+        tokeni_soma_mfuatano(t, m, mwanzo_nafasi);
+        rudisha;
+    }
+    kama (c == 39) {
+        tokeni_soma_herufi(t, m, mwanzo_nafasi);
+        rudisha;
+    }
+    kama (ni_alfabeti(c)) {
+        tokeni_soma_kitambulisho(t, m);
+        rudisha;
+    }
+    kama (ni_tarakimu(c)) {
+        tokeni_soma_nambari(t, m, mwanzo_nafasi);
+        rudisha;
+    }
+    tokeni_soma_ishara(t, m, c);
+    rudisha;
 }

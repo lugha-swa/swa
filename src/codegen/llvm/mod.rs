@@ -207,6 +207,9 @@ impl LlvmBackend {
             for global in &ir_module.globals {
                 let is_string_like = !global.bytes.is_empty()
                     && global.bytes.last() == Some(&0)
+                    // No null bytes before the final position — it's a real
+                    // C string, not an arbitrary byte array with nulls.
+                    && !global.bytes[..global.bytes.len()-1].contains(&0)
                     && global.bytes.iter().all(|&b| {
                         b == 0 || b == b'\n' || b == b'\t' || b == b'\r'
                             || (b >= 0x20 && b <= 0x7e)
@@ -218,10 +221,19 @@ impl LlvmBackend {
                 };
 
                 // Determine the correct LLVM type for this global.
-                // String globals always use array type.  Small non-string globals
-                // use integer types matching their width.  Large globals use arrays.
+                // For string globals, use [N x i8] array type.
+                // For typed globals (arrays, structs), use ir_type_to_llvm.
+                let is_scalar = matches!(global.ty,
+                    IrType::I8 | IrType::I16 | IrType::I32 | IrType::I64 |
+                    IrType::A8 | IrType::A16 | IrType::A32 | IrType::A64 | IrType::A128 |
+                    IrType::B1 | IrType::B8 | IrType::B16 | IrType::B32 | IrType::B64 |
+                    IrType::W8 | IrType::W16 | IrType::W32 | IrType::W64 |
+                    IrType::F16 | IrType::F32 | IrType::F64 | IrType::F128 |
+                    IrType::I128 | IrType::Void | IrType::Ptr(_) | IrType::FnPtr { .. });
                 let ty = if is_string_like {
                     LLVMArrayType(LLVMInt8Type(), global.bytes.len() as u32)
+                } else if !is_scalar {
+                    ir_type_to_llvm(&global.ty, &struct_types)
                 } else {
                     match global.bytes.len() {
                         0 => LLVMInt8Type(),
@@ -239,8 +251,10 @@ impl LlvmBackend {
                 let all_zero = global.bytes.iter().all(|&b| b == 0);
                 let init = if global.bytes.is_empty() || all_zero {
                     LLVMConstNull(ty)
-                } else if !is_string_like && global.bytes.len() <= 8 {
-                    // Small non-string globals: create a single integer constant.
+                } else if !is_string_like && matches!(global.bytes.len(), 1 | 2 | 4 | 8) {
+                    // Small non-string globals with integer type: create an
+                    // integer constant.  Other sizes (3,5,6,7) get array type
+                    // and must use ConstArray below.
                     let mut val: u64 = 0;
                     for (i, &b) in global.bytes.iter().enumerate() {
                         val |= (b as u64) << (i * 8);
@@ -500,8 +514,6 @@ fn lower_function(
             llvm_blocks.insert(i, bb);
         }
 
-        let entry_bb = llvm_blocks[&func.entry.0];
-
         // -- 5. Build value map -----------------------------------------------
         let mut value_map: HashMap<ValueId, LLVMValueRef> = HashMap::new();
 
@@ -539,30 +551,6 @@ fn lower_function(
                     lower_instruction(inst, builder, &value_map, module, struct_types, &fn_return_types);
                 if !llvm_val.is_null() {
                     value_map.insert(val_id, llvm_val);
-                }
-            }
-
-            // Handle param stores for entry block.
-            if block_idx == func.entry.0 {
-                let mut alloca_idx = 0;
-                for (param_i, _param) in func.params.iter().enumerate() {
-                    let mut inst_pos = 0;
-                    for inst in &block.instructions {
-                        if matches!(inst, crate::ir::Instruction::Alloca(_)) {
-                            if alloca_idx == param_i {
-                                let alloc_vid = ValueId(param_count + func.values.len() + inst_pos);
-                                if let Some(&alloca) = value_map.get(&alloc_vid) {
-                                    let param_val = LLVMGetParam(llvm_func, param_i as u32);
-                                    let stored_val = coerce_int(builder, param_val, LLVMTypeOf(alloca));
-                                    LLVMBuildStore(builder, stored_val, alloca);
-                                    value_map.insert(ValueId(param_i), alloca);
-                                }
-                                break;
-                            }
-                            alloca_idx += 1;
-                        }
-                        inst_pos += 1;
-                    }
                 }
             }
         }
@@ -896,7 +884,6 @@ fn lower_instruction(
             }
             crate::ir::Instruction::Load(pointee_ty, ptr) => {
                 let p = v(value_map, ptr);
-                // For struct types, use opaque pointer load to avoid LLVM crashes.
                 let llvm_ty = match pointee_ty {
                     IrType::Struct { .. } => ptr_type(),
                     _ => ir_type_to_llvm(pointee_ty, struct_types),
@@ -906,8 +893,64 @@ fn lower_instruction(
             crate::ir::Instruction::Store(val, ptr) => {
                 let value = v(value_map, val);
                 let p = v(value_map, ptr);
-                // For struct values, store via opaque pointer to avoid crashes.
-                LLVMBuildStore(builder, value, p)
+                // Truncate the stored value to the pointee width so that
+                // e.g. a Const::Int stored to an N32 field writes 4 bytes
+                // instead of 8, avoiding corruption of adjacent fields.
+                unsafe {
+                    let ptr_ty = LLVMTypeOf(p);
+                    let elem_ty = LLVMGetElementType(ptr_ty);
+                    let val_ty = LLVMTypeOf(value);
+                    let val_to_store = if LLVMGetTypeKind(val_ty) as u32 == LLVMTypeKind::Integer as u32
+                        && LLVMGetTypeKind(elem_ty) as u32 == LLVMTypeKind::Integer as u32
+                        && LLVMGetIntTypeWidth(val_ty) != LLVMGetIntTypeWidth(elem_ty)
+                    {
+                        LLVMBuildIntCast2(builder, value, elem_ty, 1, c_str("cast_store").as_ptr())
+                    } else {
+                        value
+                    };
+                    LLVMBuildStore(builder, val_to_store, p)
+                }
+            }
+            crate::ir::Instruction::StoreTyped(val, ptr, store_ty) => {
+                let value = v(value_map, val);
+                let p = v(value_map, ptr);
+                // Cast the value to the field type if widths differ.
+                let llvm_ty = ir_type_to_llvm(store_ty, struct_types);
+                let val_ty = LLVMTypeOf(value);
+                let cast = if LLVMGetTypeKind(val_ty) as u32 == LLVMTypeKind::Integer as u32
+                    && LLVMGetIntTypeWidth(val_ty) != LLVMGetIntTypeWidth(llvm_ty) {
+                    LLVMBuildIntCast2(builder, value, llvm_ty, 1, c_str("cast").as_ptr())
+                } else {
+                    value
+                };
+                LLVMBuildStore(builder, cast, p)
+            }
+            crate::ir::Instruction::MemCopy(dest, src, size) => {
+                // Use the LLVM memcpy intrinsic: @llvm.memcpy.p0.p0.i64
+                let dest_ptr = v(value_map, dest);
+                let src_ptr = v(value_map, src);
+                let sz_val = LLVMConstInt(LLVMInt64Type(), *size, 0);
+                let volatile_flag = LLVMConstInt(LLVMInt1Type(), 0, 0);
+                let intrinsic_name = c_str("llvm.memcpy.p0.p0.i64");
+                let callee = LLVMGetNamedFunction(module, intrinsic_name.as_ptr());
+                let callee = if callee.is_null() {
+                    let mut param_tys = [ptr_type(), ptr_type(), LLVMInt64Type(), LLVMInt1Type()];
+                    let fn_ty = LLVMFunctionType(LLVMVoidType(), param_tys.as_mut_ptr(), 4, 0);
+                    LLVMAddFunction(module, intrinsic_name.as_ptr(), fn_ty)
+                } else {
+                    callee
+                };
+                // Re-derive the function type for the call.
+                let param_count = LLVMCountParams(callee);
+                let mut rebuilt: Vec<LLVMTypeRef> = (0..param_count)
+                    .map(|i| LLVMTypeOf(LLVMGetParam(callee, i)))
+                    .collect();
+                let fn_ty = LLVMFunctionType(LLVMVoidType(),
+                    if rebuilt.is_empty() { std::ptr::null_mut() } else { rebuilt.as_mut_ptr() },
+                    rebuilt.len() as u32, 0);
+                let mut args = [dest_ptr, src_ptr, sz_val, volatile_flag];
+                LLVMBuildCall2(builder, fn_ty, callee, args.as_mut_ptr(), 4, std::ptr::null());
+                LLVMConstNull(LLVMInt8Type())
             }
 
             // -- heap -------------------------------------------------------------
@@ -1052,13 +1095,34 @@ fn lower_instruction(
             }
             crate::ir::Instruction::FieldAddr(base, field_idx, struct_ty_opt) => {
                 let base_val = v(value_map, base);
-                let zero = LLVMConstInt(LLVMInt32Type(), 0, 0);
-                let idx = LLVMConstInt(LLVMInt32Type(), *field_idx as u64, 0);
-                let indices = [zero, idx];
-                // Always use byte-level GEP: offset by field_idx * 4 (assume i32 fields).
-                // This avoids crashes from struct type resolution mismatches.
-                let byte_off = LLVMConstInt(LLVMInt32Type(), (*field_idx * 4) as u64, 0);
-                let byte_indices = [byte_off];
+                // Compute the byte offset of the field with alignment.
+                let byte_off: u64 = match struct_ty_opt {
+                    Some(IrType::Struct { fields, .. }) => {
+                        // Compute aligned size of a type (matches LLVM layout within struct).
+                        let aligned = |ty: &IrType| -> u64 {
+                            let w = ty.width_bytes() as u64;
+                            let a = std::cmp::min(w, 8);
+                            (w + a - 1) & !(a - 1)
+                        };
+                        let mut off: u64 = 0;
+                        let target_fw = fields.get(*field_idx).map(|(_, t)| t.width_bytes() as u64).unwrap_or(4);
+                        for (fi, (_, fty)) in fields.iter().enumerate() {
+                            if fi == *field_idx as usize {
+                                let align = std::cmp::min(target_fw, 8);
+                                off = (off + align - 1) & !(align - 1);
+                                break;
+                            }
+                            let fw_aligned = aligned(fty);
+                            let align = std::cmp::min(fw_aligned, 8);
+                            off = (off + align - 1) & !(align - 1);
+                            off += fw_aligned;
+                        }
+                        off
+                    }
+                    _ => (*field_idx * 8) as u64,
+                };
+                let byte_off_val = LLVMConstInt(LLVMInt32Type(), byte_off, 0);
+                let byte_indices = [byte_off_val];
                 LLVMBuildGEP2(builder, LLVMInt8Type(), base_val,
                     byte_indices.as_ptr() as *mut LLVMValueRef, 1,
                     c_str("fieldptr").as_ptr())
@@ -1654,13 +1718,28 @@ fn pre_declare_libc(module: LLVMModuleRef) {
             }
         }
 
-        // andika: Swa printf-alias — i32 (ptr, ...)
+        // __chkstk: kipepelezi cha kurasa za rafu kwa Windows.
+        // Hutoa tu — BSS haihusiki, na rafu zetu za utendakazi ni ndogo.
+        {
+            let name = c_str("__chkstk");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let fn_ty = LLVMFunctionType(LLVMVoidType(), std::ptr::null_mut(), 0, 0);
+                let func = LLVMAddFunction(module, name.as_ptr(), fn_ty);
+                let bb = LLVMAppendBasicBlockInContext(LLVMGetModuleContext(module), func, c_str("entry").as_ptr());
+                let builder = LLVMCreateBuilder();
+                LLVMPositionBuilderAtEnd(builder, bb);
+                LLVMBuildRetVoid(builder);
+                LLVMDisposeBuilder(builder);
+            }
+        }
+
+        // andika: declared as separate function; linker maps to printf.
         {
             let name = c_str("andika");
             if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
                 let mut param_tys = [ptr_type()];
                 let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 1, 1);
-                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+                unsafe { LLVMAddFunction(module, name.as_ptr(), fn_ty); }
             }
         }
 
@@ -2220,6 +2299,7 @@ mod tests {
             name: "fmt_hello".into(),
             bytes: b"hello world\n\0".to_vec(),
             is_const: true,
+            ty: IrType::Array { element: Box::new(IrType::I8), count: 13 },
         });
 
         let mut f = Function::new("say_hello", IrType::I32, vec![]);
@@ -2257,6 +2337,7 @@ mod tests {
             name: "my_str".into(),
             bytes: b"hi\0".to_vec(),
             is_const: true,
+            ty: IrType::Array { element: Box::new(IrType::I8), count: 3 },
         });
 
         let mut f = Function::new("get_str", IrType::Ptr(Box::new(IrType::I8)), vec![]);

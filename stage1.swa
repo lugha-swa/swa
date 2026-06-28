@@ -2,7 +2,7 @@ husisha C::stdio
 husisha "msingi/msambazaji.swa"
 husisha "msingi/mteremko.swa"
 
-N8 chanzo_buf[524288];
+N8 chanzo_buf[196608];
 N32 chanzo_urefu = 0;
 
 W0 ongeza_faili(N8* njia) {
@@ -12,7 +12,7 @@ W0 ongeza_faili(N8* njia) {
         andika("; KOSA: faili halifunguki: %s\n", njia);
         rudisha;
     }
-    N64 n = fread(chanzo_buf + chanzo_urefu, 1, 262144, f);
+    N64 n = fread(chanzo_buf + chanzo_urefu, 1, 131072, f);
     fclose(f);
     chanzo_urefu = chanzo_urefu + n;
 }
@@ -64,21 +64,21 @@ W0 ondoa_husisha() {
 }
 
 N32 main(N32 argc, N8** argv) {
-    // Load library files in dependency order.
     ongeza_faili("msingi/kumbukumbu.swa");
     ongeza_faili("msingi/mfuatano.swa");
     ongeza_faili("msingi/msomaji.swa");
     ongeza_faili("msingi/msambazaji.swa");
     ongeza_faili("msingi/mteremko.swa");
     ongeza_faili("msingi/mkaguzi.swa");
-    // TODO: ongeza_faili(argv[1]); — fix N8** GEP for pointer indexing
 
-    // ondoa_husisha disabled for testing
     chanzo_buf[chanzo_urefu] = 0;
-    andika("; calling parser on %d bytes\n", chanzo_urefu);
 
     Msambazaji p = msambazaji_mpya(chanzo_buf, chanzo_urefu);
     N32 mzizi = changanua(&p);
-    andika("; kosa=%d mzizi=%d\n", p.kosa, mzizi);
+    kama (p.kosa != 0) {
+        andika("; KOSA: %d\n", p.kosa);
+        rudisha 1;
+    }
+    andika("; mzizi=%d\n", mzizi);
     rudisha 0;
 }

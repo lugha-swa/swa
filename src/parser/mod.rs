@@ -374,15 +374,20 @@ impl<'a> Parser<'a> {
         } else {
             // Global variable: Type name = expr; or Type name;
             // May also have array size: Type name[size];
+            let mut saizi_ya_safu: i32 = NO_NODE;
             if self.tokeni_ni("[") {
                 self.sogeza(); // skip [
-                self.changanua_usemi(); // skip size expression
+                saizi_ya_safu = self.changanua_usemi(); // capture size expression
                 if self.tokeni_ni("]") { self.sogeza(); }
             }
             let mut init: i32 = NO_NODE;
             if self.tokeni_ni("=") { self.sogeza(); init = self.changanua_usemi(); }
             if self.tokeni_ni(";") { self.sogeza(); }
-            return self.ast.node_mpya(AST_TANGAZO_ULIMWENGU, ret_a, name_n, init);
+            let node = self.ast.node_mpya(AST_TANGAZO_ULIMWENGU, ret_a, name_n, init);
+            if saizi_ya_safu != NO_NODE {
+                self.ast.tiga[node as usize] = saizi_ya_safu;
+            }
+            return node;
         }
 
         // Parse parameters

@@ -160,6 +160,8 @@ struct Lowerer<'a> {
 
     /// Types for global variables (for lower_identifier).
     global_types: std::collections::HashMap<String, IrType>,
+    /// Optional pre-allocated sret destination for the next struct-return call.
+    sret_dest: Option<ValueId>,
 }
 
 // ---------------------------------------------------------------------------
@@ -216,6 +218,7 @@ pub fn lower(
         values_initial_len: 0,
         block_counter: 0,
         global_types: std::collections::HashMap::new(),
+        sret_dest: None,
     };
 
     // Root is the last node allocated; it must be AST_PROGRAMU.
@@ -237,12 +240,32 @@ pub fn lower(
         child = lr.ast_nne[child as usize];
     }
 
+    // Pre-pass 2: collect names of functions that have bodies.  Forward
+    // declarations (no body) whose name appears in this set are redundant
+    // and must be skipped during lowering, otherwise they produce empty
+    // stubs that shadow the real implementations.
+    let mut has_body: std::collections::HashSet<String> = std::collections::HashSet::new();
+    let mut child = lr.ast_kushoto[root as usize];
+    while child != NO_NODE {
+        if lr.node_aina(child) == AST_KAZI {
+            let body_node = lr.ast_tiga[child as usize];
+            if body_node != NO_NODE {
+                let name_node = lr.ast_kushoto[child as usize];
+                if name_node != NO_NODE {
+                    let name = lr.read_pool_name(lr.ast_jina_off[name_node as usize]);
+                    has_body.insert(name);
+                }
+            }
+        }
+        child = lr.ast_nne[child as usize];
+    }
+
     // Main pass: lower functions and globals (structs already done).
     let mut child = lr.ast_kushoto[root as usize];
     while child != NO_NODE {
         let kind = lr.node_aina(child);
         match kind {
-            AST_KAZI => lr.lower_function(child),
+            AST_KAZI => lr.lower_function(child, &has_body),
             AST_TANGAZO_ULIMWENGU => lr.lower_global(child),
             AST_MUUNDO => {} // already done in pre-pass
             other => {
@@ -264,10 +287,12 @@ pub fn lower(
             if data.last() != Some(&0) {
                 data.push(0);
             }
+            let data_len = data.len();
             IrGlobal {
                 name,
                 bytes: data,
                 is_const: true,
+                ty: IrType::Array { element: Box::new(IrType::I8), count: data_len as u64 },
             }
         })
         .collect();
@@ -372,6 +397,7 @@ impl<'a> Lowerer<'a> {
         if enc == 0 {
             return IrType::Void;
         }
+        // Encoding from Rust parser: ((familia & 255) << 11) | (upana_idx << 3) | (mshale & 7)
         let familia = (enc >> 11) & 255;
         let upana_idx = (enc >> 3) & 7;
         let mshale = enc & 7;
@@ -526,7 +552,21 @@ impl<'a> Lowerer<'a> {
     /// * `ast_thamani[node]`   → return-type pool offset
     /// * `ast_kulia[node]`     → first parameter node (chained via `ast_nne`)
     /// * `ast_tiga[node]`      → function body (block or expression)
-    fn lower_function(&mut self, func_node: i32) {
+    fn lower_function(&mut self, func_node: i32, has_body: &std::collections::HashSet<String>) {
+        // Skip forward declarations whose name has a corresponding definition
+        // with a body elsewhere in the same compilation unit.  Lowering them
+        // would create an empty stub that shadows the real implementation.
+        let body_node = self.ast_tiga[func_node as usize];
+        if body_node == NO_NODE {
+            let name_node = self.ast_kushoto[func_node as usize];
+            if name_node != NO_NODE {
+                let name = self.read_pool_name(self.ast_jina_off[name_node as usize]);
+                if has_body.contains(&name) {
+                    return; // forward declaration — real definition exists
+                }
+            }
+        }
+
         // The function's name is stored on the name_node (ast_kushoto),
         // not on the AST_KAZI node itself.
         let name_node = self.ast_kushoto[func_node as usize];
@@ -667,29 +707,43 @@ impl<'a> Lowerer<'a> {
         } else {
             self.read_pool_name(self.ast_jina_off[glob_node as usize])
         };
-        let ty = self.read_type_from_thamani(glob_node);
+        let base_ty = self.read_type_from_thamani(glob_node);
+
+        // Check for array size stored in tiga (set by parser for Type name[size]).
+        let saizi_node = self.ast_tiga[glob_node as usize];
+        let ty = if saizi_node != NO_NODE && self.node_aina(saizi_node) == AST_NAMBARI {
+            let count = self.ast_thamani[saizi_node as usize] as u32;
+            IrType::Array { element: Box::new(base_ty), count: count as u64 }
+        } else {
+            base_ty
+        };
+
         if !name.is_empty() {
             self.global_types.insert(name.clone(), ty.clone());
         }
 
-        // Initialiser: parser stores in kulia; fallback to tiga (test format).
-        let init_node = if self.ast_kulia[glob_node as usize] != NO_NODE {
-            self.ast_kulia[glob_node as usize]
-        } else {
-            self.ast_tiga[glob_node as usize]
-        };
-        let _init_node = init_node;
+        // Initialiser: parser stores in kulia (not tiga — tiga is array size above).
+        let init_node = self.ast_kulia[glob_node as usize];
 
-        // Evaluate initialiser if present.  Since we can't run code at compile
-        // time, we only support constant initialisers.  For now just create
-        // zero-initialised globals.
+        // Evaluate constant initialisers (integer literals only for now).
         let size = ty.width_bytes();
-        let bytes = vec![0u8; size];
+        let bytes = if init_node != NO_NODE && init_node >= 0
+            && self.node_aina(init_node) == AST_NAMBARI {
+            let val = self.ast_thamani[init_node as usize] as i128;
+            let mut b = vec![0u8; size];
+            for i in 0..size.min(8) {
+                b[i] = ((val >> (i * 8)) & 0xFF) as u8;
+            }
+            b
+        } else {
+            vec![0u8; size]
+        };
 
         self.globals.push(IrGlobal {
             name,
             bytes,
             is_const: false,
+            ty,
         });
     }
 
@@ -838,7 +892,9 @@ impl<'a> Lowerer<'a> {
         let last_block = prev_block;
         let needs_term = match &self.func.blocks[last_block.0].terminator {
             Terminator::Br(b) if *b == last_block => true, // placeholder
-            Terminator::RetVoid => true, // default from new_block
+            // RetVoid is a valid terminator (from new_block default or
+            // from an explicit rudisha;).  Do NOT replace it with a
+            // self-loop — that would prevent rudisha from returning.
             _ => false,
         };
         if needs_term {
@@ -893,12 +949,33 @@ impl<'a> Lowerer<'a> {
         let rhs_node = self.ast_kulia[node as usize];
 
         let blk = self.new_block("assign");
+
+        // Compute the LHS pointer first.
+        let ptr = self.lower_lvalue(lhs_node, blk);
+
+        // If the LHS is a struct type, provide it as sret_dest so a
+        // struct-returning call on the RHS writes directly to the LHS.
+        let lhs_ty = self.resolve_expr_type(lhs_node);
+        let is_struct_assign = matches!(&lhs_ty, Some(IrType::Struct { .. }));
+        if is_struct_assign {
+            self.sret_dest = Some(ptr);
+        }
+
         let (rhs_val, end_blk) = self.lower_expr_into(rhs_node, blk);
 
-        // Lower the lvalue to get a pointer to store into.
-        let ptr = self.lower_lvalue(lhs_node, end_blk);
-        self.emit(end_blk, Instruction::Store(rhs_val, ptr));
-        self.set_terminator(end_blk, Terminator::Br(end_blk)); // fall-through placeholder, caller chains
+        // If sret_dest was consumed by lower_call, the struct was written
+        // directly to ptr and no Store is needed.
+        let sret_consumed = is_struct_assign && self.sret_dest.is_none();
+        if !sret_consumed {
+            // Always use StoreTyped with the field width.  If type resolution
+            // failed, default to I32 (the most common field width) rather than
+            // falling back to untyped Store which would write an i64 constant
+            // as 8 bytes and corrupt adjacent struct fields.
+            let store_ty = lhs_ty.unwrap_or(IrType::I32);
+            self.emit(end_blk, Instruction::StoreTyped(rhs_val, ptr, store_ty));
+        }
+        self.sret_dest = None;
+        self.set_terminator(end_blk, Terminator::Br(end_blk));
         end_blk
     }
 
@@ -949,7 +1026,7 @@ impl<'a> Lowerer<'a> {
     /// * `ast_tiga[node]`    → loop body
     fn lower_while(&mut self, node: i32) -> BlockId {
         let cond_node = self.ast_kushoto[node as usize];
-        let body_node = self.ast_tiga[node as usize];
+        let body_node = self.ast_kulia[node as usize];
 
         let header_blk = self.new_block("while.header");
         let body_blk = self.new_block("while.body");
@@ -987,8 +1064,13 @@ impl<'a> Lowerer<'a> {
                     // Self-loop placeholder — this is the last block.
                     break;
                 }
+                Terminator::BrCond(_, _, merge) => {
+                    // The fall-through path of a conditional is the merge block.
+                    // Continue walking from there to find the real last block.
+                    last = *merge;
+                }
                 _ => {
-                    // Real terminator (Ret, BrCond, Switch) — stop here.
+                    // Real terminator (Ret, Switch) — stop here.
                     break;
                 }
             }
@@ -996,7 +1078,7 @@ impl<'a> Lowerer<'a> {
         self.ensure_br(last, header_blk);
 
         self.loops.pop();
-        exit_blk
+        header_blk
     }
 
     /// Lower `KIPINDI` (for loop): `kipindi (init; cond; step) { body }`.
@@ -1064,7 +1146,7 @@ impl<'a> Lowerer<'a> {
         self.set_terminator(step_end, Terminator::Br(header_blk));
 
         self.loops.pop();
-        exit_blk
+        header_blk
     }
 
     /// Lower `RUDISHA` (return): `rudisha [expr]`.
@@ -1077,9 +1159,33 @@ impl<'a> Lowerer<'a> {
 
         if val_node != NO_NODE && val_node >= 0 {
             let (val, end_blk) = self.lower_expr_into(val_node, blk);
-            // If sret, store to the sret pointer then RetVoid.
+            // If sret and the value is not already the sret pointer,
+            // copy struct bytes to the sret pointer.
             if let Some(sret_vid) = self.func.sret_value_id {
-                self.emit(end_blk, Instruction::Store(val, sret_vid));
+                if val != sret_vid {
+                    let struct_size = self.func.source_return_ty.width_bytes() as u64;
+                    let mut off: u64 = 0;
+                    while off < struct_size {
+                        let rem = struct_size - off;
+                        let (chunk_size, chunk_ty) = if rem >= 8 {
+                            (8u64, IrType::I64)
+                        } else if rem >= 4 {
+                            (4u64, IrType::I32)
+                        } else if rem >= 2 {
+                            (2u64, IrType::I16)
+                        } else {
+                            (1u64, IrType::I8)
+                        };
+                        self.func.intern_const(Const::Int(off as i128));
+                        self.values_initial_len = self.func.values.len();
+                        let off_val = self.const_val(Const::Int(off as i128));
+                        let src_gep = self.emit(end_blk, Instruction::Gep(val, vec![off_val]));
+                        let dest_gep = self.emit(end_blk, Instruction::Gep(sret_vid, vec![off_val]));
+                        let chunk_val = self.emit(end_blk, Instruction::Load(chunk_ty, src_gep));
+                        self.emit(end_blk, Instruction::Store(chunk_val, dest_gep));
+                        off += chunk_size;
+                    }
+                }
                 self.set_terminator(end_blk, Terminator::RetVoid);
             } else {
                 self.set_terminator(end_blk, Terminator::Ret(val));
@@ -1136,21 +1242,43 @@ impl<'a> Lowerer<'a> {
 
         let blk = self.new_block("decl");
 
-        // Allocate stack slot.
-        let alloc = self.emit(blk, Instruction::Alloca(var_ty.clone()));
+        // If this is the return-value struct of an sret function, use the
+        // sret pointer directly instead of allocating a local slot.
+        let alloc = if matches!(&var_ty, IrType::Struct { .. })
+            && self.func.sret_value_id.is_some()
+        {
+            self.func.sret_value_id.unwrap()
+        } else {
+            self.emit(blk, Instruction::Alloca(var_ty.clone()))
+        };
 
         // Evaluate initialiser and store.
         if init_node != NO_NODE && init_node >= 0 {
+            // For struct vars, provide the alloca as sret_dest so calls
+            // write directly to the destination (no Load+Store needed).
+            if matches!(&var_ty, IrType::Struct { .. }) {
+                self.sret_dest = Some(alloc);
+            }
             let (init_val, end_blk) = self.lower_expr_into(init_node, blk);
-            self.emit(end_blk, Instruction::Store(init_val, alloc));
+            // If sret_dest was used, init_val IS alloc and we skip the store.
+            if init_val != alloc {
+                self.emit(end_blk, Instruction::StoreTyped(init_val, alloc, var_ty.clone()));
+            }
             self.define_var(var_name, alloc, var_ty);
             self.set_terminator(end_blk, Terminator::Br(end_blk));
             end_blk
         } else {
             self.define_var(var_name, alloc, var_ty.clone());
-            // Zero-initialise.
-            let zero = self.const_val(Const::Zero);
-            self.emit(blk, Instruction::Store(zero, alloc));
+            // Zero-initialise local variables, but skip the sret pointer
+            // itself — the sret slot may already contain data from the
+            // caller (e.g. when a helper writes partial results before
+            // calling another helper).  Zeroing it here would overwrite
+            // those results and cause corrupted return values at O1.
+            let is_sret_slot = self.func.sret_value_id == Some(alloc);
+            if !is_sret_slot {
+                let zero = self.const_val(Const::Zero);
+                self.emit(blk, Instruction::StoreTyped(zero, alloc, var_ty.clone()));
+            }
             self.set_terminator(blk, Terminator::Br(blk));
             blk
         }
@@ -1266,6 +1394,28 @@ impl<'a> Lowerer<'a> {
 // ============================================================================
 
 impl<'a> Lowerer<'a> {
+    /// Scale an array index by the element width so that GEP byte-offset
+    /// indexing produces the correct element address.
+    ///
+    /// Uses repeated addition to avoid interning new constants (which would
+    /// shift `values_initial_len` and break ValueId mapping).
+    fn scale_index(&mut self, elem_ty: &IrType, raw_idx: ValueId, blk: BlockId) -> ValueId {
+        match elem_ty.width_bytes() {
+            1 => raw_idx,
+            2 => self.emit(blk, Instruction::Add(raw_idx, raw_idx)),
+            4 => {
+                let x2 = self.emit(blk, Instruction::Add(raw_idx, raw_idx));
+                self.emit(blk, Instruction::Add(x2, x2))
+            }
+            8 => {
+                let x2 = self.emit(blk, Instruction::Add(raw_idx, raw_idx));
+                let x4 = self.emit(blk, Instruction::Add(x2, x2));
+                self.emit(blk, Instruction::Add(x4, x4))
+            }
+            _ => raw_idx,
+        }
+    }
+
     /// Lower an expression node.
     ///
     /// Returns `(ValueId, BlockId)` where `ValueId` holds the expression result
@@ -1430,10 +1580,9 @@ impl<'a> Lowerer<'a> {
             (val, blk)
         } else if let Some(gty) = self.global_types.get(&name).cloned() {
             let addr = self.emit(blk, Instruction::GlobalAddr(name.clone()));
-            // For array types (I8 = byte array like N8 chanzo_buf[524288]),
-            // return the pointer directly (array-to-pointer decay).
+            // For array types, return the pointer directly (array-to-pointer decay).
             // For scalar types (I32 = N32 chanzo_urefu), load the value.
-            if gty == IrType::I8 || gty == IrType::A8 {
+            if matches!(&gty, IrType::Array { .. }) {
                 (addr, blk)
             } else {
                 let val = self.emit(blk, Instruction::Load(gty, addr));
@@ -1525,14 +1674,19 @@ impl<'a> Lowerer<'a> {
                     self.find_function_return_type(&callee_name)
                 })
                 .unwrap_or(IrType::I32);
-            // Alloca space for the struct result and pass as first arg (sret).
-            let sret_alloca = self.emit(current_block, Instruction::Alloca(struct_ty.clone()));
+            // Use pre-allocated sret destination if the caller provided one
+            // (e.g., for `Msambazaji p = call()` where p_alloca is already allocated).
+            let sret_alloca = if let Some(dest) = self.sret_dest.take() {
+                dest
+            } else {
+                self.emit(current_block, Instruction::Alloca(struct_ty.clone()))
+            };
             let mut sret_args = vec![sret_alloca];
             sret_args.extend(arg_vals);
             let cv = self.emit(current_block, Instruction::Call(callee_name.clone(), sret_args));
-            // Load the struct from the alloca to get the value.
-            let loaded = self.emit(current_block, Instruction::Load(struct_ty, sret_alloca));
-            (loaded, current_block)
+            // Return the sret alloca pointer as the call result.  The caller
+            // (e.g. lower_local_decl) knows whether it provided the alloca.
+            (sret_alloca, current_block)
         } else {
             let cv = self.emit(current_block, Instruction::Call(callee_name.clone(), arg_vals));
             (cv, current_block)
@@ -1726,7 +1880,16 @@ impl<'a> Lowerer<'a> {
                 let (struct_ptr, end_blk) = self.lower_expr_into(ptr_node, blk);
                 let field_idx = self.guess_field_index(&field_name);
 
-                self.emit(end_blk, Instruction::FieldAddr(struct_ptr, field_idx, None))
+                // Resolve the struct type from the pointer's pointee.
+                let struct_ty = self.resolve_expr_type(ptr_node).and_then(|ty| {
+                    match &ty {
+                        IrType::Ptr(pointee) => Some((**pointee).clone()),
+                        IrType::Struct { .. } => Some(ty.clone()),
+                        _ => None,
+                    }
+                });
+
+                self.emit(end_blk, Instruction::FieldAddr(struct_ptr, field_idx, struct_ty))
             }
             AST_SAFU => {
                 // array[index] — compute element address via GEP.
@@ -1739,12 +1902,24 @@ impl<'a> Lowerer<'a> {
                 let arr_ty = self.resolve_expr_type(array_node);
                 let is_ptr = matches!(&arr_ty, Some(IrType::Ptr(_)));
                 let ary_ptr = if is_ptr {
-                    let loaded_ty = arr_ty.unwrap();
+                    let loaded_ty = arr_ty.clone().unwrap();
                     self.emit(blk, Instruction::Load(loaded_ty, raw_ptr))
                 } else {
                     raw_ptr
                 };
-                let (idx_val, end_blk) = self.lower_expr_into(index_node, blk);
+                let (raw_idx, end_blk) = self.lower_expr_into(index_node, blk);
+
+                // Determine element type for index scaling.
+                let elem_ty = arr_ty.and_then(|ty| {
+                    match &ty {
+                        IrType::Ptr(pointee) => Some((**pointee).clone()),
+                        IrType::Array { element, .. } => Some((**element).clone()),
+                        other => Some(other.clone()),
+                    }
+                }).unwrap_or(IrType::I32);
+
+                // Scale index by element width — GEP uses byte offsets.
+                let idx_val = self.scale_index(&elem_ty, raw_idx, end_blk);
 
                 self.emit(end_blk, Instruction::Gep(ary_ptr, vec![idx_val]))
             }
@@ -1820,8 +1995,17 @@ impl<'a> Lowerer<'a> {
         let base_ptr = self.lower_lvalue(struct_node, blk);
         let field_idx = self.guess_field_index(&field_name);
 
+        // Try to get the struct type for correct field offset computation.
+        let struct_ty = self.resolve_expr_type(struct_node).and_then(|ty| {
+            match &ty {
+                IrType::Ptr(pointee) => Some((**pointee).clone()),
+                IrType::Struct { .. } => Some(ty.clone()),
+                _ => None,
+            }
+        });
+
         // Compute address of field, then load with correct type.
-        let field_ptr = self.emit(blk, Instruction::FieldAddr(base_ptr, field_idx, None));
+        let field_ptr = self.emit(blk, Instruction::FieldAddr(base_ptr, field_idx, struct_ty));
         let val = self.emit(blk, Instruction::Load(field_ty, field_ptr));
         (val, blk)
     }
@@ -1850,10 +2034,22 @@ impl<'a> Lowerer<'a> {
         };
 
         // Determine field type from the resolved struct pointee.
+        // If we can't find it via the scope chain, try the module type table.
         let field_ty = struct_ty_opt.as_ref().and_then(|sty| {
             if let IrType::Struct { fields, .. } = sty {
                 fields.iter().find(|(n, _)| n == &field_name).map(|(_, t)| t.clone())
             } else { None }
+        }).or_else(|| {
+            // Fallback: try module-level type table by struct name
+            struct_ty_opt.as_ref().and_then(|sty| {
+                if let IrType::Struct { name, .. } = sty {
+                    self.types.iter().find(|(n, _)| n == name).and_then(|(_, t)| {
+                        if let IrType::Struct { fields, .. } = t {
+                            fields.iter().find(|(n, _)| n == &field_name).map(|(_, ft)| ft.clone())
+                        } else { None }
+                    })
+                } else { None }
+            })
         }).unwrap_or(IrType::I32);
 
         let field_ptr = self.emit(end_blk, Instruction::FieldAddr(struct_ptr, field_idx, struct_ty_opt));
@@ -1877,16 +2073,19 @@ impl<'a> Lowerer<'a> {
         } else {
             raw_ptr
         };
-        let (idx_val, end_blk) = self.lower_expr_into(index_node, blk);
+        let (raw_idx, end_blk) = self.lower_expr_into(index_node, blk);
 
         // Determine element type from the array's declared type.
         let elem_ty = arr_ty.and_then(|ty| {
             match &ty {
                 IrType::Ptr(pointee) => Some((**pointee).clone()),
-                // For non-pointer types (e.g. I8 for N8 arrays), use the type directly.
+                IrType::Array { element, .. } => Some((**element).clone()),
                 other => Some(other.clone()),
             }
         }).unwrap_or(IrType::I32);
+
+        // Scale index by element width — GEP uses byte offsets.
+        let idx_val = self.scale_index(&elem_ty, raw_idx, end_blk);
 
         // GEP to element, then load.
         let elem_ptr = self.emit(end_blk, Instruction::Gep(ary_ptr, vec![idx_val]));
@@ -1930,10 +2129,34 @@ impl<'a> Lowerer<'a> {
     /// If `block`'s current terminator is a self-looping placeholder
     /// (`Br(block)`), replace it with `Br(target)`.
     fn patch_br_if_needed(&mut self, block: BlockId, target: BlockId) {
-        let current_term = &self.func.blocks[block.0].terminator;
-        let needs_patch = matches!(current_term, Terminator::Br(b) if *b == block);
-        if needs_patch {
-            self.set_terminator(block, Terminator::Br(target));
+        // Walk the chain through unconditional branches and through the
+        // merge (fall-through) path of conditional branches, patching every
+        // self-loop placeholder to `target`.  This ensures that nested if /
+        // while statements inside a then-block all eventually reach the
+        // correct continuation.
+        let mut visited: Vec<BlockId> = Vec::new();
+        let mut work = vec![block];
+        while let Some(blk) = work.pop() {
+            if visited.contains(&blk) { continue; }
+            visited.push(blk);
+            let term = &self.func.blocks[blk.0].terminator;
+            match term {
+                Terminator::Br(b) if *b == blk => {
+                    // Self-loop placeholder — patch to target.
+                    self.set_terminator(blk, Terminator::Br(target));
+                }
+                Terminator::Br(next) => {
+                    // Follow the unconditional chain.
+                    work.push(*next);
+                }
+                Terminator::BrCond(_, _, merge) => {
+                    // Follow the fall-through (merge) path.
+                    work.push(*merge);
+                }
+                _ => {
+                    // Real terminator (Ret, Switch) — stop.
+                }
+            }
         }
     }
 
@@ -1958,9 +2181,29 @@ impl<'a> Lowerer<'a> {
     /// Guess a field index from a field name using a trivial hash.
     /// In a production compiler this would be replaced by proper type
     /// resolution during semantic analysis.
-    fn guess_field_index(&self, _name: &str) -> usize {
-        // Placeholder: LLVM's GEP just needs a consistent index — the backend
-        // computes the actual byte offset from the struct layout.
+    fn guess_field_index(&self, name: &str) -> usize {
+        // Search the module's registered types for a struct that contains
+        // a field with the given name.
+        for (_, ty) in &self.types {
+            if let IrType::Struct { fields, .. } = ty {
+                if let Some(idx) = fields.iter().position(|(n, _)| n == name) {
+                    return idx;
+                }
+            }
+        }
+        // Fallback: if the field name is also a struct name, field 0.
+        0
+    }
+
+    /// Return the byte offset of a named field within a struct type.
+    fn field_byte_offset(struct_ty: &IrType, field_name: &str) -> usize {
+        if let IrType::Struct { fields, .. } = struct_ty {
+            let mut off = 0usize;
+            for (n, ty) in fields {
+                if n == field_name { return off; }
+                off += ty.width_bytes();
+            }
+        }
         0
     }
 }
@@ -2728,6 +2971,7 @@ mod tests {
         values_initial_len: 0,
             block_counter: 0,
             global_types: std::collections::HashMap::new(),
+            sret_dest: None,
         };
         assert_eq!(lr.node_aina(NO_NODE), 0);
         assert_eq!(lr.node_aina(-1), 0);
@@ -2756,6 +3000,7 @@ mod tests {
         values_initial_len: 0,
             block_counter: 0,
             global_types: std::collections::HashMap::new(),
+            sret_dest: None,
         };
         assert_eq!(lr.read_pool_name(0), "hello");
         assert_eq!(lr.read_pool_name(6), "world");
@@ -2787,6 +3032,7 @@ mod tests {
         values_initial_len: 0,
             block_counter: 0,
             global_types: std::collections::HashMap::new(),
+            sret_dest: None,
         };
         let bytes = lr.read_pool_bytes(0);
         assert_eq!(bytes, b"hello");
@@ -2816,6 +3062,7 @@ mod tests {
         values_initial_len: 0,
             block_counter: 0,
             global_types: std::collections::HashMap::new(),
+            sret_dest: None,
         };
         // The pool has no length prefix, so the 4 bytes [104, 97, 98, 97] (= "haba")
         // would be interpreted as a length.  That length is huge, so it falls

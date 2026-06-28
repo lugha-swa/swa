@@ -1,0 +1,23 @@
+husisha "msingi/kumbukumbu.swa"
+husisha "msingi/mfuatano.swa"
+husisha "msingi/msomaji.swa"
+
+N32 main() {
+    N8* s = "abc def";
+    Msomaji ms = msomaji_mpya(s, 7);
+
+    N64 count = 0;
+    // Read while alphanumeric using struct fields
+    wakati (msomaji_imeisha(&ms) == 0) {
+        N8 ch = ms.chanzo[ms.nafasi];
+        kama (ni_alfabeti_tarakimu(ch) == 0) { vunja; }
+        ms.nafasi = ms.nafasi + 1;
+        ms.safu = ms.safu + 1;
+        count = count + 1;
+    }
+
+    N32 c32 = count;
+    N32 n32 = ms.nafasi;
+    andika("; count=%d nafasi=%d (expect count=3 nafasi=3)\n", c32, n32);
+    rudisha 0;
+}

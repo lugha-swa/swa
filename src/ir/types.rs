@@ -236,7 +236,19 @@ impl IrType {
             IrType::Ptr(_) | IrType::FnPtr { .. } => 8,
 
             IrType::Struct { fields, .. } => {
-                fields.iter().map(|(_, ty)| ty.width_bytes()).sum()
+                // Compute with alignment to match LLVM's struct layout.
+                let mut off: usize = 0;
+                for (_, fty) in fields {
+                    let fw = fty.width_bytes();
+                    let align = std::cmp::min(fw, 8);
+                    off = (off + align - 1) & !(align - 1);
+                    off += fw;
+                }
+                let max_align = fields.iter()
+                    .map(|(_, ty)| std::cmp::min(ty.width_bytes(), 8))
+                    .max().unwrap_or(4);
+                off = (off + max_align - 1) & !(max_align - 1);
+                off
             }
 
             IrType::Array { element, count } => {
