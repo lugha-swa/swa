@@ -131,8 +131,8 @@ impl LlvmBackend {
 
             let failed = LLVMParseIRInContext(self.context, mem_buf, &mut out_module, &mut error);
 
-            // The memory buffer is never owned by the module — always dispose.
-            LLVMDisposeMemoryBuffer(mem_buf);
+            // LLVM 22 disposes the memory buffer inside LLVMParseIRInContext.
+            // Do NOT call LLVMDisposeMemoryBuffer here — it would double-free.
 
             if failed != 0 {
                 let msg = if error.is_null() {
@@ -296,8 +296,8 @@ impl LlvmBackend {
                 LLVMSetInitializer(llvm_global, init);
                 if global.is_const {
                     LLVMSetGlobalConstant(llvm_global, 1);
+                    LLVMSetLinkage(llvm_global, LLVMLinkage::Private);
                 }
-                LLVMSetLinkage(llvm_global, LLVMLinkage::Private);
             }
 
             // -- 4. Pre-declare ALL functions (libc + user) ---------------------
