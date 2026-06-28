@@ -178,9 +178,6 @@ N32 tokeni_kwa_nambari(N8* mwanzo, N64 urefu) {
 // -------------------------------------------------------
 
 N32 ni_aina_tokeni(Tokeni* t) {
-    kama (t->aina != TOKENI_MANENO) {
-        kama (t->aina != TOKENI_KITAMBULISHO) { rudisha 0; }
-    }
     kama (t->urefu < 1) { rudisha 0; }
     N8 c0 = t->mwanzo[0];
     kama (c0 >= 65) {
@@ -278,7 +275,7 @@ N32 changanua_usemi_ternary(Msambazaji* p);
 // -------------------------------------------------------
 N32 changanua_taarifa_kama(Msambazaji* p) {
     // ---- kama ( cond ) block [ sivyo block ] ----
-    kama (p->sasa.aina == TOKENI_MANENO) {
+    kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "kama")) {
             sogeza(p);
             // Condition
@@ -300,7 +297,7 @@ N32 changanua_taarifa_kama(Msambazaji* p) {
 
             // Optional sivyo clause (else)
             N32 else_body = -1;
-            kama (p->sasa.aina == TOKENI_MANENO) {
+            kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
                 kama (neno_ni(&p->sasa, "sivyo")) {
                     sogeza(p);
                     kama (p->sasa.mwanzo[0] == 123) {
@@ -324,7 +321,7 @@ N32 changanua_taarifa_kama(Msambazaji* p) {
 
 N32 changanua_taarifa_wakati(Msambazaji* p) {
     // ---- wakati ( cond ) block ----
-    kama (p->sasa.aina == TOKENI_MANENO) {
+    kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "wakati")) {
             sogeza(p);
             kama (p->sasa.mwanzo[0] < 65) {
@@ -350,7 +347,7 @@ N32 changanua_taarifa_wakati(Msambazaji* p) {
 
 N32 changanua_taarifa_chagua(Msambazaji* p) {
     // ---- chagua ( expr ) { hali X : ... [hali Y : ...] } ----
-    kama (p->sasa.aina == TOKENI_MANENO) {
+    kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "chagua")) {
             sogeza(p);
             kama (p->sasa.mwanzo[0] < 65) {
@@ -370,9 +367,9 @@ N32 changanua_taarifa_chagua(Msambazaji* p) {
                 kama (p->sasa.mwanzo[0] < 65) {
                     kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
                 }
-                kama (p->sasa.aina == TOKENI_MWISHO) { vunja; }
+                kama (p->sasa.urefu == 0) { vunja; }
 
-                kama (p->sasa.aina == TOKENI_MANENO) {
+                kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
                     kama (neno_ni(&p->sasa, "hali")) {
                         sogeza(p);
                         N32 label_expr = changanua_usemi(p);
@@ -388,10 +385,10 @@ N32 changanua_taarifa_chagua(Msambazaji* p) {
                             kama (p->sasa.mwanzo[0] < 65) {
                                 kama (neno_ni(&p->sasa, "}")) { vunja; }
                             }
-                            kama (p->sasa.aina == TOKENI_MANENO) {
+                            kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
                                 kama (neno_ni(&p->sasa, "hali")) { vunja; }
                             }
-                            kama (p->sasa.aina == TOKENI_MWISHO) { vunja; }
+                            kama (p->sasa.urefu == 0) { vunja; }
                             N32 stmt = changanua_taarifa(p);
                             kama (stmt == -1) { vunja; }
                             kama (case_prev == -1) { case_kwanza = stmt; }
@@ -417,7 +414,7 @@ N32 changanua_taarifa_chagua(Msambazaji* p) {
 
 N32 changanua_taarifa_kwa(Msambazaji* p) {
     // ---- kwa ( init ; cond ; step ) block   (for loop) ----
-    kama (p->sasa.aina == TOKENI_MANENO) {
+    kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "kwa")) {
             sogeza(p);
             kama (p->sasa.mwanzo[0] < 65) {
@@ -524,7 +521,7 @@ N32 changanua_taarifa_tangazo(Msambazaji* p) {
 
 N32 changanua_taarifa_ndani(Msambazaji* p) {
     // ---- vunja ; ----
-    kama (p->sasa.aina == TOKENI_MANENO) {
+    kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "vunja")) {
             sogeza(p);
             kama (p->sasa.mwanzo[0] < 65) {
@@ -535,7 +532,7 @@ N32 changanua_taarifa_ndani(Msambazaji* p) {
     }
 
     // ---- endelea ; ----
-    kama (p->sasa.aina == TOKENI_MANENO) {
+    kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "endelea")) {
             sogeza(p);
             kama (p->sasa.mwanzo[0] < 65) {
@@ -546,7 +543,7 @@ N32 changanua_taarifa_ndani(Msambazaji* p) {
     }
 
     // ---- achilia expr ; ----
-    kama (p->sasa.aina == TOKENI_MANENO) {
+    kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "achilia")) {
             sogeza(p);
             N32 expr = changanua_usemi(p);
@@ -559,7 +556,7 @@ N32 changanua_taarifa_ndani(Msambazaji* p) {
     }
 
     // ---- tenga expr ; ----
-    kama (p->sasa.aina == TOKENI_MANENO) {
+    kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "tenga")) {
             sogeza(p);
             N32 expr = changanua_usemi(p);
@@ -572,7 +569,7 @@ N32 changanua_taarifa_ndani(Msambazaji* p) {
     }
 
     // ---- rudisha expr ;  /  rudisha ; ----
-    kama (p->sasa.aina == TOKENI_MANENO) {
+    kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "rudisha")) {
             sogeza(p);
             // Bare return
@@ -602,7 +599,7 @@ N32 changanua_kazi_vigezo(Msambazaji* p) {
         N8 c0 = p->sasa.mwanzo[0];
         kama (c0 == 41) { sogeza(p); vunja; }
         kama (c0 == 44) { sogeza(p); endelea; }
-        kama (p->sasa.aina == TOKENI_MWISHO) { p->kosa = 1; rudisha -1; }
+        kama (p->sasa.urefu == 0) { p->kosa = 1; rudisha -1; }
 
         kama (ni_aina_tokeni(&p->sasa)) {
             N32 param_aina = changanua_aina_tokeni(p);
@@ -639,7 +636,7 @@ N32 changanua_kazi_mwili(Msambazaji* p) {
         kama (p->sasa.mwanzo[0] < 65) {
             kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
         }
-        kama (p->sasa.aina == TOKENI_MWISHO) { vunja; }
+        kama (p->sasa.urefu == 0) { vunja; }
 
         N32 stmt = changanua_taarifa(p);
         kama (stmt == -1) { vunja; }
@@ -663,7 +660,7 @@ N32 changanua_primary_orodha(Msambazaji* p) {
                 kama (p->sasa.mwanzo[0] < 65) {
                     kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
                 }
-                kama (p->sasa.aina == TOKENI_MWISHO) { vunja; }
+                kama (p->sasa.urefu == 0) { vunja; }
                 N32 elem = changanua_usemi(p);
                 kama (prev == -1) { kwanza = elem; }
                 sivyo { ast_kulia[prev] = elem; }
@@ -722,7 +719,7 @@ N32 changanua_primary(Msambazaji* p) {
     kama (r_orodha != -1) { rudisha r_orodha; }
 
     // Prefix logical NOT    // Prefix logical NOT  si expr
-    kama (p->sasa.aina == TOKENI_MANENO) {
+    kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "si")) {
             sogeza(p);
             N32 operand = changanua_primary(p);
@@ -732,7 +729,7 @@ N32 changanua_primary(Msambazaji* p) {
     }
 
     // sizeof(expr) -- builtin size query (ukubwa is the keyword)
-    kama (p->sasa.aina == TOKENI_MANENO) {
+    kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "ukubwa")) {
             sogeza(p);
             kama (p->sasa.mwanzo[0] < 65) {
@@ -768,7 +765,7 @@ N32 changanua_usemi_upande(Msambazaji* p) {
                     kama (p->sasa.mwanzo[0] < 65) {
                         kama (neno_ni(&p->sasa, ")")) { sogeza(p); vunja; }
                     }
-                    kama (p->sasa.aina == TOKENI_MWISHO) { vunja; }
+                    kama (p->sasa.urefu == 0) { vunja; }
                     N32 arg = changanua_usemi(p);
                     kama (prev == -1) { args = arg; }
                     sivyo { ast_kulia[prev] = arg; }
@@ -1105,7 +1102,7 @@ N32 changanua_bloku(Msambazaji* p) {
         kama (p->sasa.mwanzo[0] < 65) {
             kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
         }
-        kama (p->sasa.aina == TOKENI_MWISHO) { vunja; }
+        kama (p->sasa.urefu == 0) { vunja; }
         N32 stmt = changanua_taarifa(p);
         kama (stmt == -1) { vunja; }
         kama (prev == -1) { kwanza = stmt; }
@@ -1235,7 +1232,7 @@ N32 changanua_muundo(Msambazaji* p) {
         kama (p->sasa.mwanzo[0] < 65) {
             kama (neno_ni(&p->sasa, "}")) { vunja; }
         }
-        kama (p->sasa.aina == TOKENI_MWISHO) { p->kosa = 1; vunja; }
+        kama (p->sasa.urefu == 0) { p->kosa = 1; vunja; }
 
         // Optional type annotation on the field
         N32 field_aina = 0;
@@ -1278,11 +1275,22 @@ N32 changanua(Msambazaji* p) {
     N32 kwanza = -1;
     N32 prev = -1;
 
-    wakati (p->sasa.aina != TOKENI_MWISHO) {
+    wakati (p->sasa.urefu != 0) {
         N32 node = -1;
 
+        // Skip husisha directives (they are preprocessor lines)
+        kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] == 104) {
+            kama (p->sasa.mwanzo[1] == 117) {
+                wakati (p->sasa.mwanzo[0] != 59) {
+                    sogeza(p);
+                }
+                sogeza(p); // consume semicolon
+                endelea;
+            }
+        }
+
         // Try muundo declaration
-        kama (p->sasa.aina == TOKENI_MANENO) {
+        kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
             kama (neno_ni(&p->sasa, "muundo")) {
                 node = changanua_muundo(p);
             }
@@ -1295,9 +1303,9 @@ N32 changanua(Msambazaji* p) {
 
         // If nothing matched and we are not at EOF, it is an error.
         kama (node == -1) {
-            kama (p->sasa.aina != TOKENI_MWISHO) {
+            kama (p->sasa.urefu != 0) {
                 p->kosa = 1;
-                andika("hitilafu: kipengele kisichotarajiwa kwenye mstari %d\n", p->sasa.mstari);
+                andika("hitilafu: kipengele kisichotarajiwa kwenye mstari %d c0=%d u=%d\n", p->sasa.mstari, p->sasa.mwanzo[0], p->sasa.urefu);
             }
             vunja;
         }
