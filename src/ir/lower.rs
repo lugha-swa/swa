@@ -2052,6 +2052,14 @@ impl<'a> Lowerer<'a> {
                     } else { None }
                 })
             }
+            AST_SAFU => {
+                let array_node = self.ast_kushoto[node as usize];
+                self.resolve_expr_type(array_node).and_then(|ty| match &ty {
+                    IrType::Array { element, .. } => Some((**element).clone()),
+                    IrType::Ptr(pointee) => Some((**pointee).clone()),
+                    _ => None,
+                })
+            }
             _ => None,
         }
     }
