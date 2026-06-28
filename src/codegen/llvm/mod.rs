@@ -1718,24 +1718,14 @@ fn pre_declare_libc(module: LLVMModuleRef) {
             }
         }
 
-        // __chkstk: minimal stack-probing stub.
-        // LLVM emits calls to __chkstk before large stack allocations on Windows.
-        // A proper implementation would probe 4 KiB pages, but the real __chkstk
-        // from libgcc is not always available at link time.
-        // We provide a minimal stub that the linker can override with libgcc's.
+        // __chkstk: kipepelezi cha kurasa za rafu kwa Windows.
+        // Hutoa tu — BSS haihusiki, na rafu zetu za utendakazi ni ndogo.
         {
             let name = c_str("__chkstk");
             if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
                 let fn_ty = LLVMFunctionType(LLVMVoidType(), std::ptr::null_mut(), 0, 0);
                 let func = LLVMAddFunction(module, name.as_ptr(), fn_ty);
-                // Minimal body: just return.  The caller already has the stack
-                // committed by the OS for the guard-page region.  This works
-                // as long as no single alloca exceeds one page.
-                let bb = LLVMAppendBasicBlockInContext(
-                    LLVMGetModuleContext(module),
-                    func,
-                    c_str("entry").as_ptr(),
-                );
+                let bb = LLVMAppendBasicBlockInContext(LLVMGetModuleContext(module), func, c_str("entry").as_ptr());
                 let builder = LLVMCreateBuilder();
                 LLVMPositionBuilderAtEnd(builder, bb);
                 LLVMBuildRetVoid(builder);
