@@ -396,7 +396,7 @@ impl LlvmBackend {
                 triple_c.as_ptr(),
                 cpu_c.as_ptr(),
                 features_c.as_ptr(),
-                LLVMCodeGenOptLevel::Less,
+                LLVMCodeGenOptLevel::None,
                 LLVMRelocMode::Default,
                 LLVMCodeModel::Default,
             );
@@ -2266,7 +2266,7 @@ mod tests {
                 triple_c.as_ptr(),
                 cpu.as_ptr(),
                 features.as_ptr(),
-                LLVMCodeGenOptLevel::Less,
+                LLVMCodeGenOptLevel::None,
                 LLVMRelocMode::Default,
                 LLVMCodeModel::Default,
             );
