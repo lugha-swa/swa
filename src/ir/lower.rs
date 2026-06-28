@@ -1904,10 +1904,20 @@ impl<'a> Lowerer<'a> {
                 }
             }
             AST_TAJA => {
-                // *ptr as lvalue: the pointer IS the address.
-                let operand_node = self.ast_kushoto[node as usize];
-                let (ptr_val, _end_blk) = self.lower_expr_into(operand_node, blk);
-                ptr_val
+                // *ptr or array[index] as lvalue.
+                let base_node = self.ast_kushoto[node as usize];
+                let index_node = self.ast_kulia[node as usize];
+                let (base_ptr, end_blk) = self.lower_expr_into(base_node, blk);
+                if index_node != NO_NODE && index_node >= 0 {
+                    let (raw_idx, end_blk2) = self.lower_expr_into(index_node, end_blk);
+                    // Scale index by 4 (i32 element size) for byte-level GEP.
+                    let x2 = self.emit(end_blk2, Instruction::Add(raw_idx, raw_idx));
+                    let x4 = self.emit(end_blk2, Instruction::Add(x2, x2));
+                    let gep = self.emit(end_blk2, Instruction::Gep(base_ptr, vec![x4]));
+                    gep
+                } else {
+                    base_ptr
+                }
             }
             AST_SEHEMU_DOT => {
                 // struct.field: compute address of the field.
