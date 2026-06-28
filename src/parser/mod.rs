@@ -245,7 +245,7 @@ impl<'a> Parser<'a> {
     }
 
     fn changanua_unary(&mut self) -> i32 {
-        if self.tokeni_ni("-") && !matches!(self.sasa().kind, TokenKind::Nambari) { self.sogeza(); let o = self.changanua_unary(); return self.ast.node_mpya(AST_TOFAUTI, 0, 0, o); }
+        if self.tokeni_ni("-") && !matches!(self.sasa().kind, TokenKind::Nambari) { self.sogeza(); let o = self.changanua_unary(); return self.ast.node_mpya(AST_TOFAUTI, 0, NO_NODE, o); }
         if self.tokeni_ni("!") { self.sogeza(); let o = self.changanua_unary(); return self.ast.node_mpya(AST_SI, 0, o, NO_NODE); }
         if self.tokeni_ni("&") { self.sogeza(); let o = self.changanua_unary(); return self.ast.node_mpya(AST_KUMBUKA, 0, o, NO_NODE); }
         if self.tokeni_ni("*") { self.sogeza(); let o = self.changanua_unary(); return self.ast.node_mpya(AST_TAJA, 0, o, NO_NODE); }
