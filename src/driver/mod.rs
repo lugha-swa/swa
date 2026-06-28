@@ -147,6 +147,14 @@ impl Driver {
             crate::parser::parse_full(&tokens)
                 .map_err(|e| vec![Diagnostic::error(e, crate::diagnostics::SourceSpan::point(0, 0))])?;
 
+        // 2b. Ukaguzi wa haraka wa kisemantiki
+        let diags_sema = crate::sema::kagua_asti(
+            &aina, &kushoto, &kulia, &tiga, &nne, &thamani, &jina_off, &pool, count,
+        );
+        for d in diags_sema {
+            self.diagnostics.push(d);
+        }
+
         // 3. Lower to IR
         let module = crate::ir::lower::lower(
             &aina, &kushoto, &kulia, &tiga, &nne, &thamani, &jina_off, &pool, count,
