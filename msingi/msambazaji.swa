@@ -111,6 +111,7 @@ W0 hifadhi_jina(N32 node, N8* maandishi, N64 urefu) {
     }
     ast_pool[off + urefu] = 0;
     ast_pool_wapi = ast_pool_wapi + urefu + 1;
+    ast_pool[ast_pool_wapi] = 0;  // barrier: force pool pointer commit at O1
 }
 
 // -------------------------------------------------------
@@ -1277,13 +1278,15 @@ N32 changanua(Msambazaji* p) {
     wakati (p->sasa.urefu != 0) {
         N32 node = -1;
 
-        // Skip husisha directives (they are preprocessor lines)
+        // Skip husisha directives (preprocessor lines — skip entire line)
         kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] == 104) {
             kama (p->sasa.mwanzo[1] == 117) {
-                wakati (p->sasa.mwanzo[0] != 59) {
+                N32 mstari_husisha = p->sasa.mstari;
+                sogeza(p); // consume "husisha" keyword
+                // Skip all tokens on the same line
+                wakati (p->sasa.urefu != 0 && p->sasa.mstari == mstari_husisha) {
                     sogeza(p);
                 }
-                sogeza(p); // consume semicolon
                 endelea;
             }
         }
