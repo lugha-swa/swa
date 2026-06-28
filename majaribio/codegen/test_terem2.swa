@@ -1,0 +1,58 @@
+husisha C::stdio
+husisha "../../msingi/msambazaji.swa"
+husisha "../../msingi/mteremko.swa"
+
+N32 main(N32 argc, N8** argv) {
+    N32 name_node = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
+    hifadhi_jina(name_node, "jaribu", 6);
+    N32 func_node = node_mpya(AST_KAZI, 0, name_node, -1);
+    N32 prog = node_mpya(AST_PROGRAMU, 0, func_node, -1);
+
+    andika("; Hatua 1: kichwa\n");
+    teremsha_kichwa();
+
+    andika("; Hatua 2: teremsha_aina_walk\n");
+    teremsha_aina_walk(prog);
+
+    andika("; Hatua 3: kukusanya_mistari\n");
+    kukusanya_mistari(prog);
+
+    andika("; Hatua 4: teremsha_mistari\n");
+    teremsha_mistari();
+
+    andika("; Hatua 5: globals\n");
+    // Walk AST for globals (AST_TANGAZO_ULIMWENGU = 35)
+    // This is inline in teremsha, replicated here
+    N32 gnode = ast_kushoto[prog];
+    wakati (gnode != -1) {
+        kama (ast_aina[gnode] == 35) {
+            andika("; (global found)\n");
+        }
+        gnode = ast_nne[gnode];
+    }
+    andika("; Hatua 5 imekamilika\n");
+
+    andika("; Hatua 6: pre-pass kazi ret types\n");
+    N32 fpnode = ast_kushoto[prog];
+    wakati (fpnode != -1) {
+        kama (ast_aina[fpnode] == 2) {
+            N32 fname_node = ast_kushoto[fpnode];
+            N8* fjina = ast_pool + ast_jina_off[fname_node];
+            andika("; kazi: %s\n", fjina);
+        }
+        fpnode = ast_nne[fpnode];
+    }
+    andika("; Hatua 6 imekamilika\n");
+
+    andika("; Hatua 7: teremsha_kazi\n");
+    N32 fnode = ast_kushoto[prog];
+    wakati (fnode != -1) {
+        kama (ast_aina[fnode] == 2) {
+            teremsha_kazi(fnode);
+        }
+        fnode = ast_nne[fnode];
+    }
+    andika("; Hatua 7 imekamilika\n");
+
+    rudisha 0;
+}

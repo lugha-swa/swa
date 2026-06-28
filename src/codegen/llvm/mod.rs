@@ -57,15 +57,34 @@ impl LlvmBackend {
         Self { context }
     }
 
-    /// Return the global LLVM context, initialising all X86 targets once.
+    /// Return the global LLVM context, initialising common targets once.
     fn get_context() -> LLVMContextRef {
         LLVM_INIT.get_or_init(|| {
             unsafe {
+                // x86 / x86_64
                 LLVMInitializeX86TargetInfo();
                 LLVMInitializeX86Target();
                 LLVMInitializeX86TargetMC();
                 LLVMInitializeX86AsmPrinter();
                 LLVMInitializeX86AsmParser();
+                // ARM (32-bit)
+                LLVMInitializeARMTargetInfo();
+                LLVMInitializeARMTarget();
+                LLVMInitializeARMTargetMC();
+                LLVMInitializeARMAsmPrinter();
+                LLVMInitializeARMAsmParser();
+                // AArch64
+                LLVMInitializeAArch64TargetInfo();
+                LLVMInitializeAArch64Target();
+                LLVMInitializeAArch64TargetMC();
+                LLVMInitializeAArch64AsmPrinter();
+                LLVMInitializeAArch64AsmParser();
+                // RISC-V
+                LLVMInitializeRISCVTargetInfo();
+                LLVMInitializeRISCVTarget();
+                LLVMInitializeRISCVTargetMC();
+                LLVMInitializeRISCVAsmPrinter();
+                LLVMInitializeRISCVAsmParser();
             }
             1
         });
@@ -877,6 +896,11 @@ fn lower_instruction(
                 LLVMBuildBitCast(builder, x, target, c_str("bitcast").as_ptr())
             }
 
+            // -- constant materialization --------------------------------------
+            crate::ir::Instruction::Const(c) => {
+                unsafe { materialize_const(c, LLVMInt64Type()) }
+            }
+
             // -- memory -----------------------------------------------------------
             crate::ir::Instruction::Alloca(ty) => {
                 let llvm_ty = ir_type_to_llvm(ty, struct_types);
@@ -893,23 +917,11 @@ fn lower_instruction(
             crate::ir::Instruction::Store(val, ptr) => {
                 let value = v(value_map, val);
                 let p = v(value_map, ptr);
-                // Truncate the stored value to the pointee width so that
-                // e.g. a Const::Int stored to an N32 field writes 4 bytes
-                // instead of 8, avoiding corruption of adjacent fields.
-                unsafe {
-                    let ptr_ty = LLVMTypeOf(p);
-                    let elem_ty = LLVMGetElementType(ptr_ty);
-                    let val_ty = LLVMTypeOf(value);
-                    let val_to_store = if LLVMGetTypeKind(val_ty) as u32 == LLVMTypeKind::Integer as u32
-                        && LLVMGetTypeKind(elem_ty) as u32 == LLVMTypeKind::Integer as u32
-                        && LLVMGetIntTypeWidth(val_ty) != LLVMGetIntTypeWidth(elem_ty)
-                    {
-                        LLVMBuildIntCast2(builder, value, elem_ty, 1, c_str("cast_store").as_ptr())
-                    } else {
-                        value
-                    };
-                    LLVMBuildStore(builder, val_to_store, p)
-                }
+                // StoreTyped handles width coercion with explicit IrType.
+                // Plain Store emits the store as-is — the value must already
+                // match the pointee width.  LLVMGetElementType is unreliable
+                // with opaque pointers on LLVM 22.
+                LLVMBuildStore(builder, value, p)
             }
             crate::ir::Instruction::StoreTyped(val, ptr, store_ty) => {
                 let value = v(value_map, val);
@@ -1255,6 +1267,7 @@ fn lower_instruction(
                 } else {
                     match callee.as_str() {
                         "malloc" => ptr_type(),
+                        "realloc" => ptr_type(),
                         "free" => LLVMVoidType(),
                         "printf" => LLVMInt32Type(),
                         "andika" => LLVMInt32Type(),
@@ -1643,14 +1656,22 @@ fn materialize_const(c: &Const, default_ty: LLVMTypeRef) -> LLVMValueRef {
     unsafe {
         match c {
             Const::Int(v) => {
-                // For values that fit in u64, use LLVMConstInt.
-                let val = *v as u64; // truncate to u64
-                let sign_extend = if *v < 0 { 1 } else { 0 };
-                LLVMConstInt(default_ty, val, sign_extend)
+                if *v >= 0 && *v <= u64::MAX as i128 {
+                    LLVMConstInt(default_ty, *v as u64, 0)
+                } else if *v < 0 && *v >= i64::MIN as i128 {
+                    LLVMConstInt(default_ty, *v as u64, 1)
+                } else {
+                    let words: [u64; 2] = [*v as u64, (*v >> 64) as u64];
+                    LLVMConstIntOfArbitraryPrecision(default_ty, 2, words.as_ptr())
+                }
             }
             Const::Uint(v) => {
-                let val = (*v) as u64;
-                LLVMConstInt(default_ty, val, 0)
+                if *v <= u64::MAX as u128 {
+                    LLVMConstInt(default_ty, *v as u64, 0)
+                } else {
+                    let words: [u64; 2] = [*v as u64, (*v >> 64) as u64];
+                    LLVMConstIntOfArbitraryPrecision(default_ty, 2, words.as_ptr())
+                }
             }
             Const::Bool(b) => {
                 LLVMConstInt(LLVMInt1Type(), if *b { 1 } else { 0 }, 0)
@@ -1769,6 +1790,16 @@ fn pre_declare_libc(module: LLVMModuleRef) {
             if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
                 let mut param_tys = [ptr_type()];
                 let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 1, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // realloc: ptr (ptr, i64) → ptr
+        {
+            let name = c_str("realloc");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type(), LLVMInt64Type()];
+                let fn_ty = LLVMFunctionType(ptr_type(), param_tys.as_mut_ptr(), 2, 0);
                 LLVMAddFunction(module, name.as_ptr(), fn_ty);
             }
         }

@@ -172,8 +172,9 @@ pub enum Instruction {
 
     // -- memory -------------------------------------------------------------
     Alloca(IrType),
-    Load(IrType, ValueId),  // (pointee_type, ptr)
-    Store(ValueId, ValueId), // (value, ptr)
+    Const(Const),                       // materialize a constant as a value
+    Load(IrType, ValueId),              // (pointee_type, ptr)
+    Store(ValueId, ValueId),            // (value, ptr)
     StoreTyped(ValueId, ValueId, IrType), // (value, ptr, stored_type)
     MemCopy(ValueId, ValueId, u64), // (dest_ptr, src_ptr, size_bytes)
 
