@@ -238,7 +238,7 @@ N32 changanua_aina_tokeni(Msambazaji* p) {
     // '*'' as a single-char operator may lack ISHARA aina from the lexer.
     // Use two-path detection to handle both cases reliably.
     N32 ni_mshale = 0;
-    kama (p->sasa.aina == TOKENI_ISHARA) {
+    kama (p->sasa.mwanzo[0] < 65) {
         kama (neno_ni(&p->sasa, "*")) { ni_mshale = 1; sogeza(p); }
     }
     kama (ni_mshale == 0) {
@@ -282,17 +282,17 @@ N32 changanua_taarifa_kama(Msambazaji* p) {
         kama (neno_ni(&p->sasa, "kama")) {
             sogeza(p);
             // Condition
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, "(")) { sogeza(p); }
             }
             N32 cond = changanua_usemi(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ")")) { sogeza(p); }
             }
 
             // Then-body -- block or single statement
             N32 then_body = -1;
-            kama (p->sasa.aina == TOKENI_ISHARA && neno_ni(&p->sasa, "{")) {
+            kama (p->sasa.mwanzo[0] == 123) {
                 then_body = changanua_bloku(p);
             } sivyo {
                 then_body = changanua_taarifa(p);
@@ -303,7 +303,7 @@ N32 changanua_taarifa_kama(Msambazaji* p) {
             kama (p->sasa.aina == TOKENI_MANENO) {
                 kama (neno_ni(&p->sasa, "sivyo")) {
                     sogeza(p);
-                    kama (p->sasa.aina == TOKENI_ISHARA && neno_ni(&p->sasa, "{")) {
+                    kama (p->sasa.mwanzo[0] == 123) {
                         else_body = changanua_bloku(p);
                     } sivyo {
                         else_body = changanua_taarifa(p);
@@ -327,16 +327,16 @@ N32 changanua_taarifa_wakati(Msambazaji* p) {
     kama (p->sasa.aina == TOKENI_MANENO) {
         kama (neno_ni(&p->sasa, "wakati")) {
             sogeza(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, "(")) { sogeza(p); }
             }
             N32 cond = changanua_usemi(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ")")) { sogeza(p); }
             }
 
             N32 body = -1;
-            kama (p->sasa.aina == TOKENI_ISHARA && neno_ni(&p->sasa, "{")) {
+            kama (p->sasa.mwanzo[0] == 123) {
                 body = changanua_bloku(p);
             } sivyo {
                 body = changanua_taarifa(p);
@@ -353,11 +353,11 @@ N32 changanua_taarifa_chagua(Msambazaji* p) {
     kama (p->sasa.aina == TOKENI_MANENO) {
         kama (neno_ni(&p->sasa, "chagua")) {
             sogeza(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, "(")) { sogeza(p); }
             }
             N32 tested = changanua_usemi(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ")")) { sogeza(p); }
             }
 
@@ -367,7 +367,7 @@ N32 changanua_taarifa_chagua(Msambazaji* p) {
             N32 prev_case = -1;
 
             wakati (1 == 1) {
-                kama (p->sasa.aina == TOKENI_ISHARA) {
+                kama (p->sasa.mwanzo[0] < 65) {
                     kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
                 }
                 kama (p->sasa.aina == TOKENI_MWISHO) { vunja; }
@@ -377,7 +377,7 @@ N32 changanua_taarifa_chagua(Msambazaji* p) {
                         sogeza(p);
                         N32 label_expr = changanua_usemi(p);
                         // Expect :
-                        kama (p->sasa.aina == TOKENI_ISHARA) {
+                        kama (p->sasa.mwanzo[0] < 65) {
                             kama (neno_ni(&p->sasa, ":")) { sogeza(p); }
                         }
 
@@ -385,7 +385,7 @@ N32 changanua_taarifa_chagua(Msambazaji* p) {
                         N32 case_kwanza = -1;
                         N32 case_prev = -1;
                         wakati (1 == 1) {
-                            kama (p->sasa.aina == TOKENI_ISHARA) {
+                            kama (p->sasa.mwanzo[0] < 65) {
                                 kama (neno_ni(&p->sasa, "}")) { vunja; }
                             }
                             kama (p->sasa.aina == TOKENI_MANENO) {
@@ -420,46 +420,46 @@ N32 changanua_taarifa_kwa(Msambazaji* p) {
     kama (p->sasa.aina == TOKENI_MANENO) {
         kama (neno_ni(&p->sasa, "kwa")) {
             sogeza(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, "(")) { sogeza(p); }
             }
 
             // init (expression or empty)
             N32 init = -1;
-            kama (p->sasa.aina == TOKENI_ISHARA && neno_ni(&p->sasa, ";")) {
+            kama (p->sasa.mwanzo[0] == 59) {
                 sogeza(p);
             } sivyo {
                 init = changanua_usemi(p);
-                kama (p->sasa.aina == TOKENI_ISHARA) {
+                kama (p->sasa.mwanzo[0] < 65) {
                     kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
                 }
             }
 
             // cond (expression or empty)
             N32 cond = -1;
-            kama (p->sasa.aina == TOKENI_ISHARA && neno_ni(&p->sasa, ";")) {
+            kama (p->sasa.mwanzo[0] == 59) {
                 sogeza(p);
             } sivyo {
                 cond = changanua_usemi(p);
-                kama (p->sasa.aina == TOKENI_ISHARA) {
+                kama (p->sasa.mwanzo[0] < 65) {
                     kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
                 }
             }
 
             // step (expression or empty)
             N32 step = -1;
-            kama (p->sasa.aina == TOKENI_ISHARA && neno_ni(&p->sasa, ")")) {
+            kama (p->sasa.mwanzo[0] == 41) {
                 sogeza(p);
             } sivyo {
                 step = changanua_usemi(p);
-                kama (p->sasa.aina == TOKENI_ISHARA) {
+                kama (p->sasa.mwanzo[0] < 65) {
                     kama (neno_ni(&p->sasa, ")")) { sogeza(p); }
                 }
             }
 
             // body
             N32 body = -1;
-            kama (p->sasa.aina == TOKENI_ISHARA && neno_ni(&p->sasa, "{")) {
+            kama (p->sasa.mwanzo[0] == 123) {
                 body = changanua_bloku(p);
             } sivyo {
                 body = changanua_taarifa(p);
@@ -496,7 +496,7 @@ N32 changanua_taarifa_tangazo(Msambazaji* p) {
     // ---- Type-prefixed local declaration: N32 x ;  /  N32 x = expr ; ----
     kama (ni_aina_tokeni(&p->sasa)) {
         N32 decl_type = changanua_aina_tokeni(p);
-        kama (p->sasa.aina == TOKENI_KITAMBULISHO) {
+        kama (p->sasa.mwanzo[0] >= 65) {
             N32 var_name = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
             hifadhi_jina(var_name, p->sasa.mwanzo, p->sasa.urefu);
             ast_thamani[var_name] = decl_type;
@@ -510,7 +510,7 @@ N32 changanua_taarifa_tangazo(Msambazaji* p) {
             }
 
             // Consume optional semicolon
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
             }
             // Also handle operator tokens that lack ISHARA aina
@@ -527,7 +527,7 @@ N32 changanua_taarifa_ndani(Msambazaji* p) {
     kama (p->sasa.aina == TOKENI_MANENO) {
         kama (neno_ni(&p->sasa, "vunja")) {
             sogeza(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
             }
             rudisha node_mpya(AST_VUNJA, 0, -1, -1);
@@ -538,7 +538,7 @@ N32 changanua_taarifa_ndani(Msambazaji* p) {
     kama (p->sasa.aina == TOKENI_MANENO) {
         kama (neno_ni(&p->sasa, "endelea")) {
             sogeza(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
             }
             rudisha node_mpya(AST_ENDELEA, 0, -1, -1);
@@ -550,7 +550,7 @@ N32 changanua_taarifa_ndani(Msambazaji* p) {
         kama (neno_ni(&p->sasa, "achilia")) {
             sogeza(p);
             N32 expr = changanua_usemi(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
             }
             kama (expr == -1) { rudisha node_mpya(AST_ACHILIA, 0, -1, -1); }
@@ -563,7 +563,7 @@ N32 changanua_taarifa_ndani(Msambazaji* p) {
         kama (neno_ni(&p->sasa, "tenga")) {
             sogeza(p);
             N32 expr = changanua_usemi(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
             }
             kama (expr == -1) { rudisha -1; }
@@ -576,14 +576,14 @@ N32 changanua_taarifa_ndani(Msambazaji* p) {
         kama (neno_ni(&p->sasa, "rudisha")) {
             sogeza(p);
             // Bare return
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ";")) {
                     sogeza(p);
                     rudisha node_mpya(AST_RUDISHA, 0, -1, -1);
                 }
             }
             N32 expr = changanua_usemi(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
             }
             rudisha node_mpya(AST_RUDISHA, 0, expr, -1);
@@ -599,39 +599,35 @@ N32 changanua_kazi_vigezo(Msambazaji* p) {
     N32 param_count = 0;
 
     wakati (1 == 1) {
-        kama (p->sasa.aina == TOKENI_ISHARA) {
-            kama (neno_ni(&p->sasa, ")")) { sogeza(p); vunja; }
-        }
+        N8 c0 = p->sasa.mwanzo[0];
+        kama (c0 == 41) { sogeza(p); vunja; }
+        kama (c0 == 44) { sogeza(p); endelea; }
         kama (p->sasa.aina == TOKENI_MWISHO) { p->kosa = 1; rudisha -1; }
 
         kama (ni_aina_tokeni(&p->sasa)) {
             N32 param_aina = changanua_aina_tokeni(p);
             N32 pnode = -1;
-            kama (p->sasa.aina == TOKENI_KITAMBULISHO) {
+            N8 nc0 = p->sasa.mwanzo[0];
+            kama (nc0 >= 65) {
                 pnode = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
                 hifadhi_jina(pnode, p->sasa.mwanzo, p->sasa.urefu);
                 ast_thamani[pnode] = param_aina;
-                sogeza(p); // consume parameter name
+                sogeza(p);
             }
             kama (prev == -1) { params = pnode; }
             sivyo { ast_kulia[prev] = pnode; }
             prev = pnode;
             param_count = param_count + 1;
 
-            kama (p->sasa.aina == TOKENI_ISHARA) {
-                kama (neno_ni(&p->sasa, ",")) { sogeza(p); endelea; }
-            }
+            N8 cc0 = p->sasa.mwanzo[0];
+            kama (cc0 == 44) { sogeza(p); endelea; }
         }
     }
 
-    // Consume opening brace (optional -- body may follow directly)
-    kama (p->sasa.aina == TOKENI_ISHARA) {
-        kama (neno_ni(&p->sasa, "{")) { sogeza(p); }
-    }
-
-    kama (p->sasa.aina == TOKENI_ISHARA) {
-        kama (neno_ni(&p->sasa, "{")) { sogeza(p); }
-    }
+    N8 bc0 = p->sasa.mwanzo[0];
+    kama (bc0 == 123) { sogeza(p); }
+    N8 bc1 = p->sasa.mwanzo[0];
+    kama (bc1 == 123) { sogeza(p); }
     rudisha params;
 }
 
@@ -640,7 +636,7 @@ N32 changanua_kazi_mwili(Msambazaji* p) {
     N32 body = -1;
     N32 prev = -1;
     wakati (1 == 1) {
-        kama (p->sasa.aina == TOKENI_ISHARA) {
+        kama (p->sasa.mwanzo[0] < 65) {
             kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
         }
         kama (p->sasa.aina == TOKENI_MWISHO) { vunja; }
@@ -658,13 +654,13 @@ N32 changanua_kazi_mwili(Msambazaji* p) {
 
 N32 changanua_primary_orodha(Msambazaji* p) {
     // Initialiser list  { elem , ... }
-    kama (p->sasa.aina == TOKENI_ISHARA) {
+    kama (p->sasa.mwanzo[0] < 65) {
         kama (neno_ni(&p->sasa, "{")) {
             sogeza(p);
             N32 kwanza = -1;
             N32 prev = -1;
             wakati (1 == 1) {
-                kama (p->sasa.aina == TOKENI_ISHARA) {
+                kama (p->sasa.mwanzo[0] < 65) {
                     kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
                 }
                 kama (p->sasa.aina == TOKENI_MWISHO) { vunja; }
@@ -672,7 +668,7 @@ N32 changanua_primary_orodha(Msambazaji* p) {
                 kama (prev == -1) { kwanza = elem; }
                 sivyo { ast_kulia[prev] = elem; }
                 prev = elem;
-                kama (p->sasa.aina == TOKENI_ISHARA) {
+                kama (p->sasa.mwanzo[0] < 65) {
                     kama (neno_ni(&p->sasa, ",")) {
                         sogeza(p);
                         endelea;
@@ -703,7 +699,7 @@ N32 changanua_primary(Msambazaji* p) {
     }
 
     // Identifier
-    kama (p->sasa.aina == TOKENI_KITAMBULISHO) {
+    kama (p->sasa.mwanzo[0] >= 65) {
         N32 id_node = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
         hifadhi_jina(id_node, p->sasa.mwanzo, p->sasa.urefu);
         sogeza(p);
@@ -711,11 +707,11 @@ N32 changanua_primary(Msambazaji* p) {
     }
 
     // Parenthesised expression  ( expr )
-    kama (p->sasa.aina == TOKENI_ISHARA) {
+    kama (p->sasa.mwanzo[0] < 65) {
         kama (neno_ni(&p->sasa, "(")) {
             sogeza(p);
             N32 expr = changanua_usemi(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ")")) { sogeza(p); }
             }
             rudisha expr;
@@ -739,11 +735,11 @@ N32 changanua_primary(Msambazaji* p) {
     kama (p->sasa.aina == TOKENI_MANENO) {
         kama (neno_ni(&p->sasa, "ukubwa")) {
             sogeza(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, "(")) { sogeza(p); }
             }
             N32 operand = changanua_usemi(p);
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ")")) { sogeza(p); }
             }
             kama (operand == -1) { rudisha -1; }
@@ -763,13 +759,13 @@ N32 changanua_usemi_upande(Msambazaji* p) {
 
     wakati (1 == 1) {
         // Function call  expr ( args )
-        kama (p->sasa.aina == TOKENI_ISHARA) {
+        kama (p->sasa.mwanzo[0] < 65) {
             kama (neno_ni(&p->sasa, "(")) {
                 sogeza(p);
                 N32 args = -1;
                 N32 prev = -1;
                 wakati (1 == 1) {
-                    kama (p->sasa.aina == TOKENI_ISHARA) {
+                    kama (p->sasa.mwanzo[0] < 65) {
                         kama (neno_ni(&p->sasa, ")")) { sogeza(p); vunja; }
                     }
                     kama (p->sasa.aina == TOKENI_MWISHO) { vunja; }
@@ -777,7 +773,7 @@ N32 changanua_usemi_upande(Msambazaji* p) {
                     kama (prev == -1) { args = arg; }
                     sivyo { ast_kulia[prev] = arg; }
                     prev = arg;
-                    kama (p->sasa.aina == TOKENI_ISHARA) {
+                    kama (p->sasa.mwanzo[0] < 65) {
                         kama (neno_ni(&p->sasa, ",")) {
                             sogeza(p);
                             endelea;
@@ -791,10 +787,10 @@ N32 changanua_usemi_upande(Msambazaji* p) {
         }
 
         // Field access  expr . name
-        kama (p->sasa.aina == TOKENI_ISHARA) {
+        kama (p->sasa.mwanzo[0] < 65) {
             kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, ".")) {
                 sogeza(p);
-                kama (p->sasa.aina != TOKENI_KITAMBULISHO) { p->kosa = 1; rudisha -1; }
+                kama (p->sasa.mwanzo[0] < 65) { p->kosa = 1; rudisha -1; }
                 N32 field = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
                 hifadhi_jina(field, p->sasa.mwanzo, p->sasa.urefu);
                 sogeza(p);
@@ -810,7 +806,7 @@ N32 changanua_usemi_upande(Msambazaji* p) {
             kama (p->inayofuata.urefu == 1 && neno_ni(&p->inayofuata, ">")) {
                 sogeza(p); // consume '-'
                 sogeza(p); // consume '>'
-                kama (p->sasa.aina != TOKENI_KITAMBULISHO) { p->kosa = 1; rudisha -1; }
+                kama (p->sasa.mwanzo[0] < 65) { p->kosa = 1; rudisha -1; }
                 N32 field = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
                 hifadhi_jina(field, p->sasa.mwanzo, p->sasa.urefu);
                 sogeza(p);
@@ -821,11 +817,11 @@ N32 changanua_usemi_upande(Msambazaji* p) {
         }
 
         // Array subscript  expr [ index ]
-        kama (p->sasa.aina == TOKENI_ISHARA) {
+        kama (p->sasa.mwanzo[0] < 65) {
             kama (neno_ni(&p->sasa, "[")) {
                 sogeza(p);
                 N32 idx_expr = changanua_usemi(p);
-                kama (p->sasa.aina == TOKENI_ISHARA) {
+                kama (p->sasa.mwanzo[0] < 65) {
                     kama (neno_ni(&p->sasa, "]")) { sogeza(p); }
                 }
                 kushoto = node_mpya(AST_TAJA, 0, kushoto, idx_expr);
@@ -1093,7 +1089,7 @@ N32 changanua_usemi(Msambazaji* p) {
 // Returns the first statement node; statements are chained via ast_nne.
 // On entry p->sasa must be '{'.
 N32 changanua_bloku(Msambazaji* p) {
-    kama (p->sasa.aina == TOKENI_ISHARA) {
+    kama (p->sasa.mwanzo[0] < 65) {
         kama (neno_ni(&p->sasa, "{")) {
             sogeza(p);
         } sivyo {
@@ -1106,7 +1102,7 @@ N32 changanua_bloku(Msambazaji* p) {
     N32 kwanza = -1;
     N32 prev = -1;
     wakati (1 == 1) {
-        kama (p->sasa.aina == TOKENI_ISHARA) {
+        kama (p->sasa.mwanzo[0] < 65) {
             kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
         }
         kama (p->sasa.aina == TOKENI_MWISHO) { vunja; }
@@ -1143,7 +1139,7 @@ N32 changanua_taarifa(Msambazaji* p) {
     {
         N32 expr = changanua_usemi(p);
         kama (expr != -1) {
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
             }
             kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, ";")) { sogeza(p); }
@@ -1180,7 +1176,7 @@ N32 changanua_kazi(Msambazaji* p) {
     // --------------------------------------------------
     N32 ni_global = 0;
     N32 global_node = -1;
-    kama (p->sasa.aina == TOKENI_ISHARA) {
+    kama (p->sasa.mwanzo[0] < 65) {
         N32 ni_paren = neno_ni(&p->sasa, "(");
         kama (ni_paren) {
             sogeza(p); // consume '(' -- fall through to parameter parsing
@@ -1189,13 +1185,13 @@ N32 changanua_kazi(Msambazaji* p) {
             // Global variable:  N32 name [= expr];
             ni_global = 1;
             N32 init = -1;
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, "=")) { sogeza(p); init = changanua_usemi(p); }
             }
             kama (p->sasa.urefu == 1) {
                 kama (neno_ni(&p->sasa, "=")) { sogeza(p); init = changanua_usemi(p); }
             }
-            kama (p->sasa.aina == TOKENI_ISHARA) {
+            kama (p->sasa.mwanzo[0] < 65) {
                 kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
             }
             kama (p->sasa.urefu == 1) {
@@ -1224,7 +1220,7 @@ N32 changanua_kazi(Msambazaji* p) {
 N32 changanua_muundo(Msambazaji* p) {
     sogeza(p); // consume 'muundo' keyword
 
-    kama (p->sasa.aina != TOKENI_KITAMBULISHO) { p->kosa = 1; rudisha -1; }
+    kama (p->sasa.mwanzo[0] < 65) { p->kosa = 1; rudisha -1; }
 
     N32 name = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
     hifadhi_jina(name, p->sasa.mwanzo, p->sasa.urefu);
@@ -1236,7 +1232,7 @@ N32 changanua_muundo(Msambazaji* p) {
     N32 prev = -1;
 
     wakati (1 == 1) {
-        kama (p->sasa.aina == TOKENI_ISHARA) {
+        kama (p->sasa.mwanzo[0] < 65) {
             kama (neno_ni(&p->sasa, "}")) { vunja; }
         }
         kama (p->sasa.aina == TOKENI_MWISHO) { p->kosa = 1; vunja; }
@@ -1247,7 +1243,7 @@ N32 changanua_muundo(Msambazaji* p) {
             field_aina = changanua_aina_tokeni(p);
         }
 
-        kama (p->sasa.aina != TOKENI_KITAMBULISHO) { p->kosa = 1; vunja; }
+        kama (p->sasa.mwanzo[0] < 65) { p->kosa = 1; vunja; }
 
         N32 fname = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
         hifadhi_jina(fname, p->sasa.mwanzo, p->sasa.urefu);
@@ -1255,7 +1251,7 @@ N32 changanua_muundo(Msambazaji* p) {
         sogeza(p); // consume field name
 
         // Optional trailing semicolon
-        kama (p->sasa.aina == TOKENI_ISHARA) {
+        kama (p->sasa.mwanzo[0] < 65) {
             kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
         }
 
@@ -1268,7 +1264,7 @@ N32 changanua_muundo(Msambazaji* p) {
     sogeza(p); // consume '}'
 
     // Optional trailing semicolon after struct definition
-    kama (p->sasa.aina == TOKENI_ISHARA) {
+    kama (p->sasa.mwanzo[0] < 65) {
         kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
     }
 
