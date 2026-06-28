@@ -283,7 +283,7 @@ pub fn lower(
         .strings
         .iter()
         .enumerate()
-        .map(|(i, (label, bytes))| {
+        .map(|(i, (_label, bytes))| {
             let name = format!("@str.{}", i);
             // Append null terminator if not already present.
             let mut data = bytes.clone();
@@ -465,13 +465,6 @@ impl<'a> Lowerer<'a> {
 // ============================================================================
 
 impl<'a> Lowerer<'a> {
-    /// Allocate a fresh block label and return the next `BlockId`.
-    fn fresh_block_id(&mut self) -> BlockId {
-        let id = BlockId(self.block_counter);
-        self.block_counter += 1;
-        id
-    }
-
     /// Create a new block with the given label prefix (e.g. `"entry"`,
     /// `"then"`, `"loop_header"`) appended with the block counter for
     /// uniqueness, push it into the current function, and return its
@@ -906,34 +899,6 @@ impl<'a> Lowerer<'a> {
         entry_id
     }
 
-    /// Lower a statement or block — if `node` looks like a block chain (first
-    /// child points to a statement and has `ast_nne` siblings), lower as block;
-    /// otherwise lower as single statement.
-    fn lower_block_or_stmt(&mut self, node: i32) -> BlockId {
-        if node == NO_NODE || node < 0 {
-            let blk = self.new_block("empty_body");
-            self.set_terminator(blk, Terminator::RetVoid);
-            return blk;
-        }
-
-        let kind = self.node_aina(node);
-        // If the node is a compound statement container, walk its children.
-        // The body is typically represented as a chain via ast_nne.
-        match kind {
-            // For a raw block (brace-enclosed), ast_kushoto points to first stmt,
-            // and they are chained via ast_nne.
-            _ => {
-                // Check if this node has children via ast_kushoto.
-                let first = self.ast_kushoto[node as usize];
-                if first != NO_NODE {
-                    self.lower_block(first)
-                } else {
-                    // Single expression/statement as body.
-                    self.lower_stmt(node)
-                }
-            }
-        }
-    }
 }
 
 // ============================================================================
@@ -1023,8 +988,10 @@ impl<'a> Lowerer<'a> {
         // Ensure merge_blk can be patched by lower_block's caller.
         self.set_terminator(merge_blk, Terminator::Br(merge_blk));
 
-        // Return cond_blk so lower_block chains entry → condition, not entry → merge.
-        cond_blk
+        // Return merge_blk so lower_block chains the NEXT statement to the
+        // continuation after the if-else, NOT to the else-body (which would
+        // make statements after the if-else unreachable dead code).
+        merge_blk
     }
 
     /// Lower `WAKATI` (while loop): `wakati (cond) { body }`.
@@ -1424,16 +1391,6 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    /// Lower an expression node.
-    ///
-    /// Returns `(ValueId, BlockId)` where `ValueId` holds the expression result
-    /// and `BlockId` is the block that *ends* with that value being available
-    /// (i.e. the block containing the producing instruction).  For short-circuit
-    /// operators the returned block is the merge block.
-    fn lower_expr(&mut self, node: i32, current_block: BlockId) -> (ValueId, BlockId) {
-        self.lower_expr_into(node, current_block)
-    }
-
     /// Lower an expression into the given block (or chain of blocks for
     /// short-circuit operators).  Returns `(value, end_block)`.
     fn lower_expr_into(&mut self, node: i32, current_block: BlockId) -> (ValueId, BlockId) {
@@ -1509,7 +1466,15 @@ impl<'a> Lowerer<'a> {
 
             // -- unary ---------------------------------------------------------
             AST_SI => self.lower_logical_not(node, current_block),
-            AST_TAJA => self.lower_deref_load(node, current_block),
+            AST_TAJA => {
+                // AST_TAJA is used for both *ptr (dereference) and arr[idx]
+                // (array subscript).  Check for an index node to distinguish.
+                if self.ast_kulia[node as usize] != NO_NODE {
+                    self.lower_array_index(node, current_block)
+                } else {
+                    self.lower_deref_load(node, current_block)
+                }
+            }
             AST_KUMBUKA => self.lower_address_of(node, current_block),
 
             // -- member / element access ---------------------------------------
@@ -1753,7 +1718,7 @@ impl<'a> Lowerer<'a> {
             };
             let mut sret_args = vec![sret_alloca];
             sret_args.extend(arg_vals);
-            let cv = self.emit(current_block, Instruction::Call(callee_name.clone(), sret_args));
+            let _cv = self.emit(current_block, Instruction::Call(callee_name.clone(), sret_args));
             // Return the sret alloca pointer as the call result.  The caller
             // (e.g. lower_local_decl) knows whether it provided the alloca.
             (sret_alloca, current_block)
@@ -1781,16 +1746,6 @@ impl<'a> Lowerer<'a> {
         let (lhs_val, mid_blk) = self.lower_expr_into(lhs_node, blk);
         let (rhs_val, end_blk) = self.lower_expr_into(rhs_node, mid_blk);
         let result = self.emit(end_blk, make_inst(lhs_val, rhs_val));
-        (result, end_blk)
-    }
-
-    // -- unary negation --------------------------------------------------------
-
-    fn lower_unary_neg(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
-        let operand_node = self.ast_kushoto[node as usize];
-        let (operand, end_blk) = self.lower_expr_into(operand_node, blk);
-        let zero = self.const_val(Const::Int(0));
-        let result = self.emit(end_blk, Instruction::Sub(zero, operand));
         (result, end_blk)
     }
 
@@ -1828,21 +1783,16 @@ impl<'a> Lowerer<'a> {
         (result, blk3)
     }
 
-    /// We lower short-circuit operators using an alloca for the result (phi
-    /// replacement), storing the outcome from each predecessor and loading at
-    /// the merge block.
+    /// Lower `NA` (logical AND) with eager evaluation in a single block.
+    /// Proper short-circuit with phi nodes will be added once the IR supports
+    /// Phi instructions (#A4).
     fn lower_short_circuit_and(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let lhs_node = self.ast_kushoto[node as usize];
         let rhs_node = self.ast_kulia[node as usize];
 
-        // Lower both operands in the same block (no short-circuit for now —
-        // Select evaluates both arms).  This avoids the alloca-in-cross-block
-        // ValueId issue.  Proper short-circuit with phi nodes can be added
-        // once the IR supports Phi instructions.
         let (lhs_val, blk1) = self.lower_expr_into(lhs_node, blk);
         let (rhs_val, blk2) = self.lower_expr_into(rhs_node, blk1);
 
-        // Convert both to boolean: lhs != 0, rhs != 0, then AND them.
         let zero = self.const_val(Const::Int(0));
         let lhs_bool = self.emit(blk2, Instruction::Ne(lhs_val, zero));
         let rhs_bool = self.emit(blk2, Instruction::Ne(rhs_val, zero));
@@ -1850,8 +1800,9 @@ impl<'a> Lowerer<'a> {
         (result, blk2)
     }
 
-    /// AU (logical OR) is short-circuit: evaluate left; if true, result is
-    /// true; otherwise evaluate right.
+    /// Lower `AU` (logical OR) with eager evaluation in a single block.
+    /// Proper short-circuit with phi nodes will be added once the IR supports
+    /// Phi instructions (#A4).
     fn lower_short_circuit_or(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let lhs_node = self.ast_kushoto[node as usize];
         let rhs_node = self.ast_kulia[node as usize];
@@ -1869,13 +1820,22 @@ impl<'a> Lowerer<'a> {
     // -- pointer / address operations ------------------------------------------
 
     /// Lower `*expr` (pointer dereference / load).
+    ///
+    /// For plain dereference (`*ptr`), resolves the pointee type from the
+    /// operand's declared type when possible.  For array subscript
+    /// (`arr[idx]`), the caller (`lower_expr_into`) dispatches to
+    /// [`lower_array_index`] instead, which handles GEP + typed load.
     fn lower_deref_load(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let operand_node = self.ast_kushoto[node as usize];
         let (ptr_val, end_blk) = self.lower_expr_into(operand_node, blk);
-        // We don't know the pointee type statically here, so use I8 and let
-        // the backend fix it up.  A real semantic-analysis pass would provide
-        // the correct type.
-        let val = self.emit(end_blk, Instruction::Load(IrType::I8, ptr_val));
+        // Try to resolve the pointee type from the operand's declared type.
+        let pointee_ty = self.resolve_expr_type(operand_node)
+            .and_then(|ty| match &ty {
+                IrType::Ptr(inner) => Some((**inner).clone()),
+                _ => None,
+            })
+            .unwrap_or(IrType::I8);
+        let val = self.emit(end_blk, Instruction::Load(pointee_ty, ptr_val));
         (val, end_blk)
     }
 
@@ -1916,10 +1876,16 @@ impl<'a> Lowerer<'a> {
                 let (base_ptr, end_blk) = self.lower_expr_into(base_node, blk);
                 if index_node != NO_NODE && index_node >= 0 {
                     let (raw_idx, end_blk2) = self.lower_expr_into(index_node, end_blk);
-                    // Scale index by 4 (i32 element size) for byte-level GEP.
-                    let x2 = self.emit(end_blk2, Instruction::Add(raw_idx, raw_idx));
-                    let x4 = self.emit(end_blk2, Instruction::Add(x2, x2));
-                    let gep = self.emit(end_blk2, Instruction::Gep(base_ptr, vec![x4]));
+                    // Resolve element type for correct index scaling.
+                    let elem_ty = self.resolve_expr_type(base_node)
+                        .and_then(|ty| match &ty {
+                            IrType::Ptr(pointee) => Some((**pointee).clone()),
+                            IrType::Array { element, .. } => Some((**element).clone()),
+                            other => Some(other.clone()),
+                        })
+                        .unwrap_or(IrType::I32);
+                    let idx_val = self.scale_index(&elem_ty, raw_idx, end_blk2);
+                    let gep = self.emit(end_blk2, Instruction::Gep(base_ptr, vec![idx_val]));
                     gep
                 } else {
                     base_ptr
@@ -1933,22 +1899,18 @@ impl<'a> Lowerer<'a> {
 
                 let base_ptr = self.lower_lvalue(struct_node, blk);
 
-                // We need to know the field index.  In the absence of full type
-                // info, use a simple hash-based index (placeholder).  Real
-                // semantic analysis would provide the actual index.
-                let field_idx = self.guess_field_index(&field_name);
+                // Resolve the struct type from the expression, then look up
+                // the field index within THAT specific struct.
+                let struct_ty = self.resolve_expr_type(struct_node)
+                    .and_then(|ty| match &ty {
+                        IrType::Ptr(pointee) => Some((**pointee).clone()),
+                        IrType::Struct { .. } => Some(ty.clone()),
+                        _ => None,
+                    });
+                let field_idx = struct_ty.as_ref()
+                    .and_then(|sty| Self::find_field_index(sty, &field_name))
+                    .unwrap_or_else(|| self.guess_field_index(&field_name));
 
-                // Try to get struct type from the base pointer's type in scope.
-                let struct_ty = if self.ast_aina[struct_node as usize] == AST_KITAMBULISHO {
-                    let sname = self.read_pool_name(self.ast_jina_off[struct_node as usize]);
-                    self.lookup(&sname).and_then(|info| {
-                        match &info.ty {
-                            IrType::Ptr(pointee) => Some((**pointee).clone()),
-                            IrType::Struct { .. } => Some(info.ty.clone()),
-                            _ => None,
-                        }
-                    })
-                } else { None };
                 self.emit(blk, Instruction::FieldAddr(base_ptr, field_idx, struct_ty))
             }
             AST_SEHEMU_MSHALE => {
@@ -1958,9 +1920,9 @@ impl<'a> Lowerer<'a> {
                 let field_name = self.read_pool_name(self.ast_jina_off[node as usize]);
 
                 let (struct_ptr, end_blk) = self.lower_expr_into(ptr_node, blk);
-                let field_idx = self.guess_field_index(&field_name);
 
-                // Resolve the struct type from the pointer's pointee.
+                // Resolve the struct type from the pointer's pointee, then
+                // look up the field index within that specific struct.
                 let struct_ty = self.resolve_expr_type(ptr_node).and_then(|ty| {
                     match &ty {
                         IrType::Ptr(pointee) => Some((**pointee).clone()),
@@ -1968,6 +1930,9 @@ impl<'a> Lowerer<'a> {
                         _ => None,
                     }
                 });
+                let field_idx = struct_ty.as_ref()
+                    .and_then(|sty| Self::find_field_index(sty, &field_name))
+                    .unwrap_or_else(|| self.guess_field_index(&field_name));
 
                 self.emit(end_blk, Instruction::FieldAddr(struct_ptr, field_idx, struct_ty))
             }
@@ -2069,28 +2034,44 @@ impl<'a> Lowerer<'a> {
         // Field name is stored on the dot-access node itself via hifadhi_jina.
         let field_name = self.read_pool_name(self.ast_jina_off[node as usize]);
 
-        // Resolve the type of the left-hand-side expression, then find the field.
+        // Resolve the type of the left-hand-side expression once.
         let lhs_ty = self.resolve_expr_type(struct_node);
-        let field_ty = match &lhs_ty {
+
+        // Determine the struct type and field type from lhs_ty.
+        let (struct_ty, field_ty, field_idx) = match &lhs_ty {
             Some(IrType::Struct { fields, .. }) => {
-                fields.iter().find(|(n, _)| n == &field_name).map(|(_, t)| t.clone())
-                    .unwrap_or(IrType::I32)
+                let idx = Self::find_field_index(lhs_ty.as_ref().unwrap(), &field_name)
+                    .unwrap_or_else(|| self.guess_field_index(&field_name));
+                let fty = fields.iter()
+                    .find(|(n, _)| n == &field_name)
+                    .map(|(_, t)| t.clone())
+                    .unwrap_or(IrType::I32);
+                // For direct struct access (not pointer), struct_ty is the struct type itself.
+                let sty = lhs_ty.clone();
+                (sty, fty, idx)
             }
-            _ => IrType::I32,
+            Some(IrType::Ptr(pointee)) if matches!(**pointee, IrType::Struct { .. }) => {
+                let st = (**pointee).clone();
+                let idx = Self::find_field_index(&st, &field_name)
+                    .unwrap_or_else(|| self.guess_field_index(&field_name));
+                let fty = if let IrType::Struct { fields, .. } = &st {
+                    fields.iter()
+                        .find(|(n, _)| n == &field_name)
+                        .map(|(_, t)| t.clone())
+                        .unwrap_or(IrType::I32)
+                } else { IrType::I32 };
+                // The struct type for FieldAddr is the pointee struct.
+                let sty = Some(st);
+                (sty, fty, idx)
+            }
+            _ => {
+                let idx = self.guess_field_index(&field_name);
+                (None, IrType::I32, idx)
+            }
         };
 
-        // First, get the address of the struct (as lvalue).
+        // Get the address of the struct (as lvalue).
         let base_ptr = self.lower_lvalue(struct_node, blk);
-        let field_idx = self.guess_field_index(&field_name);
-
-        // Try to get the struct type for correct field offset computation.
-        let struct_ty = self.resolve_expr_type(struct_node).and_then(|ty| {
-            match &ty {
-                IrType::Ptr(pointee) => Some((**pointee).clone()),
-                IrType::Struct { .. } => Some(ty.clone()),
-                _ => None,
-            }
-        });
 
         // Compute address of field, then load with correct type.
         let field_ptr = self.emit(blk, Instruction::FieldAddr(base_ptr, field_idx, struct_ty));
@@ -2105,21 +2086,18 @@ impl<'a> Lowerer<'a> {
         let field_name = self.read_pool_name(self.ast_jina_off[node as usize]);
 
         let (struct_ptr, end_blk) = self.lower_expr_into(ptr_node, blk);
-        let field_idx = self.guess_field_index(&field_name);
 
-        // Try to determine the struct type from the pointer's pointee type.
-        // Look up the ptr_node name in scope to find its declared type.
-        let struct_ty_opt = if ptr_node >= 0 && self.ast_aina[ptr_node as usize] == AST_KITAMBULISHO {
-            let ptr_name = self.read_pool_name(self.ast_jina_off[ptr_node as usize]);
-            self.lookup(&ptr_name).and_then(|info| {
-                match &info.ty {
-                    IrType::Ptr(pointee) => Some((**pointee).clone()),
-                    _ => None,
-                }
-            })
-        } else {
-            None
-        };
+        // Resolve the struct pointee type using resolve_expr_type (handles
+        // identifiers, field accesses, and other expressions).
+        let struct_ty_opt = self.resolve_expr_type(ptr_node).and_then(|ty| {
+            match &ty {
+                IrType::Ptr(pointee) => Some((**pointee).clone()),
+                _ => None,
+            }
+        });
+        let field_idx = struct_ty_opt.as_ref()
+            .and_then(|sty| Self::find_field_index(sty, &field_name))
+            .unwrap_or_else(|| self.guess_field_index(&field_name));
 
         // Determine field type from the resolved struct pointee.
         // If we can't find it via the scope chain, try the module type table.
@@ -2181,32 +2159,6 @@ impl<'a> Lowerer<'a> {
         (val, end_blk)
     }
 
-    // -- cast ------------------------------------------------------------------
-
-    fn lower_cast(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
-        let expr_node = self.ast_kushoto[node as usize];
-        let type_node = self.ast_kulia[node as usize];
-
-        let target_ty = self.read_type_from_node(type_node);
-        let (src_val, end_blk) = self.lower_expr_into(expr_node, blk);
-
-        // Pick appropriate conversion based on target type.
-        let result = if target_ty.is_float() {
-            self.emit(end_blk, Instruction::SiToFp(src_val, target_ty))
-        } else if target_ty == IrType::B1 {
-            // To bool: compare != 0.
-            let zero = self.const_val(Const::Int(0));
-            self.emit(end_blk, Instruction::Ne(src_val, zero))
-        } else if target_ty.is_integer_like() {
-            // For same-width or narrower: Trunc.  For wider: Sext.
-            // Without knowing the source width, default to Sext (safe).
-            self.emit(end_blk, Instruction::Sext(src_val, target_ty))
-        } else {
-            self.emit(end_blk, Instruction::Bitcast(src_val, target_ty))
-        };
-
-        (result, end_blk)
-    }
 }
 
 // ============================================================================
@@ -2266,12 +2218,20 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    /// Guess a field index from a field name using a trivial hash.
-    /// In a production compiler this would be replaced by proper type
-    /// resolution during semantic analysis.
+    /// Find the index of a named field within a specific struct type.
+    ///
+    /// Returns `None` when the field is not found or the type is not a struct.
+    fn find_field_index(struct_ty: &IrType, field_name: &str) -> Option<usize> {
+        if let IrType::Struct { fields, .. } = struct_ty {
+            fields.iter().position(|(n, _)| n == field_name)
+        } else {
+            None
+        }
+    }
+
+    /// Legacy fallback: search all registered struct types for a field name.
+    /// Only used when the specific struct type cannot be resolved.
     fn guess_field_index(&self, name: &str) -> usize {
-        // Search the module's registered types for a struct that contains
-        // a field with the given name.
         for (_, ty) in &self.types {
             if let IrType::Struct { fields, .. } = ty {
                 if let Some(idx) = fields.iter().position(|(n, _)| n == name) {
@@ -2279,21 +2239,9 @@ impl<'a> Lowerer<'a> {
                 }
             }
         }
-        // Fallback: if the field name is also a struct name, field 0.
         0
     }
 
-    /// Return the byte offset of a named field within a struct type.
-    fn field_byte_offset(struct_ty: &IrType, field_name: &str) -> usize {
-        if let IrType::Struct { fields, .. } = struct_ty {
-            let mut off = 0usize;
-            for (n, ty) in fields {
-                if n == field_name { return off; }
-                off += ty.width_bytes();
-            }
-        }
-        0
-    }
 }
 
 // ============================================================================
@@ -2863,7 +2811,9 @@ mod tests {
         assert_eq!(module.functions.len(), 1);
         let f = &module.functions[0];
 
-        // AND lowers to Ne + And instructions.
+        // AND currently lowers to Ne + And (eager evaluation).
+        // A4 (short-circuit with phi) will replace this with proper
+        // short-circuit blocks.
         let has_and = f.blocks.iter().any(|blk| {
             blk.instructions.iter().any(|inst| matches!(inst, Instruction::And(_, _)))
         });
@@ -2901,7 +2851,9 @@ mod tests {
         assert_eq!(module.functions.len(), 1);
         let f = &module.functions[0];
 
-        // OR lowers to Ne + Or instructions.
+        // OR currently lowers to Ne + Or (eager evaluation).
+        // A4 (short-circuit with phi) will replace this with proper
+        // short-circuit blocks.
         let has_or = f.blocks.iter().any(|blk| {
             blk.instructions.iter().any(|inst| matches!(inst, Instruction::Or(_, _)))
         });

@@ -24,7 +24,7 @@ use std::sync::OnceLock;
 
 use crate::diagnostics::{Diagnostic, SourceSpan};
 use crate::ir::types::IrType;
-use crate::ir::{Const, Function, IrReturnClass, Module as IrModule, Terminator, ValueId};
+use crate::ir::{Const, Function, Module as IrModule, Terminator, ValueId};
 
 use self::ffi::*;
 
@@ -1260,7 +1260,7 @@ fn lower_instruction(
                 // For void returns, check the return type of the function.
                 // LLVMTypeOf on a function value returns "ptr" with opaque pointers.
                 // We must rebuild the function type from the declared parameter types.
-                let ret_ty_from_decl = LLVMTypeOf(callee_fn);
+                let _ret_ty_from_decl = LLVMTypeOf(callee_fn);
                 // With opaque pointers, LLVMTypeOf(callee_fn) is just "ptr".
                 // We need the actual function type. Re-derive from parameters.
                 let param_count = LLVMCountParams(callee_fn);
@@ -1440,29 +1440,6 @@ fn lower_terminator(
                     }
                 }
             }
-        }
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Safe return emission
-// ---------------------------------------------------------------------------
-
-/// Emit a safe return instruction for blocks that are otherwise empty or
-/// unterminated.  Emits `ret void` or `ret i32 0` depending on the return type.
-fn emit_safe_ret(builder: LLVMBuilderRef, return_ty: &IrType) {
-    unsafe {
-        // Check if the block already has a terminator by looking at the insert
-        // position — if the builder is not positioned, the block was already
-        // terminated.  There is no direct "has terminator" query in the C API,
-        // so we defensively emit a ret.  LLVM will complain on verification if
-        // there are multiple terminators, but `emit_safe_ret` is only called when
-        // we expect blocks might be unterminated.
-        if matches!(return_ty, IrType::Void) {
-            LLVMBuildRetVoid(builder);
-        } else {
-            let zero = LLVMConstInt(LLVMInt32Type(), 0, 1);
-            LLVMBuildRet(builder, zero);
         }
     }
 }
