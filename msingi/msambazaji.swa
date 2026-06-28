@@ -66,6 +66,7 @@ N32 ast_tiga[4096];
 N32 ast_nne[4096];
 N32 ast_idadi = 0;
 N32 vigezo_kwanza_global = -1;
+N32 vigezo_prev_global = -1;
 
 N8  ast_pool[32768];
 N32 ast_pool_wapi = 1;
@@ -103,13 +104,14 @@ N32 node_mpya(N32 aina, N32 thamani, N32 kushoto, N32 kulia) {
 W0 hifadhi_jina(N32 node, N8* maandishi, N64 urefu) {
     N32 off = ast_pool_wapi;
     ast_jina_off[node] = off;
-    ast_pool_wapi = off + urefu + 1;
     N32 i = 0;
     wakati (i < urefu) {
         ast_pool[off + i] = maandishi[i];
         i = i + 1;
     }
     ast_pool[off + urefu] = 0;
+    ast_pool_wapi = ast_pool_wapi + urefu + 1;
+    ast_pool[ast_pool_wapi] = 0;  // barrier: force pool pointer commit at O1
 }
 
 // -------------------------------------------------------
@@ -611,7 +613,8 @@ N32 changanua_kazi_vigezo(Msambazaji* p) {
                 sogeza(p);
             }
             kama (vigezo_kwanza_global == -1) { vigezo_kwanza_global = pnode; }
-            sivyo { ast_kulia[vigezo_kwanza_global] = pnode; }
+            sivyo { ast_kulia[vigezo_prev_global] = pnode; }
+            vigezo_prev_global = pnode;
 
             N8 cc0 = p->sasa.mwanzo[0];
             kama (cc0 == 44) { sogeza(p); endelea; }
