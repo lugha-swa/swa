@@ -1040,9 +1040,13 @@ N32 teremsha_usemi(N32 node) {
         rudisha vid;
     }
 
-    // Struct initializer list { ... }
     kama (aina == 38) {  // AST_SAFU
-        // For now, evaluate each element; last element is the result
+        N32 rhs = ast_kulia[node];
+        kama (rhs != -1) {
+            // Array subscript: base[rhs] — delegate to teremsha_safu
+            rudisha teremsha_safu(node);
+        }
+        // Struct initializer list { ... } (rhs == -1)
         N32 last_vid = -1;
         N32 elem = ast_kushoto[node];
         wakati (elem != -1) {

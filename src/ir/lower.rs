@@ -969,12 +969,18 @@ impl<'a> Lowerer<'a> {
         // directly to ptr and no Store is needed.
         let sret_consumed = is_struct_assign && self.sret_dest.is_none();
         if !sret_consumed {
-            // Always use StoreTyped with the field width.  If type resolution
-            // failed, default to I32 (the most common field width) rather than
-            // falling back to untyped Store which would write an i64 constant
-            // as 8 bytes and corrupt adjacent struct fields.
             let store_ty = lhs_ty.unwrap_or(IrType::I32);
-            self.emit(end_blk, Instruction::StoreTyped(rhs_val, ptr, store_ty));
+            if is_struct_assign {
+                // Struct assignment: rhs_val is the RHS alloca pointer
+                // (lower_identifier returns info.ptr for struct types).
+                // Use MemCopy to copy the struct bytes.
+                let struct_size = store_ty.width_bytes() as u64;
+                if struct_size > 0 {
+                    self.emit(end_blk, Instruction::MemCopy(ptr, rhs_val, struct_size));
+                }
+            } else {
+                self.emit(end_blk, Instruction::StoreTyped(rhs_val, ptr, store_ty));
+            }
         }
         self.sret_dest = None;
         self.set_terminator(end_blk, Terminator::Br(end_blk));
