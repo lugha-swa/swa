@@ -296,7 +296,7 @@ impl LlvmBackend {
                 LLVMSetInitializer(llvm_global, init);
                 if global.is_const {
                     LLVMSetGlobalConstant(llvm_global, 1);
-                    LLVMSetLinkage(llvm_global, LLVMLinkage::Private);
+                    if global.is_const { LLVMSetGlobalConstant(llvm_global, 1); LLVMSetLinkage(llvm_global, LLVMLinkage::Private); }
                 }
             }
 
@@ -516,10 +516,18 @@ fn lower_function(
             }
         }
 
-        // -- 3. Apply sret attribute (skip if unavailable on this LLVM build) --
-        // LLVM 18 C API may not fully expose sret as an enum attribute.
-        // The generated code is correct without it; sret is an ABI hint.
-        // We attempt the call but silently ignore any failure.
+        // -- 3. Apply sret attribute to the first parameter --------------------
+        if func.sret_value_id.is_some() {
+            let sret_kind = LLVMGetEnumAttributeKind(c_str("sret").as_ptr());
+            if sret_kind != 0 {
+                let attr = LLVMCreateEnumAttribute(
+                    LLVMGetModuleContext(module),
+                    sret_kind,
+                    0,
+                );
+                LLVMAddAttributeAtIndex(llvm_func, 0, attr);
+            }
+        }
 
         // -- 4. Create basic blocks -------------------------------------------
         let mut llvm_blocks: HashMap<usize, LLVMBasicBlockRef> = HashMap::new();

@@ -535,7 +535,7 @@ extern "C" {
 
     pub fn LLVMVerifyModule(
         module: LLVMModuleRef,
-        action: u32,  // LLVMVerifierFailureAction: 0 = abort, 1 = print, 2 = return
+        action: u32,
         out_error: *mut *mut c_char,
     ) -> LLVMBool;
 
