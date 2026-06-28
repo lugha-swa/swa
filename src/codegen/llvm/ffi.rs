@@ -162,7 +162,7 @@ pub const LLVM_ATTRIBUTE_RETURN_INDEX: u32 = 0;
 // LLVM-C API — extern block
 // ---------------------------------------------------------------------------
 
-#[link(name = "LLVM-C")]
+// Linking is handled by build.rs (linux: -lLLVM, windows: -lLLVM-C).
 extern "C" {
     // -- context / module ----------------------------------------------------
 
@@ -251,6 +251,11 @@ extern "C" {
     // -- constants -----------------------------------------------------------
 
     pub fn LLVMConstInt(ty: LLVMTypeRef, value: u64, sign_extend: LLVMBool) -> LLVMValueRef;
+    pub fn LLVMConstIntOfArbitraryPrecision(
+        IntTy: LLVMTypeRef,
+        NumWords: u32,
+        Words: *const u64,
+    ) -> LLVMValueRef;
     pub fn LLVMConstIntOfString(ty: LLVMTypeRef, text: *const c_char, radix: u8) -> LLVMValueRef;
     pub fn LLVMConstReal(ty: LLVMTypeRef, value: f64) -> LLVMValueRef;
     pub fn LLVMConstNull(ty: LLVMTypeRef) -> LLVMValueRef;
@@ -567,6 +572,24 @@ extern "C" {
     pub fn LLVMInitializeX86TargetMC();
     pub fn LLVMInitializeX86AsmPrinter();
     pub fn LLVMInitializeX86AsmParser();
+
+    pub fn LLVMInitializeARMTargetInfo();
+    pub fn LLVMInitializeARMTarget();
+    pub fn LLVMInitializeARMTargetMC();
+    pub fn LLVMInitializeARMAsmPrinter();
+    pub fn LLVMInitializeARMAsmParser();
+
+    pub fn LLVMInitializeAArch64TargetInfo();
+    pub fn LLVMInitializeAArch64Target();
+    pub fn LLVMInitializeAArch64TargetMC();
+    pub fn LLVMInitializeAArch64AsmPrinter();
+    pub fn LLVMInitializeAArch64AsmParser();
+
+    pub fn LLVMInitializeRISCVTargetInfo();
+    pub fn LLVMInitializeRISCVTarget();
+    pub fn LLVMInitializeRISCVTargetMC();
+    pub fn LLVMInitializeRISCVAsmPrinter();
+    pub fn LLVMInitializeRISCVAsmParser();
 
     // -- attributes ----------------------------------------------------------
 

@@ -78,6 +78,9 @@ const AST_MFUATANO: u32 = 40;
 const AST_BIT_AU: u32 = 41;
 const AST_BIT_NA: u32 = 42;
 const AST_TERNARY: u32 = 43;
+const AST_KWELI: u32 = 44;
+const AST_UONGO: u32 = 45;
+const AST_TUPU: u32 = 46;
 
 /// Sentinel used in `ast_kushoto`, `ast_kulia`, `ast_tiga`, and `ast_nne` to
 /// indicate "no child / no sibling".
@@ -490,9 +493,8 @@ impl<'a> Lowerer<'a> {
     /// instruction_position starts at 0 for the first instruction in each block.
     fn emit(&mut self, block_id: BlockId, inst: Instruction) -> ValueId {
         let block = &mut self.func.blocks[block_id.0];
+        let vid = ValueId(self.func.params.len() + self.func.values.len() + self.inst_counter);
         block.push(inst);
-        let base = self.func.params.len() + self.values_initial_len;
-        let vid = ValueId(base + self.inst_counter);
         self.inst_counter += 1;
         vid
     }
@@ -657,7 +659,7 @@ impl<'a> Lowerer<'a> {
             // Parameter value: ValueId(i). (If sret, param i=1 gets ValueId(1),
             // which correctly skips ValueId(0).)
             let param_vid = ValueId(i);
-            self.emit(entry_id, Instruction::Store(param_vid, alloc));
+            self.emit(entry_id, Instruction::StoreTyped(param_vid, alloc, pty.clone()));
             self.define_var(pname.clone(), alloc, pty.clone());
         }
 
@@ -1441,6 +1443,20 @@ impl<'a> Lowerer<'a> {
             AST_KITAMBULISHO => self.lower_identifier(node, current_block),
             AST_WITO => self.lower_call(node, current_block),
 
+            // -- boolean / null literals ---------------------------------------
+            AST_KWELI => {
+                let v = self.func.intern_const(Const::Bool(true));
+                (v, current_block)
+            }
+            AST_UONGO => {
+                let v = self.func.intern_const(Const::Bool(false));
+                (v, current_block)
+            }
+            AST_TUPU => {
+                let v = self.func.intern_const(Const::NullPtr);
+                (v, current_block)
+            }
+
             // -- arithmetic ----------------------------------------------------
             AST_JUMLISHA => {
                 // AST_JUMLISHA (6) with kushoto=NO_NODE is unary plus (no-op).
@@ -1643,9 +1659,57 @@ impl<'a> Lowerer<'a> {
             } else {
                 (self.func.intern_const(Const::Int(0)), blk)
             };
-            let size = self.func.intern_const(Const::Int(4)); // N32 sizeof
-            self.values_initial_len = self.func.values.len();
+            let ty = if first_arg != NO_NODE && first_arg >= 0 {
+                let kind = self.node_aina(first_arg);
+                if kind == AST_KITAMBULISHO {
+                    let name = self.read_pool_name(self.ast_jina_off[first_arg as usize]);
+                    IrType::from_swa_type(&name).unwrap_or(IrType::I32)
+                } else {
+                    self.read_type_from_node(first_arg)
+                }
+            } else {
+                IrType::I32
+            };
+            let width = ty.width_bytes() as i128;
+            let size = self.emit(end_blk, Instruction::Const(Const::Int(width)));
             return (size, end_blk);
+        }
+
+        if callee_name == "tenga" {
+            let (size_val, end_blk) = if first_arg != NO_NODE && first_arg >= 0 {
+                self.lower_expr_into(first_arg, blk)
+            } else {
+                (self.emit(blk, Instruction::Const(Const::Int(0))), blk)
+            };
+            let ptr = self.emit(end_blk, Instruction::HeapAlloc(size_val));
+            return (ptr, end_blk);
+        }
+
+        if callee_name == "achilia" {
+            let (ptr_val, end_blk) = if first_arg != NO_NODE && first_arg >= 0 {
+                self.lower_expr_into(first_arg, blk)
+            } else {
+                (self.emit(blk, Instruction::Const(Const::NullPtr)), blk)
+            };
+            self.emit(end_blk, Instruction::HeapFree(ptr_val));
+            let zero = self.emit(end_blk, Instruction::Const(Const::Int(0)));
+            return (zero, end_blk);
+        }
+
+        if callee_name == "badili" {
+            let (ptr_val, mid_blk) = if first_arg != NO_NODE && first_arg >= 0 {
+                self.lower_expr_into(first_arg, blk)
+            } else {
+                (self.emit(blk, Instruction::Const(Const::NullPtr)), blk)
+            };
+            let size_node = self.ast_nne[first_arg as usize];
+            let (size_val, end_blk) = if size_node != NO_NODE && size_node >= 0 {
+                self.lower_expr_into(size_node, mid_blk)
+            } else {
+                (self.emit(mid_blk, Instruction::Const(Const::Int(0))), mid_blk)
+            };
+            let new_ptr = self.emit(end_blk, Instruction::Call("realloc".into(), vec![ptr_val, size_val]));
+            return (new_ptr, end_blk);
         }
 
         // Evaluate arguments.  Parser chains args via ast_nne to avoid
@@ -2532,9 +2596,9 @@ mod tests {
         assert!(has_alloca, "function should have Alloca instructions");
 
         let has_store = f.blocks.iter().any(|blk| {
-            blk.instructions.iter().any(|inst| matches!(inst, Instruction::Store(_, _)))
+            blk.instructions.iter().any(|inst| matches!(inst, Instruction::Store(_, _) | Instruction::StoreTyped(_, _, _)))
         });
-        assert!(has_store, "function should have Store instructions");
+        assert!(has_store, "function should have Store or StoreTyped instructions");
     }
 
     #[test]

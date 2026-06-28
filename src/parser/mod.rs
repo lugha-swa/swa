@@ -48,6 +48,9 @@ const AST_TERNARY: u32 = 43;
 const AST_ASIMILIA: u32 = 37;
 const AST_SAFU: u32 = 38;
 const AST_MFUATANO: u32 = 40;
+const AST_KWELI: u32 = 44;
+const AST_UONGO: u32 = 45;
+const AST_TUPU: u32 = 46;
 const NO_NODE: i32 = -1;
 
 // ---------------------------------------------------------------------------
@@ -184,6 +187,18 @@ impl<'a> Parser<'a> {
                 self.ast.hifadhi_jina(n, &s);
                 self.sogeza();
                 n
+            }
+            TokenKind::NenoMuhimu(k) if k == "kweli" => {
+                self.sogeza();
+                self.ast.node_mpya(AST_KWELI, 1, NO_NODE, NO_NODE)
+            }
+            TokenKind::NenoMuhimu(k) if k == "uongo" => {
+                self.sogeza();
+                self.ast.node_mpya(AST_UONGO, 0, NO_NODE, NO_NODE)
+            }
+            TokenKind::NenoMuhimu(k) if k == "tupu" => {
+                self.sogeza();
+                self.ast.node_mpya(AST_TUPU, 0, NO_NODE, NO_NODE)
             }
             TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_) => {
                 let name = self.sasa().lexeme.clone();

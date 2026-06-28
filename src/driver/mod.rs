@@ -16,12 +16,27 @@ impl Driver {
         }
     }
 
-    pub fn print_tokens(&mut self, _source: &str, _path: PathBuf) -> Result<(), Vec<Diagnostic>> {
+    pub fn print_tokens(&mut self, source: &str, _path: PathBuf) -> Result<(), Vec<Diagnostic>> {
+        let lexer = crate::lexer::Lexer::new(source);
+        let tokens = lexer.tokenize();
+        for tok in &tokens {
+            println!("{}:{}: {:?}  {}", tok.span.start.line, tok.span.start.column, tok.kind, tok.lexeme);
+        }
         Ok(())
     }
 
-    pub fn check(&mut self, _source: &str, _path: PathBuf) -> Result<(), Vec<Diagnostic>> {
-        Ok(())
+    pub fn check(&mut self, source: &str, path: PathBuf) -> Result<(), Vec<Diagnostic>> {
+        match self.compile_to_ir(source, path) {
+            Ok(_) => {
+                if self.diagnostics.has_errors() {
+                    let diags: Vec<Diagnostic> = self.diagnostics.all().to_vec();
+                    Err(diags)
+                } else {
+                    Ok(())
+                }
+            }
+            Err(diags) => Err(diags),
+        }
     }
 
     /// Preprocess `husisha` directives by reading and inlining included files.

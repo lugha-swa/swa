@@ -488,7 +488,7 @@ mod tests {
                 ("b".into(), IrType::F64),
             ],
         };
-        assert_eq!(s.width_bytes(), 12); // 4 + 8
+        assert_eq!(s.width_bytes(), 16); // 4 + 4(pad) + 8 (alignment-aware)
     }
 
     #[test]
