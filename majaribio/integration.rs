@@ -308,7 +308,7 @@ fn jaribio_stage1() {
 /// kufanya kazi kwa usahihi.  Rekebisha codegen kwanza, kisha
 /// washa jaribio hili.
 #[test]
-#[ignore = "SIGSEGV sababu imegundulika: alloca-ndani-ya-kitanzi katika changanua() inamaliza rafu (baiti 16 kwa kila mzunguko, ~524K mizunguko, MB 8). Hitilafu iko kwenye src/ir/lower.rs:1227 — alloca za vigeu vya ndani zinapaswa kuhamishwa kwenda kwenye bloku ya kuingilia ya kazi. Hii inahitaji mbinu ya kupitisha mara mbili ili kuhifadhi usawa wa ValueId kati ya kiteremshaji cha IR na mkusanyaji wa LLVM. Marekebisho yaliyokamilishwa: (1) parser/mod.rs — kutembea kwa mnyororo wa ast_nne (maeneo 6), (2) msambazaji.swa — neno_ni EOF, ASCII [ na ] (maeneo 49), ruka [...] katika changanua_kazi, (3) codegen/llvm/mod.rs — StoreTyped/Const."]
+#[ignore = "SIGSEGV imegundulika kikamilifu: alloca-ndani-ya-kitanzi katika changanua(). Kila mzunguko wa wakati unagawa baiti 16 za rafu. Baada ya ~524K mizunguko, rafu ya MB 8 inaisha. Urekebishaji unahitaji kuhamisha alloca za vigeu vya ndani kwenda kwenye bloku ya kuingilia. Hii inahitaji: (1) kuhakikisha collect_constants inakusanya vihalisi VYOTE (inaweza kukosa baadhi ya vihalisi katika maumbo fulani ya AST), (2) kupitisha mara mbili — kusanya alloca zote kwanza kabla ya kuchakata mwili, (3) kunasa values_initial_len BAADA ya kupitisha awali. Jaribio la moja kwa moja lilishindwa kwa sababu intern_const bado inaitwa wakati wa kuchakata mwili, ikibadilisha func.values.len() na kusababisha migongano ya ValueId. Fix: pre-intern constants ZOTE kabla ya kupitisha awali kwa alloca. Marekebisho yaliyokamilishwa: (1) parser/mod.rs ast_nne (2) msambazaji.swa (3) codegen/llvm/mod.rs."]
 fn jaribio_k6_kujikusanya_kamili() {
     // Angalia kama clang inapatikana.
     let clang = which_clang();
