@@ -471,11 +471,10 @@ impl<'a> Lowerer<'a> {
     fn new_block(&mut self, label_prefix: &str) -> BlockId {
         let label = format!("{}.{}", label_prefix, self.block_counter);
         self.block_counter += 1;
-        // Use Br(self) as default so the finalisation pass can replace any
-        // remaining self-loops with Ret/RetVoid appropriate for the function.
-        let id = BlockId(self.func.blocks.len());
-        let block = IrBlock::new(label, Terminator::Br(id));
-        self.func.push_block(block);
+        // Use RetVoid as default — caller must overwrite with set_terminator.
+        // Br to BlockId(0) creates false predecessors for the entry block.
+        let block = IrBlock::new(label, Terminator::RetVoid);
+        let id = self.func.push_block(block);
         id
     }
 
@@ -664,14 +663,18 @@ impl<'a> Lowerer<'a> {
         self.set_terminator(entry_id, Terminator::Br(body_block_id));
 
         // -- Finalise -----------------------------------------------------------
-        // Replace self-loop placeholder terminators with proper returns.
+        // Replace self-loop and RetVoid placeholder terminators with proper
+        // returns appropriate for the function's return type.
         let is_void = matches!(self.func.return_ty, IrType::Void);
+        let needs_fixup = |blk_id: BlockId, term: &Terminator| -> bool {
+            matches!(term, Terminator::Br(b) if *b == blk_id)
+                || matches!(term, Terminator::RetVoid)
+        };
         let block_count = self.func.blocks.len();
         for i in 0..block_count {
             let blk_id = BlockId(i);
             let term = &self.func.blocks[i].terminator;
-            let is_self_loop = matches!(term, Terminator::Br(b) if *b == blk_id);
-            if is_self_loop {
+            if needs_fixup(blk_id, term) {
                 if is_void {
                     self.set_terminator(blk_id, Terminator::RetVoid);
                 } else {
