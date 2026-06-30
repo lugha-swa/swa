@@ -141,15 +141,16 @@ Ikiwa kazi yoyote — baada ya marekebisho ya baadaye au vipengele vipya — ita
 
 ---
 
-## 5. Hatua Zinazofuata (Mpangilio wa Kipaumbele — Imesasishwa Juni 2026)
+## 5. Hatua Zinazofuata (Mpangilio wa Kipaumbele — Imesasishwa Juni 30, 2026)
 
 | Kipaumbele | Kazi | Hali |
 |----------|------|--------|
 | K0 | Jaribu kwenye Arch Linux na safu kubwa | Imekamilika — Linux ELF inashughulikia BSS kubwa bila tatizo. |
-| K1 | Rekebisha hitilafu ya ufisadi wa `urefu` ya O1 | Bado wazi. Marekebisho yetu ya opaque-pointer yanaweza kuwa yametatua — inahitaji kujaribiwa tena. |
-| K1b | Mchanganuzi wa kujikusanya unakwama kwenye vigezo 2+ | Ugunduzi mpya kwenye Linux. Pengine kikomo cha block cha O0 FastISel. |
-| K2 | Jaribu kujikusanya na faili halisi za `.swa` | Imefanyika kwa sehemu. Imezuiliwa na K1b. |
-| K3 | Tatua kesi ya pembeni ya tokeni iliyobaki | Bado wazi. |
-| K4 | Ongeza utambuzi wa kudondosha kwa block ya FastISel | Bado wazi. |
-| K5 | Rekebisha ugawaji wa muundo katika kuteremshaji | Bado wazi. |
-| K6 | Teremsha ya vigezo vingi kwa kujikusanya kamili | Inategemea K1b. |
+| K1 | Rekebisha hitilafu ya ufisadi wa `urefu` ya O1 | Imekamilika — bendera ya `--opt` imeongezwa. SelectionDAG (O1) inafanya kazi. |
+| K1b | Mchanganuzi wa kujikusanya unakwama kwenye vigezo 2+ | Imekamilika — mnyororo wa vigezo umerekebishwa (commits 56af3dd, f6595ac). |
+| K2 | Jaribu kujikusanya na faili halisi za `.swa` | Imefungwa — tatizo la kipakiaji cha PE cha Windows pekee. |
+| K3 | Tatua kesi ya pembeni ya tokeni iliyobaki | Imekamilika — heuristics za ASCII zimerekebishwa maeneo 48 katika msambazaji.swa. |
+| K4 | Ongeza utambuzi wa kudondosha kwa block ya FastISel | Imekamilika — onyo linatolewa kwa kazi 30 zinazozidi vitalu 40. |
+| K5 | Rekebisha ugawaji wa muundo katika kuteremshaji | Imekamilika — MemCopy imeongezwa katika lower.rs (Rust) NA mteremko.swa (kujikusanya). |
+| K6 | Kujikusanya kamili (kusanya + unganisha + endesha) | Jaribio limeandikwa lakini binary inaanguka (SIGSEGV). Hitilafu za codegen za mkusanyaji wa Rust zinahitaji kutafitiwa. |
+| K7 | Tafiti hitilafu ya codegen inayosababisha K6 kuanguka | Bado wazi. Binary inaanguka kabla ya main() au mapema sana. Hakuna stdout/stderr. |

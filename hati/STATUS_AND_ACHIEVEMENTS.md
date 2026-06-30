@@ -155,8 +155,22 @@ Iliongeza utambuzi wa `tenga` -> HeapAlloc, `achilia` -> HeapFree, `badili` -> r
 - Shabaha nyingi: ARM, AArch64, RISC-V
 - CLI: `--tokens` na `--check`
 
-### 6.7 Masuala Yanayobaki
+### 6.7 Masuala Yanayobaki (Juni 30, 2026 — Masuala 3 ya awali yamerekebishwa)
 
-- Mchanganuzi wa kujikusanya unakwama kwenye vigezo 2+ (pengine kikomo cha FastISel)
-- Ufisadi wa `urefu` wa O1 unahitaji kujaribiwa tena
-- Ugawaji wa muundo haujatekelezwa
+- ~~Mchanganuzi wa kujikusanya unakwama kwenye vigezo 2+~~ — IMEREKEBISHWA (mnyororo wa vigezo)
+- ~~Ufisadi wa `urefu` wa O1~~ — IMEREKEBISHWA (bendera ya `--opt`)
+- ~~Ugawaji wa muundo haujatekelezwa~~ — IMEREKEBISHWA (MemCopy katika lower.rs NA mteremko.swa)
+
+**Kizuizi kipya kikuu:** K6 — jaribio la kujikusanya kamili linaandika binary inayoanguka (SIGSEGV) kabla ya kutoa matokeo yoyote.
+Mkusanyaji wa Rust unafaulu kukusanya stage1.swa hadi IR na faili la kitu, lakini binary inayotokana inaanguka wakati wa utekelezaji.
+Hitilafu za codegen za msingi katika mwisho wa LLVM wa mkusanyaji wa Rust zinahitaji kutafitiwa.
+
+### 6.8 Mafanikio ya Juni 30, 2026
+
+- **K5:** MemCopy imeongezwa katika kiteremshaji cha kujikusanya (mteremko.swa):
+  - `ukubwa_muundo()` — kokotoa ukubwa wa baiti kwa aina yoyote
+  - `nakili_muundo()` — toa `@llvm.memcpy` kwa kunakili miundo
+  - `sret_vid_sasa` — kielekezi cha sret kwa kazi zinazorudisha miundo
+  - Ugawaji wa muundo, uanzishaji, na urejeshaji vyote vinatumia MemCopy
+- **lower.rs:** Rekebisho la msururu wa `kama-sivyo` katika `lower_block` na `lower_if`
+- **K6:** Jaribio kamili la kujikusanya limeandikwa (limezimwa kwa sasa)

@@ -308,7 +308,7 @@ fn jaribio_stage1() {
 /// kufanya kazi kwa usahihi.  Rekebisha codegen kwanza, kisha
 /// washa jaribio hili.
 #[test]
-#[ignore]
+#[ignore = "binary inaanguka (SIGSEGV) kabla ya main — hitilafu za codegen za mkusanyaji wa Rust zinahitaji kutafitiwa"]
 fn jaribio_k6_kujikusanya_kamili() {
     // Angalia kama clang inapatikana.
     let clang = which_clang();
@@ -375,8 +375,13 @@ fn jaribio_k6_kujikusanya_kamili() {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
+    let exit_code = output.status.code().unwrap_or(-1);
+    eprintln!("; K6: msimbo wa kutoka = {exit_code}");
+    eprintln!("; K6: stdout len={} stderr len={}", stdout.len(), stderr.len());
+    if !stdout.is_empty() {{ eprintln!("; K6 stdout: {stdout}"); }}
+    if !stderr.is_empty() {{ eprintln!("; K6 stderr: {stderr}"); }}
     assert!(output.status.success(),
-        "stage1 inapaswa kurudisha 0\nstdout: {stdout}\nstderr: {stderr}");
+        "stage1 inapaswa kurudisha 0, ilirudisha {exit_code}\nstdout: {stdout}\nstderr: {stderr}");
     assert!(stdout.contains("; mzizi="),
         "stage1 inapaswa kuchapisha mzizi wa AST\nstdout: {stdout}\nstderr: {stderr}");
 }
