@@ -274,6 +274,7 @@ W0 teremsha_kichwa() {
     andika("declare ptr @fopen(ptr, ptr)\n");
     andika("declare i64 @fread(ptr, i64, i64, ptr)\n");
     andika("declare i32 @fclose(ptr)\n");
+    andika("declare void @llvm.memcpy.p0.p0.i64(ptr, ptr, i64, i1)\n");
     andika("\n");
 }
 
@@ -409,6 +410,54 @@ W0 teremsha_mistari() {
 // -------------------------------------------------------
 W0 teremsha_taarifa(N32 node, N32 ret_enc);
 N32 teremsha_usemi(N32 node);
+N32 ukubwa_muundo(N32 enc);
+W0 nakili_muundo(N32 dest_vid, N32 src_vid, N32 ukubwa);
+
+// -------------------------------------------------------
+// Helper: compute the byte size of a struct type by
+// summing its field widths.
+// -------------------------------------------------------
+N32 ukubwa_muundo(N32 enc) {
+    N32 mshale = enc & 1;
+    kama (mshale != 0) { rudisha 8; }  // pointer = 8 bytes
+    N32 familia = (enc >> 8) & 255;
+    kama (familia != 6) {
+        // Primitive type: byte width from bit width
+        N32 upana = enc & 254;
+        kama (upana <= 8)  { rudisha 1; }
+        kama (upana <= 16) { rudisha 2; }
+        kama (upana <= 32) { rudisha 4; }
+        kama (upana <= 64) { rudisha 8; }
+        rudisha 16;
+    }
+    // Walk the struct definition and sum field sizes
+    N32 i = 0;
+    wakati (i < muundo_idadi_t) {
+        kama (muundo_enc_val[i] == enc) {
+            N32 total = 0;
+            N32 mnode = muundo_node[i];
+            N32 field = ast_kulia[mnode];
+            wakati (field != -1) {
+                N32 fname = ast_kushoto[field];
+                total = total + ukubwa_muundo(ast_thamani[fname]);
+                field = ast_kulia[field];
+            }
+            kama (total < 1) { total = 1; }
+            rudisha total;
+        }
+        i = i + 1;
+    }
+    rudisha 4;  // fallback
+}
+
+// -------------------------------------------------------
+// Helper: emit memcpy to copy a struct value from one
+// pointer to another.  Lowers to @llvm.memcpy.p0.p0.i64.
+// -------------------------------------------------------
+W0 nakili_muundo(N32 dest_vid, N32 src_vid, N32 ukubwa) {
+    andika("  call void @llvm.memcpy.p0.p0.i64(ptr %%v%d, ptr %%v%d, i64 %d, i1 false)\n",
+           dest_vid, src_vid, ukubwa);
+}
 
 // -------------------------------------------------------
 // Emit a single function definition as LLVM IR
@@ -425,14 +474,31 @@ W0 teremsha_kazi(N32 kazi_node) {
     hali_idadi = 0;
     blk_sasa = 0;
 
+    // Check for struct return type (sret)
+    N32 ret_familia = (ret_enc >> 8) & 255;
+    N32 ni_sret = (ret_familia == 6);
+
     // Emit function signature
     andika("\ndefine ");
-    chapisha_aina(ret_enc);
+    kama (ni_sret) { andika("void"); }
+    sivyo { chapisha_aina(ret_enc); }
     andika(" @%s(", jina);
+
+    // Parameters
+    N32 first = 1;
+
+    // For sret: first parameter is a pointer to the return struct
+    sret_vid_sasa = -1;
+    kama (ni_sret) {
+        N32 sret = vid_mpya();
+        sret_vid_sasa = sret;
+        vid_aina_arr[sret] = 1; // ptr
+        andika("ptr %%%d", sret);
+        first = 0;
+    }
 
     // Parameters — stored in ast_kulia[func_node]
     N32 p = ast_kulia[kazi_node];
-    N32 first = 1;
     wakati (p != -1) {
         kama (first == 0) { andika(", "); }
         first = 0;
@@ -1108,9 +1174,28 @@ N32 teremsha_usemi(N32 node) {
                     kama (wigo_vid[k] == addr_vid) { lhs_enc = wigo_aina[k]; vunja; }
                     k = k + 1;
                 }
-                andika("  store ");
-                chapisha_aina(lhs_enc & 254);
-                andika(" %%v%d, ptr %%v%d\n", rhs_vid, addr_vid);
+                // Check for struct type: use memcpy instead of store
+                N32 lhs_familia = (lhs_enc >> 8) & 255;
+                kama (lhs_familia == 6) {
+                    // Struct assignment via memcpy
+                    N32 rhs_addr = -1;
+                    kama (ast_aina[rhs_node] == 5) {
+                        N8* rjina = ast_pool + ast_jina_off[rhs_node];
+                        rhs_addr = tafuta_wigo(rjina);
+                    }
+                    kama (rhs_addr >= 0) {
+                        nakili_muundo(addr_vid, rhs_addr, ukubwa_muundo(lhs_enc));
+                    } sivyo {
+                        // Fallback: use store (may not work for structs)
+                        andika("  store ");
+                        chapisha_aina(lhs_enc & 254);
+                        andika(" %%v%d, ptr %%v%d\n", rhs_vid, addr_vid);
+                    }
+                } sivyo {
+                    andika("  store ");
+                    chapisha_aina(lhs_enc & 254);
+                    andika(" %%v%d, ptr %%v%d\n", rhs_vid, addr_vid);
+                }
             }
             kama (addr_vid == -2) {
                 // Global
@@ -1220,10 +1305,29 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
 
         // Optional initializer
         kama (init_node != -1) {
-            N32 init_vid = teremsha_usemi(init_node);
-            andika("  store ");
-            chapisha_aina(var_enc);
-            andika(" %%v%d, ptr %%v%d\n", init_vid, av);
+            // Check if the variable type is a struct
+            N32 var_familia = (var_enc >> 8) & 255;
+            kama (var_familia == 6) {
+                // Struct init via memcpy
+                N32 src_addr = -1;
+                kama (ast_aina[init_node] == 5) {
+                    N8* ijina = ast_pool + ast_jina_off[init_node];
+                    src_addr = tafuta_wigo(ijina);
+                }
+                kama (src_addr >= 0) {
+                    nakili_muundo(av, src_addr, ukubwa_muundo(var_enc));
+                } sivyo {
+                    N32 init_vid = teremsha_usemi(init_node);
+                    andika("  store ");
+                    chapisha_aina(var_enc);
+                    andika(" %%v%d, ptr %%v%d\n", init_vid, av);
+                }
+            } sivyo {
+                N32 init_vid = teremsha_usemi(init_node);
+                andika("  store ");
+                chapisha_aina(var_enc);
+                andika(" %%v%d, ptr %%v%d\n", init_vid, av);
+            }
         }
     }
 
@@ -1233,10 +1337,35 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
     sivyo kama (aina == 3) {
         N32 expr_node = ast_kushoto[node];
         kama (expr_node != -1) {
-            N32 ret_vid = teremsha_usemi(expr_node);
-            andika("  ret ");
-            chapisha_aina(vid_aina_arr[ret_vid]);
-            andika(" %%v%d\n", ret_vid);
+            kama (sret_vid_sasa != -1) {
+                // Struct return via sret pointer
+                N32 src_addr = -1;
+                kama (ast_aina[expr_node] == 5) {
+                    N8* rjina = ast_pool + ast_jina_off[expr_node];
+                    src_addr = tafuta_wigo(rjina);
+                }
+                kama (src_addr >= 0) {
+                    nakili_muundo(sret_vid_sasa, src_addr, ukubwa_muundo(ret_enc));
+                } sivyo {
+                    // Complex expression: evaluate, store to temp, memcpy
+                    N32 rv = teremsha_usemi(expr_node);
+                    N32 tmp = vid_mpya();
+                    vid_aina_arr[tmp] = 1;
+                    andika("  %%v%d = alloca ", tmp);
+                    chapisha_aina(ret_enc);
+                    andika("\n");
+                    andika("  store ");
+                    chapisha_aina(ret_enc);
+                    andika(" %%v%d, ptr %%v%d\n", rv, tmp);
+                    nakili_muundo(sret_vid_sasa, tmp, ukubwa_muundo(ret_enc));
+                }
+                andika("  ret void\n");
+            } sivyo {
+                N32 ret_vid = teremsha_usemi(expr_node);
+                andika("  ret ");
+                chapisha_aina(vid_aina_arr[ret_vid]);
+                andika(" %%v%d\n", ret_vid);
+            }
         } sivyo {
             andika("  ret void\n");
         }
