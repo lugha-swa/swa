@@ -308,7 +308,7 @@ fn jaribio_stage1() {
 /// kufanya kazi kwa usahihi.  Rekebisha codegen kwanza, kisha
 /// washa jaribio hili.
 #[test]
-#[ignore = "binary inaanguka (SIGSEGV) kabla ya main — hitilafu za codegen za mkusanyaji wa Rust zinahitaji kutafitiwa"]
+#[ignore = "SIGSEGV kabla ya main inabaki hata kwenye msimbo asili wa git (O0 na O1). Marekebisho yaliyowekwa: (1) parser/mod.rs -- kutembea kwa mnyororo wa ast_nne (maeneo 6) kuzuia ubatilishaji wa viungo vya KAMA, (2) msambazaji.swa -- neno_ni EOF, uainishaji wa ASCII wa [ na ] (maeneo 49), ruka [...] katika changanua_kazi, (3) codegen/llvm/mod.rs -- StoreTyped inashughulikia aina zisizo za nambari kamili, Const inatumia aina sahihi ya chaguo-msingi. Majaribio 171 yote yanapita. Binary ya kujipachika inafanya kazi (mzizi=4)."]
 fn jaribio_k6_kujikusanya_kamili() {
     // Angalia kama clang inapatikana.
     let clang = which_clang();

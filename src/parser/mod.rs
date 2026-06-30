@@ -298,6 +298,7 @@ impl<'a> Parser<'a> {
             while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
                 let s = self.changanua_taarifa(); if s == NO_NODE { break; }
                 if prev == NO_NODE { first = s; } else { self.ast.nne[prev as usize] = s; } prev = s;
+                while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
             }
             if self.tokeni_ni("}") { self.sogeza(); }
             // Return the first statement; the chain encodes the block.
@@ -330,6 +331,7 @@ impl<'a> Parser<'a> {
             while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
                 let s = self.changanua_taarifa(); if s == NO_NODE { break; }
                 if prev == NO_NODE { body = s; } else { self.ast.nne[prev as usize] = s; } prev = s;
+                while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
             }
             if self.tokeni_ni("}") { self.sogeza(); }
             let mut else_b: i32 = NO_NODE;
@@ -341,6 +343,7 @@ impl<'a> Parser<'a> {
                     while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
                         let s = self.changanua_taarifa(); if s == NO_NODE { break; }
                         if pe == NO_NODE { else_b = s; } else { self.ast.nne[pe as usize] = s; } pe = s;
+                        while self.ast.nne[pe as usize] != NO_NODE && self.ast.nne[pe as usize] >= 0 { pe = self.ast.nne[pe as usize]; }
                     }
                     if self.tokeni_ni("}") { self.sogeza(); }
                 }
@@ -358,6 +361,7 @@ impl<'a> Parser<'a> {
             while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
                 let s = self.changanua_taarifa(); if s == NO_NODE { break; }
                 if prev == NO_NODE { body = s; } else { self.ast.nne[prev as usize] = s; } prev = s;
+                while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
             }
             if self.tokeni_ni("}") { self.sogeza(); }
             return self.ast.node_mpya(AST_WAKATI, 0, cond, body);
@@ -373,6 +377,7 @@ impl<'a> Parser<'a> {
             while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
                 let s = self.changanua_taarifa(); if s == NO_NODE { break; }
                 if prev == NO_NODE { body = s; } else { self.ast.nne[prev as usize] = s; } prev = s;
+                while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
             }
             if self.tokeni_ni("}") { self.sogeza(); }
             let n = self.ast.node_mpya(AST_KIPINDI, 0, init, cond);
@@ -445,6 +450,7 @@ impl<'a> Parser<'a> {
         while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
             let s = self.changanua_taarifa(); if s == NO_NODE { break; }
             if prev_s == NO_NODE { body = s; } else { self.ast.nne[prev_s as usize] = s; } prev_s = s;
+            while self.ast.nne[prev_s as usize] != NO_NODE && self.ast.nne[prev_s as usize] >= 0 { prev_s = self.ast.nne[prev_s as usize]; }
         }
         if self.tokeni_ni("}") { self.sogeza(); }
 
@@ -522,6 +528,7 @@ impl<'a> Parser<'a> {
             if node == NO_NODE { self.kosa = true; break; }
             if prev == NO_NODE { first = node; } else { self.ast.nne[prev as usize] = node; }
             prev = node;
+            while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
         }
         self.ast.node_mpya(AST_PROGRAMU, 0, first, NO_NODE)
     }
