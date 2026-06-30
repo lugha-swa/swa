@@ -308,7 +308,7 @@ fn jaribio_stage1() {
 /// kufanya kazi kwa usahihi.  Rekebisha codegen kwanza, kisha
 /// washa jaribio hili.
 #[test]
-#[ignore = "SIGSEGV kabla ya main inabaki hata kwenye msimbo asili wa git (O0 na O1). Marekebisho yaliyowekwa: (1) parser/mod.rs -- kutembea kwa mnyororo wa ast_nne (maeneo 6) kuzuia ubatilishaji wa viungo vya KAMA, (2) msambazaji.swa -- neno_ni EOF, uainishaji wa ASCII wa [ na ] (maeneo 49), ruka [...] katika changanua_kazi, (3) codegen/llvm/mod.rs -- StoreTyped inashughulikia aina zisizo za nambari kamili, Const inatumia aina sahihi ya chaguo-msingi. Majaribio 171 yote yanapita. Binary ya kujipachika inafanya kazi (mzizi=4)."]
+#[ignore = "SIGSEGV sababu imegundulika: alloca-ndani-ya-kitanzi katika changanua() inamaliza rafu (baiti 16 kwa kila mzunguko, ~524K mizunguko, MB 8). Hitilafu iko kwenye src/ir/lower.rs:1227 — alloca za vigeu vya ndani zinapaswa kuhamishwa kwenda kwenye bloku ya kuingilia ya kazi. Hii inahitaji mbinu ya kupitisha mara mbili ili kuhifadhi usawa wa ValueId kati ya kiteremshaji cha IR na mkusanyaji wa LLVM. Marekebisho yaliyokamilishwa: (1) parser/mod.rs — kutembea kwa mnyororo wa ast_nne (maeneo 6), (2) msambazaji.swa — neno_ni EOF, ASCII [ na ] (maeneo 49), ruka [...] katika changanua_kazi, (3) codegen/llvm/mod.rs — StoreTyped/Const."]
 fn jaribio_k6_kujikusanya_kamili() {
     // Angalia kama clang inapatikana.
     let clang = which_clang();
