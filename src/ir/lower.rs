@@ -49,7 +49,6 @@ const AST_TANGAZO: u32 = 11;
 const AST_MUUNDO: u32 = 12;
 const AST_SEHEMU: u32 = 13;
 const AST_CHAGUA: u32 = 14;
-const AST_HALI: u32 = 15;
 const AST_VUNJA: u32 = 16;
 const AST_ENDELEA: u32 = 17;
 const AST_TENGA: u32 = 18;
