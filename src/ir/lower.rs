@@ -1140,30 +1140,12 @@ impl<'a> Lowerer<'a> {
         if val_node != NO_NODE && val_node >= 0 {
             let (val, end_blk) = self.lower_expr_into(val_node, blk);
             // If sret and the value is not already the sret pointer,
-            // copy struct bytes to the sret pointer.
+            // copy struct bytes to the sret pointer using MemCopy.
             if let Some(sret_vid) = self.func.sret_value_id {
                 if val != sret_vid {
                     let struct_size = self.func.source_return_ty.width_bytes() as u64;
-                    let mut off: u64 = 0;
-                    while off < struct_size {
-                        let rem = struct_size - off;
-                        let (chunk_size, chunk_ty) = if rem >= 8 {
-                            (8u64, IrType::I64)
-                        } else if rem >= 4 {
-                            (4u64, IrType::I32)
-                        } else if rem >= 2 {
-                            (2u64, IrType::I16)
-                        } else {
-                            (1u64, IrType::I8)
-                        };
-                        self.func.intern_const(Const::Int(off as i128));
-                        self.values_initial_len = self.func.values.len();
-                        let off_val = self.const_val(Const::Int(off as i128));
-                        let src_gep = self.emit(end_blk, Instruction::Gep(val, vec![off_val]));
-                        let dest_gep = self.emit(end_blk, Instruction::Gep(sret_vid, vec![off_val]));
-                        let chunk_val = self.emit(end_blk, Instruction::Load(chunk_ty, src_gep));
-                        self.emit(end_blk, Instruction::Store(chunk_val, dest_gep));
-                        off += chunk_size;
+                    if struct_size > 0 {
+                        self.emit(end_blk, Instruction::MemCopy(sret_vid, val, struct_size));
                     }
                 }
                 self.set_terminator(end_blk, Terminator::RetVoid);
@@ -1242,7 +1224,17 @@ impl<'a> Lowerer<'a> {
             let (init_val, end_blk) = self.lower_expr_into(init_node, blk);
             // If sret_dest was used, init_val IS alloc and we skip the store.
             if init_val != alloc {
-                self.emit(end_blk, Instruction::StoreTyped(init_val, alloc, var_ty.clone()));
+                // For structs, init_val is a pointer to the source struct;
+                // use MemCopy to copy the bytes rather than StoreTyped
+                // which would store the pointer value itself.
+                if matches!(&var_ty, IrType::Struct { .. }) {
+                    let struct_size = var_ty.width_bytes() as u64;
+                    if struct_size > 0 {
+                        self.emit(end_blk, Instruction::MemCopy(alloc, init_val, struct_size));
+                    }
+                } else {
+                    self.emit(end_blk, Instruction::StoreTyped(init_val, alloc, var_ty.clone()));
+                }
             }
             self.define_var(var_name, alloc, var_ty);
             self.set_terminator(end_blk, Terminator::Br(end_blk));
