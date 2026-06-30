@@ -863,9 +863,20 @@ impl<'a> Lowerer<'a> {
             let stmt_blk = self.lower_stmt(current);
 
             // If stmt_blk is a condition block (BrCond), the real fall-through
-            // is the merge block, not the condition block.
+            // is the merge block, not the condition block.  Walk the false
+            // branch chain to find the merge block (it may be directly reachable
+            // for no-else if, or via an else-body branch for if-else).
             let actual_prev = match &self.func.blocks[stmt_blk.0].terminator {
-                Terminator::BrCond(_, _, merge) => *merge,
+                Terminator::BrCond(_, _, false_blk) => {
+                    let mut b = *false_blk;
+                    loop {
+                        match &self.func.blocks[b.0].terminator {
+                            Terminator::Br(t) if *t != b => { b = *t; }
+                            _ => break,
+                        }
+                    }
+                    b
+                }
                 _ => stmt_blk,
             };
 
@@ -993,10 +1004,12 @@ impl<'a> Lowerer<'a> {
         // Ensure merge_blk can be patched by lower_block's caller.
         self.set_terminator(merge_blk, Terminator::Br(merge_blk));
 
-        // Return merge_blk so lower_block chains the NEXT statement to the
-        // continuation after the if-else, NOT to the else-body (which would
-        // make statements after the if-else unreachable dead code).
-        merge_blk
+        // Return cond_blk so lower_block branches the entry block to the
+        // condition block (not the merge block), making the condition
+        // reachable.  lower_block's actual_prev logic follows the BrCond's
+        // false branch to find the merge block for chaining the next
+        // statement.
+        cond_blk
     }
 
     /// Lower `WAKATI` (while loop): `wakati (cond) { body }`.
