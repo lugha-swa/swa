@@ -24,7 +24,7 @@ use std::sync::OnceLock;
 
 use crate::diagnostics::{Diagnostic, SourceSpan};
 use crate::ir::types::IrType;
-use crate::ir::{BlockId, Const, Function, Module as IrModule, Terminator, ValueId};
+use crate::ir::{Const, Function, Module as IrModule, Terminator, ValueId};
 
 use self::ffi::*;
 
@@ -570,9 +570,7 @@ fn lower_function(
         let mut global_inst_idx = 0usize;
         for (block_idx, block) in func.blocks.iter().enumerate() {
             let bb = llvm_blocks[&block_idx];
-            let current_block = BlockId(block_idx);
-
-            // Pass 1: lower phi nodes first (LLVM requires phi at block start).
+            // Pass 1: lower phi nodes first (LLVM requires phi at block start). (LLVM requires phi at block start).
             LLVMPositionBuilderAtEnd(builder, bb);
             for inst in &block.instructions {
                 if let crate::ir::Instruction::Phi(result_ty, incoming) = inst {
