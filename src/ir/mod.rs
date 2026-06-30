@@ -203,6 +203,11 @@ pub enum Instruction {
     // -- select (ternary) ---------------------------------------------------
     Select(ValueId, ValueId, ValueId),  // (cond, true_val, false_val)
 
+    // -- phi (SSA merge) ----------------------------------------------------
+    /// Phi node: merges values from different predecessor blocks.
+    /// `(result_type, [(value, predecessor_block), ...])`
+    Phi(IrType, Vec<(ValueId, BlockId)>),
+
     // -- calls --------------------------------------------------------------
     Call(String, Vec<ValueId>),         // direct call
     CallIndirect(ValueId, Vec<ValueId>), // indirect call
@@ -674,6 +679,11 @@ impl<'f> IrBuilder<'f> {
     }
     pub fn build_extract_field(&mut self, val: ValueId, field_idx: usize) -> ValueId {
         self.emit(Instruction::ExtractField(val, field_idx))
+    }
+
+    /// Build a Phi node merging values from multiple predecessor blocks.
+    pub fn build_phi(&mut self, result_ty: IrType, incoming: Vec<(ValueId, BlockId)>) -> ValueId {
+        self.emit(Instruction::Phi(result_ty, incoming))
     }
 
     pub fn build_call(&mut self, callee: impl Into<String>, args: Vec<ValueId>) -> ValueId {

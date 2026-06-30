@@ -472,10 +472,11 @@ impl<'a> Lowerer<'a> {
     fn new_block(&mut self, label_prefix: &str) -> BlockId {
         let label = format!("{}.{}", label_prefix, self.block_counter);
         self.block_counter += 1;
-        // Use RetVoid as default — caller must overwrite with set_terminator.
-        // Br to BlockId(0) creates false predecessors for the entry block.
-        let block = IrBlock::new(label, Terminator::RetVoid);
-        let id = self.func.push_block(block);
+        // Use Br(self) as default so the finalisation pass can replace any
+        // remaining self-loops with Ret/RetVoid appropriate for the function.
+        let id = BlockId(self.func.blocks.len());
+        let block = IrBlock::new(label, Terminator::Br(id));
+        self.func.push_block(block);
         id
     }
 
@@ -1783,38 +1784,108 @@ impl<'a> Lowerer<'a> {
         (result, blk3)
     }
 
-    /// Lower `NA` (logical AND) with eager evaluation in a single block.
-    /// Proper short-circuit with phi nodes will be added once the IR supports
-    /// Phi instructions (#A4).
+    /// Lower `NA` (logical AND) with proper short-circuit evaluation
+    /// using a Phi node to merge the two possible outcomes.
+    ///
+    /// ```text
+    ///   entry:
+    ///     lhs_val = eval(lhs)
+    ///     lhs_bool = lhs_val != 0
+    ///     br lhs_bool ? rhs_blk : merge_blk
+    ///
+    ///   rhs_blk:
+    ///     rhs_val = eval(rhs)
+    ///     rhs_bool = rhs_val != 0
+    ///     br merge_blk
+    ///
+    ///   merge_blk:
+    ///     result = phi(B1, [(false, entry), (rhs_bool, rhs_blk)])
+    /// ```
     fn lower_short_circuit_and(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let lhs_node = self.ast_kushoto[node as usize];
         let rhs_node = self.ast_kulia[node as usize];
 
-        let (lhs_val, blk1) = self.lower_expr_into(lhs_node, blk);
-        let (rhs_val, blk2) = self.lower_expr_into(rhs_node, blk1);
+        // Evaluate left-hand side.
+        let (lhs_val, lhs_end) = self.lower_expr_into(lhs_node, blk);
 
+        // Convert lhs to boolean.
         let zero = self.const_val(Const::Int(0));
-        let lhs_bool = self.emit(blk2, Instruction::Ne(lhs_val, zero));
-        let rhs_bool = self.emit(blk2, Instruction::Ne(rhs_val, zero));
-        let result = self.emit(blk2, Instruction::And(lhs_bool, rhs_bool));
-        (result, blk2)
+        let lhs_bool = self.emit(lhs_end, Instruction::Ne(lhs_val, zero));
+
+        // Create blocks for rhs evaluation and merge.
+        let rhs_blk = self.new_block("sc_and_rhs");
+        let merge_blk = self.new_block("sc_and_merge");
+
+        // Branch: if lhs truthy → evaluate rhs; else → short-circuit to merge.
+        self.set_terminator(lhs_end,
+            Terminator::BrCond(lhs_bool, rhs_blk, merge_blk));
+
+        // RHS evaluation path.
+        let (rhs_val, rhs_end) = self.lower_expr_into(rhs_node, rhs_blk);
+        let rhs_bool = self.emit(rhs_end, Instruction::Ne(rhs_val, zero));
+        self.set_terminator(rhs_end, Terminator::Br(merge_blk));
+
+        // Merge: Phi node selects between short-circuit false and rhs result.
+        let false_val = self.const_val(Const::Bool(false));
+        let result = self.emit(merge_blk, Instruction::Phi(IrType::B1, vec![
+            (false_val, lhs_end),
+            (rhs_bool, rhs_end),
+        ]));
+        // Placeholder — caller will overwrite with appropriate terminator.
+        self.set_terminator(merge_blk, Terminator::Br(merge_blk));
+        (result, merge_blk)
     }
 
-    /// Lower `AU` (logical OR) with eager evaluation in a single block.
-    /// Proper short-circuit with phi nodes will be added once the IR supports
-    /// Phi instructions (#A4).
+    /// Lower `AU` (logical OR) with proper short-circuit evaluation
+    /// using a Phi node to merge the two possible outcomes.
+    ///
+    /// ```text
+    ///   entry:
+    ///     lhs_val = eval(lhs)
+    ///     lhs_bool = lhs_val != 0
+    ///     br lhs_bool ? merge_blk : rhs_blk
+    ///
+    ///   rhs_blk:
+    ///     rhs_val = eval(rhs)
+    ///     rhs_bool = rhs_val != 0
+    ///     br merge_blk
+    ///
+    ///   merge_blk:
+    ///     result = phi(B1, [(true, entry), (rhs_bool, rhs_blk)])
+    /// ```
     fn lower_short_circuit_or(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let lhs_node = self.ast_kushoto[node as usize];
         let rhs_node = self.ast_kulia[node as usize];
 
-        let (lhs_val, blk1) = self.lower_expr_into(lhs_node, blk);
-        let (rhs_val, blk2) = self.lower_expr_into(rhs_node, blk1);
+        // Evaluate left-hand side.
+        let (lhs_val, lhs_end) = self.lower_expr_into(lhs_node, blk);
 
+        // Convert lhs to boolean.
         let zero = self.const_val(Const::Int(0));
-        let lhs_bool = self.emit(blk2, Instruction::Ne(lhs_val, zero));
-        let rhs_bool = self.emit(blk2, Instruction::Ne(rhs_val, zero));
-        let result = self.emit(blk2, Instruction::Or(lhs_bool, rhs_bool));
-        (result, blk2)
+        let lhs_bool = self.emit(lhs_end, Instruction::Ne(lhs_val, zero));
+
+        // Create blocks for rhs evaluation and merge.
+        let rhs_blk = self.new_block("sc_or_rhs");
+        let merge_blk = self.new_block("sc_or_merge");
+
+        // Branch: if lhs truthy → short-circuit to merge; else → evaluate rhs.
+        self.set_terminator(lhs_end,
+            Terminator::BrCond(lhs_bool, merge_blk, rhs_blk));
+
+        // RHS evaluation path.
+        let (rhs_val, rhs_end) = self.lower_expr_into(rhs_node, rhs_blk);
+        let rhs_bool = self.emit(rhs_end, Instruction::Ne(rhs_val, zero));
+        self.set_terminator(rhs_end, Terminator::Br(merge_blk));
+
+        // Merge: Phi node selects between short-circuit true and rhs result.
+        let true_val = self.const_val(Const::Bool(true));
+        let result = self.emit(merge_blk, Instruction::Phi(IrType::B1, vec![
+            (true_val, lhs_end),
+            (rhs_bool, rhs_end),
+        ]));
+        // Placeholder — caller will overwrite with appropriate terminator.
+        self.set_terminator(merge_blk, Terminator::Br(merge_blk));
+        (result, merge_blk)
     }
 
     // -- pointer / address operations ------------------------------------------
@@ -2811,13 +2882,16 @@ mod tests {
         assert_eq!(module.functions.len(), 1);
         let f = &module.functions[0];
 
-        // AND currently lowers to Ne + And (eager evaluation).
-        // A4 (short-circuit with phi) will replace this with proper
-        // short-circuit blocks.
-        let has_and = f.blocks.iter().any(|blk| {
-            blk.instructions.iter().any(|inst| matches!(inst, Instruction::And(_, _)))
+        // AND with short-circuit produces Phi + BrCond + Ne.
+        let has_phi = f.blocks.iter().any(|blk| {
+            blk.instructions.iter().any(|inst| matches!(inst, Instruction::Phi(_, _)))
         });
-        assert!(has_and, "AND should produce And instruction");
+        assert!(has_phi, "short-circuit AND should produce Phi instruction");
+
+        let has_brcond = f.blocks.iter().any(|blk| {
+            matches!(blk.terminator, Terminator::BrCond(_, _, _))
+        });
+        assert!(has_brcond, "short-circuit AND should produce BrCond");
 
         let has_ne = f.blocks.iter().any(|blk| {
             blk.instructions.iter().any(|inst| matches!(inst, Instruction::Ne(_, _)))
@@ -2851,13 +2925,16 @@ mod tests {
         assert_eq!(module.functions.len(), 1);
         let f = &module.functions[0];
 
-        // OR currently lowers to Ne + Or (eager evaluation).
-        // A4 (short-circuit with phi) will replace this with proper
-        // short-circuit blocks.
-        let has_or = f.blocks.iter().any(|blk| {
-            blk.instructions.iter().any(|inst| matches!(inst, Instruction::Or(_, _)))
+        // OR with short-circuit produces Phi + BrCond + Ne.
+        let has_phi = f.blocks.iter().any(|blk| {
+            blk.instructions.iter().any(|inst| matches!(inst, Instruction::Phi(_, _)))
         });
-        assert!(has_or, "OR should produce Or instruction");
+        assert!(has_phi, "short-circuit OR should produce Phi instruction");
+
+        let has_brcond = f.blocks.iter().any(|blk| {
+            matches!(blk.terminator, Terminator::BrCond(_, _, _))
+        });
+        assert!(has_brcond, "short-circuit OR should produce BrCond");
     }
 
     #[test]

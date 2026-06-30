@@ -24,7 +24,7 @@ use std::sync::OnceLock;
 
 use crate::diagnostics::{Diagnostic, SourceSpan};
 use crate::ir::types::IrType;
-use crate::ir::{Const, Function, Module as IrModule, Terminator, ValueId};
+use crate::ir::{BlockId, Const, Function, Module as IrModule, Terminator, ValueId};
 
 use self::ffi::*;
 
@@ -566,12 +566,40 @@ fn lower_function(
         // -- 5b. Builder -------------------------------------------------------
         let builder = LLVMCreateBuilder();
 
-        // -- 6. Lower instructions sequentially across ALL blocks --------------
+        // -- 6. Lower instructions across ALL blocks (phi first, then rest) ----
         let mut global_inst_idx = 0usize;
         for (block_idx, block) in func.blocks.iter().enumerate() {
             let bb = llvm_blocks[&block_idx];
+            let current_block = BlockId(block_idx);
+
+            // Pass 1: lower phi nodes first (LLVM requires phi at block start).
             LLVMPositionBuilderAtEnd(builder, bb);
             for inst in &block.instructions {
+                if let crate::ir::Instruction::Phi(result_ty, incoming) = inst {
+                    let val_id = ValueId(param_count + func.values.len() + global_inst_idx);
+                    global_inst_idx += 1;
+                    let llvm_ty = ir_type_to_llvm(result_ty, struct_types);
+                    let phi = LLVMBuildPhi(builder, llvm_ty, c_str("phi").as_ptr());
+                    // Add incoming edges: each (value, predecessor_block).
+                    for (value_id, pred_block) in incoming {
+                        let llvm_val = value_map.get(value_id).copied().unwrap_or_else(|| {
+                            LLVMConstInt(LLVMInt32Type(), 0, 0)
+                        });
+                        let pred_bb = llvm_blocks.get(&pred_block.0).copied().unwrap_or(bb);
+                        let mut vals = [llvm_val];
+                        let mut blks = [pred_bb];
+                        LLVMAddIncoming(phi, vals.as_mut_ptr(), blks.as_mut_ptr(), 1);
+                    }
+                    value_map.insert(val_id, phi);
+                }
+            }
+
+            // Pass 2: lower all non-phi instructions.
+            LLVMPositionBuilderAtEnd(builder, bb);
+            for inst in &block.instructions {
+                if matches!(inst, crate::ir::Instruction::Phi(_, _)) {
+                    continue; // already lowered in pass 1
+                }
                 let val_id = ValueId(param_count + func.values.len() + global_inst_idx);
                 global_inst_idx += 1;
                 let llvm_val =
@@ -1346,6 +1374,12 @@ fn lower_instruction(
                     arg_vals.len() as u32,
                     c_str("indirect_call").as_ptr(),
                 )
+            }
+            // Phi nodes are lowered separately in lower_function (two-pass:
+            // phi-first, then remaining instructions).  They should never
+            // reach this fallback path.
+            crate::ir::Instruction::Phi(_, _) => {
+                LLVMConstNull(LLVMInt32Type())
             }
         }
     }
