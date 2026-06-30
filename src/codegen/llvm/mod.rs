@@ -44,8 +44,12 @@ static LLVM_INIT: OnceLock<usize> = OnceLock::new();
 /// Holds a reference to the global LLVM context.  The context is process-wide
 /// (a singleton) so there is no per-backend teardown — the `Drop` impl is a
 /// no-op.
+///
+/// The `opt_level` field controls the code-generation optimisation level passed
+/// to the LLVM target machine (default: `None` / O0).
 pub struct LlvmBackend {
     context: LLVMContextRef,
+    opt_level: LLVMCodeGenOptLevel,
 }
 
 impl LlvmBackend {
@@ -54,7 +58,13 @@ impl LlvmBackend {
     /// Create a new LLVM backend, initialising target support on first call.
     pub fn new() -> Self {
         let context = Self::get_context();
-        Self { context }
+        Self { context, opt_level: LLVMCodeGenOptLevel::None }
+    }
+
+    /// Set the code-generation optimisation level (builder pattern).
+    pub fn with_opt_level(mut self, level: LLVMCodeGenOptLevel) -> Self {
+        self.opt_level = level;
+        self
     }
 
     /// Return the global LLVM context, initialising common targets once.
@@ -348,6 +358,22 @@ impl LlvmBackend {
                 }
             }
 
+            // -- 6. FastISel block-dropping check -------------------------------
+            // LLVM's FastISel silently drops basic blocks beyond ~50 per function
+            // at O0.  Warn if any function significantly exceeds a safety margin.
+            const FASTISEL_BLOCK_LIMIT: usize = 40;
+            for func in &ir_module.functions {
+                if func.blocks.len() > FASTISEL_BLOCK_LIMIT {
+                    eprintln!(
+                        "onyo: kazi '{}' ina vizuizi {} — FastISel inaweza kuacha baadhi \
+                         (kiwango cha juu ni ~50, inapendekezwa chini ya {})",
+                        func.name,
+                        func.blocks.len(),
+                        FASTISEL_BLOCK_LIMIT,
+                    );
+                }
+            }
+
             if let Err(msg) = verify_module(module) {
                 LLVMDisposeModule(module);
                 return Err(vec![Diagnostic::error(
@@ -396,7 +422,7 @@ impl LlvmBackend {
                 triple_c.as_ptr(),
                 cpu_c.as_ptr(),
                 features_c.as_ptr(),
-                LLVMCodeGenOptLevel::None,
+                self.opt_level,
                 LLVMRelocMode::Default,
                 LLVMCodeModel::Default,
             );

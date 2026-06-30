@@ -8,6 +8,7 @@
 //!   kande --ll file.ll          — compile LLVM IR text to .o
 //!   kande --tokens file.swa     — print token stream
 
+use kande_lib::codegen::llvm::ffi::LLVMCodeGenOptLevel;
 use kande_lib::codegen::llvm::LlvmBackend;
 use kande_lib::driver::Driver;
 use std::env;
@@ -84,8 +85,9 @@ fn main() {
         process::exit(1);
     }
 
-    // Parse optional -o output flag.
+    // Parse optional -o output flag and --opt / -O optimisation flag.
     let mut output_path: Option<PathBuf> = None;
+    let mut opt_flag = false;
     let mut positional: Vec<String> = Vec::new();
     {
         let mut i = 1;
@@ -95,6 +97,8 @@ fn main() {
                 if i < args.len() {
                     output_path = Some(PathBuf::from(&args[i]));
                 }
+            } else if args[i] == "--opt" || args[i] == "-O" {
+                opt_flag = true;
             } else {
                 positional.push(args[i].clone());
             }
@@ -239,7 +243,12 @@ fn main() {
             };
             match driver.compile_to_ir(&source, file_path) {
                 Ok(module) => { for d in driver.diagnostics.all() { eprintln!("{}", d.render(&source)); }
-                    let backend = LlvmBackend::new();
+                    let opt_level = if opt_flag {
+                        LLVMCodeGenOptLevel::Less
+                    } else {
+                        LLVMCodeGenOptLevel::None
+                    };
+                    let backend = LlvmBackend::new().with_opt_level(opt_level);
                     match backend.compile_to_file(&module, &obj_path) {
                         Ok(()) => {
                             if want_link {
