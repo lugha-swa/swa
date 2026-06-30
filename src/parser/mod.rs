@@ -18,6 +18,7 @@ const AST_WAKATI: u32 = 10;
 const AST_TANGAZO: u32 = 11;
 const AST_MUUNDO: u32 = 12;
 const AST_SEHEMU: u32 = 13;
+const AST_KIPINDI: u32 = 15;
 const AST_VUNJA: u32 = 16;
 const AST_ENDELEA: u32 = 17;
 const AST_SAWA: u32 = 20;
@@ -360,6 +361,24 @@ impl<'a> Parser<'a> {
             }
             if self.tokeni_ni("}") { self.sogeza(); }
             return self.ast.node_mpya(AST_WAKATI, 0, cond, body);
+        }
+
+        if self.tokeni_ni("kwa") {
+            self.sogeza(); if self.tokeni_ni("(") { self.sogeza(); }
+            let init = if self.tokeni_ni(";") { NO_NODE } else { let e = self.changanua_usemi(); if self.tokeni_ni(";") { self.sogeza(); } e };
+            let cond = if self.tokeni_ni(";") { NO_NODE } else { let e = self.changanua_usemi(); if self.tokeni_ni(";") { self.sogeza(); } e };
+            let step = if self.tokeni_ni(")") { NO_NODE } else { let e = self.changanua_usemi(); if self.tokeni_ni(")") { self.sogeza(); } e };
+            if self.tokeni_ni("{") { self.sogeza(); }
+            let mut body: i32 = NO_NODE; let mut prev: i32 = NO_NODE;
+            while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
+                let s = self.changanua_taarifa(); if s == NO_NODE { break; }
+                if prev == NO_NODE { body = s; } else { self.ast.nne[prev as usize] = s; } prev = s;
+            }
+            if self.tokeni_ni("}") { self.sogeza(); }
+            let n = self.ast.node_mpya(AST_KIPINDI, 0, init, cond);
+            self.ast.tiga[n as usize] = step;
+            self.ast.nne[n as usize] = body;
+            return n;
         }
 
         // fallback: expression statement

@@ -49,6 +49,7 @@ const AST_TANGAZO: u32 = 11;
 const AST_MUUNDO: u32 = 12;
 const AST_SEHEMU: u32 = 13;
 const AST_CHAGUA: u32 = 14;
+const AST_KIPINDI: u32 = 15;
 const AST_VUNJA: u32 = 16;
 const AST_ENDELEA: u32 = 17;
 const AST_TENGA: u32 = 18;
@@ -815,6 +816,7 @@ impl<'a> Lowerer<'a> {
             AST_TANGAZO => self.lower_local_decl(node),
             AST_CHAGUA => self.lower_switch(node),
             AST_VUNJA => self.lower_break(node),
+            AST_KIPINDI => self.lower_for(node),
             AST_ENDELEA => self.lower_continue(node),
             AST_TENGA => self.lower_heap_alloc_stmt(node),
             AST_ACHILIA => self.lower_heap_free_stmt(node),
@@ -1786,18 +1788,37 @@ impl<'a> Lowerer<'a> {
         (result, blk3)
     }
 
+    /// Returns `true` if the AST node with type `aina` always produces a
+    /// boolean value (comparison, logical operator, or boolean literal).
+    /// Such values do not need an extra `Ne(…, 0)` to convert them to i1.
+    fn ast_aina_ni_boolean(aina: u32) -> bool {
+        matches!(aina,
+            AST_SAWA          // ==
+            | AST_TOFAUTI_SI  // !=
+            | AST_CHINI       // <
+            | AST_JUU         // >
+            | AST_CHINI_SAWA  // <=
+            | AST_JUU_SAWA    // >=
+            | AST_NA          // &&
+            | AST_AU          // ||
+            | AST_SI          // !
+            | AST_KWELI       // true
+            | AST_UONGO       // false
+        )
+    }
+
     /// Lower `NA` (logical AND) with proper short-circuit evaluation
     /// using a Phi node to merge the two possible outcomes.
     ///
     /// ```text
     ///   entry:
     ///     lhs_val = eval(lhs)
-    ///     lhs_bool = lhs_val != 0
+    ///     lhs_bool = lhs_val != 0    (skipped when lhs is already boolean)
     ///     br lhs_bool ? rhs_blk : merge_blk
     ///
     ///   rhs_blk:
     ///     rhs_val = eval(rhs)
-    ///     rhs_bool = rhs_val != 0
+    ///     rhs_bool = rhs_val != 0    (skipped when rhs is already boolean)
     ///     br merge_blk
     ///
     ///   merge_blk:
@@ -1810,9 +1831,14 @@ impl<'a> Lowerer<'a> {
         // Evaluate left-hand side.
         let (lhs_val, lhs_end) = self.lower_expr_into(lhs_node, blk);
 
-        // Convert lhs to boolean.
-        let zero = self.const_val(Const::Int(0));
-        let lhs_bool = self.emit(lhs_end, Instruction::Ne(lhs_val, zero));
+        // Convert lhs to boolean only when needed (comparisons and logical ops
+        // already produce a boolean value).
+        let lhs_bool = if Self::ast_aina_ni_boolean(self.node_aina(lhs_node)) {
+            lhs_val
+        } else {
+            let zero = self.const_val(Const::Int(0));
+            self.emit(lhs_end, Instruction::Ne(lhs_val, zero))
+        };
 
         // Create blocks for rhs evaluation and merge.
         let rhs_blk = self.new_block("sc_and_rhs");
@@ -1822,9 +1848,14 @@ impl<'a> Lowerer<'a> {
         self.set_terminator(lhs_end,
             Terminator::BrCond(lhs_bool, rhs_blk, merge_blk));
 
-        // RHS evaluation path.
+        // RHS evaluation path.  Convert to boolean only when needed.
         let (rhs_val, rhs_end) = self.lower_expr_into(rhs_node, rhs_blk);
-        let rhs_bool = self.emit(rhs_end, Instruction::Ne(rhs_val, zero));
+        let rhs_bool = if Self::ast_aina_ni_boolean(self.node_aina(rhs_node)) {
+            rhs_val
+        } else {
+            let zero = self.const_val(Const::Int(0));
+            self.emit(rhs_end, Instruction::Ne(rhs_val, zero))
+        };
         self.set_terminator(rhs_end, Terminator::Br(merge_blk));
 
         // Merge: Phi node selects between short-circuit false and rhs result.
@@ -1844,12 +1875,12 @@ impl<'a> Lowerer<'a> {
     /// ```text
     ///   entry:
     ///     lhs_val = eval(lhs)
-    ///     lhs_bool = lhs_val != 0
+    ///     lhs_bool = lhs_val != 0    (skipped when lhs is already boolean)
     ///     br lhs_bool ? merge_blk : rhs_blk
     ///
     ///   rhs_blk:
     ///     rhs_val = eval(rhs)
-    ///     rhs_bool = rhs_val != 0
+    ///     rhs_bool = rhs_val != 0    (skipped when rhs is already boolean)
     ///     br merge_blk
     ///
     ///   merge_blk:
@@ -1862,9 +1893,13 @@ impl<'a> Lowerer<'a> {
         // Evaluate left-hand side.
         let (lhs_val, lhs_end) = self.lower_expr_into(lhs_node, blk);
 
-        // Convert lhs to boolean.
-        let zero = self.const_val(Const::Int(0));
-        let lhs_bool = self.emit(lhs_end, Instruction::Ne(lhs_val, zero));
+        // Convert lhs to boolean only when needed.
+        let lhs_bool = if Self::ast_aina_ni_boolean(self.node_aina(lhs_node)) {
+            lhs_val
+        } else {
+            let zero = self.const_val(Const::Int(0));
+            self.emit(lhs_end, Instruction::Ne(lhs_val, zero))
+        };
 
         // Create blocks for rhs evaluation and merge.
         let rhs_blk = self.new_block("sc_or_rhs");
@@ -1874,9 +1909,14 @@ impl<'a> Lowerer<'a> {
         self.set_terminator(lhs_end,
             Terminator::BrCond(lhs_bool, merge_blk, rhs_blk));
 
-        // RHS evaluation path.
+        // RHS evaluation path.  Convert to boolean only when needed.
         let (rhs_val, rhs_end) = self.lower_expr_into(rhs_node, rhs_blk);
-        let rhs_bool = self.emit(rhs_end, Instruction::Ne(rhs_val, zero));
+        let rhs_bool = if Self::ast_aina_ni_boolean(self.node_aina(rhs_node)) {
+            rhs_val
+        } else {
+            let zero = self.const_val(Const::Int(0));
+            self.emit(rhs_end, Instruction::Ne(rhs_val, zero))
+        };
         self.set_terminator(rhs_end, Terminator::Br(merge_blk));
 
         // Merge: Phi node selects between short-circuit true and rhs result.

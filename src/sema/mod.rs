@@ -498,7 +498,7 @@ pub fn kagua_asti(
     aina: &[u32],
     kushoto: &[i32],
     _kulia: &[i32],
-    _tiga: &[i32],
+    tiga: &[i32],
     nne: &[i32],
     thamani: &[i32],
     jina_off: &[i32],
@@ -535,7 +535,12 @@ pub fn kagua_asti(
     while mtoto != -1 {
         let aina_ya_nodi = aina[mtoto as usize];
         if aina_ya_nodi == 2 {
-            // AST_KAZI
+            // AST_KAZI — skip forward declarations (no body) to avoid
+            // false-positive "declared twice" errors.  Only definitions
+            // with a body are checked for duplicates.
+            let mwili = tiga[mtoto as usize];
+            if mwili == -1 { mtoto = nne[mtoto as usize]; continue; }
+
             let jina_nodi = kushoto[mtoto as usize];
             let jina = soma_jina(jina_nodi);
             if !jina.is_empty() {

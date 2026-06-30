@@ -24,7 +24,7 @@ use std::sync::OnceLock;
 
 use crate::diagnostics::{Diagnostic, SourceSpan};
 use crate::ir::types::IrType;
-use crate::ir::{Const, Function, Module as IrModule, Terminator, ValueId};
+use crate::ir::{BlockId, Const, Function, Module as IrModule, Terminator, ValueId};
 
 use self::ffi::*;
 
@@ -566,11 +566,20 @@ fn lower_function(
         // -- 5b. Builder -------------------------------------------------------
         let builder = LLVMCreateBuilder();
 
-        // -- 6. Lower instructions across ALL blocks (phi first, then rest) ----
+        // -- 6. Lower instructions across ALL blocks (three-pass approach) ----
+        //
+        // Pass 1: create phi nodes with no incoming edges (the LLVM values are
+        // created and inserted into value_map, but incoming edges are deferred).
+        // Pass 2: lower all non-phi instructions.
+        // Pass 3: populate incoming edges on all phi nodes (by now every ValueId
+        // from every block is in value_map, so back-edge loop values resolve
+        // correctly).
+        let mut pending_phis: Vec<(LLVMValueRef, Vec<(ValueId, BlockId)>)> = Vec::new();
         let mut global_inst_idx = 0usize;
         for (block_idx, block) in func.blocks.iter().enumerate() {
             let bb = llvm_blocks[&block_idx];
-            // Pass 1: lower phi nodes first (LLVM requires phi at block start). (LLVM requires phi at block start).
+
+            // -- Pass 1: create phi LLVM values (no incoming edges yet) ----------
             LLVMPositionBuilderAtEnd(builder, bb);
             for inst in &block.instructions {
                 if let crate::ir::Instruction::Phi(result_ty, incoming) = inst {
@@ -578,21 +587,14 @@ fn lower_function(
                     global_inst_idx += 1;
                     let llvm_ty = ir_type_to_llvm(result_ty, struct_types);
                     let phi = LLVMBuildPhi(builder, llvm_ty, c_str("phi").as_ptr());
-                    // Add incoming edges: each (value, predecessor_block).
-                    for (value_id, pred_block) in incoming {
-                        let llvm_val = value_map.get(value_id).copied().unwrap_or_else(|| {
-                            LLVMConstInt(LLVMInt32Type(), 0, 0)
-                        });
-                        let pred_bb = llvm_blocks.get(&pred_block.0).copied().unwrap_or(bb);
-                        let mut vals = [llvm_val];
-                        let mut blks = [pred_bb];
-                        LLVMAddIncoming(phi, vals.as_mut_ptr(), blks.as_mut_ptr(), 1);
-                    }
+                    // Defer populating incoming edges until pass 3, so that
+                    // back-edge values from later blocks are available.
+                    pending_phis.push((phi, incoming.clone()));
                     value_map.insert(val_id, phi);
                 }
             }
 
-            // Pass 2: lower all non-phi instructions.
+            // -- Pass 2: lower all non-phi instructions --------------------------
             LLVMPositionBuilderAtEnd(builder, bb);
             for inst in &block.instructions {
                 if matches!(inst, crate::ir::Instruction::Phi(_, _)) {
@@ -605,6 +607,23 @@ fn lower_function(
                 if !llvm_val.is_null() {
                     value_map.insert(val_id, llvm_val);
                 }
+            }
+        }
+
+        // -- Pass 3: populate incoming edges on all phi nodes --------------------
+        // By this point every instruction from every block has been lowered and
+        // the result is in value_map, so back-edge values (from predecessor blocks
+        // that appear later in the block list) resolve correctly.
+        for &(phi, ref incoming) in &pending_phis {
+            for &(value_id, pred_block) in incoming {
+                let llvm_val = value_map.get(&value_id).copied().unwrap_or_else(|| {
+                    // Should never happen for valid IR.
+                    LLVMConstInt(LLVMInt32Type(), 0, 0)
+                });
+                let pred_bb = llvm_blocks[&pred_block.0];
+                let mut vals = [llvm_val];
+                let mut blks = [pred_bb];
+                LLVMAddIncoming(phi, vals.as_mut_ptr(), blks.as_mut_ptr(), 1);
             }
         }
 
