@@ -18,7 +18,7 @@ Mchanganuzi sio wa kuchezea. Unashughulikia uainishaji wa tokeni, mchanganuzi wa
 
 ## 2. Mafanikio Makuu
 
-### 2.1 Hitilafu sita muhimu za mkusanyaji ziligunduliwa na kurekebishwa
+### 2.1 Hitilafu tisa muhimu za mkusanyaji ziligunduliwa na kurekebishwa
 
 Mchanganuzi wa kujikusanya ulifichua hitilafu zilizofichika katika `kande` ambazo msururu uliopo wa majaribio haukuzichochea. Kila hitilafu ilikuwa kizuizi kigumu — mchanganuzi ulizalisha matokeo mabaya, ulianguka, au ulishindwa kukusanyika kabisa hadi marekebisho yalipowekwa.
 
@@ -30,10 +30,13 @@ Mchanganuzi wa kujikusanya ulifichua hitilafu zilizofichika katika `kande` ambaz
 | 4 | Kutolingana kwa upana wa hifadhi (upande wa kukata) | Thamani pana kwenye pointee finyu hazikukatwa | Kufurika kwenye hifadhi ya karibu |
 | 5 | Matamko ya mbele yalitolewa kama kazi | `tangaza` ilitoa `define` badala ya `declare` | Alama mbili wakati wa kuunganisha |
 | 6 | Hitilafu ya kuteremsha kwenye ugawaji wa muundo | Kiteremshaji hakikuweza kushughulikia `a = b` kwa miundo | Usimamizi wa tokeni ulivunjika |
+| 7 | Opaque pointer inaharibu usawazishaji wa hifadhi/mzigo | LLVMGetElementType haiaminiki na opaque pointers za LLVM 22 | SIGSEGV nasibu, tokeni zimeharibika |
+| 8 | Msimbo baada ya kama hauwiani kwenye CFG | actual_prev haikufuatilia BrCond; self-loop haikurekebishwa | Taarifa baada ya kama ni msimbo uliokufa kwa sehemu |
+| 9 | Alloca-in-loop inamaliza rafu | Alloca za vigeu vya ndani zinatolewa kwenye block ya sasa badala ya block ya kuingia | SIGSEGV baada ya ~524K mizunguko ya kitanzi |
 
-### 2.2 Majaribio yote 171 yanapita
+### 2.2 Majaribio yote 172 yanapita
 
-Marekebisho 6 yalitumika bila kurudi nyuma. Msururu kamili wa majaribio ya Rust (majaribio 171: usomaji, uchanganuzi, ukaguzi wa aina, uzalishaji wa msimbo, mkusanyiko wa mwisho-hadi-mwisho) unapita safi.
+Marekebisho 9 yalitumika bila kurudi nyuma. Msururu kamili wa majaribio ya Rust (majaribio 172: 144 ya usomaji/uchanganuzi/ukaguzi wa aina/IR, 27 ya ujumuishaji wa mwisho-hadi-mwisho, 1 wa hati za nyaraka) unapita safi. K6 (kujikusanya kamili) imezimwa kwa sasa — inasubiri uchunguzi zaidi wa hitilafu ya mchanganuzi iliyobaki.
 
 ### 2.3 Msomaji ulirekebishwa kwa mipaka ya O0
 
@@ -58,22 +61,25 @@ sasa.chanzo = kesho.chanzo;
 
 ### 3.1 Kinachofanya kazi
 
-- Mkusanyaji wa Rust (`kande`) unakusanya programu rahisi za Swa (hesabu, mtiririko wa udhibiti, miito ya kazi, ufikiaji wa sehemu za muundo, safu) na kuzalisha matokeo sahihi.
+- Mkusanyaji wa Rust (`kande`) unakusanya programu rahisi za Swa (hesabu, mtiririko wa udhibiti, miito ya kazi, ufikiaji wa sehemu za muundo, safu, vitanzi) na kuzalisha matokeo sahihi.
 - Mchanganuzi wa kujikusanya unakusanyika na kuendesha kwenye O0 (nodi 512 za AST, bwawa la 32 KB).
 - Msomaji wa kujikusanya unakusanyika na kuendesha kwenye O0.
 - Binary zote za majaribio ya uchanganuzi zinazalisha matokeo sahihi.
+- **Masuala yote ya alloca-in-loop yametatuliwa**: Mbinu ya kupitisha mara mbili katika `lower.rs` inahakikisha alloca zote za vigeu vya ndani ziko kwenye block ya kuingia, na hivyo kuzuia uharibifu wa rafu katika vitanzi.
+- **CFG dead-code imerekebishwa**: Ufuatiliaji wa `actual_prev` sasa unashughulikia `BrCond` ipasavyo, kuhakikisha mtiririko sahihi baada ya taarifa za `kama`.
 
 ### 3.2 Vizuizi vinavyojulikana
 
 - **Kurudi nyuma kwa O1**: `urefu` wa tokeni umeharibiwa kwenye O1. Sababu kuu haijatengwa.
 - **Safu kubwa za AST zinaanguka kwenye Windows**: Juu ya ~2 MB, binary inaanguka kabla ya `main`. Inaweza kuwa suala la kipakiaji cha PE.
-- **Ugawaji wa muundo** bado haujatekelezwa katika kiteremshaji.
+- **Hitilafu ya mchanganuzi katika binary ya kujikusanya**: Baada ya kurekebisha alloca-in-loop (SIGSEGV), binary inaendelea hadi kwenye hitilafu ya uchanganuzi tofauti. Hii ilikuwa ipo awali lakini ilifichwa na SIGSEGV.
+- **K6 imezimwa**: Jaribio kamili la kujikusanya linasubiri hitilafu ya mchanganuzi itatuliwe.
 
 ---
 
 ## 4. Kilichowekwa
 
-Marekebisho yote yako kwenye tawi la `rekebisha/makosa-ya-kimsingi-ya-mkusanyaji` (PR #34).
+Marekebisho yote yako kwenye tawi la `rekebisha/makosa-ya-kimsingi-ya-mkusanyaji` (PR #34) na tawi kuu (`main`).
 
 | Wigo | Faili | Mistari |
 |---|---|---|
@@ -83,8 +89,12 @@ Marekebisho yote yako kwenye tawi la `rekebisha/makosa-ya-kimsingi-ya-mkusanyaji
 | Upanuzi wa hifadhi | `src/codegen.rs` | ~25 |
 | Tangazo la mbele | `src/codegen.rs`, `src/ast.rs` | ~35 |
 | Kiteremshaji + suluhisho la muda la muundo | `src/codegen.rs`, `src/lower.rs` | ~60 |
+| Opaque pointer za LLVM 22, mgongano wa ValueId, builtins za kumbukumbu | `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs`, `build.rs`, `ffi.rs` | ~200 |
+| CFG dead-code (actual_prev, BrCond, self-loop) | `src/ir/lower.rs` | ~40 |
+| Alloca-in-loop (kupitisha mara mbili, pre-allocated locals) | `src/ir/lower.rs` | ~100 |
+| Usomaji wa safu (AST_SAFU, AST_TAJA, faharasa) | `src/parser/mod.rs`, `msingi/msambazaji.swa` | ~130 |
 | Nyongeza za majaribio | `majaribio/` | ~55 |
-| **Jumla** | **Faili 7** | **~270** |
+| **Jumla** | **Faili ~15** | **~800** |
 
 ---
 
@@ -111,6 +121,14 @@ Kuhifadhi thamani pana kwenye pointee finyu kunahitaji `trunc`. Kuhifadhi thaman
 ### 5.5 Upakiaji wa Windows PE na sehemu kubwa za BSS
 
 Safu za ulimwengu zenye ukubwa wa BSS juu ya ~2 MB zinaanguka kabla ya `main` kwenye Windows. Inaweza kuwa suala la CRT au kikomo cha sehemu ya PE. Kwenye Linux na ELF, safu kubwa hushughulikiwa bila tatizo.
+
+### 5.6 CFG: Taarifa za udhibiti zinahitaji ushughulikiaji makini wa mwendelezo
+
+Baada ya taarifa ya `kama`, block ya sharti ya `BrCond` haipaswi kuwa kiungo cha mwendelezo kwa taarifa inayofuata. `actual_prev` lazima ifuatilie block ya kuunganisha (`merge`). Kukosa kufanya hivyo kunasababisha msimbo usio na marejeleo (dead code) kwenye CFG na vitanzi vya kujirudia visivyo na mwisho.
+
+### 5.7 Alloca za vigeu vya ndani lazima ziwe kwenye block ya kuingia
+
+LLVM inatarajia alloca zote za vigeu vya ndani ziwe kwenye block ya kuingia ya kazi. Kutoa alloca kwenye block ya kitanzi kunasababisha kila mzunguko kugawa nafasi mpya ya rafu bila kuzirejesha. Hii inaisha kwa uharibifu wa rafu (SIGSEGV). Suluhisho ni mbinu ya kupitisha mara mbili: (1) tembea AST mapema kukusanya matamko yote ya vigeu, (2) toa alloca zote kwenye block ya kuingia kabla ya mwili wowote kuchakatwa.
 
 ---
 
@@ -155,22 +173,33 @@ Iliongeza utambuzi wa `tenga` -> HeapAlloc, `achilia` -> HeapFree, `badili` -> r
 - Shabaha nyingi: ARM, AArch64, RISC-V
 - CLI: `--tokens` na `--check`
 
-### 6.7 Masuala Yanayobaki (Juni 30, 2026 — Masuala 3 ya awali yamerekebishwa)
+### 6.7 Masuala Yanayobaki (Julai 4, 2026 — Masuala 5 ya awali yamerekebishwa)
 
 - ~~Mchanganuzi wa kujikusanya unakwama kwenye vigezo 2+~~ — IMEREKEBISHWA (mnyororo wa vigezo)
 - ~~Ufisadi wa `urefu` wa O1~~ — IMEREKEBISHWA (bendera ya `--opt`)
 - ~~Ugawaji wa muundo haujatekelezwa~~ — IMEREKEBISHWA (MemCopy katika lower.rs NA mteremko.swa)
+- ~~Alloca-in-loop (SIGSEGV kwenye binary ya kujikusanya)~~ — IMEREKEBISHWA (kupitisha mara mbili kwenye lower.rs)
 
-**Kizuizi kipya kikuu:** K6 — jaribio la kujikusanya kamili linaandika binary inayoanguka (SIGSEGV) kabla ya kutoa matokeo yoyote.
-Mkusanyaji wa Rust unafaulu kukusanya stage1.swa hadi IR na faili la kitu, lakini binary inayotokana inaanguka wakati wa utekelezaji.
-Hitilafu za codegen za msingi katika mwisho wa LLVM wa mkusanyaji wa Rust zinahitaji kutafitiwa.
+**Kizuizi kipya kikuu:** Baada ya kurekebisha alloca-in-loop, SIGSEGV imeondolewa. Binary ya kujikusanya sasa inaendelea hadi kwenye hitilafu ya mchanganuzi: `unexpected token on line 1` (kwenye `}`). Hitilafu hii ilikuwa ipo awali lakini ilifichwa na SIGSEGV. Mkusanyaji wa Rust unafaulu kukusanya stage1.swa hadi IR na faili la kitu, binary inajenga na kuanza kutekelezwa, lakini mchanganuzi unashindwa kuchanganua msimbo wake mwenyewe. Uchunguzi zaidi unahitajika ili kubaini kama hitilafu iko kwenye codegen ya Rust au kwenye mantiki ya mchanganuzi yenyewe.
 
-### 6.8 Mafanikio ya Juni 30, 2026
+### 6.8 Mafanikio ya Julai 4, 2026
 
-- **K5:** MemCopy imeongezwa katika kiteremshaji cha kujikusanya (mteremko.swa):
-  - `ukubwa_muundo()` — kokotoa ukubwa wa baiti kwa aina yoyote
-  - `nakili_muundo()` — toa `@llvm.memcpy` kwa kunakili miundo
-  - `sret_vid_sasa` — kielekezi cha sret kwa kazi zinazorudisha miundo
-  - Ugawaji wa muundo, uanzishaji, na urejeshaji vyote vinatumia MemCopy
-- **lower.rs:** Rekebisho la msururu wa `kama-sivyo` katika `lower_block` na `lower_if`
-- **K6:** Jaribio kamili la kujikusanya limeandikwa (limezimwa kwa sasa)
+- **Alloca-in-loop (SIGSEGV imerekebishwa):**
+  - Mbinu ya kupitisha mara mbili katika `src/ir/lower.rs`:`lower_function`
+  - `collect_local_decls` — mbinu mpya inayotembea AST kukusanya matamko yote ya vigeu vya ndani
+  - `pre_allocated_locals` — ramani ya `HashMap<i32, ValueId>` kwa alloca zilizotanguliwa
+  - Alloca zote za vigeu vya ndani sasa zinatolewa kwenye block ya kuingia kabla ya mwili kuchakatwa
+  - `lower_local_decl` inatumia alloca iliyotanguliwa badala ya kutoa Alloca mpya
+  - `collect_constants` imeboreshwa kushughulikia `AST_KWELI`, `AST_UONGO`, na `AST_TUPU`
+  - Binary ya kujikusanya hai-SIGSEGV tena; inaendelea hadi kwenye hitilafu ya mchanganuzi tofauti
+- **BrCond katika ufuatiliaji wa actual_prev:**
+  - Mnyororo wa ufuatiliaji wa block sasa unashughulikia BrCond kwa block ya kuunganisha
+  - Hii inahakikisha ushughulikiaji sahihi wa mtiririko wa udhibiti baada ya taarifa za `kama`
+- **Marekebisho ya mchanganuzi (4ddb448):**
+  - Mnyororo wa `ast_nne` katika `src/parser/mod.rs` — tembea hadi mwisho kabla ya kuongeza nodi mpya
+  - Ulinzi wa `t->urefu == 0` mwanzoni mwa `neno_ni` kuzuia kitanzi kisicho na mwisho kwenye EOF
+  - Uainishaji wa ASCII maeneo 49 katika `msambazaji.swa` — herufi `[` na `]` sasa zinashughulikiwa kama vihusishi
+  - `StoreTyped` sasa inahakiki aina lengwa ni nambari kamili kabla ya kuita `LLVMGetIntTypeWidth`
+  - Const inatumia aina sahihi ya chaguo-msingi kwa Bool (i1), NullPtr (ptr), na Float (double)
+- **Majaribio 172 yanapita:** 144 ya usomaji/uchanganuzi/IR + 27 ya ujumuishaji + 1 wa nyaraka
+- **K6:** Binary inaendelea na hai-SIGSEGV; ina hitilafu tofauti ya mchanganuzi inayohitaji uchunguzi

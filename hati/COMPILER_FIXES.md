@@ -1,6 +1,6 @@
 # Marekebisho ya Mkusanyaji: Bootstrap ya Kujikusanya
 
-Wakati wa juhudi za kufanya mkusanyaji wa Rust wa kande uweze kujikusanya (kujikusanya yenyewe), hitilafu sita za usahihi ziligunduliwa na kurekebishwa. Hati hii inaelezea kila hitilafu kwa usahihi — ilipoishi, nini kiliharibika, jinsi ilivyojitokeza, na jinsi ilivyorekebishwa.
+Wakati wa juhudi za kufanya mkusanyaji wa Rust wa kande uweze kujikusanya (kujikusanya yenyewe), hitilafu tisa za usahihi ziligunduliwa na kurekebishwa. Hati hii inaelezea kila hitilafu kwa usahihi — ilipoishi, nini kiliharibika, jinsi ilivyojitokeza, na jinsi ilivyorekebishwa.
 
 ---
 
@@ -118,6 +118,79 @@ Fikiria `N32 ast_aina[2048]` — safu ya nambari kamili za baiti nne 2048 (jumla
 
 ---
 
+## 8. Msimbo Baada ya Kama Hauwiani kwenye CFG — Ufuatiliaji wa `actual_prev` Unakosa `BrCond`
+
+**Faili:** `src/ir/lower.rs`
+
+**Hitilafu.** Katika `lower_block`, baada ya kutekeleza `lower_if`, kitanzi cha taarifa kiliunganisha taarifa inayofuata moja kwa moja kutoka kwa block iliyorudishwa na `lower_if`. Kabla ya marekebisho, `lower_if` ilirudisha `merge_blk` — block ya kuunganisha baada ya sharti na mwili wa `kama`. Hii ilifanya taarifa inayofuata ianze kutoka kwenye block ya kuunganisha, ambayo ilikuwa sahihi kwa mtiririko.
+
+Lakini tatizo kubwa zaidi lilikuwa kwamba `lower_if` ilirudisha `cond_blk` baada ya kubadilisha muundo (marekebisho ya 8a), na `lower_block` haikuwa na mantiki ya kufuatilia block halisi ya mwendelezo. Baada ya sharti la `BrCond`, block inayofuata katika mnyororo inapaswa kuwa `merge_blk` (block ya kuunganisha), si `cond_blk` (block ya sharti). Bila ufuatiliaji huu, taarifa baada ya `kama` ilikuwa haiwezi kufikiwa kutoka kwenye njia za `then` na `else`, na block ya sharti ilianguka moja kwa moja kwenye taarifa inayofuata bila kupitia `merge_blk`.
+
+Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (kitanzi cha kujirudia) havikuwa na urekebishaji wa kutosha. Baada ya kazi kukamilika, block iliyokuwa na kituo cha `Br(self)` ilibaki kwenye mzunguko usio na mwisho badala ya kurejea kwa `RetVoid` au `Ret` sahihi.
+
+**Marekebisho.**
+
+1. **`lower_if` inarudisha `cond_blk` badala ya `merge_blk`**:
+   - `lower_block` sasa inaunganisha kianzio cha kitalu → block ya sharti, si kianzio → block ya kuunganisha.
+   - Hii inahakikisha kwamba sharti linatathminiwa kabla ya mwili wowote wa `kama` au `sivyo`.
+
+2. **`lower_block` inafuatilia `actual_prev` kutoka `BrCond`**:
+   ```rust
+   let actual_prev = match &self.func.blocks[stmt_blk.0].terminator {
+       Terminator::BrCond(_, _, merge) => *merge,
+       _ => stmt_blk,
+   };
+   ```
+   Baada ya `kama`, taarifa inayofuata inaunganishwa kutoka `merge_blk`, si kutoka `cond_blk`. Hii inazuia msimbo usio na marejeleo (dead code) na inahakikisha mtiririko sahihi wa CFG.
+
+3. **Urekebishaji wa kituo cha kujirudia (self-loop)**:
+   Vitalu vyenye `Br(jikite)` hubadilishwa wakati wa ukamilishaji wa kazi:
+   - Kwa kazi za `W0` (void): badilisha kwa `RetVoid`
+   - Kwa kazi zenye thamani ya kurudi: badilisha kwa `Ret(0)` (thamani chaguo-msingi)
+   Hii inahakikisha hakuna block iliyoachwa kwenye kitanzi kisicho na mwisho.
+
+**Athari.** Marekebisho haya yalirekebisha utiririkaji wa udhibiti baada ya taarifa za `kama`. Kabla ya marekebisho, mchanganuzi wa kujikusanya ulizalisha CFG isiyo sahihi ambapo taarifa baada ya `kama` haikuwiani vizuri, na msimbo uliokuwa nyuma ya sharti ulikuwa msimbo uliokufa kwa sehemu. Pia ulirekebisha tabia ya kazi kukwama kwenye vitanzi visivyo na mwisho badala ya kurejea ipasavyo.
+
+---
+
+## 9. Alloca-in-Loop Inamaliza Rafu — Alloca za Vigeu vya Ndani Zinapaswa Kuwa kwenye Kitalu cha Kuingia
+
+**Faili:** `src/ir/lower.rs`
+
+**Hitilafu.** Mbinu ya `lower_local_decl` ilikuwa ikitoa alloca (nafasi ya rafu) kwa vigeu vya ndani kwenye block ya sasa ya kuteremsha. Kwa mpangilio wa mstari, hii inafanya kazi kwa usahihi — kila kigezo kina alloca yake kwenye block moja. Lakini ndani ya kitanzi (`wakati`), kila mzunguko uligawa *alloca mpya* kwenye block ya kitanzi, na alloca za zamani hazikuwekwa huru. Baada ya takriban mizunguko 524,288, rafu ya MB 8 iliisha na kugonga ukurasa wa ulinzi, na kusababisha SIGSEGV.
+
+Uchunguzi wa gdb ulionyesha kuanguka kwenye `changanua()+54`:
+```
+movl %r11d, -0x10(%rax)    # jaribu kuandika kwenye ukurasa wa ulinzi
+```
+
+Rejesta zilionyesha:
+- `rdx` = 36797 (anwani ya kianzio cha kuanguka inatarajiwa ndogo zaidi)
+- `i` = 36794 (faharisi ya elementi — inapaswa kuwa 0 kwa tokeni ya kitambulisho kimoja)
+- Tofauti 36794 = 36797 − 3 ilionyesha kwamba urefu wa tokeni ulikuwa umeharibika
+
+Chanzo cha msingi: Kila mzunguko wa kitanzi cha `wakati` katika `changanua()` uligawa baiti 16 za alloca kwa vigeu vya ndani kwenye block ya kitanzi, na alloca hizi hazikuwekwa huru wakati mzunguko ulipomalizika. Rafu ilikua hadi ikagonga ukurasa wa ulinzi.
+
+**Marekebisho.** Suluhisho linatumia mbinu ya kupitisha mara mbili katika `lower_function`:
+
+1. **Kupitisha awali (pre-pass) — `collect_local_decls`**: Mbinu mpya inatembea AST ya mwili wa kazi na kukusanya nodi zote za `AST_TANGAZO` (matamko ya vigeu vya ndani) pamoja na aina zao zilizotatuliwa. Inajirudia kupitia `kushoto`, `kulia`, `tatu`, na `nne` ili kupata matamko yaliyowekwa ndani.
+
+2. **Utoaji wa alloca mapema**: Baada ya kupitisha awali, `lower_function` inatoa Alloca kwa kila kigezo cha ndani kwenye *block ya kuingia* (entry block) — kabla ya mwili wowote kuchakatwa. Hii inahakikisha kwamba alloca zote za vigeu vya ndani ziko kwenye block ya kuingia, ambako zinatolewa mara moja tu kwa mzigo wote wa kazi. Ramani ya `pre_allocated_locals: HashMap<i32, ValueId>` inahifadhi uhusiano kati ya faharisi ya nodi ya AST na alloca ValueId.
+
+3. **`lower_local_decl` inatumia alloca iliyotanguliwa**: Badala ya kutoa `Instruction::Alloca` mpya, `lower_local_decl` sasa inaangalia ramani ya `pre_allocated_locals` na kutumia ValueId iliyotengwa mapema. Kwa miundo ya sret, inaendelea kutumia kielekezi cha sret moja kwa moja (hakuna alloca ya ziada inayohitajika).
+
+4. **Uboreshaji wa `collect_constants`**: Kupitisha awali pia kuliboresha `collect_constants` ili kushughulikia `AST_KWELI` (Bool true), `AST_UONGO` (Bool false), na `AST_TUPU` (NullPtr) kwa kuweka constants zao kwenye `intern_const`, na kuhakikisha constants hizi hazijakosa wakati wa uteuzi wa kabla ya utoaji wa alloca.
+
+5. **BrCond kwenye ufuatiliaji wa `actual_prev`**: Katika mnyororo wa ufuatiliaji wa block (sehemu ya utaratibu wa `actual_prev`), sasa `BrCond` inafuatiliwa kwa block ya kuunganisha (`merge`):
+   ```rust
+   Terminator::BrCond(_, _, merge) if *merge != b => { b = *merge; }
+   ```
+   Hii inahakikisha kwamba wakati block ina kituo cha masharti, ufuatiliaji unaendelea kutoka kwenye block ya kuunganisha badala ya kukwama.
+
+**Athari.** Marekebisho haya yalirekebisha hitilafu ya SIGSEGV kwenye jaribio la K6 (kujikusanya kamili). Kabla ya marekebisho, binary ya kujikusanya ilianguka mara moja kwa SIGSEGV wakati wa kutekelezwa kwa sababu rafu iliisha ndani ya kitanzi cha `changanua()`. Baada ya marekebisho, binary inaendesha hadi kwenye hitilafu ya uchanganuzi tofauti (tokeni iliyobaki ya `}`), ikionyesha kuwa tatizo la msingi la alloca-in-loop limetatuliwa. Mbinu ya kupitisha mara mbili pia inahakikisha usawa wa ValueId — kwa kuwa alloca zote zinatolewa kabla ya mwili, nambari za ValueId kwenye IR hazibadiliki wakati wa utekelezaji.
+
+---
+
 ## Muhtasari
 
 | # | Hitilafu | Faili | Dalili | Sababu Kuu |
@@ -129,3 +202,5 @@ Fikiria `N32 ast_aina[2048]` — safu ya nambari kamili za baiti nne 2048 (jumla
 | 5 | width_bytes ya muundo inakosa padding | `src/ir/types.rs` | Allocas za sret ndogo sana | Hakuna padding ya mpangilio wa mwisho |
 | 6 | Safu za ulimwengu zimeainishwa kama [N×i8] | `src/ir/mod.rs`, `lower.rs`, `llvm/mod.rs` | Vigezo vya karibu vya ulimwengu vimeharibika | IrGlobal ilikosa sehemu ya aina |
 | 7 | Opaque pointer inaharibu usawazishaji wa hifadhi | `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs` | Hitilafu za sehemu nasibu, ulinganifu wa tokeni unashindwa | LLVMGetElementType haiaminiki na opaque pointers |
+| 8 | Msimbo baada ya kama hauwiani kwenye CFG | `src/ir/lower.rs` | Taarifa baada ya kama ni msimbo uliokufa, vitanzi vya kujirudia | actual_prev haikufuatilia BrCond; self-loop haikurekebishwa |
+| 9 | Alloca-in-loop inamaliza rafu | `src/ir/lower.rs` | SIGSEGV kwenye kitanzi cha wakati (rafu inaisha) | Alloca za vigeu vya ndani zinatolewa kwenye block ya sasa badala ya block ya kuingia |

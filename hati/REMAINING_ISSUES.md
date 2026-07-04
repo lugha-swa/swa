@@ -4,7 +4,34 @@ Hati hii inafuatilia hitilafu zinazojulikana, vizuizi, na hatua zinazofuata kwa 
 
 ---
 
-## 1. Hitilafu ya Uboreshaji wa O1 (Less) — Ufisadi wa Urefu wa `tokeni_soma_kitambulisho`
+## 1. Hitilafu ya Mchanganuzi wa Kujikusanya — Tokeni Iliyobaki Baada ya Uchanganuzi (Iliyofichwa na SIGSEGV)
+
+### Hali: **K6 binary haianguki tena, lakini mchanganuzi hauchanganuzi kwa mafanikio**
+
+### Muhtasari
+
+K6 (jaribio la kujikusanya kamili) lilipata SIGSEGV kwa sababu ya alloca-in-loop. Baada ya kurekebisha alloca-in-loop, SIGSEGV imeondolewa, lakini hitilafu mpya imejitokeza: mchanganuzi wa kujikusanya unashindwa kuchanganua pembejeo yake mwenyewe na kuripoti:
+
+```
+unexpected token on line 1
+```
+
+Uchunguzi unaonyesha kwamba mchanganuzi unashindwa kwa `}` (c0=125) kwenye mstari 1. Hitilafu hii ilikuwa ipo kabla ya marekebisho ya alloca-in-loop lakini ilifichwa na SIGSEGV iliyotokea mapema. Kwa kuwa binary sasa hai-SIGSEGV tena, hitilafu hii ya awali imejitokeza.
+
+### Sababu Inayowezekana
+
+Hitilafu hii inafanana na hitilafu iliyojulikana ya "tokeni iliyobaki" (iliyoelezwa hapo awali kama kesi ya pembeni ya mchanganuzi). Mchanganuzi hauonyeshi mabano ya kufunga `}` (au tokeni nyingine ya mwisho), hivyo kitanzi cha kiendeshi kinapata tokeni iliyopotea baada ya uchanganuzi kukamilika kimantiki. Hata hivyo, katika muktadha wa K6, hitilafu inaonekana kutokea mapema zaidi wakati wa kuchanganua msomaji au mchanganuzi wenyewe, ikionyesha kuwa kunaweza kuwa na tofauti katika ushughulikiaji wa tokeni kati ya binary ya kujikusanya na binary ya Rust.
+
+### Kinachohitajika Kufanywa
+
+1. Tumia utatuzi wa gdb au utoaji wa LLVM IR kuchunguza ni kwa nini mchanganuzi wa kujikusanya unashindwa kwenye `}`.
+2. Linganisha tabia ya mchanganuzi kati ya utekelezaji wa binary ya kujikusanya na jaribio la `test_parse_simple.swa` (ambalo linafanya kazi).
+3. Fikiria kama hitilafu iko kwenye mwisho wa LLVM wa mkusanyaji wa Rust (codegen) au kwenye mchanganuzi wa Swa wenyewe.
+4. Angalia ikiwa tatizo linahusiana na ugawaji wa muundo (sret) au mpangilio wa kumbukumbu katika binary ya kujikusanya.
+
+---
+
+## 2. Hitilafu ya Uboreshaji wa O1 (Less) — Ufisadi wa Urefu wa `tokeni_soma_kitambulisho`
 
 ### Hali: **Imevunjika kwenye O1, inafanya kazi kwenye O0**
 
@@ -51,7 +78,7 @@ FastISel inadondosha vitalu vya msingi kimya kupita takriban 50 kwa kila kazi. M
 
 ---
 
-## 2. Kizuizi cha Ukubwa wa Safu — BSS > ~47KB Inaanguka kwenye Uanzishaji
+## 3. Kizuizi cha Ukubwa wa Safu — BSS > ~47KB Inaanguka kwenye Uanzishaji
 
 ### Hali: **Haijatatuliwa — pengine maalum kwa Windows**
 
@@ -80,7 +107,7 @@ Wakati safu za bwawa la AST ni ndogo (elementi 512, ~32 KB `ast_pool`), binary y
 
 ---
 
-## 3. Kesi za Pembeni za Mchanganuzi wa Kujikusanya
+## 4. Kesi za Pembeni za Mchanganuzi wa Kujikusanya
 
 ### Hali: **Inafanya kazi kwa sehemu**
 
@@ -116,7 +143,7 @@ Hili ni suala la tokeni iliyobaki: mchanganuzi hautumii mabano ya kufunga `}` (a
 
 ---
 
-## 4. Mgawanyo wa Kazi kwa O0 — Kikomo cha Block cha FastISel
+## 5. Mgawanyo wa Kazi kwa O0 — Kikomo cha Block cha FastISel
 
 ### Hali: **Suluhisho la muda lipo, udhaifu unabaki**
 
@@ -141,7 +168,7 @@ Ikiwa kazi yoyote — baada ya marekebisho ya baadaye au vipengele vipya — ita
 
 ---
 
-## 5. Hatua Zinazofuata (Mpangilio wa Kipaumbele — Imesasishwa Juni 30, 2026)
+## 6. Hatua Zinazofuata (Mpangilio wa Kipaumbele — Imesasishwa Julai 4, 2026)
 
 | Kipaumbele | Kazi | Hali |
 |----------|------|--------|
@@ -152,5 +179,6 @@ Ikiwa kazi yoyote — baada ya marekebisho ya baadaye au vipengele vipya — ita
 | K3 | Tatua kesi ya pembeni ya tokeni iliyobaki | Imekamilika — heuristics za ASCII zimerekebishwa maeneo 48 katika msambazaji.swa. |
 | K4 | Ongeza utambuzi wa kudondosha kwa block ya FastISel | Imekamilika — onyo linatolewa kwa kazi 30 zinazozidi vitalu 40. |
 | K5 | Rekebisha ugawaji wa muundo katika kuteremshaji | Imekamilika — MemCopy imeongezwa katika lower.rs (Rust) NA mteremko.swa (kujikusanya). |
-| K6 | Kujikusanya kamili (kusanya + unganisha + endesha) | Jaribio limeandikwa lakini binary inaanguka (SIGSEGV). Hitilafu za codegen za mkusanyaji wa Rust zinahitaji kutafitiwa. |
-| K7 | Tafiti hitilafu ya codegen inayosababisha K6 kuanguka | Bado wazi. Binary inaanguka kabla ya main() au mapema sana. Hakuna stdout/stderr. |
+| K6 | Rekebisha alloca-in-loop (SIGSEGV katika binary ya kujikusanya) | **Imekamilika** — mbinu ya kupitisha mara mbili katika lower.rs inatoa alloca zote za vigeu vya ndani kwenye block ya kuingia. Binary hai-SIGSEGV tena. |
+| K7 | Tafiti hitilafu ya mchanganuzi ya `}` katika binary ya kujikusanya | Bado wazi. Binary inaendelea hadi kwenye hitilafu ya uchanganuzi (tokeni iliyobaki). Ilifichwa hapo awali na SIGSEGV. Inahitaji uchunguzi wa kina wa utekelezaji wa mchanganuzi. |
+| K8 | Jaribio kamili la kujikusanya (K6 limewekwa upya) | Limewekwa upya baada ya alloca-in-loop kurekebishwa. Hitilafu ya mchanganuzi wa kujikusanya lazima itatuliwe kabla ya K6 kufaulu. |

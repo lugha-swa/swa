@@ -132,6 +132,8 @@ W0 sogeza(Msambazaji* p) {
     p->sasa.aina = p->inayofuata.aina;
     p->sasa.mwanzo = p->inayofuata.mwanzo;
     p->sasa.urefu = p->inayofuata.urefu;
+    p->sasa.mstari = p->inayofuata.mstari;
+    p->sasa.safu = p->inayofuata.safu;
     tokeni_inayofuata(&p->inayofuata, &p->msomaji);
 }
 
@@ -623,8 +625,6 @@ N32 changanua_kazi_vigezo(Msambazaji* p) {
 
     N8 bc0 = p->sasa.mwanzo[0];
     kama (bc0 == 123) { sogeza(p); }
-    N8 bc1 = p->sasa.mwanzo[0];
-    kama (bc1 == 123) { sogeza(p); }
     rudisha vigezo_kwanza_global;
 }
 
@@ -726,6 +726,14 @@ N32 changanua_primary(Msambazaji* p) {
             kama (operand == -1) { rudisha -1; }
             rudisha node_mpya(AST_SI, 0, operand, -1);
         }
+    }
+
+    // Prefix unary minus  -expr
+    kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, "-")) {
+        sogeza(p);
+        N32 operand = changanua_primary(p);
+        kama (operand == -1) { rudisha -1; }
+        rudisha node_mpya(AST_TOFAUTI, 0, -1, operand);
     }
 
     // sizeof(expr) -- builtin size query (ukubwa is the keyword)

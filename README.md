@@ -26,10 +26,11 @@ hesabu_na_onyesha(15, 7);
 
 - **Maneno muhimu 57** ya Kiswahili — hakuna Kiingereza katika sintaksia
 - **Kujitegemea** — mkusanyaji umeandikwa kwa Swa yenyewe (bootstrap)
-- **LLVM backend** — inatoa msimbo wa mashine wa majukwaa mbalimbali
+- **LLVM backend** — inatoa msimbo wa mashine wa majukwaa mbalimbali (x86, ARM, AArch64, RISC-V)
 - **Mfumo wa aina tuli** — aina 25 za nambari kwa usahihi kamili (N8 hadi N128, A8 hadi A128, D16 hadi D80, B1 hadi B64, W0 hadi W64)
-- **Kumbukumbu ya moja kwa moja** — tenga na achilia kumbukumbu wewe mwenyewe, hakuna ukusanyaji taka
+- **Kumbukumbu ya moja kwa moja** — tenga, achilia na badili kumbukumbu wewe mwenyewe, hakuna ukusanyaji taka
 - **ABI thabiti** — Swa ABI v1.0 kwa mwingiliano wa lugha
+- **Hali ya sasa**: Majaribio 172 yanapita (144 ya maktaba + 27 ya ujumuishaji + 1 wa nyaraka). Alloca-in-loop imerekebishwa. K6 (kujikusanya kamili) inasubiri uchunguzi zaidi.
 
 ## Muundo wa Mradi
 
@@ -42,13 +43,13 @@ hesabu_na_onyesha(15, 7);
 ## Kujenga
 
 **Mahitaji:**
-- LLVM 18 (C API)
+- LLVM 18+ (C API) — imejaribiwa kwenye LLVM 22.1 (Arch Linux) na LLVM 18 (Windows)
 - Rust (toleo jipya zaidi)
 - GCC au Clang (kwa kiunganishi)
 
 ```sh
 cargo build --release
-cargo test
+cargo test          # Majaribio 172: 144 ya maktaba + 27 ya ujumuishaji + 1 wa nyaraka
 ```
 
 ## Matumizi

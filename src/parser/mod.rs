@@ -380,9 +380,8 @@ impl<'a> Parser<'a> {
                 while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
             }
             if self.tokeni_ni("}") { self.sogeza(); }
-            let n = self.ast.node_mpya(AST_KIPINDI, 0, init, cond);
+            let n = self.ast.node_mpya(AST_KIPINDI, cond, init, body);
             self.ast.tiga[n as usize] = step;
-            self.ast.nne[n as usize] = body;
             return n;
         }
 

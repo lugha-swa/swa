@@ -161,6 +161,12 @@ struct Lowerer<'a> {
     /// Monotonically increasing block-id counter used for fresh labels.
     block_counter: usize,
 
+    /// Pre-allocated stack slots for local variables, keyed by AST_TANGAZO
+    /// node index.  Populated during the pre-pass in lower_function so that
+    /// every alloca lives in the entry block; lower_local_decl then looks up
+    /// the pre-allocated ValueId instead of emitting a new Alloca.
+    pre_allocated_locals: std::collections::HashMap<i32, ValueId>,
+
     /// Types for global variables (for lower_identifier).
     global_types: std::collections::HashMap<String, IrType>,
     /// Optional pre-allocated sret destination for the next struct-return call.
@@ -220,6 +226,7 @@ pub fn lower(
         inst_counter: 0,
         values_initial_len: 0,
         block_counter: 0,
+        pre_allocated_locals: std::collections::HashMap::new(),
         global_types: std::collections::HashMap::new(),
         sret_dest: None,
     };
@@ -656,6 +663,24 @@ impl<'a> Lowerer<'a> {
             self.define_var(pname.clone(), alloc, pty.clone());
         }
 
+        // -- Pre-pass: hoist all local-variable allocas to entry block -----------
+        // Walk the function body AST and collect every AST_TANGAZO node.  Emit
+        // an Alloca into the entry block for each one and record the (node →
+        // ValueId) mapping so that lower_local_decl can reuse the pre-allocated
+        // slot instead of creating a new alloca in the current block.
+        let mut local_decls: Vec<(i32, IrType)> = Vec::new();
+        self.collect_local_decls(body_node, &mut local_decls);
+        for (node, var_ty) in &local_decls {
+            // Skip struct locals when sret is active — lower_local_decl will
+            // reuse the sret pointer directly instead of the alloca slot.
+            let is_sret_struct = matches!(&var_ty, IrType::Struct { .. })
+                && self.func.sret_value_id.is_some();
+            if !is_sret_struct {
+                let alloc = self.emit(entry_id, Instruction::Alloca(var_ty.clone()));
+                self.pre_allocated_locals.insert(*node, alloc);
+            }
+        }
+
         // -- Lower body ---------------------------------------------------------
         let body_node = self.ast_tiga[func_node as usize];
         let body_block_id = self.lower_block(body_node);
@@ -780,18 +805,78 @@ impl<'a> Lowerer<'a> {
         let idx = node as usize;
         if idx >= self.ast_aina.len() { return; }
         let kind = self.ast_aina[idx];
-        if kind == AST_NAMBARI {
-            let val = self.ast_thamani[idx] as i128;
-            self.func.intern_const(Const::Int(val));
-            // Also visit nne: call argument chains use nne, so a literal
-            // may be followed by another argument (e.g. fread(..., 1, 262144)).
-            self.collect_constants(self.ast_nne[idx]);
-            return;
+        match kind {
+            AST_NAMBARI => {
+                let val = self.ast_thamani[idx] as i128;
+                self.func.intern_const(Const::Int(val));
+                // Also visit nne: call argument chains use nne, so a literal
+                // may be followed by another argument (e.g. fread(..., 1, 262144)).
+                self.collect_constants(self.ast_nne[idx]);
+                return;
+            }
+            AST_KWELI => {
+                self.func.intern_const(Const::Bool(true));
+                return;
+            }
+            AST_UONGO => {
+                self.func.intern_const(Const::Bool(false));
+                return;
+            }
+            AST_TUPU => {
+                self.func.intern_const(Const::NullPtr);
+                return;
+            }
+            _ => {}
         }
         self.collect_constants(self.ast_kushoto[idx]);
         self.collect_constants(self.ast_kulia[idx]);
         self.collect_constants(self.ast_tiga[idx]);
         self.collect_constants(self.ast_nne[idx]);
+        // AST_KIPINDI stores its condition expression in ast_thamani
+        // (ast_nne is reserved for the sibling statement chain).
+        if kind == AST_KIPINDI {
+            self.collect_constants(self.ast_thamani[idx]);
+        }
+    }
+
+    /// Walk the AST recursively and collect all `AST_TANGAZO` (local variable
+    /// declaration) nodes together with their resolved types.
+    ///
+    /// This is used during the pre-pass in `lower_function` so that every
+    /// local's `Alloca` instruction can be emitted into the entry block instead
+    /// of the current block, preventing alloca-in-loop stack exhaustion.
+    fn collect_local_decls(&self, node: i32, decls: &mut Vec<(i32, IrType)>) {
+        if node == NO_NODE || node < 0 { return; }
+        let idx = node as usize;
+        if idx >= self.ast_aina.len() { return; }
+        let kind = self.ast_aina[idx];
+        if kind == AST_TANGAZO {
+            // Resolve type using the same logic as lower_local_decl.
+            let var_ty = if self.ast_thamani[idx] != 0 {
+                // Parser format: type encoded in thamani.
+                self.read_type_from_thamani(node)
+            } else {
+                // Test/legacy format: type node in kulia, init in tiga.
+                let type_node = self.ast_kulia[idx];
+                if type_node != NO_NODE && type_node >= 0 {
+                    self.read_type_from_node(type_node)
+                } else {
+                    IrType::I32
+                }
+            };
+            decls.push((node, var_ty));
+            // Do NOT return early — a local decl may have an init expression
+            // that itself contains nested expressions.  Continue recursing.
+        }
+        self.collect_local_decls(self.ast_kushoto[idx], decls);
+        self.collect_local_decls(self.ast_kulia[idx], decls);
+        self.collect_local_decls(self.ast_tiga[idx], decls);
+        self.collect_local_decls(self.ast_nne[idx], decls);
+        // AST_KIPINDI stores its condition expression in ast_thamani
+        // (ast_nne is reserved for the sibling statement chain).
+        if kind == AST_KIPINDI {
+            self.collect_local_decls(self.ast_thamani[idx], decls);
+        }
     }
 
     /// Lower a statement node (or an expression used as a statement).
@@ -872,6 +957,7 @@ impl<'a> Lowerer<'a> {
                     loop {
                         match &self.func.blocks[b.0].terminator {
                             Terminator::Br(t) if *t != b => { b = *t; }
+                            Terminator::BrCond(_, _, merge) if *merge != b => { b = *merge; }
                             _ => break,
                         }
                     }
@@ -1078,14 +1164,16 @@ impl<'a> Lowerer<'a> {
     ///
     /// Layout:
     /// * `ast_kushoto[node]` → initialiser
-    /// * `ast_kulia[node]`   → condition
+    /// * `ast_kulia[node]`   → loop body (kulia avoids ast_nne conflict with statement chaining)
     /// * `ast_tiga[node]`    → step expression
-    /// * `ast_nne[node]`     → loop body
+    /// * `ast_nne[node]`     → condition (nne is safe since a simple expression has ast_nne = NO_NODE)
     fn lower_for(&mut self, node: i32) -> BlockId {
         let init_node = self.ast_kushoto[node as usize];
-        let cond_node = self.ast_kulia[node as usize];
+        let body_node = self.ast_kulia[node as usize];
         let step_node = self.ast_tiga[node as usize];
-        let body_node = self.ast_nne[node as usize];
+        // cond is stored in ast_thamani (not ast_nne!) because ast_nne
+        // is reserved for the sibling chain used by lower_block.
+        let cond_node = self.ast_thamani[node as usize];
 
         let init_blk = if init_node != NO_NODE && init_node >= 0 {
             self.lower_stmt(init_node)
@@ -1128,7 +1216,28 @@ impl<'a> Lowerer<'a> {
 
         // Body.
         let body_end = self.lower_block(body_node);
-        self.set_terminator(body_end, Terminator::Br(step_blk));
+        self.set_terminator(body_blk, Terminator::Br(body_end));
+
+        // Walk the body chain to find the last block and wire it to step_blk.
+        let mut last = body_end;
+        loop {
+            let term = &self.func.blocks[last.0].terminator;
+            match term {
+                Terminator::Br(target) if *target != last => {
+                    last = *target;
+                }
+                Terminator::Br(_) => {
+                    break;
+                }
+                Terminator::BrCond(_, _, merge) => {
+                    last = *merge;
+                }
+                _ => {
+                    break;
+                }
+            }
+        }
+        self.ensure_br(last, step_blk);
 
         // Step.
         let step_end = if step_node != NO_NODE && step_node >= 0 {
@@ -1136,7 +1245,28 @@ impl<'a> Lowerer<'a> {
         } else {
             step_blk
         };
-        self.set_terminator(step_end, Terminator::Br(header_blk));
+        // Wire the step label block to the step entry (self-loop if no step).
+        self.set_terminator(step_blk, Terminator::Br(step_end));
+        // Walk the step chain to find the last block and wire it to header_blk.
+        let mut last_step = step_end;
+        loop {
+            let term = &self.func.blocks[last_step.0].terminator;
+            match term {
+                Terminator::Br(target) if *target != last_step => {
+                    last_step = *target;
+                }
+                Terminator::Br(_) => {
+                    break;
+                }
+                Terminator::BrCond(_, _, merge) => {
+                    last_step = *merge;
+                }
+                _ => {
+                    break;
+                }
+            }
+        }
+        self.ensure_br(last_step, header_blk);
 
         self.loops.pop();
         header_blk
@@ -1219,12 +1349,16 @@ impl<'a> Lowerer<'a> {
 
         // If this is the return-value struct of an sret function, use the
         // sret pointer directly instead of allocating a local slot.
+        // Otherwise, look up the alloca that was pre-emitted into the entry
+        // block by lower_function's pre-pass — this prevents alloca-in-loop
+        // (every iteration of a loop would otherwise create a fresh alloca,
+        // exhausting the stack).
         let alloc = if matches!(&var_ty, IrType::Struct { .. })
             && self.func.sret_value_id.is_some()
         {
             self.func.sret_value_id.unwrap()
         } else {
-            self.emit(blk, Instruction::Alloca(var_ty.clone()))
+            self.pre_allocated_locals[&node]
         };
 
         // Evaluate initialiser and store.
@@ -1724,6 +1858,13 @@ impl<'a> Lowerer<'a> {
             let sret_alloca = if let Some(dest) = self.sret_dest.take() {
                 dest
             } else {
+                // Emit into the current block.  We cannot emit into the entry
+                // block here because inst_counter would assign a ValueId that
+                // does not match the backend's block-iteration order (the
+                // backend assigns low ValueIds to entry-block instructions).
+                // This is a rare path — it only fires when a struct-return
+                // call has no pre-existing sret_dest, which does not occur
+                // inside loops in the self-hosted code.
                 self.emit(current_block, Instruction::Alloca(struct_ty.clone()))
             };
             let mut sret_args = vec![sret_alloca];
@@ -3134,6 +3275,7 @@ mod tests {
             inst_counter: 0,
         values_initial_len: 0,
             block_counter: 0,
+            pre_allocated_locals: std::collections::HashMap::new(),
             global_types: std::collections::HashMap::new(),
             sret_dest: None,
         };
@@ -3163,6 +3305,7 @@ mod tests {
             inst_counter: 0,
         values_initial_len: 0,
             block_counter: 0,
+            pre_allocated_locals: std::collections::HashMap::new(),
             global_types: std::collections::HashMap::new(),
             sret_dest: None,
         };
@@ -3195,6 +3338,7 @@ mod tests {
             inst_counter: 0,
         values_initial_len: 0,
             block_counter: 0,
+            pre_allocated_locals: std::collections::HashMap::new(),
             global_types: std::collections::HashMap::new(),
             sret_dest: None,
         };
@@ -3225,6 +3369,7 @@ mod tests {
             inst_counter: 0,
         values_initial_len: 0,
             block_counter: 0,
+            pre_allocated_locals: std::collections::HashMap::new(),
             global_types: std::collections::HashMap::new(),
             sret_dest: None,
         };
