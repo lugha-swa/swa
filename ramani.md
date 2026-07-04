@@ -60,7 +60,7 @@
 
 ## Jinsi ya Kuchangia
 
-Angalia [`CONTRIBUTING.md`](CONTRIBUTING.md). Masuala yenye lebo `good-first-issue` ni mahali pazuri pa kuanzia.
+Angalia [`changia.md`](changia.md). Masuala yenye lebo `good-first-issue` ni mahali pazuri pa kuanzia.
 
 ## Vipaumbele vya Sasa (Julai 2026)
 
