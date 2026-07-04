@@ -426,14 +426,19 @@ N32 changanua_taarifa_kwa(Msambazaji* p) {
                 kama (neno_ni(&p->sasa, "(")) { sogeza(p); }
             }
 
-            // init (expression or empty)
+            // init (declaration, expression, or empty)
             N32 init = -1;
             kama (p->sasa.mwanzo[0] == 59) {
-                sogeza(p);
+                sogeza(p);  // empty init: for (; cond; step)
             } sivyo {
-                init = changanua_usemi(p);
-                kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
-                    kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
+                // Try local declaration first (e.g. N32 i = 0)
+                init = changanua_taarifa_tangazo(p);
+                kama (init == -1) {
+                    // Try expression (e.g. i = 0)
+                    init = changanua_usemi(p);
+                    kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
+                        kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
+                    }
                 }
             }
 
