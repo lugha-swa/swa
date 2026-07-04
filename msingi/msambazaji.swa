@@ -1228,6 +1228,15 @@ N32 changanua_kazi(Msambazaji* p) {
     N32 params = changanua_kazi_vigezo(p);
     N32 body = changanua_kazi_mwili(p);
 
+    // Forward declaration: body == -1 means no '{' was found.
+    // Consume the trailing ';' so it doesn't leak to the top level.
+    kama (body == -1) {
+        kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
+            kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
+        }
+        kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, ";")) { sogeza(p); }
+    }
+
     N32 func = node_mpya(AST_KAZI, ret_aina, name_node, params);
     ast_tiga[func] = body;
     kama (params != -1) { ast_kulia[name_node] = params; }
