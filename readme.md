@@ -88,9 +88,9 @@ Tunawakaribisha wachangiaji wote! Hata kama hujui Kiswahili, unaweza kuchangia
 kwa kujifunza lugha yetu tukufu na kusaidia kujenga mkusanyaji wa kwanza wa
 Kiswahili duniani.
 
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** -- Jinsi ya kuchangia
-- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** -- Kanuni za maadili
-- **[ROADMAP.md](ROADMAP.md)** -- Ramani ya mradi
+- **[changia.md](changia.md)** -- Jinsi ya kuchangia
+- **[maadili.md](maadili.md)** -- Kanuni za maadili
+- **[ramani.md](ramani.md)** -- Ramani ya mradi
 - **[GitHub Discussions](https://github.com/Kandemark/swa/discussions)** -- Majadiliano
 - **[GitHub Issues](https://github.com/Kandemark/swa/issues)** -- Ripoti za hitilafu na maombi ya vipengele
 
