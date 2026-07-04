@@ -948,20 +948,44 @@ impl<'a> Lowerer<'a> {
             let stmt_blk = self.lower_stmt(current);
 
             // If stmt_blk is a condition block (BrCond), the real fall-through
-            // is the merge block, not the condition block.  Walk the false
-            // branch chain to find the merge block (it may be directly reachable
-            // for no-else if, or via an else-body branch for if-else).
+            // is the merge block.  Walk the false branch; if it ends in Ret,
+            // walk the true branch instead.  Recursively handle nested BrConds.
             let actual_prev = match &self.func.blocks[stmt_blk.0].terminator {
-                Terminator::BrCond(_, _, false_blk) => {
-                    let mut b = *false_blk;
-                    loop {
-                        match &self.func.blocks[b.0].terminator {
-                            Terminator::Br(t) if *t != b => { b = *t; }
-                            Terminator::BrCond(_, _, merge) if *merge != b => { b = *merge; }
-                            _ => break,
+                Terminator::BrCond(_, true_blk, false_blk) => {
+                    let mut seen: Vec<BlockId> = Vec::new();
+                    fn walk_branch(
+                        blocks: &[IrBlock],
+                        start: BlockId,
+                        seen: &mut Vec<BlockId>,
+                    ) -> (BlockId, bool) {
+                        if seen.contains(&start) {
+                            return (start, false);
+                        }
+                        seen.push(start);
+                        match &blocks[start.0].terminator {
+                            Terminator::Br(t) if *t != start => {
+                                walk_branch(blocks, *t, seen)
+                            }
+                            Terminator::BrCond(_, t, f) => {
+                                let (fb, f_ret) = walk_branch(blocks, *f, seen);
+                                if f_ret {
+                                    walk_branch(blocks, *t, seen)
+                                } else {
+                                    (fb, false)
+                                }
+                            }
+                            Terminator::Ret(_) | Terminator::RetVoid => {
+                                (start, true)
+                            }
+                            _ => (start, false),
                         }
                     }
-                    b
+                    let (result, is_ret) = walk_branch(&self.func.blocks, *false_blk, &mut seen);
+                    if is_ret {
+                        walk_branch(&self.func.blocks, *true_blk, &mut seen).0
+                    } else {
+                        result
+                    }
                 }
                 _ => stmt_blk,
             };
@@ -2448,9 +2472,12 @@ impl<'a> Lowerer<'a> {
                     // Follow the unconditional chain.
                     work.push(*next);
                 }
-                Terminator::BrCond(_, _, merge) => {
-                    // Follow the fall-through (merge) path.
-                    work.push(*merge);
+                Terminator::BrCond(_, true_target, false_target) => {
+                    // Follow BOTH branches — the true branch may lead to
+                    // blocks that need patching (e.g. nested if with else
+                    // where the false branch terminates in Ret).
+                    work.push(*true_target);
+                    work.push(*false_target);
                 }
                 _ => {
                     // Real terminator (Ret, Switch) — stop.
