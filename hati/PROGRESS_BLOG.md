@@ -14,13 +14,13 @@ Swa is a systems programming language where **all keywords, types, and documenta
 The bootstrap compiler (`kande`) is written in Rust (~12,200 lines). It compiles Swa source through a full pipeline: lexer → parser → semantic analysis → IR lowering → LLVM codegen → native x86-64 binary.
 
 The self-hosted components are written in Swa itself (~4,100 lines across 7 files):
-- `msomaji.swa` — lexer
-- `msambazaji.swa` — parser
-- `mteremko.swa` — IR lowerer
-- `mkaguzi.swa` — semantic checker
-- `kumbukumbu.swa` — memory management
-- `mfuatano.swa` — string operations
-- `stage1.swa` — bootstrap driver
+- `msomaji.swa` -- lexer
+- `msambazaji.swa` -- parser
+- `mteremko.swa` -- IR lowerer
+- `mkaguzi.swa` -- semantic checker
+- `kumbukumbu.swa` -- memory management
+- `mfuatano.swa` -- string operations
+- `stage1.swa` -- bootstrap driver
 
 ## The 18-Hour Debugging Marathon
 
@@ -31,7 +31,7 @@ When the session began, the self-hosted binary crashed immediately with **SIGSEG
 ### The Bugs Found and Fixed
 
 **Bug 1: Alloca-in-Loop → SIGSEGV** (`src/ir/lower.rs`)
-The most critical bug. The IR lowerer emitted `alloca` instructions into the current basic block instead of the function entry block. When a local variable declaration was inside a loop (like the parser's `while` loop), each iteration created a new alloca — consuming 16 bytes of stack per iteration. After ~524K iterations, the 8 MB stack was exhausted.
+The most critical bug. The IR lowerer emitted `alloca` instructions into the current basic block instead of the function entry block. When a local variable declaration was inside a loop (like the parser's `while` loop), each iteration created a new alloca -- consuming 16 bytes of stack per iteration. After ~524K iterations, the 8 MB stack was exhausted.
 
 **Fix:** A two-pass approach. A new `collect_local_decls` function walks the AST to discover all local variable declarations before body lowering begins. These allocas are pre-emitted into the entry block. During body lowering, `lower_local_decl` looks up the pre-allocated `ValueId` instead of creating a new alloca.
 
@@ -71,9 +71,9 @@ When the statement before a block was an `if` with `else` that returns, `actual_
 ---
 
 **Bug 6: `patch_br_if_needed` Following Continue/Break Edges** (`src/ir/lower.rs`)
-Even after fix #5, `patch_br_if_needed` followed `endelea` blocks' `Br(outer_header)` edges into enclosing loop bodies. It found the outer loop's exit block (self-loop placeholder) and patched it to the inner `if`'s merge block — corrupting the outer loop's exit path. This caused `changanua()` to return `0` instead of the correct AST program node index when multiple files were concatenated.
+Even after fix #5, `patch_br_if_needed` followed `endelea` blocks' `Br(outer_header)` edges into enclosing loop bodies. It found the outer loop's exit block (self-loop placeholder) and patched it to the inner `if`'s merge block -- corrupting the outer loop's exit path. This caused `changanua()` to return `0` instead of the correct AST program node index when multiple files were concatenated.
 
-**Fix:** Stop following forward `Br` edges when the source block's label starts with `continue.` or `break.` — these are loop control flow edges that lead outside the body being patched.
+**Fix:** Stop following forward `Br` edges when the source block's label starts with `continue.` or `break.` -- these are loop control flow edges that lead outside the body being patched.
 
 ---
 
@@ -95,10 +95,10 @@ The for-loop parser tried to parse the init clause as an expression via `changan
 ---
 
 **Bug 9-12: Additional Self-Hosted Parser Bugs**
-- **`sogeza()` missing `mstari`/`safu` copy** — only copied 3 of 5 token fields, making line numbers always report as 1
-- **Double `{` consumption** in `changanua_kazi_vigezo` — consumed nested `{` that belonged to the body parser
-- **No unary minus** — `rudisha -1;` left `-` unconsumed
-- **AST array overflow** — 4096 elements insufficient for all standard library files concatenated; increased to 16384
+- **`sogeza()` missing `mstari`/`safu` copy** -- only copied 3 of 5 token fields, making line numbers always report as 1
+- **Double `{` consumption** in `changanua_kazi_vigezo` -- consumed nested `{` that belonged to the body parser
+- **No unary minus** -- `rudisha -1;` left `-` unconsumed
+- **AST array overflow** -- 4096 elements insufficient for all standard library files concatenated; increased to 16384
 
 ## Results
 
@@ -133,11 +133,11 @@ The self-hosted binary:
 **10 commits** in the session. 7 on July 4, 3 on July 5. All written in Kiswahili per project convention.
 
 ### Files Changed
-- `src/ir/lower.rs` — 150+ lines changed (core of codegen fixes)
-- `msingi/msambazaji.swa` — 40+ lines changed (parser fixes)
-- `stage1.swa` — 20 lines changed (speed optimization)
-- `src/parser/mod.rs` — 2 lines (for-loop AST layout)
-- `hati/*.md` — documentation updates
+- `src/ir/lower.rs` -- 150+ lines changed (core of codegen fixes)
+- `msingi/msambazaji.swa` -- 40+ lines changed (parser fixes)
+- `stage1.swa` -- 20 lines changed (speed optimization)
+- `src/parser/mod.rs` -- 2 lines (for-loop AST layout)
+- `hati/*.md` -- documentation updates
 
 ## What This Means
 
@@ -180,7 +180,7 @@ This function is the source of 3 of the 6 codegen bugs. It walks the CFG to patc
 
 ## Next Steps
 
-1. Complete `mteremko.swa` — the self-hosted IR lowerer
+1. Complete `mteremko.swa` -- the self-hosted IR lowerer
 2. Add LLVM pass manager integration (`--opt` flag)
 3. Enable full standard library parsing (optimize the 2-minute parse time)
 4. Achieve true bootstrap: compile the self-hosted compiler using only the self-hosted compiler
