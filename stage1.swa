@@ -54,12 +54,18 @@ W0 ondoa_husisha() {
 }
 
 N32 main(N32 argc, N8** argv) {
-    ongeza_faili("msingi/kumbukumbu.swa");
-    ongeza_faili("msingi/mfuatano.swa");
-    ongeza_faili("msingi/msomaji.swa");
-    ongeza_faili("msingi/msambazaji.swa");
-    ongeza_faili("msingi/mteremko.swa");
-    ongeza_faili("msingi/mkaguzi.swa");
+    // In self-hosting mode (no arguments), load all stdlib files.
+    // When compiling a user file, only load that file - this keeps
+    // the parser fast.  The stdlib is already compiled into the binary
+    // by the Rust bootstrap compiler.
+    kama (argc <= 1) {
+        ongeza_faili("msingi/kumbukumbu.swa");
+        ongeza_faili("msingi/mfuatano.swa");
+        ongeza_faili("msingi/msomaji.swa");
+        ongeza_faili("msingi/msambazaji.swa");
+        ongeza_faili("msingi/mteremko.swa");
+        ongeza_faili("msingi/mkaguzi.swa");
+    }
 
     kama (argc > 1) {
         ongeza_faili(argv[1]);
