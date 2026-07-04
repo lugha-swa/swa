@@ -1134,6 +1134,10 @@ impl<'a> Lowerer<'a> {
         let header_blk = self.new_block("while.header");
         let body_blk = self.new_block("while.body");
         let exit_blk = self.new_block("while.exit");
+        // Set a self-loop placeholder on exit_blk so that lower_block's
+        // actual_prev logic correctly identifies it as the fall-through
+        // path (instead of RetVoid, which would be treated as a return).
+        self.set_terminator(exit_blk, Terminator::Br(exit_blk));
 
         // Push loop context so that `break` → exit, `continue` → header.
         self.loops.push(LoopInfo {
@@ -1160,7 +1164,11 @@ impl<'a> Lowerer<'a> {
             let term = &self.func.blocks[last.0].terminator;
             match term {
                 Terminator::Br(target) if *target != last => {
-                    // Follow the chain forward.
+                    // Follow the chain forward, but stop at break (→ exit_blk)
+                    // or continue (→ header_blk) to avoid walking outside the body.
+                    if *target == exit_blk || *target == header_blk {
+                        break;
+                    }
                     last = *target;
                 }
                 Terminator::Br(_) => {
@@ -1170,6 +1178,9 @@ impl<'a> Lowerer<'a> {
                 Terminator::BrCond(_, _, merge) => {
                     // The fall-through path of a conditional is the merge block.
                     // Continue walking from there to find the real last block.
+                    if *merge == exit_blk || *merge == header_blk {
+                        break;
+                    }
                     last = *merge;
                 }
                 _ => {
@@ -1211,6 +1222,9 @@ impl<'a> Lowerer<'a> {
         let body_blk = self.new_block("for.body");
         let step_blk = self.new_block("for.step");
         let exit_blk = self.new_block("for.exit");
+        // Same fix as lower_while: set a self-loop placeholder so
+        // lower_block's actual_prev logic finds exit_blk as fall-through.
+        self.set_terminator(exit_blk, Terminator::Br(exit_blk));
 
         self.set_terminator(init_blk, Terminator::Br(header_blk));
 
@@ -1248,12 +1262,18 @@ impl<'a> Lowerer<'a> {
             let term = &self.func.blocks[last.0].terminator;
             match term {
                 Terminator::Br(target) if *target != last => {
+                    if *target == exit_blk || *target == header_blk {
+                        break;
+                    }
                     last = *target;
                 }
                 Terminator::Br(_) => {
                     break;
                 }
                 Terminator::BrCond(_, _, merge) => {
+                    if *merge == exit_blk || *merge == header_blk {
+                        break;
+                    }
                     last = *merge;
                 }
                 _ => {
@@ -2469,8 +2489,17 @@ impl<'a> Lowerer<'a> {
                     self.set_terminator(blk, Terminator::Br(target));
                 }
                 Terminator::Br(next) => {
-                    // Follow the unconditional chain.
-                    work.push(*next);
+                    // Follow the unconditional chain, but stop at blocks
+                    // whose label indicates loop control flow (continue/
+                    // endelea or break/vunja).  Following these would walk
+                    // into enclosing loop bodies and corrupt their exit
+                    // blocks.
+                    let src_label = &self.func.blocks[blk.0].label;
+                    if !src_label.starts_with("continue.")
+                        && !src_label.starts_with("break.")
+                    {
+                        work.push(*next);
+                    }
                 }
                 Terminator::BrCond(_, true_target, false_target) => {
                     // Follow BOTH branches — the true branch may lead to
