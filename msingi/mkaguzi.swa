@@ -8,8 +8,64 @@ husisha "msambazaji.swa";
 
 N32 mkaguzi_makosa = 0;
 
+// Scope tracking for variable declarations
+N32 wigo_jina_off[256];
+N32 wigo_aina_enc[256];
+N32 wigo_idadi = 0;
+N32 wigo_vidokezo[16];   // scope start indices for push/pop
+N32 wigo_vidokezo_idadi = 0;
+
+// Loop depth for vunja/endelea context checking
+N32 kitanzi_kina = 0;
+
+// Current function return type (for rudisha checking)
+N32 kazi_ret_enc = 0;
+
+W0 wigo_sukuma() {
+    kama (wigo_vidokezo_idadi < 16) {
+        wigo_vidokezo[wigo_vidokezo_idadi] = wigo_idadi;
+        wigo_vidokezo_idadi = wigo_vidokezo_idadi + 1;
+    }
+}
+
+W0 wigo_toa() {
+    kama (wigo_vidokezo_idadi > 0) {
+        wigo_vidokezo_idadi = wigo_vidokezo_idadi - 1;
+        wigo_idadi = wigo_vidokezo[wigo_vidokezo_idadi];
+    }
+}
+
+W0 wigo_ongeza(N8* jina, N32 enc) {
+    kama (wigo_idadi < 256) {
+        wigo_jina_off[wigo_idadi] = ast_kulia[4095];
+        wigo_aina_enc[wigo_idadi] = enc;
+        // Copy name to pool
+        N32 i = 0;
+        wakati (jina[i] != 0) {
+            ast_pool[ast_kulia[4095] + i] = jina[i];
+            i = i + 1;
+        }
+        ast_pool[ast_kulia[4095] + i] = 0;
+        ast_kulia[4095] = ast_kulia[4095] + i + 1;
+        wigo_idadi = wigo_idadi + 1;
+    }
+}
+
+N32 wigo_tafuta(N8* jina) {
+    N32 i = wigo_idadi - 1;
+    wakati (i >= 0) {
+        N8* wj = ast_pool + wigo_jina_off[i];
+        kama (jina_linganisha(wj, jina)) { rudisha wigo_aina_enc[i]; }
+        i = i - 1;
+    }
+    rudisha -1;
+}
+
 N32 mkaguzi_angalia(N32 mzizi) {
     mkaguzi_makosa = 0;
+    wigo_idadi = 0;
+    wigo_vidokezo_idadi = 0;
+    kitanzi_kina = 0;
     // Walk all functions and check them.
     N32 node = ast_kushoto[mzizi];
     wakati (node != -1) {
@@ -65,11 +121,25 @@ N32 mkaguzi_tafuta_kazi(N8* jina) {
 W0 mkaguzi_kagua_kazi(N32 kazi_node) {
     // Register this function for arg-count checking.
     mkaguzi_sajili_kazi(kazi_node);
+    // Track return type for rudisha checking.
+    kazi_ret_enc = ast_thamani[kazi_node];
+    // Push function scope and register parameters.
+    wigo_sukuma();
+    N32 p = ast_kulia[kazi_node];
+    wakati (p != -1) {
+        N32 pname_node = ast_kushoto[p];
+        N8* pjina = ast_pool + ast_jina_off[pname_node];
+        N32 penc = ast_thamani[pname_node];
+        kama (penc == 0) { penc = ast_thamani[p]; }
+        wigo_ongeza(pjina, penc);
+        p = ast_kulia[p];
+    }
     // Check the body.
     N32 body = ast_tiga[kazi_node];
     kama (body != -1) {
         mkaguzi_kagua_taarifa(body);
     }
+    wigo_toa();
 }
 
 W0 mkaguzi_kagua_taarifa(N32 node) {
@@ -79,28 +149,109 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
 
     kama (aina == 9) {  // KAMA
         mkaguzi_kagua_usemi(ast_kushoto[node]);
+        wigo_sukuma();
         mkaguzi_kagua_taarifa(ast_kulia[node]);
+        wigo_toa();
+        wigo_sukuma();
         mkaguzi_kagua_taarifa(ast_tiga[node]);
+        wigo_toa();
         rudisha;
     }
     kama (aina == 10) {  // WAKATI
         mkaguzi_kagua_usemi(ast_kushoto[node]);
+        kitanzi_kina = kitanzi_kina + 1;
+        wigo_sukuma();
         mkaguzi_kagua_taarifa(ast_kulia[node]);
+        wigo_toa();
+        kitanzi_kina = kitanzi_kina - 1;
+        rudisha;
+    }
+    kama (aina == 15) {  // KIPINDI (for loop)
+        mkaguzi_kagua_usemi(ast_kushoto[node]);   // init
+        mkaguzi_kagua_usemi(ast_thamani[node]);   // cond
+        mkaguzi_kagua_usemi(ast_tiga[node]);      // step
+        kitanzi_kina = kitanzi_kina + 1;
+        wigo_sukuma();
+        mkaguzi_kagua_taarifa(ast_kulia[node]);   // body
+        wigo_toa();
+        kitanzi_kina = kitanzi_kina - 1;
         rudisha;
     }
     kama (aina == 14) {  // CHAGUA
         mkaguzi_kagua_usemi(ast_kushoto[node]);
-        N32 h = ast_kushoto[ast_kulia[node]];
+        N32 h = ast_kulia[node];
         wakati (h != -1) {
+            wigo_sukuma();
             mkaguzi_kagua_taarifa(ast_tiga[h]);
+            wigo_toa();
             h = ast_nne[h];
+        }
+        // Default case (tivyo)
+        mkaguzi_kagua_taarifa(ast_tiga[node]);
+        rudisha;
+    }
+    kama (aina == 16) {  // VUNJA
+        kama (kitanzi_kina == 0) {
+            andika("kosa: vunja nje ya kitanzi\n");
+            mkaguzi_makosa = mkaguzi_makosa + 1;
+        }
+        rudisha;
+    }
+    kama (aina == 17) {  // ENDELEA
+        kama (kitanzi_kina == 0) {
+            andika("kosa: endelea nje ya kitanzi\n");
+            mkaguzi_makosa = mkaguzi_makosa + 1;
+        }
+        rudisha;
+    }
+    kama (aina == 11) {  // TANGAZO (local variable)
+        N32 var_node = ast_kushoto[node];
+        N32 var_enc = ast_thamani[var_node];
+        kama (var_enc == 0) { var_enc = ast_thamani[node]; }
+        N8* var_jina = ast_pool + ast_jina_off[var_node];
+        // Check for duplicate declaration in current scope
+        kama (wigo_tafuta(var_jina) >= 0) {
+            andika("kosa: kigeu '%s' kimeshatangazwa\n", var_jina);
+            mkaguzi_makosa = mkaguzi_makosa + 1;
+        }
+        wigo_ongeza(var_jina, var_enc);
+        N32 init_node = ast_kulia[node];
+        kama (init_node != -1) {
+            N32 init_enc = mkaguzi_kagua_usemi(init_node);
+            // Check init type matches declaration type
+            kama (init_enc >= 0 && var_enc != 0) {
+                N32 var_base = var_enc & 254;  // strip pointer bit
+                N32 init_base = init_enc & 254;
+                kama (var_base != init_base && init_enc != 0) {
+                    andika("kosa: aina ya kianzio hailingani na tangazo la '%s'\n", var_jina);
+                    mkaguzi_makosa = mkaguzi_makosa + 1;
+                }
+            }
+        }
+        rudisha;
+    }
+    kama (aina == 37) {  // ASIMILIA (assignment)
+        N32 lhs_node = ast_kushoto[node];
+        N32 rhs_node = ast_kulia[node];
+        N32 lhs_enc = mkaguzi_kagua_usemi(lhs_node);
+        N32 rhs_enc = mkaguzi_kagua_usemi(rhs_node);
+        kama (lhs_enc >= 0 && rhs_enc >= 0) {
+            N32 lhs_base = lhs_enc & 254;
+            N32 rhs_base = rhs_enc & 254;
+            kama (lhs_base != rhs_base && rhs_enc != 0 && lhs_enc != 0) {
+                andika("kosa: aina za ugawaji haziendani\n");
+                mkaguzi_makosa = mkaguzi_makosa + 1;
+            }
         }
         rudisha;
     }
     kama (aina == 18) {  // TENGA
-        // Check that achilia is eventually called on this pointer.
-        // For now, just check the expression and continue.
-        mkaguzi_kagua_usemi(ast_kulia[node]);
+        mkaguzi_kagua_usemi(ast_kushoto[node]);
+        mkaguzi_kagua_taarifa(ast_nne[node]);
+        rudisha;
+    }
+    kama (aina == 19) {  // ACHILIA
+        mkaguzi_kagua_usemi(ast_kushoto[node]);
         mkaguzi_kagua_taarifa(ast_nne[node]);
         rudisha;
     }
@@ -108,11 +259,16 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         N32 name_node = ast_kushoto[node];
         kama (name_node != -1) {
             N8* jina = ast_pool + ast_jina_off[name_node];
+            // Check arguments
+            N32 a = ast_kulia[name_node];
+            wakati (a != -1) {
+                mkaguzi_kagua_usemi(a);
+                a = ast_kulia[a];
+            }
             N32 expected = mkaguzi_tafuta_kazi(jina);
             kama (expected >= 0) {
-                // Count arguments
                 N32 argc = 0;
-                N32 a = ast_kulia[name_node];
+                a = ast_kulia[name_node];
                 wakati (a != -1) {
                     argc = argc + 1;
                     a = ast_kulia[a];
@@ -123,9 +279,21 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
                 }
             }
         }
+        rudisha;
     }
     kama (aina == 3) {  // RUDISHA
-        mkaguzi_kagua_usemi(ast_kushoto[node]);
+        N32 expr_node = ast_kushoto[node];
+        kama (expr_node != -1) {
+            N32 ret_enc = mkaguzi_kagua_usemi(expr_node);
+            kama (ret_enc >= 0 && kazi_ret_enc != 0) {
+                N32 ret_base = ret_enc & 254;
+                N32 kazi_base = kazi_ret_enc & 254;
+                kama (ret_base != kazi_base && ret_enc != 0) {
+                    andika("kosa: aina ya kurudi hailingani na tangazo la kazi\n");
+                    mkaguzi_makosa = mkaguzi_makosa + 1;
+                }
+            }
+        }
         rudisha;
     }
 
@@ -133,10 +301,124 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
     mkaguzi_kagua_taarifa(ast_nne[node]);
 }
 
-W0 mkaguzi_kagua_usemi(N32 node) {
-    kama (node == -1) { rudisha; }
-    // Expression checking — for now just walk sub-expressions.
+N32 mkaguzi_kagua_usemi(N32 node) {
+    kama (node == -1) { rudisha -1; }
+
+    N32 aina = ast_aina[node];
+
+    // Integer literal
+    kama (aina == 4) {
+        N32 val = ast_thamani[node];
+        // Determine width from value (default i32)
+        rudisha (1 << 8) | 32;
+    }
+
+    // Identifier
+    kama (aina == 5) {
+        N8* jina = ast_pool + ast_jina_off[node];
+        N32 enc = wigo_tafuta(jina);
+        kama (enc < 0) {
+            // Check globals
+            N32 g = 0;
+            wakati (g < global_idadi) {
+                N8* gj = global_jina_pool + global_jina_off[g];
+                kama (jina_linganisha(gj, jina)) { enc = global_aina[g]; vunja; }
+                g = g + 1;
+            }
+        }
+        kama (enc < 0) {
+            // Check function names (function pointers)
+            N32 pc = mkaguzi_tafuta_kazi(jina);
+            kama (pc >= 0) { enc = 1; }  // function pointer
+        }
+        rudisha enc;
+    }
+
+    // Binary ops — check operand type compatibility
+    N32 ni_binary = 0;
+    kama (aina >= 6) { kama (aina <= 25) { ni_binary = 1; } }
+    kama (aina >= 31) { kama (aina <= 32) { ni_binary = 1; } }
+    kama (aina >= 39) { kama (aina <= 43) { ni_binary = 1; } }
+    kama (aina == 8) { ni_binary = 0; }  // WITO handled separately above
+    kama (ni_binary) {
+        N32 lhs = mkaguzi_kagua_usemi(ast_kushoto[node]);
+        N32 rhs = mkaguzi_kagua_usemi(ast_kulia[node]);
+        kama (lhs >= 0) {
+            kama (rhs >= 0) {
+                N32 lhs_base = lhs & 254;
+                N32 rhs_base = rhs & 254;
+                kama (lhs_base != rhs_base) {
+                    kama (lhs != 0) {
+                        kama (rhs != 0) {
+                            andika("kosa: aina za operesheni haziendani\n");
+                            mkaguzi_makosa = mkaguzi_makosa + 1;
+                        }
+                    }
+                }
+            }
+        }
+        rudisha lhs;
+    }
+
+    // Function call
+    kama (aina == 8) {
+        N32 name_node = ast_kushoto[node];
+        kama (name_node != -1) {
+            N8* jina = ast_pool + ast_jina_off[name_node];
+            N32 j = 0;
+            wakati (j < kazi_ret_idadi) {
+                N8* rj = kazi_ret_pool + kazi_ret_jina_off[j];
+                kama (jina_linganisha(rj, jina)) { rudisha kazi_ret_aina[j]; }
+                j = j + 1;
+            }
+        }
+        rudisha (1 << 8) | 32;  // default i32
+    }
+
+    // Unary ops
+    kama (aina == 7) {  // TOFAUTI (negate)
+        N32 op = mkaguzi_kagua_usemi(ast_kulia[node]);
+        rudisha op;
+    }
+    kama (aina == 28) {  // SI (not)
+        mkaguzi_kagua_usemi(ast_kushoto[node]);
+        rudisha (4 << 8) | 1;  // B1 (bool)
+    }
+
+    // String literal
+    kama (aina == 40) {
+        rudisha 1;  // ptr (N8*)
+    }
+
+    // Array subscript
+    kama (aina == 29) {  // TAJA
+        N32 base = mkaguzi_kagua_usemi(ast_kushoto[node]);
+        mkaguzi_kagua_usemi(ast_kulia[node]);
+        // Remove pointer bit to get element type
+        N32 base_no_ptr = base & 254;
+        rudisha base_no_ptr;
+    }
+
+    // Field access
+    kama (aina == 33) {  // SEHEMU_DOT
+        mkaguzi_kagua_usemi(ast_kushoto[node]);
+        // Look up field type
+        N32 field_node = ast_kulia[node];
+        N32 fenc = ast_thamani[field_node];
+        kama (fenc != 0) { rudisha fenc; }
+        rudisha (1 << 8) | 32;  // default i32
+    }
+    kama (aina == 34) {  // SEHEMU_MSHALE
+        mkaguzi_kagua_usemi(ast_kushoto[node]);
+        N32 field_node = ast_kulia[node];
+        N32 fenc = ast_thamani[field_node];
+        kama (fenc != 0) { rudisha fenc; }
+        rudisha (1 << 8) | 32;
+    }
+
+    // Default: walk children and return unknown
     mkaguzi_kagua_usemi(ast_kushoto[node]);
     mkaguzi_kagua_usemi(ast_kulia[node]);
     mkaguzi_kagua_usemi(ast_tiga[node]);
+    rudisha -1;
 }
