@@ -37,6 +37,8 @@ N32 wigo_node[512];
 N32 wigo_vid[128];
 N32 wigo_aina[128];
 N32 wigo_idadi = 0;
+N32 wigo_alloca[8192];  // pre-allocated alloca vid per AST_TANGAZO node
+N32 wigo_alloca_idadi = 0;
 N32 param_node[16];
 N32 param_vid[16];
 N32 param_aina[16];
@@ -460,6 +462,31 @@ W0 nakili_muundo(N32 dest_vid, N32 src_vid, N32 ukubwa) {
 }
 
 // -------------------------------------------------------
+// Pre-pass: collect all local variable declarations so their
+// allocas can be emitted in the entry block (prevents
+// alloca-in-loop stack exhaustion).
+// -------------------------------------------------------
+W0 kukusanya_vigeu(N32 node) {
+    kama (node == -1) { rudisha; }
+    kama (ast_aina[node] == 11) {  // AST_TANGAZO
+        kama (wigo_alloca_idadi < 8192) {
+            wigo_alloca[node] = 1;  // mark node as needing pre-alloca
+            wigo_alloca_idadi = wigo_alloca_idadi + 1;
+        }
+    }
+    // Recurse into children
+    kukusanya_vigeu(ast_kushoto[node]);
+    kukusanya_vigeu(ast_kulia[node]);
+    kukusanya_vigeu(ast_tiga[node]);
+    // Follow statement chain (ast_nne)
+    N32 sasa = ast_nne[node];
+    wakati (sasa != -1) {
+        kukusanya_vigeu(sasa);
+        sasa = ast_nne[sasa];
+    }
+}
+
+// -------------------------------------------------------
 // Emit a single function definition as LLVM IR
 // -------------------------------------------------------
 W0 teremsha_kazi(N32 kazi_node) {
@@ -541,8 +568,34 @@ W0 teremsha_kazi(N32 kazi_node) {
         i = i + 1;
     }
 
-    // Emit body
+    // --- Pre-pass: collect all local variable declarations ---
+    // Walk the body AST to find every local variable (AST_TANGAZO).
+    // Emit their allocas into the entry block now, so they are not
+    // emitted inside loop bodies (alloca-in-loop stack exhaustion).
+    wigo_alloca_idadi = 0;
+    N32 j = 0;
+    wakati (j < 8192) { wigo_alloca[j] = 0; j = j + 1; }
     N32 body = ast_tiga[kazi_node];
+    kama (body != -1) {
+        kukusanya_vigeu(body);
+    }
+    // Emit pre-allocated allocas into the entry block
+    j = 0;
+    wakati (j < 8192) {
+        kama (wigo_alloca[j] != 0) {
+            N32 var_node = j;
+            N32 var_enc = ast_thamani[var_node];
+            N32 av = vid_mpya();
+            vid_aina_arr[av] = var_enc | 1;  // pointer
+            andika("  %%v%d = alloca ", av);
+            chapisha_aina(var_enc);
+            andika("\n");
+            wigo_alloca[var_node] = av;  // store alloca vid
+        }
+        j = j + 1;
+    }
+
+    // Emit body
     kama (body != -1) {
         teremsha_taarifa(body, ret_enc);
     }
@@ -1288,12 +1341,19 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         N32 var_enc = ast_thamani[var_node];
         N8* var_jina = ast_pool + ast_jina_off[var_node];
 
-        // Emit alloca
-        N32 av = vid_mpya();
-        vid_aina_arr[av] = var_enc | 1; // pointer
-        andika("  %%v%d = alloca ", av);
-        chapisha_aina(var_enc);
-        andika("\n");
+        // Use pre-allocated alloca from the entry block.
+        // This prevents alloca-in-loop: even if the declaration
+        // appears inside a loop body, the alloca lives in the
+        // function entry and executes only once.
+        N32 av = wigo_alloca[var_node];
+        kama (av == 0) {
+            // Fallback: no pre-alloca (should not happen after pre-pass)
+            av = vid_mpya();
+            vid_aina_arr[av] = var_enc | 1;
+            andika("  %%v%d = alloca ", av);
+            chapisha_aina(var_enc);
+            andika("\n");
+        }
 
         // Add to scope
         kama (wigo_idadi < 128) {
