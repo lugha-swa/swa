@@ -833,17 +833,40 @@ N32 teremsha_wito(N32 wito_node) {
         }
     }
 
+    // Check if return type is a struct (needs sret)
+    N32 ret_familia_wito = (ret_enc >> 8) & 255;
+    N32 ni_sret_wito = (ret_familia_wito == 6);
+    N32 sret_alloca_wito = -1;
+
+    kama (ni_sret_wito) {
+        // Create an alloca for the struct return, pass as first arg
+        sret_alloca_wito = vid_mpya();
+        vid_aina_arr[sret_alloca_wito] = 1; // ptr
+        andika("  %%v%d = alloca ", sret_alloca_wito);
+        chapisha_aina(ret_enc);
+        andika("\n");
+    }
+
     N32 result_vid = vid_mpya();
-    vid_aina_arr[result_vid] = ret_enc;
+    kama (ni_sret_wito) {
+        vid_aina_arr[result_vid] = 1; // returns pointer to struct
+    } sivyo {
+        vid_aina_arr[result_vid] = ret_enc;
+    }
 
     // Emit the call
-    andika("  %%v%d = call ", result_vid);
-    chapisha_aina(ret_enc);
-    andika(" @%s(", actual_callee);
+    kama (ni_sret_wito) {
+        andika("  %%v%d = call void @%s(ptr %%v%d", result_vid, actual_callee, sret_alloca_wito);
+    } sivyo {
+        andika("  %%v%d = call ", result_vid);
+        chapisha_aina(ret_enc);
+        andika(" @%s(", actual_callee);
+    }
 
     N32 a = 0;
     wakati (a < arg_count) {
-        kama (a > 0) { andika(", "); }
+        // In sret mode, the first real arg needs a comma after the sret pointer.
+        kama (a > 0 || ni_sret_wito == 1) { andika(", "); }
         N32 arg_enc = vid_aina_arr[arg_vids[a]];
         chapisha_aina(arg_enc);
         andika(" %%v%d", arg_vids[a]);
