@@ -1,0 +1,34 @@
+# Jina la utendaji
+name: Majaribio
+
+# Wakati wa kuendesha
+on:
+  push:
+    matawi: [main]
+  pull_request:
+    matawi: [main]
+
+# Kazi za kufanya
+jobs:
+  jaribu:
+    jina: Jenga na Jaribu
+    runs-on: ubuntu-latest
+
+    hatua:
+      - jina: Pakua msimbo
+        uses: actions/checkout@v4
+
+      - jina: Weka Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - jina: Weka LLVM
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y llvm-18-dev libclang-18-dev clang-18
+          echo "LLVM_SYS_180_PREFIX=/usr/lib/llvm-18" >> $GITHUB_ENV
+
+      - jina: Jenga
+        run: cargo build --release
+
+      - jina: Jaribu
+        run: cargo test
