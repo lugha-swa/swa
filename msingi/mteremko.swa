@@ -565,6 +565,7 @@ W0 teremsha_kazi(N32 kazi_node) {
     // Entry block
     N32 entry_blk = blk_mpya();
     blk_sasa = entry_blk;
+    blk_fungwa = 0;
     andika("b%d:\n", entry_blk);
 
     // Alloca + store for each parameter
@@ -627,6 +628,14 @@ W0 teremsha_kazi(N32 kazi_node) {
     // Emit body
     kama (body != -1) {
         teremsha_taarifa(body, ret_enc);
+    }
+
+    // Implicit return for void functions if no terminator was emitted
+    kama (blk_fungwa == 0) {
+        N32 ret_familia = (ret_enc >> 8) & 255;
+        kama (ret_familia == 5) {
+            andika("  ret void\n");
+        }
     }
 
     andika("}\n");
@@ -1083,10 +1092,12 @@ N32 teremsha_usemi(N32 node) {
     // Logical NOT (prefix si)
     kama (aina == 28) {  // AST_SI
         N32 operand_vid = teremsha_usemi(ast_kushoto[node]);
-        // Convert to i1 if needed, then xor with true
+        N32 operand_enc = vid_aina_arr[operand_vid];
+        N32 operand_upana = operand_enc & 254;
+        kama (operand_upana == 0) { operand_upana = 32; }
         N32 vid = vid_mpya();
         vid_aina_arr[vid] = (4 << 8) | 1; // i1
-        andika("  %%v%d = icmp eq i32 %%v%d, 0\n", vid, operand_vid);
+        andika("  %%v%d = icmp eq i%d %%v%d, 0\n", vid, operand_upana, operand_vid);
         rudisha vid;
     }
 
@@ -1104,7 +1115,8 @@ N32 teremsha_usemi(N32 node) {
         rhs_vid = panua_aina(rhs_vid, upana);
 
         N32 vid = vid_mpya();
-        vid_aina_arr[vid] = lhs_enc;
+        N32 lhs_familia = (lhs_enc >> 8) & 255;
+        vid_aina_arr[vid] = (lhs_familia << 8) | upana;
         andika("  %%v%d = and i%d %%v%d, %%v%d\n",
                vid, upana, lhs_vid, rhs_vid);
         rudisha vid;
@@ -1124,7 +1136,8 @@ N32 teremsha_usemi(N32 node) {
         rhs_vid = panua_aina(rhs_vid, upana);
 
         N32 vid = vid_mpya();
-        vid_aina_arr[vid] = lhs_enc;
+        N32 lhs_familia = (lhs_enc >> 8) & 255;
+        vid_aina_arr[vid] = (lhs_familia << 8) | upana;
         andika("  %%v%d = or i%d %%v%d, %%v%d\n",
                vid, upana, lhs_vid, rhs_vid);
         rudisha vid;
@@ -1134,14 +1147,20 @@ N32 teremsha_usemi(N32 node) {
     kama (aina == 26) {  // AST_NA
         // Short-circuit evaluation: convert operands to i1 and AND them
         N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
+        N32 lhs_enc = vid_aina_arr[lhs_vid];
+        N32 lhs_upana = lhs_enc & 254;
+        kama (lhs_upana == 0) { lhs_upana = 32; }
         N32 lhs_bool = vid_mpya();
         vid_aina_arr[lhs_bool] = (4 << 8) | 1;
-        andika("  %%v%d = icmp ne i32 %%v%d, 0\n", lhs_bool, lhs_vid);
+        andika("  %%v%d = icmp ne i%d %%v%d, 0\n", lhs_bool, lhs_upana, lhs_vid);
 
         N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
+        N32 rhs_enc = vid_aina_arr[rhs_vid];
+        N32 rhs_upana = rhs_enc & 254;
+        kama (rhs_upana == 0) { rhs_upana = 32; }
         N32 rhs_bool = vid_mpya();
         vid_aina_arr[rhs_bool] = (4 << 8) | 1;
-        andika("  %%v%d = icmp ne i32 %%v%d, 0\n", rhs_bool, rhs_vid);
+        andika("  %%v%d = icmp ne i%d %%v%d, 0\n", rhs_bool, rhs_upana, rhs_vid);
 
         N32 vid = vid_mpya();
         vid_aina_arr[vid] = (4 << 8) | 1;
@@ -1152,14 +1171,20 @@ N32 teremsha_usemi(N32 node) {
     // Logical OR (||)
     kama (aina == 27) {  // AST_AU
         N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
+        N32 lhs_enc = vid_aina_arr[lhs_vid];
+        N32 lhs_upana = lhs_enc & 254;
+        kama (lhs_upana == 0) { lhs_upana = 32; }
         N32 lhs_bool = vid_mpya();
         vid_aina_arr[lhs_bool] = (4 << 8) | 1;
-        andika("  %%v%d = icmp ne i32 %%v%d, 0\n", lhs_bool, lhs_vid);
+        andika("  %%v%d = icmp ne i%d %%v%d, 0\n", lhs_bool, lhs_upana, lhs_vid);
 
         N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
+        N32 rhs_enc = vid_aina_arr[rhs_vid];
+        N32 rhs_upana = rhs_enc & 254;
+        kama (rhs_upana == 0) { rhs_upana = 32; }
         N32 rhs_bool = vid_mpya();
         vid_aina_arr[rhs_bool] = (4 << 8) | 1;
-        andika("  %%v%d = icmp ne i32 %%v%d, 0\n", rhs_bool, rhs_vid);
+        andika("  %%v%d = icmp ne i%d %%v%d, 0\n", rhs_bool, rhs_upana, rhs_vid);
 
         N32 vid = vid_mpya();
         vid_aina_arr[vid] = (4 << 8) | 1;
@@ -1284,12 +1309,21 @@ N32 teremsha_usemi(N32 node) {
 
         N32 kweli_vid = teremsha_usemi(kweli_node);
         N32 kweli_enc = vid_aina_arr[kweli_vid];
-        N32 upana = kweli_enc & 254;
+        N32 kweli_upana = kweli_enc & 254;
 
         N32 sikweli_vid = teremsha_usemi(sikweli_node);
+        N32 sikweli_enc = vid_aina_arr[sikweli_vid];
+        N32 sikweli_upana = sikweli_enc & 254;
+
+        // Coerce both branches to wider width
+        N32 upana = kweli_upana;
+        kama (sikweli_upana > upana) { upana = sikweli_upana; }
+        kweli_vid = panua_aina(kweli_vid, upana);
+        sikweli_vid = panua_aina(sikweli_vid, upana);
 
         N32 vid = vid_mpya();
-        vid_aina_arr[vid] = kweli_enc;
+        N32 familia = (kweli_enc >> 8) & 255;
+        vid_aina_arr[vid] = (familia << 8) | upana;
         andika("  %%v%d = select i1 %%v%d, i%d %%v%d, i%d %%v%d\n",
                vid, cond_bool, upana, kweli_vid, upana, sikweli_vid);
         rudisha vid;
@@ -1348,7 +1382,16 @@ N32 teremsha_usemi(N32 node) {
             N32 base_node = ast_kushoto[lhs_node];
             N32 field_node = ast_kulia[lhs_node];
             N8* field_name = ast_pool + ast_jina_off[field_node];
-            N32 base_vid = teremsha_usemi(base_node);
+            // Get base address: use tafuta_wigo for simple variables,
+            // teremsha_usemi for complex expressions (hoping it yields an address)
+            N32 base_vid = -1;
+            kama (ast_aina[base_node] == 5) {
+                N8* bjina = ast_pool + ast_jina_off[base_node];
+                base_vid = tafuta_wigo(bjina);
+            }
+            kama (base_vid < 0) {
+                base_vid = teremsha_usemi(base_node);
+            }
 
             N32 field_idx = 0;
             N32 mu_idx = tafuta_muundo_kwa_sehemu(field_name, &field_idx);
@@ -1367,11 +1410,20 @@ N32 teremsha_usemi(N32 node) {
             N32 base_node = ast_kushoto[lhs_node];
             N32 field_node = ast_kulia[lhs_node];
             N8* field_name = ast_pool + ast_jina_off[field_node];
-            N32 base_ptr_vid = teremsha_usemi(base_node);
-
-            N32 load_ptr_vid = vid_mpya();
-            vid_aina_arr[load_ptr_vid] = 1;
-            andika("  %%v%d = load ptr, ptr %%v%d\n", load_ptr_vid, base_ptr_vid);
+            // Load the pointer value from the alloca (one load, not double)
+            N32 base_ptr_vid = -1;
+            kama (ast_aina[base_node] == 5) {
+                N8* bjina = ast_pool + ast_jina_off[base_node];
+                N32 base_addr = tafuta_wigo(bjina);
+                kama (base_addr >= 0) {
+                    base_ptr_vid = vid_mpya();
+                    vid_aina_arr[base_ptr_vid] = 1; // ptr
+                    andika("  %%v%d = load ptr, ptr %%v%d\n", base_ptr_vid, base_addr);
+                }
+            }
+            kama (base_ptr_vid < 0) {
+                base_ptr_vid = teremsha_usemi(base_node);
+            }
 
             N32 field_idx = 0;
             N32 mu_idx = tafuta_muundo_kwa_sehemu(field_name, &field_idx);
@@ -1380,7 +1432,7 @@ N32 teremsha_usemi(N32 node) {
                 N32 gep_vid = vid_mpya();
                 vid_aina_arr[gep_vid] = 1;
                 andika("  %%v%d = getelementptr %%%s, ptr %%v%d, i32 0, i32 %d\n",
-                       gep_vid, mu_jina, load_ptr_vid, field_idx);
+                       gep_vid, mu_jina, base_ptr_vid, field_idx);
                 andika("  store ");
                 chapisha_aina(rhs_enc);
                 andika(" %%v%d, ptr %%v%d\n", rhs_vid, gep_vid);
@@ -1389,7 +1441,15 @@ N32 teremsha_usemi(N32 node) {
         sivyo kama (ast_aina[lhs_node] == 29) {  // array subscript assign
             N32 arr_node = ast_kushoto[lhs_node];
             N32 idx_node = ast_kulia[lhs_node];
-            N32 arr_vid = teremsha_usemi(arr_node);
+            // Get array base address: use tafuta_wigo for simple variables
+            N32 arr_vid = -1;
+            kama (ast_aina[arr_node] == 5) {
+                N8* ajina = ast_pool + ast_jina_off[arr_node];
+                arr_vid = tafuta_wigo(ajina);
+            }
+            kama (arr_vid < 0) {
+                arr_vid = teremsha_usemi(arr_node);
+            }
             N32 idx_vid = teremsha_usemi(idx_node);
             N32 gep_vid = vid_mpya();
             vid_aina_arr[gep_vid] = 1;
@@ -1474,6 +1534,17 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
                 chapisha_aina(var_enc);
                 andika(" %%v%d, ptr %%v%d\n", init_vid, av);
             }
+        } sivyo {
+            // No initializer: zero-initialize to prevent undef/poison
+            N32 var_familia = (var_enc >> 8) & 255;
+            kama (var_familia == 6) {
+                // Struct: zero through memcpy of zero-fill not needed here
+                // (struct alloca is already zero-initialized in LLVM entry block)
+            } sivyo {
+                andika("  store ");
+                chapisha_aina(var_enc);
+                andika(" 0, ptr %%v%d\n", av);
+            }
         }
     }
 
@@ -1501,14 +1572,17 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
                     nakili_muundo(sret_vid_sasa, sret_scratch_vid, ukubwa_muundo(ret_enc));
                 }
                 andika("  ret void\n");
+                blk_fungwa = 1;
             } sivyo {
                 N32 ret_vid = teremsha_usemi(expr_node);
                 andika("  ret ");
                 chapisha_aina(vid_aina_arr[ret_vid]);
                 andika(" %%v%d\n", ret_vid);
+                blk_fungwa = 1;
             }
         } sivyo {
             andika("  ret void\n");
+            blk_fungwa = 1;
         }
     }
 
@@ -1529,7 +1603,10 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         // Convert condition to i1
         N32 cond_bool = vid_mpya();
         vid_aina_arr[cond_bool] = (4 << 8) | 1;
-        andika("  %%v%d = icmp ne i32 %%v%d, 0\n", cond_bool, cond_vid);
+        N32 cond_enc = vid_aina_arr[cond_vid];
+        N32 cond_upana = cond_enc & 254;
+        kama (cond_upana == 0) { cond_upana = 32; }
+        andika("  %%v%d = icmp ne i%d %%v%d, 0\n", cond_bool, cond_upana, cond_vid);
 
         kama (sivyo_node != -1) {
             andika("  br i1 %%v%d, label %%b%d, label %%b%d\n",
@@ -1538,26 +1615,36 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
             andika("  br i1 %%v%d, label %%b%d, label %%b%d\n",
                    cond_bool, then_blk, merge_blk);
         }
+        blk_fungwa = 1;
 
         // Then block
         blk_sasa = then_blk;
+        blk_fungwa = 0;
         andika("b%d:\n", then_blk);
         teremsha_taarifa(then_node, ret_enc);
-        andika("  br label %%b%d\n", merge_blk);
+        kama (blk_fungwa == 0) {
+            andika("  br label %%b%d\n", merge_blk);
+            blk_fungwa = 1;
+        }
 
         // Else block
         kama (sivyo_node != -1) {
             blk_sasa = else_blk;
+            blk_fungwa = 0;
             andika("b%d:\n", else_blk);
             // sivyo_node is AST_SIVYO wrapping the else body
             N32 else_body = ast_kushoto[sivyo_node];
             kama (else_body == -1) { else_body = ast_kulia[sivyo_node]; }
             teremsha_taarifa(else_body, ret_enc);
-            andika("  br label %%b%d\n", merge_blk);
+            kama (blk_fungwa == 0) {
+                andika("  br label %%b%d\n", merge_blk);
+                blk_fungwa = 1;
+            }
         }
 
         // Merge block
         blk_sasa = merge_blk;
+        blk_fungwa = 0;
         andika("b%d:\n", merge_blk);
     }
 
@@ -1581,25 +1668,36 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         }
 
         andika("  br label %%b%d\n", header_blk);
+        blk_fungwa = 1;
 
         // Header block
         blk_sasa = header_blk;
+        blk_fungwa = 0;
         andika("b%d:\n", header_blk);
         N32 cond_vid = teremsha_usemi(cond_node);
+        N32 cond_enc = vid_aina_arr[cond_vid];
+        N32 cond_upana = cond_enc & 254;
+        kama (cond_upana == 0) { cond_upana = 32; }
         N32 cond_bool = vid_mpya();
         vid_aina_arr[cond_bool] = (4 << 8) | 1;
-        andika("  %%v%d = icmp ne i32 %%v%d, 0\n", cond_bool, cond_vid);
+        andika("  %%v%d = icmp ne i%d %%v%d, 0\n", cond_bool, cond_upana, cond_vid);
         andika("  br i1 %%v%d, label %%b%d, label %%b%d\n",
                cond_bool, body_blk, exit_blk);
+        blk_fungwa = 1;
 
         // Body block
         blk_sasa = body_blk;
+        blk_fungwa = 0;
         andika("b%d:\n", body_blk);
         teremsha_taarifa(body_node, ret_enc);
-        andika("  br label %%b%d\n", header_blk);
+        kama (blk_fungwa == 0) {
+            andika("  br label %%b%d\n", header_blk);
+            blk_fungwa = 1;
+        }
 
         // Exit block
         blk_sasa = exit_blk;
+        blk_fungwa = 0;
         andika("b%d:\n", exit_blk);
 
         // Pop loop context
@@ -1613,6 +1711,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         kama (kitanzi_kina > 0) {
             N32 kk = kitanzi_kina - 1;
             andika("  br label %%b%d\n", kitanzi_exit[kk]);
+            blk_fungwa = 1;
         }
     }
 
@@ -1623,6 +1722,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         kama (kitanzi_kina > 0) {
             N32 kk = kitanzi_kina - 1;
             andika("  br label %%b%d\n", kitanzi_header[kk]);
+            blk_fungwa = 1;
         }
     }
 
@@ -1684,6 +1784,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
 
         // Emit switch
         andika("  switch i32 %%v%d, label %%b%d [\n", test_vid, default_blk);
+        blk_fungwa = 1;
 
         // Build case blocks, emit case targets
         chk = hali_list;
@@ -1709,20 +1810,26 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
 
         // Default block
         blk_sasa = default_blk;
+        blk_fungwa = 0;
         andika("b%d:\n", default_blk);
         andika("  br label %%b%d\n", merge_blk);
+        blk_fungwa = 1;
 
         // Emit each case body
         chk = hali_list;
         N32 ci = 0;
         wakati (chk != -1) {
             blk_sasa = hali_blk[ci];
+            blk_fungwa = 0;
             andika("b%d:\n", hali_blk[ci]);
             N32 case_body = ast_kulia[chk];
             kama (case_body != -1) {
                 teremsha_taarifa(case_body, ret_enc);
             }
-            andika("  br label %%b%d\n", merge_blk);
+            kama (blk_fungwa == 0) {
+                andika("  br label %%b%d\n", merge_blk);
+                blk_fungwa = 1;
+            }
             chk = ast_nne[chk];
             ci = ci + 1;
         }
@@ -1730,11 +1837,14 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
 
         // Exit block (for break statements)
         blk_sasa = exit_blk;
+        blk_fungwa = 0;
         andika("b%d:\n", exit_blk);
         andika("  br label %%b%d\n", merge_blk);
+        blk_fungwa = 1;
 
         // Merge block
         blk_sasa = merge_blk;
+        blk_fungwa = 0;
         andika("b%d:\n", merge_blk);
 
         kitanzi_kina = kk;
@@ -1765,8 +1875,10 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         N32 result_vid = teremsha_usemi(node);
     }
 
-    // Process next sibling statement
-    teremsha_taarifa(ast_nne[node], ret_enc);
+    // Process next sibling statement (skip if current block already terminated)
+    kama (blk_fungwa == 0) {
+        teremsha_taarifa(ast_nne[node], ret_enc);
+    }
 }
 
 // -------------------------------------------------------
