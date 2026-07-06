@@ -11,7 +11,7 @@
 //! | `A`        | Asili (unsigned)  | `U`         |
 //! | `D`        | Desimali (float) | `F`         |
 //! | `B`        | Buli (boolean)   | `B`         |
-//! | `W`        | Wosia (word)     | `W`         |
+//! | `W`        | Wazi (word)     | `W`         |
 //!
 //! Width suffixes are in bits: `N32` == `i32`, `D64` == `f64`, etc.
 
@@ -58,7 +58,7 @@ pub enum IrType {
     B32,
     B64,
 
-    // -- word-sized opaque types (Wosia) -----------------------------------
+    // -- word-sized opaque types (Wazi) -----------------------------------
     W8,
     W16,
     W32,
@@ -150,7 +150,7 @@ impl IrType {
             "B32" => Some(IrType::B32),
             "B64" => Some(IrType::B64),
 
-            // Wosia (word)
+            // Wazi (word)
             "W8" => Some(IrType::W8),
             "W16" => Some(IrType::W16),
             "W32" => Some(IrType::W32),
@@ -407,7 +407,7 @@ mod tests {
         ] {
             assert_eq!(IrType::from_swa_type(name), Some(expected), "failed for {name}");
         }
-        // Wosia — all widths
+        // Wazi — all widths
         for (name, expected) in [
             ("W8", IrType::W8),
             ("W16", IrType::W16),

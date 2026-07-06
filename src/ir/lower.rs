@@ -1447,7 +1447,7 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    /// Lower `CHAGUA` (switch): `chagua (scrutinee) { visa: [arms] tivyo: default }`.
+    /// Lower `CHAGUA` (switch): `chagua (scrutinee) { hali: [arms] la_sivyo: default }`.
     ///
     /// Layout:
     /// * `ast_kushoto[node]` → scrutinee expression
@@ -2916,7 +2916,7 @@ mod tests {
         // else: rudisha 0
         let ret0 = b.node(AST_RUDISHA, lit0, NO_NODE, NO_NODE, NO_NODE, 0, 0);
 
-        // kama (x) ... tivyo ...
+        // kama (x) ... la_sivyo ...
         let if_stmt = b.node(
             AST_KAMA,
             id_x,       // kushoto = condition
