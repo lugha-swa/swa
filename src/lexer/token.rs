@@ -65,7 +65,7 @@ impl TokenKind {
             "kama" | "sivyo" | "chagua" | "hali" => {
                 TokenKind::NenoMuhimu(s.to_string())
             }
-            "vunja" | "endelea" | "rudisha" | "toka" => TokenKind::NenoMuhimu(s.to_string()),
+            "vunja" | "endelea" | "rudisha" | "nenda" => TokenKind::NenoMuhimu(s.to_string()),
 
             // Loops
             "kwa" | "wakati" | "fanya" => TokenKind::NenoMuhimu(s.to_string()),
@@ -80,9 +80,6 @@ impl TokenKind {
 
             // Module system
             "husisha" | "kutoka" => TokenKind::NenoMuhimu(s.to_string()),
-
-            // Special
-            "toka" => TokenKind::NenoMuhimu(s.to_string()),
 
             // Anything else is an identifier.
             _ => TokenKind::Kitambulisho(s.to_string()),
