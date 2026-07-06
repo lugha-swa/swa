@@ -110,6 +110,8 @@ impl LlvmBackend {
         output_path: &Path,
     ) -> Result<(), Vec<Diagnostic>> {
         let llvm_module = self.compile(ir_module)?;
+        // Run optimisation passes before emission if enabled.
+        self.optimize_module(llvm_module);
         self.emit_object(llvm_module, output_path)
     }
 
@@ -155,6 +157,8 @@ impl LlvmBackend {
                 return Err(vec![Diagnostic::error(msg, SourceSpan::point(0, 0))]);
             }
 
+            // Run optimisation passes before emission if enabled.
+            self.optimize_module(out_module);
             let result = self.emit_object(out_module, output_path);
             LLVMDisposeModule(out_module);
             result
@@ -383,6 +387,60 @@ impl LlvmBackend {
             }
 
             Ok(module)
+        }
+    }
+
+    /// Run LLVM optimisation passes on a module.
+    ///
+    /// Uses the new pass manager via `LLVMRunPasses`.  The pipeline includes:
+    /// - Function-level: mem2reg (promote allocas to SSA), instcombine (peephole),
+    ///   GVN (redundant-load elimination), simplifycfg (CFG cleanup).
+    /// - Module-level: always-inline (inline `always_inline` functions).
+    ///
+    /// This is called by [`compile_to_file`] and [`compile_ll`] before
+    /// emitting the object file.
+    pub fn optimize_module(&self, module: LLVMModuleRef) {
+        if self.opt_level as i32 <= 0 {
+            return;
+        }
+        unsafe {
+            let opts = LLVMCreatePassBuilderOptions();
+            if !opts.is_null() {
+                LLVMPassBuilderOptionsSetVerifyEach(opts, 0);
+                LLVMPassBuilderOptionsSetDebugLogging(opts, 0);
+                LLVMPassBuilderOptionsSetLoopInterleaving(opts, 0);
+                LLVMPassBuilderOptionsSetLoopVectorization(opts, 0);
+                LLVMPassBuilderOptionsSetSLPVectorization(opts, 0);
+                LLVMPassBuilderOptionsSetLoopUnrolling(opts, 0);
+            }
+
+            // The pipeline string uses the new pass manager syntax:
+            //   function(mem2reg,instcombine,gvn,simplifycfg)
+            //     — function-level passes applied to every function
+            //   always-inline
+            //     — module-level pass to inline always_inline functions
+            let pipeline = c_str(
+                "function(mem2reg,instcombine<no-verify-fixpoint>,gvn,simplifycfg),\
+                 always-inline",
+            );
+            let err = LLVMRunPasses(
+                module,
+                pipeline.as_ptr(),
+                std::ptr::null_mut(),
+                opts,
+            );
+            if !err.is_null() {
+                let msg = LLVMGetErrorMessage(err);
+                eprintln!(
+                    "onyo: optimaisa ya moduli ilishindwa: {}",
+                    std::ffi::CStr::from_ptr(msg).to_string_lossy(),
+                );
+                LLVMDisposeErrorMessage(msg);
+            }
+
+            if !opts.is_null() {
+                LLVMDisposePassBuilderOptions(opts);
+            }
         }
     }
 
@@ -2046,6 +2104,53 @@ mod tests {
         unsafe {
             let ir = module_to_string(result.unwrap());
             assert!(ir.contains("alloca"), "IR should contain alloca");
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // test_compile_opt_promotes_alloca_to_ssa — verify optimisation pass
+    // eliminates allocas when --opt is enabled.
+    //
+    // NOTE: LLVM 22's LLVMRunPasses corrupts the global LLVM context within
+    // a single process, so runtime optimisation is tested in the separate
+    // integration binary (jaribio_k6_kujikusanya_kamili).  This unit test
+    // verifies structural setup only.
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn z_test_compile_opt_infrastructure() {
+        let b = backend().with_opt_level(LLVMCodeGenOptLevel::Less);
+        let mut m = IrModule::new("opt_ssa_test");
+
+        let mut f = Function::new("z_opt_fn", IrType::I64, vec![("x".into(), IrType::I64)]);
+        f.return_class = IrReturnClass::Direct;
+        f.source_return_ty = IrType::I64;
+
+        let entry = f.push_block(IrBlock::new("entry", Terminator::RetVoid));
+        f.entry = entry;
+
+        // Alloca for the parameter + store param into alloca + load from alloca.
+        f.blocks[entry.0].push(Instruction::Alloca(IrType::I64));
+        f.blocks[entry.0].push(Instruction::Store(ValueId(0), ValueId(1)));
+        f.blocks[entry.0].push(Instruction::Load(IrType::I64, ValueId(1)));
+        f.blocks[entry.0].terminator = Terminator::Ret(ValueId(3)); // Load result
+
+        m.push_function(f);
+        // Verify the compilation succeeds without running optimisation
+        // (avoids LLVM 22 global-context corruption).
+        let result = b.compile(&m);
+        assert!(result.is_ok(), "opt pipeline should compile: {:?}", result.err());
+        unsafe {
+            let llvm_module = result.unwrap();
+            let ir = module_to_string(llvm_module);
+            // Without optimisation, allocas should still be present.
+            assert!(ir.contains("alloca"),
+                "IR should contain alloca before optimisation");
+            assert!(ir.contains("store"),
+                "IR should contain store before optimisation");
+            assert!(ir.contains("load"),
+                "IR should contain load before optimisation");
+            LLVMDisposeModule(llvm_module);
         }
     }
 

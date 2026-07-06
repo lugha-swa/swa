@@ -31,6 +31,8 @@ pub type LLVMTargetRef = *mut c_void;
 pub type LLVMTargetMachineRef = *mut c_void;
 pub type LLVMTargetDataRef = *mut c_void;
 pub type LLVMPassManagerRef = *mut c_void;
+pub type LLVMErrorRef = *mut c_void;
+pub type LLVMPassBuilderOptionsRef = *mut c_void;
 pub type LLVMAttributeRef = *mut c_void;
 
 // ---------------------------------------------------------------------------
@@ -611,6 +613,90 @@ extern "C" {
     pub fn LLVMCreateDIBuilder(module: LLVMModuleRef) -> *mut c_void;
     pub fn LLVMDisposeDIBuilder(builder: *mut c_void);
     pub fn LLVMDIBuilderFinalize(builder: *mut c_void);
+
+    // -- error handling -----------------------------------------------------
+
+    pub fn LLVMConsumeError(err: LLVMErrorRef);
+    pub fn LLVMGetErrorMessage(err: LLVMErrorRef) -> *mut c_char;
+    pub fn LLVMDisposeErrorMessage(msg: *mut c_char);
+
+    // -- pass builder (new pass manager / opt pipeline) ---------------------
+
+    /// Run a set of passes on a module using the new pass manager pipeline
+    /// syntax (e.g. "function(mem2reg,instcombine,gvn,simplifycfg)").
+    /// Returns null on success, or an LLVMErrorRef on failure.
+    pub fn LLVMRunPasses(
+        m: LLVMModuleRef,
+        passes: *const c_char,
+        tm: LLVMTargetMachineRef,
+        options: LLVMPassBuilderOptionsRef,
+    ) -> LLVMErrorRef;
+
+    /// Run a set of passes on a single function using the new pass manager
+    /// pipeline syntax.
+    /// Returns null on success, or an LLVMErrorRef on failure.
+    pub fn LLVMRunPassesOnFunction(
+        f: LLVMValueRef,
+        passes: *const c_char,
+        tm: LLVMTargetMachineRef,
+        options: LLVMPassBuilderOptionsRef,
+    ) -> LLVMErrorRef;
+
+    pub fn LLVMCreatePassBuilderOptions() -> LLVMPassBuilderOptionsRef;
+    pub fn LLVMDisposePassBuilderOptions(options: LLVMPassBuilderOptionsRef);
+
+    pub fn LLVMPassBuilderOptionsSetVerifyEach(
+        options: LLVMPassBuilderOptionsRef,
+        verify_each: LLVMBool,
+    );
+    pub fn LLVMPassBuilderOptionsSetDebugLogging(
+        options: LLVMPassBuilderOptionsRef,
+        debug_logging: LLVMBool,
+    );
+    pub fn LLVMPassBuilderOptionsSetLoopInterleaving(
+        options: LLVMPassBuilderOptionsRef,
+        enable: LLVMBool,
+    );
+    pub fn LLVMPassBuilderOptionsSetLoopVectorization(
+        options: LLVMPassBuilderOptionsRef,
+        enable: LLVMBool,
+    );
+    pub fn LLVMPassBuilderOptionsSetSLPVectorization(
+        options: LLVMPassBuilderOptionsRef,
+        enable: LLVMBool,
+    );
+    pub fn LLVMPassBuilderOptionsSetLoopUnrolling(
+        options: LLVMPassBuilderOptionsRef,
+        enable: LLVMBool,
+    );
+    pub fn LLVMPassBuilderOptionsSetForgetAllSCEVInLoopUnroll(
+        options: LLVMPassBuilderOptionsRef,
+        forget: LLVMBool,
+    );
+    pub fn LLVMPassBuilderOptionsSetLicmMssaOptCap(
+        options: LLVMPassBuilderOptionsRef,
+        cap: u32,
+    );
+    pub fn LLVMPassBuilderOptionsSetLicmMssaNoAccForPromotionCap(
+        options: LLVMPassBuilderOptionsRef,
+        cap: u32,
+    );
+    pub fn LLVMPassBuilderOptionsSetCallGraphProfile(
+        options: LLVMPassBuilderOptionsRef,
+        enable: LLVMBool,
+    );
+    pub fn LLVMPassBuilderOptionsSetMergeFunctions(
+        options: LLVMPassBuilderOptionsRef,
+        enable: LLVMBool,
+    );
+    pub fn LLVMPassBuilderOptionsSetInlinerThreshold(
+        options: LLVMPassBuilderOptionsRef,
+        threshold: i32,
+    );
+    pub fn LLVMPassBuilderOptionsSetAAPipeline(
+        options: LLVMPassBuilderOptionsRef,
+        aa_pipeline: *const c_char,
+    );
 }
 
 // ---------------------------------------------------------------------------
