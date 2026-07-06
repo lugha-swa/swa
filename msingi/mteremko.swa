@@ -1,85 +1,85 @@
 husisha { msambazaji.swa }
 
 // ==========================================================
-// mteremko.swa :: Swa IR lowerer (self-hosting milestone 6)
-// Walks the AST produced by msambazaji.swa and emits
-// LLVM IR text to stdout.  Loaded at runtime by stage1.exe.
+// mteremko.swa :: Kipunguza IR cha Swa (hatua muhimu ya 6)
+// Hutembea AST iliyotengenezwa na msambazaji.swa na kutoa
+// maandishi ya LLVM IR kwa stdout.  Inapakiwa wakati wa utekelezaji na stage1.exe.
 // ==========================================================
 
 // -------------------------------------------------------
-// Module-level state
+// Hali ya kiwango cha moduli
 // -------------------------------------------------------
 N32 vid_hesabu = 0;
 N32 blk_hesabu = 0;
 N32 blk_sasa = 0;
-N32 blk_fungwa = 0;        // 1 if current block already has a terminator
-N32 vid_ni_mshale[8192];   // 1 if vid N is ptr-typed, 0 if integer
-N32 vid_ni_n64[8192];      // 1 if vid N is i64-typed, 0 if i32
-N32 vid_aina_arr[8192];    // encoded type of each SSA value
-N32 usemi_upana = 32;      // current integer width context (32 or 64)
+N32 blk_fungwa = 0;        // 1 kama block ya sasa tayari ina terminator
+N32 vid_ni_mshale[8192];   // 1 kama vid N ni aina-ptr, 0 kama ni namba
+N32 vid_ni_n64[8192];      // 1 kama vid N ni aina-i64, 0 kama ni i32
+N32 vid_aina_arr[8192];    // aina iliyosimbwa ya kila thamani SSA
+N32 usemi_upana = 32;      // muktadha wa upana wa namba sasa (32 au 64)
 
-// Function return type table
+// Jedwali la aina za kurudi za kazi
 N32 kazi_ret_idadi = 0;
 N8  kazi_ret_pool[8192];
 N32 kazi_ret_pool_wapi = 1;
 N32 kazi_ret_jina_off[512];
 N32 kazi_ret_aina[512];
 
-// Global variable table
+// Jedwali la vigeu vya ulimwengu
 N32 global_idadi = 0;
 N8  global_jina_pool[8192];
 N32 global_jina_pool_wapi = 1;
 N32 global_jina_off[256];
 N32 global_aina[256];
 
-// Per-function scope
+// Wigo wa kila kazi
 N32 wigo_node[512];
 N32 wigo_vid[128];
 N32 wigo_aina[128];
 N32 wigo_idadi = 0;
-N32 wigo_alloca[8192];  // pre-allocated alloca vid per AST_TANGAZO node
+N32 wigo_alloca[8192];  // vid alloca iliyotengwa mapema kwa kila nodi AST_TANGAZO
 N32 wigo_alloca_idadi = 0;
 N32 param_node[16];
 N32 param_vid[16];
 N32 param_aina[16];
 N32 param_idadi = 0;
 
-// Call argument buffer
+// Bafa ya hoja za wito
 N32 arg_vids[16];
 
-// Loop context stack
+// Rafu ya muktadha wa kitanzi
 N32 kitanzi_kina = 0;
 N32 kitanzi_header[8];
 N32 kitanzi_exit[8];
 
-// Switch/case
+// Badili/kesi
 N32 hali_thamani[16];
 N32 hali_blk[16];
 N32 hali_idadi = 0;
 
-// String literal table
+// Jedwali la herufi halisi
 N32 str_idadi = 0;
 N8  str_pool[8192];
 N32 str_pool_wapi = 1;
 N32 str_off[128];
 
-// Struct type tracking
+// Ufuatiliaji wa aina za muundo
 N32 muundo_idadi_t = 0;
 N8  muundo_jina_pool[4096];
 N32 muundo_jina_pool_wapi = 1;
 N32 muundo_jina_off[32];
-N32 muundo_node[32];       // AST node index for each muundo
-N32 muundo_enc_val[32];    // encoded type-family stub per muundo
+N32 muundo_node[32];       // Fahirisi ya nodi AST kwa kila muundo
+N32 muundo_enc_val[32];    // Kijiti cha familia-aina kilichosimbwa kwa kila muundo
 
-// Program root node (set by teremsha)
+// Nodi kuu ya programu (imewekwa na teremsha)
 N32 mzizi_mkuu = -1;
 
-// sret pointer vid for struct-return functions
+// vid kwa pointer sret kwa kazi zinazorejesha muundo
 N32 sret_vid_sasa = -1;
-N32 sret_scratch_vid = -1;   // pre-allocated scratch alloca for sret temps
+N32 sret_scratch_vid = -1;   // alloca ya muda iliyotengwa mapema kwa temp za sret
 
 // -------------------------------------------------------
-// Helper: allocate a new SSA value ID
+// Msaidizi: tengeneza kitambulisho kipya cha thamani SSA
 // -------------------------------------------------------
 N32 vid_mpya() {
     N32 v = vid_hesabu;
@@ -88,7 +88,7 @@ N32 vid_mpya() {
 }
 
 // -------------------------------------------------------
-// Helper: allocate a new basic block ID
+// Msaidizi: tengeneza kitambulisho kipya cha block ya msingi
 // -------------------------------------------------------
 N32 blk_mpya() {
     N32 b = blk_hesabu;
@@ -97,7 +97,7 @@ N32 blk_mpya() {
 }
 
 // -------------------------------------------------------
-// Helper: compare two null-terminated strings for equality
+// Msaidizi: linganisha herufi mbili za null-terminated kwa usawa
 // -------------------------------------------------------
 N32 jina_linganisha(N8* a, N8* b) {
     wakati (a[0] != 0 && b[0] != 0) {
@@ -109,7 +109,7 @@ N32 jina_linganisha(N8* a, N8* b) {
 }
 
 // -------------------------------------------------------
-// Helper: get the length of a null-terminated string
+// Msaidizi: pata urefu wa herufi za null-terminated
 // -------------------------------------------------------
 N32 jina_urefu(N8* s) {
     N32 n = 0;
@@ -118,7 +118,7 @@ N32 jina_urefu(N8* s) {
 }
 
 // -------------------------------------------------------
-// Helper: copy a null-terminated string into a pool
+// Msaidizi: nakili herufi za null-terminated kwenye bwawa
 // -------------------------------------------------------
 W0 jina_hifadhi(N8* pool, N32* wapi, N8* jina) {
     N32 i = 0;
@@ -131,9 +131,9 @@ W0 jina_hifadhi(N8* pool, N32* wapi, N8* jina) {
 }
 
 // -------------------------------------------------------
-// Helper: print an encoded type in LLVM syntax
-// Encoding: (familia<<8) | (upana & 254) | (mshale ? 1 : 0)
-//   familia 1=N  2=A  3=D  4=B  5=W  6=user-struct
+// Msaidizi: chapisha aina iliyosimbwa kwa sintaksia ya LLVM
+// Usimbaji: (familia<<8) | (upana & 254) | (mshale ? 1 : 0)
+//   familia 1=N  2=A  3=D  4=B  5=W  6=muundo-mtumiaji
 //   mshale bit 0 = pointer
 // -------------------------------------------------------
 W0 chapisha_aina(N32 enc) {
@@ -169,7 +169,7 @@ W0 chapisha_aina(N32 enc) {
         andika("void");
     }
     sivyo kama (familia == 6) {
-        // User struct -- try to look up the name
+        // Muundo wa mtumiaji -- jaribu kutafuta jina
         N32 i = 0;
         N32 found = 0;
         wakati (i < muundo_idadi_t) {
@@ -191,11 +191,11 @@ W0 chapisha_aina(N32 enc) {
 }
 
 // -------------------------------------------------------
-// Helper: search local scope + global scope for a variable
-// Returns the alloca vid, or -1 if not found
+// Msaidizi: tafuta kigeu katika wigo wa ndani na ulimwengu
+// Inarejesha vid alloca, au -1 kama haijapatikana
 // -------------------------------------------------------
 N32 tafuta_wigo(N8* jina) {
-    // Search local scope (reverse order for shadowing)
+    // Tafuta wigo wa ndani (mpangilio wa nyuma kwa kivuli)
     N32 i = wigo_idadi - 1;
     wakati (i >= 0) {
         N32 pnode = wigo_node[i];
@@ -208,12 +208,12 @@ N32 tafuta_wigo(N8* jina) {
         i = i - 1;
     }
 
-    // Search globals
+    // Tafuta vigeu vya ulimwengu
     i = 0;
     wakati (i < global_idadi) {
         N8* gjina = global_jina_pool + global_jina_off[i];
         kama (jina_linganisha(gjina, jina)) {
-            rudisha -2; // -2 means global (not an alloca)
+            rudisha -2; // -2 inamaanisha ulimwengu (si alloca)
         }
         i = i + 1;
     }
@@ -222,8 +222,8 @@ N32 tafuta_wigo(N8* jina) {
 }
 
 // -------------------------------------------------------
-// Helper: find a struct definition by field name
-// Returns the muundo index, sets *field_idx
+// Msaidizi: tafuta ufafanuzi wa muundo kwa jina la sehemu
+// Inarejesha fahirisi ya muundo, inaweka *field_idx
 // -------------------------------------------------------
 N32 tafuta_muundo_kwa_sehemu(N8* field_name, N32* field_idx_ptr) {
     N32 s = 0;
@@ -250,8 +250,8 @@ N32 tafuta_muundo_kwa_sehemu(N8* field_name, N32* field_idx_ptr) {
 }
 
 // -------------------------------------------------------
-// Helper: get the alloca vid for a variable (creates none;
-// just looks it up).  For globals, emits @name reference.
+// Msaidizi: pata vid alloca kwa kigeu (haiundii;
+// inatafuta tu).  Kwa ulimwengu, inatoa rejeleo @jina.
 // -------------------------------------------------------
 W0 andika_anwani_ya_wigo(N8* jina) {
     N32 v = tafuta_wigo(jina);
@@ -259,13 +259,13 @@ W0 andika_anwani_ya_wigo(N8* jina) {
         andika("%%v%d", v);
     }
     kama (v == -2) {
-        // Global variable
+        // Kigeu cha ulimwengu
         andika("@%s", jina);
     }
 }
 
 // -------------------------------------------------------
-// Header: target triple, external declarations
+// Kichwa: target triple, matamko ya nje
 // -------------------------------------------------------
 W0 teremsha_kichwa() {
     andika("; Generated by mteremko.swa\n");
@@ -282,9 +282,9 @@ W0 teremsha_kichwa() {
 }
 
 // -------------------------------------------------------
-// Walk the AST to find muundo definitions and emit LLVM
-// type declarations.  Also registers structs for
-// later lookup.
+// Tembea AST kupata ufafanuzi wa muundo na kutoa
+// matamko ya aina za LLVM.  Pia husajili miundo kwa
+// utafutaji wa baadaye.
 // -------------------------------------------------------
 W0 teremsha_aina_walk(N32 mzizi) {
     N32 node = ast_kushoto[mzizi];
@@ -293,14 +293,14 @@ W0 teremsha_aina_walk(N32 mzizi) {
             N32 name_node = ast_kushoto[node];
             N8* jina = ast_pool + ast_jina_off[name_node];
 
-            // Register this struct for later lookup
+            // Sajili muundo huu kwa utafutaji wa baadaye
             N32 t = muundo_idadi_t;
             kama (t < 32) {
                 muundo_node[t] = node;
                 N32 off = muundo_jina_pool_wapi;
                 jina_hifadhi(muundo_jina_pool, &muundo_jina_pool_wapi, jina);
                 muundo_jina_off[t] = off;
-                // Encode a unique "struct value" using familia=6, upana=0
+                // Simba "thamani ya muundo" ya kipekee kwa kutumia familia=6, upana=0
                 muundo_enc_val[t] = (6 << 8) | 0;
                 muundo_idadi_t = t + 1;
             }
@@ -323,9 +323,9 @@ W0 teremsha_aina_walk(N32 mzizi) {
 }
 
 // -------------------------------------------------------
-// Pre-pass: walk the AST and collect all string literals.
-// Strings are identified as KITAMBULISHO nodes whose
-// stored name begins with '"' (double-quote, byte 34).
+// Kupita kabla: tembea AST na kukusanya herufi halisi zote.
+// Herufi hutambuliwa kama nodi KITAMBULISHO ambazo
+// jina lililohifadhiwa linaanza na '"' (nukuu-mbili, baiti 34).
 // -------------------------------------------------------
 W0 kukusanya_mistari(N32 node) {
     kama (node == -1) { rudisha; }
@@ -334,8 +334,8 @@ W0 kukusanya_mistari(N32 node) {
         N32 off = ast_jina_off[node];
         kama (off > 0) {
             N8* s = ast_pool + off;
-            kama (s[0] == 34) {  // starts with double-quote
-                // Check if already collected (by pool offset)
+            kama (s[0] == 34) {  // inaanza na nukuu-mbili
+                // Angalia kama tayari imekusanywa (kwa offset ya bwawa)
                 N32 found = 0;
                 N32 j = 0;
                 wakati (j < str_idadi) {
@@ -348,7 +348,7 @@ W0 kukusanya_mistari(N32 node) {
                 }
             }
         }
-        rudisha;  // KITAMBULISHO nodes are leaves; no children
+        rudisha;  // Nodi KITAMBULISHO ni majani; hakuna watoto
     }
 
     kukusanya_mistari(ast_kushoto[node]);
@@ -358,8 +358,8 @@ W0 kukusanya_mistari(N32 node) {
 }
 
 // -------------------------------------------------------
-// Emit all collected string literals as LLVM private
-// constants.  Strips the surrounding double-quotes.
+// Toa herufi halisi zote zilizokusanywa kama
+// vibadilika vya faragha vya LLVM.  Huondoa nukuu-mbili za kuzunguka.
 // -------------------------------------------------------
 W0 teremsha_mistari() {
     N32 i = 0;
@@ -367,9 +367,9 @@ W0 teremsha_mistari() {
         N32 off = str_off[i];
         N8* raw = ast_pool + off;
 
-        // Skip opening quote
+        // Ruka nukuu ya kufungua
         N32 start = 1;
-        // Find closing quote (raw includes quotes)
+        // Tafuta nukuu ya kufunga (raw inajumuisha nukuu)
         N32 end = start;
         wakati (raw[end] != 0 && raw[end] != 34) { end = end + 1; }
         N32 len = end - start;
@@ -381,7 +381,7 @@ W0 teremsha_mistari() {
             N8 c = raw[j];
             kama (c == 10) { andika("\\0A"); }
             sivyo kama (c == 92) {
-                // Escape sequence: \n, \t, \r, \\, \", \0
+                // Mfuatano wa kutoroka: \n, \t, \r, \\, \", \0
                 kama (j + 1 < end) {
                     N8 nc = raw[j + 1];
                     kama (nc == 110) { andika("\\0A"); j = j + 1; }       // \n
@@ -390,7 +390,7 @@ W0 teremsha_mistari() {
                     sivyo kama (nc == 92) { andika("\\\\"); j = j + 1; }   // \\
                     sivyo kama (nc == 34) { andika("\\22"); j = j + 1; }    // \"
                     sivyo kama (nc == 48) { andika("\\00"); j = j + 1; }    // \0
-                    sivyo { andika("\\\\"); }  // unknown escape, keep literal
+                    sivyo { andika("\\\\"); }  // kutoroka haijulikani, weka halisi
                 } sivyo {
                     andika("\\\\");
                 }
@@ -409,7 +409,7 @@ W0 teremsha_mistari() {
 }
 
 // -------------------------------------------------------
-// Forward declarations for mutually-recursive functions
+// Matamko ya mbele kwa kazi za kujirudia kwa pande zote
 // -------------------------------------------------------
 W0 teremsha_taarifa(N32 node, N32 ret_enc);
 N32 teremsha_usemi(N32 node);
@@ -417,15 +417,15 @@ N32 ukubwa_muundo(N32 enc);
 W0 nakili_muundo(N32 dest_vid, N32 src_vid, N32 ukubwa);
 
 // -------------------------------------------------------
-// Helper: compute the byte size of a struct type by
-// summing its field widths.
+// Msaidizi: hesabu ukubwa wa baiti za aina ya muundo kwa
+// kujumlisha upana wa sehemu zake.
 // -------------------------------------------------------
 N32 ukubwa_muundo(N32 enc) {
     N32 mshale = enc & 1;
-    kama (mshale != 0) { rudisha 8; }  // pointer = 8 bytes
+    kama (mshale != 0) { rudisha 8; }  // pointer = baiti 8
     N32 familia = (enc >> 8) & 255;
     kama (familia != 6) {
-        // Primitive type: byte width from bit width
+        // Aina ya msingi: upana wa baiti kutoka kwa upana wa biti
         N32 upana = enc & 254;
         kama (upana <= 8)  { rudisha 1; }
         kama (upana <= 16) { rudisha 2; }
@@ -433,7 +433,7 @@ N32 ukubwa_muundo(N32 enc) {
         kama (upana <= 64) { rudisha 8; }
         rudisha 16;
     }
-    // Walk the struct definition and sum field sizes
+    // Tembea ufafanuzi wa muundo na jumlisha ukubwa wa sehemu
     N32 i = 0;
     wakati (i < muundo_idadi_t) {
         kama (muundo_enc_val[i] == enc) {
@@ -450,12 +450,12 @@ N32 ukubwa_muundo(N32 enc) {
         }
         i = i + 1;
     }
-    rudisha 4;  // fallback
+    rudisha 4;  // mbadala
 }
 
 // -------------------------------------------------------
-// Helper: emit memcpy to copy a struct value from one
-// pointer to another.  Lowers to @llvm.memcpy.p0.p0.i64.
+// Msaidizi: toa memcpy kunakili thamani ya muundo kutoka
+// pointer moja hadi nyingine.  Inapunguza hadi @llvm.memcpy.p0.p0.i64.
 // -------------------------------------------------------
 W0 nakili_muundo(N32 dest_vid, N32 src_vid, N32 ukubwa) {
     andika("  call void @llvm.memcpy.p0.p0.i64(ptr %%v%d, ptr %%v%d, i64 %d, i1 false)\n",
@@ -463,18 +463,18 @@ W0 nakili_muundo(N32 dest_vid, N32 src_vid, N32 ukubwa) {
 }
 
 // -------------------------------------------------------
-// Helper: extend a value to match a wider integer width.
-// Returns the original vid if already the target width,
-// or a new vid with a sext/zext instruction.
+// Msaidizi: panua thamani ili kuendana na upana mpana wa namba.
+// Inarejesha vid asili ikiwa tayari upana lengwa,
+// au vid mpya kwa maagizo sext/zext.
 // -------------------------------------------------------
 N32 panua_aina(N32 vid, N32 upana_lengo) {
     N32 enc = vid_aina_arr[vid];
-    kama (enc & 1) { rudisha vid; }  // pointer — skip
+    kama (enc & 1) { rudisha vid; }  // pointer — ruka
     N32 upana = enc & 254;
     kama (upana >= upana_lengo) { rudisha vid; }
     N32 familia = (enc >> 8) & 255;
     N8* ext_inst = "sext";
-    kama (familia == 2) { ext_inst = "zext"; }  // unsigned
+    kama (familia == 2) { ext_inst = "zext"; }  // bila ishara
     N32 ext_vid = vid_mpya();
     vid_aina_arr[ext_vid] = (familia << 8) | upana_lengo;
     andika("  %%v%d = %s i%d %%v%d to i%d\n", ext_vid, ext_inst, upana, vid, upana_lengo);
@@ -482,23 +482,23 @@ N32 panua_aina(N32 vid, N32 upana_lengo) {
 }
 
 // -------------------------------------------------------
-// Pre-pass: collect all local variable declarations so their
-// allocas can be emitted in the entry block (prevents
-// alloca-in-loop stack exhaustion).
+// Kupita kabla: kusanya matamko yote ya vigeu vya ndani ili
+// alloca zao ziweze kutolewa kwenye block ya kuingia (inazuia
+// uishi wa alloca-katika-kitanzi).
 // -------------------------------------------------------
 W0 kukusanya_vigeu(N32 node) {
     kama (node == -1) { rudisha; }
     kama (ast_aina[node] == 11) {  // AST_TANGAZO
         kama (wigo_alloca_idadi < 8192) {
-            wigo_alloca[node] = 1;  // mark node as needing pre-alloca
+            wigo_alloca[node] = 1;  // weka alama nodi inahitaji alloca kabla
             wigo_alloca_idadi = wigo_alloca_idadi + 1;
         }
     }
-    // Recurse into children
+    // Jirudie ndani ya watoto
     kukusanya_vigeu(ast_kushoto[node]);
     kukusanya_vigeu(ast_kulia[node]);
     kukusanya_vigeu(ast_tiga[node]);
-    // Follow statement chain (ast_nne)
+    // Fuata mlolongo wa taarifa (ast_nne)
     N32 sasa = ast_nne[node];
     wakati (sasa != -1) {
         kukusanya_vigeu(sasa);
@@ -507,44 +507,44 @@ W0 kukusanya_vigeu(N32 node) {
 }
 
 // -------------------------------------------------------
-// Emit a single function definition as LLVM IR
+// Toa ufafanuzi wa kazi moja kama LLVM IR
 // -------------------------------------------------------
 W0 teremsha_kazi(N32 kazi_node) {
     N32 name_node = ast_kushoto[kazi_node];
     N32 ret_enc = ast_thamani[kazi_node];
     N8* jina = ast_pool + ast_jina_off[name_node];
 
-    // Reset per-function state
+    // Weka upya hali ya kila kazi
     wigo_idadi = 0;
     param_idadi = 0;
     kitanzi_kina = 0;
     hali_idadi = 0;
     blk_sasa = 0;
 
-    // Check for struct return type (sret)
+    // Angalia aina ya kurudi ya muundo (sret)
     N32 ret_familia = (ret_enc >> 8) & 255;
     N32 ni_sret = (ret_familia == 6);
 
-    // Emit function signature
+    // Toa sahihi ya kazi
     andika("\ndefine ");
     kama (ni_sret) { andika("void"); }
     sivyo { chapisha_aina(ret_enc); }
     andika(" @%s(", jina);
 
-    // Parameters
+    // Vigezo
     N32 first = 1;
 
-    // For sret: first parameter is a pointer to the return struct
+    // Kwa sret: kigezo cha kwanza ni pointer kwa muundo wa kurudi
     sret_vid_sasa = -1;
     kama (ni_sret) {
         N32 sret = vid_mpya();
         sret_vid_sasa = sret;
-        vid_aina_arr[sret] = 1; // ptr
+        vid_aina_arr[sret] = 1; // kielekezi
         andika("ptr %%%d", sret);
         first = 0;
     }
 
-    // Parameters — stored in ast_kulia[func_node]
+    // Vigezo — zimehifadhiwa katika ast_kulia[func_node]
     N32 p = ast_kulia[kazi_node];
     wakati (p != -1) {
         kama (first == 0) { andika(", "); }
@@ -562,25 +562,25 @@ W0 teremsha_kazi(N32 kazi_node) {
     }
     andika(") {\n");
 
-    // Entry block
+    // Block ya kuingia
     N32 entry_blk = blk_mpya();
     blk_sasa = entry_blk;
     blk_fungwa = 0;
     andika("b%d:\n", entry_blk);
 
-    // Alloca + store for each parameter
+    // Alloca + store kwa kila kigezo
     N32 i = 0;
     wakati (i < param_idadi) {
         N32 av = vid_mpya();
         N32 p_enc = param_aina[i];
-        vid_aina_arr[av] = p_enc | 1;  // alloca produces a pointer
+        vid_aina_arr[av] = p_enc | 1;  // alloca inazalisha pointer
         andika("  %%v%d = alloca ", av);
         chapisha_aina(p_enc);
         andika("\n");
         andika("  store ");
         chapisha_aina(p_enc);
         andika(" %%%d, ptr %%v%d\n", param_vid[i], av);
-        // Add to scope
+        // Ongeza kwenye wigo
         N32 pnode = param_node[i];
         wigo_node[wigo_idadi] = pnode;
         wigo_vid[wigo_idadi] = av;
@@ -589,10 +589,10 @@ W0 teremsha_kazi(N32 kazi_node) {
         i = i + 1;
     }
 
-    // --- Pre-pass: collect all local variable declarations ---
-    // Walk the body AST to find every local variable (AST_TANGAZO).
-    // Emit their allocas into the entry block now, so they are not
-    // emitted inside loop bodies (alloca-in-loop stack exhaustion).
+    // --- Kupita kabla: kusanya matamko yote ya vigeu vya ndani ---
+    // Tembea AST ya mwili kupata kila kigeu cha ndani (AST_TANGAZO).
+    // Toa alloca zao kwenye block ya kuingia sasa, ili zisitolewe
+    // ndani ya miili ya vitanzi (uishi wa alloca-katika-kitanzi).
     wigo_alloca_idadi = 0;
     N32 j = 0;
     wakati (j < 8192) { wigo_alloca[j] = 0; j = j + 1; }
@@ -600,37 +600,37 @@ W0 teremsha_kazi(N32 kazi_node) {
     kama (body != -1) {
         kukusanya_vigeu(body);
     }
-    // Emit pre-allocated allocas into the entry block
+    // Toa alloca zilizotengwa mapema kwenye block ya kuingia
     j = 0;
     wakati (j < 8192) {
         kama (wigo_alloca[j] != 0) {
             N32 var_node = j;
             N32 var_enc = ast_thamani[var_node];
             N32 av = vid_mpya();
-            vid_aina_arr[av] = var_enc | 1;  // pointer
+            vid_aina_arr[av] = var_enc | 1;  // kielekezi
             andika("  %%v%d = alloca ", av);
             chapisha_aina(var_enc);
             andika("\n");
-            wigo_alloca[var_node] = av;  // store alloca vid
+            wigo_alloca[var_node] = av;  // hifadhi vid alloca
         }
         j = j + 1;
     }
 
-    // Allocate scratch buffer for sret temp returns
+    // Tenga bafa ya muda kwa sret temp za kurudi
     kama (ni_sret) {
         sret_scratch_vid = vid_mpya();
-        vid_aina_arr[sret_scratch_vid] = 1; // ptr
+        vid_aina_arr[sret_scratch_vid] = 1; // kielekezi
         andika("  %%v%d = alloca ", sret_scratch_vid);
         chapisha_aina(ret_enc);
         andika("\n");
     }
 
-    // Emit body
+    // Toa mwili
     kama (body != -1) {
         teremsha_taarifa(body, ret_enc);
     }
 
-    // Implicit return for void functions if no terminator was emitted
+    // Rudisha kwa siri kwa kazi za void ikiwa hakuna terminator ilitolewa
     kama (blk_fungwa == 0) {
         N32 ret_familia = (ret_enc >> 8) & 255;
         kama (ret_familia == 5) {
@@ -642,28 +642,28 @@ W0 teremsha_kazi(N32 kazi_node) {
 }
 
 // -------------------------------------------------------
-// Expression: emit array-subscript / pointer-index GEP+load
+// Usemi: toa hati-ya-safu / fahirisi-ya-kielekezi GEP+pakia
 // node = AST_TAJA(base_expr, index_expr)
 // -------------------------------------------------------
 N32 teremsha_safu(N32 node) {
     N32 base_node = ast_kushoto[node];
     N32 idx_node = ast_kulia[node];
 
-    // For array subscript, we need the base address (alloca) not the loaded value
+    // Kwa hati-ya-safu, tunahitaji anwani ya msingi (alloca) si thamani iliyopakiwa
     N32 base_addr_vid = -1;
     kama (ast_aina[base_node] == 5) {  // KITAMBULISHO
         N8* bjina = ast_pool + ast_jina_off[base_node];
         base_addr_vid = tafuta_wigo(bjina);
     }
     kama (base_addr_vid < 0) {
-        // Fallback: evaluate as expression (may be an alloca from a sub-expression)
+        // Mbadala: tathmini kama usemi (inaweza kuwa alloca kutoka usemi mdogo)
         base_addr_vid = teremsha_usemi(base_node);
     }
 
     N32 idx_vid = teremsha_usemi(idx_node);
 
     N32 gep_vid = vid_mpya();
-    vid_aina_arr[gep_vid] = 1; // ptr
+    vid_aina_arr[gep_vid] = 1; // kielekezi
     andika("  %%v%d = getelementptr i32, ptr %%v%d, i32 %%v%d\n",
            gep_vid, base_addr_vid, idx_vid);
 
@@ -674,24 +674,24 @@ N32 teremsha_safu(N32 node) {
 }
 
 // -------------------------------------------------------
-// Expression: struct field access via dot (base.field)
-// The base must evaluate to a memory address (alloca), not a loaded value.
+// Usemi: ufikiaji wa sehemu ya muundo kwa nukta (msingi.sehemu)
+// Msingi lazima utathmini kwa anwani ya kumbukumbu (alloca), si thamani iliyopakiwa.
 // -------------------------------------------------------
 N32 teremsha_sehemu_dot(N32 base_node, N32 field_node) {
     N8* field_name = ast_pool + ast_jina_off[field_node];
 
-    // Get the base struct's *address* (not the loaded value)
+    // Pata *anwani* ya muundo msingi (si thamani iliyopakiwa)
     N32 base_addr_vid = -1;
     kama (ast_aina[base_node] == 5) {  // KITAMBULISHO
         N8* bjina = ast_pool + ast_jina_off[base_node];
         base_addr_vid = tafuta_wigo(bjina);
     }
     sivyo {
-        // Complex expression -- evaluate and hope it yields an address
+        // Usemi tata -- tathmini na tumaini utatoa anwani
         base_addr_vid = teremsha_usemi(base_node);
     }
 
-    // Fallback if we couldn't get a valid address
+    // Mbadala ikiwa hatukuweza kupata anwani halali
     kama (base_addr_vid < 0) {
         N32 load_vid = vid_mpya();
         vid_aina_arr[load_vid] = (1 << 8) | 32;
@@ -699,16 +699,16 @@ N32 teremsha_sehemu_dot(N32 base_node, N32 field_node) {
         rudisha load_vid;
     }
 
-    // Find the struct index and field index
+    // Tafuta fahirisi ya muundo na fahirisi ya sehemu
     N32 field_idx = 0;
     N32 mu_idx = tafuta_muundo_kwa_sehemu(field_name, &field_idx);
     kama (mu_idx < 0) {
-        // Fallback: emit as i8 GEP
+        // Mbadala: toa kama i8 GEP
         N32 gep_vid = vid_mpya();
-        vid_aina_arr[gep_vid] = 1; // ptr
+        vid_aina_arr[gep_vid] = 1; // kielekezi
         andika("  %%v%d = getelementptr i8, ptr %%v%d, i32 0\n", gep_vid, base_addr_vid);
         N32 load_vid = vid_mpya();
-        vid_aina_arr[load_vid] = (1 << 8) | 32; // i32 fallback
+        vid_aina_arr[load_vid] = (1 << 8) | 32; // mbadala i32
         andika("  %%v%d = load i32, ptr %%v%d\n", load_vid, gep_vid);
         rudisha load_vid;
     }
@@ -716,11 +716,11 @@ N32 teremsha_sehemu_dot(N32 base_node, N32 field_node) {
     N8* mu_jina = muundo_jina_pool + muundo_jina_off[mu_idx];
 
     N32 gep_vid = vid_mpya();
-    vid_aina_arr[gep_vid] = 1; // ptr
+    vid_aina_arr[gep_vid] = 1; // kielekezi
     andika("  %%v%d = getelementptr %%%s, ptr %%v%d, i32 0, i32 %d\n",
            gep_vid, mu_jina, base_addr_vid, field_idx);
 
-    // Determine field type from the struct definition
+    // Amua aina ya sehemu kutoka kwa ufafanuzi wa muundo
     N32 mnode = muundo_node[mu_idx];
     N32 field = ast_kulia[mnode];
     N32 fi = 0;
@@ -744,33 +744,33 @@ N32 teremsha_sehemu_dot(N32 base_node, N32 field_node) {
 }
 
 // -------------------------------------------------------
-// Expression: struct field access via arrow (base->field)
+// Usemi: ufikiaji wa sehemu ya muundo kwa mshale (msingi->sehemu)
 // -------------------------------------------------------
 N32 teremsha_sehemu_mshale(N32 base_node, N32 field_node) {
     N8* field_name = ast_pool + ast_jina_off[field_node];
 
-    // For arrow access, the base is a pointer-to-struct variable.
-    // Load the pointer value from the variable's alloca.
+    // Kwa ufikiaji wa mshale, msingi ni kigeu cha kielekezi-kwa-muundo.
+    // Pakia thamani ya kielekezi kutoka kwa alloca ya kigeu.
     N32 load_ptr_vid = -1;
     kama (ast_aina[base_node] == 5) {  // KITAMBULISHO
         N8* bjina = ast_pool + ast_jina_off[base_node];
         N32 base_addr = tafuta_wigo(bjina);
         kama (base_addr >= 0) {
             load_ptr_vid = vid_mpya();
-            vid_aina_arr[load_ptr_vid] = 1; // ptr
+            vid_aina_arr[load_ptr_vid] = 1; // kielekezi
             andika("  %%v%d = load ptr, ptr %%v%d\n", load_ptr_vid, base_addr);
         }
     }
     kama (load_ptr_vid < 0) {
-        // Fallback: evaluate base as expression
+        // Mbadala: tathmini msingi kama usemi
         load_ptr_vid = teremsha_usemi(base_node);
     }
 
-    // Find the struct and field
+    // Tafuta muundo na sehemu
     N32 field_idx = 0;
     N32 mu_idx = tafuta_muundo_kwa_sehemu(field_name, &field_idx);
     kama (mu_idx < 0) {
-        // Fallback
+        // Mbadala
         N32 gep_vid = vid_mpya();
         vid_aina_arr[gep_vid] = 1;
         andika("  %%v%d = getelementptr i8, ptr %%v%d, i32 0\n", gep_vid, load_ptr_vid);
@@ -783,11 +783,11 @@ N32 teremsha_sehemu_mshale(N32 base_node, N32 field_node) {
     N8* mu_jina = muundo_jina_pool + muundo_jina_off[mu_idx];
 
     N32 gep_vid = vid_mpya();
-    vid_aina_arr[gep_vid] = 1; // ptr
+    vid_aina_arr[gep_vid] = 1; // kielekezi
     andika("  %%v%d = getelementptr %%%s, ptr %%v%d, i32 0, i32 %d\n",
            gep_vid, mu_jina, load_ptr_vid, field_idx);
 
-    // Determine field type
+    // Amua aina ya sehemu
     N32 mnode = muundo_node[mu_idx];
     N32 field = ast_kulia[mnode];
     N32 fi = 0;
@@ -811,13 +811,13 @@ N32 teremsha_sehemu_mshale(N32 base_node, N32 field_node) {
 }
 
 // -------------------------------------------------------
-// Expression: function call emission
+// Usemi: utoaji wa wito wa kazi
 // -------------------------------------------------------
 N32 teremsha_wito(N32 wito_node) {
     N32 callee_node = ast_kushoto[wito_node];
     N8* callee = ast_pool + ast_jina_off[callee_node];
 
-    // Collect arguments
+    // Kusanya hoja
     N32 arg_count = 0;
     N32 arg = ast_kulia[wito_node];
     wakati (arg != -1) {
@@ -828,10 +828,10 @@ N32 teremsha_wito(N32 wito_node) {
         arg = ast_kulia[arg];
     }
 
-    // Determine the actual callee (map andika -> printf, etc.)
+    // Amua mpokeaji halisi (ramani andika -> printf, nk.)
     N8* actual_callee = callee;
 
-    // Handle special built-in name mappings
+    // Shughulikia ramani maalum za majina yaliyojengwa ndani
     N32 ni_andika = jina_linganisha(callee, "andika");
     kama (ni_andika) { actual_callee = "printf"; }
 
@@ -842,18 +842,18 @@ N32 teremsha_wito(N32 wito_node) {
     N32 ni_badili = jina_linganisha(callee, "badili");
     kama (ni_badili) { actual_callee = "realloc"; }
 
-    // Determine return type
+    // Amua aina ya kurudi
     N32 ret_enc = 0;
     kama (ni_andika) {
         ret_enc = (1 << 8) | 32; // i32
     } sivyo kama (ni_tenga) {
-        ret_enc = 1; // ptr (mshale bit set, all else zero)
+        ret_enc = 1; // kielekezi (bit mshale imewekwa, zingine sifuri)
     } sivyo kama (ni_achilia) {
-        ret_enc = (5 << 8) | 0; // void
+        ret_enc = (5 << 8) | 0; // aina void
     } sivyo kama (ni_badili) {
-        ret_enc = 1; // ptr
+        ret_enc = 1; // kielekezi
     } sivyo {
-        // Look up return type from registered functions
+        // Tafuta aina ya kurudi kutoka kwenye kazi zilizosajiliwa
         N32 j = 0;
         N32 found_ret = 0;
         wakati (j < kazi_ret_idadi) {
@@ -866,20 +866,20 @@ N32 teremsha_wito(N32 wito_node) {
             j = j + 1;
         }
         kama (found_ret == 0) {
-            // Default to i32
+            // Chaguo-msingi i32
             ret_enc = (1 << 8) | 32;
         }
     }
 
-    // Check if return type is a struct (needs sret)
+    // Angalia kama aina ya kurudi ni muundo (inahitaji sret)
     N32 ret_familia_wito = (ret_enc >> 8) & 255;
     N32 ni_sret_wito = (ret_familia_wito == 6);
     N32 sret_alloca_wito = -1;
 
     kama (ni_sret_wito) {
-        // Create an alloca for the struct return, pass as first arg
+        // Unda alloca kwa ajili ya kurudi kwa muundo, pitisha kama hoja ya kwanza
         sret_alloca_wito = vid_mpya();
-        vid_aina_arr[sret_alloca_wito] = 1; // ptr
+        vid_aina_arr[sret_alloca_wito] = 1; // kielekezi
         andika("  %%v%d = alloca ", sret_alloca_wito);
         chapisha_aina(ret_enc);
         andika("\n");
@@ -887,12 +887,12 @@ N32 teremsha_wito(N32 wito_node) {
 
     N32 result_vid = vid_mpya();
     kama (ni_sret_wito) {
-        vid_aina_arr[result_vid] = 1; // returns pointer to struct
+        vid_aina_arr[result_vid] = 1; // inarejesha kielekezi kwa muundo
     } sivyo {
         vid_aina_arr[result_vid] = ret_enc;
     }
 
-    // Emit the call
+    // Toa wito
     kama (ni_sret_wito) {
         andika("  %%v%d = call void @%s(ptr %%v%d", result_vid, actual_callee, sret_alloca_wito);
     } sivyo {
@@ -903,7 +903,7 @@ N32 teremsha_wito(N32 wito_node) {
 
     N32 a = 0;
     wakati (a < arg_count) {
-        // In sret mode, the first real arg needs a comma after the sret pointer.
+        // Katika hali ya sret, hoja halisi ya kwanza inahitaji koma baada ya kielekezi sret.
         kama (a > 0 || ni_sret_wito == 1) { andika(", "); }
         N32 arg_enc = vid_aina_arr[arg_vids[a]];
         chapisha_aina(arg_enc);
@@ -916,15 +916,15 @@ N32 teremsha_wito(N32 wito_node) {
 }
 
 // -------------------------------------------------------
-// Expression: emit LLVM IR for an AST expression node
-// Returns the SSA value ID holding the result.
+// Usemi: toa LLVM IR kwa nodi ya usemi wa AST
+// Inarejesha kitambulisho cha thamani SSA kinachoshikilia matokeo.
 // -------------------------------------------------------
 N32 teremsha_usemi(N32 node) {
     kama (node == -1) { rudisha -1; }
 
     N32 aina = ast_aina[node];
 
-    // Integer literal
+    // Nambari halisi
     kama (aina == 4) {  // AST_NAMBARI
         N32 val = ast_thamani[node];
         N32 vid = vid_mpya();
@@ -933,13 +933,13 @@ N32 teremsha_usemi(N32 node) {
         rudisha vid;
     }
 
-    // Identifier (variable reference or string literal)
+    // Kitambulisho (rejeleo la kigeu au herufi halisi)
     kama (aina == 5) {  // AST_KITAMBULISHO
         N8* jina = ast_pool + ast_jina_off[node];
 
-        // Check if this is a string literal (starts with ")
+        // Angalia kama hii ni herufi halisi (inaanza na ")
         kama (jina[0] == 34) {
-            // Find string index
+            // Tafuta fahirisi ya herufi
             N32 off = ast_jina_off[node];
             N32 si = 0;
             wakati (si < str_idadi) {
@@ -947,44 +947,44 @@ N32 teremsha_usemi(N32 node) {
                 si = si + 1;
             }
             kama (si >= str_idadi) {
-                // String not found in table -- fallback
+                // Herufi haikupatikana kwenye jedwali -- mbadala
                 N32 vid = vid_mpya();
-                vid_aina_arr[vid] = 1; // ptr
+                vid_aina_arr[vid] = 1; // kielekezi
                 andika("  %%v%d = add ptr null, 0\n", vid);
                 rudisha vid;
             }
-            // Emit GEP to get i8* to string data
+            // Toa GEP kupata i8* kwa data ya herufi
             N32 gep_vid = vid_mpya();
-            vid_aina_arr[gep_vid] = 1; // ptr
+            vid_aina_arr[gep_vid] = 1; // kielekezi
             andika("  %%v%d = getelementptr [0 x i8], ptr @str.%d, i32 0, i32 0\n",
                    gep_vid, si);
             rudisha gep_vid;
         }
 
-        // Regular variable reference: look up in scope
+        // Rejeleo la kigeu cha kawaida: tafuta kwenye wigo
 
-        // Special built-in: tupu = null pointer
+        // Maalum iliyojengwa ndani: tupu = kielekezi null
         kama (jina_linganisha(jina, "tupu")) {
             N32 vid = vid_mpya();
-            vid_aina_arr[vid] = 1; // ptr (null)
+            vid_aina_arr[vid] = 1; // kielekezi (null)
             andika("  %%v%d = add ptr null, 0\n", vid);
             rudisha vid;
         }
 
-        // Regular variable reference: look up in scope
+        // Rejeleo la kigeu cha kawaida: tafuta kwenye wigo
         N32 wigo_vid_v = tafuta_wigo(jina);
         kama (wigo_vid_v == -2) {
-            // Global variable: load from @name
+            // Kigeu cha ulimwengu: pakia kutoka @jina
             N32 load_vid = vid_mpya();
-            vid_aina_arr[load_vid] = (1 << 8) | 32; // assume i32
+            vid_aina_arr[load_vid] = (1 << 8) | 32; // dhania i32
             andika("  %%v%d = load i32, ptr @%s\n", load_vid, jina);
             rudisha load_vid;
         }
         kama (wigo_vid_v >= 0) {
-            // Local variable: alloca vid -- load from it
+            // Kigeu cha ndani: vid alloca -- pakia kutoka kwake
             N32 load_vid = vid_mpya();
-            N32 enc = wigo_aina[0]; // default
-            // Find the actual type
+            N32 enc = wigo_aina[0]; // chaguo-msingi
+            // Tafuta aina halisi
             N32 k = 0;
             wakati (k < wigo_idadi) {
                 kama (wigo_vid[k] == wigo_vid_v) {
@@ -993,7 +993,7 @@ N32 teremsha_usemi(N32 node) {
                 }
                 k = k + 1;
             }
-            N32 val_enc = enc & 254; // strip pointer bit
+            N32 val_enc = enc & 254; // ondoa biti ya kielekezi
             vid_aina_arr[load_vid] = val_enc;
             andika("  %%v%d = load ", load_vid);
             chapisha_aina(val_enc);
@@ -1001,14 +1001,14 @@ N32 teremsha_usemi(N32 node) {
             rudisha load_vid;
         }
 
-        // Not found -- emit 0 as fallback
+        // Haikupatikana -- toa 0 kama mbadala
         N32 vid = vid_mpya();
         vid_aina_arr[vid] = (1 << 8) | 32;
         andika("  %%v%d = add i32 0, 0\n", vid);
         rudisha vid;
     }
 
-    // Binary operators
+    // Waendeshaji wawili
     kama (aina == 6 || aina == 7 || aina == 31 || aina == 32) {  // + - * /
         N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
         N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
@@ -1016,7 +1016,7 @@ N32 teremsha_usemi(N32 node) {
         N32 rhs_enc = vid_aina_arr[rhs_vid];
         N32 lhs_upana = lhs_enc & 254;
         N32 rhs_upana = rhs_enc & 254;
-        // Coerce to wider width
+        // Lazimisha kwa upana mpana
         N32 upana = lhs_upana;
         kama (rhs_upana > upana) { upana = rhs_upana; }
         lhs_vid = panua_aina(lhs_vid, upana);
@@ -1040,17 +1040,17 @@ N32 teremsha_usemi(N32 node) {
         rudisha vid;
     }
 
-    // Bit shift operators
-    kama (aina == 39 || aina == 41) {  // <<  >>
+    // Waendeshaji wa shifti za biti
+    kama (aina == 39 || aina == 41) {  // kuhama kushoto  kuhama kulia
         N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
         N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
         N32 lhs_enc = vid_aina_arr[lhs_vid];
         N32 upana = lhs_enc & 254;
-        // Coerce RHS to LHS width (shift amount should match shift width)
+        // Lazimisha RHS kwa upana wa LHS (kiasi cha shifti kinalingana na upana wa shifti)
         rhs_vid = panua_aina(rhs_vid, upana);
 
         N8* inst = "shl";
-        kama (aina == 41) { inst = "ashr"; }  // >>
+        kama (aina == 41) { inst = "ashr"; }  // kuhama kulia
 
         N32 vid = vid_mpya();
         vid_aina_arr[vid] = lhs_enc;
@@ -1059,7 +1059,7 @@ N32 teremsha_usemi(N32 node) {
         rudisha vid;
     }
 
-    // Comparison operators
+    // Waendeshaji wa ulinganisho
     kama (aina == 20 || aina == 21 || aina == 22 || aina == 23 ||
           aina == 24 || aina == 25) {  // == != < > <= >=
         N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
@@ -1068,19 +1068,19 @@ N32 teremsha_usemi(N32 node) {
         N32 rhs_enc = vid_aina_arr[rhs_vid];
         N32 lhs_upana = lhs_enc & 254;
         N32 rhs_upana = rhs_enc & 254;
-        // Coerce to wider width
+        // Lazimisha kwa upana mpana
         N32 upana = lhs_upana;
         kama (rhs_upana > upana) { upana = rhs_upana; }
         lhs_vid = panua_aina(lhs_vid, upana);
         rhs_vid = panua_aina(rhs_vid, upana);
 
         N8* cond = "eq";
-        kama (aina == 20) { cond = "eq"; }   // ==
-        kama (aina == 21) { cond = "ne"; }   // !=
-        kama (aina == 22) { cond = "slt"; }  // <
-        kama (aina == 23) { cond = "sgt"; }  // >
-        kama (aina == 24) { cond = "sle"; }  // <=
-        kama (aina == 25) { cond = "sge"; }  // >=
+        kama (aina == 20) { cond = "eq"; }
+        kama (aina == 21) { cond = "ne"; }
+        kama (aina == 22) { cond = "slt"; }
+        kama (aina == 23) { cond = "sgt"; }
+        kama (aina == 24) { cond = "sle"; }
+        kama (aina == 25) { cond = "sge"; }
 
         N32 vid = vid_mpya();
         vid_aina_arr[vid] = (4 << 8) | 1; // i1
@@ -1089,7 +1089,7 @@ N32 teremsha_usemi(N32 node) {
         rudisha vid;
     }
 
-    // Logical NOT (prefix si)
+    // SI la mantiki (kiambishi awali si)
     kama (aina == 28) {  // AST_SI
         N32 operand_vid = teremsha_usemi(ast_kushoto[node]);
         N32 operand_enc = vid_aina_arr[operand_vid];
@@ -1101,7 +1101,7 @@ N32 teremsha_usemi(N32 node) {
         rudisha vid;
     }
 
-    // Bitwise AND (&)
+    // NA ya biti ( &)
     kama (aina == 43) {  // AST_BIT_NA
         N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
         N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
@@ -1122,7 +1122,7 @@ N32 teremsha_usemi(N32 node) {
         rudisha vid;
     }
 
-    // Bitwise OR (|)
+    // AU ya biti (|)
     kama (aina == 42) {  // AST_BIT_AU
         N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
         N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
@@ -1143,9 +1143,9 @@ N32 teremsha_usemi(N32 node) {
         rudisha vid;
     }
 
-    // Logical AND (&&)
+    // NA la mantiki (&&)
     kama (aina == 26) {  // AST_NA
-        // Short-circuit evaluation: convert operands to i1 and AND them
+        // Tathmini ya mzunguko-mfupi: badilisha waendeshaji kuwa i1 na WA NA
         N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
         N32 lhs_enc = vid_aina_arr[lhs_vid];
         N32 lhs_upana = lhs_enc & 254;
@@ -1168,7 +1168,7 @@ N32 teremsha_usemi(N32 node) {
         rudisha vid;
     }
 
-    // Logical OR (||)
+    // AU la mantiki (||)
     kama (aina == 27) {  // AST_AU
         N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
         N32 lhs_enc = vid_aina_arr[lhs_vid];
@@ -1192,37 +1192,37 @@ N32 teremsha_usemi(N32 node) {
         rudisha vid;
     }
 
-    // Function call
+    // Wito wa kazi
     kama (aina == 8) {  // AST_WITO
         rudisha teremsha_wito(node);
     }
 
-    // Struct field access (dot)
+    // Ufikiaji wa sehemu ya muundo (nukta)
     kama (aina == 33) {  // AST_SEHEMU_DOT
         rudisha teremsha_sehemu_dot(ast_kushoto[node], ast_kulia[node]);
     }
 
-    // Struct field access via pointer (arrow)
+    // Ufikiaji wa sehemu ya muundo kwa kielekezi (mshale)
     kama (aina == 34) {  // AST_SEHEMU_MSHALE
         rudisha teremsha_sehemu_mshale(ast_kushoto[node], ast_kulia[node]);
     }
 
-    // Array subscript / pointer index / sizeof
+    // Hati-ya-safu / fahirisi-ya-kielekezi / sizeof
     kama (aina == 29) {  // AST_TAJA
-        // Distinguish: sizeof has right child == -1, subscript has actual index
+        // Tofautisha: sizeof ina mtoto wa kulia == -1, subscript ina fahirisi halisi
         N32 rhs = ast_kulia[node];
         kama (rhs == -1) {
-            // sizeof(expr) -- return size in bytes (always 4 for i32, 8 for i64/ptr)
-            // The operand is in ast_kushoto[node]; evaluate and discard, then return 4
+            // sizeof(usemi) -- rudisha ukubwa kwa baiti (siku zote 4 kwa i32, 8 kwa i64/kielekezi)
+            // Operesheni iko katika ast_kushoto[node]; tathmini na tupa, kisha rudisha 4
             N32 operand_node = ast_kushoto[node];
             N32 operand_vid = -1;
             kama (operand_node != -1) {
-                // Check if it's a type name (KITAMBULISHO with no init)
+                // Angalia kama ni jina la aina (KITAMBULISHO bila anzisho)
                 kama (ast_aina[operand_node] == 5) {
-                    // It's a type identifier -- determine size from encoding
+                    // Ni kitambulisho cha aina -- amua ukubwa kutoka kwa usimbaji
                     N32 tena = ast_thamani[operand_node];
                     N32 upana = tena & 254;
-                    kama (upana == 0) { upana = 32; } // default
+                    kama (upana == 0) { upana = 32; } // chaguo-msingi
                     N32 vid = vid_mpya();
                     vid_aina_arr[vid] = (1 << 8) | 32;
                     N32 byte_size = upana / 8;
@@ -1231,37 +1231,37 @@ N32 teremsha_usemi(N32 node) {
                     rudisha vid;
                 }
             }
-            // Fallback: return 4 (sizeof i32)
+            // Mbadala: rudisha 4 (sizeof i32)
             N32 vid = vid_mpya();
             vid_aina_arr[vid] = (1 << 8) | 32;
             andika("  %%v%d = add i32 4, 0\n", vid);
             rudisha vid;
         }
-        // Regular array subscript
+        // Hati-ya-safu ya kawaida
         rudisha teremsha_safu(node);
     }
 
-    // tenga expr -- heap allocation, evaluates to a pointer
+    // usemi tenga -- ugawaji wa lundo, huthaminiwa kuwa kielekezi
     kama (aina == 18) {  // AST_TENGA
         N32 size_node = ast_kulia[node];
         kama (size_node != -1) {
             N32 size_vid = teremsha_usemi(size_node);
             N32 ext_vid = vid_mpya();
-            vid_aina_arr[ext_vid] = (1 << 8) | 64; // i64
+            vid_aina_arr[ext_vid] = (1 << 8) | 64; // namba 64-bit
             andika("  %%v%d = sext i32 %%v%d to i64\n", ext_vid, size_vid);
             N32 ptr_vid = vid_mpya();
-            vid_aina_arr[ptr_vid] = 1; // ptr
+            vid_aina_arr[ptr_vid] = 1; // kielekezi
             andika("  %%v%d = call ptr @malloc(i64 %%v%d)\n", ptr_vid, ext_vid);
             rudisha ptr_vid;
         }
         // tenga without argument
         N32 vid = vid_mpya();
-        vid_aina_arr[vid] = 1; // ptr
+        vid_aina_arr[vid] = 1; // kielekezi
         andika("  %%v%d = call ptr @malloc(i64 1)\n", vid);
         rudisha vid;
     }
 
-    // achilia expr -- free memory, evaluates to void
+    // usemi achilia -- toa kumbukumbu, huthaminiwa kuwa void
     kama (aina == 19) {  // AST_ACHILIA
         N32 ptr_node = ast_kulia[node];
         kama (ptr_node != -1) {
@@ -1269,17 +1269,17 @@ N32 teremsha_usemi(N32 node) {
             andika("  call void @free(ptr %%v%d)\n", ptr_vid);
         }
         N32 vid = vid_mpya();
-        vid_aina_arr[vid] = (5 << 8) | 0; // void
+        vid_aina_arr[vid] = (5 << 8) | 0; // aina void
         rudisha vid;
     }
 
     kama (aina == 38) {  // AST_SAFU
         N32 rhs = ast_kulia[node];
         kama (rhs != -1) {
-            // Array subscript: base[rhs] — delegate to teremsha_safu
+            // Hati-ya-safu: base[rhs] — tuma kwa teremsha_safu
             rudisha teremsha_safu(node);
         }
-        // Struct initializer list { ... } (rhs == -1)
+        // Orodha ya waanzishaji wa muundo { ... } (rhs == -1)
         N32 last_vid = -1;
         N32 elem = ast_kushoto[node];
         wakati (elem != -1) {
@@ -1295,14 +1295,14 @@ N32 teremsha_usemi(N32 node) {
         rudisha last_vid;
     }
 
-    // Ternary (?:)
+    // Ternari (?:)
     kama (aina == 44) {  // AST_TERNARY
         N32 cond_node = ast_kushoto[node];
         N32 kweli_node = ast_kulia[node];
         N32 sikweli_node = ast_tiga[node];
 
         N32 cond_vid = teremsha_usemi(cond_node);
-        // Convert condition to i1
+        // Badilisha hali kuwa i1
         N32 cond_bool = vid_mpya();
         vid_aina_arr[cond_bool] = (4 << 8) | 1;
         andika("  %%v%d = icmp ne i32 %%v%d, 0\n", cond_bool, cond_vid);
@@ -1329,28 +1329,28 @@ N32 teremsha_usemi(N32 node) {
         rudisha vid;
     }
 
-    // Assignment expression (=)
+    // Usemi wa ugawaji (=)
     kama (aina == 37) {  // AST_ASIMILIA
         N32 lhs_node = ast_kushoto[node];
         N32 rhs_node = ast_kulia[node];
         N32 rhs_vid = teremsha_usemi(rhs_node);
         N32 rhs_enc = vid_aina_arr[rhs_vid];
 
-        kama (ast_aina[lhs_node] == 5) {  // Simple variable
+        kama (ast_aina[lhs_node] == 5) {  // Kigeu rahisi
             N8* jina = ast_pool + ast_jina_off[lhs_node];
             N32 addr_vid = tafuta_wigo(jina);
             kama (addr_vid >= 0) {
-                // Find the type from scope
+                // Tafuta aina kutoka kwa wigo
                 N32 lhs_enc = (1 << 8) | 32;
                 N32 k = 0;
                 wakati (k < wigo_idadi) {
                     kama (wigo_vid[k] == addr_vid) { lhs_enc = wigo_aina[k]; vunja; }
                     k = k + 1;
                 }
-                // Check for struct type: use memcpy instead of store
+                // Angalia aina ya muundo: tumia memcpy badala ya store
                 N32 lhs_familia = (lhs_enc >> 8) & 255;
                 kama (lhs_familia == 6) {
-                    // Struct assignment via memcpy
+                    // Ugawaji wa muundo kupitia memcpy
                     N32 rhs_addr = -1;
                     kama (ast_aina[rhs_node] == 5) {
                         N8* rjina = ast_pool + ast_jina_off[rhs_node];
@@ -1359,7 +1359,7 @@ N32 teremsha_usemi(N32 node) {
                     kama (rhs_addr >= 0) {
                         nakili_muundo(addr_vid, rhs_addr, ukubwa_muundo(lhs_enc));
                     } sivyo {
-                        // Fallback: use store (may not work for structs)
+                        // Mbadala: tumia store (inaweza isifanye kazi kwa miundo)
                         andika("  store ");
                         chapisha_aina(lhs_enc & 254);
                         andika(" %%v%d, ptr %%v%d\n", rhs_vid, addr_vid);
@@ -1371,19 +1371,19 @@ N32 teremsha_usemi(N32 node) {
                 }
             }
             kama (addr_vid == -2) {
-                // Global
+                // Ulimwengu
                 andika("  store ");
                 chapisha_aina(rhs_enc);
                 andika(" %%v%d, ptr @%s\n", rhs_vid, jina);
             }
         }
-        sivyo kama (ast_aina[lhs_node] == 33) {  // dot field assign
-            // Evaluate LHS to get the field address GEP
+        sivyo kama (ast_aina[lhs_node] == 33) {  // ugawaji wa sehemu kwa nukta
+            // Tathmini LHS kupata anwani ya sehemu GEP
             N32 base_node = ast_kushoto[lhs_node];
             N32 field_node = ast_kulia[lhs_node];
             N8* field_name = ast_pool + ast_jina_off[field_node];
-            // Get base address: use tafuta_wigo for simple variables,
-            // teremsha_usemi for complex expressions (hoping it yields an address)
+            // Pata anwani ya msingi: tumia tafuta_wigo kwa vigeu rahisi,
+            // teremsha_usemi kwa usemi tata (tumaini inatoa anwani)
             N32 base_vid = -1;
             kama (ast_aina[base_node] == 5) {
                 N8* bjina = ast_pool + ast_jina_off[base_node];
@@ -1406,18 +1406,18 @@ N32 teremsha_usemi(N32 node) {
                 andika(" %%v%d, ptr %%v%d\n", rhs_vid, gep_vid);
             }
         }
-        sivyo kama (ast_aina[lhs_node] == 34) {  // arrow field assign
+        sivyo kama (ast_aina[lhs_node] == 34) {  // ugawaji wa sehemu kwa mshale
             N32 base_node = ast_kushoto[lhs_node];
             N32 field_node = ast_kulia[lhs_node];
             N8* field_name = ast_pool + ast_jina_off[field_node];
-            // Load the pointer value from the alloca (one load, not double)
+            // Pakia thamani ya kielekezi kutoka alloca (pakia moja, si mbili)
             N32 base_ptr_vid = -1;
             kama (ast_aina[base_node] == 5) {
                 N8* bjina = ast_pool + ast_jina_off[base_node];
                 N32 base_addr = tafuta_wigo(bjina);
                 kama (base_addr >= 0) {
                     base_ptr_vid = vid_mpya();
-                    vid_aina_arr[base_ptr_vid] = 1; // ptr
+                    vid_aina_arr[base_ptr_vid] = 1; // kielekezi
                     andika("  %%v%d = load ptr, ptr %%v%d\n", base_ptr_vid, base_addr);
                 }
             }
@@ -1438,10 +1438,10 @@ N32 teremsha_usemi(N32 node) {
                 andika(" %%v%d, ptr %%v%d\n", rhs_vid, gep_vid);
             }
         }
-        sivyo kama (ast_aina[lhs_node] == 29) {  // array subscript assign
+        sivyo kama (ast_aina[lhs_node] == 29) {  // ugawaji wa hati-ya-safu
             N32 arr_node = ast_kushoto[lhs_node];
             N32 idx_node = ast_kulia[lhs_node];
-            // Get array base address: use tafuta_wigo for simple variables
+            // Pata anwani ya msingi wa safu: tumia tafuta_wigo kwa vigeu rahisi
             N32 arr_vid = -1;
             kama (ast_aina[arr_node] == 5) {
                 N8* ajina = ast_pool + ast_jina_off[arr_node];
@@ -1463,7 +1463,7 @@ N32 teremsha_usemi(N32 node) {
         rudisha rhs_vid;
     }
 
-    // Fallback for unhandled expression types
+    // Mbadala kwa aina za usemi zisizoshughulikiwa
     N32 vid = vid_mpya();
     vid_aina_arr[vid] = (1 << 8) | 32;
     andika("  %%v%d = add i32 0, 0\n", vid);
@@ -1471,7 +1471,7 @@ N32 teremsha_usemi(N32 node) {
 }
 
 // -------------------------------------------------------
-// Statement: emit LLVM IR for an AST statement node
+// Taarifa: toa LLVM IR kwa nodi ya taarifa ya AST
 // -------------------------------------------------------
 W0 teremsha_taarifa(N32 node, N32 ret_enc) {
     kama (node == -1) { rudisha; }
@@ -1479,7 +1479,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
     N32 aina = ast_aina[node];
 
     // --------------------------------------------------
-    // AST_TANGAZO (11) -- local variable declaration
+    // AST_TANGAZO (11) -- tangazo la kigeu cha ndani
     // --------------------------------------------------
     kama (aina == 11) {
         N32 var_node = ast_kushoto[node];
@@ -1487,13 +1487,13 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         N32 var_enc = ast_thamani[var_node];
         N8* var_jina = ast_pool + ast_jina_off[var_node];
 
-        // Use pre-allocated alloca from the entry block.
-        // This prevents alloca-in-loop: even if the declaration
-        // appears inside a loop body, the alloca lives in the
-        // function entry and executes only once.
+        // Tumia alloca iliyotengwa mapema kutoka block ya kuingia.
+        // Hii inazuia alloca-katika-kitanzi: hata kama tangazo
+        // linatokea ndani ya mwili wa kitanzi, alloca inaishi kwenye
+        // kuingia kwa kazi na inatekelezwa mara moja tu.
         N32 av = wigo_alloca[var_node];
         kama (av == 0) {
-            // Fallback: no pre-alloca (should not happen after pre-pass)
+            // Mbadala: hakuna alloca kabla (haipaswi kutokea baada ya kupita kabla)
             av = vid_mpya();
             vid_aina_arr[av] = var_enc | 1;
             andika("  %%v%d = alloca ", av);
@@ -1600,7 +1600,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         N32 else_blk = blk_mpya();
         N32 merge_blk = blk_mpya();
 
-        // Convert condition to i1
+        // Badilisha hali kuwa i1
         N32 cond_bool = vid_mpya();
         vid_aina_arr[cond_bool] = (4 << 8) | 1;
         N32 cond_enc = vid_aina_arr[cond_vid];
@@ -1734,10 +1734,10 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         kama (expr_node != -1) {
             N32 size_vid = teremsha_usemi(expr_node);
             N32 ext_vid = vid_mpya();
-            vid_aina_arr[ext_vid] = (1 << 8) | 64; // i64
+            vid_aina_arr[ext_vid] = (1 << 8) | 64; // namba 64-bit
             andika("  %%v%d = sext i32 %%v%d to i64\n", ext_vid, size_vid);
             N32 ptr_vid = vid_mpya();
-            vid_aina_arr[ptr_vid] = 1; // ptr
+            vid_aina_arr[ptr_vid] = 1; // kielekezi
             andika("  %%v%d = call ptr @malloc(i64 %%v%d)\n", ptr_vid, ext_vid);
         }
     }

@@ -251,7 +251,7 @@ extern "C" {
     pub fn LLVMSetLinkage(global: LLVMValueRef, linkage: LLVMLinkage);
     pub fn LLVMGetLinkage(global: LLVMValueRef) -> LLVMLinkage;
 
-    // -- thabiti -------------------------------------------------------------
+    // -- vibadilika ----------------------------------------------------------
 
     pub fn LLVMConstInt(ty: LLVMTypeRef, value: u64, sign_extend: LLVMBool) -> LLVMValueRef;
     pub fn LLVMConstIntOfArbitraryPrecision(
@@ -285,7 +285,7 @@ extern "C" {
     ) -> LLVMValueRef;
     pub fn LLVMConstPointerNull(ty: LLVMTypeRef) -> LLVMValueRef;
 
-    // -- builder -------------------------------------------------------------
+    // -- kijenzi -------------------------------------------------------------
 
     pub fn LLVMCreateBuilder() -> LLVMBuilderRef;
     pub fn LLVMDisposeBuilder(builder: LLVMBuilderRef);
@@ -294,7 +294,7 @@ extern "C" {
     pub fn LLVMGetInsertBlock(builder: LLVMBuilderRef) -> LLVMBasicBlockRef;
     pub fn LLVMClearInsertionPosition(builder: LLVMBuilderRef);
 
-    // -- arithmetic ----------------------------------------------------------
+    // -- hesabu --------------------------------------------------------------
 
     pub fn LLVMBuildAdd(
         builder: LLVMBuilderRef, lhs: LLVMValueRef, rhs: LLVMValueRef,
@@ -371,7 +371,7 @@ extern "C" {
         builder: LLVMBuilderRef, val: LLVMValueRef, name: *const c_char,
     ) -> LLVMValueRef;
 
-    // -- comparisons ---------------------------------------------------------
+    // -- ulinganishaji -------------------------------------------------------
 
     pub fn LLVMBuildICmp(
         builder: LLVMBuilderRef, pred: LLVMIntPredicate,
@@ -382,7 +382,7 @@ extern "C" {
         lhs: LLVMValueRef, rhs: LLVMValueRef, name: *const c_char,
     ) -> LLVMValueRef;
 
-    // -- conversions ---------------------------------------------------------
+    // -- ubadilishaji --------------------------------------------------------
 
     pub fn LLVMBuildTrunc(
         builder: LLVMBuilderRef, val: LLVMValueRef, ty: LLVMTypeRef,
@@ -437,7 +437,7 @@ extern "C" {
         is_signed: LLVMBool, name: *const c_char,
     ) -> LLVMValueRef;
 
-    // -- memory --------------------------------------------------------------
+    // -- kumbukumbu ----------------------------------------------------------
 
     pub fn LLVMBuildAlloca(
         builder: LLVMBuilderRef, ty: LLVMTypeRef, name: *const c_char,
@@ -454,7 +454,7 @@ extern "C" {
         builder: LLVMBuilderRef, val: LLVMValueRef, ptr: LLVMValueRef,
     ) -> LLVMValueRef;
 
-    // -- control flow --------------------------------------------------------
+    // -- mtiririko wa udhibiti -----------------------------------------------
 
     pub fn LLVMAppendBasicBlockInContext(
         ctx: LLVMContextRef,
@@ -479,14 +479,14 @@ extern "C" {
         dest: LLVMBasicBlockRef,
     );
 
-    // -- calls ---------------------------------------------------------------
+    // -- mwito ---------------------------------------------------------------
 
     pub fn LLVMBuildCall2(
         builder: LLVMBuilderRef, fn_ty: LLVMTypeRef, func: LLVMValueRef,
         args: *mut LLVMValueRef, num_args: u32, name: *const c_char,
     ) -> LLVMValueRef;
 
-    // -- GEP / extract -------------------------------------------------------
+    // -- GEP / toa -----------------------------------------------------------
 
     pub fn LLVMBuildGEP2(
         builder: LLVMBuilderRef, ty: LLVMTypeRef, ptr: LLVMValueRef,
@@ -517,7 +517,7 @@ extern "C" {
         count: u32,
     );
 
-    // -- module I/O ----------------------------------------------------------
+    // -- I/O ya moduli -------------------------------------------------------
 
     pub fn LLVMPrintModuleToString(module: LLVMModuleRef) -> *const c_char;
     pub fn LLVMDisposeMessage(message: *const c_char);
@@ -534,7 +534,7 @@ extern "C" {
     ) -> LLVMMemoryBufferRef;
     pub fn LLVMDisposeMemoryBuffer(buf: LLVMMemoryBufferRef);
 
-    // -- verification --------------------------------------------------------
+    // -- uhakiki -------------------------------------------------------------
 
     pub fn LLVMVerifyModule(
         module: LLVMModuleRef,
@@ -542,7 +542,7 @@ extern "C" {
         out_error: *mut *mut c_char,
     ) -> LLVMBool;
 
-    // -- target discovery ----------------------------------------------------
+    // -- ugunduzi wa lengwa --------------------------------------------------
 
     pub fn LLVMGetDefaultTargetTriple() -> *const c_char;
     pub fn LLVMGetTargetFromTriple(
@@ -568,7 +568,7 @@ extern "C" {
         out_error: *mut *mut c_char,
     ) -> LLVMBool;
 
-    // -- x86 target initialisation -------------------------------------------
+    // -- uanzishaji wa lengwa x86 --------------------------------------------
 
     pub fn LLVMInitializeX86TargetInfo();
     pub fn LLVMInitializeX86Target();
@@ -594,7 +594,7 @@ extern "C" {
     pub fn LLVMInitializeRISCVAsmPrinter();
     pub fn LLVMInitializeRISCVAsmParser();
 
-    // -- attributes ----------------------------------------------------------
+    // -- sifa ----------------------------------------------------------------
 
     pub fn LLVMCreateEnumAttribute(
         ctx: LLVMContextRef,
@@ -609,19 +609,19 @@ extern "C" {
     pub fn LLVMGetEnumAttributeKind(name: *const c_char) -> u32;
     pub fn LLVMGetStringAttributeKind(name: *const c_char) -> u32;
 
-    // -- DIBuilder (basic debug info stubs) ----------------------------------
+    // -- DIBuilder (vibadala vya msingi vya habari za utatuzi) ----------------
 
     pub fn LLVMCreateDIBuilder(module: LLVMModuleRef) -> *mut c_void;
     pub fn LLVMDisposeDIBuilder(builder: *mut c_void);
     pub fn LLVMDIBuilderFinalize(builder: *mut c_void);
 
-    // -- error handling -----------------------------------------------------
+    // -- ushughulikiaji wa makosa --------------------------------------------
 
     pub fn LLVMConsumeError(err: LLVMErrorRef);
     pub fn LLVMGetErrorMessage(err: LLVMErrorRef) -> *mut c_char;
     pub fn LLVMDisposeErrorMessage(msg: *mut c_char);
 
-    // -- pass builder (new pass manager / opt pipeline) ---------------------
+    // -- kijenzi cha kupita (meneja mpy wa kupita / bomba la uboreshaji) -----
 
     /// Run a set of passes on a module using the new pass manager pipeline
     /// syntax (e.g. "function(mem2reg,instcombine,gvn,simplifycfg)").
@@ -701,31 +701,31 @@ extern "C" {
 }
 
 // ---------------------------------------------------------------------------
-// Convenience helpers
+// Visaidizi vya urahisi
 // ---------------------------------------------------------------------------
 
-/// Convert a Rust `&str` to a nul-terminated `CString`, returning owned bytes
-/// so that the caller can extract a `*const c_char` pointer valid for the
-/// lifetime of the returned value.
+/// Badilisha `&str` ya Rust hadi `CString` iliyomalizika kwa nul, ukirudisha
+/// baiti zinazomilikiwa ili mpigaji aweze kutoa kielekezi cha `*const c_char`
+/// halali kwa maisha ya thamani iliyorejeshwa.
 ///
-/// # Panics
+/// # Hofia
 ///
-/// Panics if `s` contains an interior nul byte.
+/// Hofia ikiwa `s` ina baiti ya nul ya ndani.
 #[inline]
 pub fn c_str(s: &str) -> CString {
     CString::new(s).expect("interior nul byte in C string")
 }
 
-/// Consume a C string owned by LLVM and return a Rust `String`.
+/// Tumia mfuato wa C unaomilikiwa na LLVM na urudishe `String` ya Rust.
 ///
-/// This is appropriate for strings returned by LLVM functions that use
-/// `LLVMDisposeMessage` for cleanup (e.g. `LLVMPrintModuleToString`).
+/// Hii inafaa kwa mifuatano inayorejeshwa na kazi za LLVM zinazotumia
+/// `LLVMDisposeMessage` kwa usafishaji (k.m. `LLVMPrintModuleToString`).
 ///
-/// # Safety
+/// # Usalama
 ///
-/// `ptr` must be a non-null, nul-terminated C string allocated by LLVM.
-/// After this call the caller **must not** use `ptr` again — ownership has
-/// been transferred to the returned `String`.
+/// `ptr` lazima iwe mfuato wa C usio null uliomalizika kwa nul uliotengwa na LLVM.
+/// Baada ya mwito huu mpigaji **hatakiwi** kutumia `ptr` tena — umiliki
+/// umehamishwa hadi kwenye `String` iliyorejeshwa.
 #[inline]
 pub unsafe fn owned_str_from_llvm(ptr: *const c_char) -> String {
     assert!(!ptr.is_null(), "LLVM returned null string pointer");
@@ -734,19 +734,19 @@ pub unsafe fn owned_str_from_llvm(ptr: *const c_char) -> String {
     s
 }
 
-/// Verify an LLVM module and return a diagnostic message on failure.
+/// Hakiki moduli ya LLVM na urudishe ujumbe wa utambuzi kwenye kushindwa.
 ///
-/// `action` controls the verifier's behaviour on failure:
-///   - `0` — abort the process (useful for debug builds)
-///   - `1` — print to stderr and continue
-///   - `2` — return the error message (the default here)
+/// `action` hudhibiti tabia ya mhakiki kwenye kushindwa:
+///   - `0` — acha mchakato (muhimu kwa ujenzi wa utatuzi)
+///   - `1` — chapisha kwa stderr na endelea
+///   - `2` — rudisha ujumbe wa kosa (cha msingi hapa)
 ///
-/// Returns `Ok(())` if the module passes verification, or `Err(String)` with
-/// the verifier's error message.
+/// Hurejesha `Ok(())` ikiwa moduli inafanya uhakiki, au `Err(String)` na
+/// ujumbe wa kosa wa mhakiki.
 ///
-/// # Safety
+/// # Usalama
 ///
-/// `module` must be a valid `LLVMModuleRef`.
+/// `module` lazima iwe `LLVMModuleRef` halali.
 pub unsafe fn verify_module(module: LLVMModuleRef) -> Result<(), String> {
     let mut error: *mut c_char = std::ptr::null_mut();
     let failed = LLVMVerifyModule(module, 2, &mut error);
@@ -764,10 +764,10 @@ pub unsafe fn verify_module(module: LLVMModuleRef) -> Result<(), String> {
     }
 }
 
-/// Return the default target triple for the host machine.
+/// Rudisha tatu ya lengwa cha msingi kwa mashine mwenyeji.
 ///
-/// This calls `LLVMGetDefaultTargetTriple` and copies the result into an
-/// owned Rust `String`, disposing the LLVM-allocated message afterwards.
+/// Hii inaita `LLVMGetDefaultTargetTriple` na kunakili matokeo hadi
+/// `String` ya Rust inayomilikiwa, ikitupa ujumbe uliotengwa na LLVM baadaye.
 pub fn default_target_triple() -> String {
     unsafe {
         let ptr = LLVMGetDefaultTargetTriple();
@@ -779,7 +779,7 @@ pub fn default_target_triple() -> String {
 }
 
 // ---------------------------------------------------------------------------
-// Tests
+// Majaribio
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
@@ -800,7 +800,7 @@ mod tests {
 
     #[test]
     fn test_default_target_triple() {
-        // Just ensure it doesn't panic and returns a non-empty string.
+        // Hakikisha tu haitoi hofia na inarudisha mfuato usio tupu.
         let triple = default_target_triple();
         assert!(!triple.is_empty(), "target triple should not be empty");
         eprintln!("default target triple: {}", triple);
@@ -813,7 +813,7 @@ mod tests {
             let cs = c_str("verify_test");
             let module = LLVMModuleCreateWithNameInContext(cs.as_ptr(), ctx);
             let result = verify_module(module);
-            // An empty module should verify cleanly.
+            // Moduli tupu inapaswa kufanya uhakiki kwa usafi.
             assert!(result.is_ok(), "empty module should verify: {:?}", result.err());
             LLVMDisposeModule(module);
             LLVMContextDispose(ctx);

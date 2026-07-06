@@ -1,6 +1,8 @@
 husisha C::stdio
 husisha { msingi/msambazaji.swa }
 husisha { msingi/mteremko.swa }
+husisha { msingi/mkaguzi.swa }
+husisha { msingi/codegen.swa }
 
 N8 chanzo_buf[196608];
 N32 chanzo_urefu = 0;
@@ -54,27 +56,65 @@ W0 ondoa_husisha() {
 }
 
 N32 main(N32 argc, N8** argv) {
-    // In self-hosting mode (no arguments), load all stdlib files.
-    // When compiling a user file, only load that file - this keeps
-    // the parser fast.  The stdlib is already compiled into the binary
-    // by the Rust bootstrap compiler.
-    kama (argc <= 1) {
-        ongeza_faili("msingi/kumbukumbu.swa");
-        ongeza_faili("msingi/mfuatano.swa");
-        ongeza_faili("msingi/msomaji.swa");
-        ongeza_faili("msingi/msambazaji.swa");
-        ongeza_faili("msingi/mteremko.swa");
-        ongeza_faili("msingi/mkaguzi.swa");
+    // Bendera: --native huchagua nyuma ya x86-64 asilia (codegen.swa).
+    // Kwa kawaida (hakuna bendera) tumia nyuma ya LLVM IR (mteremko.swa) kama awali.
+    N32 ni_native = 0;
+    N32 faili_idx = 1;
+
+    // Angalia kama hoja ya kwanza ni "--native"
+    kama (argc > 1) {
+        N8* a = argv[1];
+        N32 ni_sawa = 1;
+        kama (a[0] != 45) { ni_sawa = 0; }
+        kama (a[1] != 45) { ni_sawa = 0; }
+        kama (a[2] != 110) { ni_sawa = 0; }
+        kama (a[3] != 97) { ni_sawa = 0; }
+        kama (a[4] != 116) { ni_sawa = 0; }
+        kama (a[5] != 105) { ni_sawa = 0; }
+        kama (a[6] != 118) { ni_sawa = 0; }
+        kama (a[7] != 101) { ni_sawa = 0; }
+        kama (a[8] != 0) { ni_sawa = 0; }
+        kama (ni_sawa) {
+            ni_native = 1;
+            faili_idx = 2;
+        }
     }
 
-    kama (argc > 1) {
-        ongeza_faili(argv[1]);
+    // Hali ya kujitegemea (hakuna hoja ya faili): pakia maktaba yote.
+    // Unapokusanya faili ya mtumiaji, pakia faili hiyo pekee - hii inaweka
+    // mchanganuzi kuwa mwepesi.  Maktaba tayari imekusanywa ndani ya binary
+    // na mkusanyaji wa kuanzisha wa Rust.
+    kama (ni_native == 0) {
+        kama (argc <= 1) {
+            ongeza_faili("msingi/kumbukumbu.swa");
+            ongeza_faili("msingi/mfuatano.swa");
+            ongeza_faili("msingi/msomaji.swa");
+            ongeza_faili("msingi/msambazaji.swa");
+            ongeza_faili("msingi/mteremko.swa");
+            ongeza_faili("msingi/mkaguzi.swa");
+            ongeza_faili("msingi/codegen.swa");
+        }
+    } sivyo {
+        kama (argc <= 2) {
+            ongeza_faili("msingi/kumbukumbu.swa");
+            ongeza_faili("msingi/mfuatano.swa");
+            ongeza_faili("msingi/msomaji.swa");
+            ongeza_faili("msingi/msambazaji.swa");
+            ongeza_faili("msingi/mteremko.swa");
+            ongeza_faili("msingi/mkaguzi.swa");
+            ongeza_faili("msingi/codegen.swa");
+        }
+    }
+
+    kama (faili_idx < argc) {
+        ongeza_faili(argv[faili_idx]);
     }
 
     ondoa_husisha();
 
     chanzo_buf[chanzo_urefu] = 0;
 
+    // 1. Changanua chanzo hadi AST
     Msambazaji p = msambazaji_mpya(chanzo_buf, chanzo_urefu);
     N32 mzizi = changanua(&p);
     kama (p.kosa != 0) {
@@ -82,5 +122,22 @@ N32 main(N32 argc, N8** argv) {
         rudisha 1;
     }
     andika("; mzizi=%d\n", mzizi);
+
+    // 2. Ukaguzi wa kisemantiki -- hufanya kabla ya nyuma yoyote
+    N32 makosa = mkaguzi_angalia(mzizi);
+    kama (makosa != 0) {
+        andika("; KOSA: mkaguzi alipata %d makosa\n", makosa);
+        rudisha 1;
+    }
+
+    // 3. Uzalishaji wa msimbo -- chagua nyuma kwa bendera
+    kama (ni_native) {
+        // Nyuma ya x86-64 asilia (assembly)
+        codegen_toa(mzizi);
+    } sivyo {
+        // Nyuma ya LLVM IR (kwa kawaida, nyuma sambamba)
+        teremsha(mzizi);
+    }
+
     rudisha 0;
 }

@@ -32,7 +32,7 @@ use crate::ir::types::{AbiClass, IrType};
 use crate::ir::IrReturnClass;
 
 // ---------------------------------------------------------------------------
-// Public API
+// API ya umma
 // ---------------------------------------------------------------------------
 
 /// Bainisha aina ya kurudisha ya kazi kulingana na Swa ABI v1.0.
@@ -72,32 +72,32 @@ pub fn flatten_struct(ty: &IrType) -> Vec<AbiClass> {
     match ty {
         IrType::Void => vec![],
 
-        // Signed integers — classify as Integer.
+        // Namba sahihi — ainisha kama Integer.
         IrType::I8 | IrType::I16 | IrType::I32 | IrType::I64 | IrType::I128 => {
             vec![AbiClass::Integer]
         }
 
-        // Unsigned integers.
+        // Namba sahihi zisizo na alama.
         IrType::A8 | IrType::A16 | IrType::A32 | IrType::A64 | IrType::A128 => {
             vec![AbiClass::Integer]
         }
 
-        // Booleans / opaque bits.
+        // Buli / bati lisilo wazi.
         IrType::B1 | IrType::B8 | IrType::B16 | IrType::B32 | IrType::B64 => {
             vec![AbiClass::Integer]
         }
 
-        // Words.
+        // Maneno.
         IrType::W8 | IrType::W16 | IrType::W32 | IrType::W64 => {
             vec![AbiClass::Integer]
         }
 
-        // Floating-point — classify as Float.
+        // Namba sehemu-desimali — ainisha kama Float.
         IrType::F16 | IrType::F32 | IrType::F64 | IrType::F128 => {
             vec![AbiClass::Float]
         }
 
-        // Struct — recursively flatten each field.
+        // Muundo — panua kila sehemu kwa kujirudia.
         IrType::Struct { fields, .. } => {
             let mut out = Vec::new();
             for (_name, field_ty) in fields {
@@ -106,7 +106,7 @@ pub fn flatten_struct(ty: &IrType) -> Vec<AbiClass> {
             out
         }
 
-        // Opaque / aggregate types — treat as a single integer-class slot.
+        // Aina zisizo wazi / mkusanyiko — chukulia kama sehemu moja ya darasa la Integer.
         IrType::Array { .. } => vec![AbiClass::Integer],
         IrType::FnPtr { .. } => vec![AbiClass::Integer],
         IrType::Ptr(_) => vec![AbiClass::Integer],
@@ -150,7 +150,7 @@ mod tests {
 
     #[test]
     fn test_void() {
-        // Void has 0 fields → direct.
+        // Void ina sehemu 0 → moja kwa moja.
         assert_eq!(classify_return(&IrType::Void), IrReturnClass::Direct);
         assert!(flatten_struct(&IrType::Void).is_empty());
     }
@@ -176,7 +176,7 @@ mod tests {
 
     #[test]
     fn test_nukta() {
-        // Nukta = { f64, f64 } → 2 float fields → direct.
+        // Nukta = { f64, f64 } → sehemu 2 za Float → moja kwa moja.
         let nukta = struct_ty("Nukta", vec![("x", IrType::F64), ("y", IrType::F64)]);
         assert_eq!(classify_return(&nukta), IrReturnClass::Direct);
         assert_eq!(
@@ -187,7 +187,7 @@ mod tests {
 
     #[test]
     fn test_mstari() {
-        // Mstari = { ptr, i64 } → 2 integer fields → direct.
+        // Mstari = { ptr, i64 } → sehemu 2 za Integer → moja kwa moja.
         let mstari = struct_ty("Mstari", vec![("data", ptr_ty()), ("len", IrType::I64)]);
         assert_eq!(classify_return(&mstari), IrReturnClass::Direct);
         assert_eq!(

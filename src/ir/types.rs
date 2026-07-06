@@ -88,7 +88,7 @@ pub enum IrType {
 }
 
 // ---------------------------------------------------------------------------
-// ABI classification helper
+// Kisaidizi cha uainishaji ABI
 // ---------------------------------------------------------------------------
 
 /// Darasa finyu la ABI linalotumika wakati wa uainishaji wa kurudisha muundo.
@@ -99,7 +99,7 @@ pub enum AbiClass {
 }
 
 // ---------------------------------------------------------------------------
-// Construction
+// Ujenzi
 // ---------------------------------------------------------------------------
 
 impl IrType {
@@ -163,12 +163,12 @@ impl IrType {
 }
 
 // ---------------------------------------------------------------------------
-// Queries
+// Maswali
 // ---------------------------------------------------------------------------
 
 impl IrType {
-    /// Whether this is an integer-like type (signed, unsigned, boolean, or
-    /// pointer).
+    /// Je, hii ni aina kama namba sahihi (sahihi, sahihi isiyo na alama, buli, au
+    /// kielekezi)?
     pub fn is_integer_like(&self) -> bool {
         matches!(
             self,
@@ -195,16 +195,16 @@ impl IrType {
         )
     }
 
-    /// Whether this is a floating-point type.
+    /// Je, hii ni aina ya namba sehemu-desimali?
     pub fn is_float(&self) -> bool {
         matches!(self, IrType::F16 | IrType::F32 | IrType::F64 | IrType::F128)
     }
 
-    /// Classify this type for struct-return ABI purposes.
+    /// Ainisha aina hii kwa madhumuni ya ABI ya kurudisha muundo.
     ///
-    /// Returns `None` for `Void`, arrays, and compound types that are not
-    /// themselves scalar leaf fields (struct fields are recursively flattened
-    /// by the ABI classifier in `abi::classify`).
+    /// Hurejesha `None` kwa `Void`, safu, na aina mchanganyiko ambazo si
+    /// sehemu za mwisho za skala (sehemu za muundo hupanuliwa kwa kujirudia
+    /// na kiainishi ABI katika `abi::classify`).
     pub fn abi_class(&self) -> Option<AbiClass> {
         if self.is_float() {
             Some(AbiClass::Float)
@@ -215,12 +215,13 @@ impl IrType {
         }
     }
 
-    /// The *storage* width of this type in bytes.
+    /// Upana wa *uhifadhi* wa aina hii kwa baiti.
     ///
-    /// For pointers the width is target-dependent; this implementation
-    /// assumes a 64-bit target (8 bytes).  Arrays multiply element width by
-    /// count.  Struct width is the sum of field widths (packed, no padding
-    /// for now — the real layout is delegated to LLVM).
+    /// Kwa vielekezi upana unategemea lengwa; utekelezaji huu
+    /// unachukulia lengwa la 64-bit (baiti 8).  Safu huzidisha upana wa
+    /// kipengele kwa idadi.  Upana wa muundo ni jumla ya upana wa sehemu
+    /// (zimebanwa, hakuna ujazo kwa sasa — mpangilio halisi umekabidhiwa
+    /// kwa LLVM).
     pub fn width_bytes(&self) -> usize {
         match self {
             IrType::Void => 0,
@@ -237,7 +238,7 @@ impl IrType {
             IrType::Ptr(_) | IrType::FnPtr { .. } => 8,
 
             IrType::Struct { fields, .. } => {
-                // Compute with alignment to match LLVM's struct layout.
+                // Khesabu kwa upatanisho ili kuendana na mpangilio wa muundo wa LLVM.
                 let mut off: usize = 0;
                 for (_, fty) in fields {
                     let fw = fty.width_bytes();
@@ -258,11 +259,11 @@ impl IrType {
         }
     }
 
-    /// The alignment of this type in bytes.
+    /// Upatanisho wa aina hii kwa baiti.
     ///
-    /// Simple rule: alignment == natural width for primitives, 8 for
-    /// pointers on 64-bit, and 8 for structs/arrays (conservative —
-    /// LLVM computes the exact ABI alignment later).
+    /// Kanuni rahisi: upatanisho == upana asilia kwa aina za awali, 8 kwa
+    /// vielekezi kwenye 64-bit, na 8 kwa miundo/safu (hifadhi —
+    /// LLVM hukokotoa upatanisho halisi wa ABI baadaye).
     pub fn alignment_bytes(&self) -> usize {
         match self {
             IrType::Void => 1,
@@ -275,13 +276,13 @@ impl IrType {
 
             IrType::Ptr(_) | IrType::FnPtr { .. } => 8,
 
-            // Conservative: align structs/arrays to pointer width.
-            // LLVM will tighten this during codegen.
+            // Hifadhi: panga miundo/safu kwa upana wa kielekezi.
+            // LLVM itakaza hili wakati wa kodejeni.
             IrType::Struct { .. } | IrType::Array { .. } => 8,
         }
     }
 
-    /// Human-readable Swa-like label used by `Display`.
+    /// Lebo inayosomwa na binadamu kama Swa inayotumiwa na `Display`.
     fn type_label(&self) -> String {
         match self {
             IrType::Void => "W0".to_string(),
@@ -350,7 +351,7 @@ impl fmt::Display for AbiClass {
 mod tests {
     use super::*;
 
-    // -- from_swa_type ------------------------------------------------------
+    // -- kutoka_kwa_aina_ya_swa --------------------------------------------
 
     #[test]
     fn test_from_swa_type_primitives() {
@@ -426,7 +427,7 @@ mod tests {
         assert_eq!(IrType::from_swa_type(""), None);
     }
 
-    // -- abi_class ----------------------------------------------------------
+    // -- darasa_la_abi ------------------------------------------------------
 
     #[test]
     fn test_abi_class_integer() {
@@ -460,7 +461,7 @@ mod tests {
         );
     }
 
-    // -- width_bytes --------------------------------------------------------
+    // -- upana_katika_baiti --------------------------------------------------
 
     #[test]
     fn test_width_bytes_primitives() {
@@ -501,7 +502,7 @@ mod tests {
         assert_eq!(a.width_bytes(), 16); // 4 * 4
     }
 
-    // -- alignment_bytes ----------------------------------------------------
+    // -- upatanisho_katika_baiti ---------------------------------------------
 
     #[test]
     fn test_alignment_bytes_primitives() {

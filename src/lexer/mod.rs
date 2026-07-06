@@ -1,8 +1,8 @@
-//! Lexer (msomaji) for the Swa programming language.
+//! Mchanganuzi (msomaji) kwa lugha ya programu ya Swa.
 //!
-//! Converts raw source text into a stream of [`Token`]s.
-//! Skips whitespace and comments (`//` and `/* */`).
-//! Tracks line / column positions for error reporting via [`SourceSpan`].
+//! Hubadilisha maandishi ghafi ya chanzo kuwa mkondo wa [`Token`]z.
+//! Huruka nafasi na maoni (`//` na `/* */`).
+//! Hufuatilia nafasi za mstari / safu kwa kuripoti makosa kupitia [`SourceSpan`].
 
 pub mod token;
 pub use token::{Token, TokenKind};
@@ -11,30 +11,30 @@ use crate::diagnostics::SourceSpan;
 use crate::diagnostics::SourceLocation;
 
 // ---------------------------------------------------------------------------
-// Lexer
+// Mchanganuzi (Lexer)
 // ---------------------------------------------------------------------------
 
-/// A streaming tokeniser for Swa source code.
+/// Mchanganuzi wa mkondo kwa msimbo chanzo wa Swa.
 ///
-/// The lexer holds a reference to the source text and advances through it
-/// character by character, producing a [`Vec<Token>`] on demand.
+/// Mchanganuzi hushikilia kumbukumbu ya maandishi chanzo na kusonga mbele
+/// herufi kwa herufi, ikitoa [`Vec<Token>`] inapohitajika.
 pub struct Lexer<'a> {
-    /// The full source text being tokenised.
+    /// Maandishi kamili ya chanzo yanayochanganuliwa.
     source: &'a str,
-    /// Iterator over (byte_offset, char) for the remaining source.
+    /// Kikifuatio cha (kukabilia_baiti, herufi) kwa chanzo kilichosalia.
     chars: std::iter::Peekable<std::str::CharIndices<'a>>,
-    /// Byte offset immediately *after* the last character returned by [`advance`].
+    /// Kukabilia kwa baiti mara *baada* ya herufi ya mwisho iliyorejeshwa na [`advance`].
     byte_pos: usize,
-    /// Current 1-based line number.
+    /// Nambari ya sasa ya mstari (kuanzia 1).
     line: usize,
-    /// Current 1-based column number (byte offset from start of line).
+    /// Nambari ya sasa ya safu (kukabilia kwa baiti kutoka mwanzo wa mstari).
     column: usize,
 }
 
-// -- public API ------------------------------------------------------------
+// -- API ya umma ------------------------------------------------------------
 
 impl<'a> Lexer<'a> {
-    /// Create a new lexer for the given source text.
+    /// Unda mchanganuzi mpya kwa maandishi chanzo yaliyotolewa.
     pub fn new(source: &'a str) -> Self {
         Self {
             source,
@@ -45,7 +45,7 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// Consume the lexer and return every token (including [`TokenKind::Mwisho`]).
+    /// Tumia mchanganuzi na urejeshe kila tokeni (ikiwemo [`TokenKind::Mwisho`]).
     pub fn tokenize(mut self) -> Vec<Token> {
         let mut tokens = Vec::new();
         loop {
@@ -60,20 +60,20 @@ impl<'a> Lexer<'a> {
     }
 }
 
-// -- core loop -------------------------------------------------------------
+// -- kitanzi kikuu -------------------------------------------------------------
 
 impl<'a> Lexer<'a> {
-    /// Extract the next token from the source.
+    /// Toa tokeni inayofuata kutoka kwenye chanzo.
     fn next_token(&mut self) -> Token {
-        // Swallow whitespace and comments; they produce no token.
+        // Meza nafasi na maoni; hazitoi tokeni yoyote.
         self.skip_whitespace_and_comments();
 
-        // Record where this token starts.
+        // Rekodi mahali tokeni hii inaanzia.
         let start_line = self.line;
         let start_col = self.column;
         let start_byte = self.byte_pos;
 
-        // End of file?
+        // Mwisho wa faili?
         let c = match self.current() {
             Some(ch) => ch,
             None => {
@@ -85,58 +85,58 @@ impl<'a> Lexer<'a> {
             }
         };
 
-        // Dispatch on the first character.
+        // Tuma kwa herufi ya kwanza.
         match c {
-            // --- identifiers & keywords ---------------------------------------
+            // --- vitambulisho & maneno funguo ---------------------------------------
             'a'..='z' | 'A'..='Z' | '_' => self.lex_identifier_or_keyword(start_line, start_col, start_byte),
 
-            // --- numeric literals ----------------------------------------------
+            // --- vitendanishi vya nambari ----------------------------------------------
             '0'..='9' => self.lex_number(start_line, start_col, start_byte),
 
-            // --- string literal ------------------------------------------------
+            // --- kitendanishi cha mfuatano ------------------------------------------------
             '"' => self.lex_string(start_line, start_col, start_byte),
 
-            // --- character literal ---------------------------------------------
+            // --- kitendanishi cha herufi ---------------------------------------------
             '\'' => self.lex_char(start_line, start_col, start_byte),
 
-            // --- preprocessor directive ----------------------------------------
+            // --- elekezo la kichakato awali ----------------------------------------
             '#' => self.lex_preprocessor(start_line, start_col, start_byte),
 
-            // --- attribute sigil -----------------------------------------------
+            // --- alama ya sifa -----------------------------------------------
             '@' => {
                 let _ = self.advance();
                 self.make_token(TokenKind::Kipekee, start_line, start_col, start_byte)
             }
 
-            // --- reserved question mark ----------------------------------------
+            // --- alama swali iliyohifadhiwa ----------------------------------------
             '?' => {
                 let _ = self.advance();
                 self.make_token(TokenKind::AlamaSwali, start_line, start_col, start_byte)
             }
 
-            // --- operators & punctuation ---------------------------------------
+            // --- waendeshaji & alama za uakifishaji ---------------------------------------
             _ => self.lex_operator(start_line, start_col, start_byte),
         }
     }
 }
 
-// -- helpers ----------------------------------------------------------------
+// -- visaidizi ----------------------------------------------------------------
 
 impl<'a> Lexer<'a> {
-    /// Peek at the current character without consuming it.
+    /// Chungulia herufi ya sasa bila kuitumia.
     #[inline]
     fn current(&mut self) -> Option<char> {
         self.chars.peek().map(|&(_, ch)| ch)
     }
 
-    /// Peek one character ahead (the second character).
+    /// Chungulia herufi moja mbele (herufi ya pili).
     fn peek_next(&mut self) -> Option<char> {
         let mut iter = self.chars.clone();
-        iter.next(); // skip current
+        iter.next(); // ruka ya sasa
         iter.next().map(|(_, ch)| ch)
     }
 
-    /// Advance one character, updating line / column / byte-offset bookkeeping.
+    /// Songa herufi moja mbele, ukisasisha utunzaji wa mstari / safu / kukabilia kwa baiti.
     fn advance(&mut self) -> Option<char> {
         let (offset, c) = self.chars.next()?;
         self.byte_pos = offset + c.len_utf8();
@@ -149,8 +149,8 @@ impl<'a> Lexer<'a> {
         Some(c)
     }
 
-    /// Advance while `predicate` holds.  Returns the first character that
-    /// failed the predicate (if any), already consumed.
+    /// Songa mbele wakati `predicate` inashikilia.  Hurejesha herufi ya kwanza
+    /// iliyoshindwa kwenye predicate (ikiwepo), iliyotumiwa tayari.
     fn advance_while(&mut self, predicate: impl Fn(char) -> bool) {
         while let Some(c) = self.current() {
             if !predicate(c) {
@@ -160,15 +160,15 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// Build an inclusive span from `(start_line, start_col)` to the *last*
-    /// character that was consumed (i.e. backs up one from the current
-    /// "next write" column).
+    /// Jenga span kamili kutoka `(mstari_wa_kuanzia, safu_ya_kuanzia)` hadi herufi ya *mwisho*
+    /// iliyotumiwa (yaani, inarudi nyuma moja kutoka safu ya sasa
+    /// ya "uandishi unaofuata").
     fn make_span(&self, start_line: usize, start_col: usize, start_byte: usize) -> SourceSpan {
         let (end_line, end_col) = if self.byte_pos == start_byte {
-            // Zero-length token (e.g. EOF).
+            // Tokeni yenye urefu-sifuri (mf. Mwisho wa Faili).
             (start_line, start_col)
         } else if self.column == 1 && self.line > start_line {
-            // Last character was a newline.
+            // Herufi ya mwisho ilikuwa mstari mpya.
             (self.line - 1, 1)
         } else {
             (self.line, self.column.saturating_sub(1))
@@ -179,8 +179,8 @@ impl<'a> Lexer<'a> {
         )
     }
 
-    /// Build a token spanning from `(start_line, start_col)` to the last
-    /// consumed character.
+    /// Jenga tokeni inayojitanua kutoka `(mstari_wa_kuanzia, safu_ya_kuanzia)` hadi herufi
+    /// ya mwisho iliyotumiwa.
     fn make_token(
         &self,
         kind: TokenKind,
@@ -193,14 +193,14 @@ impl<'a> Lexer<'a> {
         Token::new(kind, lexeme, span)
     }
 
-    /// Build a span covering the current position.
+    /// Jenga span inayofunika nafasi ya sasa.
     #[allow(dead_code)]
     fn current_span(&self) -> SourceSpan {
         SourceSpan::point(self.line, self.column)
     }
 
-    /// Return the byte offset of the character we would peek next (i.e. the
-    /// start of the next token after whitespace skipping).
+    /// Rudisha kukabilia kwa baiti kwa herufi tunayochungulia ijayo (yaani,
+    /// mwanzo wa tokeni inayofuata baada ya kuruka nafasi).
     #[allow(dead_code)]
     #[inline]
     fn current_byte(&mut self) -> usize {
@@ -208,26 +208,26 @@ impl<'a> Lexer<'a> {
     }
 }
 
-// -- whitespace & comments -------------------------------------------------
+// -- nafasi & maoni -------------------------------------------------
 
 impl<'a> Lexer<'a> {
-    /// Skip over horizontal whitespace and both styles of comment (`//`, `/* */`).
+    /// Ruka nafasi za usawa na aina zote mbili za maoni (`//`, `/* */`).
     fn skip_whitespace_and_comments(&mut self) {
         loop {
             match self.current() {
-                // Horizontal whitespace.
+                // Nafasi za usawa.
                 Some(' ' | '\t' | '\r') => {
                     self.advance();
                 }
-                // Newline — advance so line tracking stays accurate.
+                // Mstari mpya — songa mbele ili ufuatiliaji wa mstari ubaki sahihi.
                 Some('\n') => {
                     self.advance();
                 }
-                // Line comment: skip until newline or EOF.
+                // Maoni ya mstari: ruka hadi mstari mpya au Mwisho wa Faili.
                 Some('/') if self.peek_next() == Some('/') => {
                     self.skip_line_comment();
                 }
-                // Block comment: skip until `*/` or EOF.
+                // Maoni ya kitalu: ruka hadi `*/` au Mwisho wa Faili.
                 Some('/') if self.peek_next() == Some('*') => {
                     self.skip_block_comment();
                 }
@@ -236,11 +236,11 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// Consume a `//` line comment (the opening `//` has already been seen).
+    /// Tumia maoni ya mstari ya `//` (`//` ya ufunguzi tayari imeonekana).
     fn skip_line_comment(&mut self) {
-        // Eat both `/` characters.
-        self.advance(); // first  /
-        self.advance(); // second /
+        // Meza herufi zote `/`.
+        self.advance(); // / ya kwanza
+        self.advance(); // / ya pili
         while let Some(c) = self.current() {
             if c == '\n' {
                 break;
@@ -249,24 +249,24 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// Consume a `/* ... */` block comment (the opening `/*` has already been seen).
+    /// Tumia maoni ya kitalu ya `/* ... */` (`/*` ya ufunguzi tayari imeonekana).
     fn skip_block_comment(&mut self) {
-        // Eat opening `/*`.
+        // Meza `/*` ya ufunguzi.
         self.advance(); // /
         self.advance(); // *
-        let mut depth: u32 = 1; // support nesting
+        let mut depth: u32 = 1; // wezesha upachikaji
         while depth > 0 {
             match self.advance() {
-                None => break, // unterminated comment — end of file
+                None => break, // maoni yasiyokamilishwa — mwisho wa faili
                 Some('/') => {
                     if self.current() == Some('*') {
-                        self.advance(); // consume *
+                        self.advance(); // tumia *
                         depth += 1;
                     }
                 }
                 Some('*') => {
                     if self.current() == Some('/') {
-                        self.advance(); // consume /
+                        self.advance(); // tumia /
                         depth -= 1;
                     }
                 }
@@ -276,18 +276,18 @@ impl<'a> Lexer<'a> {
     }
 }
 
-// -- identifier / keyword --------------------------------------------------
+// -- kitambulisho / neno funguo --------------------------------------------------
 
 impl<'a> Lexer<'a> {
-    /// Lex an identifier or keyword starting at the given position.
-    /// The first character (letter or underscore) has **not** been consumed yet.
+    /// Changanua kitambulisho au neno funguo linaloanza kwenye nafasi iliyotolewa.
+    /// Herufi ya kwanza (herufi au kistari cha chini) **haijatumiwa** bado.
     fn lex_identifier_or_keyword(
         &mut self,
         start_line: usize,
         start_col: usize,
         start_byte: usize,
     ) -> Token {
-        // Read [a-zA-Z_][a-zA-Z0-9_]*
+        // Soma [a-zA-Z_][a-zA-Z0-9_]*
         self.advance_while(|c| matches!(c, 'a'..='z' | 'A'..='Z' | '0'..='9' | '_'));
 
         let lexeme = &self.source[start_byte..self.byte_pos];
@@ -297,10 +297,10 @@ impl<'a> Lexer<'a> {
     }
 }
 
-// -- numeric literals ------------------------------------------------------
+// -- vitendanishi vya nambari ------------------------------------------------------
 
 impl<'a> Lexer<'a> {
-    /// Lex a numeric literal (integer or float) starting at the given position.
+    /// Changanua kitendanishi cha nambari (namba kamili au sehemu) kinachoanza kwenye nafasi iliyotolewa.
     fn lex_number(
         &mut self,
         start_line: usize,
@@ -309,55 +309,55 @@ impl<'a> Lexer<'a> {
     ) -> Token {
         let first = self.current().unwrap();
 
-        // Handle radix prefixes: 0x 0X 0o 0O 0b 0B
+        // Shughulikia viambishi awali vya radiksi: 0x 0X 0o 0O 0b 0B
         if first == '0' {
-            self.advance(); // consume '0'
+            self.advance(); // tumia '0'
             match self.current() {
                 Some('x' | 'X') => {
-                    self.advance(); // consume x
+                    self.advance(); // tumia x
                     self.advance_while(|c| matches!(c, '0'..='9' | 'a'..='f' | 'A'..='F' | '_'));
                     return self.make_number_token(start_line, start_col, start_byte);
                 }
                 Some('o' | 'O') => {
-                    self.advance(); // consume o
+                    self.advance(); // tumia o
                     self.advance_while(|c| matches!(c, '0'..='7' | '_'));
                     return self.make_number_token(start_line, start_col, start_byte);
                 }
                 Some('b' | 'B') => {
-                    self.advance(); // consume b
+                    self.advance(); // tumia b
                     self.advance_while(|c| matches!(c, '0'..='1' | '_'));
                     return self.make_number_token(start_line, start_col, start_byte);
                 }
-                // Plain '0' — fall through to decimal/float handling below.
+                // '0' tupu — angukia chini kwenye ushughulikiaji wa desimali/float hapa chini.
                 _ => {}
             }
         } else {
-            // Leading non-zero digit — consume the rest of the integer part.
-            self.advance(); // consume first digit
+            // Nambari inayoongoza isiyo-sifuri — tumia sehemu iliyosalia ya namba kamili.
+            self.advance(); // tumia nambari ya kwanza
         }
 
-        // Decimal digits (including underscores).
+        // Nambari za desimali (ikijumuisha vistari vya chini).
         self.advance_while(|c| matches!(c, '0'..='9' | '_'));
 
-        // Optional fractional part: . followed by a digit (not `.` alone,
-        // because `.` is a separate token for field access).
+        // Sehemu ya hisia hiari: . ikifuatiwa na nambari (si `.` pekee,
+        // kwa sababu `.` ni tokeni tofauti kwa ufikiaji wa uga).
         let mut saw_fraction = false;
         if self.current() == Some('.') && self.peek_next().map_or(false, |c| c.is_ascii_digit()) {
-            self.advance(); // consume .
+            self.advance(); // tumia .
             self.advance_while(|c| matches!(c, '0'..='9' | '_'));
             saw_fraction = true;
         }
 
-        // Optional exponent part: e or E, optionally followed by + or -, then digits.
+        // Sehemu ya kipeo hiari: e au E, ikifuatiwa na + au - kwa hiari, kisha nambari.
         if matches!(self.current(), Some('e' | 'E')) {
-            self.advance(); // consume e/E
+            self.advance(); // tumia e/E
             if matches!(self.current(), Some('+' | '-')) {
                 self.advance();
             }
             self.advance_while(|c| matches!(c, '0'..='9' | '_'));
         }
 
-        // Optional float suffix `f` — only meaningful after a fraction or exponent.
+        // Kiambishi cha float `f` cha hiari — kinamaana tu baada ya hisia au kipeo.
         if matches!(self.current(), Some('f' | 'F')) && saw_fraction {
             self.advance();
         }
@@ -365,7 +365,7 @@ impl<'a> Lexer<'a> {
         self.make_number_token(start_line, start_col, start_byte)
     }
 
-    /// Helper: build a numeric token from the recorded span.
+    /// Kisaidizi: jenga tokeni ya nambari kutoka kwenye span iliyorekodiwa.
     fn make_number_token(
         &self,
         start_line: usize,
@@ -378,33 +378,33 @@ impl<'a> Lexer<'a> {
     }
 }
 
-// -- string literal --------------------------------------------------------
+// -- kitendanishi cha mfuatano --------------------------------------------------------
 
 impl<'a> Lexer<'a> {
-    /// Lex a double-quoted string literal, including escape-sequence processing.
+    /// Changanua kitendanishi cha mfuatano chenye alama za kunukuu mbili, ikijumuisha usindikaji wa mfuatano wa kutoroka.
     fn lex_string(
         &mut self,
         start_line: usize,
         start_col: usize,
         start_byte: usize,
     ) -> Token {
-        self.advance(); // opening "
+        self.advance(); // " ya ufunguzi
 
         let mut content = String::new();
 
         loop {
             match self.advance() {
                 None => {
-                    // Unterminated string — produce what we have.
+                    // Mfuatano usiokamilishwa — toa tuliyonayo.
                     let raw = self.source[start_byte..self.byte_pos].to_string();
                     let span = self.make_span(start_line, start_col, start_byte);
                     return Token::new(TokenKind::Mfuato(content), raw, span);
                 }
-                Some('"') => break, // closing quote
+                Some('"') => break, // kunukuu kwa kufunga
                 Some('\\') => {
-                    // Record the raw backslash position for multi-char escapes.
+                    // Rekodi nafasi ghafi ya backslash kwa kutoroka kwa herufi nyingi.
                     match self.advance() {
-                        None => break, // EOF after backslash
+                        None => break, // Mwisho wa Faili baada ya backslash
                         Some(esc) => {
                             let resolved = Self::resolve_escape(esc);
                             content.push(resolved);
@@ -412,7 +412,7 @@ impl<'a> Lexer<'a> {
                     }
                 }
                 Some(c) => {
-                    // Newlines are allowed in Swa strings (multi-line strings).
+                    // Mistari mipya inaruhusiwa katika mifuatano ya Swa (mifuatano ya mistari mingi).
                     content.push(c);
                 }
             }
@@ -423,7 +423,7 @@ impl<'a> Lexer<'a> {
         Token::new(TokenKind::Mfuato(content), raw, span)
     }
 
-    /// Resolve a single-character escape sequence to its interpreted value.
+    /// Suluhisha mfuatano wa kutoroka wa herufi moja kwa thamani yake iliyofasiriwa.
     fn resolve_escape(c: char) -> char {
         match c {
             'n'  => '\n',
@@ -433,61 +433,61 @@ impl<'a> Lexer<'a> {
             '\'' => '\'',
             '"'  => '"',
             '0'  => '\0',
-            'a'  => '\x07', // alert / bell
+            'a'  => '\x07', // tahadhari / kengele
             'b'  => '\x08', // backspace
-            'v'  => '\x0B', // vertical tab
-            'f'  => '\x0C', // form feed
-            // Hex escape: \xNN — the caller must peek ahead for two hex digits.
-            // For simplicity we handle \x as a literal 'x' if not followed by
-            // two hex digits; the parser / sema may later refine this.
-            'x'  => 'x',   // hex escapes are handled by lex_char; strings pass through
-            other => other, // unknown escapes pass through literally
+            'v'  => '\x0B', // tabu wima
+            'f'  => '\x0C', // malisho ya ukurasa
+            // Kutoroka kwa heksa: \xNN — mpigaji lazima achungulie mbele kwa nambari mbili za heksadesimali.
+            // Kwa urahisi tunashughulikia \x kama 'x' halisi ikiwa haifuatwi na
+            // nambari mbili za heksadesimali; mkaguzi / sema anaweza kuboresha hili baadaye.
+            'x'  => 'x',   // kutoroka kwa heksa kunashughulikiwa na lex_char; mifuatano hupita tu
+            other => other, // kutoroka kusikojulikana hupita kihalisi
         }
     }
 }
 
-// -- character literal -----------------------------------------------------
+// -- kitendanishi cha herufi -----------------------------------------------------
 
 impl<'a> Lexer<'a> {
-    /// Lex a single-quoted character literal: `'A'`, `'\n'`, `'\x41'`.
+    /// Changanua kitendanishi cha herufi chenye kunukuu moja: `'A'`, `'\n'`, `'\x41'`.
     fn lex_char(
         &mut self,
         start_line: usize,
         start_col: usize,
         start_byte: usize,
     ) -> Token {
-        self.advance(); // opening '
+        self.advance(); // ' ya ufunguzi
 
-        // Read the (possibly escaped) character.
+        // Soma herufi (inayowezekana imetoroka).
         match self.advance() {
             None => {
-                // Unterminated char literal.
+                // Kitendanishi cha herufi kisichokamilishwa.
                 let raw = self.source[start_byte..self.byte_pos].to_string();
                 let span = self.make_span(start_line, start_col, start_byte);
                 return Token::new(TokenKind::Herufi, raw, span);
             }
             Some('\\') => {
-                // Escaped character.
+                // Herufi iliyotoroka.
                 match self.advance() {
-                    None => {} // EOF after backslash — fall through
+                    None => {} // Mwisho wa Faili baada ya backslash — angukia chini
                     Some('x') => {
-                        // \xNN hex escape — consume up to two hex digits.
+                        // \xNN kutoroka kwa heksa — tumia hadi nambari mbili za heksadesimali.
                         let _ = self.try_consume_hex_digits(2);
                     }
                     Some(_esc) => {
-                        // Single-character escape already consumed by advance().
+                        // Kutoroka kwa herufi moja tayari kumetumiwa na advance().
                     }
                 }
             }
             Some('\'') => {
-                // Empty character literal '' — consume nothing else.
+                // Kitendanishi tupu cha herufi '' — usitumie chochote kingine.
             }
             Some(_c) => {
-                // Plain character — already consumed.
+                // Herufi wazi — tayari imetumiwa.
             }
         }
 
-        // Consume the closing quote if present.
+        // Tumia kunukuu kwa kufunga ikiwa kipo.
         if self.current() == Some('\'') {
             self.advance();
         }
@@ -497,7 +497,7 @@ impl<'a> Lexer<'a> {
         Token::new(TokenKind::Herufi, raw, span)
     }
 
-    /// Try to consume up to `count` hex digits.  Returns how many were consumed.
+    /// Jaribu kutumia hadi `count` nambari za heksadesimali.  Hurejesha ngapi zilitumiwa.
     fn try_consume_hex_digits(&mut self, count: usize) -> usize {
         let mut n = 0;
         while n < count {
@@ -513,20 +513,20 @@ impl<'a> Lexer<'a> {
     }
 }
 
-// -- operators & punctuation -----------------------------------------------
+// -- waendeshaji & uakifishaji -----------------------------------------------
 
 impl<'a> Lexer<'a> {
-    /// Lex an operator, delimiter, or any other ASCII punctuation.
+    /// Changanua kiendeshi, kitenganishi, au alama nyingine yoyote ya uakifishaji ya ASCII.
     fn lex_operator(
         &mut self,
         start_line: usize,
         start_col: usize,
         start_byte: usize,
     ) -> Token {
-        let c = self.advance().unwrap(); // caller guaranteed there is a char
+        let c = self.advance().unwrap(); // mpigaji amehakikisha kuna herufi
 
         let kind = match c {
-            // --- single-char delimiters (lookahead-free) ----------------------
+            // --- vitenganishi vya herufi-moja (bila kuangalia mbele) ----------------------
             '(' => TokenKind::MabanoKushoto,
             ')' => TokenKind::MabanoKulia,
             '{' => TokenKind::MabanoGandaKushoto,
@@ -539,19 +539,19 @@ impl<'a> Lexer<'a> {
             '@' => TokenKind::Kipekee,
             '?' => TokenKind::AlamaSwali,
 
-            // --- dot — may be start of ellipsis or just a dot -----------------
+            // --- nukta — inaweza kuwa mwanzo wa nukta tatu au nukta tu -----------------
             '.' => {
                 match (self.current(), self.peek_next()) {
                     (Some('.'), Some('.')) => {
-                        self.advance(); // second dot
-                        self.advance(); // third  dot
+                        self.advance(); // nukta ya pili
+                        self.advance(); // nukta ya tatu
                         TokenKind::NuktaTatu
                     }
                     _ => TokenKind::Nukta,
                 }
             }
 
-            // --- multi-char operators starting with `+` -----------------------
+            // --- waendeshaji wa herufi-nyingi wanaoanza na `+` -----------------------
             '+' => self.lex_compound_op(c, '+', '='),
 
             // --- `-` ----------------------------------------------------------
@@ -587,27 +587,27 @@ impl<'a> Lexer<'a> {
             // --- `^` ----------------------------------------------------------
             '^' => self.lex_compound_op(c, '^', '='),
 
-            // --- `~` (only unary bitwise-not, no compound form) ----------------
+            // --- `~` (kukanusha kwa biti ya pekee tu, hakuna fomu mchanganyiko) ----------------
             '~' => TokenKind::Opereta("~".to_string()),
 
-            // --- everything else is treated as an unknown operator -------------
+            // --- kila kitu kingine kinachukuliwa kama kiendeshi kisichojulikana -------------
             other => TokenKind::Opereta(other.to_string()),
         };
 
         self.make_token(kind, start_line, start_col, start_byte)
     }
 
-    /// Try a two-character compound operator: `c + second` or `c + '='`.
-    /// If neither matches, produce a single-char operator.
+    /// Jaribu kiendeshi mchanganyiko cha herufi-mbili: `c + second` au `c + '='`.
+    /// Ikiwa hakuna kinacholingana, toa kiendeshi cha herufi-moja.
     fn lex_compound_op(&mut self, first: char, second: char, eq: char) -> TokenKind {
         let next = self.current();
         if next == Some(second) {
-            // e.g. `++`, `&&`, `||`, `**`
+            // mf. `++`, `&&`, `||`, `**`
             self.advance();
             let s = format!("{}{}", first, second);
             TokenKind::Opereta(s)
         } else if next == Some(eq) {
-            // e.g. `+=`, `&=`, `|=`
+            // mf. `+=`, `&=`, `|=`
             self.advance();
             let s = format!("{}{}", first, eq);
             TokenKind::Opereta(s)
@@ -616,21 +616,21 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    /// Try compound operators where the first character can be repeated
-    /// (`<<`, `<=`, `<<=`, `>>`, `>=`, `>>=`) or form `->`.
+    /// Jaribu waendeshaji mchanganyiko ambapo herufi ya kwanza inaweza kurudiwa
+    /// (`<<`, `<=`, `<<=`, `>>`, `>=`, `>>=`) au kuunda `->`.
     fn lex_compound_op3(&mut self, first: char, second: char, eq: char) -> TokenKind {
         let next = self.current();
 
-        // `->` (arrow) — only for `-`.
+        // `->` (mshale) — kwa `-` pekee.
         if first == '-' && next == Some('>') {
             self.advance();
             return TokenKind::Opereta("->".to_string());
         }
 
         if next == Some(second) {
-            // e.g. `<<`, `>>`
+            // mf. `<<`, `>>`
             self.advance();
-            // Check for `<<=` or `>>=`.
+            // Angalia kwa `<<=` au `>>=`.
             if self.current() == Some(eq) {
                 self.advance();
                 let s = format!("{}{}{}", first, second, eq);
@@ -640,7 +640,7 @@ impl<'a> Lexer<'a> {
                 TokenKind::Opereta(s)
             }
         } else if next == Some(eq) {
-            // e.g. `<=`, `>=`
+            // mf. `<=`, `>=`
             self.advance();
             let s = format!("{}{}", first, eq);
             TokenKind::Opereta(s)
@@ -650,23 +650,23 @@ impl<'a> Lexer<'a> {
     }
 }
 
-// -- preprocessor directive ------------------------------------------------
+// -- elekezo la kichakato awali ------------------------------------------------
 
 impl<'a> Lexer<'a> {
-    /// Lex a preprocessor directive: `#` followed by the rest of the line.
+    /// Changanua elekezo la kichakato awali: `#` likifuatiwa na sehemu iliyosalia ya mstari.
     ///
-    /// Produces a [`TokenKind::Kiunzi`] token.  The directive content starts
-    /// after the `#` and runs to the end of the line (trailing `\r` is stripped).
+    /// Hutoa tokeni ya [`TokenKind::Kiunzi`].  Maudhui ya elekezo huanza
+    /// baada ya `#` na kuendelea hadi mwisho wa mstari (`\r` ya mwisho huondolewa).
     fn lex_preprocessor(
         &mut self,
         start_line: usize,
         start_col: usize,
         start_byte: usize,
     ) -> Token {
-        // Consume `#`.
+        // Tumia `#`.
         self.advance();
 
-        // Consume until end of line or EOF.
+        // Tumia hadi mwisho wa mstari au Mwisho wa Faili.
         while let Some(c) = self.current() {
             if c == '\n' {
                 break;
@@ -674,9 +674,9 @@ impl<'a> Lexer<'a> {
             self.advance();
         }
 
-        // Build the directive content (the lexeme without the `#`).
+        // Jenga maudhui ya elekezo (lexemu bila `#`).
         let full_lexeme = self.source[start_byte..self.byte_pos].to_string();
-        // The content is everything after the `#`.
+        // Maudhui ni kila kitu baada ya `#`.
         let content = full_lexeme[1..].trim_end_matches('\r').to_string();
 
         let span = self.make_span(start_line, start_col, start_byte);
@@ -685,14 +685,14 @@ impl<'a> Lexer<'a> {
 }
 
 // ---------------------------------------------------------------------------
-// Tests
+// Vipimo
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    /// Helper: collect the display strings of all non-Mwisho tokens.
+    /// Kisaidizi: kusanya mifuatano ya onyesho ya tokeni zote zisizo za Mwisho.
     fn token_strings(source: &str) -> Vec<String> {
         let lexer = Lexer::new(source);
         lexer
@@ -703,7 +703,7 @@ mod tests {
             .collect()
     }
 
-    /// Helper: collect (kind_debug, lexeme) pairs.
+    /// Kisaidizi: kusanya jozi (kind_debug, lexeme).
     fn token_debug(source: &str) -> Vec<(String, String)> {
         let lexer = Lexer::new(source);
         lexer
@@ -797,7 +797,7 @@ mod tests {
 
     #[test]
     fn test_dot_vs_float_distinction() {
-        // Single dot is a field-access / punctuation token.
+        // Nukta moja ni tokeni ya ufikiaji wa uga / uakifishaji.
         let src = "a.b 3.14 .";
         let kinds: Vec<String> = token_strings(src);
         // a . b 3.14 .
@@ -888,7 +888,7 @@ mod tests {
     fn test_preprocessor_directive() {
         let src = "#ingiza \"moduli.c\"\nkama";
         let kinds: Vec<String> = token_strings(src);
-        // The preprocessor directive is one token, then `kama`.
+        // Elekezo la kichakato awali ni tokeni moja, kisha `kama`.
         assert_eq!(kinds.len(), 2);
         assert!(kinds[0].contains("ingiza"));
         assert_eq!(kinds[1], "kama");
@@ -898,11 +898,11 @@ mod tests {
     fn test_span_tracking() {
         let lexer = Lexer::new("kama rudisha");
         let tokens = lexer.tokenize();
-        // kama: line 1 col 1-4
+        // kama: mstari 1 safu 1-4
         assert_eq!(tokens[0].span.start.line, 1);
         assert_eq!(tokens[0].span.start.column, 1);
         assert_eq!(tokens[0].span.end.column, 4);
-        // rudisha: line 1 col 6-12
+        // rudisha: mstari 1 safu 6-12
         assert_eq!(tokens[1].span.start.column, 6);
         assert_eq!(tokens[1].span.end.column, 12);
     }
