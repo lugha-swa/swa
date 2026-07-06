@@ -169,7 +169,7 @@ fn main() {
         "ir" => {
             match driver.compile_to_ir(&source, file_path) {
                 Ok(module) => { for d in driver.diagnostics.all() { eprintln!("{}", d.render(&source)); }
-                    println!("kitengo @{}", module.name);
+                    println!("moduli @{}", module.name);
                     for (name, ty) in &module.types {
                         println!("aina {} = {}", name, ty);
                     }

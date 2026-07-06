@@ -82,7 +82,7 @@ impl TokenKind {
             }
 
             // Module system
-            "kitengo" | "husisha" => TokenKind::NenoMuhimu(s.to_string()),
+            "husisha" => TokenKind::NenoMuhimu(s.to_string()),
 
             // Truth values and null
             "kweli" | "uongo" | "tupu" => TokenKind::NenoMuhimu(s.to_string()),

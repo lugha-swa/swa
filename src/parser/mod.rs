@@ -504,7 +504,7 @@ impl<'a> Parser<'a> {
             // Module directives: skip husisha / kitengo lines.
             // Format: husisha C::stdio  or  husisha "path.swa"
             // These are newline-terminated; consume the keyword + argument.
-            if self.tokeni_ni("husisha") || self.tokeni_ni("kitengo") {
+            if self.tokeni_ni("husisha") {
                 self.sogeza(); // skip keyword
                 // Consume argument: either C::stdio (ident :: ident) or "string"
                 if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) {
