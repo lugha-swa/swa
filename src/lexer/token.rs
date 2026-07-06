@@ -77,7 +77,7 @@ impl TokenKind {
             "muundo" | "muungano" | "orodha" | "aina" => TokenKind::NenoMuhimu(s.to_string()),
 
             // Memory
-            "ukubwa" | "tenga" | "achilia" | "omba" | "eneo" | "eneo_mpya" | "eneo_huru" => {
+            "ukubwa" | "tenga" | "achilia" | "badili" | "nakili" => {
                 TokenKind::NenoMuhimu(s.to_string())
             }
 
@@ -128,7 +128,6 @@ impl TokenKind {
                 | "W16"
                 | "W32"
                 | "W64"
-                | "eneo"
         )
     }
 
