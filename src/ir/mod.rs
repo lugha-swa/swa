@@ -81,25 +81,25 @@ impl std::fmt::Display for FloatWrapper {
 // Const
 // ---------------------------------------------------------------------------
 
-/// A compile-time constant.
+/// Thamani thabiti ya wakati wa ukusanyaji.
 ///
-/// These are materialised inside `Function.values` and referenced by
-/// `ValueId` in instructions.
+/// Hizi huwekwa ndani ya `Function.values` na kurejelewa na
+/// `ValueId` katika amri.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Const {
-    /// Signed integer constant (iN).  Stored as `i128` to cover all widths.
+    /// Thabiti kamili yenye ishara (iN).  Imewekwa kama `i128` kufunika upana wote.
     Int(i128),
-    /// Unsigned integer constant (uN).  Stored as `u128`.
+    /// Thabiti kamili bila ishara (uN).  Imewekwa kama `u128`.
     Uint(u128),
-    /// Boolean constant.
+    /// Thabiti ya buliani.
     Bool(bool),
-    /// Typed null pointer.
+    /// Kielekezi batili chenye aina.
     NullPtr,
-    /// Zero-initialiser for any type.
+    /// Kianzishi sifuri kwa aina yoyote.
     Zero,
-    /// IEEE-754 floating-point constant.
+    /// Thabiti ya namba ya IEEE-754 yenye kuelea.
     Float(FloatWrapper),
-    /// String literal (for `StringAddr` instructions).
+    /// Maandishi halisi (kwa amri za `StringAddr`).
     String(String),
 }
 
@@ -107,14 +107,14 @@ pub enum Const {
 // Instruction
 // ---------------------------------------------------------------------------
 
-/// One SSA instruction inside a basic block.
+/// Amri moja ya SSA ndani ya bloku ya msingi.
 ///
-/// Every instruction produces exactly one value (identified by a `ValueId`).
-/// Memory-effecting instructions (`Store`, `HeapFree`, …) also produce a
-/// value — often `void` — so that they fit the SSA model uniformly.
+/// Kila amri hutoa thamani moja haswa (inayotambuliwa na `ValueId`).
+/// Amri zinazoathiri kumbukumbu (`Store`, `HeapFree`, ...) pia hutoa
+/// thamani — mara nyingi `void` — ili ziweze kutoshea muundo wa SSA kwa usawa.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Instruction {
-    // -- integer arithmetic -------------------------------------------------
+    // -- hesabu za kamili -------------------------------------------------
     Add(ValueId, ValueId),
     Sub(ValueId, ValueId),
     Mul(ValueId, ValueId),
@@ -123,14 +123,14 @@ pub enum Instruction {
     RemS(ValueId, ValueId),
     RemU(ValueId, ValueId),
 
-    // -- floating-point arithmetic ------------------------------------------
+    // -- hesabu za kuelea ------------------------------------------
     FAdd(ValueId, ValueId),
     FSub(ValueId, ValueId),
     FMul(ValueId, ValueId),
     FDiv(ValueId, ValueId),
     FNeg(ValueId),
 
-    // -- bitwise ------------------------------------------------------------
+    // -- bitwise (ya biti) --------------------------------------------------
     And(ValueId, ValueId),
     Or(ValueId, ValueId),
     Xor(ValueId, ValueId),
@@ -138,7 +138,7 @@ pub enum Instruction {
     ShrS(ValueId, ValueId),
     ShrU(ValueId, ValueId),
 
-    // -- integer comparisons ------------------------------------------------
+    // -- ulinganisho kamili ------------------------------------------------
     Eq(ValueId, ValueId),
     Ne(ValueId, ValueId),
     LtS(ValueId, ValueId),
@@ -150,7 +150,7 @@ pub enum Instruction {
     GeS(ValueId, ValueId),
     GeU(ValueId, ValueId),
 
-    // -- floating-point comparisons -----------------------------------------
+    // -- ulinganisho wa kuelea -----------------------------------------
     Feq(ValueId, ValueId),
     Fne(ValueId, ValueId),
     Flt(ValueId, ValueId),
@@ -158,7 +158,7 @@ pub enum Instruction {
     Fgt(ValueId, ValueId),
     Fge(ValueId, ValueId),
 
-    // -- type conversions ---------------------------------------------------
+    // -- ubadilishaji wa aina ---------------------------------------------------
     Trunc(ValueId, IrType),
     Zext(ValueId, IrType),
     Sext(ValueId, IrType),
@@ -170,65 +170,65 @@ pub enum Instruction {
     UiToFp(ValueId, IrType),
     Bitcast(ValueId, IrType),
 
-    // -- memory -------------------------------------------------------------
+    // -- kumbukumbu -------------------------------------------------------------
     Alloca(IrType),
-    Const(Const),                       // materialize a constant as a value
+    Const(Const),                       // weka thabiti kama thamani
     Load(IrType, ValueId),              // (pointee_type, ptr)
     Store(ValueId, ValueId),            // (value, ptr)
     StoreTyped(ValueId, ValueId, IrType), // (value, ptr, stored_type)
     MemCopy(ValueId, ValueId, u64), // (dest_ptr, src_ptr, size_bytes)
 
-    // -- heap ---------------------------------------------------------------
-    HeapAlloc(ValueId), // size in bytes → ptr
+    // -- rundo ---------------------------------------------------------------
+    HeapAlloc(ValueId), // ukubwa kwa ka → ptr
     HeapFree(ValueId),  // ptr
 
-    // -- arenas (region-based allocation) -----------------------------------
-    ArenaCreate(ValueId), // capacity in bytes → arena handle
-    ArenaAlloc(ValueId, ValueId), // (arena, size) → ptr
-    ArenaFree(ValueId),   // arena handle
+    // -- arena (ugawaji wa kimaeneo) -----------------------------------
+    ArenaCreate(ValueId), // uwezo kwa ka → kishikio cha arena
+    ArenaAlloc(ValueId, ValueId), // (arena, ukubwa) → ptr
+    ArenaFree(ValueId),   // kishikio cha arena
 
-    // -- address-of ---------------------------------------------------------
-    FnAddr(String),             // function name → function pointer
-    GlobalAddr(String),         // global name → pointer to global
-    StringAddr(String),         // string constant → pointer to bytes
+    // -- anwani-ya ---------------------------------------------------------
+    FnAddr(String),             // jina la kazi → kielekezi cha kazi
+    GlobalAddr(String),         // jina la ulimwengu → kielekezi cha ulimwengu
+    StringAddr(String),         // maandishi thabiti → kielekezi cha ka
 
-    // -- pointer arithmetic -------------------------------------------------
-    Gep(ValueId, Vec<ValueId>),                  // getelementptr (base, indices)
-    FieldAddr(ValueId, usize, Option<IrType>),   // address of struct field (ptr, field_index, struct_type?)
+    // -- hesabu ya kielekezi -------------------------------------------------
+    Gep(ValueId, Vec<ValueId>),                  // getelementptr (msingi, fahirisi)
+    FieldAddr(ValueId, usize, Option<IrType>),   // anwani ya sehemu ya struct (ptr, field_index, struct_type?)
 
-    // -- aggregate ----------------------------------------------------------
+    // -- jumlisha ----------------------------------------------------------
     BuildStruct(Vec<ValueId>),
     ExtractField(ValueId, usize),
 
     // -- select (ternary) ---------------------------------------------------
-    Select(ValueId, ValueId, ValueId),  // (cond, true_val, false_val)
+    Select(ValueId, ValueId, ValueId),  // (sharti, thamani_kweli, thamani_uwongo)
 
-    // -- phi (SSA merge) ----------------------------------------------------
-    /// Phi node: merges values from different predecessor blocks.
+    // -- phi (muunganiko wa SSA) ----------------------------------------------------
+    /// Nodi ya Phi: huunganisha thamani kutoka kwa bloku tofauti za watangulizi.
     /// `(result_type, [(value, predecessor_block), ...])`
     Phi(IrType, Vec<(ValueId, BlockId)>),
 
-    // -- calls --------------------------------------------------------------
-    Call(String, Vec<ValueId>),         // direct call
-    CallIndirect(ValueId, Vec<ValueId>), // indirect call
+    // -- simu --------------------------------------------------------------
+    Call(String, Vec<ValueId>),         // simu ya moja kwa moja
+    CallIndirect(ValueId, Vec<ValueId>), // simu isiyo ya moja kwa moja
 }
 
 // ---------------------------------------------------------------------------
 // Terminator
 // ---------------------------------------------------------------------------
 
-/// Every basic block ends with exactly one terminator.
+/// Kila bloku ya msingi inaishia na mwishishaji mmoja haswa.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Terminator {
-    /// Unconditional branch to `BlockId`.
+    /// Tawi lisilo na sharti hadi `BlockId`.
     Br(BlockId),
-    /// Conditional branch: (condition, true_block, false_block).
+    /// Tawi lenye sharti: (sharti, bloku_kweli, bloku_uwongo).
     BrCond(ValueId, BlockId, BlockId),
-    /// Return a value from the function.
+    /// Rudisha thamani kutoka kwa kazi.
     Ret(ValueId),
-    /// Return from a void function.
+    /// Rudisha kutoka kwa kazi ya void.
     RetVoid,
-    /// Multi-way dispatch: (scrutinee, default_block, arms).
+    /// Usambazaji wa njia nyingi: (scrutinee, bloku_chaucho, mikono).
     Switch(ValueId, BlockId, Vec<(ValueId, BlockId)>),
 }
 
@@ -236,15 +236,15 @@ pub enum Terminator {
 // IrBlock
 // ---------------------------------------------------------------------------
 
-/// A single basic block: a sequence of non-terminator instructions followed
-/// by exactly one terminator.
+/// Bloku moja ya msingi: mfuatano wa amri zisizo za mwishishaji zikifuatiwa
+/// na mwishishaji mmoja haswa.
 #[derive(Debug, Clone)]
 pub struct IrBlock {
-    /// Label for the block (used in branch targets and debugging).
+    /// Lebo ya bloku (inatumika katika malengo ya tawi na utatuzi).
     pub label: String,
-    /// Non-terminator instructions in order.
+    /// Amri zisizo za mwishishaji kwa mpangilio.
     pub instructions: Vec<Instruction>,
-    /// Block-ending terminator.
+    /// Mwishishaji wa mwisho wa bloku.
     pub terminator: Terminator,
 }
 
@@ -274,14 +274,14 @@ impl IrBlock {
 // IrGlobal
 // ---------------------------------------------------------------------------
 
-/// A module-level global variable.
+/// Kigezo cha kimataifa cha kiwango cha moduli.
 #[derive(Debug, Clone)]
 pub struct IrGlobal {
     pub name: String,
     pub bytes: Vec<u8>,
-    /// Whether this global is constant (read-only).
+    /// Kama kigezo hiki ni thabiti (soma-tu).
     pub is_const: bool,
-    /// The Swa IR type (used to construct the correct LLVM type).
+    /// Aina ya Swa IR (inatumika kujenga aina sahihi ya LLVM).
     pub ty: IrType,
 }
 
@@ -289,31 +289,31 @@ pub struct IrGlobal {
 // Function
 // ---------------------------------------------------------------------------
 
-/// A complete IR function definition.
+/// Ufafanuzi kamili wa kazi wa IR.
 #[derive(Debug, Clone)]
 pub struct Function {
-    /// Function name (linker symbol).
+    /// Jina la kazi (alama ya kiunganishi).
     pub name: String,
-    /// Return type (LLVM-level, after sret rewriting).
+    /// Aina ya kurejesha (kiwango cha LLVM, baada ya kuandikwa upya kwa sret).
     pub return_ty: IrType,
-    /// Original return type before sret rewriting (for ABI / debugging).
+    /// Aina asili ya kurejesha kabla ya kuandikwa upya kwa sret (kwa ABI/utatuzi).
     pub source_return_ty: IrType,
-    /// How the return value is passed (Direct or HiddenPtr/sret).
+    /// Jinsi thamani ya kurejesha inavyopitishwa (Direct au HiddenPtr/sret).
     pub return_class: IrReturnClass,
-    /// Formal parameters: (name, type).
+    /// Vigezo rasmi: (jina, aina).
     pub params: Vec<(String, IrType)>,
-    /// All basic blocks owned by this function.
+    /// Bloku zote za msingi zinazomilikiwa na kazi hii.
     pub blocks: Vec<IrBlock>,
-    /// Canonicalised constant values, indexed by `ValueId`.
+    /// Thamani thabiti zilizosawazishwa, zikiorodheshwa na `ValueId`.
     pub values: Vec<Const>,
-    /// The `BlockId` of the entry (first) block.
+    /// `BlockId` ya bloku ya kuingilia (ya kwanza).
     pub entry: BlockId,
-    /// Whether the function uses the C ABI (extern "C").
+    /// Kama kazi inatumia C ABI (extern "C").
     pub c_abi: bool,
-    /// Whether the function is variadic.
+    /// Kama kazi ni variadic.
     pub variadic: bool,
-    /// When `return_class == HiddenPtr`, the `ValueId` of the sret pointer
-    /// (which is an implicit first parameter).
+    /// Wakati `return_class == HiddenPtr`, `ValueId` ya kielekezi cha sret
+    /// (ambacho ni kigezo cha kwanza cha fiche).
     pub sret_value_id: Option<ValueId>,
 }
 
@@ -335,17 +335,17 @@ impl Function {
         }
     }
 
-    /// Append a block and return its `BlockId`.
+    /// Ongeza bloku na urudishe `BlockId` yake.
     pub fn push_block(&mut self, block: IrBlock) -> BlockId {
         let id = BlockId(self.blocks.len());
         self.blocks.push(block);
         id
     }
 
-    /// Intern a constant and return a `ValueId` that can be used as an
-    /// operand.  Deduplication is performed to avoid duplicate entries.
+    /// Weka thabiti ndani na urudishe `ValueId` inayoweza kutumika kama
+    /// kiendeshwa.  Uondoaji-nakala unafanywa ili kuepuka viingilio maradufu.
     ///
-    /// ValueIds for constants start after the parameter slots:
+    /// ValueIds kwa thabiti huanza baada ya nafasi za vigezo:
     ///   ValueId(params.len() + position_in_values)
     pub fn intern_const(&mut self, c: Const) -> ValueId {
         if let Some(pos) = self.values.iter().position(|v| *v == c) {
@@ -357,7 +357,7 @@ impl Function {
         id
     }
 
-    /// Number of blocks.
+    /// Idadi ya bloku.
     pub fn block_count(&self) -> usize {
         self.blocks.len()
     }
@@ -367,16 +367,16 @@ impl Function {
 // Module
 // ---------------------------------------------------------------------------
 
-/// Top-level compilation unit.
+/// Kipashio cha ukusanyaji cha kiwango cha juu.
 #[derive(Debug, Clone)]
 pub struct Module {
-    /// Module / translation-unit name.
+    /// Jina la moduli / kitengo cha kutafsiri.
     pub name: String,
-    /// Type definitions (name, IrType).  Populated during lowering.
+    /// Ufafanuzi wa aina (jina, IrType).  Hujazwa wakati wa ushushaji.
     pub types: Vec<(String, IrType)>,
-    /// Module-level globals.
+    /// Vigezo vya kiwango cha moduli.
     pub globals: Vec<IrGlobal>,
-    /// Function definitions.
+    /// Ufafanuzi wa kazi.
     pub functions: Vec<Function>,
 }
 
@@ -407,34 +407,34 @@ impl Module {
 // IrReturnClass
 // ---------------------------------------------------------------------------
 
-/// How a function's return value is passed at the ABI level.
+/// Jinsi thamani ya kurejesha ya kazi inavyopitishwa katika kiwango cha ABI.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum IrReturnClass {
-    /// Return in registers (up to 2 fields).
+    /// Rudisha katika rejista (hadi sehemu 2).
     Direct,
-    /// Return via a hidden pointer (sret) — caller allocates, callee writes.
+    /// Rudisha kupitia kielekezi kilichofichwa (sret) — mpigaji anagawa, mpigiwa anaandika.
     HiddenPtr,
 }
 
 // ---------------------------------------------------------------------------
-// IrBuilder — convenience API for building IR inside a function
+// IrBuilder — API ya urahisi kwa kujenga IR ndani ya kazi
 // ---------------------------------------------------------------------------
 
-/// Incremental IR builder that appends instructions to the *current* block of
-/// a function.
+/// Mjenzi wa IR wa nyongeza anayeongeza amri kwenye bloku ya *sasa* ya
+/// kazi.
 pub struct IrBuilder<'f> {
     func: &'f mut Function,
-    /// The block that `push` appends to.
+    /// Bloku ambayo `push` inaongeza.
     current: BlockId,
-    /// A map from (Instruction, operand-ids) → `ValueId` for local CSE.
-    /// Keys are tuples so that we can re-use simple expressions.
+    /// Ramani kutoka (Instruction, operand-ids) → `ValueId` kwa CSE ya ndani.
+    /// Funguo ni tuples ili tuweze kutumia tena misemo rahisi.
     cache: HashMap<Instruction, ValueId>,
 }
 
 impl<'f> IrBuilder<'f> {
-    /// Create a builder positioned at `entry_block` of the given function.
-    /// The entry block must already exist (typically created by the caller
-    /// with `Function::push_block`).
+    /// Unda mjenzi uliowekwa kwenye `entry_block` ya kazi iliyotolewa.
+    /// Bloku ya kuingilia lazima iwepo tayari (kwa kawaida imeundwa na mpigaji
+    /// kwa `Function::push_block`).
     pub fn new(func: &'f mut Function, entry_block: BlockId) -> Self {
         Self {
             func,
@@ -443,38 +443,38 @@ impl<'f> IrBuilder<'f> {
         }
     }
 
-    /// Switch the builder to append to a different block.
+    /// Badilisha mjenzi kuongeza kwenye bloku tofauti.
     pub fn switch_to_block(&mut self, block: BlockId) {
         self.current = block;
-        self.cache.clear(); // CSE is local to a block
+        self.cache.clear(); // CSE ni ya ndani ya bloku
     }
 
-    /// Return the current `BlockId`.
+    /// Rudi `BlockId` ya sasa.
     pub fn current_block(&self) -> BlockId {
         self.current
     }
 
-    /// Access the underlying function (read-only).
+    /// Pata kazi ya msingi (soma-tu).
     #[allow(dead_code)]
     pub fn func(&self) -> &Function {
         self.func
     }
 
-    /// Access the underlying function (mutable).
+    /// Pata kazi ya msingi (inayobadilika).
     #[allow(dead_code)]
     pub fn func_mut(&mut self) -> &mut Function {
         self.func
     }
 
-    /// Intern a constant and return a `ValueId`.
+    /// Weka thabiti ndani na urudishe `ValueId`.
     pub fn const_val(&mut self, c: Const) -> ValueId {
         self.func.intern_const(c)
     }
 
-    /// Append an instruction to the current block and return a fresh
-    /// `ValueId` for its result.  If the same instruction already exists in
-    /// the current block's cache the existing `ValueId` is returned (local
-    /// common-subexpression elimination).
+    /// Ongeza amri kwenye bloku ya sasa na urudishe `ValueId` mpya
+    /// kwa matokeo yake.  Ikiwa amri hiyo hiyo tayari ipo kwenye
+    /// kashe ya bloku ya sasa, `ValueId` iliyopo inarudishwa (uondoaji
+    /// wa misemo ya kawaida ya ndani).
     fn emit(&mut self, inst: Instruction) -> ValueId {
         if let Some(&existing) = self.cache.get(&inst) {
             return existing;
@@ -483,14 +483,14 @@ impl<'f> IrBuilder<'f> {
         let block = &mut self.func.blocks[self.current.0];
         block.push(inst.clone());
 
-        // Values produced by instructions are numbered sequentially *after*
-        // constant values so that ValueId ranges do not collide.
+        // Thamani zinazozalishwa na amri hupewa nambari kwa mfuatano *baada ya*
+        // thamani thabiti ili safu za ValueId zisigongane.
         let id = ValueId(self.func.values.len() + block.len() - 1);
         self.cache.insert(inst, id);
         id
     }
 
-    // -- convenience emit helpers for each op -------------------------------
+    // -- vifaa vya utoaji vya urahisi kwa kila op -------------------------------
 
     pub fn build_add(&mut self, lhs: ValueId, rhs: ValueId) -> ValueId {
         self.emit(Instruction::Add(lhs, rhs))
@@ -681,7 +681,7 @@ impl<'f> IrBuilder<'f> {
         self.emit(Instruction::ExtractField(val, field_idx))
     }
 
-    /// Build a Phi node merging values from multiple predecessor blocks.
+    /// Jenga nodi ya Phi inayounganisha thamani kutoka kwa bloku nyingi za watangulizi.
     pub fn build_phi(&mut self, result_ty: IrType, incoming: Vec<(ValueId, BlockId)>) -> ValueId {
         self.emit(Instruction::Phi(result_ty, incoming))
     }
@@ -693,9 +693,9 @@ impl<'f> IrBuilder<'f> {
         self.emit(Instruction::CallIndirect(fn_ptr, args))
     }
 
-    // -- terminator helpers -------------------------------------------------
+    // -- vifaa vya mwishishaji -------------------------------------------------
 
-    /// Set the terminator of the current block (replacing any previous one).
+    /// Weka mwishishaji wa bloku ya sasa (ukibadilisha yoyote ya awali).
     pub fn set_terminator(&mut self, term: Terminator) {
         self.func.blocks[self.current.0].terminator = term;
     }
@@ -727,18 +727,18 @@ impl<'f> IrBuilder<'f> {
 }
 
 // ---------------------------------------------------------------------------
-// Tests
+// Majaribio
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    /// Helper: create a minimal void-returning function with one empty block.
+    /// Msaidizi: unda kazi ndogo inayorudisha void yenye bloku moja tupu.
     fn dummy_func() -> Function {
         let mut f = Function::new("test", IrType::Void, vec![]);
         let entry = f.push_block(IrBlock::new("entry", Terminator::RetVoid));
-        // entry is always BlockId(0) here, but we do not rely on that.
+        // entry ni daima BlockId(0) hapa, lakini hatutegemei hilo.
         f.entry = entry;
         f.c_abi = false;
         f.variadic = false;
@@ -762,7 +762,7 @@ mod tests {
     #[test]
     fn test_block_push() {
         let mut f = dummy_func();
-        // Push a second block
+        // Ongeza bloku ya pili
         let b1 = f.push_block(IrBlock::new("then", Terminator::RetVoid));
         assert_eq!(f.block_count(), 2);
         assert_eq!(b1, BlockId(1));
@@ -790,10 +790,10 @@ mod tests {
         let two = b.const_val(Const::Int(2));
         let sum = b.build_add(one, two);
 
-        // Values from constants
+        // Thamani kutoka kwa thabiti
         assert_eq!(one, ValueId(0));
         assert_eq!(two, ValueId(1));
-        // sum is the first instruction
+        // sum ni amri ya kwanza
         assert_ne!(sum, one);
         assert_ne!(sum, two);
 
@@ -812,7 +812,7 @@ mod tests {
         let y = b.const_val(Const::Int(20));
 
         let a = b.build_add(x, y);
-        let b2 = b.build_add(x, y); // same instruction → should CSE
+        let b2 = b.build_add(x, y); // amri sawa → inapaswa kuwa CSE
         assert_eq!(a, b2, "CSE should return the same ValueId");
         assert_eq!(b.func.blocks[entry.0].len(), 1);
     }
@@ -821,7 +821,7 @@ mod tests {
     fn test_builder_terminator() {
         let mut f = dummy_func();
         let entry = f.entry;
-        // Entry block currently has RetVoid.
+        // Bloku ya kuingilia kwa sasa ina RetVoid.
         assert_eq!(f.blocks[entry.0].terminator, Terminator::RetVoid);
 
         let mut b = IrBuilder::new(&mut f, entry);
@@ -875,7 +875,7 @@ mod tests {
     fn test_float_wrapper_nan_eq() {
         let nan_a = FloatWrapper(f64::NAN);
         let nan_b = FloatWrapper(f64::NAN);
-        // Bitwise-equal NaN representations should be equal
+        // Kuwakilishwa kwa NaN kwa bitwise kunapaswa kuwa sawa
         assert_eq!(nan_a, nan_b);
     }
 }

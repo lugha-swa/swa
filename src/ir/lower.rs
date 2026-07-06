@@ -1146,46 +1146,46 @@ impl<'a> Lowerer<'a> {
             exit: exit_blk,
         });
 
-        // Header: evaluate condition, branch to body or exit.
+        // Kichwa: tathmini sharti, tawi kwa mwili au kutoka.
         let (cond_val, cond_end) = self.lower_expr_into(cond_node, header_blk);
         self.set_terminator(
             cond_end,
             Terminator::BrCond(cond_val, body_blk, exit_blk),
         );
 
-        // Lower the body statements — returns the entry block of the body chain.
+        // Teremsha taarifa za mwili — inarudisha kizuizi cha kuingia cha msururu wa mwili.
         let body_entry = self.lower_block(body_node);
-        // Wire the while.body block to the lowered body's entry.
+        // Chomeka kizuizi cha while.body kwenye kuingia kwa mwili ulioteremshwa.
         self.set_terminator(body_blk, Terminator::Br(body_entry));
 
-        // Find the last block in the body chain (the one that falls through)
-        // and wire it back to the loop header.
+        // Tafuta kizuizi cha mwisho katika msururu wa mwili (kile kinachopitia)
+        // na kikiunganisha kurudi kwenye kichwa cha mzunguko.
         let mut last = body_entry;
         loop {
             let term = &self.func.blocks[last.0].terminator;
             match term {
                 Terminator::Br(target) if *target != last => {
-                    // Follow the chain forward, but stop at break (→ exit_blk)
-                    // or continue (→ header_blk) to avoid walking outside the body.
+                    // Fuata msururu mbele, lakini simama kwenye vunja (→ exit_blk)
+                    // au endelea (→ header_blk) ili kuepuka kutembea nje ya mwili.
                     if *target == exit_blk || *target == header_blk {
                         break;
                     }
                     last = *target;
                 }
                 Terminator::Br(_) => {
-                    // Self-loop placeholder — this is the last block.
+                    // Kishika nafasi cha kujizungusha — hiki ni kizuizi cha mwisho.
                     break;
                 }
                 Terminator::BrCond(_, _, merge) => {
-                    // The fall-through path of a conditional is the merge block.
-                    // Continue walking from there to find the real last block.
+                    // Njia ya kipitio ya sharti ni kizuizi cha muunganiko.
+                    // Endelea kutembea kutoka hapo kupata kizuizi halisi cha mwisho.
                     if *merge == exit_blk || *merge == header_blk {
                         break;
                     }
                     last = *merge;
                 }
                 _ => {
-                    // Real terminator (Ret, Switch) — stop here.
+                    // Kimalizio halisi (Ret, Switch) — simama hapa.
                     break;
                 }
             }
@@ -1196,19 +1196,19 @@ impl<'a> Lowerer<'a> {
         header_blk
     }
 
-    /// Lower `KIPINDI` (for loop): `kipindi (init; cond; step) { body }`.
+    /// Teremsha `KIPINDI` (mzunguko wa kwa): `kipindi (kianzisha; sharti; hatua) { mwili }`.
     ///
-    /// Layout:
-    /// * `ast_kushoto[node]` → initialiser
-    /// * `ast_kulia[node]`   → loop body (kulia avoids ast_nne conflict with statement chaining)
-    /// * `ast_tiga[node]`    → step expression
-    /// * `ast_nne[node]`     → condition (nne is safe since a simple expression has ast_nne = NO_NODE)
+    /// Mpangilio:
+    /// * `ast_kushoto[node]` → kianzisha
+    /// * `ast_kulia[node]`   → mwili wa mzunguko (kulia huepuka mgongano wa ast_nne na msururu wa taarifa)
+    /// * `ast_tiga[node]`    → usemi wa hatua
+    /// * `ast_nne[node]`     → sharti (nne ni salama kwani usemi rahisi una ast_nne = NO_NODE)
     fn lower_for(&mut self, node: i32) -> BlockId {
         let init_node = self.ast_kushoto[node as usize];
         let body_node = self.ast_kulia[node as usize];
         let step_node = self.ast_tiga[node as usize];
-        // cond is stored in ast_thamani (not ast_nne!) because ast_nne
-        // is reserved for the sibling chain used by lower_block.
+        // sharti limehifadhiwa katika ast_thamani (si ast_nne!) kwa sababu ast_nne
+        // imetengwa kwa msururu wa ndugu unaotumiwa na lower_block.
         let cond_node = self.ast_thamani[node as usize];
 
         let init_blk = if init_node != NO_NODE && init_node >= 0 {
@@ -1223,23 +1223,23 @@ impl<'a> Lowerer<'a> {
         let body_blk = self.new_block("for.body");
         let step_blk = self.new_block("for.step");
         let exit_blk = self.new_block("for.exit");
-        // Same fix as lower_while: set a self-loop placeholder so
-        // lower_block's actual_prev logic finds exit_blk as fall-through.
+        // Sasisho sawa na lower_while: weka kishika nafasi cha kujizungusha ili
+        // mantiki ya actual_prev ya lower_block ipate exit_blk kama kipitio.
         self.set_terminator(exit_blk, Terminator::Br(exit_blk));
 
         self.set_terminator(init_blk, Terminator::Br(header_blk));
 
-        // Push loop context.
+        // Sukuma mazingira ya mzunguko.
         self.loops.push(LoopInfo {
             header: header_blk,
             exit: exit_blk,
         });
 
-        // Header: evaluate condition.
+        // Kichwa: tathmini sharti.
         let (cond_val, cond_end) = if cond_node != NO_NODE && cond_node >= 0 {
             self.lower_expr_into(cond_node, header_blk)
         } else {
-            // No condition → unconditional loop.
+            // Hakuna sharti → mzunguko usio na sharti.
             let one = self.const_val(Const::Bool(true));
             (one, header_blk)
         };
@@ -1253,11 +1253,11 @@ impl<'a> Lowerer<'a> {
             self.set_terminator(cond_end, Terminator::Br(body_blk));
         }
 
-        // Body.
+        // Mwili.
         let body_end = self.lower_block(body_node);
         self.set_terminator(body_blk, Terminator::Br(body_end));
 
-        // Walk the body chain to find the last block and wire it to step_blk.
+        // Tembea msururu wa mwili kupata kizuizi cha mwisho na kukiunganisha kwa step_blk.
         let mut last = body_end;
         loop {
             let term = &self.func.blocks[last.0].terminator;
@@ -1284,15 +1284,15 @@ impl<'a> Lowerer<'a> {
         }
         self.ensure_br(last, step_blk);
 
-        // Step.
+        // Hatua.
         let step_end = if step_node != NO_NODE && step_node >= 0 {
             self.lower_stmt(step_node)
         } else {
             step_blk
         };
-        // Wire the step label block to the step entry (self-loop if no step).
+        // Chomeka kizuizi cha lebo ya hatua kwenye kuingia kwa hatua (kujizungusha ikiwa hakuna hatua).
         self.set_terminator(step_blk, Terminator::Br(step_end));
-        // Walk the step chain to find the last block and wire it to header_blk.
+        // Tembea msururu wa hatua kupata kizuizi cha mwisho na kukiunganisha kwa header_blk.
         let mut last_step = step_end;
         loop {
             let term = &self.func.blocks[last_step.0].terminator;
@@ -1317,18 +1317,18 @@ impl<'a> Lowerer<'a> {
         header_blk
     }
 
-    /// Lower `RUDISHA` (return): `rudisha [expr]`.
+    /// Teremsha `RUDISHA` (rudisha): `rudisha [usemi]`.
     ///
-    /// Layout:
-    /// * `ast_kushoto[node]` → return value expression (optional, -1 for void return)
+    /// Mpangilio:
+    /// * `ast_kushoto[node]` → usemi wa thamani ya rudisha (si lazima, -1 kwa rudisha tupu)
     fn lower_return(&mut self, node: i32) -> BlockId {
         let val_node = self.ast_kushoto[node as usize];
         let blk = self.new_block("ret");
 
         if val_node != NO_NODE && val_node >= 0 {
             let (val, end_blk) = self.lower_expr_into(val_node, blk);
-            // If sret and the value is not already the sret pointer,
-            // copy struct bytes to the sret pointer using MemCopy.
+            // Ikiwa sret na thamani si tayari kielekezi cha sret,
+            // nakili baiti za muundo kwa kielekezi cha sret kwa kutumia MemCopy.
             if let Some(sret_vid) = self.func.sret_value_id {
                 if val != sret_vid {
                     let struct_size = self.func.source_return_ty.width_bytes() as u64;
@@ -1342,15 +1342,15 @@ impl<'a> Lowerer<'a> {
             }
             end_blk
         } else {
-            // No explicit return value.
+            // Hakuna thamani wazi ya rudisha.
             if self.func.sret_value_id.is_some() {
-                // sret with no explicit value — return void.
+                // sret bila thamani wazi — rudisha tupu.
                 self.set_terminator(blk, Terminator::RetVoid);
             } else if self.func.source_return_ty == IrType::Void {
-                // Void function — return void.
+                // Kazi ya tupu — rudisha tupu.
                 self.set_terminator(blk, Terminator::RetVoid);
             } else {
-                // Non-void function with no explicit return: return zero.
+                // Kazi isiyo tupu bila rudisha wazi: rudisha sifuri.
                 let zero = self.const_val(Const::Int(0));
                 self.set_terminator(blk, Terminator::Ret(zero));
             }
@@ -1358,28 +1358,28 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    /// Lower `TANGAZO` (local variable declaration): `let name [: type] [= init]`.
+    /// Teremsha `TANGAZO` (tangazo la kigezo cha ndani): `acha jina [: aina] [= kianzisha]`.
     ///
-    /// Parser format:
-    /// * `ast_kushoto[node]` → variable name (identifier node)
-    /// * `ast_thamani[node]` → encoded type integer (familia, upana, mshale)
-    /// * `ast_kulia[node]`   → optional initialiser expression
+    /// Muundo wa mchanganuzi:
+    /// * `ast_kushoto[node]` → jina la kigezo (nodi ya kitambulisho)
+    /// * `ast_thamani[node]` → nambari kamili ya aina iliyosimbwa (familia, upana, mshale)
+    /// * `ast_kulia[node]`   → usemi wa kianzisha (si lazima)
     ///
-    /// Test/legacy format (when ast_thamani[node]==0):
-    /// * `ast_kulia[node]`   → type node
-    /// * `ast_tiga[node]`    → optional initialiser expression
+    /// Muundo wa jaribio/urithi (wakati ast_thamani[node]==0):
+    /// * `ast_kulia[node]`   → nodi ya aina
+    /// * `ast_tiga[node]`    → usemi wa kianzisha (si lazima)
     fn lower_local_decl(&mut self, node: i32) -> BlockId {
         let name_node = self.ast_kushoto[node as usize];
         let var_name = self.read_pool_name(self.ast_jina_off[name_node as usize]);
 
-        // Detect format: parser puts encoded type in thamani, tests put type node in kulia.
+        // Tambua muundo: mchanganuzi anaweka aina iliyosimbwa katika thamani, majaribio yanaweka nodi ya aina katika kulia.
         let (var_ty, init_node) = if self.ast_thamani[node as usize] != 0 {
-            // Parser format: type encoded in thamani, init in kulia.
+            // Muundo wa mchanganuzi: aina imesimbwa katika thamani, kianzisha katika kulia.
             let ty = self.read_type_from_thamani(node);
             let init = self.ast_kulia[node as usize];
             (ty, init)
         } else {
-            // Test/legacy format: type node in kulia, init in tiga.
+            // Muundo wa jaribio/urithi: nodi ya aina katika kulia, kianzisha katika tiga.
             let type_node = self.ast_kulia[node as usize];
             let ty = if type_node != NO_NODE && type_node >= 0 {
                 self.read_type_from_node(type_node)
@@ -1392,12 +1392,12 @@ impl<'a> Lowerer<'a> {
 
         let blk = self.new_block("decl");
 
-        // If this is the return-value struct of an sret function, use the
-        // sret pointer directly instead of allocating a local slot.
-        // Otherwise, look up the alloca that was pre-emitted into the entry
-        // block by lower_function's pre-pass — this prevents alloca-in-loop
-        // (every iteration of a loop would otherwise create a fresh alloca,
-        // exhausting the stack).
+        // Ikiwa hii ni muundo wa thamani-rudisha ya kazi ya sret, tumia
+        // kielekezi cha sret moja kwa moja badala ya kutenga sehemu ya ndani.
+        // Vinginevyo, tafuta alloca iliyotolewa awali ndani ya kizuizi cha
+        // kuingia na kupita-awali ya lower_function — hii inazuia alloca-katika-mzunguko
+        // (kila marudio ya mzunguko vinginevyo yangeunda alloca mpya,
+        // ikimaliza mrundikano).
         let alloc = if matches!(&var_ty, IrType::Struct { .. })
             && self.func.sret_value_id.is_some()
         {
@@ -1406,19 +1406,19 @@ impl<'a> Lowerer<'a> {
             self.pre_allocated_locals[&node]
         };
 
-        // Evaluate initialiser and store.
+        // Tathmini kianzisha na hifadhi.
         if init_node != NO_NODE && init_node >= 0 {
-            // For struct vars, provide the alloca as sret_dest so calls
-            // write directly to the destination (no Load+Store needed).
+            // Kwa vigezo vya muundo, toa alloca kama sret_dest ili wito
+            // uandike moja kwa moja kwenye lengwa (hakuna Load+Store inayohitajika).
             if matches!(&var_ty, IrType::Struct { .. }) {
                 self.sret_dest = Some(alloc);
             }
             let (init_val, end_blk) = self.lower_expr_into(init_node, blk);
-            // If sret_dest was used, init_val IS alloc and we skip the store.
+            // Ikiwa sret_dest ilitumika, init_val NI alloc na tunaruka store.
             if init_val != alloc {
-                // For structs, init_val is a pointer to the source struct;
-                // use MemCopy to copy the bytes rather than StoreTyped
-                // which would store the pointer value itself.
+                // Kwa muundo, init_val ni kielekezi kwenye muundo chanzo;
+                // tumia MemCopy kunakili baiti badala ya StoreTyped
+                // ambayo ingehifadhi thamani ya kielekezi yenyewe.
                 if matches!(&var_ty, IrType::Struct { .. }) {
                     let struct_size = var_ty.width_bytes() as u64;
                     if struct_size > 0 {
@@ -1433,11 +1433,12 @@ impl<'a> Lowerer<'a> {
             end_blk
         } else {
             self.define_var(var_name, alloc, var_ty.clone());
-            // Zero-initialise local variables, but skip the sret pointer
-            // itself — the sret slot may already contain data from the
-            // caller (e.g. when a helper writes partial results before
-            // calling another helper).  Zeroing it here would overwrite
-            // those results and cause corrupted return values at O1.
+            // Anzisha vigezo vya ndani kwa sifuri, lakini ruka kielekezi
+            // cha sret chenyewe — sehemu ya sret inaweza tayari kuwa na
+            // data kutoka kwa mpigaji (mf. kisaidizi kinapoandika matokeo
+            // sehemu kabla ya kumwita kisaidizi kingine).  Kuzifuta sifuri
+            // hapa kungeandika juu ya matokeo hayo na kusababisha thamani
+            // za rudisha zilizoharibika kwa O1.
             let is_sret_slot = self.func.sret_value_id == Some(alloc);
             if !is_sret_slot {
                 let zero = self.const_val(Const::Zero);
@@ -1448,13 +1449,13 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    /// Lower `CHAGUA` (switch): `chagua (scrutinee) { hali: [arms] la_sivyo: default }`.
+    /// Teremsha `CHAGUA` (chagua): `chagua (skrutinia) { hali: [mikono] la_sivyo: chaguo-msingi }`.
     ///
-    /// Layout:
-    /// * `ast_kushoto[node]` → scrutinee expression
-    /// * `ast_kulia[node]`   → first case arm (chained via ast_nne)
-    ///   Each case arm: ast_kushoto = case label, ast_tiga = case body.
-    /// * `ast_tiga[node]`    → default body
+    /// Mpangilio:
+    /// * `ast_kushoto[node]` → usemi wa skrutinia
+    /// * `ast_kulia[node]`   → mkono wa kwanza wa hali (uliounganishwa kupitia ast_nne)
+    ///   Kila mkono wa hali: ast_kushoto = lebo ya hali, ast_tiga = mwili wa hali.
+    /// * `ast_tiga[node]`    → mwili wa chaguo-msingi
     fn lower_switch(&mut self, node: i32) -> BlockId {
         let scrut_node = self.ast_kushoto[node as usize];
         let first_case = self.ast_kulia[node as usize];
@@ -1465,14 +1466,14 @@ impl<'a> Lowerer<'a> {
 
         let merge_blk = self.new_block("switch.merge");
 
-        // Lower default arm.
+        // Teremsha mkono wa chaguo-msingi.
         let default_blk = if default_node != NO_NODE && default_node >= 0 {
             self.lower_block(default_node)
         } else {
             merge_blk
         };
 
-        // Lower case arms.
+        // Teremsha mikono ya hali.
         let mut arms: Vec<(ValueId, BlockId)> = Vec::new();
         let mut case_node = first_case;
         while case_node != NO_NODE && case_node >= 0 {
@@ -1481,7 +1482,7 @@ impl<'a> Lowerer<'a> {
 
             let case_blk = self.new_block("switch.case");
             let (label_val, case_label_end) = self.lower_expr_into(label_node, case_blk);
-            // Terminate the label block by jumping to the case body.
+            // Maliza kizuizi cha lebo kwa kuruka kwenye mwili wa hali.
             let body_blk = self.lower_block(body_node);
             self.set_terminator(case_label_end, Terminator::Br(body_blk));
             self.patch_br_if_needed(body_blk, merge_blk);
@@ -1499,7 +1500,7 @@ impl<'a> Lowerer<'a> {
         merge_blk
     }
 
-    /// Lower `VUNJA` (break): jump to the innermost loop's exit block.
+    /// Teremsha `VUNJA` (vunja): ruka kwenye kizuizi cha kutoka cha mzunguko wa ndani kabisa.
     fn lower_break(&mut self, _node: i32) -> BlockId {
         let blk = self.new_block("break");
         let exit = self
@@ -1511,7 +1512,7 @@ impl<'a> Lowerer<'a> {
         blk
     }
 
-    /// Lower `ENDELEA` (continue): jump to the innermost loop's header block.
+    /// Teremsha `ENDELEA` (endelea): ruka kwenye kizuizi cha kichwa cha mzunguko wa ndani kabisa.
     fn lower_continue(&mut self, _node: i32) -> BlockId {
         let blk = self.new_block("continue");
         let header = self
@@ -1523,25 +1524,25 @@ impl<'a> Lowerer<'a> {
         blk
     }
 
-    /// Lower `TENGA` (heap allocate): `tenga <type>` or `tenga <size_expr>`.
+    /// Teremsha `TENGA` (tenga kwenye chungu): `tenga <aina>` au `tenga <usemi_ukubwa>`.
     ///
-    /// Layout:
-    /// * `ast_kushoto[node]` → size expression or type node
+    /// Mpangilio:
+    /// * `ast_kushoto[node]` → usemi wa ukubwa au nodi ya aina
     fn lower_heap_alloc_stmt(&mut self, node: i32) -> BlockId {
         let arg_node = self.ast_kushoto[node as usize];
         let blk = self.new_block("heap_alloc");
 
         let (size_val, end_blk) = self.lower_expr_into(arg_node, blk);
         self.emit(end_blk, Instruction::HeapAlloc(size_val));
-        // The pointer result is discarded in statement context.
+        // Matokeo ya kielekezi yametupwa katika mazingira ya taarifa.
         self.set_terminator(end_blk, Terminator::Br(end_blk));
         end_blk
     }
 
-    /// Lower `ACHILIA` (heap free): `achilia <ptr_expr>`.
+    /// Teremsha `ACHILIA` (achilia kwenye chungu): `achilia <usemi_kielekezi>`.
     ///
-    /// Layout:
-    /// * `ast_kushoto[node]` → pointer expression
+    /// Mpangilio:
+    /// * `ast_kushoto[node]` → usemi wa kielekezi
     fn lower_heap_free_stmt(&mut self, node: i32) -> BlockId {
         let arg_node = self.ast_kushoto[node as usize];
         let blk = self.new_block("heap_free");
@@ -1554,15 +1555,15 @@ impl<'a> Lowerer<'a> {
 }
 
 // ============================================================================
-// Expression lowering
+// Kuteremsha misemo
 // ============================================================================
 
 impl<'a> Lowerer<'a> {
-    /// Scale an array index by the element width so that GEP byte-offset
-    /// indexing produces the correct element address.
+    /// Panda faharasa ya safu kwa upana wa kipengele ili uorodheshaji wa
+    /// kukabilisha-baiti wa GEP utoe anwani sahihi ya kipengele.
     ///
-    /// Uses repeated addition to avoid interning new constants (which would
-    /// shift `values_initial_len` and break ValueId mapping).
+    /// Hutumia nyongeza iliyorudiwa kuepuka kufanya thabiti mpya ndani
+    /// (ambayo ingehamaisha `values_initial_len` na kuvunja ramani ya ValueId).
     fn scale_index(&mut self, elem_ty: &IrType, raw_idx: ValueId, blk: BlockId) -> ValueId {
         match elem_ty.width_bytes() {
             1 => raw_idx,
@@ -1580,8 +1581,8 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    /// Lower an expression into the given block (or chain of blocks for
-    /// short-circuit operators).  Returns `(value, end_block)`.
+    /// Teremsha usemi ndani ya kizuizi kilichotolewa (au msururu wa vizuizi kwa
+    /// waendeshaji fupi-hali).  Inarudisha `(value, end_block)`.
     fn lower_expr_into(&mut self, node: i32, current_block: BlockId) -> (ValueId, BlockId) {
         if node == NO_NODE || node < 0 {
             let v = self.const_val(Const::Zero);
@@ -1595,7 +1596,7 @@ impl<'a> Lowerer<'a> {
             AST_KITAMBULISHO => self.lower_identifier(node, current_block),
             AST_WITO => self.lower_call(node, current_block),
 
-            // -- boolean / null literals ---------------------------------------
+            // -- halisi za boolean / null ---------------------------------------
             AST_KWELI => {
                 let v = self.func.intern_const(Const::Bool(true));
                 (v, current_block)
@@ -1609,20 +1610,20 @@ impl<'a> Lowerer<'a> {
                 (v, current_block)
             }
 
-            // -- arithmetic ----------------------------------------------------
+            // -- hesabu --------------------------------------------------------
             AST_JUMLISHA => {
-                // AST_JUMLISHA (6) with kushoto=NO_NODE is unary plus (no-op).
-                // AST_JUMLISHA (6) with kushoto=left is binary add.
+                // AST_JUMLISHA (6) ikiwa na kushoto=NO_NODE ni jumlisha la kwanza (bila kazi).
+                // AST_JUMLISHA (6) ikiwa na kushoto=left ni jumlisha la binary.
                 if self.ast_kushoto[node as usize] == NO_NODE {
-                    // Unary plus — just evaluate the right operand.
+                    // Jumlisha la kwanza — tathmini tu operanda ya kulia.
                     self.lower_expr_into(self.ast_kulia[node as usize], current_block)
                 } else {
                     self.lower_binary_op(node, current_block, |l, r| Instruction::Add(l, r))
                 }
             }
             AST_TOFAUTI => {
-                // AST_TOFAUTI (7) with kushoto=NO_NODE is unary minus.
-                // AST_TOFAUTI (7) with kushoto=left is binary subtract.
+                // AST_TOFAUTI (7) ikiwa na kushoto=NO_NODE ni tofauti la kwanza.
+                // AST_TOFAUTI (7) ikiwa na kushoto=left ni toa la binary.
                 if self.ast_kushoto[node as usize] == NO_NODE {
                     let operand_node = self.ast_kulia[node as usize];
                     let (operand, end_blk) = self.lower_expr_into(operand_node, current_block);
@@ -1636,7 +1637,7 @@ impl<'a> Lowerer<'a> {
             AST_ZIDISHA => self.lower_binary_op(node, current_block, |l, r| Instruction::Mul(l, r)),
             AST_GAWANYA => self.lower_binary_op(node, current_block, |l, r| Instruction::DivS(l, r)),
 
-            // -- bitwise -------------------------------------------------------
+            // -- shughuli za biti ----------------------------------------------
             AST_HAMISHA_KUSHOTO => self.lower_binary_op(node, current_block, |l, r| Instruction::Shl(l, r)),
             AST_HAMISHA_KULIA => self.lower_binary_op(node, current_block, |l, r| Instruction::ShrS(l, r)),
             AST_BIT_NA => self.lower_binary_op(node, current_block, |l, r| Instruction::And(l, r)),
@@ -1645,7 +1646,7 @@ impl<'a> Lowerer<'a> {
             AST_NA => self.lower_short_circuit_and(node, current_block),
             AST_AU => self.lower_short_circuit_or(node, current_block),
 
-            // -- comparisons ---------------------------------------------------
+            // -- ulinganisho ----------------------------------------------------
             AST_SAWA => self.lower_binary_op(node, current_block, |l, r| Instruction::Eq(l, r)),
             AST_TOFAUTI_SI => self.lower_binary_op(node, current_block, |l, r| Instruction::Ne(l, r)),
             AST_CHINI => self.lower_binary_op(node, current_block, |l, r| Instruction::LtS(l, r)),
@@ -1653,11 +1654,11 @@ impl<'a> Lowerer<'a> {
             AST_CHINI_SAWA => self.lower_binary_op(node, current_block, |l, r| Instruction::LeS(l, r)),
             AST_JUU_SAWA => self.lower_binary_op(node, current_block, |l, r| Instruction::GeS(l, r)),
 
-            // -- unary ---------------------------------------------------------
+            // -- kwanza --------------------------------------------------------
             AST_SI => self.lower_logical_not(node, current_block),
             AST_TAJA => {
-                // AST_TAJA is used for both *ptr (dereference) and arr[idx]
-                // (array subscript).  Check for an index node to distinguish.
+                // AST_TAJA inatumika kwa *ptr (kuelekeza) na arr[idx]
+                // (usajili wa safu).  Angalia nodi ya faharasa kutofautisha.
                 if self.ast_kulia[node as usize] != NO_NODE {
                     self.lower_array_index(node, current_block)
                 } else {
@@ -1666,12 +1667,12 @@ impl<'a> Lowerer<'a> {
             }
             AST_KUMBUKA => self.lower_address_of(node, current_block),
 
-            // -- member / element access ---------------------------------------
+            // -- ufikiaji wa mwanachama / kipengele ----------------------------
             AST_SEHEMU_DOT => self.lower_field_access(node, current_block),
             AST_SEHEMU_MSHALE => self.lower_ptr_field_access(node, current_block),
             AST_SAFU => self.lower_array_index(node, current_block),
 
-            // -- heap alloc as expression --------------------------------------
+            // -- tenga kwenye chungu kama usemi --------------------------------
             AST_TENGA => {
                 let arg_node = self.ast_kushoto[node as usize];
                 let (size_val, end_blk) = self.lower_expr_into(arg_node, current_block);
@@ -1679,7 +1680,7 @@ impl<'a> Lowerer<'a> {
                 (ptr, end_blk)
             }
 
-            // -- assignment as expression (returns the assigned value) ---------
+            // -- ugawaji kama usemi (inarudisha thamani iliyogawiwa) -----------
             AST_ASIMILIA => {
                 let lhs_node = self.ast_kushoto[node as usize];
                 let rhs_node = self.ast_kulia[node as usize];
@@ -1690,14 +1691,14 @@ impl<'a> Lowerer<'a> {
             }
 
             _ => {
-                // Unknown expression: return zero.
+                // Usemi usiojulikana: rudisha sifuri.
                 let v = self.const_val(Const::Zero);
                 (v, current_block)
             }
         }
     }
 
-    // -- literal helpers -------------------------------------------------------
+    // -- visaidizi vya halisi --------------------------------------------------
 
     fn lower_int_literal(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let val = self.ast_thamani[node as usize] as i128;
@@ -1713,7 +1714,7 @@ impl<'a> Lowerer<'a> {
     fn lower_string_literal(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let offset = self.ast_jina_off[node as usize];
         let raw_bytes = self.read_pool_bytes(offset);
-        // Process escape sequences: \n \t \r \\ \" \0
+        // Chambua mifuatano ya kutoroka: \n \t \r \\ \" \0
         let mut bytes: Vec<u8> = Vec::with_capacity(raw_bytes.len());
         let mut i = 0;
         while i < raw_bytes.len() {
@@ -1733,21 +1734,21 @@ impl<'a> Lowerer<'a> {
             }
             i += 1;
         }
-        // Generate a label and record the string (the global is emitted later).
+        // Tengeneza lebo na rekodi mfuatano (ya ulimwengu inatolewa baadaye).
         let label = format!("@str.{}", self.strings.len());
         self.strings.push((label.clone(), bytes));
-        // Emit a StringAddr instruction that references the global label.
+        // Toa amri ya StringAddr inayorejelea lebo ya ulimwengu.
         let ptr = self.emit(blk, Instruction::StringAddr(label));
         (ptr, blk)
     }
 
-    // -- identifier ------------------------------------------------------------
+    // -- kitambulisho ----------------------------------------------------------
 
     fn lower_identifier(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let name = self.read_pool_name(self.ast_jina_off[node as usize]);
         if let Some(info) = self.lookup(&name) {
             let alloca_ptr = info.ptr;
-            // For struct types, just return the alloca pointer (opaque pointers).
+            // Kwa aina za muundo, rudisha tu kielekezi cha alloca (vielekezi visivyo wazi).
             if matches!(&info.ty, IrType::Struct { .. }) {
                 return (alloca_ptr, blk);
             }
@@ -1756,8 +1757,8 @@ impl<'a> Lowerer<'a> {
             (val, blk)
         } else if let Some(gty) = self.global_types.get(&name).cloned() {
             let addr = self.emit(blk, Instruction::GlobalAddr(name.clone()));
-            // For array types, return the pointer directly (array-to-pointer decay).
-            // For scalar types (I32 = N32 chanzo_urefu), load the value.
+            // Kwa aina za safu, rudisha kielekezi moja kwa moja (kuoza-safu-kwa-kielekezi).
+            // Kwa aina za scalar (I32 = N32 chanzo_urefu), pakia thamani.
             if matches!(&gty, IrType::Array { .. }) {
                 (addr, blk)
             } else {
@@ -1770,14 +1771,14 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    // -- call ------------------------------------------------------------------
+    // -- wito ------------------------------------------------------------------
 
-    /// Scan the AST for a function definition by name to check struct return.
+    /// Kagua AST kwa ufafanuzi wa kazi kwa jina kuangalia rudisha la muundo.
     fn find_function_returns_struct(&self, name: &str) -> bool {
         matches!(self.find_function_return_type(name), Some(IrType::Struct { .. }))
     }
 
-    /// Scan the AST for a function's return type by name.
+    /// Kagua AST kwa aina ya rudisha ya kazi kwa jina.
     fn find_function_return_type(&self, name: &str) -> Option<IrType> {
         let root = (self.ast_aina.len() - 1) as i32;
         let mut child = self.ast_kushoto[root as usize];
@@ -1799,7 +1800,7 @@ impl<'a> Lowerer<'a> {
 
     fn lower_call(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let callee_node = self.ast_kushoto[node as usize];
-        // Parser stores args on callee_node's kulia: ast_kulia[callee_node] = first_arg.
+        // Mchanganuzi huhifadhi hoja kwenye kulia ya callee_node: ast_kulia[callee_node] = first_arg.
         let first_arg = if callee_node != NO_NODE && callee_node >= 0 {
             self.ast_kulia[callee_node as usize]
         } else {
@@ -1812,7 +1813,7 @@ impl<'a> Lowerer<'a> {
             String::new()
         };
 
-        // Handle builtins that look like function calls.
+        // Shughulikia vitendajivilivyojengwa ndani vinavyoonekana kama wito wa kazi.
         if callee_name == "ukubwa" {
             let (_, end_blk) = if first_arg != NO_NODE && first_arg >= 0 {
                 self.lower_expr_into(first_arg, blk)
@@ -1872,8 +1873,8 @@ impl<'a> Lowerer<'a> {
             return (new_ptr, end_blk);
         }
 
-        // Evaluate arguments.  Parser chains args via ast_nne to avoid
-        // conflicting with each arg node's own ast_kulia children.
+        // Tathmini hoja.  Mchanganuzi huunganisha hoja kupitia ast_nne ili kuepuka
+        // mgongano na watoto wa ast_kulia wa kila nodi ya hoja.
         let mut arg_vals: Vec<ValueId> = Vec::new();
         let mut current_block = blk;
         let mut arg_node = first_arg;
@@ -1884,39 +1885,39 @@ impl<'a> Lowerer<'a> {
             arg_node = self.ast_nne[arg_node as usize];
         }
 
-        // Check if the called function returns a struct (needs sret pointer).
-        // First check already-lowered functions, then scan AST for forward refs.
+        // Angalia ikiwa kazi iliyoitwa inarudisha muundo (inahitaji kielekezi cha sret).
+        // Kwanza angalia kazi zilizoteremshwa tayari, kisha kagua AST kwa rejeleo la mbele.
         let needs_sret = self.functions.iter().any(|f| f.name == callee_name && matches!(f.source_return_ty, IrType::Struct { .. }))
             || self.find_function_returns_struct(&callee_name);
         let (call_val, final_block) = if needs_sret {
-            // Determine the actual struct type for the sret alloca.
+            // Tambua aina halisi ya muundo kwa alloca ya sret.
             let struct_ty = self.functions.iter()
                 .find(|f| f.name == callee_name)
                 .map(|f| f.source_return_ty.clone())
                 .or_else(|| {
-                    // Forward ref: scan AST for the return type.
+                    // Rejeleo la mbele: kagua AST kwa aina ya rudisha.
                     self.find_function_return_type(&callee_name)
                 })
                 .unwrap_or(IrType::I32);
-            // Use pre-allocated sret destination if the caller provided one
-            // (e.g., for `Msambazaji p = call()` where p_alloca is already allocated).
+            // Tumia lengo la sret lililotengwa awali ikiwa mpigaji alitoa
+            // (mf., kwa `Msambazaji p = call()` ambapo p_alloca tayari imetengwa).
             let sret_alloca = if let Some(dest) = self.sret_dest.take() {
                 dest
             } else {
-                // Emit into the current block.  We cannot emit into the entry
-                // block here because inst_counter would assign a ValueId that
-                // does not match the backend's block-iteration order (the
-                // backend assigns low ValueIds to entry-block instructions).
-                // This is a rare path — it only fires when a struct-return
-                // call has no pre-existing sret_dest, which does not occur
-                // inside loops in the self-hosted code.
+                // Toa ndani ya kizuizi cha sasa.  Hatuwezi kutoa ndani ya kizuizi
+                // cha kuingia hapa kwa sababu inst_counter ingegawa ValueId
+                // isiyolingana na mpangilio wa urudiaji-kizuizi wa backend (backend
+                // inagawa ValueIds za chini kwa amri za kizuizi cha kuingia).
+                // Hii ni njia adimu — inawaka tu wakati wito wa rudisha-muundo
+                // hauna sret_dest iliyopo awali, ambayo haitokei
+                // ndani ya mizunguko katika msimbo wa kujitegemea.
                 self.emit(current_block, Instruction::Alloca(struct_ty.clone()))
             };
             let mut sret_args = vec![sret_alloca];
             sret_args.extend(arg_vals);
             let _cv = self.emit(current_block, Instruction::Call(callee_name.clone(), sret_args));
-            // Return the sret alloca pointer as the call result.  The caller
-            // (e.g. lower_local_decl) knows whether it provided the alloca.
+            // Rudisha kielekezi cha alloca cha sret kama matokeo ya wito.  Mpigaji
+            // (mf. lower_local_decl) anajua kama alitoa alloca.
             (sret_alloca, current_block)
         } else {
             let cv = self.emit(current_block, Instruction::Call(callee_name.clone(), arg_vals));
@@ -1925,7 +1926,7 @@ impl<'a> Lowerer<'a> {
         (call_val, final_block)
     }
 
-    // -- binary operations -----------------------------------------------------
+    // -- shughuli za binary ----------------------------------------------------
 
     fn lower_binary_op<F>(
         &mut self,
@@ -1945,32 +1946,32 @@ impl<'a> Lowerer<'a> {
         (result, end_blk)
     }
 
-    // -- logical not -----------------------------------------------------------
+    // -- si la mantiki ---------------------------------------------------------
 
     fn lower_logical_not(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let operand_node = self.ast_kushoto[node as usize];
         let (operand, end_blk) = self.lower_expr_into(operand_node, blk);
-        // NOT: compare operand == 0.
+        // SI: linganisha operanda == 0.
         let zero = self.const_val(Const::Int(0));
         let result = self.emit(end_blk, Instruction::Eq(operand, zero));
         (result, end_blk)
     }
 
-    // -- short-circuit && (NA) -------------------------------------------------
+    // -- fupi-hali && (NA) -----------------------------------------------------
 
-    /// NA (logical AND) is short-circuit: evaluate left; if false, result is
-    /// false; otherwise evaluate right.
+    /// NA (NA ya mantiki) ni fupi-hali: tathmini kushoto; ikiwa si kweli, matokeo ni
+    /// si kweli; vinginevyo tathmini kulia.
     ///
-    /// Lower ternary `cond ? true_val : false_val`.
-    /// Uses the IR `Select` instruction — all three operands evaluated in the
-    /// same block (no short-circuit).
+    /// Teremsha ternary `sharti ? thamani_kweli : thamani_si_kweli`.
+    /// Hutumia amri ya `Select` ya IR — operanda zote tatu zinatathminiwa katika
+    /// kizuizi kimoja (hakuna fupi-hali).
     fn lower_ternary(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let cond_node = self.ast_kushoto[node as usize];
         let true_node = self.ast_kulia[node as usize];
         let false_node = self.ast_tiga[node as usize];
 
         let (cond_val, blk1) = self.lower_expr_into(cond_node, blk);
-        // Convert condition to i1 (LLVM select requires i1 condition).
+        // Badilisha sharti kuwa i1 (select ya LLVM inahitaji sharti la i1).
         let zero = self.const_val(Const::Int(0));
         let cond_bool = self.emit(blk1, Instruction::Ne(cond_val, zero));
         let (true_val, blk2) = self.lower_expr_into(true_node, blk1);
@@ -1979,9 +1980,9 @@ impl<'a> Lowerer<'a> {
         (result, blk3)
     }
 
-    /// Returns `true` if the AST node with type `aina` always produces a
-    /// boolean value (comparison, logical operator, or boolean literal).
-    /// Such values do not need an extra `Ne(…, 0)` to convert them to i1.
+    /// Inarudisha `true` ikiwa nodi ya AST yenye aina `aina` daima hutoa
+    /// thamani ya boolean (ulinganisho, opereta wa mantiki, au halisi ya boolean).
+    /// Thamani hizo hazihitaji `Ne(…, 0)` la ziada kuzibadilisha kuwa i1.
     fn ast_aina_ni_boolean(aina: u32) -> bool {
         matches!(aina,
             AST_SAWA          // ==
@@ -1998,8 +1999,8 @@ impl<'a> Lowerer<'a> {
         )
     }
 
-    /// Lower `NA` (logical AND) with proper short-circuit evaluation
-    /// using a Phi node to merge the two possible outcomes.
+    /// Teremsha `NA` (NA ya mantiki) kwa tathmini sahihi ya fupi-hali
+    /// ikitumia nodi ya Phi kuunganisha matokeo mawili yanayowezekana.
     ///
     /// ```text
     ///   entry:
@@ -2022,8 +2023,8 @@ impl<'a> Lowerer<'a> {
         // Evaluate left-hand side.
         let (lhs_val, lhs_end) = self.lower_expr_into(lhs_node, blk);
 
-        // Convert lhs to boolean only when needed (comparisons and logical ops
-        // already produce a boolean value).
+        // Badilisha lhs kuwa boolean inapohitajika tu (ulinganisho na shughuli za mantiki
+        // tayari hutoa thamani ya boolean).
         let lhs_bool = if Self::ast_aina_ni_boolean(self.node_aina(lhs_node)) {
             lhs_val
         } else {
@@ -2031,15 +2032,15 @@ impl<'a> Lowerer<'a> {
             self.emit(lhs_end, Instruction::Ne(lhs_val, zero))
         };
 
-        // Create blocks for rhs evaluation and merge.
+        // Unda vizuizi vya tathmini ya rhs na muunganiko.
         let rhs_blk = self.new_block("sc_and_rhs");
         let merge_blk = self.new_block("sc_and_merge");
 
-        // Branch: if lhs truthy → evaluate rhs; else → short-circuit to merge.
+        // Tawi: ikiwa lhs ni kweli → tathmini rhs; sivyo → fupi-hali kwa muunganiko.
         self.set_terminator(lhs_end,
             Terminator::BrCond(lhs_bool, rhs_blk, merge_blk));
 
-        // RHS evaluation path.  Convert to boolean only when needed.
+        // Njia ya tathmini ya RHS.  Badilisha kuwa boolean inapohitajika tu.
         let (rhs_val, rhs_end) = self.lower_expr_into(rhs_node, rhs_blk);
         let rhs_bool = if Self::ast_aina_ni_boolean(self.node_aina(rhs_node)) {
             rhs_val
@@ -2049,19 +2050,19 @@ impl<'a> Lowerer<'a> {
         };
         self.set_terminator(rhs_end, Terminator::Br(merge_blk));
 
-        // Merge: Phi node selects between short-circuit false and rhs result.
+        // Muunganiko: nodi ya Phi inachagua kati ya si kweli fupi-hali na matokeo ya rhs.
         let false_val = self.const_val(Const::Bool(false));
         let result = self.emit(merge_blk, Instruction::Phi(IrType::B1, vec![
             (false_val, lhs_end),
             (rhs_bool, rhs_end),
         ]));
-        // Placeholder — caller will overwrite with appropriate terminator.
+        // Kishika nafasi — mpigaji ataandika juu kwa kimalizio kinachofaa.
         self.set_terminator(merge_blk, Terminator::Br(merge_blk));
         (result, merge_blk)
     }
 
-    /// Lower `AU` (logical OR) with proper short-circuit evaluation
-    /// using a Phi node to merge the two possible outcomes.
+    /// Teremsha `AU` (AU ya mantiki) kwa tathmini sahihi ya fupi-hali
+    /// ikitumia nodi ya Phi kuunganisha matokeo mawili yanayowezekana.
     ///
     /// ```text
     ///   entry:
@@ -2084,7 +2085,7 @@ impl<'a> Lowerer<'a> {
         // Evaluate left-hand side.
         let (lhs_val, lhs_end) = self.lower_expr_into(lhs_node, blk);
 
-        // Convert lhs to boolean only when needed.
+        // Badilisha lhs kuwa boolean inapohitajika tu.
         let lhs_bool = if Self::ast_aina_ni_boolean(self.node_aina(lhs_node)) {
             lhs_val
         } else {
@@ -2092,15 +2093,15 @@ impl<'a> Lowerer<'a> {
             self.emit(lhs_end, Instruction::Ne(lhs_val, zero))
         };
 
-        // Create blocks for rhs evaluation and merge.
+        // Unda vizuizi vya tathmini ya rhs na muunganiko.
         let rhs_blk = self.new_block("sc_or_rhs");
         let merge_blk = self.new_block("sc_or_merge");
 
-        // Branch: if lhs truthy → short-circuit to merge; else → evaluate rhs.
+        // Tawi: ikiwa lhs ni kweli → fupi-hali kwa muunganiko; sivyo → tathmini rhs.
         self.set_terminator(lhs_end,
             Terminator::BrCond(lhs_bool, merge_blk, rhs_blk));
 
-        // RHS evaluation path.  Convert to boolean only when needed.
+        // Njia ya tathmini ya RHS.  Badilisha kuwa boolean inapohitajika tu.
         let (rhs_val, rhs_end) = self.lower_expr_into(rhs_node, rhs_blk);
         let rhs_bool = if Self::ast_aina_ni_boolean(self.node_aina(rhs_node)) {
             rhs_val
@@ -2110,29 +2111,29 @@ impl<'a> Lowerer<'a> {
         };
         self.set_terminator(rhs_end, Terminator::Br(merge_blk));
 
-        // Merge: Phi node selects between short-circuit true and rhs result.
+        // Muunganiko: nodi ya Phi inachagua kati ya kweli fupi-hali na matokeo ya rhs.
         let true_val = self.const_val(Const::Bool(true));
         let result = self.emit(merge_blk, Instruction::Phi(IrType::B1, vec![
             (true_val, lhs_end),
             (rhs_bool, rhs_end),
         ]));
-        // Placeholder — caller will overwrite with appropriate terminator.
+        // Kishika nafasi — mpigaji ataandika juu kwa kimalizio kinachofaa.
         self.set_terminator(merge_blk, Terminator::Br(merge_blk));
         (result, merge_blk)
     }
 
-    // -- pointer / address operations ------------------------------------------
+    // -- shughuli za kielekezi / anwani ----------------------------------------
 
-    /// Lower `*expr` (pointer dereference / load).
+    /// Teremsha `*usemi` (kuelekeza / kupakia kielekezi).
     ///
-    /// For plain dereference (`*ptr`), resolves the pointee type from the
-    /// operand's declared type when possible.  For array subscript
-    /// (`arr[idx]`), the caller (`lower_expr_into`) dispatches to
-    /// [`lower_array_index`] instead, which handles GEP + typed load.
+    /// Kwa kuelekeza kwa kawaida (`*ptr`), hutatua aina ya pointee kutoka
+    /// aina iliyotangazwa ya operanda inapowezekana.  Kwa usajili wa safu
+    /// (`arr[idx]`), mpigaji (`lower_expr_into`) anatuma kwa
+    /// [`lower_array_index`] badala yake, inayoshughulikia GEP + upakiaji wenye aina.
     fn lower_deref_load(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let operand_node = self.ast_kushoto[node as usize];
         let (ptr_val, end_blk) = self.lower_expr_into(operand_node, blk);
-        // Try to resolve the pointee type from the operand's declared type.
+        // Jaribu kutatua aina ya pointee kutoka aina iliyotangazwa ya operanda.
         let pointee_ty = self.resolve_expr_type(operand_node)
             .and_then(|ty| match &ty {
                 IrType::Ptr(inner) => Some((**inner).clone()),
@@ -2143,18 +2144,18 @@ impl<'a> Lowerer<'a> {
         (val, end_blk)
     }
 
-    /// Lower `&expr` (address-of).
+    /// Teremsha `&usemi` (anwani-ya).
     fn lower_address_of(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let operand_node = self.ast_kushoto[node as usize];
-        // The operand must be an lvalue — lower it to a pointer.
+        // Operanda lazima iwe thamani-l — iteremshe kuwa kielekezi.
         let ptr = self.lower_lvalue(operand_node, blk);
         (ptr, blk)
     }
 
-    // -- lvalue lowering -------------------------------------------------------
+    // -- kuteremsha thamani-l --------------------------------------------------
 
-    /// Lower a node as an *lvalue*, returning a pointer (`ValueId`) that can be
-    /// stored to or loaded from.
+    /// Teremsha nodi kama *thamani-l*, ikirudisha kielekezi (`ValueId`) ambacho
+    /// kinaweza kuhifadhiwa au kupakiwa kutoka.
     fn lower_lvalue(&mut self, node: i32, blk: BlockId) -> ValueId {
         if node == NO_NODE || node < 0 {
             return self.const_val(Const::NullPtr);
@@ -2169,18 +2170,18 @@ impl<'a> Lowerer<'a> {
                 } else if self.global_types.contains_key(&name) {
                     self.emit(blk, Instruction::GlobalAddr(name.clone()))
                 } else {
-                    // Undefined — return null pointer.
+                    // Haijafafanuliwa — rudisha kielekezi batili.
                     self.const_val(Const::NullPtr)
                 }
             }
             AST_TAJA => {
-                // *ptr or array[index] as lvalue.
+                // *ptr au safu[faharasa] kama thamani-l.
                 let base_node = self.ast_kushoto[node as usize];
                 let index_node = self.ast_kulia[node as usize];
                 let (base_ptr, end_blk) = self.lower_expr_into(base_node, blk);
                 if index_node != NO_NODE && index_node >= 0 {
                     let (raw_idx, end_blk2) = self.lower_expr_into(index_node, end_blk);
-                    // Resolve element type for correct index scaling.
+                    // Tatua aina ya kipengele kwa ukokotoaji sahihi wa faharasa.
                     let elem_ty = self.resolve_expr_type(base_node)
                         .and_then(|ty| match &ty {
                             IrType::Ptr(pointee) => Some((**pointee).clone()),
@@ -2196,15 +2197,15 @@ impl<'a> Lowerer<'a> {
                 }
             }
             AST_SEHEMU_DOT => {
-                // struct.field: compute address of the field.
-                // Field name is stored on the dot-access node itself via hifadhi_jina.
+                // muundo.sehemu: hesabu anwani ya sehemu.
+                // Jina la sehemu limehifadhiwa kwenye nodi ya ufikiaji-doti yenyewe kupitia hifadhi_jina.
                 let struct_node = self.ast_kushoto[node as usize];
                 let field_name = self.read_pool_name(self.ast_jina_off[node as usize]);
 
                 let base_ptr = self.lower_lvalue(struct_node, blk);
 
-                // Resolve the struct type from the expression, then look up
-                // the field index within THAT specific struct.
+                // Tatua aina ya muundo kutoka usemi, kisha tafuta
+                // faharasa ya sehemu ndani ya muundo huo mahususi.
                 let struct_ty = self.resolve_expr_type(struct_node)
                     .and_then(|ty| match &ty {
                         IrType::Ptr(pointee) => Some((**pointee).clone()),
@@ -2218,15 +2219,15 @@ impl<'a> Lowerer<'a> {
                 self.emit(blk, Instruction::FieldAddr(base_ptr, field_idx, struct_ty))
             }
             AST_SEHEMU_MSHALE => {
-                // ptr->field: load ptr, then compute field address.
-                // Field name is stored on the arrow node itself via hifadhi_jina.
+                // ptr->sehemu: pakia ptr, kisha hesabu anwani ya sehemu.
+                // Jina la sehemu limehifadhiwa kwenye nodi ya mshale yenyewe kupitia hifadhi_jina.
                 let ptr_node = self.ast_kushoto[node as usize];
                 let field_name = self.read_pool_name(self.ast_jina_off[node as usize]);
 
                 let (struct_ptr, end_blk) = self.lower_expr_into(ptr_node, blk);
 
-                // Resolve the struct type from the pointer's pointee, then
-                // look up the field index within that specific struct.
+                // Tatua aina ya muundo kutoka pointee ya kielekezi, kisha
+                // tafuta faharasa ya sehemu ndani ya muundo huo mahususi.
                 let struct_ty = self.resolve_expr_type(ptr_node).and_then(|ty| {
                     match &ty {
                         IrType::Ptr(pointee) => Some((**pointee).clone()),
@@ -2241,13 +2242,13 @@ impl<'a> Lowerer<'a> {
                 self.emit(end_blk, Instruction::FieldAddr(struct_ptr, field_idx, struct_ty))
             }
             AST_SAFU => {
-                // array[index] — compute element address via GEP.
+                // safu[faharasa] — hesabu anwani ya kipengele kupitia GEP.
                 let array_node = self.ast_kushoto[node as usize];
                 let index_node = self.ast_kulia[node as usize];
 
                 let raw_ptr = self.lower_lvalue(array_node, blk);
-                // If the array is actually a pointer variable (N8**), lower_lvalue
-                // returns the alloca. Load the pointer value for correct GEP.
+                // Ikiwa safu kwa kweli ni kigezo cha kielekezi (N8**), lower_lvalue
+                // inarudisha alloca. Pakia thamani ya kielekezi kwa GEP sahihi.
                 let arr_ty = self.resolve_expr_type(array_node);
                 let is_ptr = matches!(&arr_ty, Some(IrType::Ptr(_)));
                 let ary_ptr = if is_ptr {
@@ -2258,7 +2259,7 @@ impl<'a> Lowerer<'a> {
                 };
                 let (raw_idx, end_blk) = self.lower_expr_into(index_node, blk);
 
-                // Determine element type for index scaling.
+                // Tambua aina ya kipengele kwa ukubwa wa faharasa.
                 let elem_ty = arr_ty.and_then(|ty| {
                     match &ty {
                         IrType::Ptr(pointee) => Some((**pointee).clone()),
@@ -2267,23 +2268,23 @@ impl<'a> Lowerer<'a> {
                     }
                 }).unwrap_or(IrType::I32);
 
-                // Scale index by element width — GEP uses byte offsets.
+                // Panda faharasa kwa upana wa kipengele — GEP hutumia kukabilisha kwa baiti.
                 let idx_val = self.scale_index(&elem_ty, raw_idx, end_blk);
 
                 self.emit(end_blk, Instruction::Gep(ary_ptr, vec![idx_val]))
             }
             _ => {
-                // Not an lvalue — evaluate as rvalue and return a dummy pointer.
+                // Si thamani-l — tathmini kama thamani-r na rudisha kielekezi bandia.
                 let (_val, _end_blk) = self.lower_expr_into(node, blk);
                 self.const_val(Const::NullPtr)
             }
         }
     }
 
-    // -- field access as rvalue ------------------------------------------------
+    // -- ufikiaji wa sehemu kama thamani-r -------------------------------------
 
-    /// Lower `struct.field` (dot access) as an rvalue.
-    /// Resolve the type of an expression node by walking the AST.
+    /// Teremsha `muundo.sehemu` (ufikiaji wa doti) kama thamani-r.
+    /// Tatua aina ya nodi ya usemi kwa kutembea AST.
     fn resolve_expr_type(&self, node: i32) -> Option<IrType> {
         if node < 0 { return None; }
         match self.ast_aina[node as usize] {
@@ -2293,7 +2294,7 @@ impl<'a> Lowerer<'a> {
                     .or_else(|| self.global_types.get(&name).cloned())
             }
             AST_SEHEMU_DOT => {
-                // p.x → resolve p's type, find field x.
+                // p.x → tatua aina ya p, tafuta sehemu x.
                 let lhs = self.ast_kushoto[node as usize];
                 let field = self.read_pool_name(self.ast_jina_off[node as usize]);
                 self.resolve_expr_type(lhs).and_then(|ty| {
@@ -2308,7 +2309,7 @@ impl<'a> Lowerer<'a> {
                 })
             }
             AST_SEHEMU_MSHALE => {
-                // p->x → resolve p's type (pointer), get pointee struct, find field x.
+                // p->x → tatua aina ya p (kielekezi), pata muundo wa pointee, tafuta sehemu x.
                 let lhs = self.ast_kushoto[node as usize];
                 let field = self.read_pool_name(self.ast_jina_off[node as usize]);
                 self.resolve_expr_type(lhs).and_then(|ty| {
@@ -2335,13 +2336,13 @@ impl<'a> Lowerer<'a> {
 
     fn lower_field_access(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let struct_node = self.ast_kushoto[node as usize];
-        // Field name is stored on the dot-access node itself via hifadhi_jina.
+        // Jina la sehemu limehifadhiwa kwenye nodi ya ufikiaji-doti yenyewe kupitia hifadhi_jina.
         let field_name = self.read_pool_name(self.ast_jina_off[node as usize]);
 
-        // Resolve the type of the left-hand-side expression once.
+        // Tatua aina ya usemi wa upande wa kushoto mara moja.
         let lhs_ty = self.resolve_expr_type(struct_node);
 
-        // Determine the struct type and field type from lhs_ty.
+        // Tambua aina ya muundo na aina ya sehemu kutoka lhs_ty.
         let (struct_ty, field_ty, field_idx) = match &lhs_ty {
             Some(IrType::Struct { fields, .. }) => {
                 let idx = Self::find_field_index(lhs_ty.as_ref().unwrap(), &field_name)
@@ -2350,7 +2351,7 @@ impl<'a> Lowerer<'a> {
                     .find(|(n, _)| n == &field_name)
                     .map(|(_, t)| t.clone())
                     .unwrap_or(IrType::I32);
-                // For direct struct access (not pointer), struct_ty is the struct type itself.
+                // Kwa ufikiaji wa muundo moja kwa moja (si kupitia kielekezi), struct_ty ni aina ya muundo yenyewe.
                 let sty = lhs_ty.clone();
                 (sty, fty, idx)
             }
@@ -2364,7 +2365,7 @@ impl<'a> Lowerer<'a> {
                         .map(|(_, t)| t.clone())
                         .unwrap_or(IrType::I32)
                 } else { IrType::I32 };
-                // The struct type for FieldAddr is the pointee struct.
+                // Aina ya muundo kwa FieldAddr ni muundo wa pointee.
                 let sty = Some(st);
                 (sty, fty, idx)
             }
@@ -2374,25 +2375,25 @@ impl<'a> Lowerer<'a> {
             }
         };
 
-        // Get the address of the struct (as lvalue).
+        // Pata anwani ya muundo (kama thamani-l).
         let base_ptr = self.lower_lvalue(struct_node, blk);
 
-        // Compute address of field, then load with correct type.
+        // Hesabu anwani ya sehemu, kisha pakia kwa aina sahihi.
         let field_ptr = self.emit(blk, Instruction::FieldAddr(base_ptr, field_idx, struct_ty));
         let val = self.emit(blk, Instruction::Load(field_ty, field_ptr));
         (val, blk)
     }
 
-    /// Lower `ptr->field` (arrow access) as an rvalue.
+    /// Teremsha `ptr->sehemu` (ufikiaji wa mshale) kama thamani-r.
     fn lower_ptr_field_access(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let ptr_node = self.ast_kushoto[node as usize];
-        // Field name is stored on the arrow-access node itself via hifadhi_jina.
+        // Jina la sehemu limehifadhiwa kwenye nodi ya ufikiaji-mshale yenyewe kupitia hifadhi_jina.
         let field_name = self.read_pool_name(self.ast_jina_off[node as usize]);
 
         let (struct_ptr, end_blk) = self.lower_expr_into(ptr_node, blk);
 
-        // Resolve the struct pointee type using resolve_expr_type (handles
-        // identifiers, field accesses, and other expressions).
+        // Tatua aina ya muundo wa pointee kwa kutumia resolve_expr_type (inashughulikia
+        // vitambulisho, ufikiaji wa sehemu, na misemo mingine).
         let struct_ty_opt = self.resolve_expr_type(ptr_node).and_then(|ty| {
             match &ty {
                 IrType::Ptr(pointee) => Some((**pointee).clone()),
@@ -2403,14 +2404,14 @@ impl<'a> Lowerer<'a> {
             .and_then(|sty| Self::find_field_index(sty, &field_name))
             .unwrap_or_else(|| self.guess_field_index(&field_name));
 
-        // Determine field type from the resolved struct pointee.
-        // If we can't find it via the scope chain, try the module type table.
+        // Tambua aina ya sehemu kutoka muundo wa pointee uliotatuliwa.
+        // Ikiwa hatuwezi kuipata kupitia msururu wa upeo, jaribu jedwali la aina za moduli.
         let field_ty = struct_ty_opt.as_ref().and_then(|sty| {
             if let IrType::Struct { fields, .. } = sty {
                 fields.iter().find(|(n, _)| n == &field_name).map(|(_, t)| t.clone())
             } else { None }
         }).or_else(|| {
-            // Fallback: try module-level type table by struct name
+            // Rudia: jaribu jedwali la aina za kiwango-moduli kwa jina la muundo
             struct_ty_opt.as_ref().and_then(|sty| {
                 if let IrType::Struct { name, .. } = sty {
                     self.types.iter().find(|(n, _)| n == name).and_then(|(_, t)| {
@@ -2427,14 +2428,14 @@ impl<'a> Lowerer<'a> {
         (val, end_blk)
     }
 
-    /// Lower `array[index]` as an rvalue.
+    /// Teremsha `safu[faharasa]` kama thamani-r.
     fn lower_array_index(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
         let array_node = self.ast_kushoto[node as usize];
         let index_node = self.ast_kulia[node as usize];
 
         let raw_ptr = self.lower_lvalue(array_node, blk);
-        // If this is a pointer variable (N8**), lower_lvalue returns the alloca.
-        // Load the actual pointer value for correct GEP.
+        // Ikiwa hiki ni kigezo cha kielekezi (N8**), lower_lvalue inarudisha alloca.
+        // Pakia thamani halisi ya kielekezi kwa GEP sahihi.
         let arr_ty = self.resolve_expr_type(array_node);
         let is_ptr = matches!(&arr_ty, Some(IrType::Ptr(_)));
         let ary_ptr = if is_ptr {
@@ -2445,7 +2446,7 @@ impl<'a> Lowerer<'a> {
         };
         let (raw_idx, end_blk) = self.lower_expr_into(index_node, blk);
 
-        // Determine element type from the array's declared type.
+        // Tambua aina ya kipengele kutoka aina iliyotangazwa ya safu.
         let elem_ty = arr_ty.and_then(|ty| {
             match &ty {
                 IrType::Ptr(pointee) => Some((**pointee).clone()),
@@ -2454,10 +2455,10 @@ impl<'a> Lowerer<'a> {
             }
         }).unwrap_or(IrType::I32);
 
-        // Scale index by element width — GEP uses byte offsets.
+        // Panda faharasa kwa upana wa kipengele — GEP hutumia kukabilisha kwa baiti.
         let idx_val = self.scale_index(&elem_ty, raw_idx, end_blk);
 
-        // GEP to element, then load.
+        // GEP kwa kipengele, kisha pakia.
         let elem_ptr = self.emit(end_blk, Instruction::Gep(ary_ptr, vec![idx_val]));
         let val = self.emit(end_blk, Instruction::Load(elem_ty, elem_ptr));
         (val, end_blk)
@@ -2466,18 +2467,18 @@ impl<'a> Lowerer<'a> {
 }
 
 // ============================================================================
-// Helpers
+// Visaidizi
 // ============================================================================
 
 impl<'a> Lowerer<'a> {
-    /// If `block`'s current terminator is a self-looping placeholder
-    /// (`Br(block)`), replace it with `Br(target)`.
+    /// Ikiwa kimalizio cha sasa cha `block` ni kishika nafasi cha kujizungusha
+    /// (`Br(block)`), badilisha na `Br(target)`.
     fn patch_br_if_needed(&mut self, block: BlockId, target: BlockId) {
-        // Walk the chain through unconditional branches and through the
-        // merge (fall-through) path of conditional branches, patching every
-        // self-loop placeholder to `target`.  This ensures that nested if /
-        // while statements inside a then-block all eventually reach the
-        // correct continuation.
+        // Tembea msururu kupitia matawi yasiyo na sharti na kupitia
+        // njia ya muunganiko (kipitio) ya matawi yenye sharti, ukirekebisha
+        // kila kishika nafasi cha kujizungusha kwa `target`.  Hii inahakikisha
+        // taarifa za kama/wakati zilizopachikwa ndani ya kizuizi cha kweli
+        // zote hatimaye zinafikia muendelezo sahihi.
         let mut visited: Vec<BlockId> = Vec::new();
         let mut work = vec![block];
         while let Some(blk) = work.pop() {
@@ -2486,15 +2487,15 @@ impl<'a> Lowerer<'a> {
             let term = &self.func.blocks[blk.0].terminator;
             match term {
                 Terminator::Br(b) if *b == blk => {
-                    // Self-loop placeholder — patch to target.
+                    // Kishika nafasi cha kujizungusha — rekebisha kwa target.
                     self.set_terminator(blk, Terminator::Br(target));
                 }
                 Terminator::Br(next) => {
-                    // Follow the unconditional chain, but stop at blocks
-                    // whose label indicates loop control flow (continue/
-                    // endelea or break/vunja).  Following these would walk
-                    // into enclosing loop bodies and corrupt their exit
-                    // blocks.
+                    // Fuata msururu usio na sharti, lakini simama kwenye vizuizi
+                    // ambavyo lebo yake inaonyesha mtiririko-dhibiti wa mzunguko
+                    // (endelea au vunja).  Kufuata hivi kungetembea
+                    // ndani ya miili ya mizunguko iliyofunga na kuharibu
+                    // vizuizi vyao vya kutoka.
                     let src_label = &self.func.blocks[blk.0].label;
                     if !src_label.starts_with("continue.")
                         && !src_label.starts_with("break.")
@@ -2503,40 +2504,41 @@ impl<'a> Lowerer<'a> {
                     }
                 }
                 Terminator::BrCond(_, true_target, false_target) => {
-                    // Follow BOTH branches — the true branch may lead to
-                    // blocks that need patching (e.g. nested if with else
-                    // where the false branch terminates in Ret).
+                    // Fuata matawi YOTE MAMAWILI — tawi la kweli linaweza
+                    // kupeleka kwenye vizuizi vinavyohitaji kurekebishwa (mf.
+                    // kama iliyopachikwa yenye sivyo ambapo tawi la uongo
+                    // linaisha kwa Ret).
                     work.push(*true_target);
                     work.push(*false_target);
                 }
                 _ => {
-                    // Real terminator (Ret, Switch) — stop.
+                    // Kimalizio halisi (Ret, Switch) — simama.
                 }
             }
         }
     }
 
-    /// Ensure the given block has an unconditional branch to `target`.  If the
-    /// block already has a non-placeholder terminator this is a no-op.
+    /// Hakikisha kizuizi kilichotolewa kina tawi lisilo na sharti kwa `target`.  Ikiwa
+    /// kizuizi tayari kina kimalizio kisicho kishika nafasi hii ni no-op.
     fn ensure_br(&mut self, block: BlockId, target: BlockId) {
         let current_term = &self.func.blocks[block.0].terminator;
         match current_term {
             Terminator::Br(b) if *b == block || *b == target => {
-                // Placeholder or already correct — overwrite.
+                // Kishika nafasi au tayari sahihi — andika juu.
                 self.set_terminator(block, Terminator::Br(target));
             }
             Terminator::Br(_) => {
-                // Already branches somewhere else — leave alone.
+                // Tayari inatawi mahali pengine — acha peke yake.
             }
             _ => {
-                // Has a real terminator (Ret, BrCond, Switch) — leave alone.
+                // Ina kimalizio halisi (Ret, BrCond, Switch) — acha peke yake.
             }
         }
     }
 
-    /// Find the index of a named field within a specific struct type.
+    /// Tafuta faharasa ya sehemu yenye jina ndani ya aina mahususi ya muundo.
     ///
-    /// Returns `None` when the field is not found or the type is not a struct.
+    /// Inarudisha `None` wakati sehemu haipatikani au aina si muundo.
     fn find_field_index(struct_ty: &IrType, field_name: &str) -> Option<usize> {
         if let IrType::Struct { fields, .. } = struct_ty {
             fields.iter().position(|(n, _)| n == field_name)
@@ -2545,8 +2547,8 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    /// Legacy fallback: search all registered struct types for a field name.
-    /// Only used when the specific struct type cannot be resolved.
+    /// Rudia la urithi: tafuta aina zote za muundo zilizosajiliwa kwa jina la sehemu.
+    /// Inatumika tu wakati aina mahususi ya muundo haiwezi kutatuliwa.
     fn guess_field_index(&self, name: &str) -> usize {
         for (_, ty) in &self.types {
             if let IrType::Struct { fields, .. } = ty {
@@ -2561,7 +2563,7 @@ impl<'a> Lowerer<'a> {
 }
 
 // ============================================================================
-// Tests
+// Majaribio
 // ============================================================================
 
 #[cfg(test)]
@@ -2569,10 +2571,10 @@ mod tests {
     use super::*;
 
     // -----------------------------------------------------------------------
-    // AST builder helpers
+    // Visaidizi vya mjenzi wa AST
     // -----------------------------------------------------------------------
 
-    /// Tiny builder for constructing flat-array ASTs in tests.
+    /// Mjenzi mdogo wa kuunda AST za safu-bapa katika majaribio.
     struct AstBuilder {
         aina: Vec<u32>,
         kushoto: Vec<i32>,
@@ -2598,7 +2600,7 @@ mod tests {
             }
         }
 
-        /// Allocate a new node, return its index.
+        /// Tenge nodi mpya, rudisha faharasa yake.
         fn node(
             &mut self,
             kind: u32,
@@ -2620,7 +2622,7 @@ mod tests {
             idx
         }
 
-        /// Append a null-terminated name to the pool, return its offset.
+        /// Ongeza jina lenye ncha-tupu kwenye dimbwi, rudisha kukabilisha kwake.
         fn pool_name(&mut self, name: &str) -> i32 {
             let off = self.pool.len() as i32;
             self.pool.extend_from_slice(name.as_bytes());
@@ -2628,7 +2630,7 @@ mod tests {
             off
         }
 
-        /// Append length-prefixed bytes to the pool, return offset.
+        /// Ongeza baiti zenye urefu-kiambishi kwenye dimbwi, rudisha kukabilisha.
         fn pool_bytes(&mut self, data: &[u8]) -> i32 {
             let off = self.pool.len() as i32;
             let len = data.len() as u32;
@@ -2637,8 +2639,8 @@ mod tests {
             off
         }
 
-        /// Build a minimal PROGRAMU root wrapping one child and return the
-        /// arrays plus `ast_idadi`.
+        /// Jenga mzizi mdogo wa PROGRAMU unaofunga mtoto mmoja na urudishe
+        /// safu pamoja na `ast_idadi`.
         fn finish(&mut self, root_child: i32) -> (Vec<u32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<u8>, usize) {
             let root = self.node(
                 AST_PROGRAMU,     // kind
@@ -2666,12 +2668,12 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // Tests
+    // Majaribio
     // -----------------------------------------------------------------------
 
     #[test]
     fn test_empty_program() {
-        // A program with no functions or globals — just the root.
+        // Programu isiyo na kazi au vigezo vya ulimwengu — mzizi tu.
         let mut b = AstBuilder::new();
         let root_child = NO_NODE;
         let (aina, kushoto, kulia, tiga, nne, thamani, jina_off, pool, idadi) =
@@ -2684,10 +2686,10 @@ mod tests {
 
     #[test]
     fn test_simple_function_no_body() {
-        // kazi kuu() { } → function with no body
+        // kazi kuu() { } → kazi isiyo na mwili
         let mut b = AstBuilder::new();
         let jina_kuu = b.pool_name("kuu");
-        // Encoded type for W0 (Void): familia=5, upana=0, mshale=0 → (5<<8)|0 = 1280
+        // Aina iliyosimbwa kwa W0 (Tupu): familia=5, upana=0, mshale=0 → (5<<8)|0 = 1280
         let w0_enc: i32 = 10240; // (5<<11)|(0<<3)|0
 
         let name_node = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_kuu);
@@ -2710,7 +2712,7 @@ mod tests {
         assert_eq!(f.name, "kuu");
         assert_eq!(f.return_ty, IrType::Void);
         assert_eq!(f.params.len(), 0);
-        // Should have at least an entry block.
+        // Inapaswa kuwa na angalau kizuizi kimoja cha kuingia.
         assert!(f.block_count() >= 1);
     }
 
@@ -2719,10 +2721,10 @@ mod tests {
         // kazi jumlisha(a: N32, b: N32): N32 { ... }
         let mut b = AstBuilder::new();
         let jina_jumlisha = b.pool_name("jumlisha");
-        // Encoded type for N32: familia=1, upana=32, mshale=0 → (1<<8)|32 = 288
+        // Aina iliyosimbwa kwa N32: familia=1, upana=32, mshale=0 → (1<<8)|32 = 288
         let n32_enc: i32 = 2080; // (1<<11)|(4<<3)|0
 
-        // Parameter nodes: each has jina_off for name, thamani for type encoding.
+        // Nodi za vigezo: kila moja ina jina_off kwa jina, thamani kwa usimbaji wa aina.
         let jina_a = b.pool_name("a");
         let param_a = b.node(
             0, // dummy kind for param
@@ -2736,7 +2738,7 @@ mod tests {
             n32_enc,
             jina_b,
         );
-        // Chain params: a → b via kulia (matching parser convention).
+        // Unganisha vigezo: a → b kupitia kulia (kulingana na muundo wa mchanganuzi).
         b.kulia[param_a as usize] = param_b;
 
         let name_node = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_jumlisha);
@@ -2770,10 +2772,10 @@ mod tests {
         let jina_tatu = b.pool_name("tatu");
         let ret_off = b.pool_name("N32");
 
-        // Integer literal "3": AST_NAMBARI, thamani = 3
+        // Halisi ya nambari "3": AST_NAMBARI, thamani = 3
         let lit = b.node(AST_NAMBARI, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 3, 0);
 
-        // Return statement: AST_RUDISHA, kushoto = lit
+        // Taarifa ya rudisha: AST_RUDISHA, kushoto = lit
         let ret_stmt = b.node(AST_RUDISHA, lit, NO_NODE, NO_NODE, NO_NODE, 0, 0);
 
         let name_node = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_tatu);
@@ -2794,12 +2796,12 @@ mod tests {
         assert_eq!(module.functions.len(), 1);
         let f = &module.functions[0];
         assert_eq!(f.name, "tatu");
-        // Should have blocks: entry, body, ret
+        // Inapaswa kuwa na vizuizi: kuingia, mwili, rudisha
         assert!(f.block_count() >= 3, "expected at least 3 blocks, got {}", f.block_count());
-        // Verify a Ret terminator exists somewhere.
+        // Thibitisha kimalizio cha Ret kipo mahali fulani.
         let has_ret = f.blocks.iter().any(|blk| matches!(blk.terminator, Terminator::Ret(_)));
         assert!(has_ret, "function should contain a Ret terminator");
-        // Verify the integer constant 3 is interned.
+        // Thibitisha thabiti ya nambari 3 imefanywa ndani.
         let has_int3 = f.values.iter().any(|c| *c == Const::Int(3));
         assert!(has_int3, "function should contain Const::Int(3)");
     }
@@ -2816,17 +2818,17 @@ mod tests {
         let ret_off = b.pool_name("N32");
         let n32_off = b.pool_name("N32");
 
-        // Identifier "x"
+        // Kitambulisho "x"
         let id_x_off = b.pool_name("x");
 
-        // Literals
+        // Halisi
         let lit5 = b.node(AST_NAMBARI, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 5, 0);
         let lit10 = b.node(AST_NAMBARI, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 10, 0);
 
-        // Type node for N32
+        // Nodi ya aina kwa N32
         let type_n32 = b.node(0, NO_NODE, NO_NODE, NO_NODE, NO_NODE, n32_off, 0);
 
-        // Name node for x
+        // Nodi ya jina kwa x
         let name_x = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, id_x_off);
 
         // TANGAZO: N32 x = 5
@@ -2877,7 +2879,7 @@ mod tests {
         let f = &module.functions[0];
         assert_eq!(f.name, "hesabu");
 
-        // Check that Alloca and Store instructions exist.
+        // Angalia kwamba amri za Alloca na Store zipo.
         let has_alloca = f.blocks.iter().any(|blk| {
             blk.instructions.iter().any(|inst| matches!(inst, Instruction::Alloca(_)))
         });

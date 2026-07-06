@@ -753,7 +753,7 @@ fn lower_instruction(
     fn_return_types: &HashMap<String, LLVMTypeRef>,
 ) -> LLVMValueRef {
     unsafe {
-        /// Helper to resolve a ValueId operand.
+        /// Msaidizi wa kusuluhisha opereta ya ValueId.
         fn v(value_map: &HashMap<ValueId, LLVMValueRef>, id: &ValueId) -> LLVMValueRef {
             value_map.get(id).copied().unwrap_or_else(|| {
                 unsafe { LLVMConstInt(LLVMInt32Type(), 0, 0) }
@@ -761,17 +761,17 @@ fn lower_instruction(
         }
 
         match inst {
-            // -- integer arithmetic -----------------------------------------------
+            // -- hesabu za namba kamili --------------------------------------------
             crate::ir::Instruction::Add(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
-                // Check for pointer + integer → use GEP.
+                // Angalia kuelekezi + namba kamili → tumia GEP.
                 let l_ty = LLVMTypeOf(l);
                 if LLVMGetTypeKind(l_ty) as u32 == LLVMTypeKind::Pointer as u32 {
                     let indices = [r];
                     return LLVMBuildGEP2(
                         builder,
-                        LLVMInt8Type(), // opaque pointer base type
+                        LLVMInt8Type(), // aina msingi ya kielekezi kisicho wazi
                         l,
                         indices.as_ptr() as *mut LLVMValueRef,
                         1,
@@ -797,7 +797,7 @@ fn lower_instruction(
             crate::ir::Instruction::Sub(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
-                // Pointer - integer → GEP with negative index? No, just treat as int.
+                // Kielekezi - namba kamili → GEP na fahirisi hasi? Hapana, chukulia kama namba tu.
                 let (cl, cr, _common_ty) = coerce_int_binop(builder, l, r);
                 LLVMBuildSub(builder, cl, cr, c_str("sub").as_ptr())
             }
@@ -837,7 +837,7 @@ fn lower_instruction(
                 LLVMBuildURem(builder, cl, cr, c_str("urem").as_ptr())
             }
 
-            // -- floating-point arithmetic ----------------------------------------
+            // -- hesabu za namba sehemu --------------------------------------------
             crate::ir::Instruction::FAdd(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
@@ -863,7 +863,7 @@ fn lower_instruction(
                 LLVMBuildFNeg(builder, x, c_str("fneg").as_ptr())
             }
 
-            // -- bitwise ----------------------------------------------------------
+            // -- bitwise (kwa biti) -------------------------------------------------
             crate::ir::Instruction::And(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
@@ -901,7 +901,7 @@ fn lower_instruction(
                 LLVMBuildLShr(builder, cl, cr, c_str("lshr").as_ptr())
             }
 
-            // -- integer comparisons ----------------------------------------------
+            // -- ulinganisho wa namba kamili ----------------------------------------
             crate::ir::Instruction::Eq(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
@@ -963,7 +963,7 @@ fn lower_instruction(
                 LLVMBuildICmp(builder, LLVMIntPredicate::UGE, cl, cr, c_str("geu").as_ptr())
             }
 
-            // -- floating-point comparisons ---------------------------------------
+            // -- ulinganisho wa namba sehemu ---------------------------------------
             crate::ir::Instruction::Feq(lhs, rhs) => {
                 let l = v(value_map, lhs);
                 let r = v(value_map, rhs);
@@ -995,7 +995,7 @@ fn lower_instruction(
                 LLVMBuildFCmp(builder, LLVMRealPredicate::OGE, l, r, c_str("fge").as_ptr())
             }
 
-            // -- type conversions -------------------------------------------------
+            // -- ubadilishaji wa aina -----------------------------------------------
             crate::ir::Instruction::Trunc(val, target_ty) => {
                 let x = v(value_map, val);
                 let target = ir_type_to_llvm(target_ty, struct_types);
@@ -1047,12 +1047,12 @@ fn lower_instruction(
                 LLVMBuildBitCast(builder, x, target, c_str("bitcast").as_ptr())
             }
 
-            // -- constant materialization --------------------------------------
+            // -- uundaji wa thabiti ---------------------------------------------
             crate::ir::Instruction::Const(c) => {
                 unsafe { materialize_const(c, LLVMInt64Type()) }
             }
 
-            // -- memory -----------------------------------------------------------
+            // -- kumbukumbu --------------------------------------------------------
             crate::ir::Instruction::Alloca(ty) => {
                 let llvm_ty = ir_type_to_llvm(ty, struct_types);
                 LLVMBuildAlloca(builder, llvm_ty, c_str("alloca").as_ptr())
@@ -1068,16 +1068,16 @@ fn lower_instruction(
             crate::ir::Instruction::Store(val, ptr) => {
                 let value = v(value_map, val);
                 let p = v(value_map, ptr);
-                // StoreTyped handles width coercion with explicit IrType.
-                // Plain Store emits the store as-is — the value must already
-                // match the pointee width.  LLVMGetElementType is unreliable
-                // with opaque pointers on LLVM 22.
+                // StoreTyped hushughulikia ulazimishaji wa upana kwa IrType wazi.
+                // Plain Store hutoa stoo kama ilivyo — thamani lazima tayari
+                // ilingane na upana wa elekezi. LLVMGetElementType haina uhakika
+                // kwa vielekezi visivyo wazi kwenye LLVM 22.
                 LLVMBuildStore(builder, value, p)
             }
             crate::ir::Instruction::StoreTyped(val, ptr, store_ty) => {
                 let value = v(value_map, val);
                 let p = v(value_map, ptr);
-                // Cast the value to the field type if widths differ.
+                // Geuza thamani kwa aina ya sehemu ikiwa upana hutofautiana.
                 let llvm_ty = ir_type_to_llvm(store_ty, struct_types);
                 let val_ty = LLVMTypeOf(value);
                 let cast = if LLVMGetTypeKind(val_ty) as u32 == LLVMTypeKind::Integer as u32
@@ -1089,7 +1089,7 @@ fn lower_instruction(
                 LLVMBuildStore(builder, cast, p)
             }
             crate::ir::Instruction::MemCopy(dest, src, size) => {
-                // Use the LLVM memcpy intrinsic: @llvm.memcpy.p0.p0.i64
+                // Tumia asili ya LLVM memcpy: @llvm.memcpy.p0.p0.i64
                 let dest_ptr = v(value_map, dest);
                 let src_ptr = v(value_map, src);
                 let sz_val = LLVMConstInt(LLVMInt64Type(), *size, 0);
@@ -1103,7 +1103,7 @@ fn lower_instruction(
                 } else {
                     callee
                 };
-                // Re-derive the function type for the call.
+                // Pata tena aina ya kazi kwa wito.
                 let param_count = LLVMCountParams(callee);
                 let mut rebuilt: Vec<LLVMTypeRef> = (0..param_count)
                     .map(|i| LLVMTypeOf(LLVMGetParam(callee, i)))
@@ -1116,9 +1116,9 @@ fn lower_instruction(
                 LLVMConstNull(LLVMInt8Type())
             }
 
-            // -- heap -------------------------------------------------------------
+            // -- chungu ------------------------------------------------------------
             crate::ir::Instruction::HeapAlloc(size) => {
-                // Call pre-declared malloc function.
+                // Ita kazi ya malloc iliyotangazwa mapema.
                 let malloc_fn = LLVMGetNamedFunction(module, c_str("malloc").as_ptr());
                 let sz = v(value_map, size);
                 let args = [sz];
@@ -1139,7 +1139,7 @@ fn lower_instruction(
             crate::ir::Instruction::HeapFree(ptr) => {
                 let free_fn = LLVMGetNamedFunction(module, c_str("free").as_ptr());
                 let p = v(value_map, ptr);
-                // Cast to i8* if needed.
+                // Geuza hadi i8* ikiwa inahitajika.
                 let p_cast = LLVMBuildBitCast(builder, p, ptr_type(), c_str("free_cast").as_ptr());
                 let args = [p_cast];
                 LLVMBuildCall2(
@@ -1152,9 +1152,9 @@ fn lower_instruction(
                 )
             }
 
-            // -- arenas -----------------------------------------------------------
+            // -- arena -------------------------------------------------------------
             crate::ir::Instruction::ArenaCreate(capacity) => {
-                // Arena creation is malloc(capacity).
+                // Uundaji wa arena ni malloc(uwezo).
                 let malloc_fn = LLVMGetNamedFunction(module, c_str("malloc").as_ptr());
                 let cap = v(value_map, capacity);
                 let args = [cap];
@@ -1191,21 +1191,21 @@ fn lower_instruction(
                 )
             }
             crate::ir::Instruction::ArenaFree(_arena) => {
-                // Arena free is a no-op at this level; the arena is freed
-                // at scope exit by the frontend-generated calls.
-                // Emit a void null just to have a value.
+                // Arena free ni utendaji-usiofanya kitu katika kiwango hiki; arena
+                // inatolewa kwenye matokeo ya wigo na wito unaotokana na mbele.
+                // Toa tupu void ili tu kuwa na thamani.
                 LLVMConstNull(LLVMVoidType())
             }
 
-            // -- address-of -------------------------------------------------------
+            // -- anwani-ya ---------------------------------------------------------
             crate::ir::Instruction::FnAddr(name) => {
                 let name_c = c_str(name);
                 let func_val = LLVMGetNamedFunction(module, name_c.as_ptr());
                 if func_val.is_null() {
-                    // Declare it on the fly as an external function (void()).
+                    // Tangaza papo hapo kama kazi ya nje (void()).
                     let fn_ty = LLVMFunctionType(LLVMVoidType(), std::ptr::null_mut(), 0, 0);
                     let f = LLVMAddFunction(module, name_c.as_ptr(), fn_ty);
-                    // Bitcast to i8* for opaque pointer.
+                    // Badili aina hadi i8* kwa kielekezi kisicho wazi.
                     LLVMBuildBitCast(builder, f, ptr_type(), c_str("fnaddr").as_ptr())
                 } else {
                     LLVMBuildBitCast(builder, func_val, ptr_type(), c_str("fnaddr").as_ptr())
@@ -1215,14 +1215,14 @@ fn lower_instruction(
                 let name_c = c_str(name);
                 let global = LLVMGetNamedGlobal(module, name_c.as_ptr());
                 if global.is_null() {
-                    // Return null if global doesn't exist.
+                    // Rudisha tupu ikiwa ulimwengu haupo.
                     LLVMConstNull(ptr_type())
                 } else {
                     LLVMBuildBitCast(builder, global, ptr_type(), c_str("gaddr").as_ptr())
                 }
             }
             crate::ir::Instruction::StringAddr(name) => {
-                // Look up the global and do a two-index GEP (0, 0) to get i8*.
+                // Tafuta ulimwengu na fanya GEP ya fahirisi mbili (0, 0) kupata i8*.
                 let name_c = c_str(name);
                 let global = LLVMGetNamedGlobal(module, name_c.as_ptr());
                 if global.is_null() {
@@ -1232,7 +1232,7 @@ fn lower_instruction(
                 let indices = [zero, zero];
                 LLVMBuildGEP2(
                     builder,
-                    LLVMInt8Type(), // opaque pointer base type
+                    LLVMInt8Type(), // aina msingi ya kielekezi kisicho wazi
                     global,
                     indices.as_ptr() as *mut LLVMValueRef,
                     2,
@@ -1240,7 +1240,7 @@ fn lower_instruction(
                 )
             }
 
-            // -- pointer arithmetic -----------------------------------------------
+            // -- hesabu za kielekezi -----------------------------------------------
             crate::ir::Instruction::Gep(base, indices) => {
                 let base_val = v(value_map, base);
                 let mut llvm_indices: Vec<LLVMValueRef> = indices
@@ -1249,7 +1249,7 @@ fn lower_instruction(
                     .collect();
                 LLVMBuildGEP2(
                     builder,
-                    LLVMInt8Type(), // opaque pointer base type
+                    LLVMInt8Type(), // aina msingi ya kielekezi kisicho wazi
                     base_val,
                     llvm_indices.as_mut_ptr(),
                     llvm_indices.len() as u32,
@@ -1258,10 +1258,10 @@ fn lower_instruction(
             }
             crate::ir::Instruction::FieldAddr(base, field_idx, struct_ty_opt) => {
                 let base_val = v(value_map, base);
-                // Compute the byte offset of the field with alignment.
+                // Hesabu kukabiliana kwa baiti ya sehemu kwa upatanisho.
                 let byte_off: u64 = match struct_ty_opt {
                     Some(IrType::Struct { fields, .. }) => {
-                        // Compute aligned size of a type (matches LLVM layout within struct).
+                        // Hesabu ukubwa uliopatanishwa wa aina (inalingana na mpangilio wa LLVM ndani ya muundo).
                         let aligned = |ty: &IrType| -> u64 {
                             let w = ty.width_bytes() as u64;
                             let a = std::cmp::min(w, 8);
@@ -1291,15 +1291,15 @@ fn lower_instruction(
                     c_str("fieldptr").as_ptr())
             }
 
-            // -- aggregate --------------------------------------------------------
+            // -- majumuisho --------------------------------------------------------
             crate::ir::Instruction::BuildStruct(fields) => {
-                // 1. Collect field types from field values.
+                // 1. Kusanya aina za sehemu kutoka kwa thamani za sehemu.
                 let field_vals: Vec<LLVMValueRef> =
                     fields.iter().map(|f| v(value_map, f)).collect();
                 let field_llvm_types: Vec<LLVMTypeRef> =
                     field_vals.iter().map(|&fv| LLVMTypeOf(fv)).collect();
 
-                // 2. Create anonymous struct type.
+                // 2. Unda aina ya muundo usio na jina.
                 let anon_name = c_str(&format!(
                     "__anon_struct_{}",
                     field_vals.len()
@@ -1321,7 +1321,7 @@ fn lower_instruction(
                 let alloca =
                     LLVMBuildAlloca(builder, struct_ty, c_str("struct_alloca").as_ptr());
 
-                // 4. Store each field.
+                // 4. Hifadhi kila sehemu.
                 for (i, &field_val) in field_vals.iter().enumerate() {
                     let zero = LLVMConstInt(LLVMInt32Type(), 0, 0);
                     let idx = LLVMConstInt(LLVMInt32Type(), i as u64, 0);
@@ -1334,13 +1334,13 @@ fn lower_instruction(
                         2,
                         c_str("struct_field").as_ptr(),
                     );
-                    // Coerce field value to field type.
+                    // Lazimisha thamani ya sehemu kwa aina ya sehemu.
                     let field_llvm_ty = field_llvm_types[i];
                     let coerced = coerce_int(builder, field_val, field_llvm_ty);
                     LLVMBuildStore(builder, coerced, field_ptr);
                 }
 
-                // 5. Load the struct value.
+                // 5. Pakia thamani ya muundo.
                 LLVMBuildLoad2(
                     builder,
                     struct_ty,
@@ -1368,26 +1368,26 @@ fn lower_instruction(
                 )
             }
 
-            // -- calls ------------------------------------------------------------
+            // -- wito --------------------------------------------------------------
             crate::ir::Instruction::Call(callee, args) => {
                 let name_c = c_str(callee);
                 let callee_fn = LLVMGetNamedFunction(module, name_c.as_ptr());
 
                 if callee_fn.is_null() {
-                    // Function not declared — return null.
+                    // Kazi haijatangazwa — rudisha tupu.
                     return LLVMConstNull(ptr_type());
                 }
 
-                // Build argument list, coercing types as needed.
+                // Jenga orodha ya hoja, ukilazimisha aina kama inahitajika.
                 let mut arg_vals: Vec<LLVMValueRef> = Vec::new();
                 let mut arg_types: Vec<LLVMTypeRef> = Vec::new();
 
-                // Get the function type to determine expected param types.
+                // Pata aina ya kazi kuamua aina za kigezo zinazotarajiwa.
                 let param_count = LLVMCountParams(callee_fn);
 
                 for (i, arg_id) in args.iter().enumerate() {
                     let arg_val = v(value_map, arg_id);
-                    // Coerce to expected parameter type if known.
+                    // Lazimisha kwa aina ya kigezo inayotarajiwa ikiwa inajulikana.
                     if (i as u32) < param_count {
                         let expected_param = LLVMGetParam(callee_fn, i as u32);
                         let expected_ty = LLVMTypeOf(expected_param);
@@ -1400,19 +1400,19 @@ fn lower_instruction(
                     }
                 }
 
-                // For void returns, check the return type of the function.
-                // LLVMTypeOf on a function value returns "ptr" with opaque pointers.
-                // We must rebuild the function type from the declared parameter types.
+                // Kwa rudisha void, angalia aina ya rudisha ya kazi.
+                // LLVMTypeOf kwenye thamani ya kazi hurudisha "ptr" kwa vielekezi visivyo wazi.
+                // Lazima tujenge upya aina ya kazi kutoka kwa aina za kigezo zilizotangazwa.
                 let _ret_ty_from_decl = LLVMTypeOf(callee_fn);
-                // With opaque pointers, LLVMTypeOf(callee_fn) is just "ptr".
-                // We need the actual function type. Re-derive from parameters.
+                // Kwa vielekezi visivyo wazi, LLVMTypeOf(callee_fn) ni "ptr" tu.
+                // Tunahitaji aina halisi ya kazi. Pata tena kutoka kwa vigezo.
                 let param_count = LLVMCountParams(callee_fn);
                 let mut rebuilt_param_tys: Vec<LLVMTypeRef> = Vec::new();
                 for pi in 0..param_count {
                     rebuilt_param_tys.push(LLVMTypeOf(LLVMGetParam(callee_fn, pi)));
                 }
-                // Determine return type: look up in the pre-computed map first,
-                // then fall back to known libc functions.
+                // Amua aina ya rudisha: tafuta kwenye ramani iliyohesabiwa mapema kwanza,
+                // kisha rudia kazi za maktabac zinazojulikana.
                 let inferred_ret_ty = if let Some(&ret_ty) = fn_return_types.get(callee) {
                     ret_ty
                 } else {
@@ -1465,7 +1465,7 @@ fn lower_instruction(
                 let mut arg_types: Vec<LLVMTypeRef> =
                     arg_vals.iter().map(|&av| LLVMTypeOf(av)).collect();
 
-                // Build function type: ptr(args) -> ptr (generic).
+                // Jenga aina ya kazi: ptr(args) -> ptr (generic).
                 let fn_ptr_ty = LLVMFunctionType(
                     ptr_type(), // generic return
                     if arg_types.is_empty() {
@@ -1490,9 +1490,9 @@ fn lower_instruction(
                     c_str("indirect_call").as_ptr(),
                 )
             }
-            // Phi nodes are lowered separately in lower_function (two-pass:
-            // phi-first, then remaining instructions).  They should never
-            // reach this fallback path.
+            // Nodi za phi zimeteremshwa tofauti kwenye lower_function (kupita-mbili:
+            // phi-kwanza, kisha amri zilizobaki). Hazipaswi kamwe
+            // kufikia njia hii mbadala.
             crate::ir::Instruction::Phi(_, _) => {
                 LLVMConstNull(LLVMInt32Type())
             }
@@ -1501,10 +1501,10 @@ fn lower_instruction(
 }
 
 // ---------------------------------------------------------------------------
-// Terminator lowering
+// Uteremshaji wa kikomeshi
 // ---------------------------------------------------------------------------
 
-/// Lower an IR terminator into LLVM control-flow instructions.
+/// Teremsha kikomeshi cha IR hadi amri za kudhibiti mtiririko za LLVM.
 fn lower_terminator(
     term: &Terminator,
     builder: LLVMBuilderRef,
@@ -1513,7 +1513,7 @@ fn lower_terminator(
     return_ty: LLVMTypeRef,
 ) {
     unsafe {
-        /// Helper to resolve a ValueId operand.
+        /// Msaidizi wa kusuluhisha opereta ya ValueId.
         fn vv(value_map: &HashMap<ValueId, LLVMValueRef>, id: &ValueId) -> LLVMValueRef {
             value_map.get(id).copied().unwrap_or_else(|| {
                 eprintln!("; WARN term: ValueId({}) not in map ({} entries)", id.0, value_map.len());
@@ -1529,12 +1529,12 @@ fn lower_terminator(
             }
             Terminator::BrCond(cond, true_block, false_block) => {
                 let cond_val = vv(value_map, cond);
-                // Coerce condition to i1.
+                // Lazimisha hali hadi i1.
                 let cond_i1 = {
                     let cond_ty = LLVMTypeOf(cond_val);
                     let kind = LLVMGetTypeKind(cond_ty) as u32;
                     if kind == LLVMTypeKind::Pointer as u32 {
-                        // Compare pointer to null → i1.
+                        // Linganisha kielekezi na tupu → i1.
                         LLVMBuildICmp(
                             builder,
                             LLVMIntPredicate::NE,
@@ -1564,8 +1564,8 @@ fn lower_terminator(
             }
             Terminator::Ret(val) => {
                 let ret_val = vv(value_map, val);
-                // Coerce to the function's return type if we have it.
-                // If not provided, emit as-is (best effort).
+                // Lazimisha kwa aina ya rudisha ya kazi ikiwa tunayo.
+                // Ikiwa haijatolewa, toa kama ilivyo (jitihada bora).
                 let ret_val = if !ret_val.is_null() && !return_ty.is_null() {
                     coerce_int(builder, ret_val, return_ty)
                 } else {
@@ -1594,10 +1594,10 @@ fn lower_terminator(
 }
 
 // ---------------------------------------------------------------------------
-// Type mapping — IrType → LLVMTypeRef
+// Ramani ya aina — IrType → LLVMTypeRef
 // ---------------------------------------------------------------------------
 
-/// Map an [`IrType`] to its corresponding [`LLVMTypeRef`].
+/// Ramani [`IrType`] kwa [`LLVMTypeRef`] yake inayolingana.
 ///
 /// Struct types are looked up in `struct_types`, which must have been
 /// populated by the two-pass declaration in [`LlvmBackend::compile`].
@@ -1647,22 +1647,22 @@ fn ir_type_to_llvm(
     }
 }
 
-/// Return the opaque pointer type `i8*`.
+/// Rudisha aina ya kielekezi kisicho wazi `i8*`.
 fn ptr_type() -> LLVMTypeRef {
     unsafe { LLVMPointerType(LLVMInt8Type(), 0) }
 }
 
-/// Compute the byte size of a type as an `i64` LLVM constant.
+/// Hesabu ukubwa wa baiti wa aina kama thabiti ya LLVM ya `i64`.
 #[allow(dead_code)]
 fn type_size_of(ty: &IrType) -> LLVMValueRef {
     unsafe { LLVMConstInt(LLVMInt64Type(), ty.width_bytes() as u64, 0) }
 }
 
 // ---------------------------------------------------------------------------
-// Integer coercion helpers
+// Visaidizi vya ulazimishaji namba
 // ---------------------------------------------------------------------------
 
-/// Coerce an integer LLVM value to the given target type using sign-extension.
+/// Lazimisha thamani namba ya LLVM kwa aina lengwa iliyotolewa kwa kutumia upanuzi-ishara.
 fn coerce_int(
     builder: LLVMBuilderRef,
     val: LLVMValueRef,
@@ -1673,7 +1673,7 @@ fn coerce_int(
         if val_ty == target_ty {
             return val;
         }
-        // Only coerce integer types.
+        // Lazimisha aina za namba kamili pekee.
         let val_kind = LLVMGetTypeKind(val_ty) as u32;
         let target_kind = LLVMGetTypeKind(target_ty) as u32;
 
@@ -1683,28 +1683,28 @@ fn coerce_int(
             let val_width = LLVMGetIntTypeWidth(val_ty);
             let target_width = LLVMGetIntTypeWidth(target_ty);
             if val_width == target_width {
-                // Same-width integer kinds — just return as-is.
+                // Aina za namba zenye upana sawa — rudisha kama ilivyo.
                 return val;
             }
-            // Sign-extend (conservative for signed values; zero-extend for unsigned
-            // is handled by the caller when needed).
+            // Panua-ishara (kwa usalama kwa thamani zenye ishara; panua-sifuri kwa zisizo na ishara
+            // inashughulikiwa na mwita wakati inahitajika).
             LLVMBuildIntCast2(builder, val, target_ty, 1, c_str("coerce").as_ptr())
         } else if val_kind == LLVMTypeKind::Pointer as u32
             && target_kind == LLVMTypeKind::Pointer as u32
         {
             LLVMBuildBitCast(builder, val, target_ty, c_str("ptr_cast").as_ptr())
         } else {
-            // Non-integer → return as-is.
+            // Sio namba — rudisha kama ilivyo.
             val
         }
     }
 }
 
-/// Coerce both operands of a binary operation to the wider type.
+/// Lazimisha opereta zote mbili za utendaji jozi kwa aina pana.
 ///
-/// Returns `(coerced_lhs, coerced_rhs, common_type)`.
-/// Coerce operands for comparison (ICmp).  Handles pointer-vs-integer
-/// by converting the integer to a pointer (common in null checks).
+/// Inarudisha `(coerced_lhs, coerced_rhs, common_type)`.
+/// Lazimisha opereta kwa ulinganisho (ICmp). Hushughulikia kielekezi-dhidi-namba
+/// kwa kubadilisha namba hadi kielekezi (kawaida kwenye ukaguzi wa tupu).
 fn coerce_cmp_operands(
     builder: LLVMBuilderRef,
     lhs: LLVMValueRef,
@@ -1738,11 +1738,11 @@ fn coerce_int_binop(
         let lhs_kind = LLVMGetTypeKind(lhs_ty) as u32;
         let rhs_kind = LLVMGetTypeKind(rhs_ty) as u32;
 
-        // If both are pointers, return as-is (comparison will handle them).
+        // Ikiwa zote ni vielekezi, rudisha kama ilivyo (ulinganisho utashughulikia).
         if lhs_kind == LLVMTypeKind::Pointer as u32 && rhs_kind == LLVMTypeKind::Pointer as u32 {
             return (lhs, rhs, lhs_ty);
         }
-        // Non-integer types — return as-is.
+        // Aina zisizo namba — rudisha kama ilivyo.
         if lhs_kind != LLVMTypeKind::Integer as u32
             || rhs_kind != LLVMTypeKind::Integer as u32
         {
@@ -1779,13 +1779,13 @@ fn coerce_int_binop(
 }
 
 // ---------------------------------------------------------------------------
-// Constant materialisation
+// Uundaji wa thabiti
 // ---------------------------------------------------------------------------
 
-/// Materialize an IR constant into an LLVM constant value.
+/// Unda thabiti ya IR hadi thamani thabiti ya LLVM.
 ///
-/// The `default_ty` is used when the constant variant does not carry explicit
-/// type information (e.g. `Const::Int`).
+/// `default_ty` inatumika wakati lahaja ya thabiti haina
+/// maelezo ya aina (k.m. `Const::Int`).
 fn materialize_const(c: &Const, default_ty: LLVMTypeRef) -> LLVMValueRef {
     unsafe {
         match c {
@@ -1814,16 +1814,16 @@ fn materialize_const(c: &Const, default_ty: LLVMTypeRef) -> LLVMValueRef {
             Const::Zero => LLVMConstNull(default_ty),
             Const::Float(fw) => {
                 let f64_val = fw.0;
-                // Choose appropriate float type based on default.
+                // Chagua aina sahihi ya namba sehemu kulingana na cha kawaida.
                 let float_ty = match LLVMGetTypeKind(default_ty) as u32 {
                     k if k == LLVMTypeKind::Float as u32 => LLVMFloatType(),
                     k if k == LLVMTypeKind::Double as u32 => LLVMDoubleType(),
-                    _ => LLVMDoubleType(), // default to double
+                    _ => LLVMDoubleType(), // cha kawaida ni maradufu
                 };
                 LLVMConstReal(float_ty, f64_val)
             }
             Const::String(s) => {
-                // Create a private global string constant.
+                // Unda thabiti ya kamba ya ulimwengu ya faragha.
                 let bytes = s.as_bytes();
                 let str_c = CString::new(bytes).unwrap();
                 LLVMConstString(str_c.as_ptr(), bytes.len() as u32, 1)
@@ -1833,10 +1833,10 @@ fn materialize_const(c: &Const, default_ty: LLVMTypeRef) -> LLVMValueRef {
 }
 
 // ---------------------------------------------------------------------------
-// Libc pre-declaration
+// Tangazo la maktabac mapema
 // ---------------------------------------------------------------------------
 
-/// Pre-declare libc helper functions in the module:
+/// Tangaza mapema kazi saidizi za maktabac kwenye moduli:
 ///
 /// - `declare ptr @malloc(i64)` — `void* malloc(size_t)`
 /// - `declare void @free(ptr)` — `void free(void*)`
@@ -1888,7 +1888,7 @@ fn pre_declare_libc(module: LLVMModuleRef) {
             }
         }
 
-        // andika: declared as separate function; linker maps to printf.
+        // andika: imetangazwa kama kazi tofauti; kiunganishi inaweka ramani kwa printf.
         {
             let name = c_str("andika");
             if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
@@ -1941,21 +1941,21 @@ fn pre_declare_libc(module: LLVMModuleRef) {
 }
 
 // ---------------------------------------------------------------------------
-// Drop — context is process-wide, no per-instance teardown
+// Drop — muktadha ni wa mchakato mzima, hakuna uondoaji wa kila mfano
 // ---------------------------------------------------------------------------
 
 impl Drop for LlvmBackend {
     fn drop(&mut self) {
-        // The LLVM context is a process-wide singleton (the global context).
-        // We do NOT dispose it here — other parts of the compiler may still
-        // hold references to types or values owned by it.
+        // Muktadha wa LLVM ni singleton ya mchakato mzima (muktadha wa kimataifa).
+        // HATUITOI hapa — sehemu nyingine za mkusanyaji zinaweza bado
+        // kushikilia marejeo ya aina au thamani zinazomilikiwa nao.
         //
-        // LLVM's own process shutdown will clean up the global context.
+        // Kuzima kwa mchakato wa LLVM yenyewe kutasafisha muktadha wa kimataifa.
     }
 }
 
 // ---------------------------------------------------------------------------
-// Tests
+// Majaribio
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
@@ -1964,12 +1964,12 @@ mod tests {
     use crate::ir::types::IrType;
     use crate::ir::{Const, Function, Instruction, IrBlock, IrGlobal, IrReturnClass, Module as IrModule, Terminator, ValueId};
 
-    /// Create a backend (triggers LLVM target init).
+    /// Unda nyuma (huanzisha uanzishaji wa lengwa la LLVM).
     fn backend() -> LlvmBackend {
         LlvmBackend::new()
     }
 
-    /// Helper: the LLVM IR text of a module as a Rust string.
+    /// Msaidizi: maandishi ya LLVM IR ya moduli kama kamba ya Rust.
     unsafe fn module_to_string(module: LLVMModuleRef) -> String {
         let ptr = LLVMPrintModuleToString(module);
         let s = std::ffi::CStr::from_ptr(ptr).to_string_lossy().into_owned();
@@ -1978,7 +1978,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_empty_module
+    // jaribio_sanya_moduli_tupu
     // -----------------------------------------------------------------------
 
     #[test]
@@ -1997,7 +1997,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_direct_return — i64 return
+    // test_compile_direct_return — rudisha i64
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2042,10 +2042,10 @@ mod tests {
         };
         m.push_type("Triple", struct_ty.clone());
 
-        // sret function: the sret pointer is the first parameter (implicit).
+        // kazi sret: kielekezi sret ni kigezo cha kwanza (isiyo wazi).
         let mut f = Function::new(
             "make_triple",
-            IrType::Void,                           // LLVM-level return after sret rewrite
+            IrType::Void,                           // rudisha kiwango LLVM baada ya kuandika upya sret
             vec![("sret_ptr".into(), IrType::Ptr(Box::new(struct_ty.clone())))],
         );
         f.source_return_ty = struct_ty;
@@ -2066,7 +2066,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_void_return
+    // jaribio_sanya_rudisha_void
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2089,7 +2089,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_with_alloca_and_store
+    // jaribio_sanya_kwa_alloca_na_hifadhi
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2104,11 +2104,11 @@ mod tests {
         let entry = f.push_block(IrBlock::new("entry", Terminator::RetVoid));
         f.entry = entry;
 
-        // Alloca for the parameter (ValueId(1)).
+        // Alloca kwa kigezo (ValueId(1)).
         f.blocks[entry.0].push(Instruction::Alloca(IrType::I64));
-        // Store parameter into alloca (param is ValueId(0), alloca is ValueId(1)).
+        // Hifadhi kigezo kwenye alloca (param ni ValueId(0), alloca ni ValueId(1)).
         f.blocks[entry.0].push(Instruction::Store(ValueId(0), ValueId(1)));
-        // Load from alloca (Load result is ValueId(3); Store result is null/skipped).
+        // Pakia kutoka alloca (matokeo Load ni ValueId(3); matokeo Store ni tupu/ilirukwa).
         f.blocks[entry.0].push(Instruction::Load(IrType::I64, ValueId(1)));
         f.blocks[entry.0].terminator = Terminator::Ret(ValueId(3)); // Load result
 
@@ -2122,13 +2122,13 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_opt_promotes_alloca_to_ssa — verify optimisation pass
-    // eliminates allocas when --opt is enabled.
+    // test_compile_opt_promotes_alloca_to_ssa — hakikisha kupita kwa uboreshaji
+    // huondoa allocas wakati --opt imewezeshwa.
     //
-    // NOTE: LLVM 22's LLVMRunPasses corrupts the global LLVM context within
-    // a single process, so runtime optimisation is tested in the separate
-    // integration binary (jaribio_k6_kujikusanya_kamili).  This unit test
-    // verifies structural setup only.
+    // KUMBUKA: LLVMRunPasses ya LLVM 22 inaharibu muktadha wa LLVM wa kimataifa ndani ya
+    // mchakato mmoja, kwa hiyo uboreshaji wa wakati wa utekelezaji unajaribiwa kwenye
+    // binary ya ujumuishaji (jaribio_k6_kujikusanya_kamili). Jaribio hili la unit
+    // linathibitisha usanidi wa kimuundo pekee.
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2143,21 +2143,21 @@ mod tests {
         let entry = f.push_block(IrBlock::new("entry", Terminator::RetVoid));
         f.entry = entry;
 
-        // Alloca for the parameter + store param into alloca + load from alloca.
+        // Alloca kwa kigezo + hifadhi kigezo kwenye alloca + pakia kutoka alloca.
         f.blocks[entry.0].push(Instruction::Alloca(IrType::I64));
         f.blocks[entry.0].push(Instruction::Store(ValueId(0), ValueId(1)));
         f.blocks[entry.0].push(Instruction::Load(IrType::I64, ValueId(1)));
         f.blocks[entry.0].terminator = Terminator::Ret(ValueId(3)); // Load result
 
         m.push_function(f);
-        // Verify the compilation succeeds without running optimisation
+        // Thibitisha ukusanyaji unafanikiwa bila kuendesha uboreshaji
         // (avoids LLVM 22 global-context corruption).
         let result = b.compile(&m);
         assert!(result.is_ok(), "opt pipeline should compile: {:?}", result.err());
         unsafe {
             let llvm_module = result.unwrap();
             let ir = module_to_string(llvm_module);
-            // Without optimisation, allocas should still be present.
+            // Bila uboreshaji, allocas zinapaswa bado kuwapo.
             assert!(ir.contains("alloca"),
                 "IR should contain alloca before optimisation");
             assert!(ir.contains("store"),
@@ -2169,7 +2169,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_with_integer_arithmetic — add two constants
+    // jaribio_sanya_kwa_hesabu_namba_kamili — ongeza thabiti mbili
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2199,7 +2199,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_heap_alloc_only — HeapAlloc + ret ptr
+    // jaribio_sanya_chungu_tenga_tu — HeapAlloc + rudisha ptr
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2228,7 +2228,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_heap_alloc_free — HeapAlloc + Store + HeapFree + RetVoid
+    // jaribio_sanya_chungu_tenga_toa — HeapAlloc + Hifadhi + HeapFree + RetVoid
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2243,7 +2243,7 @@ mod tests {
         let entry = f.push_block(IrBlock::new("entry", Terminator::RetVoid));
         f.entry = entry;
 
-        // Compute ValueIds dynamically: constants first, then instructions.
+        // Hesabu ValueIds kwa nguvu: thabiti kwanza, kisha amri.
         let param_count = f.params.len();
         let size_vid = f.intern_const(Const::Int(32));
         let val_vid = f.intern_const(Const::Int(1));
@@ -2263,7 +2263,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_float_arithmetic — fadd two f64
+    // jaribio_sanya_hesabu_namba_sehemu — fadd f64 mbili
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2293,7 +2293,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_integer_comparison — LtS + zext to i32
+    // test_compile_integer_comparison — LtS + zext hadi i32
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2324,7 +2324,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_target_triple_roundtrip — get triple → lookup target (no context)
+    // jaribio_lengwa_tatu_mzunguko — pata tatu → tafuta lengwa (hakuna muktadha)
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2344,17 +2344,17 @@ mod tests {
                     eprintln!("target lookup warning: {}", msg);
                 }
             }
-            // target lookup may legitimately fail without target init — that's ok.
+            // utafutaji lengwa unaweza kushindwa kihalali bila uanzishaji lengwa — ni sawa.
         }
     }
 
     // -----------------------------------------------------------------------
-    // test_target_init_then_lookup — init targets → get triple → lookup
+    // test_target_init_then_lookup — anzisha malengo → pata tatu → tafuta
     // -----------------------------------------------------------------------
 
     #[test]
     fn test_target_init_then_lookup() {
-        // Trigger init via backend construction.
+        // Anzisha uanzishaji kupitia ujenzi wa nyuma.
         let _b = backend();
 
         let triple = default_target_triple();
@@ -2371,7 +2371,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_context_then_target — context first, then init targets, then lookup
+    // test_context_then_target — muktadha kwanza, kisha anzisha malengo, kisha tafuta
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2380,7 +2380,7 @@ mod tests {
             let ctx = LLVMGetGlobalContext();
             assert!(!ctx.is_null());
         }
-        // Init targets.
+        // Anzisha malengo.
         let _b = backend();
 
         let triple = default_target_triple();
@@ -2395,7 +2395,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_target_lookup_only — context → init → get triple → lookup
+    // test_target_lookup_only — muktadha → anzisha → pata tatu → tafuta
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2417,7 +2417,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_create_target_machine — full target machine creation
+    // jaribio_unda_mashine_lengwa — uundaji kamili wa mashine lengwa
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2449,7 +2449,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_orodha_full — struct definition + FieldAddr + Store
+    // jaribio_sanya_orodha_kamili — ufafanuzi muundo + FieldAddr + Hifadhi
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2478,12 +2478,12 @@ mod tests {
         let entry = f.push_block(IrBlock::new("entry", Terminator::RetVoid));
         f.entry = entry;
 
-        // Store zero to field 1 (len) via FieldAddr.
-        // param_count=1 → param is ValueId(0), intern_const is ValueId(1).
+        // Hifadhi sifuri kwa sehemu 1 (len) kupitia FieldAddr.
+        // param_count=1 → param ni ValueId(0), intern_const ni ValueId(1).
         let zero = f.intern_const(Const::Int(0));
-        // FieldAddr on param ValueId(0), field index 1 → result is ValueId(2).
+        // FieldAddr kwenye param ValueId(0), fahirisi sehemu 1 → matokeo ni ValueId(2).
         f.blocks[entry.0].push(Instruction::FieldAddr(ValueId(0), 1, Some(struct_ty.clone())));
-        // Store the zero constant (ValueId(1)) into the FieldAddr result (ValueId(2)).
+        // Hifadhi thabiti sifuri (ValueId(1)) kwenye matokeo FieldAddr (ValueId(2)).
         f.blocks[entry.0].push(Instruction::Store(zero, ValueId(2)));
         f.blocks[entry.0].terminator = Terminator::RetVoid;
 
@@ -2498,7 +2498,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_printf_call — StringAddr + Call printf → verify IR
+    // test_compile_printf_call — StringAddr + Ita printf → hakikisha IR
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2506,7 +2506,7 @@ mod tests {
         let b = backend();
         let mut m = IrModule::new("printf_test");
 
-        // Add a string global for the format string.
+        // Ongeza ulimwengu kamba kwa kamba ya umbizo.
         m.push_global(IrGlobal {
             name: "fmt_hello".into(),
             bytes: b"hello world\n\0".to_vec(),
@@ -2521,9 +2521,9 @@ mod tests {
         let entry = f.push_block(IrBlock::new("entry", Terminator::RetVoid));
         f.entry = entry;
 
-        // StringAddr to get i8* to the format string (ValueId(0)).
+        // StringAddr kupata i8* kwa kamba ya umbizo (ValueId(0)).
         f.blocks[entry.0].push(Instruction::StringAddr("fmt_hello".into()));
-        // Call printf with the string (result is ValueId(1)).
+        // Ita printf na kamba (matokeo ni ValueId(1)).
         f.blocks[entry.0].push(Instruction::Call("printf".into(), vec![ValueId(0)]));
         f.blocks[entry.0].terminator = Terminator::Ret(ValueId(1));
 
@@ -2537,7 +2537,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_stringaddr_only — StringAddr + ret
+    // jaribio_sanya_stringaddr_tu — StringAddr + rudisha
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2572,7 +2572,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_compile_call_malloc — Call malloc → returns ptr
+    // test_compile_call_malloc — Ita malloc → rudisha ptr
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2601,7 +2601,7 @@ mod tests {
     }
 
     // -----------------------------------------------------------------------
-    // test_object_file_emission — compile to actual .o file on disk
+    // test_object_file_emission — sanya hadi faili halisi .o kwenye diski
     // -----------------------------------------------------------------------
 
     #[test]
@@ -2621,7 +2621,7 @@ mod tests {
 
         m.push_function(f);
 
-        // Use a temp directory for the output.
+        // Tumia saraka ya muda kwa pato.
         let tmp_dir = std::env::temp_dir();
         let obj_path = tmp_dir.join("swa_test_output.o");
 
@@ -2631,13 +2631,13 @@ mod tests {
         assert!(obj_path.metadata().map(|m| m.len() > 0).unwrap_or(false),
             "object file should be non-empty");
 
-        // Clean up.
+        // Safisha.
         let _ = std::fs::remove_file(&obj_path);
     }
 
     // -----------------------------------------------------------------------
-    // test_ir_type_to_llvm_coverage — verify each IrType variant maps to
-    // something non-null.
+    // test_ir_type_to_llvm_coverage — hakikisha kila lahaja IrType ina ramani kwa
+    // kitu kisicho tupu.
     // -----------------------------------------------------------------------
 
     #[test]

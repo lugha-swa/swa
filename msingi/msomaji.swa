@@ -2,11 +2,11 @@ husisha { kumbukumbu.swa }
 husisha { mfuatano.swa }
 
 // ==========================================================
-// msomaji.swa :: Swa lexer (self-hosting milestone)
-// Tokenizes Swa source code into Tokeni structs.
+// msomaji.swa :: Mtenguasamiati wa Swa (hatua ya kujiendesha)
+// Hutengua msimbo wa Swa kuwa miundo ya Tokeni.
 // ==========================================================
 
-// Token type constants.
+// Vipimo vya aina za Tokeni.
 N32 TOKENI_NAMBARI     = 1;
 N32 TOKENI_MFUATANO    = 2;
 N32 TOKENI_KITAMBULISHO = 3;
@@ -31,7 +31,7 @@ muundo Msomaji {
 };
 
 // ==========================================================
-// Constructor
+// Kijenzi
 // ==========================================================
 
 Msomaji msomaji_mpya(N8* chanzo, N64 urefu) {
@@ -45,7 +45,7 @@ Msomaji msomaji_mpya(N8* chanzo, N64 urefu) {
 }
 
 // ==========================================================
-// EOF check
+// Ukaguzi wa Mwisho wa Chanzo
 // ==========================================================
 
 N32 msomaji_imeisha(Msomaji* m) {
@@ -56,7 +56,7 @@ N32 msomaji_imeisha(Msomaji* m) {
 }
 
 // ==========================================================
-// Character helpers - work on a single byte from source.
+// Visaidizi vya herufi - hufanya kazi kwa baiti moja kutoka chanzo.
 // ==========================================================
 
 N32 ni_tarakimu(N32 c) {
@@ -112,8 +112,8 @@ N32 ni_nafasi(N32 c) {
 }
 
 N32 ni_neno_muhimu(N8* neno, N64 urefu) {
-    // Manually compare against each keyword by length then bytes.
-    // Kumbukumbu compare is better but this avoids function call overhead.
+    // Linganisha kwa mkono kila neno muhimu kwa urefu kisha baiti.
+    // Ulinganisho wa Kumbukumbu ni bora lakini hii huepuka mzigo wa kuita kazi.
 
     kama (urefu == 2) {
         kama (neno[0] == 110) {
@@ -303,7 +303,7 @@ N32 ni_neno_muhimu(N8* neno, N64 urefu) {
 }
 
 // ==========================================================
-// Forward declarations for lexer helpers
+// Matangazo ya mbele kwa visaidi vya mtenguasamiati
 // ==========================================================
 
 W0 ruka_nafasi_na_maelezo(Msomaji* m);
@@ -314,12 +314,12 @@ W0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi);
 W0 tokeni_soma_ishara(Tokeni* t, Msomaji* m, N32 c);
 
 // ==========================================================
-// Helper: skip whitespace and // line comments
+// Kisaidizi: ruka nafasi na maoni ya mstari //
 // ==========================================================
 
 W0 ruka_nafasi_na_maelezo(Msomaji* m) {
     wakati (1 == 1) {
-        // Skip whitespace and newlines.
+        // Ruka nafasi na mistari mipya.
         wakati (msomaji_imeisha(m) == 0) {
             N8 c = m->chanzo[m->nafasi];
             kama (ni_nafasi(c) == 0) { vunja; }
@@ -331,7 +331,7 @@ W0 ruka_nafasi_na_maelezo(Msomaji* m) {
             m->safu = m->safu + 1;
         }
 
-        // Skip // line comments.
+        // Ruka maoni ya mstari //.
         kama (msomaji_imeisha(m) == 0) {
             kama (m->chanzo[m->nafasi] == 47) {
                 kama (m->nafasi + 1 < m->urefu) {
@@ -342,7 +342,7 @@ W0 ruka_nafasi_na_maelezo(Msomaji* m) {
                             kama (m->chanzo[m->nafasi] == 10) { vunja; }
                             m->nafasi = m->nafasi + 1;
                         }
-                        // Restart: skip whitespace/comments after comment line.
+                        // Anza upya: ruka nafasi/maoni baada ya mstari wa maoni.
                         endelea;
                     }
                 }
@@ -353,7 +353,7 @@ W0 ruka_nafasi_na_maelezo(Msomaji* m) {
 }
 
 // ==========================================================
-// Helper: string literal "..."
+// Kisaidizi: mfuatano halisi "..."
 // ==========================================================
 
 W0 tokeni_soma_mfuatano(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi) {
@@ -361,7 +361,7 @@ W0 tokeni_soma_mfuatano(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi) {
     m->safu = m->safu + 1;
     wakati (msomaji_imeisha(m) == 0) {
         N8 ch = m->chanzo[m->nafasi];
-        // Backslash escape: skip \ and the following character.
+        // Kutoroka kwa kufyeka: ruka \ na herufi inayofuata.
         kama (ch == 92) {
             m->nafasi = m->nafasi + 1;
             m->safu = m->safu + 1;
@@ -389,7 +389,7 @@ W0 tokeni_soma_mfuatano(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi) {
 }
 
 // ==========================================================
-// Helper: character literal '.'
+// Kisaidizi: herufi halisi '.'
 // ==========================================================
 
 W0 tokeni_soma_herufi(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi) {
@@ -417,7 +417,7 @@ W0 tokeni_soma_herufi(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi) {
 }
 
 // ==========================================================
-// Helper: identifier / keyword
+// Kisaidizi: kitambulisho / neno muhimu
 // ==========================================================
 
 W0 tokeni_soma_kitambulisho(Tokeni* t, Msomaji* m) {
@@ -439,7 +439,7 @@ W0 tokeni_soma_kitambulisho(Tokeni* t, Msomaji* m) {
 }
 
 // ==========================================================
-// Helper: number literal
+// Kisaidizi: nambari halisi
 // ==========================================================
 
 W0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi) {
@@ -468,11 +468,11 @@ W0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, N64 mwanzo_nafasi) {
 }
 
 // ==========================================================
-// Helper: operator / punctuation
+// Kisaidizi: kiendeshi / uakifishaji
 // ==========================================================
 
 W0 tokeni_soma_ishara(Tokeni* t, Msomaji* m, N32 c) {
-    // Single-char punctuation: ; , : ( ) [ ] { }
+    // Uakifishaji wa herufi moja: ; , : ( ) [ ] { }
     kama (c == 59) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
     kama (c == 44) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
     kama (c == 58) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
@@ -483,7 +483,7 @@ W0 tokeni_soma_ishara(Tokeni* t, Msomaji* m, N32 c) {
     kama (c == 123) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
     kama (c == 125) { m->nafasi = m->nafasi + 1; m->safu = m->safu + 1; t->aina = TOKENI_ISHARA; t->urefu = 1; rudisha; }
 
-    // Multi-char operators: try 2-char first, then fall through to 1-char.
+    // Viendeshi vya herufi nyingi: jaribu herufi 2 kwanza, kisha angukia herufi 1.
     kama (msomaji_imeisha(m) == 0) {
         N8 c2 = 0;
         kama (m->nafasi + 1 < m->urefu) { c2 = m->chanzo[m->nafasi + 1]; }
@@ -497,7 +497,7 @@ W0 tokeni_soma_ishara(Tokeni* t, Msomaji* m, N32 c) {
         kama (ni_mbili) { m->nafasi = m->nafasi + 2; m->safu = m->safu + 2; t->aina = TOKENI_ISHARA; t->urefu = 2; rudisha; }
     }
 
-    // Single-char operator fallback.
+    // Kiendeshi cha herufi moja cha kugeukia.
     m->nafasi = m->nafasi + 1;
     m->safu = m->safu + 1;
     t->aina = TOKENI_ISHARA;
@@ -506,13 +506,13 @@ W0 tokeni_soma_ishara(Tokeni* t, Msomaji* m, N32 c) {
 }
 
 // ==========================================================
-// Core lexer: return the next token.
+// Mtenguasamiati msingi: rudisha tokeni inayofuata.
 // ==========================================================
 
 W0 tokeni_inayofuata(Tokeni* t, Msomaji* m) {
     ruka_nafasi_na_maelezo(m);
 
-    // Check EOF.
+    // Angalia Mwisho wa Chanzo.
     kama (msomaji_imeisha(m) != 0) {
         t->aina = TOKENI_MWISHO;
         t->mwanzo = m->chanzo;
@@ -529,7 +529,7 @@ W0 tokeni_inayofuata(Tokeni* t, Msomaji* m) {
 
     N8 c = m->chanzo[m->nafasi];
 
-    // Dispatch to helpers based on first character.
+    // Tuma kwa visaidi kulingana na herufi ya kwanza.
     kama (c == 34) {
         tokeni_soma_mfuatano(t, m, mwanzo_nafasi);
         rudisha;

@@ -1,6 +1,6 @@
-//! Swa parser — mirrors msambazaji.swa.
+//! Mchanganuzi wa Swa — unaoakisi msambazaji.swa.
 //!
-//! Parses tokens from the lexer into a flat-array AST consumable by
+//! Huchambua tokeni kutoka kwa msomaji hadi AST ya safu bapa inayotumiwa na
 //! `ir::lower::lower()`.
 
 use crate::lexer::token::{Token, TokenKind};
@@ -51,7 +51,7 @@ const AST_TUPU: u32 = 46;
 const NO_NODE: i32 = -1;
 
 // ---------------------------------------------------------------------------
-// AST builder — accumulates flat arrays
+// Kijenzi cha AST — hukusanya safu bapa
 // ---------------------------------------------------------------------------
 struct AstBuilder {
     aina: Vec<u32>,
@@ -92,7 +92,7 @@ impl AstBuilder {
 }
 
 // ---------------------------------------------------------------------------
-// Parser
+// Mchanganuzi
 // ---------------------------------------------------------------------------
 struct Parser<'a> {
     tokens: &'a [Token],
@@ -132,7 +132,7 @@ impl<'a> Parser<'a> {
     }
 
     fn changanua_aina(&mut self) -> i32 {
-        // Returns encoded type as i32 (high bits: family, low bits: width + mshale flag)
+        // Hurejesha aina iliyosimbwa kama i32 (biti za juu: familia, biti za chini: upana + bendera ya mshale)
         if !self.ni_aina() { return 0; }
         let txt = self.sasa().lexeme.clone();
         let n = txt.len();
@@ -142,12 +142,12 @@ impl<'a> Parser<'a> {
             let w = txt[1..].parse().unwrap_or(32);
             (fam, w)
         } else {
-            // User-defined struct type — store name in pool and return negative offset.
+            // Aina ya muundo iliyofafanuliwa na mtumiaji — hifadhi jina kwenye dimbwi na urudishe kianzio hasi.
             let name_off = self.ast.pool.len() as i32;
             self.ast.pool.extend_from_slice(txt.as_bytes());
             self.ast.pool.push(0);
             self.sogeza();
-            // Skip pointer handling for user types (they'll have * after the name).
+            // Ruka ushughulikiaji wa vielekezi kwa aina za mtumiaji (zitakuwa na * baada ya jina).
             let mut mshale: u32 = 0;
             while self.tokeni_ni("*") || self.tokeni_ni("**") || self.tokeni_ni("***") {
                 mshale += self.sasa().lexeme.len() as u32;
@@ -157,18 +157,18 @@ impl<'a> Parser<'a> {
         };
         self.sogeza();
         let mut mshale: u32 = 0;
-        // Handle pointer chains: *, **, ***, etc. The lexer may tokenize
-        // "**" as a single operator token.
+        // Shughulikia mifululizo ya vielekezi: *, **, ***, n.k. Msomaji anaweza kutokeni
+        // "**" kama tokeni moja ya opereta.
         while self.tokeni_ni("*") || self.tokeni_ni("**") || self.tokeni_ni("***") {
             mshale += self.sasa().lexeme.len() as u32;
             self.sogeza();
         }
-        // Encode: familia << 11 | upana_idx << 3 | mshale (0-7)
+        // Simba: familia << 11 | upana_idx << 3 | mshale (0-7)
         fn upana_idx(w: u32) -> u32 { match w { 0=>0, 1=>1, 8=>2, 16=>3, 32=>4, 64=>5, 128=>6, _=>4 } }
         (((familia & 255) << 11) | (upana_idx(upana) << 3) | (mshale & 7)) as i32
     }
 
-    // -- expression parser (precedence climbing) -----------------------------
+    // -- mchanganuzi wa usemi (kupanda kwa utangulizi) -----------------------
 
     fn changanua_primary(&mut self) -> i32 {
         match &self.sasa().kind {
@@ -178,7 +178,7 @@ impl<'a> Parser<'a> {
                 self.ast.node_mpya(AST_NAMBARI, v, NO_NODE, NO_NODE)
             }
             TokenKind::Mfuato(inner) => {
-                // inner is the unescaped content without surrounding quotes
+                // inner ni maudhui yasiyotolewa misimbo bila kunukuu kuzunguka
                 let s = inner.clone();
                 let n = self.ast.node_mpya(AST_MFUATANO, 0, NO_NODE, NO_NODE);
                 self.ast.hifadhi_jina(n, &s);
@@ -285,13 +285,13 @@ impl<'a> Parser<'a> {
     fn changanua_asimilia(&mut self) -> i32 { self.binop(Self::changanua_ternary, &[("=", AST_ASIMILIA), ("+=", AST_ASIMILIA), ("-=", AST_ASIMILIA)]) }
     fn changanua_usemi(&mut self) -> i32 { self.changanua_asimilia() }
 
-    // -- statement parser ----------------------------------------------------
+    // -- mchanganuzi wa taarifa ----------------------------------------------
 
     fn changanua_taarifa(&mut self) -> i32 {
         if matches!(self.sasa().kind, TokenKind::Mwisho) { return NO_NODE; }
         if self.tokeni_ni("}") { return NO_NODE; }
 
-        // Bare block: { stmt; stmt; ... }
+        // Kizuizi tupu: { taarifa; taarifa; ... }
         if self.tokeni_ni("{") {
             self.sogeza();
             let mut first: i32 = NO_NODE; let mut prev: i32 = NO_NODE;
@@ -301,7 +301,7 @@ impl<'a> Parser<'a> {
                 while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
             }
             if self.tokeni_ni("}") { self.sogeza(); }
-            // Return the first statement; the chain encodes the block.
+            // Rudisha taarifa ya kwanza; msururu husimba kizuizi.
             return first;
         }
 
@@ -385,13 +385,13 @@ impl<'a> Parser<'a> {
             return n;
         }
 
-        // fallback: expression statement
+        // mrejesho: taarifa ya usemi
         let e = self.changanua_usemi();
         if self.tokeni_ni(";") { self.sogeza(); }
         e
     }
 
-    // -- function parser (WITH FIX) ------------------------------------------
+    // -- mchanganuzi wa kazi (PAMOJA NA MAREKEBISHO) -------------------------
 
     fn changanua_kazi(&mut self) -> i32 {
         if !self.ni_aina() { return NO_NODE; }
@@ -399,19 +399,19 @@ impl<'a> Parser<'a> {
         if !matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) { self.kosa = true; return NO_NODE; }
         let name = self.sasa().lexeme.clone(); self.sogeza();
 
-        // === THE FIX: check for ( vs = / ; ===
+        // === MAREKEBISHO: angalia ( dhidi ya = / ; ===
         let name_n = self.ast.node_mpya(AST_KITAMBULISHO, 0, NO_NODE, NO_NODE);
         self.ast.hifadhi_jina(name_n, &name);
 
         if self.tokeni_ni("(") {
             self.sogeza();
         } else {
-            // Global variable: Type name = expr; or Type name;
-            // May also have array size: Type name[size];
+            // Kigezo cha ulimwengu: Aina jina = usemi; au Aina jina;
+            // Inaweza pia kuwa na ukubwa wa safu: Aina jina[ukubwa];
             let mut saizi_ya_safu: i32 = NO_NODE;
             if self.tokeni_ni("[") {
-                self.sogeza(); // skip [
-                saizi_ya_safu = self.changanua_usemi(); // capture size expression
+                self.sogeza(); // ruka [
+                saizi_ya_safu = self.changanua_usemi(); // nasa usemi wa ukubwa
                 if self.tokeni_ni("]") { self.sogeza(); }
             }
             let mut init: i32 = NO_NODE;
@@ -424,7 +424,7 @@ impl<'a> Parser<'a> {
             return node;
         }
 
-        // Parse parameters
+        // Changanua vigezo
         let mut first_p: i32 = NO_NODE; let mut prev_p: i32 = NO_NODE;
         while !self.tokeni_ni(")") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
             if self.ni_aina() {
@@ -444,7 +444,7 @@ impl<'a> Parser<'a> {
         if self.tokeni_ni(")") { self.sogeza(); }
         if self.tokeni_ni("{") { self.sogeza(); }
 
-        // Parse body
+        // Changanua mwili
         let mut body: i32 = NO_NODE; let mut prev_s: i32 = NO_NODE;
         while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
             let s = self.changanua_taarifa(); if s == NO_NODE { break; }
@@ -459,7 +459,7 @@ impl<'a> Parser<'a> {
         func
     }
 
-    // -- struct parser -------------------------------------------------------
+    // -- mchanganuzi wa muundo -----------------------------------------------
 
     fn changanua_muundo(&mut self) -> i32 {
         self.sogeza();
@@ -495,37 +495,37 @@ impl<'a> Parser<'a> {
         sn
     }
 
-    // -- top-level dispatch --------------------------------------------------
+    // -- utumaji ngazi-ya-juu ------------------------------------------------
 
     fn changanua(&mut self) -> i32 {
         let mut first: i32 = NO_NODE; let mut prev: i32 = NO_NODE;
         while !matches!(self.sasa().kind, TokenKind::Mwisho) {
             let mut node: i32 = NO_NODE;
-            // Module directives: husisha C::stdio  /  husisha { path }  /  husisha { path } kutoka { dir }
+            // Maelekezo ya moduli: husisha C::stdio  /  husisha { njia }  /  husisha { njia } kutoka { dir }
             if self.tokeni_ni("husisha") {
-                self.sogeza(); // skip 'husisha'
+                self.sogeza(); // ruka 'husisha'
 
-                // Syntax: husisha { path }
+                // Sintaksia: husisha { njia }
                 if self.tokeni_ni("{") {
-                    self.sogeza(); // skip '{'
+                    self.sogeza(); // ruka '{'
                     while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
-                        self.sogeza(); // consume path tokens inside braces
+                        self.sogeza(); // tumia tokeni za njia ndani ya mabano
                     }
-                    if self.tokeni_ni("}") { self.sogeza(); } // skip '}'
+                    if self.tokeni_ni("}") { self.sogeza(); } // ruka '}'
 
-                    // Optional: kutoka { directory }
+                    // Hiari: kutoka { saraka }
                     if self.tokeni_ni("kutoka") {
-                        self.sogeza(); // skip 'kutoka'
+                        self.sogeza(); // ruka 'kutoka'
                         if self.tokeni_ni("{") {
-                            self.sogeza(); // skip '{'
+                            self.sogeza(); // ruka '{'
                             while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
                                 self.sogeza();
                             }
-                            if self.tokeni_ni("}") { self.sogeza(); } // skip '}'
+                            if self.tokeni_ni("}") { self.sogeza(); } // ruka '}'
                         }
                     }
                 }
-                // Legacy syntax: husisha C::stdio  or  husisha "path.swa"
+                // Sintaksia ya zamani: husisha C::stdio  au  husisha "path.swa"
                 else if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) {
                     self.sogeza();
                     if self.tokeni_ni("::") { self.sogeza(); }
@@ -534,7 +534,7 @@ impl<'a> Parser<'a> {
                         self.sogeza();
                     }
                 } else if matches!(self.sasa().kind, TokenKind::Mfuato(_)) {
-                    self.sogeza(); // skip string argument
+                    self.sogeza(); // ruka hoja ya mfuato
                 }
                 if self.tokeni_ni(";") { self.sogeza(); }
                 continue;
@@ -551,10 +551,10 @@ impl<'a> Parser<'a> {
 }
 
 // ---------------------------------------------------------------------------
-// Public API
+// API ya umma
 // ---------------------------------------------------------------------------
 
-/// Parse tokens into flat AST arrays consumable by `ir::lower::lower()`.
+/// Chambua tokeni hadi safu bapa za AST zinazotumiwa na `ir::lower::lower()`.
 pub fn parse_full(tokens: &[Token]) -> Result<(Vec<u32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<u8>, usize), String> {
     let mut p = Parser::new(tokens);
     p.changanua();

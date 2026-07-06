@@ -2,7 +2,7 @@
 
 use crate::diagnostics::SourceSpan;
 
-/// The kind of a token.
+/// Aina ya tokeni.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TokenKind {
     /// Neno muhimu: `kama`, `N32`, `rudisha`, n.k.
@@ -17,27 +17,27 @@ pub enum TokenKind {
     Mfuato(String),
     /// Opereta au uakifishaji: `+`, `==`, `<<=`.
     Opereta(String),
-    /// Left parenthesis `(`.
+    /// Mabano ya kushoto `(`.
     MabanoKushoto,
-    /// Right parenthesis `)`.
+    /// Mabano ya kulia `)`.
     MabanoKulia,
-    /// Left brace `{`.
+    /// Mabano ya ganda ya kushoto `{`.
     MabanoGandaKushoto,
-    /// Right brace `}`.
+    /// Mabano ya ganda ya kulia `}`.
     MabanoGandaKulia,
-    /// Left bracket `[`.
+    /// Mabano ya mraba ya kushoto `[`.
     MabanoMrabaKushoto,
-    /// Right bracket `]`.
+    /// Mabano ya mraba ya kulia `]`.
     MabanoMrabaKulia,
-    /// Semicolon `;`.
+    /// Nukta mkato `;`.
     NuktaMkato,
-    /// Comma `,`.
+    /// Koma `,`.
     Koma,
-    /// Dot `.`.
+    /// Nukta `.`.
     Nukta,
-    /// Ellipsis `...`.
+    /// Nukta tatu `...`.
     NuktaTatu,
-    /// Colon `:`.
+    /// Nukta mbili `:`.
     NuktaMbili,
     /// Alama ya `@` (kwa sifa ya `@kipekee`).
     Kipekee,
