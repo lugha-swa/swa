@@ -61,20 +61,17 @@ impl TokenKind {
             "B1" | "B8" | "B16" | "B32" | "B64" => TokenKind::NenoMuhimu(s.to_string()),
             "W0" | "W8" | "W16" | "W32" | "W64" => TokenKind::NenoMuhimu(s.to_string()),
 
-            // Qualifiers
-            "thabiti" | "tete" | "fiche" => TokenKind::NenoMuhimu(s.to_string()),
-
             // Control flow
-            "kama" | "sivyo" | "chagua" | "hali" | "kawaida" => {
+            "kama" | "sivyo" | "chagua" | "hali" => {
                 TokenKind::NenoMuhimu(s.to_string())
             }
-            "vunja" | "endelea" | "rudisha" | "nenda" => TokenKind::NenoMuhimu(s.to_string()),
+            "vunja" | "endelea" | "rudisha" | "toka" => TokenKind::NenoMuhimu(s.to_string()),
 
             // Loops
             "kwa" | "wakati" | "fanya" => TokenKind::NenoMuhimu(s.to_string()),
 
             // Composite types
-            "muundo" | "muungano" | "orodha" | "aina" => TokenKind::NenoMuhimu(s.to_string()),
+            "muundo" | "muungano" => TokenKind::NenoMuhimu(s.to_string()),
 
             // Memory
             "ukubwa" | "tenga" | "achilia" | "badili" | "nakili" => {
@@ -82,10 +79,7 @@ impl TokenKind {
             }
 
             // Module system
-            "husisha" => TokenKind::NenoMuhimu(s.to_string()),
-
-            // Truth values and null
-            "kweli" | "uongo" | "tupu" => TokenKind::NenoMuhimu(s.to_string()),
+            "husisha" | "kutoka" => TokenKind::NenoMuhimu(s.to_string()),
 
             // Special
             "toka" => TokenKind::NenoMuhimu(s.to_string()),
