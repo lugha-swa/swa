@@ -54,7 +54,7 @@ Tumia kiolezo cha **Ombi la Kipengele**. Kumbuka:
 git clone https://github.com/Kandemark/swa.git
 cd swa
 cargo build --release
-cargo test  # Majaribio 173 yanapaswa kupita
+cargo test  # Majaribio 174 yanapaswa kupita
 ```
 
 ### Kujaribu Mkusanyaji

@@ -562,7 +562,7 @@ W0 teremsha_kazi(N32 kazi_node) {
     }
     andika(") {\n");
 
-    // Block ya kuingia
+    // Kizuia cha kuingia
     N32 entry_blk = blk_mpya();
     blk_sasa = entry_blk;
     blk_fungwa = 0;
@@ -643,7 +643,7 @@ W0 teremsha_kazi(N32 kazi_node) {
 
 // -------------------------------------------------------
 // Usemi: toa hati-ya-safu / fahirisi-ya-kielekezi GEP+pakia
-// node = AST_TAJA(base_expr, index_expr)
+// node = AST_TAJA(usemi_msingi, usemi_fahirisi)
 // -------------------------------------------------------
 N32 teremsha_safu(N32 node) {
     N32 base_node = ast_kushoto[node];
@@ -724,7 +724,7 @@ N32 teremsha_sehemu_dot(N32 base_node, N32 field_node) {
     N32 mnode = muundo_node[mu_idx];
     N32 field = ast_kulia[mnode];
     N32 fi = 0;
-    N32 fenc = (1 << 8) | 32; // default i32
+    N32 fenc = (1 << 8) | 32; // i32 chaguo-msingi
     wakati (field != -1) {
         kama (fi == field_idx) {
             N32 fname_node = ast_kushoto[field];
@@ -1029,7 +1029,7 @@ N32 teremsha_usemi(N32 node) {
 
         N32 vid = vid_mpya();
         kama (upana > lhs_upana) {
-            // Widen result type
+            // Panua aina ya matokeo
             N32 familia = (lhs_enc >> 8) & 255;
             vid_aina_arr[vid] = (familia << 8) | upana;
         } sivyo {
@@ -1254,7 +1254,7 @@ N32 teremsha_usemi(N32 node) {
             andika("  %%v%d = call ptr @malloc(i64 %%v%d)\n", ptr_vid, ext_vid);
             rudisha ptr_vid;
         }
-        // tenga without argument
+        // tenga bila hoja
         N32 vid = vid_mpya();
         vid_aina_arr[vid] = 1; // kielekezi
         andika("  %%v%d = call ptr @malloc(i64 1)\n", vid);
@@ -1315,7 +1315,7 @@ N32 teremsha_usemi(N32 node) {
         N32 sikweli_enc = vid_aina_arr[sikweli_vid];
         N32 sikweli_upana = sikweli_enc & 254;
 
-        // Coerce both branches to wider width
+        // Lazimisha matawi yote kwa upana mpana
         N32 upana = kweli_upana;
         kama (sikweli_upana > upana) { upana = sikweli_upana; }
         kweli_vid = panua_aina(kweli_vid, upana);
@@ -1501,7 +1501,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
             andika("\n");
         }
 
-        // Add to scope
+        // Ongeza kwenye wigo
         kama (wigo_idadi < 128) {
             wigo_node[wigo_idadi] = var_node;
             wigo_vid[wigo_idadi] = av;
@@ -1509,12 +1509,12 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
             wigo_idadi = wigo_idadi + 1;
         }
 
-        // Optional initializer
+        // Kianzio hiari
         kama (init_node != -1) {
-            // Check if the variable type is a struct
+            // Angalia kama aina ya kigeu ni muundo
             N32 var_familia = (var_enc >> 8) & 255;
             kama (var_familia == 6) {
-                // Struct init via memcpy
+                // Uanzishaji wa muundo kupitia memcpy
                 N32 src_addr = -1;
                 kama (ast_aina[init_node] == 5) {
                     N8* ijina = ast_pool + ast_jina_off[init_node];
@@ -1535,11 +1535,11 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
                 andika(" %%v%d, ptr %%v%d\n", init_vid, av);
             }
         } sivyo {
-            // No initializer: zero-initialize to prevent undef/poison
+            // Hakuna kianzio: anzisha-sufuri kuzuia undef/sumu
             N32 var_familia = (var_enc >> 8) & 255;
             kama (var_familia == 6) {
-                // Struct: zero through memcpy of zero-fill not needed here
-                // (struct alloca is already zero-initialized in LLVM entry block)
+                // Muundo: sufuri kupitia memcpy ya kujaza-sufuri haihitajiki hapa
+                // (alloca ya muundo tayari imeanzishwa-sufuri kwenye kizuia cha kuingia cha LLVM)
             } sivyo {
                 andika("  store ");
                 chapisha_aina(var_enc);
@@ -1549,13 +1549,13 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
     }
 
     // --------------------------------------------------
-    // AST_RUDISHA (3) -- return statement
+    // AST_RUDISHA (3) -- taarifa ya kurudi
     // --------------------------------------------------
     sivyo kama (aina == 3) {
         N32 expr_node = ast_kushoto[node];
         kama (expr_node != -1) {
             kama (sret_vid_sasa != -1) {
-                // Struct return via sret pointer
+                // Kurudi kwa muundo kupitia kielekezi sret
                 N32 src_addr = -1;
                 kama (ast_aina[expr_node] == 5) {
                     N8* rjina = ast_pool + ast_jina_off[expr_node];
@@ -1564,7 +1564,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
                 kama (src_addr >= 0) {
                     nakili_muundo(sret_vid_sasa, src_addr, ukubwa_muundo(ret_enc));
                 } sivyo {
-                    // Complex expression: evaluate, store to temp scratch, memcpy
+                    // Usemi tata: tathmini, hifadhi kwenye scratch ya muda, memcpy
                     N32 rv = teremsha_usemi(expr_node);
                     andika("  store ");
                     chapisha_aina(ret_enc);
@@ -1587,7 +1587,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
     }
 
     // --------------------------------------------------
-    // AST_KAMA (9) -- if / if-else
+    // AST_KAMA (9) -- kama / kama-sivyo
     // --------------------------------------------------
     sivyo kama (aina == 9) {
         N32 cond_node = ast_kushoto[node];
@@ -1617,7 +1617,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         }
         blk_fungwa = 1;
 
-        // Then block
+        // Kizuia cha kweli
         blk_sasa = then_blk;
         blk_fungwa = 0;
         andika("b%d:\n", then_blk);
@@ -1627,12 +1627,12 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
             blk_fungwa = 1;
         }
 
-        // Else block
+        // Kizuia cha sivyo
         kama (sivyo_node != -1) {
             blk_sasa = else_blk;
             blk_fungwa = 0;
             andika("b%d:\n", else_blk);
-            // sivyo_node is AST_SIVYO wrapping the else body
+            // sivyo_node ni AST_SIVYO inayofunga mwili wa sivyo
             N32 else_body = ast_kushoto[sivyo_node];
             kama (else_body == -1) { else_body = ast_kulia[sivyo_node]; }
             teremsha_taarifa(else_body, ret_enc);
@@ -1642,14 +1642,14 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
             }
         }
 
-        // Merge block
+        // Kizuia cha muunganiko
         blk_sasa = merge_blk;
         blk_fungwa = 0;
         andika("b%d:\n", merge_blk);
     }
 
     // --------------------------------------------------
-    // AST_WAKATI (10) -- while loop
+    // AST_WAKATI (10) -- kitanzi cha wakati
     // --------------------------------------------------
     sivyo kama (aina == 10) {
         N32 cond_node = ast_kushoto[node];
@@ -1659,7 +1659,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         N32 body_blk = blk_mpya();
         N32 exit_blk = blk_mpya();
 
-        // Push loop context
+        // Sukuma muktadha wa kitanzi
         N32 kk = kitanzi_kina;
         kama (kk < 8) {
             kitanzi_header[kk] = header_blk;
@@ -1670,7 +1670,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         andika("  br label %%b%d\n", header_blk);
         blk_fungwa = 1;
 
-        // Header block
+        // Kizuia cha kichwa
         blk_sasa = header_blk;
         blk_fungwa = 0;
         andika("b%d:\n", header_blk);
@@ -1685,7 +1685,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
                cond_bool, body_blk, exit_blk);
         blk_fungwa = 1;
 
-        // Body block
+        // Kizuia cha mwili
         blk_sasa = body_blk;
         blk_fungwa = 0;
         andika("b%d:\n", body_blk);
@@ -1695,17 +1695,17 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
             blk_fungwa = 1;
         }
 
-        // Exit block
+        // Kizuia cha kutoka
         blk_sasa = exit_blk;
         blk_fungwa = 0;
         andika("b%d:\n", exit_blk);
 
-        // Pop loop context
+        // Toa muktadha wa kitanzi
         kitanzi_kina = kk;
     }
 
     // --------------------------------------------------
-    // AST_VUNJA (16) -- break
+    // AST_VUNJA (16) -- vunja
     // --------------------------------------------------
     sivyo kama (aina == 16) {
         kama (kitanzi_kina > 0) {
@@ -1716,7 +1716,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
     }
 
     // --------------------------------------------------
-    // AST_ENDELEA (17) -- continue
+    // AST_ENDELEA (17) -- endelea
     // --------------------------------------------------
     sivyo kama (aina == 17) {
         kama (kitanzi_kina > 0) {
@@ -1727,7 +1727,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
     }
 
     // --------------------------------------------------
-    // AST_TENGA (18) -- teng expr  => malloc(size)
+    // AST_TENGA (18) -- usemi teng  => malloc(ukubwa)
     // --------------------------------------------------
     sivyo kama (aina == 18) {
         N32 expr_node = ast_kulia[node];
@@ -1743,7 +1743,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
     }
 
     // --------------------------------------------------
-    // AST_ACHILIA (19) -- achilia expr  => free(ptr)
+    // AST_ACHILIA (19) -- achilia usemi  => free(ptr)
     // --------------------------------------------------
     sivyo kama (aina == 19) {
         N32 expr_node = ast_kulia[node];
@@ -1754,7 +1754,7 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
     }
 
     // --------------------------------------------------
-    // AST_CHAGUA (14) -- switch statement
+    // AST_CHAGUA (14) -- taarifa ya badili
     // --------------------------------------------------
     sivyo kama (aina == 14) {
         N32 tested_node = ast_kushoto[node];
@@ -1766,15 +1766,15 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         N32 merge_blk = blk_mpya();
         N32 exit_blk = blk_mpya();
 
-        // Push loop context for vunja support inside switch
+        // Sukuma muktadha wa kitanzi kwa usaidizi wa vunja ndani ya badili
         N32 kk = kitanzi_kina;
         kama (kk < 8) {
-            kitanzi_header[kk] = -1; // no continue in switch
+            kitanzi_header[kk] = -1; // hakuna endelea kwenye badili
             kitanzi_exit[kk] = exit_blk;
             kitanzi_kina = kk + 1;
         }
 
-        // Count cases
+        // Hesabu kesi
         N32 case_count = 0;
         N32 chk = hali_list;
         wakati (chk != -1) {
@@ -1782,11 +1782,11 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
             chk = ast_nne[chk];
         }
 
-        // Emit switch
+        // Toa badili
         andika("  switch i32 %%v%d, label %%b%d [\n", test_vid, default_blk);
         blk_fungwa = 1;
 
-        // Build case blocks, emit case targets
+        // Unda vizuia vya kesi, toa shabaha za kesi
         chk = hali_list;
         wakati (chk != -1) {
             N32 label_node = ast_kushoto[chk];
@@ -1808,14 +1808,14 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         }
         andika("  ]\n");
 
-        // Default block
+        // Kizuia cha chaguo-msingi
         blk_sasa = default_blk;
         blk_fungwa = 0;
         andika("b%d:\n", default_blk);
         andika("  br label %%b%d\n", merge_blk);
         blk_fungwa = 1;
 
-        // Emit each case body
+        // Toa kila mwili wa kesi
         chk = hali_list;
         N32 ci = 0;
         wakati (chk != -1) {
@@ -1835,14 +1835,14 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
         }
         hali_idadi = 0;
 
-        // Exit block (for break statements)
+        // Kizuia cha kutoka (kwa taarifa za vunja)
         blk_sasa = exit_blk;
         blk_fungwa = 0;
         andika("b%d:\n", exit_blk);
         andika("  br label %%b%d\n", merge_blk);
         blk_fungwa = 1;
 
-        // Merge block
+        // Kizuia cha muunganiko
         blk_sasa = merge_blk;
         blk_fungwa = 0;
         andika("b%d:\n", merge_blk);
@@ -1851,38 +1851,38 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
     }
 
     // --------------------------------------------------
-    // AST_ASIMILIA (37) -- assignment statement
-    // (same as expression assignment but result discarded)
+    // AST_ASIMILIA (37) -- taarifa ya ugawaji
+    // (sawa na ugawaji wa usemi lakini matokeo yanatupliwa)
     // --------------------------------------------------
     sivyo kama (aina == 37) {
         N32 result_vid = teremsha_usemi(node);
-        // result is already stored by teremsha_usemi
+        // matokeo tayari yamehifadhiwa na teremsha_usemi
     }
 
     // --------------------------------------------------
-    // AST_WITO (8) -- function call as statement
+    // AST_WITO (8) -- wito wa kazi kama taarifa
     // --------------------------------------------------
     sivyo kama (aina == 8) {
         N32 result_vid = teremsha_usemi(node);
-        // Result discarded
+        // Matokeo yanatupliwa
     }
 
     // --------------------------------------------------
-    // Default: expression statement (evaluate, discard)
+    // Chaguo-msingi: taarifa ya usemi (tathmini, tupa)
     // --------------------------------------------------
     sivyo {
-        // Any other node type: try to evaluate as expression
+        // Aina nyingine yoyote ya nodi: jaribu kutathmini kama usemi
         N32 result_vid = teremsha_usemi(node);
     }
 
-    // Process next sibling statement (skip if current block already terminated)
+    // Chakatisha taarifa inayofuata (ruka kama kizuia cha sasa tayari kimetamatishwa)
     kama (blk_fungwa == 0) {
         teremsha_taarifa(ast_nne[node], ret_enc);
     }
 }
 
 // -------------------------------------------------------
-// Top-level entry point: emit complete LLVM IR module
+// Kituo cha kuingia cha kiwango cha juu: toa moduli kamili ya LLVM IR
 // -------------------------------------------------------
 W0 teremsha(N32 mzizi) {
     vid_hesabu = 0;
@@ -1903,7 +1903,7 @@ W0 teremsha(N32 mzizi) {
     kukusanya_mistari(mzizi);
     teremsha_mistari();
 
-    // Emit global variables (AST_TANGAZO_ULIMWENGU = 35)
+    // Toa vigeu vya ulimwengu (AST_TANGAZO_ULIMWENGU = 35)
     N32 gnode = ast_kushoto[mzizi];
     wakati (gnode != -1) {
         kama (ast_aina[gnode] == 35) {
@@ -1916,7 +1916,7 @@ W0 teremsha(N32 mzizi) {
                 kama (ast_aina[ginit_node] == 4) { gval = ast_thamani[ginit_node]; }
             }
 
-            // Register global for later lookup
+            // Sajili ya ulimwengu kwa utafutaji wa baadaye
             kama (global_idadi < 64) {
                 N32 off = global_jina_pool_wapi;
                 jina_hifadhi(global_jina_pool, &global_jina_pool_wapi, gvname);
@@ -1933,8 +1933,8 @@ W0 teremsha(N32 mzizi) {
     }
     kama (global_idadi > 0) { andika("\n"); }
 
-    // Pre-pass: register all function return types so forward calls
-    // can resolve the correct return type encoding.
+    // Kupita kabla: sajili aina zote za kurudi za kazi ili wito wa mbele
+    // waweze kutatua usimbaji sahihi wa aina ya kurudi.
     N32 fpnode = ast_kushoto[mzizi];
     wakati (fpnode != -1) {
         kama (ast_aina[fpnode] == 2) {
@@ -1953,7 +1953,7 @@ W0 teremsha(N32 mzizi) {
         fpnode = ast_nne[fpnode];
     }
 
-    // Emit functions (AST_KAZI = 2)
+    // Toa kazi (AST_KAZI = 2)
     N32 fnode = ast_kushoto[mzizi];
     wakati (fnode != -1) {
         kama (ast_aina[fnode] == 2) {

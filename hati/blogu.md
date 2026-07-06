@@ -2,7 +2,7 @@
 
 ## Muhtasari wa Utendaji
 
-**Swa**, lugha ya kwanza duniani ya programu za mifumo kwa Kiswahili, imefikia hatua muhimu: mkusanyaji wake wa kujikusanya unajikusanya yenyewe. Baada ya saa 18 za kurekebisha hitilafu kwa kina katika commits 10, hitilafu 12 muhimu ziligunduliwa na kurekebishwa. Mkusanyaji sasa unapita majaribio 173/173, ikiwa ni pamoja na jaribio kamili la kujikusanya (K6) ambalo lilikuwa limezimwa tangu ilipoanzishwa.
+**Swa**, lugha ya kwanza duniani ya programu za mifumo kwa Kiswahili, imefikia hatua muhimu: mkusanyaji wake wa kujikusanya unajikusanya yenyewe. Baada ya saa 18 za kurekebisha hitilafu kwa kina katika commits 10, hitilafu 12 muhimu ziligunduliwa na kurekebishwa. Mkusanyaji sasa unapita majaribio 174/174, ikiwa ni pamoja na jaribio kamili la kujikusanya (K6) ambalo lilikuwa limezimwa tangu ilipoanzishwa.
 
 ## Muktadha wa Mradi
 
@@ -11,7 +11,7 @@ Swa ni lugha ya programu za mifumo ambapo **maneno muhimu, aina, na nyaraka zote
 - `N32` (i32), `A64` (u64), `D64` (f64)
 - `muundo` (struct), `tenga` (malloc), `achilia` (free)
 
-Mkusanyaji wa bootstrap (`kande`) umeandikwa kwa Rust (takriban mistari 12,200). Unakusanya chanzo cha Swa kupitia mnyororo kamili: msomaji (lexer) → mchanganuzi (parser) → uchanganuzi wa kisemantiki → uteuzi wa IR → LLVM codegen → native x86-64 binary.
+Mkusanyaji wa bootstrap (`kande`) umeandikwa kwa Rust (takriban mistari 12,200). Unakusanya chanzo cha Swa kupitia mnyororo kamili: msomaji (lexer) -> mchanganuzi (parser) -> uchanganuzi wa kisemantiki -> uteuzi wa IR -> LLVM codegen -> native x86-64 binary.
 
 Sehemu za kujikusanya zimeandikwa kwa Swa yenyewe (takriban mistari 4,100 katika faili 7):
 - `msomaji.swa` -- msomaji (lexer)
@@ -30,7 +30,7 @@ Wakati kipindi kilipoanza, binary ya kujikusanya ilianguka mara moja kwa **SIGSE
 
 ### Hitilafu Zilizogunduliwa na Kurekebishwa
 
-**Hitilafu 1: Alloca-in-Loop → SIGSEGV** (`src/ir/lower.rs`)
+**Hitilafu 1: Alloca-in-Loop -> SIGSEGV** (`src/ir/lower.rs`)
 Hitilafu muhimu zaidi. Kiteremshi cha IR kilitoa maagizo ya `alloca` kwenye block ya sasa ya msingi badala ya block ya kuingia ya kazi. Wakati tamko la kigezo cha ndani lilipokuwa ndani ya kitanzi (kama kitanzi cha `wakati` cha mchanganuzi), kila mzunguko uliunda alloca mpya -- ikitumia baiti 16 za rafu kwa kila mzunguko. Baada ya takriban mizunguko 524,000, rafu ya MB 8 ilikuwa imeisha.
 
 **Marekebisho:** Mbinu ya kupitisha mara mbili. Kazi mpya ya `collect_local_decls` inatembea AST kugundua matamko yote ya vigeu vya ndani kabla ya uteuzi wa mwili kuanza. Alloca hizi zinatolewa mapema kwenye block ya kuingia. Wakati wa uteuzi wa mwili, `lower_local_decl` hutafuta `ValueId` iliyotengwa mapema badala ya kuunda alloca mpya.
@@ -39,7 +39,7 @@ Hitilafu muhimu zaidi. Kiteremshi cha IR kilitoa maagizo ya `alloca` kwenye bloc
 
 ---
 
-**Hitilafu 2: CFG Dead-Code → Kitanzi Kisisicho na Mwisho** (`src/ir/lower.rs`, mstari 875)
+**Hitilafu 2: CFG Dead-Code -> Kitanzi Kisisicho na Mwisho** (`src/ir/lower.rs`, mstari 875)
 Usafiri wa block ya `actual_prev` ulishughulikia tu vivunja vya `Br`. Ulipokutana na `BrCond` (kutoka tathmini fupi ya `&&`/`||`), ulivunja na kurudisha block mbaya. Maagizo yote yaliyofuata yakawa msimbo uliokufa usiofikiwa. Kitanzi cha mchanganuzi kilizunguka milele, kikiunda allocas kila mzunguko hadi rafu ikaisha.
 
 **Marekebisho:** Mstari mmoja ulioongezwa kushughulikia `BrCond` katika usafiri:
@@ -104,11 +104,11 @@ Mchanganuzi wa kitanzi cha `kwa` ulijaribu kuchanganua kiiniti kama usemi kupiti
 
 ### Msururu wa Majaribio
 ```
-144 unit tests:          PASS
+145 unit tests:          PASS
  28 integration tests:   PASS (ikiwa ni pamoja na K6!)
   1 doc test:            PASS
 _________________________________
-173/173:                 100% PASSING
+174/174:                 100% PASSING
 ```
 
 ### Jaribio la K6 la Kujikusanya Kamili

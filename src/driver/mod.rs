@@ -54,21 +54,21 @@ impl Driver {
         let len = bytes.len();
 
         while i < len {
-            // Check for "husisha" at start of line.
+            // Angalia "husisha" mwanzoni mwa mstari.
             let at_line_start = i == 0 || bytes[i - 1] == b'\n';
             if at_line_start
                 && i + 7 <= len
                 && &bytes[i..i + 7] == b"husisha"
                 && (i + 7 >= len || bytes[i + 7].is_ascii_whitespace())
             {
-                // Skip past "husisha" and whitespace.
+                // Ruka "husisha" na nafasi nyeupe.
                 i += 7;
                 while i < len && bytes[i].is_ascii_whitespace() {
                     i += 1;
                 }
 
                 if i < len && bytes[i] == b'"' {
-                    // Quoted path: husisha "path/file.swa"
+                    // Njia iliyonukuliwa: husisha "path/file.swa"
                     i += 1;
                     let path_start = i;
                     while i < len && bytes[i] != b'"' {
@@ -76,8 +76,8 @@ impl Driver {
                     }
                     let rel_path = std::str::from_utf8(&bytes[path_start..i])
                         .unwrap_or("");
-                    if i < len { i += 1; } // skip closing "
-                    // Skip trailing semicolon and newline.
+                    if i < len { i += 1; } // ruka nukta ya kufunga "
+                    // Ruka semicolon ya mwisho na mstari mpya.
                     while i < len && (bytes[i] == b';' || bytes[i].is_ascii_whitespace()) {
                         i += 1;
                     }
@@ -107,13 +107,13 @@ impl Driver {
                         }
                     }
                 } else if i < len && bytes[i] == b'C' {
-                    // husisha C::stdio — skip entire line (C headers).
+                    // husisha C::stdio — ruka mstari mzima (vichwa vya C).
                     while i < len && bytes[i] != b'\n' {
                         i += 1;
                     }
-                    if i < len { i += 1; } // skip newline
+                    if i < len { i += 1; } // ruka mstari mpya
                 } else {
-                    // husisha followed by something unrecognised — skip line.
+                    // husisha ikifuatiwa na kitu kisichotambulika — ruka mstari.
                     while i < len && bytes[i] != b'\n' {
                         i += 1;
                     }
@@ -133,16 +133,16 @@ impl Driver {
         source: &str,
         path: PathBuf,
     ) -> Result<IrModule, Vec<Diagnostic>> {
-        // 0. Resolve husisha includes.
+        // 0. Tatua husisha zilizojumuishwa.
         let parent_dir = path.parent().unwrap_or(Path::new("."));
         let mut already_included: Vec<String> = Vec::new();
         let full_source = self.resolve_husisha(source, parent_dir, &mut already_included)?;
 
-        // 1. Lex
+        // 1. Changanua (lex)
         let lexer = crate::lexer::Lexer::new(&full_source);
         let tokens = lexer.tokenize();
 
-        // 2. Parse
+        // 2. Changanua (parse)
         let (aina, thamani, kushoto, kulia, tiga, nne, jina_off, pool, count) =
             crate::parser::parse_full(&tokens)
                 .map_err(|e| vec![Diagnostic::error(e, crate::diagnostics::SourceSpan::point(0, 0))])?;
@@ -155,7 +155,7 @@ impl Driver {
             self.diagnostics.push(d);
         }
 
-        // 3. Lower to IR
+        // 3. Teremsha hadi IR
         let module = crate::ir::lower::lower(
             &aina, &kushoto, &kulia, &tiga, &nne, &thamani, &jina_off, &pool, count,
         );

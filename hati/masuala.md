@@ -1,10 +1,10 @@
-# Masuala Yanayobaki — Mkusanyaji wa Kujikusanya wa Kiswahili
+# Masuala Yanayobaki -- Mkusanyaji wa Kujikusanya wa Kiswahili
 
 Hati hii inafuatilia hitilafu zinazojulikana, vizuizi, na hatua zinazofuata kwa mradi wa mkusanyaji wa kujikusanya wa Kiswahili. Vipengee vimeorodheshwa takriban kwa mpangilio wa ukali na utegemezi.
 
 ---
 
-## 1. Hitilafu ya Uboreshaji wa O1 (Less) — Ufisadi wa Urefu wa `tokeni_soma_kitambulisho`
+## 1. Hitilafu ya Uboreshaji wa O1 (Less) -- Ufisadi wa Urefu wa `tokeni_soma_kitambulisho`
 
 ### Hali: **Imevunjika kwenye O1, inafanya kazi kwenye O0**
 
@@ -26,7 +26,7 @@ Katika nukta ya kuanguka:
 |----------|-------|---------|
 | `rdx`    | 36797 | Anwani ya kianzio cha kuanguka (inatarajiwa ndogo) |
 | `off`    | 3     | Kianzio sahihi cha nodi ya AST ndani ya elementi |
-| `i`      | 36794 | Mbaya — inapaswa kuwa 0 kwa kitambulisho cha tokeni moja |
+| `i`      | 36794 | Mbaya -- inapaswa kuwa 0 kwa kitambulisho cha tokeni moja |
 
 Thamani 36794 = 36797 - 3, ikimaanisha faharisi ya elementi `i` ilikokotolewa kutoka kwa `urefu` iliyoharibika badala ya thamani sahihi ya 1.
 
@@ -40,24 +40,24 @@ Hitilafu ni maalum kwa LLVM IR inayozalishwa kwa `tokeni_soma_kitambulisho`. Kwe
 
 ### Kwa Nini O1 Ni Muhimu
 
-FastISel inadondosha vitalu vya msingi kimya kupita takriban 50 kwa kila kazi. Msomaji na mchanganuzi wa kujikusanya tayari wamegawanywa katika kazi nyingi ndogo za wasaidizi ili kukaa chini ya kikomo hiki. Ikiwa kazi yoyote iliyobaki itavuka kizingiti, O1 ndio mbadala pekee — na O1 kwa sasa imevunjika.
+FastISel inadondosha vitalu vya msingi kimya kupita takriban 50 kwa kila kazi. Msomaji na mchanganuzi wa kujikusanya tayari wamegawanywa katika kazi nyingi ndogo za wasaidizi ili kukaa chini ya kikomo hiki. Ikiwa kazi yoyote iliyobaki itavuka kizingiti, O1 ndio mbadala pekee -- na O1 kwa sasa imevunjika.
 
 ### Kinachohitajika Kufanywa
 
 1. Tenga `.ll` iliyozalishwa kwa `tokeni_soma_kitambulisho` na uthibitishe IR ni sahihi (`sub` ipo kabla ya njia za uboreshaji).
 2. Ikiwa IR ni sahihi, gawanya njia ipi ya LLVM inaharibu thamani (pengine njia ya awali ya kuteremsha ya SelectionDAG).
 3. Ikiwa IR ni mbaya, rekebisha codegen kwa usemi wa tofauti ya kielekezi katika mwisho wa LLVM wa mkusanyaji wa Kiswahili.
-4. Fikiria ikiwa hii ni hitilafu inayojulikana ya LLVM na toleo maalum — ikiwa ndivyo, kuboresha au kurekebisha LLVM kunaweza kurekebisha.
+4. Fikiria ikiwa hii ni hitilafu inayojulikana ya LLVM na toleo maalum -- ikiwa ndivyo, kuboresha au kurekebisha LLVM kunaweza kurekebisha.
 
 ---
 
-## 2. Kizuizi cha Ukubwa wa Safu — BSS > ~47KB Inaanguka kwenye Uanzishaji
+## 2. Kizuizi cha Ukubwa wa Safu -- BSS > ~47KB Inaanguka kwenye Uanzishaji
 
-### Hali: **Haijatatuliwa — pengine maalum kwa Windows**
+### Hali: **Haijatatuliwa -- pengine maalum kwa Windows**
 
 ### Muhtasari
 
-Wakati safu za bwawa la AST ni ndogo (elementi 512, ~32 KB `ast_pool`), binary ya mchanganuzi inafanya kazi kwa usahihi kwenye O0. Kuongeza safu (elementi 2048, bwawa la ~128 KB) kunasababisha hitilafu ya sehemu mara moja **kabla ya `main()` kutekelezwa** — hata kwa msimbo wa chanzo unaofanana na hakuna mabadiliko ya mantiki.
+Wakati safu za bwawa la AST ni ndogo (elementi 512, ~32 KB `ast_pool`), binary ya mchanganuzi inafanya kazi kwa usahihi kwenye O0. Kuongeza safu (elementi 2048, bwawa la ~128 KB) kunasababisha hitilafu ya sehemu mara moja **kabla ya `main()` kutekelezwa** -- hata kwa msimbo wa chanzo unaofanana na hakuna mabadiliko ya mantiki.
 
 ### Tabia Iliyozingatiwa
 
@@ -75,7 +75,7 @@ Wakati safu za bwawa la AST ni ndogo (elementi 512, ~32 KB `ast_pool`), binary y
 
 ### Kilichohitajika Kufanywa
 
-1. **Ilijaribiwa kwenye Arch Linux** — Linux ELF inashughulikia BSS kubwa bila tatizo. Hii imethibitishwa kuwa maalum kwa Windows.
+1. **Ilijaribiwa kwenye Arch Linux** -- Linux ELF inashughulikia BSS kubwa bila tatizo. Hii imethibitishwa kuwa maalum kwa Windows.
 2. Kwa Windows, chunguza kichwa cha PE na uwekaji wa sehemu ya `.bss`, au fikiria kutumia `calloc`/`malloc` kwa safu kubwa badala ya mgao wa BSS tuli/wa ulimwengu.
 
 ---
@@ -104,13 +104,13 @@ Mchanganuzi wa kujikusanya sasa unachanganua kwa mafanikio:
 
 ---
 
-## 4. Mgawanyo wa Kazi kwa O0 — Kikomo cha Block cha FastISel
+## 4. Mgawanyo wa Kazi kwa O0 -- Kikomo cha Block cha FastISel
 
 ### Hali: **Suluhisho la muda lipo, udhaifu unabaki**
 
 ### Historia
 
-Kwenye O0, FastISel ya LLVM inadondosha vitalu vya msingi kimya kupita takriban 50 kwa kila kazi. Hiki sio kikomo kinachoweza kusanidiwa — ni mbadala uliokodishwa ngumu ambapo FastISel inakata tamaa na kutoa hakuna msimbo kwa vitalu hivyo, na kusababisha tabia mbaya bila onyo.
+Kwenye O0, FastISel ya LLVM inadondosha vitalu vya msingi kimya kupita takriban 50 kwa kila kazi. Hiki sio kikomo kinachoweza kusanidiwa -- ni mbadala uliokodishwa ngumu ambapo FastISel inakata tamaa na kutoa hakuna msimbo kwa vitalu hivyo, na kusababisha tabia mbaya bila onyo.
 
 ### Mikakati ya Sasa
 
@@ -119,7 +119,7 @@ Kwenye O0, FastISel ya LLVM inadondosha vitalu vya msingi kimya kupita takriban 
 
 ### Hatari Iliyobaki
 
-Ikiwa kazi yoyote — baada ya marekebisho ya baadaye au vipengele vipya — itazidi ~vitalu 50 vya msingi, FastISel itazalisha msimbo mbaya kimya kwenye O0. Hakuna ukaguzi wa wakati wa mkusanyiko au wakati wa utekelezaji kwa hali hii.
+Ikiwa kazi yoyote -- baada ya marekebisho ya baadaye au vipengele vipya -- itazidi ~vitalu 50 vya msingi, FastISel itazalisha msimbo mbaya kimya kwenye O0. Hakuna ukaguzi wa wakati wa mkusanyiko au wakati wa utekelezaji kwa hali hii.
 
 ### Kinachohitajika Kufanywa
 
@@ -129,7 +129,7 @@ Ikiwa kazi yoyote — baada ya marekebisho ya baadaye au vipengele vipya — ita
 
 ---
 
-## 5. Hatua Zinazofuata (Mpangilio wa Kipaumbele — Imesasishwa Julai 6, 2026)
+## 5. Hatua Zinazofuata (Mpangilio wa Kipaumbele -- Imesasishwa Julai 6, 2026)
 
 | Kipaumbele | Kazi | Hali |
 |----------|------|--------|

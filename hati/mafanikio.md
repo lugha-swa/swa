@@ -46,13 +46,13 @@ Baada ya kurekebisha hitilafu za codegen (hasa alloca-in-loop), binary ya kujiku
 | 11 | Uchanganuzi wa kitanzi cha `kwa` ulishindwa | `msingi/msambazaji.swa` | `N32 i = 0` katika `kwa` ilichanganuliwa kama usemi badala ya tamko |
 | 12 | Hitilafu mbalimbali za mchanganuzi: `sogeza()` ikikosa sehemu za `mstari`/`safu`, `{` ikitumiwa mara mbili, hakuna rudisha hasi (`-1`), kufurika kwa safu ya AST | `msingi/msambazaji.swa`, `msingi/msomaji.swa` | Uchanganuzi usio sahihi, kufurika kwa safu |
 
-### 2.2 Majaribio yote 173 yanapita
+### 2.2 Majaribio yote 174 yanapita
 
-Marekebisho 12 yalitumika bila kurudi nyuma. Msururu kamili wa majaribio ya Rust (majaribio 173: 144 ya usomaji/uchanganuzi/ukaguzi wa aina/IR, 28 ya ujumuishaji wa mwisho-hadi-mwisho, 1 wa hati za nyaraka) unapita safi. K6 (kujikusanya kamili) sasa inapita.
+Marekebisho 12 yalitumika bila kurudi nyuma. Msururu kamili wa majaribio ya Rust (majaribio 174: 145 ya usomaji/uchanganuzi/ukaguzi wa aina/IR, 28 ya ujumuishaji wa mwisho-hadi-mwisho, 1 wa hati za nyaraka) unapita safi. K6 (kujikusanya kamili) sasa inapita.
 
 ### 2.3 Msomaji ulirekebishwa kwa mipaka ya O0
 
-`msomaji.swa` iligawanywa katika wasaidizi wadogo — `somaNenoMsingi`, `somaNambari`, `somaKamba`, `somaAlama`, `somaAinaMsingi`, `sogeza` — kuweka kila kazi chini ya kikomo cha block cha FastISel (~maelekezo 1000 kwa block).
+`msomaji.swa` iligawanywa katika wasaidizi wadogo -- `somaNenoMsingi`, `somaNambari`, `somaKamba`, `somaAlama`, `somaAinaMsingi`, `sogeza` -- kuweka kila kazi chini ya kikomo cha block cha FastISel (~maelekezo 1000 kwa block).
 
 ### 2.4 Mchanganuzi uligawanywa kiotomatiki
 
@@ -87,11 +87,11 @@ Hati ya Python (`_finish.py`) iliandikwa kutenganisha kazi kubwa za `msambazaji.
 Swa imefikia Hatua ya 1 ya kujikusanya: mkusanyaji ulioandikwa kwa Rust unaweza kukusanya mkusanyaji wa Swa ambao unajikusanya yenyewe.
 
 ```
-144 unit tests:          PASS
+145 unit tests:          PASS
  28 integration tests:   PASS (including K6!)
   1 doc test:            PASS
 _________________________________
-173/173:                 100% PASSING
+174/174:                 100% PASSING
 ```
 
 ---
@@ -156,7 +156,7 @@ Hitilafu ndogo katika `sogeza()` (kunakili sehemu 3 kati ya 5 za tokeni) ilisaba
 
 ---
 
-## 6. Uhamisho wa Linux — Arch Linux (Juni 2026)
+## 6. Uhamisho wa Linux -- Arch Linux (Juni 2026)
 
 Mradi ulihamishwa kutoka Windows hadi Arch Linux. Hii ilifichua hitilafu zilizofichika katika mkusanyaji wa bootstrap wa Rust na mchanganuzi wa kujikusanya.
 
@@ -201,16 +201,16 @@ Iliongeza utambuzi wa `tenga` -> HeapAlloc, `achilia` -> HeapFree, `badili` -> r
 
 Masuala yote ya awali yamerekebishwa:
 
-- Mchanganuzi wa kujikusanya unakwama kwenye vigezo 2+ — IMEREKEBISHWA
-- Ufisadi wa `urefu` wa O1 — IMEREKEBISHWA (bendera ya `--opt`)
-- Ugawaji wa muundo haujatekelezwa — IMEREKEBISHWA (MemCopy katika lower.rs NA mteremko.swa)
-- Alloca-in-loop (SIGSEGV kwenye binary ya kujikusanya) — IMEREKEBISHWA (kupitisha mara mbili kwenye lower.rs)
-- CFG dead-code (msimbo baada ya kama ni msimbo uliokufa) — IMEREKEBISHWA
-- Tamko la mbele `;` linavuja — IMEREKEBISHWA
-- Kitanzi cha `kwa` hakichanganulii — IMEREKEBISHWA
-- `sogeza()` inakosa sehemu za tokeni — IMEREKEBISHWA
-- Kufurika kwa safu ya AST — IMEREKEBISHWA
-- K6 (kujikusanya kamili) — IMEREKEBISHWA na inapita
+- Mchanganuzi wa kujikusanya unakwama kwenye vigezo 2+ -- IMEREKEBISHWA
+- Ufisadi wa `urefu` wa O1 -- IMEREKEBISHWA (bendera ya `--opt`)
+- Ugawaji wa muundo haujatekelezwa -- IMEREKEBISHWA (MemCopy katika lower.rs NA mteremko.swa)
+- Alloca-in-loop (SIGSEGV kwenye binary ya kujikusanya) -- IMEREKEBISHWA (kupitisha mara mbili kwenye lower.rs)
+- CFG dead-code (msimbo baada ya kama ni msimbo uliokufa) -- IMEREKEBISHWA
+- Tamko la mbele `;` linavuja -- IMEREKEBISHWA
+- Kitanzi cha `kwa` hakichanganulii -- IMEREKEBISHWA
+- `sogeza()` inakosa sehemu za tokeni -- IMEREKEBISHWA
+- Kufurika kwa safu ya AST -- IMEREKEBISHWA
+- K6 (kujikusanya kamili) -- IMEREKEBISHWA na inapita
 
 ### 6.8 Mafanikio ya Julai 4-5, 2026
 
@@ -218,8 +218,8 @@ Katika kipindi cha saa 18 cha kurekebisha hitilafu, marekebisho 12 yalifanywa:
 
 - **Alloca-in-loop (SIGSEGV imerekebishwa):**
   - Mbinu ya kupitisha mara mbili katika `src/ir/lower.rs`:`lower_function`
-  - `collect_local_decls` — mbinu mpya inayotembea AST kukusanya matamko yote ya vigeu vya ndani
-  - `pre_allocated_locals` — ramani ya `HashMap<i32, ValueId>` kwa alloca zilizotanguliwa
+  - `collect_local_decls` -- mbinu mpya inayotembea AST kukusanya matamko yote ya vigeu vya ndani
+  - `pre_allocated_locals` -- ramani ya `HashMap<i32, ValueId>` kwa alloca zilizotanguliwa
   - Alloca zote za vigeu vya ndani sasa zinatolewa kwenye block ya kuingia kabla ya mwili kuchakatwa
   - Binary ya kujikusanya hai-SIGSEGV tena
 
@@ -228,7 +228,7 @@ Katika kipindi cha saa 18 cha kurekebisha hitilafu, marekebisho 12 yalifanywa:
   - Hii inahakikisha ushughulikiaji sahihi wa mtiririko wa udhibiti baada ya taarifa za `kama`
 
 - **Marekebisho ya mchanganuzi (4ddb448):**
-  - Mnyororo wa `ast_nne` katika `src/parser/mod.rs` — tembea hadi mwisho kabla ya kuongeza nodi mpya
+  - Mnyororo wa `ast_nne` katika `src/parser/mod.rs` -- tembea hadi mwisho kabla ya kuongeza nodi mpya
   - Ulinzi wa `t->urefu == 0` mwanzoni mwa `neno_ni` kuzuia kitanzi kisicho na mwisho kwenye EOF
   - Uainishaji wa ASCII maeneo 49 katika `msambazaji.swa`
   - `StoreTyped` sasa inahakiki aina lengwa ni nambari kamili kabla ya kuita `LLVMGetIntTypeWidth`
@@ -241,5 +241,5 @@ Katika kipindi cha saa 18 cha kurekebisha hitilafu, marekebisho 12 yalifanywa:
   - Unary minus unafanya kazi (`rudisha -1`)
   - Safu ya AST iliongezwa hadi 16384 (kutoka 4096)
 
-- **Majaribio 173 yanapita:** 144 ya usomaji/uchanganuzi/IR + 28 ya ujumuishaji + 1 wa nyaraka
+- **Majaribio 174 yanapita:** 145 ya usomaji/uchanganuzi/IR + 28 ya ujumuishaji + 1 wa nyaraka
 - **K6 inapita:** Binary ya kujikusanya inajikusanya yenyewe kwa mafanikio

@@ -1,12 +1,19 @@
 # Ramani ya Mradi / Project Roadmap
 
+## Muhtasari
+
+- **Keywords:** 42 za Kiswahili (hakuna Kiingereza katika sintaksia)
+- **Aina:** 25 za nambari (N8-N128, A8-A128, D16-D80, B1-B64, W0-W64)
+- **Majaribio:** 174/174 yanapita
+- **Backend:** LLVM (sasa), codegen.swa (inajengwa -- lengo ni kuondoa LLVM)
+
 ## Hatua ya 0: Mkusanyaji wa Bootstrap wa Rust [PASS] IMEFANIKIWA
 
 - [x] Lexer, parser, semantic analyzer
 - [x] IR lowering (AST -> Swa IR)
 - [x] LLVM codegen (x86-64 native binaries)
 - [x] ABI classification (sret, struct returns)
-- [x] Majaribio 173/173 yanapita
+- [x] Majaribio 174/174 yanapita
 
 ## Hatua ya 1: Kujikusanya kwa Msingi [PASS] IMEFANIKIWA
 
@@ -30,6 +37,12 @@
   - [ ] Uthibitishaji wa aina kwa taarifa zote
   - [ ] Uthibitishaji wa hoja za mwito wa kazi
   - [ ] Uthibitishaji wa matawi ya `chagua`
+- [ ] **codegen.swa** -- Anzisha native x86-64 backend iliyoandikwa kwa Swa
+  - [ ] Uzalishaji wa maagizo ya msingi ya x86-64 (mov, add, sub, etc.)
+  - [ ] Uteuzi wa maagizo kwa aina za kawaida (N32, N64, A64, D64)
+  - [ ] Ushughulikiaji wa vitanzi na matawi (jmp, je, jne)
+  - [ ] Ushughulikiaji wa ABI (kupitisha hoja, kurudisha thamani, sret)
+  - [ ] Mpangilio wa rafu (stack frames, prologue/epilogue)
 - [ ] **Rekebisha hitilafu ya O1** -- SelectionDAG inaharibu tofauti ya kielekezi katika `tokeni_soma_kitambulisho`
 
 ### Kipaumbele cha Kati
@@ -52,7 +65,14 @@
 - [ ] Bootstrap inafungwa: Swa -> Swa -> binary
 - [ ] Uthibitisho: binary ya Swa inazalisha binary inayofanya kazi
 
-## Hatua ya 4: Lugha Kamili ya Mifumo [FUTURE] BAADAYE
+## Hatua ya 4: Kuondoa Utegemezi wa LLVM [GOAL] LENGO KUU
+
+- [ ] Native x86-64 backend (codegen.swa) inazalisha binary bila LLVM
+- [ ] Mkusanyaji wote unajitegemea -- hakuna Rust, hakuna LLVM
+- [ ] Uthibitisho: Swa inajikusanya kupitia mnyororo kamili wa Swa -> Swa -> binary (bila LLVM)
+- [ ] Hii inafanya Swa kuwa lugha ya kwanza ya Kiafrika yenye mkusanyaji anayejitegemea kikamilifu
+
+## Hatua ya 5: Lugha Kamili ya Mifumo [FUTURE] BAADAYE
 
 - [ ] Maktaba ya kawaida kamili
 - [ ] Mfumo wa moduli / vifurushi
@@ -68,8 +88,9 @@ Angalia [`CONTRIBUTING.md`](CONTRIBUTING.md). Masuala yenye lebo `good-first-iss
 
 ## Vipaumbele vya Sasa (Julai 2026)
 
-1. Rekebisha hitilafu ya O1 kwenye `tokeni_soma_kitambulisho`
-2. `mteremko.swa` -- sret + alloca-in-loop fix (hiyo ndiyo kazi muhimu zaidi sasa)
-3. `mkaguzi.swa` -- kukamilisha ukaguzi wa aina
-4. `--opt` flag -- kuongeza LLVM pass manager
-5. Urejeshaji wa makosa kwa mchanganuzi
+1. codegen.swa -- anzisha native x86-64 backend (hatua muhimu kwa uhuru kutoka LLVM)
+2. Rekebisha hitilafu ya O1 kwenye `tokeni_soma_kitambulisho`
+3. `mteremko.swa` -- sret + alloca-in-loop fix (hiyo ndiyo kazi muhimu zaidi sasa)
+4. `mkaguzi.swa` -- kukamilisha ukaguzi wa aina
+5. `--opt` flag -- kuongeza LLVM pass manager
+6. Urejeshaji wa makosa kwa mchanganuzi

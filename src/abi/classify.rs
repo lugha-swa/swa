@@ -124,7 +124,7 @@ pub fn classify_fields(ty: &IrType) -> (Vec<AbiClass>, usize) {
 }
 
 // ---------------------------------------------------------------------------
-// Tests
+// Majaribio
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
@@ -133,7 +133,7 @@ mod tests {
 
     // -- visaidizi ----------------------------------------------------------
 
-    /// Shorthand for building a named struct type.
+    /// Njia fupi ya kujenga aina ya muundo yenye jina.
     fn struct_ty(name: &str, fields: Vec<(&str, IrType)>) -> IrType {
         IrType::Struct {
             name: name.into(),
@@ -141,7 +141,7 @@ mod tests {
         }
     }
 
-    /// Shorthand for a pointer-to-I8.
+    /// Njia fupi kwa kielekezi cha I8.
     fn ptr_ty() -> IrType {
         IrType::Ptr(Box::new(IrType::I8))
     }
@@ -198,7 +198,7 @@ mod tests {
 
     #[test]
     fn test_three_fields_hidden_ptr() {
-        // { i32, i32, i32 } → 3 integer fields → hidden ptr.
+        // { i32, i32, i32 } → sehemu 3 za Integer → kielekezi fiche
         let triplet = struct_ty(
             "Triplet",
             vec![
@@ -216,8 +216,8 @@ mod tests {
 
     #[test]
     fn test_nested_struct_flattening() {
-        // Outer { Inner { f64, f64 }, i32 }
-        // → flatten → [Float, Float, Integer] = 3 fields → hidden ptr.
+        // Nje { Ndani { f64, f64 }, i32 }
+        // → panua → [Float, Float, Integer] = sehemu 3 → kielekezi fiche
         let inner = struct_ty("Ndani", vec![("a", IrType::F64), ("b", IrType::F64)]);
         let outer = struct_ty("Nje", vec![("inner", inner), ("tag", IrType::I32)]);
         assert_eq!(classify_return(&outer), IrReturnClass::HiddenPtr);
@@ -229,8 +229,8 @@ mod tests {
 
     #[test]
     fn test_nested_struct_two_leaf() {
-        // Outer { Inner { f64, f64 } }
-        // → flatten → [Float, Float] = 2 fields → direct.
+        // Nje { Ndani { f64, f64 } }
+        // → panua → [Float, Float] = sehemu 2 → moja kwa moja
         let inner = struct_ty("Ndani", vec![("a", IrType::F64), ("b", IrType::F64)]);
         let outer = struct_ty("Nje", vec![("inner", inner)]);
         assert_eq!(classify_return(&outer), IrReturnClass::Direct);
@@ -242,7 +242,7 @@ mod tests {
 
     #[test]
     fn test_deeply_nested() {
-        // A { B { C { i32 } }, f64 } → [Integer, Float] = 2 → direct.
+        // A { B { C { i32 } }, f64 } → [Integer, Float] = 2 → moja kwa moja.
         let c = struct_ty("C", vec![("x", IrType::I32)]);
         let b = struct_ty("B", vec![("c", c)]);
         let a = struct_ty("A", vec![("b", b), ("y", IrType::F64)]);
@@ -255,7 +255,7 @@ mod tests {
 
     #[test]
     fn test_mixed_fields() {
-        // { f64, i64, f64 } → 3 fields → hidden ptr.
+        // { f64, i64, f64 } → sehemu 3 → kielekezi fiche
         let mixed = struct_ty(
             "Mixed",
             vec![
@@ -297,7 +297,7 @@ mod tests {
 
     #[test]
     fn test_empty_struct_direct() {
-        // A struct with no fields → 0 leaf fields → direct.
+        // Muundo usio na sehemu → sehemu 0 → moja kwa moja
         let empty = struct_ty("Tupu", vec![]);
         assert_eq!(classify_return(&empty), IrReturnClass::Direct);
         assert!(flatten_struct(&empty).is_empty());
@@ -305,7 +305,7 @@ mod tests {
 
     #[test]
     fn test_struct_with_nested_empty_struct() {
-        // Outer { EmptyStruct, i32 } → [Integer] = 1 → direct.
+        // Nje { MuundoTupu, i32 } → [Integer] = 1 → moja kwa moja
         let empty = struct_ty("Tupu", vec![]);
         let outer = struct_ty("Nje", vec![("e", empty), ("x", IrType::I32)]);
         assert_eq!(classify_return(&outer), IrReturnClass::Direct);

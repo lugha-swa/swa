@@ -623,9 +623,9 @@ extern "C" {
 
     // -- kijenzi cha kupita (meneja mpy wa kupita / bomba la uboreshaji) -----
 
-    /// Run a set of passes on a module using the new pass manager pipeline
-    /// syntax (e.g. "function(mem2reg,instcombine,gvn,simplifycfg)").
-    /// Returns null on success, or an LLVMErrorRef on failure.
+    /// Endesha seti ya kupita kwenye moduli kwa kutumia bomba la meneja mpya wa kupita
+    /// (mf. "function(mem2reg,instcombine,gvn,simplifycfg)").
+    /// Hurejesha null kwenye mafanikio, au LLVMErrorRef kwenye kushindwa.
     pub fn LLVMRunPasses(
         m: LLVMModuleRef,
         passes: *const c_char,
@@ -633,9 +633,8 @@ extern "C" {
         options: LLVMPassBuilderOptionsRef,
     ) -> LLVMErrorRef;
 
-    /// Run a set of passes on a single function using the new pass manager
-    /// pipeline syntax.
-    /// Returns null on success, or an LLVMErrorRef on failure.
+    /// Endesha seti ya kupita kwenye kazi moja kwa kutumia bomba la meneja mpya wa kupita.
+    /// Hurejesha null kwenye mafanikio, au LLVMErrorRef kwenye kushindwa.
     pub fn LLVMRunPassesOnFunction(
         f: LLVMValueRef,
         passes: *const c_char,

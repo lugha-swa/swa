@@ -54,31 +54,31 @@ impl TokenKind {
     /// Hurejesha `NenoMuhimu` ikiwa ni neno muhimu la Swa, `Kitambulisho` vinginevyo.
     pub fn from_identifier(s: &str) -> Self {
         match s {
-            // Type families
+            // Familia za aina
             "N8" | "N16" | "N32" | "N64" | "N128" => TokenKind::NenoMuhimu(s.to_string()),
             "A8" | "A16" | "A32" | "A64" | "A128" => TokenKind::NenoMuhimu(s.to_string()),
             "D16" | "D32" | "D64" | "D80" | "D128" => TokenKind::NenoMuhimu(s.to_string()),
             "B1" | "B8" | "B16" | "B32" | "B64" => TokenKind::NenoMuhimu(s.to_string()),
             "W0" | "W8" | "W16" | "W32" | "W64" => TokenKind::NenoMuhimu(s.to_string()),
 
-            // Control flow
+            // Mtiririko wa udhibiti
             "kama" | "sivyo" | "chagua" | "hali" => {
                 TokenKind::NenoMuhimu(s.to_string())
             }
             "vunja" | "endelea" | "rudisha" | "nenda" => TokenKind::NenoMuhimu(s.to_string()),
 
-            // Loops
+            // Mizunguko
             "kwa" | "wakati" | "fanya" => TokenKind::NenoMuhimu(s.to_string()),
 
-            // Composite types
+            // Aina za mchanganyiko
             "muundo" | "muungano" => TokenKind::NenoMuhimu(s.to_string()),
 
-            // Memory
+            // Kumbukumbu
             "ukubwa" | "tenga" | "achilia" | "badili" | "nakili" => {
                 TokenKind::NenoMuhimu(s.to_string())
             }
 
-            // Module system
+            // Mfumo wa moduli
             "husisha" | "kutoka" => TokenKind::NenoMuhimu(s.to_string()),
 
             // Kitu kingine chochote ni kitambulisho.

@@ -1,6 +1,6 @@
 # Marekebisho ya Mkusanyaji: Bootstrap ya Kujikusanya
 
-Wakati wa juhudi za kufanya mkusanyaji wa Rust wa kande uweze kujikusanya (kujikusanya yenyewe), hitilafu tisa za usahihi ziligunduliwa na kurekebishwa. Hati hii inaelezea kila hitilafu kwa usahihi — ilipoishi, nini kiliharibika, jinsi ilivyojitokeza, na jinsi ilivyorekebishwa.
+Wakati wa juhudi za kufanya mkusanyaji wa Rust wa kande uweze kujikusanya (kujikusanya yenyewe), hitilafu tisa za usahihi ziligunduliwa na kurekebishwa. Hati hii inaelezea kila hitilafu kwa usahihi -- ilipoishi, nini kiliharibika, jinsi ilivyojitokeza, na jinsi ilivyorekebishwa.
 
 ---
 
@@ -8,19 +8,19 @@ Wakati wa juhudi za kufanya mkusanyaji wa Rust wa kande uweze kujikusanya (kujik
 
 **Faili:** `src/ir/lower.rs`
 
-**Hitilafu.** Wakati kiteremshaji cha IR kilipokutana na *tangazo la mbele* — saini ya kazi isiyo na mwili, k.m.
+**Hitilafu.** Wakati kiteremshaji cha IR kilipokutana na *tangazo la mbele* -- saini ya kazi isiyo na mwili, k.m.
 
 ```c
 N32 foo(Msambazaji* p);
 ```
 
-ilitoa ufafanuzi wa kazi ya LLVM bila masharti. Kwa kazi ambazo hazikuwa na mwili katika kitengo cha sasa cha utafsiri, hii ilizalisha *mwili tupu wa kazi* (ufafanuzi usio na vitalu vya msingi). Ikiwa ufafanuzi halisi wa kazi hiyo hiyo ulionekana baadaye katika kitengo cha utafsiri, kijisabuni tupu *kilifunika* — kiunganishi cha LLVM kingeona ufafanuzi mbili kwa alama hiyo hiyo na kuchagua ya kwanza (tupu). Utekelezaji halisi ulikuwa msimbo uliokufa.
+ilitoa ufafanuzi wa kazi ya LLVM bila masharti. Kwa kazi ambazo hazikuwa na mwili katika kitengo cha sasa cha utafsiri, hii ilizalisha *mwili tupu wa kazi* (ufafanuzi usio na vitalu vya msingi). Ikiwa ufafanuzi halisi wa kazi hiyo hiyo ulionekana baadaye katika kitengo cha utafsiri, kijisabuni tupu *kilifunika* -- kiunganishi cha LLVM kingeona ufafanuzi mbili kwa alama hiyo hiyo na kuchagua ya kwanza (tupu). Utekelezaji halisi ulikuwa msimbo uliokufa.
 
 **Marekebisho.** Uchunguzi wa awali wa AST uliongezwa ili kukusanya seti ya majina ya kazi ambazo *zina* miili. Katika `lower_function`, ukaguzi uliingizwa: ikiwa kazi haina mwili **na** kazi yenye jina sawa na mwili ipo mahali pengine, kijisabuni tupu kinarukwa na ufafanuzi halisi pekee ndio unaotolewa.
 
 ---
 
-## 2. Kutolingana kwa Upana wa Hifadhi — `i64` hadi `i32`
+## 2. Kutolingana kwa Upana wa Hifadhi -- `i64` hadi `i32`
 
 **Faili:** `src/codegen/llvm/mod.rs`
 
@@ -30,7 +30,7 @@ ilitoa ufafanuzi wa kazi ya LLVM bila masharti. Kwa kazi ambazo hazikuwa na mwil
 
 ---
 
-## 3. Kutolingana kwa Upana wa Hifadhi — `i32` hadi `i64` (Sehemu za Muundo)
+## 3. Kutolingana kwa Upana wa Hifadhi -- `i32` hadi `i64` (Sehemu za Muundo)
 
 **Faili:** `src/codegen/llvm/mod.rs`
 
@@ -48,7 +48,7 @@ ilitoa ufafanuzi wa kazi ya LLVM bila masharti. Kwa kazi ambazo hazikuwa na mwil
 
 Kwa mfano, kwa muundo `{i32, ptr, i64}`:
 - `i32` kwenye kianzio 0 (ukubwa 4)
-- `ptr` kwenye kianzio 4 (4 imepangiliwa kwa kielekezi cha baiti 8 kwenye 64-bit? Hapana — inahitaji kianzio 8)
+- `ptr` kwenye kianzio 4 (4 imepangiliwa kwa kielekezi cha baiti 8 kwenye 64-bit? Hapana -- inahitaji kianzio 8)
 - `i64` kwenye kianzio `4 + 8 = 12` (inapaswa kuwa 16)
 
 Mkusanyaji alikokotoa `4 + 8 = 12` kwa kianzio cha sehemu ya `i64`, lakini mpangilio wa LLVM wenyewe uliiweka kwenye kianzio 16. GEP zilizokokotwa kwa kianzio kisicho sahihi zilifikia baiti zisizo sahihi.
@@ -71,7 +71,7 @@ Mkusanyaji alikokotoa `4 + 8 = 12` kwa kianzio cha sehemu ya `i64`, lakini mpang
 | i32   | 4      | 4                   |
 | i32   | 4      | 4                   |
 
-Kwa mpangilio (mpangilio wa juu = 8): `4 + 4(pad) + 8 + 8 + 4 + 4 + 4(pad) = 36…` kwa kweli:
+Kwa mpangilio (mpangilio wa juu = 8): `4 + 4(pad) + 8 + 8 + 4 + 4 + 4(pad) = 36...` kwa kweli:
 - i32 kwenye 0..4
 - padding 4..8
 - i8* kwenye 8..16
@@ -82,25 +82,25 @@ Kwa mpangilio (mpangilio wa juu = 8): `4 + 4(pad) + 8 + 8 + 4 + 4 + 4(pad) = 36�
 
 Hivyo muundo ni baiti 32. `width_bytes()` bila padding ilirudisha 28 (4+8+8+4+4).
 
-Hii ilisababisha allocas za `sret` (kurejesha muundo) kuwa na ukubwa mdogo. Wakati kazi iliporudisha muundo kwa kielekezi kilichofichwa, mpigaji aligawa nafasi kulingana na `width_bytes()` — ndogo sana — na mpigiwa aliandika kupita mgao.
+Hii ilisababisha allocas za `sret` (kurejesha muundo) kuwa na ukubwa mdogo. Wakati kazi iliporudisha muundo kwa kielekezi kilichofichwa, mpigaji aligawa nafasi kulingana na `width_bytes()` -- ndogo sana -- na mpigiwa aliandika kupita mgao.
 
 **Marekebisho.** `width_bytes()` iliandikwa upya ili kukokotoa ukubwa kwa mpangilio sahihi: kianzio cha kila sehemu kinapangiliwa kwa mpangilio wa asili wa sehemu kabla ya kuiweka, na ukubwa wote unapigwa padding kwa kizidishio cha mpangilio wa juu wa sehemu ya muundo. Hii inalingana na upangaji wa `DataLayout` ya LLVM.
 
 ---
 
-## 6. Aina za Safu za Ulimwengu Zilitangazwa kama `[N×i8]` Badala ya `[N×i32]`
+## 6. Aina za Safu za Ulimwengu Zilitangazwa kama `[Nxi8]` Badala ya `[Nxi32]`
 
 **Faili:** `src/ir/mod.rs`, `src/ir/lower.rs`, `src/codegen/llvm/mod.rs`
 
-**Hitilafu.** Muundo wa `IrGlobal` haukuwa na sehemu ya aina — ulibeba urefu wa baiti pekee. Wakati mwisho wa LLVM ulipohitaji kutangaza safu ya ulimwengu, ilikisia aina ya elementi kutoka kwa urefu wa baiti: ikiwa safu ilikuwa zaidi ya baiti 8, kila mara ilikuwa `[N×i8]`, kwa sababu taarifa pekee iliyopatikana ilikuwa hesabu ya baiti wote na mwisho ulidhani kila kitu kinachoweza kushughulikiwa kwa baiti kilikuwa na aina ya baiti.
+**Hitilafu.** Muundo wa `IrGlobal` haukuwa na sehemu ya aina -- ulibeba urefu wa baiti pekee. Wakati mwisho wa LLVM ulipohitaji kutangaza safu ya ulimwengu, ilikisia aina ya elementi kutoka kwa urefu wa baiti: ikiwa safu ilikuwa zaidi ya baiti 8, kila mara ilikuwa `[Nxi8]`, kwa sababu taarifa pekee iliyopatikana ilikuwa hesabu ya baiti wote na mwisho ulidhani kila kitu kinachoweza kushughulikiwa kwa baiti kilikuwa na aina ya baiti.
 
-Fikiria `N32 ast_aina[2048]` — safu ya nambari kamili za baiti nne 2048 (jumla ya baiti 8192). Mwisho uliitangaza kama `[2048×i8]` (baiti 2048 pekee). Kila uandishi ulioorodheshwa kupitia `GEP i32` ulifikia kumbukumbu kwenye `msingi + faharisi * 4`, ambayo ilifurika haraka mgao wa baiti 2048 na kuharibu vigezo vya karibu vya ulimwengu.
+Fikiria `N32 ast_aina[2048]` -- safu ya nambari kamili za baiti nne 2048 (jumla ya baiti 8192). Mwisho uliitangaza kama `[2048xi8]` (baiti 2048 pekee). Kila uandishi ulioorodheshwa kupitia `GEP i32` ulifikia kumbukumbu kwenye `msingi + faharisi * 4`, ambayo ilifurika haraka mgao wa baiti 2048 na kuharibu vigezo vya karibu vya ulimwengu.
 
-**Marekebisho.** Sehemu ya `ty: IrType` iliongezwa kwa `IrGlobal`. Mwisho wa LLVM sasa unatumia `ir_type_to_llvm()` kutoa aina sahihi ya safu ya LLVM (k.m., `[2048×i32]`) kwa aina za elementi changamani, ukihifadhi `[N×i8]` kwa data yenye aina ya baiti pekee.
+**Marekebisho.** Sehemu ya `ty: IrType` iliongezwa kwa `IrGlobal`. Mwisho wa LLVM sasa unatumia `ir_type_to_llvm()` kutoa aina sahihi ya safu ya LLVM (k.m., `[2048xi32]`) kwa aina za elementi changamani, ukihifadhi `[Nxi8]` kwa data yenye aina ya baiti pekee.
 
 ---
 
-## 7. Marekebisho ya Opaque Pointer ya LLVM — Usawazishaji wa Aina ya Hifadhi/Mzigo (Uhamisho wa Linux)
+## 7. Marekebisho ya Opaque Pointer ya LLVM -- Usawazishaji wa Aina ya Hifadhi/Mzigo (Uhamisho wa Linux)
 
 **Faili:** `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs`
 
@@ -112,17 +112,17 @@ Fikiria `N32 ast_aina[2048]` — safu ya nambari kamili za baiti nne 2048 (jumla
 
 **Marekebisho.**
 - Hifadhi za vigezo zilibadilishwa kutoka `Instruction::Store` hadi `Instruction::StoreTyped`, ambayo hubeba IrType kwa uwazi na inapita API iliyopitwa na wakati
-- Kidhibiti cha `Instruction::Store` cha kawaida kiliondoa usawazishaji wa upana wa `LLVMGetElementType` kabisa — njia zote zinazohitaji upana tayari zinatumia `StoreTyped`
+- Kidhibiti cha `Instruction::Store` cha kawaida kiliondoa usawazishaji wa upana wa `LLVMGetElementType` kabisa -- njia zote zinazohitaji upana tayari zinatumia `StoreTyped`
 - `Instruction::Const(Const)` iliongezwa kwenye IR kwa vipatanishi vinavyobadilika, kuzuia migongano ya ValueId
 - `emit()` ilibadilishwa kutumia `func.values.len()` inayobadilika badala ya `values_initial_len` tuli
 
 ---
 
-## 8. Msimbo Baada ya Kama Hauwiani kwenye CFG — Ufuatiliaji wa `actual_prev` Unakosa `BrCond`
+## 8. Msimbo Baada ya Kama Hauwiani kwenye CFG -- Ufuatiliaji wa `actual_prev` Unakosa `BrCond`
 
 **Faili:** `src/ir/lower.rs`
 
-**Hitilafu.** Katika `lower_block`, baada ya kutekeleza `lower_if`, kitanzi cha taarifa kiliunganisha taarifa inayofuata moja kwa moja kutoka kwa block iliyorudishwa na `lower_if`. Kabla ya marekebisho, `lower_if` ilirudisha `merge_blk` — block ya kuunganisha baada ya sharti na mwili wa `kama`. Hii ilifanya taarifa inayofuata ianze kutoka kwenye block ya kuunganisha, ambayo ilikuwa sahihi kwa mtiririko.
+**Hitilafu.** Katika `lower_block`, baada ya kutekeleza `lower_if`, kitanzi cha taarifa kiliunganisha taarifa inayofuata moja kwa moja kutoka kwa block iliyorudishwa na `lower_if`. Kabla ya marekebisho, `lower_if` ilirudisha `merge_blk` -- block ya kuunganisha baada ya sharti na mwili wa `kama`. Hii ilifanya taarifa inayofuata ianze kutoka kwenye block ya kuunganisha, ambayo ilikuwa sahihi kwa mtiririko.
 
 Lakini tatizo kubwa zaidi lilikuwa kwamba `lower_if` ilirudisha `cond_blk` baada ya kubadilisha muundo (marekebisho ya 8a), na `lower_block` haikuwa na mantiki ya kufuatilia block halisi ya mwendelezo. Baada ya sharti la `BrCond`, block inayofuata katika mnyororo inapaswa kuwa `merge_blk` (block ya kuunganisha), si `cond_blk` (block ya sharti). Bila ufuatiliaji huu, taarifa baada ya `kama` ilikuwa haiwezi kufikiwa kutoka kwenye njia za `then` na `else`, na block ya sharti ilianguka moja kwa moja kwenye taarifa inayofuata bila kupitia `merge_blk`.
 
@@ -131,7 +131,7 @@ Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (kitanzi cha kujirudia) h
 **Marekebisho.**
 
 1. **`lower_if` inarudisha `cond_blk` badala ya `merge_blk`**:
-   - `lower_block` sasa inaunganisha kianzio cha kitalu → block ya sharti, si kianzio → block ya kuunganisha.
+   - `lower_block` sasa inaunganisha kianzio cha kitalu -> block ya sharti, si kianzio -> block ya kuunganisha.
    - Hii inahakikisha kwamba sharti linatathminiwa kabla ya mwili wowote wa `kama` au `sivyo`.
 
 2. **`lower_block` inafuatilia `actual_prev` kutoka `BrCond`**:
@@ -153,11 +153,11 @@ Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (kitanzi cha kujirudia) h
 
 ---
 
-## 9. Alloca-in-Loop Inamaliza Rafu — Alloca za Vigeu vya Ndani Zinapaswa Kuwa kwenye Kitalu cha Kuingia
+## 9. Alloca-in-Loop Inamaliza Rafu -- Alloca za Vigeu vya Ndani Zinapaswa Kuwa kwenye Kitalu cha Kuingia
 
 **Faili:** `src/ir/lower.rs`
 
-**Hitilafu.** Mbinu ya `lower_local_decl` ilikuwa ikitoa alloca (nafasi ya rafu) kwa vigeu vya ndani kwenye block ya sasa ya kuteremsha. Kwa mpangilio wa mstari, hii inafanya kazi kwa usahihi — kila kigezo kina alloca yake kwenye block moja. Lakini ndani ya kitanzi (`wakati`), kila mzunguko uligawa *alloca mpya* kwenye block ya kitanzi, na alloca za zamani hazikuwekwa huru. Baada ya takriban mizunguko 524,288, rafu ya MB 8 iliisha na kugonga ukurasa wa ulinzi, na kusababisha SIGSEGV.
+**Hitilafu.** Mbinu ya `lower_local_decl` ilikuwa ikitoa alloca (nafasi ya rafu) kwa vigeu vya ndani kwenye block ya sasa ya kuteremsha. Kwa mpangilio wa mstari, hii inafanya kazi kwa usahihi -- kila kigezo kina alloca yake kwenye block moja. Lakini ndani ya kitanzi (`wakati`), kila mzunguko uligawa *alloca mpya* kwenye block ya kitanzi, na alloca za zamani hazikuwekwa huru. Baada ya takriban mizunguko 524,288, rafu ya MB 8 iliisha na kugonga ukurasa wa ulinzi, na kusababisha SIGSEGV.
 
 Uchunguzi wa gdb ulionyesha kuanguka kwenye `changanua()+54`:
 ```
@@ -166,16 +166,16 @@ movl %r11d, -0x10(%rax)    # jaribu kuandika kwenye ukurasa wa ulinzi
 
 Rejesta zilionyesha:
 - `rdx` = 36797 (anwani ya kianzio cha kuanguka inatarajiwa ndogo zaidi)
-- `i` = 36794 (faharisi ya elementi — inapaswa kuwa 0 kwa tokeni ya kitambulisho kimoja)
-- Tofauti 36794 = 36797 − 3 ilionyesha kwamba urefu wa tokeni ulikuwa umeharibika
+- `i` = 36794 (faharisi ya elementi -- inapaswa kuwa 0 kwa tokeni ya kitambulisho kimoja)
+- Tofauti 36794 = 36797 - 3 ilionyesha kwamba urefu wa tokeni ulikuwa umeharibika
 
 Chanzo cha msingi: Kila mzunguko wa kitanzi cha `wakati` katika `changanua()` uligawa baiti 16 za alloca kwa vigeu vya ndani kwenye block ya kitanzi, na alloca hizi hazikuwekwa huru wakati mzunguko ulipomalizika. Rafu ilikua hadi ikagonga ukurasa wa ulinzi.
 
 **Marekebisho.** Suluhisho linatumia mbinu ya kupitisha mara mbili katika `lower_function`:
 
-1. **Kupitisha awali (pre-pass) — `collect_local_decls`**: Mbinu mpya inatembea AST ya mwili wa kazi na kukusanya nodi zote za `AST_TANGAZO` (matamko ya vigeu vya ndani) pamoja na aina zao zilizotatuliwa. Inajirudia kupitia `kushoto`, `kulia`, `tatu`, na `nne` ili kupata matamko yaliyowekwa ndani.
+1. **Kupitisha awali (pre-pass) -- `collect_local_decls`**: Mbinu mpya inatembea AST ya mwili wa kazi na kukusanya nodi zote za `AST_TANGAZO` (matamko ya vigeu vya ndani) pamoja na aina zao zilizotatuliwa. Inajirudia kupitia `kushoto`, `kulia`, `tatu`, na `nne` ili kupata matamko yaliyowekwa ndani.
 
-2. **Utoaji wa alloca mapema**: Baada ya kupitisha awali, `lower_function` inatoa Alloca kwa kila kigezo cha ndani kwenye *block ya kuingia* (entry block) — kabla ya mwili wowote kuchakatwa. Hii inahakikisha kwamba alloca zote za vigeu vya ndani ziko kwenye block ya kuingia, ambako zinatolewa mara moja tu kwa mzigo wote wa kazi. Ramani ya `pre_allocated_locals: HashMap<i32, ValueId>` inahifadhi uhusiano kati ya faharisi ya nodi ya AST na alloca ValueId.
+2. **Utoaji wa alloca mapema**: Baada ya kupitisha awali, `lower_function` inatoa Alloca kwa kila kigezo cha ndani kwenye *block ya kuingia* (entry block) -- kabla ya mwili wowote kuchakatwa. Hii inahakikisha kwamba alloca zote za vigeu vya ndani ziko kwenye block ya kuingia, ambako zinatolewa mara moja tu kwa mzigo wote wa kazi. Ramani ya `pre_allocated_locals: HashMap<i32, ValueId>` inahifadhi uhusiano kati ya faharisi ya nodi ya AST na alloca ValueId.
 
 3. **`lower_local_decl` inatumia alloca iliyotanguliwa**: Badala ya kutoa `Instruction::Alloca` mpya, `lower_local_decl` sasa inaangalia ramani ya `pre_allocated_locals` na kutumia ValueId iliyotengwa mapema. Kwa miundo ya sret, inaendelea kutumia kielekezi cha sret moja kwa moja (hakuna alloca ya ziada inayohitajika).
 
@@ -227,13 +227,13 @@ W0 ruka_nafasi_na_maelezo(Msomaji* m);
 
 ### 12.2 Matumizi Maradufu ya `{`
 
-`changanua_kazi_vigezo` ilitumia `{` iliyowekwa ndani wakati wa kuchanganua vigezo vya kazi — `{` hii ilikuwa ya mwili wa kazi.
+`changanua_kazi_vigezo` ilitumia `{` iliyowekwa ndani wakati wa kuchanganua vigezo vya kazi -- `{` hii ilikuwa ya mwili wa kazi.
 
 **Marekebisho.** Usitumie `{` katika `changanua_kazi_vigezo` ikiwa `{` si sehemu ya vigezo.
 
 ### 12.3 Hakuna Rudisha Hasi (Unary Minus)
 
-Mchanganuzi haukushughulikia `rudisha -1;` — alama ya `-` iliachwa bila kutumiwa.
+Mchanganuzi haukushughulikia `rudisha -1;` -- alama ya `-` iliachwa bila kutumiwa.
 
 **Marekebisho.** Ongeza ushughulikiaji wa unary minus katika mchanganuzi wa usemi.
 
@@ -254,7 +254,7 @@ Safu ya AST (AST_SAFU) yenye elementi 4096 haikutosha kwa faili zote za maktaba 
 | 3 | Hifadhi ya i32 kwa sehemu ya muundo ya i64 | `src/codegen/llvm/mod.rs` | Takataka katika baiti 4 za juu | Ukaguzi wa upana ulitumia `>` badala ya `!=` |
 | 4 | FieldAddr inapuuza mpangilio | `src/codegen/llvm/mod.rs` | Sehemu isiyo sahihi ya muundo imefikiwa | Vianzio vimejumlishwa bila mpangilio |
 | 5 | width_bytes ya muundo inakosa padding | `src/ir/types.rs` | Allocas za sret ndogo sana | Hakuna padding ya mpangilio wa mwisho |
-| 6 | Safu za ulimwengu zimeainishwa kama [N×i8] | `src/ir/mod.rs`, `lower.rs`, `llvm/mod.rs` | Vigezo vya karibu vya ulimwengu vimeharibika | IrGlobal ilikosa sehemu ya aina |
+| 6 | Safu za ulimwengu zimeainishwa kama [Nxi8] | `src/ir/mod.rs`, `lower.rs`, `llvm/mod.rs` | Vigezo vya karibu vya ulimwengu vimeharibika | IrGlobal ilikosa sehemu ya aina |
 | 7 | Opaque pointer inaharibu usawazishaji wa hifadhi | `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs` | Hitilafu za sehemu nasibu, ulinganifu wa tokeni unashindwa | LLVMGetElementType haiaminiki na opaque pointers |
 | 8 | Msimbo baada ya kama hauwiani kwenye CFG | `src/ir/lower.rs` | Taarifa baada ya kama ni msimbo uliokufa, vitanzi vya kujirudia | actual_prev haikufuatilia BrCond; self-loop haikurekebishwa |
 | 9 | Alloca-in-loop inamaliza rafu | `src/ir/lower.rs` | SIGSEGV kwenye kitanzi cha wakati (rafu inaisha) | Alloca za vigeu vya ndani zinatolewa kwenye block ya sasa badala ya block ya kuingia |

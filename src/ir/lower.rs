@@ -232,7 +232,7 @@ pub fn lower(
         sret_dest: None,
     };
 
-    // Root is the last node allocated; it must be AST_PROGRAMU.
+    // Nodi ya mizizi ndiyo iliyotengwa mwisho; lazima iwe AST_PROGRAMU.
     let root = (ast_idadi - 1) as i32;
     let root_kind = lr.node_aina(root);
     assert_eq!(
@@ -241,8 +241,8 @@ pub fn lower(
         root_kind
     );
 
-    // Pre-pass: register all struct types first, so function parameter types
-    // can resolve struct references via self.types.
+    // Kupita-awali: sajili aina zote za muundo kwanza, ili aina za vigezo vya kazi
+    // ziweze kutatua marejeo ya muundo kupitia self.types.
     let mut child = lr.ast_kushoto[root as usize];
     while child != NO_NODE {
         if lr.node_aina(child) == AST_MUUNDO {
@@ -251,10 +251,10 @@ pub fn lower(
         child = lr.ast_nne[child as usize];
     }
 
-    // Pre-pass 2: collect names of functions that have bodies.  Forward
-    // declarations (no body) whose name appears in this set are redundant
-    // and must be skipped during lowering, otherwise they produce empty
-    // stubs that shadow the real implementations.
+    // Kupita-awali 2: kusanya majina ya kazi zenye miili.  Matangazo
+    // ya mbele (bila mwili) yenye jina linaloonekana katika seti hili ni ya ziada
+    // na lazima yarukwe wakati wa kuteremsha, vinginevyo huunda
+    // vishika nafasi tupu vinavyoficha utekelezaji halisi.
     let mut has_body: std::collections::HashSet<String> = std::collections::HashSet::new();
     let mut child = lr.ast_kushoto[root as usize];
     while child != NO_NODE {
@@ -271,7 +271,7 @@ pub fn lower(
         child = lr.ast_nne[child as usize];
     }
 
-    // Main pass: lower functions and globals (structs already done).
+    // Kupita-kuu: teremsha kazi na vigezo vya ulimwengu (miundo tayari imefanywa).
     let mut child = lr.ast_kushoto[root as usize];
     while child != NO_NODE {
         let kind = lr.node_aina(child);
@@ -286,14 +286,14 @@ pub fn lower(
         child = lr.ast_nne[child as usize];
     }
 
-    // Build module.
+    // Jenga moduli.
     let strings: Vec<IrGlobal> = lr
         .strings
         .iter()
         .enumerate()
         .map(|(i, (_label, bytes))| {
             let name = format!("@str.{}", i);
-            // Append null terminator if not already present.
+            // Ongeza kimalizio cha ncha-tupu ikiwa hakipo tayari.
             let mut data = bytes.clone();
             if data.last() != Some(&0) {
                 data.push(0);
@@ -372,7 +372,7 @@ impl<'a> Lowerer<'a> {
         if len > 0 && data_start + len <= self.ast_pool.len() {
             self.ast_pool[data_start..data_start + len].to_vec()
         } else {
-            // Fallback: treat as null-terminated.
+            // Rudia la urithi: chukua kama ncha-tupu.
             let mut end = off;
             while end < self.ast_pool.len() && self.ast_pool[end] != 0 {
                 end += 1;
@@ -565,7 +565,7 @@ impl<'a> Lowerer<'a> {
             if name_node != NO_NODE {
                 let name = self.read_pool_name(self.ast_jina_off[name_node as usize]);
                 if has_body.contains(&name) {
-                    return; // forward declaration — real definition exists
+                    return; // tangazo la mbele — ufafanuzi halisi upo
                 }
             }
         }
@@ -602,7 +602,7 @@ impl<'a> Lowerer<'a> {
         // -- Jenga kazi ---------------------------------------------------------
         self.func = Function::new(name.clone(), ret_ty.clone(), params.clone());
 
-        // Record the return class.
+        // Rekodi darasa la rudisha.
         let rc = crate::abi::classify_return(&ret_ty);
         self.func.return_class = rc;
         self.func.source_return_ty = ret_ty.clone();
@@ -2005,12 +2005,12 @@ impl<'a> Lowerer<'a> {
     /// ```text
     ///   entry:
     ///     lhs_val = eval(lhs)
-    ///     lhs_bool = lhs_val != 0    (skipped when lhs is already boolean)
+    ///     lhs_bool = lhs_val != 0    (imerukwa wakati lhs tayari ni boolean)
     ///     br lhs_bool ? rhs_blk : merge_blk
     ///
     ///   rhs_blk:
     ///     rhs_val = eval(rhs)
-    ///     rhs_bool = rhs_val != 0    (skipped when rhs is already boolean)
+    ///     rhs_bool = rhs_val != 0    (imerukwa wakati rhs tayari ni boolean)
     ///     br merge_blk
     ///
     ///   merge_blk:
@@ -2020,7 +2020,7 @@ impl<'a> Lowerer<'a> {
         let lhs_node = self.ast_kushoto[node as usize];
         let rhs_node = self.ast_kulia[node as usize];
 
-        // Evaluate left-hand side.
+        // Tathmini upande wa kushoto.
         let (lhs_val, lhs_end) = self.lower_expr_into(lhs_node, blk);
 
         // Badilisha lhs kuwa boolean inapohitajika tu (ulinganisho na shughuli za mantiki
@@ -2067,12 +2067,12 @@ impl<'a> Lowerer<'a> {
     /// ```text
     ///   entry:
     ///     lhs_val = eval(lhs)
-    ///     lhs_bool = lhs_val != 0    (skipped when lhs is already boolean)
+    ///     lhs_bool = lhs_val != 0    (imerukwa wakati lhs tayari ni boolean)
     ///     br lhs_bool ? merge_blk : rhs_blk
     ///
     ///   rhs_blk:
     ///     rhs_val = eval(rhs)
-    ///     rhs_bool = rhs_val != 0    (skipped when rhs is already boolean)
+    ///     rhs_bool = rhs_val != 0    (imerukwa wakati rhs tayari ni boolean)
     ///     br merge_blk
     ///
     ///   merge_blk:
@@ -2082,7 +2082,7 @@ impl<'a> Lowerer<'a> {
         let lhs_node = self.ast_kushoto[node as usize];
         let rhs_node = self.ast_kulia[node as usize];
 
-        // Evaluate left-hand side.
+        // Tathmini upande wa kushoto.
         let (lhs_val, lhs_end) = self.lower_expr_into(lhs_node, blk);
 
         // Badilisha lhs kuwa boolean inapohitajika tu.
@@ -2841,7 +2841,7 @@ mod tests {
             0, 0,
         );
 
-        // Right-hand identifier "x" for assignment
+        // Kitambulisho cha kulia "x" kwa ugawaji
         let id_x_rhs = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, id_x_off);
 
         // ASIMILIA: x = 10
@@ -2852,11 +2852,11 @@ mod tests {
             NO_NODE, NO_NODE, 0, 0,
         );
 
-        // Return: rudisha x
+        // Rudisha: rudisha x
         let id_x_ret = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, id_x_off);
         let ret_stmt = b.node(AST_RUDISHA, id_x_ret, NO_NODE, NO_NODE, NO_NODE, 0, 0);
 
-        // Chain: decl → assign → ret
+        // Msururu: tangazo → ugawaji → rudisha
         b.nne[decl as usize] = assign;
         b.nne[assign as usize] = ret_stmt;
 
@@ -2902,21 +2902,21 @@ mod tests {
         let ret_off = b.pool_name("N32");
         let n32_off = b.pool_name("N32");
 
-        // Param x
+        // Kigezo x
         let jina_x = b.pool_name("x");
         let param_x = b.node(0, NO_NODE, NO_NODE, NO_NODE, NO_NODE, n32_off, jina_x);
 
-        // Literals
+        // Halisi
         let lit1 = b.node(AST_NAMBARI, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 1, 0);
         let lit0 = b.node(AST_NAMBARI, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, 0);
 
-        // Identifier x
+        // Kitambulisho x
         let id_x_off = b.pool_name("x");
         let id_x = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, id_x_off);
 
-        // then: rudisha 1
+        // ndipo: rudisha 1
         let ret1 = b.node(AST_RUDISHA, lit1, NO_NODE, NO_NODE, NO_NODE, 0, 0);
-        // else: rudisha 0
+        // la_sivyo: rudisha 0
         let ret0 = b.node(AST_RUDISHA, lit0, NO_NODE, NO_NODE, NO_NODE, 0, 0);
 
         // kama (x) ... la_sivyo ...
@@ -2947,7 +2947,7 @@ mod tests {
         let f = &module.functions[0];
         assert_eq!(f.name, "kadirifu");
 
-        // Verify a BrCond terminator exists.
+        // Thibitisha kimalizio cha BrCond kipo.
         let has_brcond = f.blocks.iter().any(|blk| {
             matches!(blk.terminator, Terminator::BrCond(_, _, _))
         });
@@ -2988,13 +2988,13 @@ mod tests {
         assert_eq!(module.functions.len(), 1);
         let f = &module.functions[0];
 
-        // Should have BrCond for the while condition.
+        // Inapaswa kuwa na BrCond kwa sharti la wakati.
         let has_brcond = f.blocks.iter().any(|blk| {
             matches!(blk.terminator, Terminator::BrCond(_, _, _))
         });
         assert!(has_brcond, "while loop should produce a BrCond terminator");
 
-        // Should have break block (Br to exit).
+        // Inapaswa kuwa na kizuizi cha vunja (Br kwa exit).
         let has_br = f.blocks.iter().any(|blk| {
             matches!(blk.terminator, Terminator::Br(_))
         });
@@ -3028,7 +3028,7 @@ mod tests {
         assert_eq!(module.functions.len(), 1);
         let f = &module.functions[0];
 
-        // Should contain an Add instruction somewhere.
+        // Inapaswa kuwa na amri ya Add mahali fulani.
         let has_add = f.blocks.iter().any(|blk| {
             blk.instructions.iter().any(|inst| matches!(inst, Instruction::Add(_, _)))
         });
@@ -3074,7 +3074,7 @@ mod tests {
         let name_off = b.pool_name("wita");
         let ret_off = b.pool_name("W0");
 
-        // Callee identifier "chapisha"
+        // Kitambulisho cha mpigiwa "chapisha"
         let jina_chapisha = b.pool_name("chapisha");
         let callee = b.node(
             AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0,
@@ -3129,7 +3129,7 @@ mod tests {
         assert_eq!(module.functions.len(), 1);
         let f = &module.functions[0];
 
-        // AND with short-circuit produces Phi + BrCond + Ne.
+        // NA yenye fupi-hali hutoa Phi + BrCond + Ne.
         let has_phi = f.blocks.iter().any(|blk| {
             blk.instructions.iter().any(|inst| matches!(inst, Instruction::Phi(_, _)))
         });
@@ -3172,7 +3172,7 @@ mod tests {
         assert_eq!(module.functions.len(), 1);
         let f = &module.functions[0];
 
-        // OR with short-circuit produces Phi + BrCond + Ne.
+        // AU yenye fupi-hali hutoa Phi + BrCond + Ne.
         let has_phi = f.blocks.iter().any(|blk| {
             blk.instructions.iter().any(|inst| matches!(inst, Instruction::Phi(_, _)))
         });
@@ -3186,10 +3186,10 @@ mod tests {
 
     #[test]
     fn test_global_variable() {
-        // Global: N32 KIKOMO = 0;
+        // Ulimwengu: N32 KIKOMO = 0;
         let mut b = AstBuilder::new();
         let jina_kikomo = b.pool_name("KIKOMO");
-        // Encoded type for N32: familia=1, upana=32, mshale=0 → (1<<8)|32 = 288
+        // Aina iliyosimbwa kwa N32: familia=1, upana=32, mshale=0 → (1<<8)|32 = 288
         let n32_enc: i32 = 2080; // (1<<11)|(4<<3)|0
 
         let global = b.node(
@@ -3208,8 +3208,7 @@ mod tests {
         let module = lower(&aina, &kushoto, &kulia, &tiga, &nne, &thamani, &jina_off, &pool, idadi);
         assert_eq!(module.functions.len(), 0);
 
-        // Should have at least one global (the user global; string globals may
-        // also be present).
+        // Inapaswa kuwa na angalau kigezo kimoja cha ulimwengu (kigezo cha mtumiaji; vigezo vya mfuatano vinaweza pia kuwepo).
         let user_global = module.globals.iter().find(|g| g.name == "KIKOMO");
         assert!(user_global.is_some(), "module should contain global 'KIKOMO'");
         let g = user_global.unwrap();
@@ -3224,7 +3223,7 @@ mod tests {
         let name_off = b.pool_name("salamu");
         let ret_off = b.pool_name("*N8"); // returning pointer to string
 
-        // String literal "habari"
+        // Halisi ya mfuatano "habari"
         let str_off = b.pool_bytes(b"habari");
         let str_node = b.node(AST_MFUATANO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, str_off);
 
@@ -3243,20 +3242,20 @@ mod tests {
         assert_eq!(module.functions.len(), 1);
         let f = &module.functions[0];
 
-        // Should contain a StringAddr instruction.
+        // Inapaswa kuwa na amri ya StringAddr.
         let has_string_addr = f.blocks.iter().any(|blk| {
             blk.instructions.iter().any(|inst| matches!(inst, Instruction::StringAddr(_)))
         });
         assert!(has_string_addr, "string literal should produce a StringAddr instruction");
 
-        // Module should have a string global.
+        // Moduli inapaswa kuwa na kigezo cha mfuatano cha ulimwengu.
         let has_str_global = module.globals.iter().any(|g| g.is_const && g.bytes.starts_with(b"habari"));
         assert!(has_str_global, "module should contain a string global for 'habari'");
     }
 
     #[test]
     fn test_multiple_functions() {
-        // Two functions: a() and b()
+        // Kazi mbili: a() na b()
         let mut b = AstBuilder::new();
         let w0_off = b.pool_name("W0");
 
@@ -3272,7 +3271,7 @@ mod tests {
             AST_KAZI, name_b, NO_NODE, NO_NODE, NO_NODE,
             w0_off, 0,
         );
-        // Chain a → b as siblings.
+        // Msururu a → b kama ndugu.
         b.nne[func_a as usize] = func_b;
 
         let (aina, kushoto, kulia, tiga, nne, thamani, jina_off, pool, idadi) =
@@ -3287,12 +3286,12 @@ mod tests {
     #[test]
     fn test_sret_classification() {
         // kazi pataNukta(): Nukta{x: D64, y: D64} { rudisha ... }
-        // Nukta with 2 float fields → Direct return (not sret).
+        // Nukta yenye sehemu 2 za float → Rudisha moja kwa moja (si sret).
         let mut b = AstBuilder::new();
         let name_off = b.pool_name("pataNukta");
-        // Named struct type — not a primitive, so from_swa_type returns None,
-        // and we fall back to IrType::Struct with empty fields.
-        // A struct with 0 fields → Direct.
+        // Aina ya muundo yenye jina — si primitive, hivyo from_swa_type inarudisha None,
+        // na tunarudia kwa IrType::Struct yenye sehemu tupu.
+        // Muundo wenye sehemu 0 → Direct.
         let ret_off = b.pool_name("Nukta");
 
         let func_node = b.node(
@@ -3306,14 +3305,14 @@ mod tests {
         let module = lower(&aina, &kushoto, &kulia, &tiga, &nne, &thamani, &jina_off, &pool, idadi);
         assert_eq!(module.functions.len(), 1);
         let f = &module.functions[0];
-        // Empty struct (0 fields) → Direct.
+        // Muundo tupu (sehemu 0) → Direct.
         assert_eq!(f.return_class, IrReturnClass::Direct);
         assert!(f.sret_value_id.is_none());
     }
 
     #[test]
     fn test_node_aina_no_node() {
-        // Unit test for the node_aina helper with NO_NODE sentinel.
+        // Jaribio la kitengo kwa kisaidizi cha node_aina chenye kialamisho NO_NODE.
         let _b = AstBuilder::new();
         let lr = Lowerer {
             ast_aina: &[],
@@ -3375,7 +3374,7 @@ mod tests {
 
     #[test]
     fn test_read_pool_bytes_length_prefixed() {
-        // 4-byte LE length = 5, then 5 bytes "hello"
+        // Urefu wa LE wa baiti 4 = 5, kisha baiti 5 "hello"
         let mut data = vec![5u8, 0, 0, 0];
         data.extend_from_slice(b"hello");
         let lr = Lowerer {
@@ -3407,7 +3406,7 @@ mod tests {
 
     #[test]
     fn test_read_pool_bytes_fallback_null_terminated() {
-        // No length prefix (just null-terminated).
+        // Hakuna kiambishi cha urefu (ncha-tupu tu).
         let data = b"habari\0extra";
         let lr = Lowerer {
             ast_aina: &[],
@@ -3432,11 +3431,11 @@ mod tests {
             global_types: std::collections::HashMap::new(),
             sret_dest: None,
         };
-        // The pool has no length prefix, so the 4 bytes [104, 97, 98, 97] (= "haba")
-        // would be interpreted as a length.  That length is huge, so it falls
-        // back to null-terminated and reads from offset 0.
+        // Dimbwi halina kiambishi cha urefu, kwa hivyo baiti 4 [104, 97, 98, 97] (= "haba")
+        // lingefasiriwa kama urefu.  Urefu huo ni mkubwa, kwa hivyo linarudia
+        // kwa ncha-tupu na kusoma kutoka kukabilisha 0.
         let bytes = lr.read_pool_bytes(0);
-        // Falls back to null-terminated: reads from offset 0 to null at index 6.
+        // Inarudia kwa ncha-tupu: inasoma kutoka kukabilisha 0 hadi ncha-tupu kwenye faharasa 6.
         assert_eq!(bytes, b"habari");
     }
 
@@ -3451,49 +3450,49 @@ mod tests {
         //     rudisha 0;
         // }
         let mut b = AstBuilder::new();
-        // Encoded types
+        // Aina zilizosimbwa
         let n32_enc: i32 = (1 << 11) | (4 << 3) | 0;   // N32
         let n64_enc: i32 = (1 << 11) | (5 << 3) | 0;   // N64
-        let w0_enc: i32 = (5 << 11) | (0 << 3) | 0;     // W0 (not used here)
+        let w0_enc: i32 = (5 << 11) | (0 << 3) | 0;     // W0 (haitumiki hapa)
 
-        // Names
+        // Majina
         let jina_jaribio = b.pool_name("jaribio");
         let jina_n = b.pool_name("n");
         let jina_i = b.pool_name("i");
-        let lit0 = b.pool_name("0");   // not a real lit, just for pool
+        let lit0 = b.pool_name("0");   // si halisi halisi, kwa dimbwi tu
         let lit1 = b.pool_name("1");
 
-        // -- Param n: N64 --
+        // -- Kigezo n: N64 --
         let p_n = b.node(0, NO_NODE, NO_NODE, NO_NODE, NO_NODE, n64_enc, jina_n);
 
-        // -- Body: N64 i = 0; wakati ...; rudisha 0; --
-        // Identifier i
+        // -- Mwili: N64 i = 0; wakati ...; rudisha 0; --
+        // Kitambulisho i
         let id_i_off = jina_i;
         let name_i = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, id_i_off);
 
-        // Literals
+        // Halisi
         let lit_0 = b.node(AST_NAMBARI, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, 0);
         let lit_1 = b.node(AST_NAMBARI, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 1, 0);
 
-        // Type node N64 for declaration
+        // Nodi ya aina N64 kwa tangazo
         let ty_n64 = b.node(0, NO_NODE, NO_NODE, NO_NODE, NO_NODE, n64_enc, 0);
 
-        // Decl: N64 i = 0
+        // Tangazo: N64 i = 0
         let decl = b.node(AST_TANGAZO, name_i, ty_n64, lit_0, NO_NODE, 0, 0);
 
-        // -- wakati body --
-        // Condition: i < n
+        // -- mwili wa wakati --
+        // Sharti: i < n
         let id_i_cond = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, id_i_off);
         let id_n_cond = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_n);
         let cond = b.node(AST_CHINI, id_i_cond, id_n_cond, NO_NODE, NO_NODE, 0, 0);
 
-        // -- if body --
-        // Condition: i == 0
+        // -- mwili wa kama --
+        // Sharti: i == 0
         let id_i_eq = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, id_i_off);
         let if_cond = b.node(AST_SAWA, id_i_eq, lit_0, NO_NODE, NO_NODE, 0, 0);
-        // then: rudisha 1
+        // ndipo: rudisha 1
         let ret1 = b.node(AST_RUDISHA, lit_1, NO_NODE, NO_NODE, NO_NODE, 0, 0);
-        // if stmt
+        // taarifa ya kama
         let if_stmt = b.node(AST_KAMA, if_cond, ret1, NO_NODE, NO_NODE, 0, 0);
 
         // i = i + 1 (ASIMILIA)
@@ -3502,20 +3501,20 @@ mod tests {
         let add_expr = b.node(AST_JUMLISHA, id_i_rhs, lit_1, NO_NODE, NO_NODE, 0, 0);
         let assign = b.node(AST_ASIMILIA, id_i_assign, add_expr, NO_NODE, NO_NODE, 0, 0);
 
-        // Chain if → assign inside while body
+        // Msururu kama → ugawaji ndani ya mwili wa wakati
         b.nne[if_stmt as usize] = assign;
 
-        // while (cond) { body }
+        // wakati (sharti) { mwili }
         let while_node = b.node(AST_WAKATI, cond, NO_NODE, if_stmt, NO_NODE, 0, 0);
 
         // rudisha 0
         let ret0 = b.node(AST_RUDISHA, lit_0, NO_NODE, NO_NODE, NO_NODE, 0, 0);
 
-        // Chain decl → while → ret0
+        // Msururu tangazo → wakati → ret0
         b.nne[decl as usize] = while_node;
         b.nne[while_node as usize] = ret0;
 
-        // Function
+        // Kazi
         let name_f = b.node(AST_KITAMBULISHO, NO_NODE, NO_NODE, NO_NODE, NO_NODE, 0, jina_jaribio);
         let func = b.node(AST_KAZI, name_f, p_n, decl, NO_NODE, n32_enc, 0);
 
@@ -3527,7 +3526,7 @@ mod tests {
         assert_eq!(f.name, "jaribio");
         assert_eq!(f.return_ty, IrType::I32);
 
-        // Verify there's no RetVoid in a non-void function.
+        // Thibitisha hakuna RetVoid katika kazi isiyo tupu.
         let retvoid_blocks: Vec<_> = f.blocks.iter()
             .filter(|blk| matches!(blk.terminator, Terminator::RetVoid))
             .map(|blk| blk.label.as_str())
@@ -3535,7 +3534,7 @@ mod tests {
         assert!(retvoid_blocks.is_empty(),
             "non-void function should not have RetVoid blocks, found: {:?}", retvoid_blocks);
 
-        // Verify it has Ret terminators with values.
+        // Thibitisha ina vimalizio vya Ret vyenye thamani.
         let has_ret_val = f.blocks.iter().any(|blk| {
             matches!(blk.terminator, Terminator::Ret(_))
         });

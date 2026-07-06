@@ -78,7 +78,7 @@ impl std::fmt::Display for FloatWrapper {
 }
 
 // ---------------------------------------------------------------------------
-// Const
+// Thabiti (Const)
 // ---------------------------------------------------------------------------
 
 /// Thamani thabiti ya wakati wa ukusanyaji.
@@ -104,7 +104,7 @@ pub enum Const {
 }
 
 // ---------------------------------------------------------------------------
-// Instruction
+// Amri (Instruction)
 // ---------------------------------------------------------------------------
 
 /// Amri moja ya SSA ndani ya bloku ya msingi.
@@ -200,7 +200,7 @@ pub enum Instruction {
     BuildStruct(Vec<ValueId>),
     ExtractField(ValueId, usize),
 
-    // -- select (ternary) ---------------------------------------------------
+    // -- chagua (pembe) ---------------------------------------------------
     Select(ValueId, ValueId, ValueId),  // (sharti, thamani_kweli, thamani_uwongo)
 
     // -- phi (muunganiko wa SSA) ----------------------------------------------------
@@ -214,7 +214,7 @@ pub enum Instruction {
 }
 
 // ---------------------------------------------------------------------------
-// Terminator
+// Mwishishaji (Terminator)
 // ---------------------------------------------------------------------------
 
 /// Kila bloku ya msingi inaishia na mwishishaji mmoja haswa.
@@ -233,7 +233,7 @@ pub enum Terminator {
 }
 
 // ---------------------------------------------------------------------------
-// IrBlock
+// Bloku ya IR (IrBlock)
 // ---------------------------------------------------------------------------
 
 /// Bloku moja ya msingi: mfuatano wa amri zisizo za mwishishaji zikifuatiwa
@@ -271,7 +271,7 @@ impl IrBlock {
 }
 
 // ---------------------------------------------------------------------------
-// IrGlobal
+// Kigezo cha IR (IrGlobal)
 // ---------------------------------------------------------------------------
 
 /// Kigezo cha kimataifa cha kiwango cha moduli.
@@ -286,7 +286,7 @@ pub struct IrGlobal {
 }
 
 // ---------------------------------------------------------------------------
-// Function
+// Kazi (Function)
 // ---------------------------------------------------------------------------
 
 /// Ufafanuzi kamili wa kazi wa IR.
@@ -364,7 +364,7 @@ impl Function {
 }
 
 // ---------------------------------------------------------------------------
-// Module
+// Moduli (Module)
 // ---------------------------------------------------------------------------
 
 /// Kipashio cha ukusanyaji cha kiwango cha juu.
@@ -404,7 +404,7 @@ impl Module {
 }
 
 // ---------------------------------------------------------------------------
-// IrReturnClass
+// Darasa la Kurejesha IR (IrReturnClass)
 // ---------------------------------------------------------------------------
 
 /// Jinsi thamani ya kurejesha ya kazi inavyopitishwa katika kiwango cha ABI.

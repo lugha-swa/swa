@@ -1,24 +1,24 @@
 husisha { msambazaji.swa }
 
 // ==========================================================
-// mkaguzi.swa — semantic checker (self-hosting milestone 5)
-// Checks for ownership violations, argument count mismatches,
-// and other semantic errors in the parsed AST.
+// mkaguzi.swa -- mkaguzi wa semantiki (hatua muhimu ya 5 ya kujitegemea)
+// Huangalia ukiukaji wa umiliki, kutolingana kwa idadi ya hoja,
+// na makosa mengine ya semantiki kwenye AST iliyochambuliwa.
 // ==========================================================
 
 N32 mkaguzi_makosa = 0;
 
-// Scope tracking for variable declarations
+// Ufuatiliaji wa wigo kwa matamko ya vigeu
 N32 wigo_jina_off[256];
 N32 wigo_aina_enc[256];
 N32 wigo_idadi = 0;
-N32 wigo_vidokezo[16];   // scope start indices for push/pop
+N32 wigo_vidokezo[16];   // fahirisi za mwanzo za wigo kwa sukuma/toa
 N32 wigo_vidokezo_idadi = 0;
 
-// Loop depth for vunja/endelea context checking
+// Kina cha kitanzi kwa ukaguzi wa muktadha wa vunja/endelea
 N32 kitanzi_kina = 0;
 
-// Current function return type (for rudisha checking)
+// Aina ya sasa ya kurudi ya kazi (kwa ukaguzi wa rudisha)
 N32 kazi_ret_enc = 0;
 
 W0 wigo_sukuma() {
@@ -39,7 +39,7 @@ W0 wigo_ongeza(N8* jina, N32 enc) {
     kama (wigo_idadi < 256) {
         wigo_jina_off[wigo_idadi] = ast_kulia[4095];
         wigo_aina_enc[wigo_idadi] = enc;
-        // Copy name to pool
+        // Nakili jina kwenye bwawa
         N32 i = 0;
         wakati (jina[i] != 0) {
             ast_pool[ast_kulia[4095] + i] = jina[i];
@@ -66,7 +66,7 @@ N32 mkaguzi_angalia(N32 mzizi) {
     wigo_idadi = 0;
     wigo_vidokezo_idadi = 0;
     kitanzi_kina = 0;
-    // Walk all functions and check them.
+    // Tembea kazi zote na ukague.
     N32 node = ast_kushoto[mzizi];
     wakati (node != -1) {
         kama (ast_aina[node] == 2) {
@@ -77,7 +77,7 @@ N32 mkaguzi_angalia(N32 mzizi) {
     rudisha mkaguzi_makosa;
 }
 
-// Track which function names exist for arg-count checking.
+// Fuatilia ni majina gani ya kazi yaliyopo kwa ukaguzi wa idadi ya hoja.
 N32 kazi_idadi = 0;
 N8  kazi_jina_pool[2048];
 N32 kazi_jina_pool_wapi = 1;
@@ -88,7 +88,7 @@ W0 mkaguzi_sajili_kazi(N32 kazi_node) {
     kama (kazi_idadi >= 128) { rudisha; }
     N32 name_node = ast_kushoto[kazi_node];
     N8* jina = ast_pool + ast_jina_off[name_node];
-    // Count params
+    // Hesabu vigezo
     N32 pc = 0;
     N32 p = ast_kulia[name_node];
     wakati (p != -1) {
@@ -119,11 +119,11 @@ N32 mkaguzi_tafuta_kazi(N8* jina) {
 }
 
 W0 mkaguzi_kagua_kazi(N32 kazi_node) {
-    // Register this function for arg-count checking.
+    // Sajili kazi hii kwa ukaguzi wa idadi ya hoja.
     mkaguzi_sajili_kazi(kazi_node);
-    // Track return type for rudisha checking.
+    // Fuatilia aina ya kurudi kwa ukaguzi wa rudisha.
     kazi_ret_enc = ast_thamani[kazi_node];
-    // Push function scope and register parameters.
+    // Sukuma wigo wa kazi na usajili vigezo.
     wigo_sukuma();
     N32 p = ast_kulia[kazi_node];
     wakati (p != -1) {
@@ -134,7 +134,7 @@ W0 mkaguzi_kagua_kazi(N32 kazi_node) {
         wigo_ongeza(pjina, penc);
         p = ast_kulia[p];
     }
-    // Check the body.
+    // Kagua mwili.
     N32 body = ast_tiga[kazi_node];
     kama (body != -1) {
         mkaguzi_kagua_taarifa(body);
@@ -166,13 +166,13 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         kitanzi_kina = kitanzi_kina - 1;
         rudisha;
     }
-    kama (aina == 15) {  // KIPINDI (for loop)
-        mkaguzi_kagua_usemi(ast_kushoto[node]);   // init
-        mkaguzi_kagua_usemi(ast_thamani[node]);   // cond
-        mkaguzi_kagua_usemi(ast_tiga[node]);      // step
+    kama (aina == 15) {  // KIPINDI (kitanzi cha kwa)
+        mkaguzi_kagua_usemi(ast_kushoto[node]);   // anzisha
+        mkaguzi_kagua_usemi(ast_thamani[node]);   // hali
+        mkaguzi_kagua_usemi(ast_tiga[node]);      // hatua
         kitanzi_kina = kitanzi_kina + 1;
         wigo_sukuma();
-        mkaguzi_kagua_taarifa(ast_kulia[node]);   // body
+        mkaguzi_kagua_taarifa(ast_kulia[node]);   // mwili
         wigo_toa();
         kitanzi_kina = kitanzi_kina - 1;
         rudisha;
@@ -204,12 +204,12 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         }
         rudisha;
     }
-    kama (aina == 11) {  // TANGAZO (local variable)
+    kama (aina == 11) {  // TANGAZO (kigeu cha ndani)
         N32 var_node = ast_kushoto[node];
         N32 var_enc = ast_thamani[var_node];
         kama (var_enc == 0) { var_enc = ast_thamani[node]; }
         N8* var_jina = ast_pool + ast_jina_off[var_node];
-        // Check for duplicate declaration in current scope
+        // Angalia tangazo rudufu katika wigo wa sasa
         kama (wigo_tafuta(var_jina) >= 0) {
             andika("kosa: kigeu '%s' kimeshatangazwa\n", var_jina);
             mkaguzi_makosa = mkaguzi_makosa + 1;
@@ -218,9 +218,9 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         N32 init_node = ast_kulia[node];
         kama (init_node != -1) {
             N32 init_enc = mkaguzi_kagua_usemi(init_node);
-            // Check init type matches declaration type
+            // Angalia kama aina ya kianzio inalingana na aina ya tangazo
             kama (init_enc >= 0 && var_enc != 0) {
-                N32 var_base = var_enc & 254;  // strip pointer bit
+                N32 var_base = var_enc & 254;  // ondoa biti ya kielekezi
                 N32 init_base = init_enc & 254;
                 kama (var_base != init_base && init_enc != 0) {
                     andika("kosa: aina ya kianzio hailingani na tangazo la '%s'\n", var_jina);
@@ -230,7 +230,7 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         }
         rudisha;
     }
-    kama (aina == 37) {  // ASIMILIA (assignment)
+    kama (aina == 37) {  // ASIMILIA (ugawaji)
         N32 lhs_node = ast_kushoto[node];
         N32 rhs_node = ast_kulia[node];
         N32 lhs_enc = mkaguzi_kagua_usemi(lhs_node);
@@ -255,11 +255,11 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         mkaguzi_kagua_taarifa(ast_nne[node]);
         rudisha;
     }
-    kama (aina == 8) {  // WITO (function call)
+    kama (aina == 8) {  // WITO (wito wa kazi)
         N32 name_node = ast_kushoto[node];
         kama (name_node != -1) {
             N8* jina = ast_pool + ast_jina_off[name_node];
-            // Check arguments
+            // Angalia hoja
             N32 a = ast_kulia[name_node];
             wakati (a != -1) {
                 mkaguzi_kagua_usemi(a);
@@ -297,7 +297,7 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         rudisha;
     }
 
-    // Walk siblings
+    // Tembea ndugu
     mkaguzi_kagua_taarifa(ast_nne[node]);
 }
 
@@ -306,19 +306,19 @@ N32 mkaguzi_kagua_usemi(N32 node) {
 
     N32 aina = ast_aina[node];
 
-    // Integer literal
+    // Halisi ya nambari kamili
     kama (aina == 4) {
         N32 val = ast_thamani[node];
-        // Determine width from value (default i32)
+        // Amua upana kutoka kwa thamani (i32 chaguo-msingi)
         rudisha (1 << 8) | 32;
     }
 
-    // Identifier
+    // Kitambulisho
     kama (aina == 5) {
         N8* jina = ast_pool + ast_jina_off[node];
         N32 enc = wigo_tafuta(jina);
         kama (enc < 0) {
-            // Check globals
+            // Angalia vigeu vya ulimwengu
             N32 g = 0;
             wakati (g < global_idadi) {
                 N8* gj = global_jina_pool + global_jina_off[g];
@@ -327,19 +327,19 @@ N32 mkaguzi_kagua_usemi(N32 node) {
             }
         }
         kama (enc < 0) {
-            // Check function names (function pointers)
+            // Angalia majina ya kazi (viashiria vya kazi)
             N32 pc = mkaguzi_tafuta_kazi(jina);
-            kama (pc >= 0) { enc = 1; }  // function pointer
+            kama (pc >= 0) { enc = 1; }  // kiashiria cha kazi
         }
         rudisha enc;
     }
 
-    // Binary ops — check operand type compatibility
+    // Oparesheni jozi — angalia utangamano wa aina za operesheni
     N32 ni_binary = 0;
     kama (aina >= 6) { kama (aina <= 25) { ni_binary = 1; } }
     kama (aina >= 31) { kama (aina <= 32) { ni_binary = 1; } }
     kama (aina >= 39) { kama (aina <= 43) { ni_binary = 1; } }
-    kama (aina == 8) { ni_binary = 0; }  // WITO handled separately above
+    kama (aina == 8) { ni_binary = 0; }  // WITO limehudumiwa tofauti hapo juu
     kama (ni_binary) {
         N32 lhs = mkaguzi_kagua_usemi(ast_kushoto[node]);
         N32 rhs = mkaguzi_kagua_usemi(ast_kulia[node]);
@@ -360,7 +360,7 @@ N32 mkaguzi_kagua_usemi(N32 node) {
         rudisha lhs;
     }
 
-    // Function call
+    // Wito wa kazi
     kama (aina == 8) {
         N32 name_node = ast_kushoto[node];
         kama (name_node != -1) {
@@ -372,41 +372,41 @@ N32 mkaguzi_kagua_usemi(N32 node) {
                 j = j + 1;
             }
         }
-        rudisha (1 << 8) | 32;  // default i32
+        rudisha (1 << 8) | 32;  // i32 chaguo-msingi
     }
 
-    // Unary ops
-    kama (aina == 7) {  // TOFAUTI (negate)
+    // Oparesheni unari
+    kama (aina == 7) {  // TOFAUTI (kukanusha)
         N32 op = mkaguzi_kagua_usemi(ast_kulia[node]);
         rudisha op;
     }
-    kama (aina == 28) {  // SI (not)
+    kama (aina == 28) {  // SI (si)
         mkaguzi_kagua_usemi(ast_kushoto[node]);
-        rudisha (4 << 8) | 1;  // B1 (bool)
+        rudisha (4 << 8) | 1;  // B1 (boole)
     }
 
-    // String literal
+    // Halisi ya kamba
     kama (aina == 40) {
-        rudisha 1;  // ptr (N8*)
+        rudisha 1;  // kielekezi (N8*)
     }
 
-    // Array subscript
+    // Faharasa ya safu
     kama (aina == 29) {  // TAJA
         N32 base = mkaguzi_kagua_usemi(ast_kushoto[node]);
         mkaguzi_kagua_usemi(ast_kulia[node]);
-        // Remove pointer bit to get element type
+        // Ondoa biti ya kielekezi kupata aina ya kipengele
         N32 base_no_ptr = base & 254;
         rudisha base_no_ptr;
     }
 
-    // Field access
+    // Ufikiaji wa sehemu
     kama (aina == 33) {  // SEHEMU_DOT
         mkaguzi_kagua_usemi(ast_kushoto[node]);
-        // Look up field type
+        // Tafuta aina ya sehemu
         N32 field_node = ast_kulia[node];
         N32 fenc = ast_thamani[field_node];
         kama (fenc != 0) { rudisha fenc; }
-        rudisha (1 << 8) | 32;  // default i32
+        rudisha (1 << 8) | 32;  // i32 chaguo-msingi
     }
     kama (aina == 34) {  // SEHEMU_MSHALE
         mkaguzi_kagua_usemi(ast_kushoto[node]);
@@ -416,7 +416,7 @@ N32 mkaguzi_kagua_usemi(N32 node) {
         rudisha (1 << 8) | 32;
     }
 
-    // Default: walk children and return unknown
+    // Chaguo-msingi: tembea watoto na rudisha haijulikani
     mkaguzi_kagua_usemi(ast_kushoto[node]);
     mkaguzi_kagua_usemi(ast_kulia[node]);
     mkaguzi_kagua_usemi(ast_tiga[node]);

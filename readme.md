@@ -30,7 +30,7 @@ hesabu_na_onyesha(15, 7);
 - **Aina 25 za nambari** -- N8 hadi N128, A8 hadi A128, D16 hadi D80, B1 hadi B64, W0 hadi W64
 - **Kumbukumbu ya moja kwa moja** -- tenga, achilia na badili kumbukumbu wewe mwenyewe, hakuna ukusanyaji taka
 - **ABI thabiti** -- Swa ABI v1.0 kwa mwingiliano wa lugha
-- **Hali ya sasa**: Majaribio 173 yanapita (144 ya maktaba + 28 ya ujumuishaji + 1 wa nyaraka). Alloca-in-loop imerekebishwa. K6 (kujikusanya kamili) inapita.
+- **Hali ya sasa**: Majaribio 174 yanapita (145 ya maktaba + 28 ya ujumuishaji + 1 wa nyaraka). Alloca-in-loop imerekebishwa. K6 (kujikusanya kamili) inapita. codegen.swa native x86-64 backend inajengwa.
 
 ## Muundo wa Mradi
 
@@ -49,7 +49,7 @@ hesabu_na_onyesha(15, 7);
 
 ```sh
 cargo build --release
-cargo test          # Majaribio 173: 144 ya maktaba + 28 ya ujumuishaji + 1 wa nyaraka
+cargo test          # Majaribio 174: 145 ya maktaba + 28 ya ujumuishaji + 1 wa nyaraka
 ```
 
 ## Matumizi
@@ -75,7 +75,7 @@ Lengo ni kuondoa utegemezi wa Rust na kuwa na mkusanyaji ulioandikwa kwa Swa pek
 
 | Kipimo | Thamani |
 |--------|---------|
-| Majaribio | 173/173 [PASS] |
+| Majaribio | 174/174 [PASS] |
 | Kujikusanya (K6) | Inapita [PASS] |
 | Mkusanyaji wa Rust | Inajenga bila hitilafu [PASS] |
 | Mchanganuzi wa Swa | Vipengele vyote vya lugha [PASS] |

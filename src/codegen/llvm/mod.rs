@@ -1148,7 +1148,7 @@ fn lower_instruction(
                     free_fn,
                     args.as_ptr() as *mut LLVMValueRef,
                     1,
-                    c_str("").as_ptr(), // void call uses empty name
+                    c_str("").as_ptr(), // wito void hutumia jina tupu
                 )
             }
 
@@ -1317,7 +1317,7 @@ fn lower_instruction(
                     LLVMStructSetBody(struct_ty, std::ptr::null_mut(), 0, 0);
                 }
 
-                // 3. Alloca.
+                // 3. Tenganisha nafasi (alloca).
                 let alloca =
                     LLVMBuildAlloca(builder, struct_ty, c_str("struct_alloca").as_ptr());
 
@@ -1440,7 +1440,7 @@ fn lower_instruction(
                 );
 
                 let name = if inferred_ret_ty == LLVMVoidType() {
-                    c_str("") // empty name for void calls
+                    c_str("") // jina tupu kwa wito void
                 } else {
                     c_str("call")
                 };
@@ -1599,8 +1599,8 @@ fn lower_terminator(
 
 /// Ramani [`IrType`] kwa [`LLVMTypeRef`] yake inayolingana.
 ///
-/// Struct types are looked up in `struct_types`, which must have been
-/// populated by the two-pass declaration in [`LlvmBackend::compile`].
+/// Aina za muundo hutafutwa kwenye `struct_types`, ambayo lazima iwe
+/// imejazwa na utangazaji wa kupita-mbili katika [`LlvmBackend::compile`].
 fn ir_type_to_llvm(
     ty: &IrType,
     struct_types: &HashMap<String, LLVMTypeRef>,
@@ -2110,7 +2110,7 @@ mod tests {
         f.blocks[entry.0].push(Instruction::Store(ValueId(0), ValueId(1)));
         // Pakia kutoka alloca (matokeo Load ni ValueId(3); matokeo Store ni tupu/ilirukwa).
         f.blocks[entry.0].push(Instruction::Load(IrType::I64, ValueId(1)));
-        f.blocks[entry.0].terminator = Terminator::Ret(ValueId(3)); // Load result
+        f.blocks[entry.0].terminator = Terminator::Ret(ValueId(3)); // matokeo ya Load
 
         m.push_function(f);
         let result = b.compile(&m);
@@ -2147,7 +2147,7 @@ mod tests {
         f.blocks[entry.0].push(Instruction::Alloca(IrType::I64));
         f.blocks[entry.0].push(Instruction::Store(ValueId(0), ValueId(1)));
         f.blocks[entry.0].push(Instruction::Load(IrType::I64, ValueId(1)));
-        f.blocks[entry.0].terminator = Terminator::Ret(ValueId(3)); // Load result
+        f.blocks[entry.0].terminator = Terminator::Ret(ValueId(3)); // matokeo ya Load
 
         m.push_function(f);
         // Thibitisha ukusanyaji unafanikiwa bila kuendesha uboreshaji
@@ -2187,7 +2187,7 @@ mod tests {
         let c1 = f.intern_const(Const::Int(10));
         let c2 = f.intern_const(Const::Int(20));
         f.blocks[entry.0].push(Instruction::Add(c1, c2));
-        f.blocks[entry.0].terminator = Terminator::Ret(ValueId(2)); // Add result
+        f.blocks[entry.0].terminator = Terminator::Ret(ValueId(2)); // matokeo ya Add
 
         m.push_function(f);
         let result = b.compile(&m);
@@ -2216,7 +2216,7 @@ mod tests {
 
         let size = f.intern_const(Const::Int(64));
         f.blocks[entry.0].push(Instruction::HeapAlloc(size));
-        f.blocks[entry.0].terminator = Terminator::Ret(ValueId(1)); // HeapAlloc result
+        f.blocks[entry.0].terminator = Terminator::Ret(ValueId(1)); // matokeo ya HeapAlloc
 
         m.push_function(f);
         let result = b.compile(&m);
@@ -2310,8 +2310,8 @@ mod tests {
 
         let c1 = f.intern_const(Const::Int(5));
         let c2 = f.intern_const(Const::Int(10));
-        f.blocks[entry.0].push(Instruction::LtS(c1, c2));     // i1 result
-        f.blocks[entry.0].push(Instruction::Zext(ValueId(2), IrType::I32)); // zext to i32
+        f.blocks[entry.0].push(Instruction::LtS(c1, c2));     // matokeo ya i1
+        f.blocks[entry.0].push(Instruction::Zext(ValueId(2), IrType::I32)); // zext hadi i32
         f.blocks[entry.0].terminator = Terminator::Ret(ValueId(3));
 
         m.push_function(f);
@@ -2560,7 +2560,7 @@ mod tests {
         f.entry = entry;
 
         f.blocks[entry.0].push(Instruction::StringAddr("my_str".into()));
-        f.blocks[entry.0].terminator = Terminator::Ret(ValueId(0)); // StringAddr result
+        f.blocks[entry.0].terminator = Terminator::Ret(ValueId(0)); // matokeo ya StringAddr
 
         m.push_function(f);
         let result = b.compile(&m);
