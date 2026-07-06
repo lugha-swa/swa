@@ -1,18 +1,18 @@
-//! Swa intermediate representation — instructions, blocks, functions, and
-//! the module container.
+//! Uwakilishi wa kati wa Swa — amri, bloku, kazi, na
+//! chombo cha moduli.
 //!
-//! ## Top-level types
+//! ## Aina za kiwango cha juu
 //!
-//! | Type             | Role                                       |
-//! |------------------|--------------------------------------------|
-//! | `Module`         | Whole compilation unit                     |
-//! | `Function`       | One Swa function (or global initialiser)   |
-//! | `IrBlock`        | A basic block inside a function            |
-//! | `Instruction`    | One SSA operation with operands            |
-//! | `Const`          | Compile-time constant value                |
-//! | `Terminator`     | Block-ending control-flow transfer         |
-//! | `IrBuilder`      | Convenience builder for populating blocks  |
-//! | `IrReturnClass`  | How a struct-return is passed (direct/sret)|
+//! | Aina             | Jukumu                                      |
+//! |------------------|---------------------------------------------|
+//! | `Module`         | Kipashio kizima cha ukusanyaji              |
+//! | `Function`       | Kazi moja ya Swa (au kianzishi cha ulimwengu)|
+//! | `IrBlock`        | Bloku ya msingi ndani ya kazi               |
+//! | `Instruction`    | Operesheni moja ya SSA yenye viendeshwa     |
+//! | `Const`          | Thamani thabiti ya wakati wa ukusanyaji     |
+//! | `Terminator`     | Uhamisho wa udhibiti unaoishia bloku        |
+//! | `IrBuilder`      | Mjenzi wa urahisi kwa kujaza bloku          |
+//! | `IrReturnClass`  | Jinsi struct-return inavyopitishwa (direct/sret)|
 
 pub mod types;
 pub mod lower;
@@ -21,28 +21,28 @@ use std::collections::HashMap;
 use types::IrType;
 
 // ---------------------------------------------------------------------------
-// Newtype wrappers
+// Vifungashio vya Newtype
 // ---------------------------------------------------------------------------
 
-/// Opaque identifier for a basic block within a function.
+/// Kitambulishi kisicho wazi cha bloku ya msingi ndani ya kazi.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct BlockId(pub usize);
 
-/// Opaque identifier for an SSA value (instruction result, parameter, or
-/// constant) within a function.
+/// Kitambulishi kisicho wazi cha thamani ya SSA (matokeo ya amri, kigezo, au
+/// thabiti) ndani ya kazi.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ValueId(pub usize);
 
 // ---------------------------------------------------------------------------
-// FloatWrapper — lets us store `f64` inside `Const` even though `f64` is not
-// `Eq` / `Hash` by default.
+// FloatWrapper — inaturuhusu kuhifadhi `f64` ndani ya `Const` ingawa `f64` si
+// `Eq` / `Hash` kwa chaguo-msingi.
 // ---------------------------------------------------------------------------
 
-/// A newtype over `f64` that provides `Eq` and `Hash` via bitwise comparison
-/// of the underlying IEEE-754 representation.
+/// Newtype juu ya `f64` inayotoa `Eq` na `Hash` kwa kulinganisha bitwise
+/// ya uwakilishi wa msingi wa IEEE-754.
 ///
-/// Two NaN representations **are** considered equal (they compare equal on
-/// their bits), which is the desired behaviour for IR constant identity.
+/// Uwakilishi mbili za NaN **zinachukuliwa kuwa sawa** (zinalingana kwenye
+/// biti zake), ambalo ni tabia inayotakikana kwa utambulisho thabiti wa IR.
 #[derive(Debug, Clone, Copy)]
 pub struct FloatWrapper(pub f64);
 

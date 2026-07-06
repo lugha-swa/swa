@@ -1,19 +1,21 @@
-//! LLVM code generation backend for the Swa compiler.
+//! Nyuma ya kutengeneza msimbo wa LLVM kwa mkusanyaji Swa.
 //!
-//! Lowers Swa IR (from `crate::ir`) to LLVM IR and emits native object files.
-//! Uses hand-written FFI bindings to the LLVM 18.1 C API from [`ffi`].
+//! Huteremsha Swa IR (kutoka `crate::ir`) hadi LLVM IR na kutoa faili za vitu
+//! asilia. Hutumia vifungo vya FFI vilivyoandikwa kwa mkono kwa API ya C ya
+//! LLVM 18.1 kutoka [`ffi`].
 //!
-//! ## Architecture
+//! ## Usanifu
 //!
-//! 1. [`LlvmBackend::compile`] translates an entire [`IrModule`] into an
-//!    [`LLVMModuleRef`], which can then be emitted to an object file via
+//! 1. [`LlvmBackend::compile`] hutafsiri [`IrModule`] nzima hadi
+//!    [`LLVMModuleRef`], ambayo inaweza kutolewa kwa faili ya kitu kupitia
 //!    [`LlvmBackend::emit_object`].
-//! 2. [`lower_function`] walks each IR function and produces LLVM basic blocks
-//!    and instructions using the LLVM builder API.
-//! 3. [`lower_instruction`] is the ~600-line match on every [`Instruction`]
-//!    variant — the heart of the backend.
-//! 4. Struct types are declared in a **two-pass** fashion: first as opaque named
-//!    structs, then with bodies set, so that nested references resolve correctly.
+//! 2. [`lower_function`] hutembea kila kazi ya IR na kutoa vizuizi vya msingi
+//!    vya LLVM na amri kwa kutumia API ya kijenzi ya LLVM.
+//! 3. [`lower_instruction`] ni mechi ya takriban mistari 600 kwa kila lahaja
+//!    ya [`Instruction`] — kiini cha nyuma.
+//! 4. Aina za muundo zinatangazwa kwa mtindo wa **kupita mara mbili**:
+//!    kwanza kama miundo yenye majina isiyo wazi, kisha kwa miili
+//!    iliyowekwa, ili marejeo yaliyowekwa ndani yasuluhishe kwa usahihi.
 
 pub mod ffi;
 
@@ -29,45 +31,46 @@ use crate::ir::{BlockId, Const, Function, Module as IrModule, Terminator, ValueI
 use self::ffi::*;
 
 // ---------------------------------------------------------------------------
-// One-time LLVM initialisation
+// Uanzishaji wa LLVM mara moja
 // ---------------------------------------------------------------------------
 
-/// Tracks whether the X86 target support has been initialised.
+/// Hufuatilia kama usaidizi wa lengwa la X86 umeanzishwa.
 static LLVM_INIT: OnceLock<usize> = OnceLock::new();
 
 // ---------------------------------------------------------------------------
 // LlvmBackend
 // ---------------------------------------------------------------------------
 
-/// The LLVM code generation backend.
+/// Nyuma ya kutengeneza msimbo wa LLVM.
 ///
-/// Holds a reference to the global LLVM context.  The context is process-wide
-/// (a singleton) so there is no per-backend teardown — the `Drop` impl is a
-/// no-op.
+/// Inashikilia kumbukumbu ya muktadha wa LLVM wa kimataifa. Muktadha
+/// ni wa mchakato mzima (moja tu) kwa hivyo hakuna uondoaji wa
+/// nyuma mmoja mmoja — utekelezaji wa `Drop` haufanyi chochote.
 ///
-/// The `opt_level` field controls the code-generation optimisation level passed
-/// to the LLVM target machine (default: `None` / O0).
+/// Sehemu ya `opt_level` inadhibiti kiwango cha uboreshaji wa
+/// kutengeneza msimbo kinachotumwa kwa mashine lengwa ya LLVM
+/// (cha kawaida: `None` / O0).
 pub struct LlvmBackend {
     context: LLVMContextRef,
     opt_level: LLVMCodeGenOptLevel,
 }
 
 impl LlvmBackend {
-    // -- construction ---------------------------------------------------------
+    // -- ujenzi -------------------------------------------------------------
 
-    /// Create a new LLVM backend, initialising target support on first call.
+    /// Unda nyuma mpya ya LLVM, ukianzisha usaidizi wa lengwa kwenye wito wa kwanza.
     pub fn new() -> Self {
         let context = Self::get_context();
         Self { context, opt_level: LLVMCodeGenOptLevel::None }
     }
 
-    /// Set the code-generation optimisation level (builder pattern).
+    /// Weka kiwango cha uboreshaji wa kutengeneza msimbo (muundo wa kijenzi).
     pub fn with_opt_level(mut self, level: LLVMCodeGenOptLevel) -> Self {
         self.opt_level = level;
         self
     }
 
-    /// Return the global LLVM context, initialising common targets once.
+    /// Rudisha muktadha wa LLVM wa kimataifa, ukianzisha malengo ya kawaida mara moja.
     fn get_context() -> LLVMContextRef {
         LLVM_INIT.get_or_init(|| {
             unsafe {
@@ -77,7 +80,7 @@ impl LlvmBackend {
                 LLVMInitializeX86TargetMC();
                 LLVMInitializeX86AsmPrinter();
                 LLVMInitializeX86AsmParser();
-                // ARM (32-bit)
+                // ARM (biti 32)
                 LLVMInitializeARMTargetInfo();
                 LLVMInitializeARMTarget();
                 LLVMInitializeARMTargetMC();
@@ -101,23 +104,23 @@ impl LlvmBackend {
         unsafe { LLVMGetGlobalContext() }
     }
 
-    // -- top-level compilation entry points -----------------------------------
+    // -- sehemu za kuingilia za ukusanyaji wa kiwango cha juu -----------------
 
-    /// Compile an IR module and emit an object file to `output_path`.
+    /// Sanya moduli ya IR na toa faili ya kitu kwa `output_path`.
     pub fn compile_to_file(
         &self,
         ir_module: &IrModule,
         output_path: &Path,
     ) -> Result<(), Vec<Diagnostic>> {
         let llvm_module = self.compile(ir_module)?;
-        // Run optimisation passes before emission if enabled.
+        // Endesha kupita za uboreshaji kabla ya utoaji kama imewezeshwa.
         self.optimize_module(llvm_module);
         self.emit_object(llvm_module, output_path)
     }
 
-    /// Parse LLVM IR text and emit an object file to `output_path`.
+    /// Changanua maandishi ya LLVM IR na toa faili ya kitu kwa `output_path`.
     ///
-    /// This is a convenience for tools that already produce textual LLVM IR.
+    /// Hii ni urahisisho kwa zana ambazo tayari hutoa maandishi ya LLVM IR.
     pub fn compile_ll(
         &self,
         ll_text: &str,
@@ -143,8 +146,8 @@ impl LlvmBackend {
 
             let failed = LLVMParseIRInContext(self.context, mem_buf, &mut out_module, &mut error);
 
-            // LLVM 22 disposes the memory buffer inside LLVMParseIRInContext.
-            // Do NOT call LLVMDisposeMemoryBuffer here — it would double-free.
+            // LLVM 22 hutupa bafa ya kumbukumbu ndani ya LLVMParseIRInContext.
+            // USIITE LLVMDisposeMemoryBuffer hapa — ingesababisha kutoa mara mbili.
 
             if failed != 0 {
                 let msg = if error.is_null() {
@@ -157,7 +160,7 @@ impl LlvmBackend {
                 return Err(vec![Diagnostic::error(msg, SourceSpan::point(0, 0))]);
             }
 
-            // Run optimisation passes before emission if enabled.
+            // Endesha kupita za uboreshaji kabla ya utoaji kama imewezeshwa.
             self.optimize_module(out_module);
             let result = self.emit_object(out_module, output_path);
             LLVMDisposeModule(out_module);
@@ -165,21 +168,22 @@ impl LlvmBackend {
         }
     }
 
-    /// Compile an IR module to an LLVM module.
+    /// Sanya moduli ya IR hadi moduli ya LLVM.
     ///
-    /// This is the main compilation pipeline:
+    /// Huu ndio mstari mkuu wa ukusanyaji:
     ///
-    /// 1. Create an LLVM module and set the target triple.
-    /// 2. Two-pass struct declaration (opaque first, then bodies).
-    /// 3. Declare global data (strings, typed arrays, scalars).
-    /// 4. Pre-declare libc helper functions (malloc, free, printf).
-    /// 5. Lower functions, processing `main` last so callees are defined first.
-    /// 6. Verify the module.
+    /// 1. Unda moduli ya LLVM na weka tatu ya lengwa.
+    /// 2. Tangazo la muundo kwa kupita mara mbili (isiyo wazi kwanza, kisha miili).
+    /// 3. Tangaza data ya ulimwengu (nyuzi, safu zilizopigwa chapa, sajili).
+    /// 4. Tangaza mapema kazi saidizi za maktabac (malloc, free, printf).
+    /// 5. Teremsha kazi, ukichakata `main` mwisho ili watoa huduma wafafanuliwe kwanza.
+    /// 6. Hakiki moduli.
     ///
-    /// Returns the LLVM module on success, or a list of diagnostics on failure.
+    /// Inarudisha moduli ya LLVM kwenye mafanikio, au orodha ya utambuzi kwenye
+    /// kushindwa.
     pub fn compile(&self, ir_module: &IrModule) -> Result<LLVMModuleRef, Vec<Diagnostic>> {
         unsafe {
-            // -- 1. Create LLVM module -----------------------------------------
+            // -- 1. Unda moduli ya LLVM ----------------------------------------
             let name_c = c_str(&ir_module.name);
             let module = LLVMModuleCreateWithName(name_c.as_ptr());
             if module.is_null() {
@@ -189,9 +193,9 @@ impl LlvmBackend {
                 )]);
             }
 
-            // Set target triple.  On Windows we may get the MSVC triple from
-            // LLVM, but the GNU linker (MinGW) is the one available.  Force
-            // the GNU triple so linking succeeds.
+            // Weka tatu ya lengwa. Kwenye Windows tunaweza kupata tatu ya MSVC
+            // kutoka LLVM, lakini kiunganishi cha GNU (MinGW) ndicho kinachopatikana.
+            // Lazimisha tatu ya GNU ili kuunganisha kufanikiwe.
             let triple = default_target_triple();
             let triple = if triple.contains("windows-msvc") {
                 "x86_64-pc-windows-gnu".to_string()
@@ -201,10 +205,10 @@ impl LlvmBackend {
             let triple_c = CString::new(triple.as_str()).unwrap();
             LLVMSetTarget(module, triple_c.as_ptr());
 
-            // -- 2. Two-pass struct declaration --------------------------------
+            // -- 2. Tangazo la muundo kwa kupita mara mbili ---------------------
             let mut struct_types: HashMap<String, LLVMTypeRef> = HashMap::new();
 
-            // First pass: create opaque named structs.
+            // Kupita kwa kwanza: unda miundo yenye majina isiyo wazi.
             for (name, _ty) in &ir_module.types {
                 if matches!(_ty, IrType::Struct { .. }) {
                     let name_c = c_str(name);
@@ -213,7 +217,7 @@ impl LlvmBackend {
                 }
             }
 
-            // Second pass: set struct bodies (now all nested references exist).
+            // Kupita kwa pili: weka miili ya miundo (sasa marejeo yote yaliyowekwa ndani yapo).
             for (name, ty) in &ir_module.types {
                 if let IrType::Struct { fields, .. } = ty {
                     if let Some(&llvm_struct) = struct_types.get(name) {
@@ -226,22 +230,22 @@ impl LlvmBackend {
                                 llvm_struct,
                                 field_types.as_mut_ptr(),
                                 field_types.len() as u32,
-                                0, // not packed
+                                0, // haijabandikwa
                             );
                         } else {
-                            // Empty struct: set body with zero elements.
+                            // Muundo tupu: weka mwili na vipengele sifuri.
                             LLVMStructSetBody(llvm_struct, std::ptr::null_mut(), 0, 0);
                         }
                     }
                 }
             }
 
-            // -- 3. Declare global data ----------------------------------------
+            // -- 3. Tangaza data ya ulimwengu -----------------------------------
             for global in &ir_module.globals {
                 let is_string_like = !global.bytes.is_empty()
                     && global.bytes.last() == Some(&0)
-                    // No null bytes before the final position — it's a real
-                    // C string, not an arbitrary byte array with nulls.
+                    // Hakuna baiti tupu kabla ya nafasi ya mwisho — ni kamba halisi
+                    // ya C, si safu ya baiti za kiholela zenye tupu.
                     && !global.bytes[..global.bytes.len()-1].contains(&0)
                     && global.bytes.iter().all(|&b| {
                         b == 0 || b == b'\n' || b == b'\t' || b == b'\r'
@@ -253,9 +257,9 @@ impl LlvmBackend {
                     global.bytes.len()
                 };
 
-                // Determine the correct LLVM type for this global.
-                // For string globals, use [N x i8] array type.
-                // For typed globals (arrays, structs), use ir_type_to_llvm.
+                // Amua aina sahihi ya LLVM kwa ulimwengu huu.
+                // Kwa vitu vya ulimwengu vya kamba, tumia aina ya safu [N x i8].
+                // Kwa vitu vya ulimwengu vilivyopigwa chapa (safu, miundo), tumia ir_type_to_llvm.
                 let is_scalar = matches!(global.ty,
                     IrType::I8 | IrType::I16 | IrType::I32 | IrType::I64 |
                     IrType::A8 | IrType::A16 | IrType::A32 | IrType::A64 | IrType::A128 |
@@ -285,9 +289,9 @@ impl LlvmBackend {
                 let init = if global.bytes.is_empty() || all_zero {
                     LLVMConstNull(ty)
                 } else if !is_string_like && matches!(global.bytes.len(), 1 | 2 | 4 | 8) {
-                    // Small non-string globals with integer type: create an
-                    // integer constant.  Other sizes (3,5,6,7) get array type
-                    // and must use ConstArray below.
+                    // Vitu vidogo vya ulimwengu visivyo vya kamba vilivyo na aina namba:
+                    // unda thabiti namba. Ukubwa mwingine (3,5,6,7) hupata aina safu
+                    // na lazima utumie ConstArray hapa chini.
                     let mut val: u64 = 0;
                     for (i, &b) in global.bytes.iter().enumerate() {
                         val |= (b as u64) << (i * 8);
@@ -314,11 +318,11 @@ impl LlvmBackend {
                 }
             }
 
-            // -- 4. Pre-declare ALL functions (libc + user) ---------------------
+            // -- 4. Tangaza mapema kazi ZOTE (maktabac + mtumiaji) -------------
             pre_declare_libc(module);
 
-            // Forward-declare every user function so forward references resolve.
-            // Also save their return types for the call-instruction fallback path.
+            // Tangaza mapema kila kazi ya mtumiaji ili marejeo ya mbele yasuluhishe.
+            // Pia hifadhi aina zao za rudisha kwa njia mbadala ya amri ya wito.
             let mut fn_return_types: HashMap<String, LLVMTypeRef> = HashMap::new();
             for func in &ir_module.functions {
                 let name_c = c_str(&func.name);
@@ -338,22 +342,22 @@ impl LlvmBackend {
                     LLVMAddFunction(module, name_c.as_ptr(), fn_ty);
                     fn_return_types.insert(func.name.clone(), llvm_ret);
                 } else {
-                    // Function already declared (e.g. libc) — still record its return type.
+                    // Kazi tayari imetangazwa (kwa mfano maktabac) — bado rekodi aina yake ya rudisha.
                     let llvm_ret = ir_type_to_llvm(&func.return_ty, &struct_types);
                     fn_return_types.insert(func.name.clone(), llvm_ret);
                 }
             }
 
-            // -- 5. Order function lowering: process main LAST -----------------
-            // Collect function indices, putting main at the end.
+            // -- 5. Panga upya uteremshaji wa kazi: chakata main MWISHO -------
+            // Kusanya fahirisi za kazi, ukiweka main mwishoni.
             let mut ordered_indices: Vec<usize> = (0..ir_module.functions.len()).collect();
-            // Find the index of "main" if it exists, move it to last.
+            // Tafuta fahirisi ya "main" ikiwa ipo, ihamishe mwishoni.
             if let Some(main_idx) = ir_module.functions.iter().position(|f| f.name == "main") {
                 ordered_indices.retain(|&i| i != main_idx);
                 ordered_indices.push(main_idx);
             }
 
-            // Lower each function.
+            // Teremsha kila kazi.
             for idx in ordered_indices {
                 let func = &ir_module.functions[idx];
                 if let Err(diags) = lower_function(module, func, &struct_types, &fn_return_types) {
@@ -362,9 +366,10 @@ impl LlvmBackend {
                 }
             }
 
-            // -- 6. FastISel block-dropping check -------------------------------
-            // LLVM's FastISel silently drops basic blocks beyond ~50 per function
-            // at O0.  Warn if any function significantly exceeds a safety margin.
+            // -- 6. Ukaguzi wa FastISel wa kudondosha vizuizi -------------------
+            // FastISel ya LLVM hutupa kimya kimya vizuizi vya msingi zaidi ya ~50
+            // kwa kila kazi kwenye O0. Onya ikiwa kazi yoyote inazidi kwa kiasi
+            // kikomo cha usalama.
             const FASTISEL_BLOCK_LIMIT: usize = 40;
             for func in &ir_module.functions {
                 if func.blocks.len() > FASTISEL_BLOCK_LIMIT {
@@ -390,15 +395,16 @@ impl LlvmBackend {
         }
     }
 
-    /// Run LLVM optimisation passes on a module.
+    /// Endesha kupita za uboreshaji wa LLVM kwenye moduli.
     ///
-    /// Uses the new pass manager via `LLVMRunPasses`.  The pipeline includes:
-    /// - Function-level: mem2reg (promote allocas to SSA), instcombine (peephole),
-    ///   GVN (redundant-load elimination), simplifycfg (CFG cleanup).
-    /// - Module-level: always-inline (inline `always_inline` functions).
+    /// Hutumia meneja mpya wa kupita kupitia `LLVMRunPasses`. Mstari wa
+    /// usindikaji unajumuisha:
+    /// - Kiwango cha kazi: mem2reg (pandisha allocas hadi SSA), instcombine (peephole),
+    ///   GVN (uondoaji wa upakiaji unaorudiwa), simplifycfg (usafishaji wa CFG).
+    /// - Kiwango cha moduli: always-inline (weka ndani kazi za `always_inline`).
     ///
-    /// This is called by [`compile_to_file`] and [`compile_ll`] before
-    /// emitting the object file.
+    /// Hii inaitwa na [`compile_to_file`] na [`compile_ll`] kabla ya
+    /// kutoa faili ya kitu.
     pub fn optimize_module(&self, module: LLVMModuleRef) {
         if self.opt_level as i32 <= 0 {
             return;
@@ -414,11 +420,12 @@ impl LlvmBackend {
                 LLVMPassBuilderOptionsSetLoopUnrolling(opts, 0);
             }
 
-            // The pipeline string uses the new pass manager syntax:
+            // Kamba ya mstari wa usindikaji hutumia sintaksia mpya ya meneja wa
+            // kupita:
             //   function(mem2reg,instcombine,gvn,simplifycfg)
-            //     — function-level passes applied to every function
+            //     — kupita za kiwango cha kazi zinazotumika kwa kila kazi
             //   always-inline
-            //     — module-level pass to inline always_inline functions
+            //     — kupita kwa kiwango cha moduli kuweka ndani kazi za always_inline
             let pipeline = c_str(
                 "function(mem2reg,instcombine<no-verify-fixpoint>,gvn,simplifycfg),\
                  always-inline",
@@ -444,11 +451,12 @@ impl LlvmBackend {
         }
     }
 
-    // -- object-file emission -------------------------------------------------
+    // -- utoaji wa faili ya kitu ----------------------------------------------
 
-    /// Emit an LLVM module to a native object file.
+    /// Toa moduli ya LLVM kwa faili ya kitu asilia.
     ///
-    /// Uses the host target triple with default CPU and feature settings.
+    /// Hutumia tatu ya lengwa la mwenyeji na mipangilio ya CPU na vipengele
+    /// cha kawaida.
     pub fn emit_object(
         &self,
         module: LLVMModuleRef,
@@ -525,22 +533,24 @@ impl LlvmBackend {
 }
 
 // ---------------------------------------------------------------------------
-// Function lowering
+// Uteremshaji wa kazi
 // ---------------------------------------------------------------------------
 
-/// Lower a single IR function into the given LLVM module.
+/// Teremsha kazi moja ya IR hadi kwenye moduli ya LLVM iliyotolewa.
 ///
-/// This is the entry point for translating one Swa function:
+/// Hii ndio sehemu ya kuingilia ya kutafsiri kazi moja ya Swa:
 ///
-/// 1. Map return / param types to LLVM types.
-/// 2. Create the LLVM function (or reuse an existing declaration).
-/// 3. Apply sret attributes when the return class is `HiddenPtr`.
-/// 4. Build basic blocks with a two-pass entry-block strategy:
-///    - Pass 1: lower only `Alloca` instructions.
-///    - Store parameter values into their allocas.
-///    - Pass 2: lower remaining instructions.
-/// 5. For non-entry blocks, lower all instructions in order.
-/// 6. Lower terminators and emit safe returns for unterminated blocks.
+/// 1. Ramani aina za rudisha / kigezo kwa aina za LLVM.
+/// 2. Unda kazi ya LLVM (au tumia tena tangazo lililopo).
+/// 3. Tumia sifa za sret wakati darasa la rudisha ni `HiddenPtr`.
+/// 4. Jenga vizuizi vya msingi kwa mkakati wa kupita mara mbili wa kizuizi cha
+///    kuingilia:
+///    - Kupita 1: teremsha amri za `Alloca` pekee.
+///    - Hifadhi thamani za kigezo kwenye allocas zao.
+///    - Kupita 2: teremsha amri zilizobaki.
+/// 5. Kwa vizuizi visivyo vya kuingilia, teremsha amri zote kwa mpangilio.
+/// 6. Teremsha vikomeshi na toa rudisha salama kwa vizuizi ambavyo
+///    havijakomeshwa.
 fn lower_function(
     module: LLVMModuleRef,
     func: &Function,
@@ -548,7 +558,7 @@ fn lower_function(
     fn_return_types: &HashMap<String, LLVMTypeRef>,
 ) -> Result<(), Vec<Diagnostic>> {
     unsafe {
-        // -- 1. Build LLVM function type --------------------------------------
+        // -- 1. Jenga aina ya kazi ya LLVM ------------------------------------
         let llvm_return_ty = ir_type_to_llvm(&func.return_ty, struct_types);
 
         let mut param_types: Vec<LLVMTypeRef> = func
@@ -570,7 +580,7 @@ fn lower_function(
             is_var_arg,
         );
 
-        // -- 2. Create or reuse LLVM function ---------------------------------
+        // -- 2. Unda au tumia tena kazi ya LLVM -------------------------------
         let name_c = c_str(&func.name);
         let llvm_func = LLVMGetNamedFunction(module, name_c.as_ptr());
 
@@ -587,7 +597,7 @@ fn lower_function(
             )]);
         }
 
-        // Set C ABI if requested (extern "C").
+        // Weka ABI ya C ikiwa imeombwa (extern "C").
         if func.c_abi {
             let ccc_id = LLVMGetEnumAttributeKind(c_str("ccc").as_ptr());
             if ccc_id != 0 {
@@ -600,7 +610,7 @@ fn lower_function(
             }
         }
 
-        // -- 3. Apply sret attribute to the first parameter --------------------
+        // -- 3. Tumia sifa sret kwenye kigezo cha kwanza ----------------------
         if func.sret_value_id.is_some() {
             let sret_kind = LLVMGetEnumAttributeKind(c_str("sret").as_ptr());
             if sret_kind != 0 {
@@ -613,7 +623,7 @@ fn lower_function(
             }
         }
 
-        // -- 4. Create basic blocks -------------------------------------------
+        // -- 4. Unda vizuizi vya msingi ---------------------------------------
         let mut llvm_blocks: HashMap<usize, LLVMBasicBlockRef> = HashMap::new();
         for (i, block) in func.blocks.iter().enumerate() {
             let label_c = c_str(&block.label);
@@ -625,21 +635,22 @@ fn lower_function(
             llvm_blocks.insert(i, bb);
         }
 
-        // -- 5. Build value map -----------------------------------------------
+        // -- 5. Jenga ramani ya thamani ---------------------------------------
         let mut value_map: HashMap<ValueId, LLVMValueRef> = HashMap::new();
 
-        // Map parameters: ValueId(0..N-1) correspond to LLVM params.
+        // Ramani vigezo: ValueId(0..N-1) vinalingana na vigezo vya LLVM.
         for (i, _param) in func.params.iter().enumerate() {
             let llvm_param = LLVMGetParam(llvm_func, i as u32);
             value_map.insert(ValueId(i), llvm_param);
         }
 
-        // Materialize constants: ValueId(params.len()..params.len()+values.len()-1).
-        // Constants are materialized lazily with context-dependent types, so we
-        // defer this — they are materialized on first use in lower_instruction.
+        // Unda thabiti: ValueId(params.len()..params.len()+values.len()-1).
+        // Thabiti huundwa kwa ulegevu kwa aina zinazotegemea muktadha,
+        // kwa hiyo tunaahirisha hili — huundwa kwenye matumizi ya kwanza
+        // kwenye lower_instruction.
 
-        // Constants get typed during lowering. For now, pre-materialize with
-        // default types that match the Const variant.
+        // Thabiti hupata aina wakati wa uteremshaji. Kwa sasa, unda mapema kwa
+        // aina za kawaida zinazofaa lahaja ya Const.
         let param_count = func.params.len();
         for (i, const_val) in func.values.iter().enumerate() {
             let val_id = ValueId(param_count + i);
@@ -647,23 +658,25 @@ fn lower_function(
             value_map.insert(val_id, llvm_val);
         }
 
-        // -- 5b. Builder -------------------------------------------------------
+        // -- 5b. Kijenzi -------------------------------------------------------
         let builder = LLVMCreateBuilder();
 
-        // -- 6. Lower instructions across ALL blocks (three-pass approach) ----
+        // -- 6. Teremsha amri kwenye vizuizi VYOTE (mkabati wa kupita tatu) ---
         //
-        // Pass 1: create phi nodes with no incoming edges (the LLVM values are
-        // created and inserted into value_map, but incoming edges are deferred).
-        // Pass 2: lower all non-phi instructions.
-        // Pass 3: populate incoming edges on all phi nodes (by now every ValueId
-        // from every block is in value_map, so back-edge loop values resolve
-        // correctly).
+        // Kupita 1: unda nodi za phi bila kingo zinazoingia (thamani za LLVM
+        // zinaundwa na kuingizwa kwenye value_map, lakini kingo zinazoingia
+        // zimeahirishwa).
+        // Kupita 2: teremsha amri zote zisizo za phi.
+        // Kupita 3: jaza kingo zinazoingia kwenye nodi zote za phi (kwa sasa
+        // kila ValueId kutoka kila kizuizi ipo kwenye value_map, hivyo thamani
+        // za back-edge kutoka kwenye vizuizi vya baadaye zinasuluhisha kwa
+        // usahihi).
         let mut pending_phis: Vec<(LLVMValueRef, Vec<(ValueId, BlockId)>)> = Vec::new();
         let mut global_inst_idx = 0usize;
         for (block_idx, block) in func.blocks.iter().enumerate() {
             let bb = llvm_blocks[&block_idx];
 
-            // -- Pass 1: create phi LLVM values (no incoming edges yet) ----------
+            // -- Kupita 1: unda thamani za phi za LLVM (hakuna kingo zinazoingia bado) ---
             LLVMPositionBuilderAtEnd(builder, bb);
             for inst in &block.instructions {
                 if let crate::ir::Instruction::Phi(result_ty, incoming) = inst {
@@ -671,18 +684,18 @@ fn lower_function(
                     global_inst_idx += 1;
                     let llvm_ty = ir_type_to_llvm(result_ty, struct_types);
                     let phi = LLVMBuildPhi(builder, llvm_ty, c_str("phi").as_ptr());
-                    // Defer populating incoming edges until pass 3, so that
-                    // back-edge values from later blocks are available.
+                    // Ahirisha kujaza kingo zinazoingia hadi kupita 3, ili
+                    // thamani za back-edge kutoka vizuizi vya baadaye zipatikane.
                     pending_phis.push((phi, incoming.clone()));
                     value_map.insert(val_id, phi);
                 }
             }
 
-            // -- Pass 2: lower all non-phi instructions --------------------------
+            // -- Kupita 2: teremsha amri zote zisizo za phi ----------------------
             LLVMPositionBuilderAtEnd(builder, bb);
             for inst in &block.instructions {
                 if matches!(inst, crate::ir::Instruction::Phi(_, _)) {
-                    continue; // already lowered in pass 1
+                    continue; // tayari imeteremshwa kwenye kupita 1
                 }
                 let val_id = ValueId(param_count + func.values.len() + global_inst_idx);
                 global_inst_idx += 1;
@@ -694,14 +707,15 @@ fn lower_function(
             }
         }
 
-        // -- Pass 3: populate incoming edges on all phi nodes --------------------
-        // By this point every instruction from every block has been lowered and
-        // the result is in value_map, so back-edge values (from predecessor blocks
-        // that appear later in the block list) resolve correctly.
+        // -- Kupita 3: jaza kingo zinazoingia kwenye nodi zote za phi ------------
+        // Kwa wakati huu kila amri kutoka kila kizuizi imeteremshwa na
+        // matokeo yapo kwenye value_map, hivyo thamani za back-edge (kutoka
+        // vizuizi vilivyotangulia vinavyoonekana baadaye kwenye orodha ya
+        // vizuizi) zinasuluhisha kwa usahihi.
         for &(phi, ref incoming) in &pending_phis {
             for &(value_id, pred_block) in incoming {
                 let llvm_val = value_map.get(&value_id).copied().unwrap_or_else(|| {
-                    // Should never happen for valid IR.
+                    // Haipaswi kamwe kutokea kwa IR halali.
                     LLVMConstInt(LLVMInt32Type(), 0, 0)
                 });
                 let pred_bb = llvm_blocks[&pred_block.0];
@@ -711,7 +725,7 @@ fn lower_function(
             }
         }
 
-        // -- 8. Lower terminators for all blocks ------------------------------
+        // -- 8. Teremsha vikomeshi kwa vizuizi vyote --------------------------
         for (block_idx, block) in func.blocks.iter().enumerate() {
             let bb = llvm_blocks[&block_idx];
             LLVMPositionBuilderAtEnd(builder, bb);
@@ -724,12 +738,12 @@ fn lower_function(
 }
 
 // ---------------------------------------------------------------------------
-// Instruction lowering — the ~600-line match
+// Uteremshaji wa amri — mechi ya takriban mistari 600
 // ---------------------------------------------------------------------------
 
-/// Lower a single IR instruction to an LLVM value using the builder.
+/// Teremsha amri moja ya IR hadi thamani ya LLVM kwa kutumia kijenzi.
 ///
-/// Returns the LLVM value produced by this instruction.
+/// Inarudisha thamani ya LLVM inayozalishwa na amri hii.
 fn lower_instruction(
     inst: &crate::ir::Instruction,
     builder: LLVMBuilderRef,

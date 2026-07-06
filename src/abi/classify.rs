@@ -1,32 +1,32 @@
-//! Swa ABI v1.0 — struct-return classification.
+//! Swa ABI v1.0 — uainishaji wa kurudisha muundo.
 //!
-//! ## Rules
+//! ## Kanuni
 //!
-//! 1. Scalar types (integers, floats, pointers, words, bools) are passed
-//!    directly in a register.
-//! 2. Struct types are **flattened** into their leaf (non-struct) fields
-//!    recursively.
-//! 3. If the flattened field count is ≤ 2 the struct is returned **directly**
-//!    (fields in up to two registers).
-//! 4. If the flattened field count is > 2 the struct is returned via a
-//!    **hidden pointer** (sret). The caller allocates space and passes a
-//!    pointer as the first implicit parameter.
+//! 1. Aina za skala (namba sahihi, namba sehemu-desimali, vielekezi, maneno,
+//!    buli) hupitishwa moja kwa moja kwenye rejista.
+//! 2. Aina za muundo **hupanuliwa** hadi sehemu zake za mwisho (zisizo muundo)
+//!    kwa kujirudia.
+//! 3. Ikiwa idadi ya sehemu zilizopanuliwa ni ≤ 2 muundo hurudishwa **moja kwa
+//!    moja** (sehemu kwenye rejista hadi mbili).
+//! 4. Ikiwa idadi ya sehemu zilizopanuliwa ni > 2 muundo hurudishwa kupitia
+//!    **kielekezi fiche** (sret). Mpigaji hutenga nafasi na kupitisha kielekezi
+//!    kama kigezo cha kwanza fiche.
 //!
-//! ## Classification of each field
+//! ## Uainishaji wa kila sehemu
 //!
-//! Every leaf field is tagged as either [`AbiClass::Integer`] or
-//! [`AbiClass::Float`] so that the backend can map them to the correct
-//! register class (general-purpose vs. SIMD/floating-point).
+//! Kila sehemu ya mwisho huwekwa lebo kama [`AbiClass::Integer`] au
+//! [`AbiClass::Float`] ili nyuma iweze kuzipanga kwenye darasa sahihi la
+//! rejista (madhumuni ya jumla dhidi ya SIMD/namba sehemu-desimali).
 //!
-//! ## Examples
+//! ## Mifano
 //!
-//! | Type               | Flattened fields   | Count | Result       |
-//! |--------------------|--------------------|-------|--------------|
-//! | `N32`              | `[Integer]`        | 1     | Direct       |
-//! | `D64`              | `[Float]`          | 1     | Direct       |
-//! | `{D64, D64}`       | `[Float, Float]`   | 2     | Direct       |
-//! | `{*N8, N64}`       | `[Integer,Integer]`| 2     | Direct       |
-//! | `{N32, N32, N32}`  | `[Integer × 3]`    | 3     | HiddenPtr    |
+//! | Aina                | Sehemu zilizopanuliwa | Idadi | Matokeo      |
+//! |---------------------|-----------------------|-------|--------------|
+//! | `N32`               | `[Integer]`           | 1     | Moja kwa moja|
+//! | `D64`               | `[Float]`             | 1     | Moja kwa moja|
+//! | `{D64, D64}`        | `[Float, Float]`      | 2     | Moja kwa moja|
+//! | `{*N8, N64}`        | `[Integer,Integer]`   | 2     | Moja kwa moja|
+//! | `{N32, N32, N32}`   | `[Integer × 3]`       | 3     | HiddenPtr    |
 
 use crate::ir::types::{AbiClass, IrType};
 use crate::ir::IrReturnClass;
@@ -35,21 +35,21 @@ use crate::ir::IrReturnClass;
 // Public API
 // ---------------------------------------------------------------------------
 
-/// Classify the return type of a function according to the Swa ABI v1.0.
+/// Bainisha aina ya kurudisha ya kazi kulingana na Swa ABI v1.0.
 ///
-/// Returns [`IrReturnClass::Direct`] when the type fits in ≤ 2 registers
-/// (after struct flattening), and [`IrReturnClass::HiddenPtr`] when the
-/// caller must allocate space and pass an implicit sret pointer.
+/// Hurejesha [`IrReturnClass::Direct`] wakati aina inafaa kwenye rejista ≤ 2
+/// (baada ya kupanua muundo), na [`IrReturnClass::HiddenPtr`] wakati
+/// mpigaji lazima atenge nafasi na apitishe kielekezi fiche cha sret.
 ///
-/// # Parameters
+/// # Vigezo
 ///
-/// * `ty` — The function's return type from the IR.
+/// * `ty` — Aina ya kurudisha ya kazi kutoka IR.
 ///
-/// # Panics
+/// # Hofia
 ///
-/// Panics if any leaf field cannot be classified (e.g. a `Void` leaf inside a
-/// struct).  This indicates a malformed type and should be caught during
-/// semantic analysis.
+/// Hofia ikiwa sehemu yoyote ya mwisho haiwezi kuainishwa (k.m. jani la
+/// `Void` ndani ya muundo). Hii inaonyesha aina mbovu na inapaswa kukamatwa
+/// wakati wa uchanganuzi wa kisemantiki.
 pub fn classify_return(ty: &IrType) -> IrReturnClass {
     let fields = flatten_struct(ty);
     if fields.len() <= 2 {
@@ -59,14 +59,15 @@ pub fn classify_return(ty: &IrType) -> IrReturnClass {
     }
 }
 
-/// Flatten `ty` into a list of `AbiClass` values, one per leaf field.
+/// Panua `ty` hadi orodha ya thamani za `AbiClass`, moja kwa kila sehemu ya
+/// mwisho.
 ///
-/// Scalar types produce a single-element list.
-/// Structs are recursively unwrapped — nested struct fields contribute their
-/// own leaves in order.
-/// `Void` contributes nothing.
-/// Arrays are **not** flattened because the Swa ABI treats them as opaque;
-/// they are classified as `Integer` (a pointer / aggregate reference).
+/// Aina za skala hutoa orodha ya kipengele kimoja.
+/// Miundo hupanuliwa kwa kujirudia — sehemu za muundo zilizowekwa ndani
+/// huchangia majani yao kwa mpangilio.
+/// `Void` hachangii chochote.
+/// Safu **hazipanuliwi** kwa sababu Swa ABI inazichukulia kama zisizo wazi;
+/// zinaainishwa kama `Integer` (kielekezi / kirejeleo cha mkusanyiko).
 pub fn flatten_struct(ty: &IrType) -> Vec<AbiClass> {
     match ty {
         IrType::Void => vec![],
@@ -112,10 +113,10 @@ pub fn flatten_struct(ty: &IrType) -> Vec<AbiClass> {
     }
 }
 
-/// Return the field-class list **and** the count, for diagnostic / debugging
-/// purposes.
+/// Rudisha orodha ya darasa la sehemu **na** idadi, kwa madhumuni ya
+/// utambuzi / utatuzi.
 ///
-/// This is a convenience wrapper around [`flatten_struct`].
+/// Hiki ni kifuniko cha urahisi kuzunguka [`flatten_struct`].
 pub fn classify_fields(ty: &IrType) -> (Vec<AbiClass>, usize) {
     let fields = flatten_struct(ty);
     let count = fields.len();
@@ -130,7 +131,7 @@ pub fn classify_fields(ty: &IrType) -> (Vec<AbiClass>, usize) {
 mod tests {
     use super::*;
 
-    // -- helpers ------------------------------------------------------------
+    // -- visaidizi ----------------------------------------------------------
 
     /// Shorthand for building a named struct type.
     fn struct_ty(name: &str, fields: Vec<(&str, IrType)>) -> IrType {

@@ -1,190 +1,190 @@
-# Swa Self-Hosting Compiler: Milestone Achieved After 18-Hour Debugging Marathon
+# Mkusanyaji wa Kujikusanya wa Swa: Hatua Muhimu Ilifikiwa Baada ya Saa 18 za Kurekebisha Hitilafu
 
-## Executive Summary
+## Muhtasari wa Utendaji
 
-**Swa**, the world's first Kiswahili systems programming language, has reached a critical milestone: its self-hosted compiler successfully compiles itself. After 18 hours of intensive debugging across 10 commits, 12 critical bugs were discovered and fixed. The compiler now passes 173/173 tests, including the full self-hosting test (K6) that had been disabled since its introduction.
+**Swa**, lugha ya kwanza duniani ya programu za mifumo kwa Kiswahili, imefikia hatua muhimu: mkusanyaji wake wa kujikusanya unajikusanya yenyewe. Baada ya saa 18 za kurekebisha hitilafu kwa kina katika commits 10, hitilafu 12 muhimu ziligunduliwa na kurekebishwa. Mkusanyaji sasa unapita majaribio 173/173, ikiwa ni pamoja na jaribio kamili la kujikusanya (K6) ambalo lilikuwa limezimwa tangu ilipoanzishwa.
 
-## Project Context
+## Muktadha wa Mradi
 
-Swa is a systems programming language where **all keywords, types, and documentation are in Kiswahili** (Swahili). For example:
+Swa ni lugha ya programu za mifumo ambapo **maneno muhimu, aina, na nyaraka zote ziko kwa Kiswahili**. Kwa mfano:
 - `kama` (if), `wakati` (while), `rudisha` (return)
 - `N32` (i32), `A64` (u64), `D64` (f64)
 - `muundo` (struct), `tenga` (malloc), `achilia` (free)
 
-The bootstrap compiler (`kande`) is written in Rust (~12,200 lines). It compiles Swa source through a full pipeline: lexer → parser → semantic analysis → IR lowering → LLVM codegen → native x86-64 binary.
+Mkusanyaji wa bootstrap (`kande`) umeandikwa kwa Rust (takriban mistari 12,200). Unakusanya chanzo cha Swa kupitia mnyororo kamili: msomaji (lexer) → mchanganuzi (parser) → uchanganuzi wa kisemantiki → uteuzi wa IR → LLVM codegen → native x86-64 binary.
 
-The self-hosted components are written in Swa itself (~4,100 lines across 7 files):
-- `msomaji.swa` -- lexer
-- `msambazaji.swa` -- parser
-- `mteremko.swa` -- IR lowerer
-- `mkaguzi.swa` -- semantic checker
-- `kumbukumbu.swa` -- memory management
-- `mfuatano.swa` -- string operations
-- `stage1.swa` -- bootstrap driver
+Sehemu za kujikusanya zimeandikwa kwa Swa yenyewe (takriban mistari 4,100 katika faili 7):
+- `msomaji.swa` -- msomaji (lexer)
+- `msambazaji.swa` -- mchanganuzi (parser)
+- `mteremko.swa` -- kiteremshi cha IR
+- `mkaguzi.swa` -- mkaguzi wa kisemantiki
+- `kumbukumbu.swa` -- usimamizi wa kumbukumbu
+- `mfuatano.swa` -- shughuli za mifuatano
+- `stage1.swa` -- kiendeshi cha bootstrap
 
-## The 18-Hour Debugging Marathon
+## Kipindi cha Saa 18 cha Kurekebisha Hitilafu
 
-### Starting Point (July 4, 07:00)
+### Mahali pa Kuanzia (Julai 4, 07:00)
 
-When the session began, the self-hosted binary crashed immediately with **SIGSEGV** (stack overflow). The K6 self-hosting test (`jaribio_k6_kujikusanya_kamili`) had been disabled with `#[ignore]` since its introduction. Only 172 tests passed, and the project was stuck at a critical blocker.
+Wakati kipindi kilipoanza, binary ya kujikusanya ilianguka mara moja kwa **SIGSEGV** (kufurika kwa rafu). Jaribio la K6 la kujikusanya kamili (`jaribio_k6_kujikusanya_kamili`) lilikuwa limezimwa kwa `#[ignore]` tangu ilipoanzishwa. Majaribio 172 pekee yalipita, na mradi ulikuwa umekwama kwenye kizuizi kikubwa.
 
-### The Bugs Found and Fixed
+### Hitilafu Zilizogunduliwa na Kurekebishwa
 
-**Bug 1: Alloca-in-Loop → SIGSEGV** (`src/ir/lower.rs`)
-The most critical bug. The IR lowerer emitted `alloca` instructions into the current basic block instead of the function entry block. When a local variable declaration was inside a loop (like the parser's `while` loop), each iteration created a new alloca -- consuming 16 bytes of stack per iteration. After ~524K iterations, the 8 MB stack was exhausted.
+**Hitilafu 1: Alloca-in-Loop → SIGSEGV** (`src/ir/lower.rs`)
+Hitilafu muhimu zaidi. Kiteremshi cha IR kilitoa maagizo ya `alloca` kwenye block ya sasa ya msingi badala ya block ya kuingia ya kazi. Wakati tamko la kigezo cha ndani lilipokuwa ndani ya kitanzi (kama kitanzi cha `wakati` cha mchanganuzi), kila mzunguko uliunda alloca mpya -- ikitumia baiti 16 za rafu kwa kila mzunguko. Baada ya takriban mizunguko 524,000, rafu ya MB 8 ilikuwa imeisha.
 
-**Fix:** A two-pass approach. A new `collect_local_decls` function walks the AST to discover all local variable declarations before body lowering begins. These allocas are pre-emitted into the entry block. During body lowering, `lower_local_decl` looks up the pre-allocated `ValueId` instead of creating a new alloca.
+**Marekebisho:** Mbinu ya kupitisha mara mbili. Kazi mpya ya `collect_local_decls` inatembea AST kugundua matamko yote ya vigeu vya ndani kabla ya uteuzi wa mwili kuanza. Alloca hizi zinatolewa mapema kwenye block ya kuingia. Wakati wa uteuzi wa mwili, `lower_local_decl` hutafuta `ValueId` iliyotengwa mapema badala ya kuunda alloca mpya.
 
-**Impact:** Binary no longer crashes. All library files parse successfully.
+**Athari:** Binary haianguki tena. Faili zote za maktaba zinachanganuliwa kwa mafanikio.
 
 ---
 
-**Bug 2: CFG Dead-Code → Infinite Loop** (`src/ir/lower.rs`, line 875)
-The `actual_prev` block traversal only handled `Br` terminators. When it encountered `BrCond` (from short-circuit `&&`/`||` evaluation), it broke and returned the wrong block. All subsequent instructions became orphaned dead code. The parser loop spun forever, creating allocas each iteration until stack exhaustion.
+**Hitilafu 2: CFG Dead-Code → Kitanzi Kisisicho na Mwisho** (`src/ir/lower.rs`, mstari 875)
+Usafiri wa block ya `actual_prev` ulishughulikia tu vivunja vya `Br`. Ulipokutana na `BrCond` (kutoka tathmini fupi ya `&&`/`||`), ulivunja na kurudisha block mbaya. Maagizo yote yaliyofuata yakawa msimbo uliokufa usiofikiwa. Kitanzi cha mchanganuzi kilizunguka milele, kikiunda allocas kila mzunguko hadi rafu ikaisha.
 
-**Fix:** One line added to handle `BrCond` in the traversal:
+**Marekebisho:** Mstari mmoja ulioongezwa kushughulikia `BrCond` katika usafiri:
 ```rust
 Terminator::BrCond(_, _, merge) if *merge != b => { b = *merge; }
 ```
 
 ---
 
-**Bug 3: Nested `if`/`else` Block Corruption** (`src/ir/lower.rs`, `patch_br_if_needed`)
-The `patch_br_if_needed` function only followed the FALSE branch of `BrCond` terminators. For `if`/`else` statements where the else branch returns, the TRUE branch's merge block was never reached by the patching walk. This left placeholder self-loops that the finalization pass converted to `ret i32 0`, causing functions like `changanua_bloku` to return 0 immediately after consuming `{`.
+**Hitilafu 3: Uharibifu wa Block ya `kama`/`sivyo` Iliyowekwa Ndani** (`src/ir/lower.rs`, `patch_br_if_needed`)
+Kazi ya `patch_br_if_needed` ilifuata tawi la UONGO (false) tu la vivunja vya `BrCond`. Kwa taarifa za `kama`/`sivyo` ambapo tawi la `sivyo` linarudisha thamani, block ya kuunganisha ya tawi la KWELI (true) haikufikiwa kamwe na usafiri. Hii iliacha vitanzi vya kujirudia (`self-loop`) ambavyo awamu ya ukamilishaji ilibadilisha kuwa `ret i32 0`, na kusababisha kazi kama `changanua_bloku` kurudisha 0 mara baada ya kutumia `{`.
 
-**Fix:** Follow BOTH branches of `BrCond` in `patch_br_if_needed`.
-
----
-
-**Bug 4: `actual_prev` Merge Block Detection** (`src/ir/lower.rs`, `lower_block`)
-When the statement before a block was an `if` with `else` that returns, `actual_prev` followed the BrCond's false branch to a `Ret` block and stopped. The merge block (reachable from the true branch) was never found. This prevented chaining subsequent statements, leaving them as unreachable dead code.
-
-**Fix:** Recursive `walk_branch` function that tries the true branch when the false branch ends in `Ret`.
+**Marekebisho:** Fuata MATAWI YOTE mawili ya `BrCond` katika `patch_br_if_needed`.
 
 ---
 
-**Bug 5: While/For Exit Block Corruption** (`src/ir/lower.rs`, `lower_while`/`lower_for`)
-`exit_blk` was created with default `RetVoid` terminator. When `patch_br_if_needed` walked through the CFG, it followed `endelea` (continue) branches into enclosing loop bodies. It found the outer loop's exit block (which had `RetVoid`) and treated it as a stop point. This left the inner while's exit incorrectly terminated.
+**Hitilafu 4: Ugunduzi wa Block ya Kuunganisha ya `actual_prev`** (`src/ir/lower.rs`, `lower_block`)
+Wakati taarifa iliyotangulia block ilikuwa `kama` yenye `sivyo` inayorudisha, `actual_prev` ilifuata tawi la UONGO la BrCond hadi kwenye block ya `Ret` na kusimama. Block ya kuunganisha (inayofikiwa kutoka tawi la KWELI) haikupatikana kamwe. Hii ilizuia kuunganisha taarifa zinazofuata, zikiachwa kama msimbo uliokufa usiofikiwa.
 
-**Fix:** Set `exit_blk`'s terminator to `Br(exit_blk)` (self-loop placeholder) immediately upon creation. This ensures `walk_branch` correctly identifies it as a fall-through path, not a return.
-
----
-
-**Bug 6: `patch_br_if_needed` Following Continue/Break Edges** (`src/ir/lower.rs`)
-Even after fix #5, `patch_br_if_needed` followed `endelea` blocks' `Br(outer_header)` edges into enclosing loop bodies. It found the outer loop's exit block (self-loop placeholder) and patched it to the inner `if`'s merge block -- corrupting the outer loop's exit path. This caused `changanua()` to return `0` instead of the correct AST program node index when multiple files were concatenated.
-
-**Fix:** Stop following forward `Br` edges when the source block's label starts with `continue.` or `break.` -- these are loop control flow edges that lead outside the body being patched.
+**Marekebisho:** Kazi ya kujirudia ya `walk_branch` inajaribu tawi la KWELI wakati tawi la UONGO linaisha kwa `Ret`.
 
 ---
 
-**Bug 7: Forward Declaration Semicolon Leak** (`msingi/msambazaji.swa`)
-The self-hosted parser's `changanua_kazi` function did not consume the trailing `;` after forward declarations (function prototypes). The `;` leaked to the top-level parser, causing "unexpected element" errors. This prevented parsing files like `msomaji.swa` which contain forward declarations:
+**Hitilafu 5: Uharibifu wa Block ya Kutoka ya `wakati`/`kwa`** (`src/ir/lower.rs`, `lower_while`/`lower_for`)
+`exit_blk` iliundwa na kituo cha msingi cha `RetVoid`. Wakati `patch_br_if_needed` ilipotembea kupitia CFG, ilifuata matawi ya `endelea` (continue) kuingia kwenye miili ya vitanzi vilivyozunguka. Ilipata block ya kutoka ya kitanzi cha nje (iliyokuwa na `RetVoid`) na kuitibu kama sehemu ya kuacha. Hii iliacha block ya kutoka ya kitanzi cha ndani ikiwa na kituo kisicho sahihi.
+
+**Marekebisho:** Weka kituo cha `exit_blk` kuwa `Br(exit_blk)` (kitanzi cha kujirudia) mara baada ya kuundwa. Hii inahakikisha `walk_branch` inaitambua kama njia ya kupita, si kurudi.
+
+---
+
+**Hitilafu 6: `patch_br_if_needed` Ikifuata Mipaka ya Endelea/Vunja** (`src/ir/lower.rs`)
+Hata baada ya marekebisho ya 5, `patch_br_if_needed` ilifuata block za `endelea` zenye `Br(outer_header)` kuingia kwenye miili ya vitanzi vilivyozunguka. Ilipata block ya kutoka ya kitanzi cha nje (kitanzi cha kujirudia) na kuibadilisha kwa block ya kuunganisha ya `kama` ya ndani -- ikiharibu njia ya kutoka ya kitanzi cha nje. Hii ilisababisha `changanua()` kurudisha `0` badala ya faharasi sahihi ya nodi ya AST ya programu wakati faili nyingi ziliunganishwa.
+
+**Marekebisho:** Acha kufuata mipaka ya `Br` ya mbele wakati lebo ya block chanzo inaanza na `continue.` au `break.` -- hizi ni mipaka ya udhibiti wa kitanzi inayoongoza nje ya mwili unaorekebishwa.
+
+---
+
+**Hitilafu 7: Kuvuja kwa Nukta Mkato ya Tamko la Mbele** (`msingi/msambazaji.swa`)
+Kazi ya `changanua_kazi` katika mchanganuzi wa kujikusanya haikutumia `;` iliyofuata matamko ya mbele (prototypes za kazi). Nukta mkato ilivuja hadi kiwango cha juu cha mchanganuzi, na kusababisha hitilafu za "unexpected element". Hii ilizuia kuchanganua faili kama `msomaji.swa` zilizokuwa na matamko ya mbele:
 ```swa
 W0 ruka_nafasi_na_maelezo(Msomaji* m);
 ```
 
-**Fix:** After `changanua_kazi_mwili` returns -1 (no body), consume the trailing `;`.
+**Marekebisho:** Baada ya `changanua_kazi_mwili` kurudisha -1 (hakuna mwili), tumia `;` inayofuata.
 
 ---
 
-**Bug 8: `kwa` (For) Loop Init Parsing** (`msingi/msambazaji.swa`)
-The for-loop parser tried to parse the init clause as an expression via `changanua_usemi`. But `N32 i = 0` is a local declaration, not an expression. It parsed `N32` as an identifier and left `i = 0;` unconsumed.
+**Hitilafu 8: Uchanganuzi wa Kiiniti cha Kitanzi cha `kwa`** (`msingi/msambazaji.swa`)
+Mchanganuzi wa kitanzi cha `kwa` ulijaribu kuchanganua kiiniti kama usemi kupitia `changanua_usemi`. Lakini `N32 i = 0` ni tamko la ndani, si usemi. Ulichanganua `N32` kama kitambulisho na kuacha `i = 0;` bila kutumiwa.
 
-**Fix:** Try `changanua_taarifa_tangazo` (declaration parser) first for the for-loop init. Fall back to expression parsing only if the declaration parser returns -1.
+**Marekebisho:** Jaribu `changanua_taarifa_tangazo` (mchanganuzi wa matamko) kwanza kwa kiiniti cha `kwa`. Rudia kwa uchanganuzi wa usemi ikiwa mchanganuzi wa matamko unarudisha -1.
 
 ---
 
-**Bug 9-12: Additional Self-Hosted Parser Bugs**
-- **`sogeza()` missing `mstari`/`safu` copy** -- only copied 3 of 5 token fields, making line numbers always report as 1
-- **Double `{` consumption** in `changanua_kazi_vigezo` -- consumed nested `{` that belonged to the body parser
-- **No unary minus** -- `rudisha -1;` left `-` unconsumed
-- **AST array overflow** -- 4096 elements insufficient for all standard library files concatenated; increased to 16384
+**Hitilafu 9-12: Hitilafu za Ziada za Mchanganuzi wa Kujikusanya**
+- **`sogeza()` inakosa `mstari`/`safu`** -- ilinakili sehemu 3 tu kati ya 5 za tokeni, na kusababisha nambari za mistari kuripotiwa kama 1 kila wakati
+- **Matumizi maradufu ya `{`** katika `changanua_kazi_vigezo` -- ilitumia `{` iliyowekwa ndani ambayo ilikuwa ya mwili wa kazi
+- **Hakuna rudisha hasi** -- `rudisha -1;` iliacha `-` bila kutumiwa
+- **Kufurika kwa safu ya AST** -- elementi 4096 hazikutosha kwa faili zote za maktaba ya msingi zilizounganishwa; iliongezwa hadi 16384
 
-## Results
+## Matokeo
 
-### Test Suite
+### Msururu wa Majaribio
 ```
 144 unit tests:          PASS
-28 integration tests:    PASS (including K6!)
-1 doc test:              PASS
-─────────────────────────────────
+ 28 integration tests:   PASS (ikiwa ni pamoja na K6!)
+  1 doc test:            PASS
+_________________________________
 173/173:                 100% PASSING
 ```
 
-### K6 Self-Hosting Test
-The self-hosted binary:
-- Compiles successfully (no SIGSEGV)
-- Loads and parses its own source code
-- Processes standard library files
-- Correctly reports AST root node index
-- Completes in under 1 second (user mode)
-- Parses all key language constructs: functions, while loops, for loops, if/else, structs, return statements, assignments, arithmetic, comparisons, short-circuit evaluation, break/continue
+### Jaribio la K6 la Kujikusanya Kamili
+Binary ya kujikusanya:
+- Inajikusanya kwa mafanikio (hakuna SIGSEGV)
+- Inapakia na kuchanganua msimbo wake chanzo wenyewe
+- Inachakata faili za maktaba ya msingi
+- Inaripoti kwa usahihi faharasi ya nodi ya mzizi ya AST
+- Inakamilika chini ya sekunde 1 (hali ya mtumiaji)
+- Inachanganua vipengele vyote muhimu vya lugha: kazi, vitanzi vya wakati/kwa, kama/sivyo, muundo, taarifa za rudisha, mgao, hesabu, ulinganisho, tathmini fupi, break/continue
 
-### Bug Statistics
-| Category | Count |
+### Takwimu za Hitilafu
+| Kategoria | Idadi |
 |----------|-------|
-| Codegen (Rust compiler) | 6 |
-| Self-hosted parser | 4 |
-| Self-hosted lexer | 1 |
-| Infrastructure (array sizes) | 1 |
-| **Total** | **12** |
+| Codegen (mkusanyaji wa Rust) | 6 |
+| Mchanganuzi wa kujikusanya | 4 |
+| Msomaji wa kujikusanya | 1 |
+| Miundombinu (ukubwa wa safu) | 1 |
+| **Jumla** | **12** |
 
 ### Commits
-**10 commits** in the session. 7 on July 4, 3 on July 5. All written in Kiswahili per project convention.
+**Commits 10** katika kipindi hiki. 7 mnamo Julai 4, 3 mnamo Julai 5. Zote zimeandikwa kwa Kiswahili kwa mujibu wa kanuni za mradi.
 
-### Files Changed
-- `src/ir/lower.rs` -- 150+ lines changed (core of codegen fixes)
-- `msingi/msambazaji.swa` -- 40+ lines changed (parser fixes)
-- `stage1.swa` -- 20 lines changed (speed optimization)
-- `src/parser/mod.rs` -- 2 lines (for-loop AST layout)
-- `hati/*.md` -- documentation updates
+### Faili Zilizobadilishwa
+- `src/ir/lower.rs` -- mistari 150+ iliyobadilishwa (kiini cha marekebisho ya codegen)
+- `msingi/msambazaji.swa` -- mistari 40+ iliyobadilishwa (marekebisho ya mchanganuzi)
+- `stage1.swa` -- mistari 20 iliyobadilishwa (uboreshaji wa kasi)
+- `src/parser/mod.rs` -- mistari 2 (mpangilio wa AST ya kitanzi cha kwa)
+- `hati/*.md` -- masasisho ya nyaraka
 
-## What This Means
+## Maana ya Hili
 
-Swa has achieved **Stage 1 self-hosting**: the compiler, written in Rust, can compile a Swa-based compiler that successfully compiles itself. This is the critical first step toward full bootstrap independence.
+Swa imefikia **Hatua ya 1 ya kujikusanya**: mkusanyaji, ulioandikwa kwa Rust, unaweza kukusanya mkusanyaji wa Swa ambaye anajikusanya yenyewe. Hii ni hatua muhimu ya kwanza kuelekea uhuru kamili wa bootstrap.
 
-The self-hosted binary can:
-1. Parse Swa source code (including all standard library files)
-2. Produce valid ASTs
-3. Generate LLVM IR (via `mteremko.swa`)
-4. Run without crashing
+Binary ya kujikusanya inaweza:
+1. Kuchanganua chanzo cha Swa (ikiwa ni pamoja na faili zote za maktaba ya msingi)
+2. Kuzalisha AST sahihi
+3. Kuzalisha LLVM IR (kupitia `mteremko.swa`)
+4. Kuendesha bila kuanguka
 
-What remains for **Stage 2** (full self-sufficiency):
-- Complete `mteremko.swa` (self-hosted IR lowerer) with sret support
-- Fix alloca-in-loop in `mteremko.swa` (same bug we fixed in the Rust lowerer)
-- Complete `mkaguzi.swa` (semantic checker)
-- Generate native object files from the self-hosted compiler
+Kilichosalia kwa **Hatua ya 2** (uhuru kamili):
+- Kukamilisha `mteremko.swa` (kiteremshi cha kujikusanya cha IR) kwa usaidizi wa sret
+- Kurekebisha alloca-in-loop katika `mteremko.swa` (hitilafu ileile tuliyoirekebisha kwenye kiteremshi cha Rust)
+- Kukamilisha `mkaguzi.swa` (mkaguzi wa kisemantiki)
+- Kuzalisha faili za kitu asilia kutoka kwa mkusanyaji wa kujikusanya
 
-The project is approximately **42%** of the way from Rust bootstrap to a fully self-sufficient Swa compiler.
+Mradi uko takriban **42%** ya njia kutoka kwa bootstrap ya Rust hadi mkusanyaji wa Swa anayejitegemea kikamilifu.
 
-## Technical Insights
+## Maarifa ya Kiufundi
 
-### The ValueId Scheme
-Both `lower.rs` and the LLVM backend use the formula `ValueId = P + V + I` where:
-- `P` = parameter count
-- `V` = constant count
-- `I` = global instruction counter (monotonic across all blocks)
+### Mfumo wa ValueId
+Codegen ya `lower.rs` na LLVM backend zote zinatumia fomula `ValueId = P + V + I` ambapo:
+- `P` = idadi ya vigezo (parameters)
+- `V` = idadi ya vipatanishi (constants)
+- `I` = kidhibiti cha maagizo cha kimataifa (kinachoongezeka kwa mpangilio katika block zote)
 
-This scheme means that instructions emitted into the entry block during the pre-pass get low ValueIds, matching the backend's block-iteration order. Instructions emitted during body lowering get higher ValueIds. The mapping is consistent because both sides iterate blocks in the same order.
+Mpangilio huu unamaanisha kwamba maagizo yaliyotolewa kwenye block ya kuingia wakati wa kupitisha awali yanapata ValueId za chini, zinalingana na mpangilio wa block za backend. Maagizo yaliyotolewa wakati wa uteuzi wa mwili yanapata ValueId za juu. Ramani ni thabiti kwa sababu pande zote mbili zinatembea block kwa mpangilio uleule.
 
-### The `patch_br_if_needed` Function
-This function is the source of 3 of the 6 codegen bugs. It walks the CFG to patch self-loop placeholders to the correct merge targets. The bugs arose because:
-1. It only followed the false branch of `BrCond` (missed true-branch merge blocks)
-2. It followed forward `Br` edges into enclosing control flow (corrupted outer loop exits)
-3. It was called at the wrong time relative to block chaining
+### Kazi ya `patch_br_if_needed`
+Kazi hii ndiyo chanzo cha hitilafu 3 kati ya 6 za codegen. Inatembea CFG kurekebisha vitanzi vya kujirudia kwa malengo sahihi ya kuunganisha. Hitilafu zilitokea kwa sababu:
+1. Ilifuata tawi la UONGO tu la `BrCond` (ilikosa block za kuunganisha za tawi la KWELI)
+2. Ilifuata mipaka ya `Br` ya mbele kuingia kwenye mtiririko wa udhibiti uliozunguka (iliharibu njia za kutoka za vitanzi vya nje)
+3. Iliitwa kwa wakati usiofaa kuhusiana na kuunganisha block
 
-### Lessons Learned
-- **No bug is too small to investigate thoroughly.** The `sogeza()` missing two fields seemed minor but corrupted ALL line number reporting and broke the husisha directive handler.
-- **Codegen bugs cascade.** The alloca-in-loop hid the CFG dead-code bug, which hid the `patch_br_if_needed` bug, which hid the forward declaration bug, which hid the for-loop bug. Each fix revealed the next layer.
-- **Always verify with end-to-end tests.** Unit tests passed for most of these bugs. Only the K6 integration test caught the real issues.
+### Mafunzo Yaliyojifunza
+- **Hakuna hitilafu ndogo.** `sogeza()` iliyokosa sehemu mbili ilionekana ndogo lakini iliharibu taarifa ZOTE za nambari za mistari na kuvunja kishughulikiaji cha maagizo ya `husisha`.
+- **Hitilafu za codegen hufuatana.** Alloca-in-loop ilificha hitilafu ya CFG dead-code, ambayo ilificha hitilafu ya `patch_br_if_needed`, ambayo ilificha hitilafu ya tamko la mbele, ambayo ilificha hitilafu ya kitanzi cha `kwa`. Kila marekebisho ulifunua safu inayofuata.
+- **Thibitisha kwa majaribio ya mwisho-hadi-mwisho.** Majaribio ya kawaida (unit tests) yalipita kwa hitilafu hizi nyingi. Jaribio la K6 pekee liligundua matatizo halisi.
 
-## Next Steps
+## Hatua Zinazofuata
 
-1. Complete `mteremko.swa` -- the self-hosted IR lowerer
-2. Add LLVM pass manager integration (`--opt` flag)
-3. Enable full standard library parsing (optimize the 2-minute parse time)
-4. Achieve true bootstrap: compile the self-hosted compiler using only the self-hosted compiler
+1. Kukamilisha `mteremko.swa` -- kiteremshi cha kujikusanya cha IR
+2. Kuongeza ujumuishaji wa LLVM pass manager (bendera ya `--opt`)
+3. Kuwezesha uchanganuzi kamili wa maktaba ya msingi (kuongeza kasi ya dakika 2 za uchanganuzi)
+4. Kufikia bootstrap halisi: kukusanya mkusanyaji wa kujikusanya kwa kutumia mkusanyaji wa kujikusanya pekee
 
 ---
 
-*Imeandikwa kwa Kiswahili na Kande, mkusanyaji wa Swa.*
+*Imeandikwa kwa Kiswahili. Mkusanyaji wa Swa.*

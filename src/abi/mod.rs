@@ -1,15 +1,15 @@
-//! ABI (Application Binary Interface) definitions for the Swa language.
+//! Ufafanuzi wa ABI (Application Binary Interface) kwa lugha ya Swa.
 //!
-//! ## Swa ABI v1.0 — summary
+//! ## Swa ABI v1.0 — muhtasari
 //!
-//! | Rule                               | Behaviour                          |
-//! |------------------------------------|------------------------------------|
-//! | Scalar return                     | In register (integer or float)     |
-//! | Struct return, 1–2 leaf fields    | Direct (fields in registers)       |
-//! | Struct return, > 2 leaf fields    | Hidden pointer (sret)              |
-//! | Struct arguments > 2 leaf fields  | By reference / copy                |
+//! | Kanuni                              | Tabia                               |
+//! |-------------------------------------|-------------------------------------|
+//! | Kurudisha skala                     | Kwenye rejista (namba sahihi au float)|
+//! | Kurudisha muundo, sehemu 1–2        | Moja kwa moja (sehemu kwenye rejista)|
+//! | Kurudisha muundo, > sehemu 2        | Kielekezi fiche (sret)              |
+//! | Hoja za muundo > sehemu 2           | Kwa kurejelea / kunakili            |
 //!
-//! The classification logic lives in the [`classify`] submodule.
+//! Mantiki ya uainishaji iko kwenye moduli ndogo ya [`classify`].
 
 pub mod classify;
 

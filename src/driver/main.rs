@@ -1,12 +1,12 @@
-//! Entry point for the Swa compiler (`kande`).
+//! Kuingilia kwa mkusanyaji wa Swa (`kande`).
 //!
-//! Usage:
-//!   kande file.swa -o file.o   — compile to object file
-//!   kande file.swa -o file.exe — compile + link to executable
-//!   kande --ir file.swa         — print Swa IR to stdout
-//!   kande --llvm file.swa       — print LLVM IR to stdout
-//!   kande --ll file.ll          — compile LLVM IR text to .o
-//!   kande --tokens file.swa     — print token stream
+//! Matumizi:
+//!   kande file.swa -o file.o   — sanya hadi faili la kitu
+//!   kande file.swa -o file.exe — sanya na unganisha hadi faili linaloweza kutekelezwa
+//!   kande --ir file.swa         — chapisha Swa IR hadi stdout
+//!   kande --llvm file.swa       — chapisha LLVM IR hadi stdout
+//!   kande --ll file.ll          — sanya maandishi ya LLVM IR hadi .o
+//!   kande --tokens file.swa     — chapisha mkondo wa tokeni
 
 use kande_lib::codegen::llvm::ffi::LLVMCodeGenOptLevel;
 use kande_lib::codegen::llvm::LlvmBackend;
@@ -15,8 +15,8 @@ use std::env;
 use std::path::{Path, PathBuf};
 use std::process;
 
-/// Try to link an object file to an executable via clang.
-/// Returns the clang exit status on success, None if clang is not found.
+/// Jaribu kuunganisha faili la kitu hadi faili linaloweza kutekelezwa kupitia clang.
+/// Hurejesha hali ya kutoka ya clang kwenye mafanikio, None kama clang haipatikani.
 fn try_link(obj: &Path, exe: &Path) -> Option<i32> {
     let clang_paths = ["clang", "C:\\LLVM18\\bin\\clang.exe"];
     let clang = clang_paths.iter().find(|p| {
@@ -30,9 +30,9 @@ fn try_link(obj: &Path, exe: &Path) -> Option<i32> {
         Some(c) => c,
         None => return None,
     };
-    // Use GNU target on Windows — matches the IR triple set by the backend.
+    // Tumia lengwa la GNU kwenye Windows — linalingana na tatu ya IR iliyowekwa na nyuma.
     let target = if cfg!(windows) { "x86_64-pc-windows-gnu" } else { "x86_64-unknown-linux-gnu" };
-    // Find libgcc for __chkstk (large stack frames from big arrays).
+    // Tafuta libgcc kwa __chkstk (mfumo mkubwa wa rafu kutoka safu kubwa).
     let gcc_base = if cfg!(windows) {
         std::path::PathBuf::from("C:\\ProgramData\\mingw64\\mingw64\\lib\\gcc\\x86_64-w64-mingw32")
     } else {
@@ -53,15 +53,15 @@ fn try_link(obj: &Path, exe: &Path) -> Option<i32> {
     let mut cmd = std::process::Command::new(clang);
     cmd.arg("-target").arg(target)
        .arg(obj).arg("-o").arg(exe)
-       .arg("-Wl,--defsym,andika=printf");  // map Swa printf to libc printf
+       .arg("-Wl,--defsym,andika=printf");  // ramani printf ya Swa hadi printf ya libc
 
     if cfg!(windows) {
         cmd.arg("-L").arg(&gcc_lib)
-           .arg("-lgcc")                     // for __chkstk (large stack frames)
-           .arg("-Wl,--stack,8388608");      // 8MB stack reserve for large BSS
+           .arg("-lgcc")                     // kwa __chkstk (mfumo mkubwa wa rafu)
+           .arg("-Wl,--stack,8388608");      // 8MB hifadhi ya rafu kwa BSS kubwa
     } else {
-        // Linux: stack size is controlled by ulimit, no explicit flag needed.
-        // libgcc is linked automatically by clang on Linux.
+        // Linux: ukubwa wa rafu unadhibitiwa na ulimit, hakuna bendera ya wazi inayohitajika.
+        // libgcc inaunganishwa kiotomatiki na clang kwenye Linux.
     }
 
     let status = cmd.status().ok()?;
@@ -85,7 +85,7 @@ fn main() {
         process::exit(1);
     }
 
-    // Parse optional -o output flag and --opt / -O optimisation flag.
+    // Changanua bendera ya hiari ya pato -o na bendera ya uboreshaji --opt / -O.
     let mut output_path: Option<PathBuf> = None;
     let mut opt_flag = false;
     let mut positional: Vec<String> = Vec::new();
@@ -234,8 +234,8 @@ fn main() {
                 .and_then(|e| e.to_str())
                 .map(|e| e.eq_ignore_ascii_case("exe"))
                 .unwrap_or(false);
-            // When linking, emit the object to a .o path so clang gets a real
-            // object file; otherwise emit directly to the requested path.
+            // Wakati wa kuunganisha, toa kitu kwa njia ya .o ili clang ipate
+            // faili halisi la kitu; vinginevyo toa moja kwa moja kwa njia iliyoombwa.
             let obj_path: PathBuf = if want_link {
                 out_path.with_extension("o")
             } else {

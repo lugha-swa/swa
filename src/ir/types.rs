@@ -1,19 +1,19 @@
-//! Swa intermediate representation type system.
+//! Mfumo wa aina za uwakilishi wa kati (IR) wa Swa.
 //!
-//! Defines the `IrType` enum covering all primitive and compound types
-//! in the Swa language, along with ABI classification and sizing helpers.
+//! Hufafanua enum ya `IrType` inayojumuisha aina zote za awali na mchanganyiko
+//! katika lugha ya Swa, pamoja na uainishaji wa ABI na visaidizi vya ukubwa.
 //!
-//! ## Swa type-name mapping
+//! ## Ramani ya majina ya aina za Swa
 //!
-//! | Swa prefix | Meaning          | Rust prefix |
-//! |------------|------------------|-------------|
-//! | `N`        | Namba (signed)   | `I`         |
-//! | `A`        | Asili (unsigned)  | `U`         |
-//! | `D`        | Desimali (float) | `F`         |
-//! | `B`        | Buli (boolean)   | `B`         |
-//! | `W`        | Wazi (word)     | `W`         |
+//! | Kiambishi Swa | Maana            | Kiambishi Rust |
+//! |---------------|------------------|----------------|
+//! | `N`           | Namba (sahihi)   | `I`            |
+//! | `A`           | Asili (sahihi)   | `U`            |
+//! | `D`           | Desimali (float) | `F`            |
+//! | `B`           | Buli (boolean)   | `B`            |
+//! | `W`           | Wazi (word)      | `W`            |
 //!
-//! Width suffixes are in bits: `N32` == `i32`, `D64` == `f64`, etc.
+//! Viambishi vya upana viko kwenye biti: `N32` == `i32`, `D64` == `f64`, n.k.
 
 use std::fmt;
 
@@ -21,14 +21,14 @@ use std::fmt;
 // IrType
 // ---------------------------------------------------------------------------
 
-/// Every representable type in the Swa IR.
+/// Kila aina inayowakilishwa katika IR ya Swa.
 ///
-/// Variants are named with LLVM-friendly prefixes so that codegen can
-/// translate them mechanically (`I` → signed integer, `U` → unsigned,
-/// `F` → floating-point, `B` → boolean / opaque-bit, `W` → word).
+/// Lahaja zinaitwa kwa viambishi vinavyofaa LLVM ili kodejeni iweze
+/// kuzitafsiri kimitambo (`I` → namba sahihi, `U` → namba sahihi isiyo na alama,
+/// `F` → namba sehemu-desimali, `B` → buli/bati lisilo wazi, `W` → neno).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum IrType {
-    /// The empty type (unit / `void`).
+    /// Aina tupu (`void`).
     Void,
 
     // -- signed integers (Namba) -------------------------------------------
@@ -65,22 +65,22 @@ pub enum IrType {
     W64,
 
     // -- compound types ----------------------------------------------------
-    /// An opaque pointer to `element`.
+    /// Kielekezi kisicho wazi kwa `element`.
     Ptr(Box<IrType>),
 
-    /// A function pointer: `fn (params) -> ret`.
+    /// Kielekezi cha kazi: `fn (vigezo) -> rudisha`.
     FnPtr {
         params: Vec<IrType>,
         ret: Box<IrType>,
     },
 
-    /// A named struct (product type).  Fields are ordered.
+    /// Muundo ulio na jina (aina ya bidhaa). Sehemu zimepangwa.
     Struct {
         name: String,
         fields: Vec<(String, IrType)>,
     },
 
-    /// A fixed-size array of `element` repeated `count` times.
+    /// Safu ya ukubwa uliojulikana ya `element` ikirudiwa mara `count`.
     Array {
         element: Box<IrType>,
         count: u64,
@@ -91,7 +91,7 @@ pub enum IrType {
 // ABI classification helper
 // ---------------------------------------------------------------------------
 
-/// Narrow ABI class used during struct-return classification.
+/// Darasa finyu la ABI linalotumika wakati wa uainishaji wa kurudisha muundo.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AbiClass {
     Integer,
@@ -103,13 +103,14 @@ pub enum AbiClass {
 // ---------------------------------------------------------------------------
 
 impl IrType {
-    /// Map a Swa source-level type name to its canonical IR type.
+    /// Ramani jina la aina ya Swa ngazi ya chanzo hadi aina ya IR kanoni.
     ///
-    /// Returns `None` for unrecognised or compound names (structs, arrays,
-    /// pointers, function pointers — those are constructed node-by-node during
-    /// semantic analysis rather than parsed from a single keyword).
+    /// Hurejesha `None` kwa majina yasiyotambulika au mchanganyiko (miundo,
+    /// safu, vielekezi, vielekezi vya kazi — hizo hujengwa nodi kwa nodi
+    /// wakati wa uchanganuzi wa kisemantiki badala ya kuchanganuliwa kutoka
+    /// neno muhimu moja).
     ///
-    /// # Examples
+    /// # Mifano
     ///
     /// ```
     /// use kande_lib::ir::types::IrType;

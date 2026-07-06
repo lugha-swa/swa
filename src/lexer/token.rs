@@ -1,21 +1,21 @@
-//! Token types for the Swa lexer.
+//! Aina za tokeni kwa msomaji wa Swa.
 
 use crate::diagnostics::SourceSpan;
 
 /// The kind of a token.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TokenKind {
-    /// A keyword: `kama`, `N32`, `rudisha`, etc.
+    /// Neno muhimu: `kama`, `N32`, `rudisha`, n.k.
     NenoMuhimu(String),
-    /// An identifier: `jumlisha`, `x`, `matokeo`, etc.
+    /// Kitambulisho: `jumlisha`, `x`, `matokeo`, n.k.
     Kitambulisho(String),
-    /// A numeric literal (integer or float): `42`, `0xFF`, `3.14`.
+    /// Nambari halisi (namba kamili au sehemu-desimali): `42`, `0xFF`, `3.14`.
     Nambari,
-    /// A character literal: `'A'`, `'\n'`. Lexeme is the resolved N8 value.
+    /// Herufi halisi: `'A'`, `'\n'`. Lugha ni thamani ya N8 iliyotatuliwa.
     Herufi,
-    /// A string literal: `"Habari"`. The variant carries the unescaped content.
+    /// Mfuato halisi: `"Habari"`. Lahaja hubeba maudhui yasiyotolewa misimbo.
     Mfuato(String),
-    /// An operator or punctuation: `+`, `==`, `<<=`.
+    /// Opereta au uakifishaji: `+`, `==`, `<<=`.
     Opereta(String),
     /// Left parenthesis `(`.
     MabanoKushoto,
@@ -39,19 +39,19 @@ pub enum TokenKind {
     NuktaTatu,
     /// Colon `:`.
     NuktaMbili,
-    /// At sign `@` (for `@kipekee` attribute).
+    /// Alama ya `@` (kwa sifa ya `@kipekee`).
     Kipekee,
-    /// Question mark `?` (unused for now, reserved).
+    /// Alama ya swali `?` (haitumiki kwa sasa, imehifadhiwa).
     AlamaSwali,
-    /// A preprocessor directive line: `#ingiza`, `#fafanua`, etc.
+    /// Mstari wa maelekezo ya kichakachu: `#ingiza`, `#fafanua`, n.k.
     Kiunzi(String),
-    /// End of file.
+    /// Mwisho wa faili.
     Mwisho,
 }
 
 impl TokenKind {
-    /// Determine the token kind from an identifier-like string.
-    /// Returns `NenoMuhimu` if it's a Swa keyword, `Kitambulisho` otherwise.
+    /// Bainisha aina ya tokeni kutoka kwa mfano wa kitambulisho.
+    /// Hurejesha `NenoMuhimu` ikiwa ni neno muhimu la Swa, `Kitambulisho` vinginevyo.
     pub fn from_identifier(s: &str) -> Self {
         match s {
             // Type families
@@ -81,17 +81,17 @@ impl TokenKind {
             // Module system
             "husisha" | "kutoka" => TokenKind::NenoMuhimu(s.to_string()),
 
-            // Anything else is an identifier.
+            // Kitu kingine chochote ni kitambulisho.
             _ => TokenKind::Kitambulisho(s.to_string()),
         }
     }
 
-    /// Returns true if this is a type keyword.
+    /// Hurejesha kweli ikiwa hii ni neno muhimu la aina.
     pub fn is_type_keyword(&self) -> bool {
         matches!(self, TokenKind::NenoMuhimu(s) if Self::is_type_name(s))
     }
 
-    /// Check if a string names a Swa type.
+    /// Angalia ikiwa mfuato unataja aina ya Swa.
     pub fn is_type_name(s: &str) -> bool {
         matches!(
             s,
@@ -122,7 +122,7 @@ impl TokenKind {
         )
     }
 
-    /// Returns true if this is a qualifier keyword.
+    /// Hurejesha kweli ikiwa hii ni neno muhimu la kibainishi.
     pub fn is_qualifier(&self) -> bool {
         matches!(
             self,
@@ -130,7 +130,7 @@ impl TokenKind {
         )
     }
 
-    /// Returns the operator string if this is an operator token.
+    /// Hurejesha mfuato wa opereta ikiwa hii ni tokeni ya opereta.
     pub fn as_operator(&self) -> Option<&str> {
         match self {
             TokenKind::Opereta(s) => Some(s.as_str()),
@@ -138,7 +138,7 @@ impl TokenKind {
         }
     }
 
-    /// Returns the keyword string if this is a keyword token.
+    /// Hurejesha mfuato wa neno muhimu ikiwa hii ni tokeni ya neno muhimu.
     pub fn as_keyword(&self) -> Option<&str> {
         match self {
             TokenKind::NenoMuhimu(s) => Some(s.as_str()),
@@ -175,19 +175,19 @@ impl std::fmt::Display for TokenKind {
     }
 }
 
-/// A single token produced by the lexer.
+/// Tokeni moja inayozalishwa na msomaji.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Token {
-    /// The kind of this token.
+    /// Aina ya tokeni hii.
     pub kind: TokenKind,
-    /// The original source text.
+    /// Msimbo asilia wa chanzo.
     pub lexeme: String,
-    /// Source span.
+    /// Sehemu ya chanzo.
     pub span: SourceSpan,
 }
 
 impl Token {
-    /// Create a new token.
+    /// Unda tokeni mpya.
     pub fn new(kind: TokenKind, lexeme: String, span: SourceSpan) -> Self {
         Self {
             kind,
@@ -196,17 +196,17 @@ impl Token {
         }
     }
 
-    /// Returns true if this token matches the given keyword.
+    /// Hurejesha kweli ikiwa tokeni hii inalingana na neno muhimu lililotolewa.
     pub fn is_keyword(&self, kw: &str) -> bool {
         matches!(&self.kind, TokenKind::NenoMuhimu(s) if s == kw)
     }
 
-    /// Returns true if this token is an identifier (not a keyword).
+    /// Hurejesha kweli ikiwa tokeni hii ni kitambulisho (si neno muhimu).
     pub fn is_identifier(&self) -> bool {
         matches!(&self.kind, TokenKind::Kitambulisho(_))
     }
 
-    /// Returns the identifier name if this is an identifier.
+    /// Hurejesha jina la kitambulisho ikiwa hiki ni kitambulisho.
     pub fn as_identifier(&self) -> Option<&str> {
         match &self.kind {
             TokenKind::Kitambulisho(s) => Some(s.as_str()),
@@ -214,7 +214,7 @@ impl Token {
         }
     }
 
-    /// Returns true if this token is a type keyword.
+    /// Hurejesha kweli ikiwa tokeni hii ni neno muhimu la aina.
     pub fn is_type(&self) -> bool {
         self.kind.is_type_keyword()
     }

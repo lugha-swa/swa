@@ -1,6 +1,6 @@
 ---
-name: "Ombi la Kipengele / Feature Request"
-about: "Pendekeza kipengele kipya"
+name: "Ombi la Kipengele"
+about: "Tumia kiolezo hiki kupendekeza kipengele kipya"
 title: "[KIPENGELE]: "
 labels: ["kipengele", "inahitaji-majadiliano"]
 assignees: []

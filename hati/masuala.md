@@ -4,34 +4,7 @@ Hati hii inafuatilia hitilafu zinazojulikana, vizuizi, na hatua zinazofuata kwa 
 
 ---
 
-## 1. Hitilafu ya Mchanganuzi wa Kujikusanya — Tokeni Iliyobaki Baada ya Uchanganuzi (Iliyofichwa na SIGSEGV)
-
-### Hali: **K6 binary haianguki tena, lakini mchanganuzi hauchanganuzi kwa mafanikio**
-
-### Muhtasari
-
-K6 (jaribio la kujikusanya kamili) lilipata SIGSEGV kwa sababu ya alloca-in-loop. Baada ya kurekebisha alloca-in-loop, SIGSEGV imeondolewa, lakini hitilafu mpya imejitokeza: mchanganuzi wa kujikusanya unashindwa kuchanganua pembejeo yake mwenyewe na kuripoti:
-
-```
-unexpected token on line 1
-```
-
-Uchunguzi unaonyesha kwamba mchanganuzi unashindwa kwa `}` (c0=125) kwenye mstari 1. Hitilafu hii ilikuwa ipo kabla ya marekebisho ya alloca-in-loop lakini ilifichwa na SIGSEGV iliyotokea mapema. Kwa kuwa binary sasa hai-SIGSEGV tena, hitilafu hii ya awali imejitokeza.
-
-### Sababu Inayowezekana
-
-Hitilafu hii inafanana na hitilafu iliyojulikana ya "tokeni iliyobaki" (iliyoelezwa hapo awali kama kesi ya pembeni ya mchanganuzi). Mchanganuzi hauonyeshi mabano ya kufunga `}` (au tokeni nyingine ya mwisho), hivyo kitanzi cha kiendeshi kinapata tokeni iliyopotea baada ya uchanganuzi kukamilika kimantiki. Hata hivyo, katika muktadha wa K6, hitilafu inaonekana kutokea mapema zaidi wakati wa kuchanganua msomaji au mchanganuzi wenyewe, ikionyesha kuwa kunaweza kuwa na tofauti katika ushughulikiaji wa tokeni kati ya binary ya kujikusanya na binary ya Rust.
-
-### Kinachohitajika Kufanywa
-
-1. Tumia utatuzi wa gdb au utoaji wa LLVM IR kuchunguza ni kwa nini mchanganuzi wa kujikusanya unashindwa kwenye `}`.
-2. Linganisha tabia ya mchanganuzi kati ya utekelezaji wa binary ya kujikusanya na jaribio la `test_parse_simple.swa` (ambalo linafanya kazi).
-3. Fikiria kama hitilafu iko kwenye mwisho wa LLVM wa mkusanyaji wa Rust (codegen) au kwenye mchanganuzi wa Swa wenyewe.
-4. Angalia ikiwa tatizo linahusiana na ugawaji wa muundo (sret) au mpangilio wa kumbukumbu katika binary ya kujikusanya.
-
----
-
-## 2. Hitilafu ya Uboreshaji wa O1 (Less) — Ufisadi wa Urefu wa `tokeni_soma_kitambulisho`
+## 1. Hitilafu ya Uboreshaji wa O1 (Less) — Ufisadi wa Urefu wa `tokeni_soma_kitambulisho`
 
 ### Hali: **Imevunjika kwenye O1, inafanya kazi kwenye O0**
 
@@ -78,7 +51,7 @@ FastISel inadondosha vitalu vya msingi kimya kupita takriban 50 kwa kila kazi. M
 
 ---
 
-## 3. Kizuizi cha Ukubwa wa Safu — BSS > ~47KB Inaanguka kwenye Uanzishaji
+## 2. Kizuizi cha Ukubwa wa Safu — BSS > ~47KB Inaanguka kwenye Uanzishaji
 
 ### Hali: **Haijatatuliwa — pengine maalum kwa Windows**
 
@@ -107,43 +80,31 @@ Wakati safu za bwawa la AST ni ndogo (elementi 512, ~32 KB `ast_pool`), binary y
 
 ---
 
-## 4. Kesi za Pembeni za Mchanganuzi wa Kujikusanya
+## 3. Kesi za Pembeni za Mchanganuzi wa Kujikusanya
 
-### Hali: **Inafanya kazi kwa sehemu**
+### Hali: **Inafanya kazi, lakini urejeshaji wa makosa haujakamilika**
 
 ### Kinachofanya kazi
 
-```
-N32 f() { rudisha 1; }
-```
-
-Kwenye O0, mchanganuzi unachanganua pembejeo hili kwa mafanikio na kurudisha `mzizi=3` (ikionyesha mzizi halali wa AST wenye nodi tatu).
+Mchanganuzi wa kujikusanya sasa unachanganua kwa mafanikio:
+- Faili za chanzo rahisi: `N32 f() { rudisha 1; }`
+- Faili zote za maktaba ya msingi: `msomaji.swa`, `msambazaji.swa`, `mteremko.swa`, `mkaguzi.swa`, `kumbukumbu.swa`, `mfuatano.swa`
+- Faili nyingi zilizounganishwa (AST_SAFU = 16384)
+- K6 (kujikusanya kamili) inapita
 
 ### Kisichofanya kazi
 
-Baada ya kuchanganua pembejeo hapo juu, mchanganuzi unachapisha:
-
-```
-unexpected token on line 1
-```
-
-Hili ni suala la tokeni iliyobaki: mchanganuzi hautumii mabano ya kufunga `}` (au tokeni nyingine ya mwisho), hivyo kitanzi cha kiendeshi kinapata tokeni iliyopotea baada ya uchanganuzi kukamilika kimantiki.
-
-### Kisichojaribiwa
-
-- Chanzo cha `.swa` cha faili nyingi (faili za chanzo za mkusanyaji wenyewe) kutokana na kikomo cha ukubwa wa safu.
-- Kazi zenye vigezo, ufikiaji wa sehemu za muundo, mtiririko wa udhibiti (`kama`, `wakati`), au upeo uliowekwa ndani.
 - Urejeshaji wa makosa: mchanganuzi unaweza kuanguka au kuingia kitanzi kisicho na mwisho kwenye pembejeo lililoharibika.
+- Uboreshaji wa O1 (SelectionDAG) una tatizo la tofauti ya kielekezi.
 
 ### Kinachohitajika Kufanywa
 
-1. Rekebisha utumiaji wa mabano ya kufunga (au tokeni yoyote iliyobaki).
-2. Baada ya suala la ukubwa wa safu kutatuliwa, endesha mchanganuzi kwenye faili halisi za chanzo za `.swa` na urekebishe kushindwa kwa uchanganuzi.
-3. Ongeza urejeshaji wa msingi wa makosa ili mchanganuzi aweze kunusurika makosa ya sintaksia bila kuanguka.
+1. Ongeza urejeshaji wa msingi wa makosa ili mchanganuzi aweze kunusurika makosa ya sintaksia bila kuanguka.
+2. Endesha mchanganuzi kwenye faili zaidi za majaribio za `.swa` kuthibitisha uthabiti.
 
 ---
 
-## 5. Mgawanyo wa Kazi kwa O0 — Kikomo cha Block cha FastISel
+## 4. Mgawanyo wa Kazi kwa O0 — Kikomo cha Block cha FastISel
 
 ### Hali: **Suluhisho la muda lipo, udhaifu unabaki**
 
@@ -168,17 +129,14 @@ Ikiwa kazi yoyote — baada ya marekebisho ya baadaye au vipengele vipya — ita
 
 ---
 
-## 6. Hatua Zinazofuata (Mpangilio wa Kipaumbele — Imesasishwa Julai 4, 2026)
+## 5. Hatua Zinazofuata (Mpangilio wa Kipaumbele — Imesasishwa Julai 6, 2026)
 
 | Kipaumbele | Kazi | Hali |
 |----------|------|--------|
-| K0 | Jaribu kwenye Arch Linux na safu kubwa | Imekamilika — Linux ELF inashughulikia BSS kubwa bila tatizo. |
-| K1 | Rekebisha hitilafu ya ufisadi wa `urefu` ya O1 | Imekamilika — bendera ya `--opt` imeongezwa. SelectionDAG (O1) inafanya kazi. |
-| K1b | Mchanganuzi wa kujikusanya unakwama kwenye vigezo 2+ | Imekamilika — mnyororo wa vigezo umerekebishwa (commits 56af3dd, f6595ac). |
-| K2 | Jaribu kujikusanya na faili halisi za `.swa` | Imefungwa — tatizo la kipakiaji cha PE cha Windows pekee. |
-| K3 | Tatua kesi ya pembeni ya tokeni iliyobaki | Imekamilika — heuristics za ASCII zimerekebishwa maeneo 48 katika msambazaji.swa. |
-| K4 | Ongeza utambuzi wa kudondosha kwa block ya FastISel | Imekamilika — onyo linatolewa kwa kazi 30 zinazozidi vitalu 40. |
-| K5 | Rekebisha ugawaji wa muundo katika kuteremshaji | Imekamilika — MemCopy imeongezwa katika lower.rs (Rust) NA mteremko.swa (kujikusanya). |
-| K6 | Rekebisha alloca-in-loop (SIGSEGV katika binary ya kujikusanya) | **Imekamilika** — mbinu ya kupitisha mara mbili katika lower.rs inatoa alloca zote za vigeu vya ndani kwenye block ya kuingia. Binary hai-SIGSEGV tena. |
-| K7 | Tafiti hitilafu ya mchanganuzi ya `}` katika binary ya kujikusanya | Bado wazi. Binary inaendelea hadi kwenye hitilafu ya uchanganuzi (tokeni iliyobaki). Ilifichwa hapo awali na SIGSEGV. Inahitaji uchunguzi wa kina wa utekelezaji wa mchanganuzi. |
-| K8 | Jaribio kamili la kujikusanya (K6 limewekwa upya) | Limewekwa upya baada ya alloca-in-loop kurekebishwa. Hitilafu ya mchanganuzi wa kujikusanya lazima itatuliwe kabla ya K6 kufaulu. |
+| K1 | Hitilafu ya O1 kwenye `tokeni_soma_kitambulisho` | Bado wazi. SelectionDAG inaharibu tofauti ya kielekezi. |
+| K2 | Kamilisha `mteremko.swa` (kiteremshi cha kujikusanya) | Inaendelea. Sret, alloca-in-loop, uzalishaji wa `.o` |
+| K3 | Kamilisha `mkaguzi.swa` (mkaguzi wa kisemantiki) | Inaendelea. Uthibitishaji wa aina, hoja, matawi |
+| K4 | Ongeza urejeshaji wa makosa kwa mchanganuzi | Bado wazi. Mchanganuzi haushughulikii sintaksia mbaya vizuri. |
+| K5 | Pipeline ya uboreshaji (`--opt` flag) | Bado wazi. LLVM pass manager kwa mem2reg, instcombine, GVN, DCE |
+| K6 | Maktaba ya kawaida kamili | Inaendelea. `orodha.swa`, `mfuatano.swa`, `ramani.swa` |
+| K7 | Malengo zaidi: ARM, AArch64, RISC-V | Bado wazi. Lengo la muda mrefu. |

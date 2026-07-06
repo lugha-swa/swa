@@ -1,4 +1,4 @@
-//! Compiler driver — lex, parse, and lower Swa source to IR.
+//! Kiendeshi cha mkusanyaji — soma, chambua, na teremsha chanzo cha Swa hadi IR.
 
 use crate::diagnostics::{Diagnostic, DiagnosticBag};
 use crate::ir::Module as IrModule;
@@ -39,9 +39,9 @@ impl Driver {
         }
     }
 
-    /// Preprocess `husisha` directives by reading and inlining included files.
-    /// Handles both `husisha C::stdio` (skipped — C headers) and
-    /// `husisha "path.swa"` (inlined).
+    /// Chakia maelekezo ya `husisha` kwa kusoma na kupachika faili zilizojumuishwa.
+    /// Hushughulikia `husisha C::stdio` (imechukuliwa — vichwa vya C) na
+    /// `husisha "path.swa"` (iliyopachikwa).
     fn resolve_husisha(
         &mut self,
         source: &str,

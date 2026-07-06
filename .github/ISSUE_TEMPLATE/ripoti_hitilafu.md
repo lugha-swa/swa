@@ -1,6 +1,6 @@
 ---
-name: "Ripoti ya Hitilafu / Bug Report"
-about: "Ripoti hitilafu uliyoigundua"
+name: "Ripoti ya Hitilafu"
+about: "Tumia kiolezo hiki kuripoti hitilafu uliyoigundua"
 title: "[HITILAFU]: "
 labels: ["hitilafu", "inahitaji-uchunguzi"]
 assignees: []

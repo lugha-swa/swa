@@ -14,19 +14,23 @@
 - [x] Mchanganuzi wa kujikusanya (`msambazaji.swa`)
 - [x] Mfumo wa aina wa kujikusanya
 - [x] Binary inajikusanya (K6 inapita)
-- [x] Vipengele vya lugha vinavyotumika: functions, loops, if/else, structs, heap
+- [x] Alloca-in-loop imerekebishwa (mbinu ya kupitisha mara mbili)
+- [x] CFG dead-code imerekebishwa (ufuatiliaji wa BrCond)
+- [x] Marekebisho 12 ya hitilafu (6 codegen + 6 mchanganuzi)
+- [x] Vipengele vya lugha vinavyotumika: functions, loops (wakati/kwa), if/else, structs, heap, unary minus, break/continue, short-circuit evaluation
 
 ## Hatua ya 2: Mkusanyaji Kamili wa Kujikusanya [IN PROGRESS] KAZI INAENDELEA
 
 ### Kipaumbele cha Juu
 - [ ] **mteremko.swa** -- Kamilisha kiteremshi cha kujikusanya
   - [ ] Sret handling kwa miundo inayorudishwa
-  - [ ] Urekebishaji wa alloca-in-loop
-  - [ ] Uzalishaji wa .o faili (sasa LLVM IR tu)
+  - [ ] Urekebishaji wa alloca-in-loop (kwenye mteremko.swa)
+  - [ ] Uzalishaji wa faili za `.o` (sasa LLVM IR tu)
 - [ ] **mkaguzi.swa** -- Kamilisha mkaguzi wa kisemantiki
   - [ ] Uthibitishaji wa aina kwa taarifa zote
   - [ ] Uthibitishaji wa hoja za mwito wa kazi
   - [ ] Uthibitishaji wa matawi ya `chagua`
+- [ ] **Rekebisha hitilafu ya O1** -- SelectionDAG inaharibu tofauti ya kielekezi katika `tokeni_soma_kitambulisho`
 
 ### Kipaumbele cha Kati
 - [ ] **Pipeline ya uboreshaji** -- LLVM pass manager (`--opt`)
@@ -60,10 +64,12 @@
 
 ## Jinsi ya Kuchangia
 
-Angalia [`changia.md`](changia.md). Masuala yenye lebo `good-first-issue` ni mahali pazuri pa kuanzia.
+Angalia [`CONTRIBUTING.md`](CONTRIBUTING.md). Masuala yenye lebo `good-first-issue` ni mahali pazuri pa kuanzia.
 
 ## Vipaumbele vya Sasa (Julai 2026)
 
-1. `mteremko.swa` -- sret + alloca-in-loop fix (hii ndio kazi muhimu zaidi sasa)
-2. `mkaguzi.swa` -- kukamilisha ukaguzi wa aina
-3. `--opt` flag -- kuongeza LLVM pass manager
+1. Rekebisha hitilafu ya O1 kwenye `tokeni_soma_kitambulisho`
+2. `mteremko.swa` -- sret + alloca-in-loop fix (hiyo ndiyo kazi muhimu zaidi sasa)
+3. `mkaguzi.swa` -- kukamilisha ukaguzi wa aina
+4. `--opt` flag -- kuongeza LLVM pass manager
+5. Urejeshaji wa makosa kwa mchanganuzi

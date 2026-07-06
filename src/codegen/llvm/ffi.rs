@@ -1,21 +1,22 @@
-//! LLVM-C FFI bindings for the Swa compiler.
+//! Vifungo vya FFI vya LLVM-C kwa mkusanyaji wa Swa.
 //!
-//! Thin, hand-written bindings to the LLVM 18.1 C API.  We avoid crate
-//! dependencies (inkwell, llvm-sys) and link directly against `LLVM-C.dll`
-//! at runtime via the build script (`cargo:rustc-link-lib=LLVM-C`).
+//! Vifungo vyembamba, vilivyoandikwa kwa mkono kwa API ya LLVM 18.1 C.
+//! Tunakwepa tegemezi za crate (inkwell, llvm-sys) na tunaunganisha moja kwa
+//! moja dhidi ya `LLVM-C.dll` wakati wa utekelezaji kupitia hati ya ujenzi
+//! (`cargo:rustc-link-lib=LLVM-C`).
 //!
-//! All pointer types are opaque (`*mut c_void` or similar) so that callers
-//! never need the LLVM header definitions.
+//! Aina zote za vielekezi si wazi (`*mut c_void` au sawa) ili waitwao
+//! wasiwahi kuhitaji ufafanuzi wa kichwa cha LLVM.
 //!
 //! ## LLVM 18.1.8
 //!
-//! Installed at `C:\LLVM18`.  The build script tells rustc where the `.lib`
-//! and `.dll` live.
+//! Imesakinishwa kwenye `C:\LLVM18`.  Hati ya ujenzi inaiambia rustc
+//! mahali `.lib` na `.dll` ziko.
 
 use std::ffi::{c_char, c_void, CStr, CString};
 
 // ---------------------------------------------------------------------------
-// Opaque LLVM-C pointer types
+// Aina za vielekezi opaque vya LLVM-C
 // ---------------------------------------------------------------------------
 
 pub type LLVMBool = i32;
@@ -36,10 +37,10 @@ pub type LLVMPassBuilderOptionsRef = *mut c_void;
 pub type LLVMAttributeRef = *mut c_void;
 
 // ---------------------------------------------------------------------------
-// Enums
+// Enumeri
 // ---------------------------------------------------------------------------
 
-/// Integer comparison predicates.
+/// Vivumishi vya ulinganishaji namba sahihi.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LLVMIntPredicate {
@@ -55,7 +56,7 @@ pub enum LLVMIntPredicate {
     SLE = 41,
 }
 
-/// Floating-point comparison predicates.
+/// Vivumishi vya ulinganishaji namba sehemu-desimali.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LLVMRealPredicate {
@@ -73,12 +74,12 @@ pub enum LLVMRealPredicate {
     ULT    = 11,
     ULE    = 12,
     UNE    = 13,
-    /// True if *either* operand is a NaN (use for "ordered and equal").
-    FALSE  = 14,   // always false
-    TRUE   = 15,   // always true
+    /// Kweli ikiwa operanda yoyote ni NaN (tumia kwa "iliyopangwa na sawa").
+    FALSE  = 14,   // daima si kweli
+    TRUE   = 15,   // daima kweli
 }
 
-/// Code generation optimisation level.
+/// Kiwango cha uboreshaji cha kuzalisha msimbo.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LLVMCodeGenOptLevel {
@@ -88,7 +89,7 @@ pub enum LLVMCodeGenOptLevel {
     Aggressive = 3,
 }
 
-/// Relocation model.
+/// Mfano wa uhamishaji.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LLVMRelocMode {
@@ -98,7 +99,7 @@ pub enum LLVMRelocMode {
     DynamicNoPic = 3,
 }
 
-/// Code model.
+/// Mfano wa msimbo.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LLVMCodeModel {
@@ -110,7 +111,7 @@ pub enum LLVMCodeModel {
     Large      = 5,
 }
 
-/// Output file type for `LLVMTargetMachineEmitToFile`.
+/// Aina ya faili ya pato kwa `LLVMTargetMachineEmitToFile`.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LLVMCodeGenFileType {
@@ -118,7 +119,7 @@ pub enum LLVMCodeGenFileType {
     ObjectFile   = 1,
 }
 
-/// Linkage types.
+/// Aina za uunganishaji.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LLVMLinkage {
@@ -126,10 +127,10 @@ pub enum LLVMLinkage {
     Private  = 9,
 }
 
-/// Type kinds returned by `LLVMGetTypeKind`.
+/// Aina za aina zinazorejeshwa na `LLVMGetTypeKind`.
 ///
-/// Variant names track the LLVM-C enum exactly; `#[allow]` is used because
-/// they do not follow Rust's CamelCase convention.
+/// Majina ya lahaja yanafuata enum ya LLVM-C haswa; `#[allow]` inatumika kwa
+/// sababu hayafuati mkataba wa CamelCase wa Rust.
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[allow(non_camel_case_types)]
@@ -156,7 +157,7 @@ pub enum LLVMTypeKind {
     X86_AMX   = 19,
 }
 
-/// Attribute index sentinel for `LLVMAddAttributeAtIndex`.
+/// Fahirisi ya mwangalizi wa sifa kwa `LLVMAddAttributeAtIndex`.
 pub const LLVM_ATTRIBUTE_FUNCTION_INDEX: u32 = u32::MAX;
 pub const LLVM_ATTRIBUTE_RETURN_INDEX: u32 = 0;
 
@@ -164,9 +165,9 @@ pub const LLVM_ATTRIBUTE_RETURN_INDEX: u32 = 0;
 // LLVM-C API — extern block
 // ---------------------------------------------------------------------------
 
-// Linking is handled by build.rs (linux: -lLLVM, windows: -lLLVM-C).
+// Kuunganisha kunashughulikiwa na build.rs (linux: -lLLVM, windows: -lLLVM-C).
 extern "C" {
-    // -- context / module ----------------------------------------------------
+    // -- muktadha / moduli ---------------------------------------------------
 
     pub fn LLVMContextCreate() -> LLVMContextRef;
     pub fn LLVMContextDispose(ctx: LLVMContextRef);
@@ -183,7 +184,7 @@ extern "C" {
     pub fn LLVMGetTarget(module: LLVMModuleRef) -> *const c_char;
     pub fn LLVMGetModuleContext(module: LLVMModuleRef) -> LLVMContextRef;
 
-    // -- types ---------------------------------------------------------------
+    // -- aina ----------------------------------------------------------------
 
     pub fn LLVMInt1Type() -> LLVMTypeRef;
     pub fn LLVMInt8Type() -> LLVMTypeRef;
@@ -219,7 +220,7 @@ extern "C" {
         is_var_arg: LLVMBool,
     ) -> LLVMTypeRef;
 
-    // -- values / globals / functions ----------------------------------------
+    // -- thamani / ulimwengu / kazi -------------------------------------------
 
     pub fn LLVMAddFunction(
         module: LLVMModuleRef,
@@ -250,7 +251,7 @@ extern "C" {
     pub fn LLVMSetLinkage(global: LLVMValueRef, linkage: LLVMLinkage);
     pub fn LLVMGetLinkage(global: LLVMValueRef) -> LLVMLinkage;
 
-    // -- constants -----------------------------------------------------------
+    // -- thabiti -------------------------------------------------------------
 
     pub fn LLVMConstInt(ty: LLVMTypeRef, value: u64, sign_extend: LLVMBool) -> LLVMValueRef;
     pub fn LLVMConstIntOfArbitraryPrecision(

@@ -24,13 +24,13 @@ hesabu_na_onyesha(15, 7);
 
 ## Vipengele
 
-- **Maneno muhimu 57** ya Kiswahili -- hakuna Kiingereza katika sintaksia
+- **Maneno muhimu 42** ya Kiswahili -- hakuna Kiingereza katika sintaksia
 - **Kujitegemea** -- mkusanyaji umeandikwa kwa Swa yenyewe (bootstrap)
 - **LLVM backend** -- inatoa msimbo wa mashine wa majukwaa mbalimbali (x86, ARM, AArch64, RISC-V)
-- **Mfumo wa aina tuli** -- aina 25 za nambari kwa usahihi kamili (N8 hadi N128, A8 hadi A128, D16 hadi D80, B1 hadi B64, W0 hadi W64)
+- **Aina 25 za nambari** -- N8 hadi N128, A8 hadi A128, D16 hadi D80, B1 hadi B64, W0 hadi W64
 - **Kumbukumbu ya moja kwa moja** -- tenga, achilia na badili kumbukumbu wewe mwenyewe, hakuna ukusanyaji taka
 - **ABI thabiti** -- Swa ABI v1.0 kwa mwingiliano wa lugha
-- **Hali ya sasa**: Majaribio 172 yanapita (144 ya maktaba + 27 ya ujumuishaji + 1 wa nyaraka). Alloca-in-loop imerekebishwa. K6 (kujikusanya kamili) inasubiri uchunguzi zaidi.
+- **Hali ya sasa**: Majaribio 173 yanapita (144 ya maktaba + 28 ya ujumuishaji + 1 wa nyaraka). Alloca-in-loop imerekebishwa. K6 (kujikusanya kamili) inapita.
 
 ## Muundo wa Mradi
 
@@ -49,7 +49,7 @@ hesabu_na_onyesha(15, 7);
 
 ```sh
 cargo build --release
-cargo test          # Majaribio 172: 144 ya maktaba + 27 ya ujumuishaji + 1 wa nyaraka
+cargo test          # Majaribio 173: 144 ya maktaba + 28 ya ujumuishaji + 1 wa nyaraka
 ```
 
 ## Matumizi
@@ -59,7 +59,7 @@ cargo test          # Majaribio 172: 144 ya maktaba + 27 ya ujumuishaji + 1 wa n
 cargo run -- programu.swa
 
 # Kutumia stage1 ya kujitegemea
-./stage1.exe msingi/msomaji.swa
+./stage1 msingi/msomaji.swa
 ```
 
 ## Hatua ya Bootstrap

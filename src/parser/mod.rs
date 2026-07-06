@@ -501,24 +501,41 @@ impl<'a> Parser<'a> {
         let mut first: i32 = NO_NODE; let mut prev: i32 = NO_NODE;
         while !matches!(self.sasa().kind, TokenKind::Mwisho) {
             let mut node: i32 = NO_NODE;
-            // Module directives: skip husisha / kitengo lines.
-            // Format: husisha C::stdio  or  husisha "path.swa"
-            // These are newline-terminated; consume the keyword + argument.
+            // Module directives: husisha C::stdio  /  husisha { path }  /  husisha { path } kutoka { dir }
             if self.tokeni_ni("husisha") {
-                self.sogeza(); // skip keyword
-                // Consume argument: either C::stdio (ident :: ident) or "string"
-                if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) {
+                self.sogeza(); // skip 'husisha'
+
+                // Syntax: husisha { path }
+                if self.tokeni_ni("{") {
+                    self.sogeza(); // skip '{'
+                    while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
+                        self.sogeza(); // consume path tokens inside braces
+                    }
+                    if self.tokeni_ni("}") { self.sogeza(); } // skip '}'
+
+                    // Optional: kutoka { directory }
+                    if self.tokeni_ni("kutoka") {
+                        self.sogeza(); // skip 'kutoka'
+                        if self.tokeni_ni("{") {
+                            self.sogeza(); // skip '{'
+                            while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
+                                self.sogeza();
+                            }
+                            if self.tokeni_ni("}") { self.sogeza(); } // skip '}'
+                        }
+                    }
+                }
+                // Legacy syntax: husisha C::stdio  or  husisha "path.swa"
+                else if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) {
                     self.sogeza();
-                    // Possibly :: and another identifier
                     if self.tokeni_ni("::") { self.sogeza(); }
                     else if self.tokeni_ni(":") { self.sogeza(); if self.tokeni_ni(":") { self.sogeza(); } }
                     if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) {
                         self.sogeza();
                     }
                 } else if matches!(self.sasa().kind, TokenKind::Mfuato(_)) {
-                    self.sogeza();
+                    self.sogeza(); // skip string argument
                 }
-                // Skip trailing semicolon if present.
                 if self.tokeni_ni(";") { self.sogeza(); }
                 continue;
             }

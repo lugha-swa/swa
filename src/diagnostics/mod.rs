@@ -1,11 +1,11 @@
-//! Compiler diagnostics, source locations, and spans.
+//! Utambuzi wa mkusanyaji, maeneo ya chanzo, na vipindi.
 
-/// A 1-based position (line, column) in source text.
+/// Nafasi inayoanzia 1 (mstari, safu) katika maandishi ya chanzo.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct SourceLocation {
-    /// 1-based line number.
+    /// Nambari ya mstari (kuanzia 1).
     pub line: usize,
-    /// 1-based column number (byte offset from line start).
+    /// Nambari ya safu (kianzio cha baiti kutoka mwanzo wa mstari).
     pub column: usize,
 }
 
@@ -21,14 +21,14 @@ impl std::fmt::Display for SourceLocation {
     }
 }
 
-/// A contiguous span of source text between a start and end location.
+/// Kipindi kinachoendelea cha maandishi ya chanzo kati ya mwanzo na mwisho.
 ///
-/// Both bounds are inclusive.
+/// Mipaka yote miwili imojumuishwa.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct SourceSpan {
-    /// Start of the span (inclusive).
+    /// Mwanzo wa kipindi (mwigizwamo).
     pub start: SourceLocation,
-    /// End of the span (inclusive).
+    /// Mwisho wa kipindi (mwigizwamo).
     pub end: SourceLocation,
 }
 
@@ -37,7 +37,7 @@ impl SourceSpan {
         Self { start, end }
     }
 
-    /// Create a zero-width span at a single location.
+    /// Unda kipindi cha upana-sifuri katika eneo moja.
     pub fn point(line: usize, column: usize) -> Self {
         let loc = SourceLocation::new(line, column);
         Self::new(loc, loc)
@@ -56,18 +56,18 @@ impl std::fmt::Display for SourceSpan {
     }
 }
 
-/// Severity of a diagnostic message.
+/// Ukali wa ujumbe wa utambuzi.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Severity {
-    /// An error that prevents successful compilation.
+    /// Kosa linalozuia ukusanyaji wenye mafanikio.
     Error,
-    /// A non-fatal warning.
+    /// Onyo lisilo mauti.
     Warning,
-    /// An informational note attached to another diagnostic.
+    /// Maelezo ya habari yaliyounganishwa na utambuzi mwingine.
     Note,
 }
 
-/// A single diagnostic message bound to a source span.
+/// Ujumbe mmoja wa utambuzi uliofungwa kwenye kipindi cha chanzo.
 #[derive(Debug, Clone)]
 pub struct Diagnostic {
     pub severity: Severity,
@@ -96,7 +96,7 @@ impl Diagnostic {
         Self::new(Severity::Note, message, span)
     }
 
-    /// Render this diagnostic with a caret underline beneath the offending line.
+    /// Toa utambuzi huu kwa mstari wa panda chini ya mstari wenye kosa.
     pub fn render(&self, source: &str) -> String {
         let sev_str = match self.severity {
             Severity::Error => "hitilafu",
@@ -126,7 +126,7 @@ impl Diagnostic {
     }
 }
 
-/// A grow-only collection of diagnostics.
+/// Mkusanyo wa utambuzi unaokua tu.
 #[derive(Debug, Clone, Default)]
 pub struct DiagnosticBag {
     diagnostics: Vec<Diagnostic>,
@@ -139,37 +139,37 @@ impl DiagnosticBag {
         }
     }
 
-    /// Append a diagnostic.
+    /// Ongeza utambuzi.
     pub fn push(&mut self, diag: Diagnostic) {
         self.diagnostics.push(diag);
     }
 
-    /// Append an error diagnostic.
+    /// Ongeza utambuzi wa kosa.
     pub fn error(&mut self, message: impl Into<String>, span: SourceSpan) {
         self.push(Diagnostic::error(message, span));
     }
 
-    /// Append a warning diagnostic.
+    /// Ongeza utambuzi wa onyo.
     pub fn warning(&mut self, message: impl Into<String>, span: SourceSpan) {
         self.push(Diagnostic::warning(message, span));
     }
 
-    /// View all accumulated diagnostics.
+    /// Tazama utambuzi wote uliokusanywa.
     pub fn all(&self) -> &[Diagnostic] {
         &self.diagnostics
     }
 
-    /// Number of diagnostics collected.
+    /// Idadi ya utambuzi uliokusanywa.
     pub fn len(&self) -> usize {
         self.diagnostics.len()
     }
 
-    /// Whether the bag is empty.
+    /// Je, mfuko ni tupu?
     pub fn is_empty(&self) -> bool {
         self.diagnostics.is_empty()
     }
 
-    /// True when at least one error-level diagnostic has been recorded.
+    /// Kweli wakati angalau utambuzi mmoja wa kiwango cha kosa umerekodiwa.
     pub fn has_errors(&self) -> bool {
         self.diagnostics
             .iter()

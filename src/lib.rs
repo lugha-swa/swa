@@ -1,7 +1,7 @@
-//! Kande — the Swa compiler.
+//! Kande — mkusanyaji wa Swa.
 //!
-//! A systems programming language with Kiswahili syntax.
-//! Swa replaces C as a machine contract layer.
+//! Lugha ya programu za mfumo yenye sintaksia ya Kiswahili.
+//! Swa inachukua nafasi ya C kama safu ya mkataba wa mashine.
 
 pub mod abi;
 pub mod ast;
@@ -13,5 +13,5 @@ pub mod lexer;
 pub mod parser;
 pub mod sema;
 
-// Re-export key types for convenience.
+// Safirisha tena aina muhimu kwa urahisi.
 pub use diagnostics::{Diagnostic, DiagnosticBag, Severity, SourceLocation, SourceSpan};

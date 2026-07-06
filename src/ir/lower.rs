@@ -1,38 +1,38 @@
-//! IR lowerer — converts a parsed Swa AST (flat-array form) into the Swa IR
-//! defined in [`crate::ir`].
+//! Kiteremshi cha IR — hubadilisha AST (safu-bapa) ya Swa iliyochanganuliwa kuwa IR ya Swa
+//! iliyofafanuliwa katika [`crate::ir`].
 //!
-//! ## AST flat-array format
+//! ## Muundo wa safu-bapa wa AST
 //!
-//! The parser emits several parallel arrays indexed by node id:
+//! Mchanganuzi hutoa safu sambamba kadhaa zilizoorodheshwa kwa kitambulisho cha nodi:
 //!
-//! | Array          | Element type | Meaning                          |
-//! |----------------|-------------|----------------------------------|
-//! | `ast_aina`     | `u32`       | Node kind (one of the `AST_*` constants) |
-//! | `ast_kushoto`  | `i32`       | Left / first child index (-1 = none)     |
-//! | `ast_kulia`    | `i32`       | Right child index (-1 = none)            |
-//! | `ast_tiga`     | `i32`       | Else-branch / for-step / body (-1 = none)|
-//! | `ast_nne`      | `i32`       | Sibling chain / chain continuation (-1 = none) |
-//! | `ast_thamani`  | `i32`       | Encoded integer literal or type-name pool offset |
-//! | `ast_jina_off` | `i32`       | Offset into `ast_pool` for identifier names |
-//! | `ast_pool`     | `u8`        | String pool (null-terminated names, length-prefixed literals) |
+//! | Safu          | Aina ya kipengele | Maana                          |
+//! |---------------|-------------------|--------------------------------|
+//! | `ast_aina`    | `u32`             | Aina ya nodi (mojawapo ya vibadilishasthamani vya `AST_*`) |
+//! | `ast_kushoto` | `i32`             | Faharasa ya mtoto wa kushoto/wa kwanza (-1 = hakuna)     |
+//! | `ast_kulia`   | `i32`             | Faharasa ya mtoto wa kulia (-1 = hakuna)                 |
+//! | `ast_tiga`    | `i32`             | Tawi la sivyo/hatua-ya-mzunguko/mwili (-1 = hakuna)      |
+//! | `ast_nne`     | `i32`             | Msururu wa ndugu/msururu wa kuendelea (-1 = hakuna)      |
+//! | `ast_thamani` | `i32`             | Halisi ya nambari kamili iliyosimbwa au kukabilisha dimbwi la aina-jina |
+//! | `ast_jina_off`| `i32`             | Kukabilisha ndani ya `ast_pool` kwa majina ya vitambulisho |
+//! | `ast_pool`    | `u8`              | Dimbwi la mifuatano (majina yenye ncha-tupu, halisi zenye urefu-kiambishi) |
 //!
-//! ## Lowering strategy
+//! ## Mkakati wa kuteremsha
 //!
-//! The root node (last allocated, index `ast_idadi - 1`) is always
-//! `AST_PROGRAMU` (1).  Its `ast_kushoto` points to the first child; children
-//! are chained via `ast_nne`.  Each child is either a function (`AST_KAZI`, 2)
-//! or a global variable (`AST_TANGAZO_ULIMWENGU`, 35).
+//! Nodi ya mizizi (iliyotengwa mwisho, faharasa `ast_idadi - 1`) daima ni
+//! `AST_PROGRAMU` (1).  `ast_kushoto` yake inaelekeza kwa mtoto wa kwanza; watoto
+//! wameunganishwa kupitia `ast_nne`.  Kila mtoto ni ama kazi (`AST_KAZI`, 2)
+//! au kigezo cha ulimwengu (`AST_TANGAZO_ULIMWENGU`, 35).
 //!
-//! Functions are lowered into [`Function`] values containing basic blocks.
-//! Statements produce control-flow (branches, loops, switches); expressions
-//! produce [`ValueId`]s.  Short-circuit `&&` / `||` create fresh blocks.
+//! Kazi zinateremshwa kuwa thamani za [`Function`] zilizo na vizuizi vya msingi.
+//! Taarifa hutoa mtiririko-dhibiti (matawi, mizunguko, chagua); misemo
+//! hutoa [`ValueId`].  Fupi-hali `&&` / `||` huunda vizuizi vipya.
 
 use super::{BlockId, Const, Function, Instruction, IrBlock, IrGlobal, IrReturnClass, Module, Terminator, ValueId};
 use super::types::IrType;
 use std::collections::HashMap;
 
 // ---------------------------------------------------------------------------
-// AST node-type constants
+// Vibadilishasthamani vya aina-nodi za AST
 // ---------------------------------------------------------------------------
 
 const AST_PROGRAMU: u32 = 1;
@@ -82,47 +82,47 @@ const AST_KWELI: u32 = 44;
 const AST_UONGO: u32 = 45;
 const AST_TUPU: u32 = 46;
 
-/// Sentinel used in `ast_kushoto`, `ast_kulia`, `ast_tiga`, and `ast_nne` to
-/// indicate "no child / no sibling".
+/// Kialamisho kinachotumiwa katika `ast_kushoto`, `ast_kulia`, `ast_tiga`, na `ast_nne`
+/// kuashiria "hakuna mtoto / hakuna ndugu".
 const NO_NODE: i32 = -1;
 
 // ---------------------------------------------------------------------------
-// AllocInfo — tracks a named variable's stack slot
+// AllocInfo — hufuatilia sehemu ya mrundikano wa kigezo chenye jina
 // ---------------------------------------------------------------------------
 
-/// Describes a named variable that has been allocated on the stack.
+/// Inaelezea kigezo chenye jina ambacho kimetengwa kwenye mrundikano.
 #[derive(Debug, Clone)]
 struct AllocInfo {
-    /// The `ValueId` returned by the `Alloca` instruction.
+    /// `ValueId` iliyorudishwa na amri ya `Alloca`.
     ptr: ValueId,
-    /// The type of the stored value (pointee type for the alloca).
+    /// Aina ya thamani iliyohifadhiwa (aina ya pointee kwa alloca).
     ty: IrType,
 }
 
 // ---------------------------------------------------------------------------
-// LoopInfo — saved context for `vunja` / `endelea`
+// LoopInfo — mazingira yaliyohifadhiwa kwa `vunja` / `endelea`
 // ---------------------------------------------------------------------------
 
-/// Records the header and exit blocks of the innermost loop so that `break`
-/// and `continue` can target them.
+/// Hurekodi kichwa na vizuizi vya kutoka vya mzunguko wa ndani kabisa ili `vunja`
+/// na `endelea` ziweze kuzilenga.
 #[derive(Debug, Clone, Copy)]
 struct LoopInfo {
-    /// The block that tests the loop condition (where `continue` jumps).
+    /// Kizuizi kinachojaribu sharti la mzunguko (ambapo `endelea` huruka).
     header: BlockId,
-    /// The block immediately following the loop (where `break` jumps).
+    /// Kizuizi kinachofuata mara moja baada ya mzunguko (ambapo `vunja` huruka).
     exit: BlockId,
 }
 
 // ---------------------------------------------------------------------------
-// Lowerer
+// Kiteremshi
 // ---------------------------------------------------------------------------
 
-/// Stateful AST → IR lowering context.
+/// Mazingira ya kuteremsha AST → IR yenye hali.
 ///
-/// The lowerer walks the AST depth-first, accumulating functions, globals,
-/// strings, and type definitions into a [`Module`].
+/// Kiteremshi kinatembea AST kwa kina-kwanza, kikikusanya kazi,
+/// vigezo vya ulimwengu, mifuatano, na ufafanuzi wa aina ndani ya [`Module`].
 struct Lowerer<'a> {
-    // -- AST arrays (borrowed) ------------------------------------------------
+    // -- Safu za AST (zilizokopwa) -------------------------------------------
     ast_aina: &'a [u32],
     ast_kushoto: &'a [i32],
     ast_kulia: &'a [i32],
@@ -132,68 +132,69 @@ struct Lowerer<'a> {
     ast_jina_off: &'a [i32],
     ast_pool: &'a [u8],
 
-    // -- Accumulated module pieces --------------------------------------------
+    // -- Vipande vya moduli vilivyokusanywa -----------------------------------
     functions: Vec<Function>,
     globals: Vec<IrGlobal>,
     types: Vec<(String, IrType)>,
-    /// Collected string literals: (symbol name, raw bytes without terminator).
-    /// Each unique string gets a synthetic global name like `@str.0`, `@str.1`, ...
+    /// Halisi za mifuatano zilizokusanywa: (jina la ishara, baiti ghafi bila kimalizio).
+    /// Kila mfuatano wa kipekee hupata jina la ulimwengu la sintetiki kama `@str.0`, `@str.1`, ...
     strings: Vec<(String, Vec<u8>)>,
 
-    // -- Current function under construction ----------------------------------
-    /// The function being lowered right now.
+    // -- Kazi inayojengwa kwa sasa --------------------------------------------
+    /// Kazi inayoteremshwa sasa hivi.
     func: Function,
 
-    // -- Scope chain ----------------------------------------------------------
-    /// Each push is a new lexical scope (function body, block, etc.).
-    /// When looking up a name we walk from the innermost scope outward.
+    // -- Msururu wa upeo ------------------------------------------------------
+    /// Kila sukuma ni upeo mpya wa kileksia (mwili wa kazi, kizuizi, n.k.).
+    /// Tunapotafuta jina tunatembea kutoka upeo wa ndani kabisa kwenda nje.
     scopes: Vec<HashMap<String, AllocInfo>>,
 
-    // -- Loop context stack ---------------------------------------------------
-    /// The innermost loop is at the end; `break` / `continue` target it.
+    // -- Rundo la mazingira ya mzunguko ----------------------------------------
+    /// Mzunguko wa ndani kabisa uko mwishoni; `vunja` / `endelea` hulenga.
     loops: Vec<LoopInfo>,
 
-    // -- Counters -------------------------------------------------------------
-    /// Global instruction counter: monotonically increases across all blocks.
+    // -- Viheshi --------------------------------------------------------------
+    /// Kiheshi cha amri cha ulimwengu: huongezeka monotoniki katika vizuizi vyote.
     inst_counter: usize,
-    /// values.len() captured at function start — must not change during body lowering.
+    /// values.len() iliyonaswa mwanzoni mwa kazi — haipaswi kubadilika wakati wa kuteremsha mwili.
     values_initial_len: usize,
-    /// Monotonically increasing block-id counter used for fresh labels.
+    /// Kiheshi cha kitambulisho-kizuizi kinachoongezeka monotoniki kinachotumiwa kwa lebo mpya.
     block_counter: usize,
 
-    /// Pre-allocated stack slots for local variables, keyed by AST_TANGAZO
-    /// node index.  Populated during the pre-pass in lower_function so that
-    /// every alloca lives in the entry block; lower_local_decl then looks up
-    /// the pre-allocated ValueId instead of emitting a new Alloca.
+    /// Sehemu za mrundikano zilizotengwa awali kwa vigezo vya ndani,
+    /// zilizowekwa kwa ufunguo wa faharasa ya nodi AST_TANGAZO.
+    /// Hujazwa wakati wa kupita-awali katika kazi_ya_kuteremsha ili
+    /// kila alloca iwe katika kizuizi cha kuingia; lower_local_decl
+    /// hatafuta ValueId iliyotengwa awali badala ya kutoa Alloca mpya.
     pre_allocated_locals: std::collections::HashMap<i32, ValueId>,
 
-    /// Types for global variables (for lower_identifier).
+    /// Aina za vigezo vya ulimwengu (kwa lower_identifier).
     global_types: std::collections::HashMap<String, IrType>,
-    /// Optional pre-allocated sret destination for the next struct-return call.
+    /// Lengo la sret lililotengwa awali kwa wito unaorudisha muundo.
     sret_dest: Option<ValueId>,
 }
 
 // ---------------------------------------------------------------------------
-// Public entry point
+// Sehemu ya kuingia ya umma
 // ---------------------------------------------------------------------------
 
-/// Lower a flat-array Swa AST into an IR [`Module`].
+/// Teremsha AST ya Swa ya safu-bapa kuwa [`Module`] ya IR.
 ///
-/// # Parameters
+/// # Vigezo
 ///
-/// * `ast_aina`      — node-type array
-/// * `ast_kushoto`   — left / first-child array
-/// * `ast_kulia`     — right-child array
-/// * `ast_tiga`      — else-branch / for-step / body array
-/// * `ast_nne`       — sibling-chain array
-/// * `ast_thamani`   — encoded integer value or type-name pool offset
-/// * `ast_jina_off`  — offset into `ast_pool` for identifier names
-/// * `ast_pool`      — string pool bytes
-/// * `ast_idadi`     — total number of allocated AST nodes
+/// * `ast_aina`      — safu ya aina-nodi
+/// * `ast_kushoto`   — safu ya mtoto wa kushoto / wa kwanza
+/// * `ast_kulia`     — safu ya mtoto wa kulia
+/// * `ast_tiga`      — safu ya tawi-sivyo / hatua-ya-mzunguko / mwili
+/// * `ast_nne`       — safu ya msururu wa ndugu
+/// * `ast_thamani`   — thamani ya nambari kamili iliyosimbwa au kukabilisha dimbwi la aina-jina
+/// * `ast_jina_off`  — kukabilisha ndani ya `ast_pool` kwa majina ya vitambulisho
+/// * `ast_pool`      — baiti za dimbwi la mifuatano
+/// * `ast_idadi`     — jumla ya nodi za AST zilizotengwa
 ///
-/// # Panics
+/// # Hofu
 ///
-/// Panics if `ast_idadi == 0` (empty AST).
+/// Hofu ikiwa `ast_idadi == 0` (AST tupu).
 pub fn lower(
     ast_aina: &[u32],
     ast_kushoto: &[i32],
@@ -320,11 +321,11 @@ pub fn lower(
 }
 
 // ============================================================================
-// Lowerer helpers — pool access
+// Visaidizi vya Kiteremshi — ufikiaji wa dimbwi
 // ============================================================================
 
 impl<'a> Lowerer<'a> {
-    /// Read the node kind for `node_idx`, returning 0 for `NO_NODE`.
+    /// Soma aina ya nodi kwa `node_idx`, ikirudisha 0 kwa `NO_NODE`.
     #[inline]
     fn node_aina(&self, idx: i32) -> u32 {
         if idx == NO_NODE || idx < 0 {
@@ -333,7 +334,7 @@ impl<'a> Lowerer<'a> {
         self.ast_aina[idx as usize]
     }
 
-    /// Read a null-terminated UTF-8 name from the string pool at `offset`.
+    /// Soma jina la UTF-8 lenye ncha-tupu kutoka dimbwi la mifuatano kwenye `offset`.
     fn read_pool_name(&self, offset: i32) -> String {
         if offset < 0 || offset as usize >= self.ast_pool.len() {
             return String::new();
@@ -348,11 +349,11 @@ impl<'a> Lowerer<'a> {
             .to_string()
     }
 
-    /// Read a length-prefixed byte sequence from the string pool at `offset`.
+    /// Soma mfuatano wa baiti wenye urefu-kiambishi kutoka dimbwi la mifuatano kwenye `offset`.
     ///
-    /// Format: 4-byte LE `u32` length followed by that many raw bytes (no
-    /// terminator).  Falls back to null-terminated if the length looks
-    /// unreasonable.
+    /// Muundo: urefu wa `u32` wa LE wa baiti 4 ukifuatiwa na baiti ghafi
+    /// nyingi kama hiyo (hakuna kimalizio).  Inarudi kwenye ncha-tupu
+    /// ikiwa urefu hauonekani kuwa sahihi.
     fn read_pool_bytes(&self, offset: i32) -> Vec<u8> {
         if offset < 0 {
             return Vec::new();
@@ -380,22 +381,22 @@ impl<'a> Lowerer<'a> {
         }
     }
 
-    /// Read a type name from the pool at the offset stored in `ast_thamani[idx]`.
+    /// Soma jina la aina kutoka dimbwi kwenye kukabilisha kilichohifadhiwa katika `ast_thamani[idx]`.
     fn read_type_from_thamani(&self, idx: i32) -> IrType {
-        // ast_thamani stores an encoded type integer, not a pool offset.
-        // Encoding: ((familia & 255) << 8) | (upana & 255), with bit 0 = pointer flag.
+        // ast_thamani huhifadhi nambari kamili ya aina iliyosimbwa, si kukabilisha dimbwi.
+        // Usimbaji: ((familia & 255) << 8) | (upana & 255), na biti 0 = bendera ya kielekezi.
         if idx == NO_NODE || idx < 0 {
             return IrType::Void;
         }
         let enc_raw = self.ast_thamani[idx as usize];
-        // Negative values: user struct name stored as pool offset.
-        // -(offset) = struct by value; -(offset | 1) = struct pointer.
+        // Thamani hasi: jina la muundo wa mtumiaji limehifadhiwa kama kukabilisha dimbwi.
+        // -(offset) = muundo kwa thamani; -(offset | 1) = kielekezi cha muundo.
         if enc_raw < 0 {
             let neg = (-enc_raw) as u32;
             let mshale = neg & 1;
             let off = (neg >> 1) as usize;
             let name = self.read_pool_name(off as i32);
-            // Try to find the struct in the registered types, otherwise create placeholder.
+            // Jaribu kupata muundo katika aina zilizosajiliwa, vinginevyo unda kishika nafasi.
             let struct_ty = self.types.iter()
                 .find(|(n, _)| n == &name)
                 .map(|(_, t)| t.clone())
@@ -407,7 +408,7 @@ impl<'a> Lowerer<'a> {
         if enc == 0 {
             return IrType::Void;
         }
-        // Encoding from Rust parser: ((familia & 255) << 11) | (upana_idx << 3) | (mshale & 7)
+        // Usimbaji kutoka mchanganuzi wa Rust: ((familia & 255) << 11) | (upana_idx << 3) | (mshale & 7)
         let familia = (enc >> 11) & 255;
         let upana_idx = (enc >> 3) & 7;
         let mshale = enc & 7;
@@ -430,21 +431,21 @@ impl<'a> Lowerer<'a> {
         ty
     }
 
-    /// Read a type from a node's `ast_thamani` field (the node IS the type
-    /// specifier, not a parent referencing it).
+    /// Soma aina kutoka sehemu ya `ast_thamani` ya nodi (nodi YENYEWE NI
+    /// kibainishi cha aina, si mzazi anayekirejelea).
     fn read_type_from_node(&self, type_node: i32) -> IrType {
         if type_node == NO_NODE || type_node < 0 {
             return IrType::Void;
         }
         let kind = self.node_aina(type_node);
         match kind {
-            // Pointer type: *T
+            // Aina ya kielekezi: *T
             28 /* NYOTA */ => {
                 let inner = self.ast_kushoto[type_node as usize];
                 let inner_ty = self.read_type_from_node(inner);
                 IrType::Ptr(Box::new(inner_ty))
             }
-            // Named type reference via thamani
+            // Rejeleo la aina yenye jina kupitia thamani
             _ => {
                 let name_off = self.ast_thamani[type_node as usize];
                 let name = self.read_pool_name(name_off);
@@ -452,7 +453,7 @@ impl<'a> Lowerer<'a> {
                     IrType::Void
                 } else {
                     IrType::from_swa_type(&name).unwrap_or_else(|| {
-                        // Look up the struct definition in already-registered types.
+                        // Tafuta ufafanuzi wa muundo katika aina zilizosajiliwa tayari.
                         self.types.iter()
                             .find(|(n, _)| n == &name)
                             .map(|(_, t)| t.clone())
@@ -468,29 +469,29 @@ impl<'a> Lowerer<'a> {
 }
 
 // ============================================================================
-// Lowerer helpers — block / value management
+// Visaidizi vya Kiteremshi — usimamizi wa kizuizi / thamani
 // ============================================================================
 
 impl<'a> Lowerer<'a> {
-    /// Create a new block with the given label prefix (e.g. `"entry"`,
-    /// `"then"`, `"loop_header"`) appended with the block counter for
-    /// uniqueness, push it into the current function, and return its
-    /// `BlockId`.
+    /// Unda kizuizi kipya chenye kiambishi cha lebo (mf. `"entry"`,
+    /// `"then"`, `"loop_header"`) kilichounganishwa na kiheshi cha kizuizi
+    /// kwa upekee, kikisukuma ndani ya kazi ya sasa, na kurudisha
+    /// `BlockId` yake.
     fn new_block(&mut self, label_prefix: &str) -> BlockId {
         let label = format!("{}.{}", label_prefix, self.block_counter);
         self.block_counter += 1;
-        // Use RetVoid as default — caller must overwrite with set_terminator.
-        // Br to BlockId(0) creates false predecessors for the entry block.
+        // Tumia RetVoid kama chaguo-msingi — mpigaji lazima aandike upya kwa set_terminator.
+        // Br kwa BlockId(0) huunda watangulizi wa uwongo kwa kizuizi cha kuingia.
         let block = IrBlock::new(label, Terminator::RetVoid);
         let id = self.func.push_block(block);
         id
     }
 
-    /// Append an instruction to block `block_id` and return a fresh `ValueId`.
-    /// ValueIds for instructions start at params.len() + values.len() (i.e. after
-    /// Emit an instruction and return its ValueId.
-    /// ValueId scheme matches codegen: params(N) + values(M) + instruction_position.
-    /// instruction_position starts at 0 for the first instruction in each block.
+    /// Ongeza amri kwenye kizuizi `block_id` na urudisha `ValueId` mpya.
+    /// ValueIds kwa amri huanza kwa params.len() + values.len() (yaani baada ya
+    /// Toa amri na urudisha ValueId yake.
+    /// Mpango wa ValueId unalingana na codegen: params(N) + values(M) + instruction_position.
+    /// instruction_position huanza kwa 0 kwa amri ya kwanza katika kila kizuizi.
     fn emit(&mut self, block_id: BlockId, inst: Instruction) -> ValueId {
         let block = &mut self.func.blocks[block_id.0];
         let vid = ValueId(self.func.params.len() + self.func.values.len() + self.inst_counter);
@@ -499,22 +500,22 @@ impl<'a> Lowerer<'a> {
         vid
     }
 
-    /// Look up a previously-interned constant and return its `ValueId`.
-    /// Panics if the constant was not pre-interned — all constants must be
-    /// interned via `collect_constants` or the pre-intern list before lowering.
+    /// Tafuta thabiti iliyofanywa ndani awali na urudisha `ValueId` yake.
+    /// Hofu ikiwa thabiti haikufanywa ndani awali — thabiti zote lazima
+    /// zifanywe ndani kupitia `collect_constants` au orodha ya pre-intern kabla ya kuteremsha.
     fn const_val(&mut self, c: Const) -> ValueId {
         let idx = self.func.values.iter().position(|v| *v == c)
             .unwrap_or_else(|| panic!("const_val: {:?} not pre-interned", c));
         ValueId(self.func.params.len() + idx)
     }
 
-    /// Set the terminator of the given block.
+    /// Weka kimalizio cha kizuizi kilichotolewa.
     fn set_terminator(&mut self, block_id: BlockId, term: Terminator) {
         self.func.blocks[block_id.0].terminator = term;
     }
 
-    /// Look up a name in the scope chain (innermost first).  Returns `None` if
-    /// the name is not found.
+    /// Tafuta jina katika msururu wa upeo (ndani kabisa kwanza).  Inarudisha `None` ikiwa
+    /// jina halipatikani.
     fn lookup(&self, name: &str) -> Option<&AllocInfo> {
         for scope in self.scopes.iter().rev() {
             if let Some(info) = scope.get(name) {
@@ -524,17 +525,17 @@ impl<'a> Lowerer<'a> {
         None
     }
 
-    /// Push a new, empty scope onto the scope chain.
+    /// Sukuma upeo mpya, tupu kwenye msururu wa upeo.
     fn push_scope(&mut self) {
         self.scopes.push(HashMap::new());
     }
 
-    /// Pop the innermost scope.
+    /// Ondoa upeo wa ndani kabisa.
     fn pop_scope(&mut self) {
         self.scopes.pop();
     }
 
-    /// Register a variable in the innermost scope.
+    /// Sajili kigezo katika upeo wa ndani kabisa.
     fn define_var(&mut self, name: String, ptr: ValueId, ty: IrType) {
         if let Some(scope) = self.scopes.last_mut() {
             scope.insert(name, AllocInfo { ptr, ty });
@@ -543,21 +544,21 @@ impl<'a> Lowerer<'a> {
 }
 
 // ============================================================================
-// Top-level lowering: functions and globals
+// Kuteremsha kiwango-juu: kazi na vigezo vya ulimwengu
 // ============================================================================
 
 impl<'a> Lowerer<'a> {
-    /// Lower a function definition (`AST_KAZI`, node 2).
+    /// Teremsha ufafanuzi wa kazi (`AST_KAZI`, nodi 2).
     ///
-    /// Layout:
-    /// * `ast_jina_off[node]`  → function name
-    /// * `ast_thamani[node]`   → return-type pool offset
-    /// * `ast_kulia[node]`     → first parameter node (chained via `ast_nne`)
-    /// * `ast_tiga[node]`      → function body (block or expression)
+    /// Mpangilio:
+    /// * `ast_jina_off[node]`  → jina la kazi
+    /// * `ast_thamani[node]`   → kukabilisha dimbwi la aina-rudisha
+    /// * `ast_kulia[node]`     → nodi ya kigezo cha kwanza (iliyounganishwa kupitia `ast_nne`)
+    /// * `ast_tiga[node]`      → mwili wa kazi (kizuizi au usemi)
     fn lower_function(&mut self, func_node: i32, has_body: &std::collections::HashSet<String>) {
-        // Skip forward declarations whose name has a corresponding definition
-        // with a body elsewhere in the same compilation unit.  Lowering them
-        // would create an empty stub that shadows the real implementation.
+        // Ruka matangazo ya mbele ambayo jina lake lina ufafanuzi sambamba
+        // wenye mwili mahali pengine katika kitengo kimoja cha ukusanyaji.  Kuyateremsha
+        // kunaweza kuunda kishika nafasi tupu kinachoficha utekelezaji halisi.
         let body_node = self.ast_tiga[func_node as usize];
         if body_node == NO_NODE {
             let name_node = self.ast_kushoto[func_node as usize];
@@ -569,8 +570,8 @@ impl<'a> Lowerer<'a> {
             }
         }
 
-        // The function's name is stored on the name_node (ast_kushoto),
-        // not on the AST_KAZI node itself.
+        // Jina la kazi limehifadhiwa kwenye name_node (ast_kushoto),
+        // si kwenye nodi ya AST_KAZI yenyewe.
         let name_node = self.ast_kushoto[func_node as usize];
         let name = if name_node != NO_NODE {
             self.read_pool_name(self.ast_jina_off[name_node as usize])
@@ -579,14 +580,14 @@ impl<'a> Lowerer<'a> {
         };
         let ret_ty = self.read_type_from_thamani(func_node);
 
-        // -- Collect parameters -------------------------------------------------
+        // -- Kukusanya vigezo ---------------------------------------------------
         let mut params: Vec<(String, IrType)> = Vec::new();
         let mut param_node = self.ast_kulia[func_node as usize];
         while param_node != NO_NODE {
             let pname = self.read_pool_name(self.ast_jina_off[param_node as usize]);
-            // For parameter nodes, ast_thamani may be the type node index or a
-            // pool offset.  Try reading via thamani first; if that yields Void
-            // and there is a kushoto type child, read from there.
+            // Kwa nodi za vigezo, ast_thamani inaweza kuwa faharasa ya nodi ya aina au
+            // kukabilisha dimbwi.  Jaribu kusoma kupitia thamani kwanza; ikiwa hiyo inatoa Void
+            // na kuna mtoto wa aina wa kushoto, soma kutoka hapo.
             let mut pty = self.read_type_from_thamani(param_node);
             if pty == IrType::Void {
                 let type_child = self.ast_kushoto[param_node as usize];
@@ -598,7 +599,7 @@ impl<'a> Lowerer<'a> {
             param_node = self.ast_kulia[param_node as usize];
         }
 
-        // -- Build function -----------------------------------------------------
+        // -- Jenga kazi ---------------------------------------------------------
         self.func = Function::new(name.clone(), ret_ty.clone(), params.clone());
 
         // Record the return class.
@@ -606,7 +607,7 @@ impl<'a> Lowerer<'a> {
         self.func.return_class = rc;
         self.func.source_return_ty = ret_ty.clone();
 
-        // If sret, adjust the return type and add the hidden pointer parameter.
+        // Ikiwa sret, rekebisha aina ya rudisha na ongeza kigezo cha kielekezi kilichofichwa.
         let sret_ptr_vid = if rc == IrReturnClass::HiddenPtr && ret_ty != IrType::Void {
             let sret_ty = IrType::Ptr(Box::new(ret_ty.clone()));
             self.func.params.insert(0, ("_sret".to_string(), sret_ty.clone()));
@@ -617,12 +618,12 @@ impl<'a> Lowerer<'a> {
             false
         };
 
-        // Pre-intern constants AFTER sret param is added, so params.len() is final.
+        // Fanya thabiti ndani kabla BAADA ya kigezo cha sret kuongezwa, ili params.len() iwe ya mwisho.
         self.collect_constants(self.ast_tiga[func_node as usize]);
 
-        // Pre-intern commonly-used constants so const_val() never adds new
-        // values during lowering (which would shift ValueIds out of sync
-        // with the backend's N+M+I scheme).
+        // Fanya thabiti zinazotumiwa kawaida ndani ili const_val() isiongeze kamwe
+        // thamani mpya wakati wa kuteremsha (ambazo zingehamaisha ValueIds
+        // kutoka kwa mpango wa N+M+I wa backend).
         self.func.intern_const(Const::Zero);
         self.func.intern_const(Const::Int(0));
         self.func.intern_const(Const::Int(1));
@@ -634,7 +635,7 @@ impl<'a> Lowerer<'a> {
         self.values_initial_len = self.func.values.len();
         self.inst_counter = 0;
 
-        // -- Create entry block -------------------------------------------------
+        // -- Unda kizuizi cha kuingia -------------------------------------------
         self.scopes.clear();
         self.loops.clear();
         self.push_scope();
@@ -642,37 +643,37 @@ impl<'a> Lowerer<'a> {
         let entry_id = self.new_block("entry");
         self.func.entry = entry_id;
 
-        // -- Lower parameters into stack slots ----------------------------------
-        // Parameter ValueIds are 0..N-1 in the same order as self.func.params.
-        // If sret is active, the hidden pointer is ValueId(0) and user-visible
-        // params start at ValueId(1).  The loop index `i` already accounts for
-        // this — we skip i=0 when sret is active.
+        // -- Teremsha vigezo kwenye sehemu za mrundikano -----------------------
+        // ValueIds za vigezo ni 0..N-1 kwa mpangilio sawa na self.func.params.
+        // Ikiwa sret inatumika, kielekezi kilichofichwa ni ValueId(0) na vigezo
+        // vinavyoonekana kwa mtumiaji huanza kwa ValueId(1).  Faharasa ya mzunguko
+        // `i` tayari inashughulikia hili — tunaruka i=0 wakati sret inatumika.
 
-        // Clone params to avoid borrow conflict with self.emit below.
+        // Nakili params ili kuepuka mgongano wa kukopa na self.emit chini.
         let params: Vec<_> = self.func.params.iter().cloned().collect();
         for (i, (pname, pty)) in params.iter().enumerate() {
-            // Skip the sret pointer — it is lowered separately.
+            // Ruka kielekezi cha sret — kinateremshwa tofauti.
             if sret_ptr_vid && i == 0 {
                 continue;
             }
             let alloc = self.emit(entry_id, Instruction::Alloca(pty.clone()));
-            // Parameter value: ValueId(i). (If sret, param i=1 gets ValueId(1),
-            // which correctly skips ValueId(0).)
+            // Thamani ya kigezo: ValueId(i). (Ikiwa sret, kigezo i=1 kinapata ValueId(1),
+            // ambacho kinaruka ValueId(0) kwa usahihi.)
             let param_vid = ValueId(i);
             self.emit(entry_id, Instruction::StoreTyped(param_vid, alloc, pty.clone()));
             self.define_var(pname.clone(), alloc, pty.clone());
         }
 
-        // -- Pre-pass: hoist all local-variable allocas to entry block -----------
-        // Walk the function body AST and collect every AST_TANGAZO node.  Emit
-        // an Alloca into the entry block for each one and record the (node →
-        // ValueId) mapping so that lower_local_decl can reuse the pre-allocated
-        // slot instead of creating a new alloca in the current block.
+        // -- Kupita-awali: inua allocas zote za vigezo-ndani kwenye kizuizi cha kuingia ------
+        // Tembea AST ya mwili wa kazi na kusanya kila nodi ya AST_TANGAZO.  Toa
+        // Alloca ndani ya kizuizi cha kuingia kwa kila moja na rekodi ramani ya
+        // (nodi → ValueId) ili lower_local_decl iweze kutumia tena sehemu
+        // iliyotengwa awali badala ya kuunda alloca mpya katika kizuizi cha sasa.
         let mut local_decls: Vec<(i32, IrType)> = Vec::new();
         self.collect_local_decls(body_node, &mut local_decls);
         for (node, var_ty) in &local_decls {
-            // Skip struct locals when sret is active — lower_local_decl will
-            // reuse the sret pointer directly instead of the alloca slot.
+            // Ruka vigezo vya muundo wakati sret inatumika — lower_local_decl
+            // itatumia tena kielekezi cha sret moja kwa moja badala ya sehemu ya alloca.
             let is_sret_struct = matches!(&var_ty, IrType::Struct { .. })
                 && self.func.sret_value_id.is_some();
             if !is_sret_struct {
@@ -681,16 +682,16 @@ impl<'a> Lowerer<'a> {
             }
         }
 
-        // -- Lower body ---------------------------------------------------------
+        // -- Teremsha mwili -----------------------------------------------------
         let body_node = self.ast_tiga[func_node as usize];
         let body_block_id = self.lower_block(body_node);
 
-        // Link entry → body.
+        // Unganisha kuingia → mwili.
         self.set_terminator(entry_id, Terminator::Br(body_block_id));
 
-        // -- Finalise -----------------------------------------------------------
-        // Replace self-loop and RetVoid placeholder terminators with proper
-        // returns appropriate for the function's return type.
+        // -- Maliza -------------------------------------------------------------
+        // Badilisha kimalizio cha kujizungusha na RetVoid cha kishika nafasi
+        // na rudisha zinazofaa aina ya rudisha ya kazi.
         let is_void = matches!(self.func.return_ty, IrType::Void);
         let needs_fixup = |blk_id: BlockId, term: &Terminator| -> bool {
             matches!(term, Terminator::Br(b) if *b == blk_id)
@@ -717,14 +718,14 @@ impl<'a> Lowerer<'a> {
         ));
     }
 
-    /// Lower a global variable (`AST_TANGAZO_ULIMWENGU`, node 35).
+    /// Teremsha kigezo cha ulimwengu (`AST_TANGAZO_ULIMWENGU`, nodi 35).
     ///
-    /// Parser layout:
-    /// * `ast_kushoto[node]` → name identifier node (jina_off set there)
-    /// * `ast_thamani[node]` → encoded return type (integer)
-    /// * `ast_kulia[node]`   → initialiser expression (if present)
+    /// Mpangilio wa mchanganuzi:
+    /// * `ast_kushoto[node]` → nodi ya kitambulisho cha jina (jina_off imewekwa hapo)
+    /// * `ast_thamani[node]` → aina ya rudisha iliyosimbwa (nambari kamili)
+    /// * `ast_kulia[node]`   → usemi wa kianzisha (ikiwa upo)
     fn lower_global(&mut self, glob_node: i32) {
-        // Name: parser stores via name_node in kushoto; fallback to direct jina_off.
+        // Jina: mchanganuzi huhifadha kupitia name_node katika kushoto; rudia kwa jina_off moja kwa moja.
         let name_node = self.ast_kushoto[glob_node as usize];
         let name = if name_node != NO_NODE {
             self.read_pool_name(self.ast_jina_off[name_node as usize])
@@ -733,7 +734,7 @@ impl<'a> Lowerer<'a> {
         };
         let base_ty = self.read_type_from_thamani(glob_node);
 
-        // Check for array size stored in tiga (set by parser for Type name[size]).
+        // Angalia ukubwa wa safu uliohifadhiwa katika tiga (iliyowekwa na mchanganuzi kwa Aina jina[ukubwa]).
         let saizi_node = self.ast_tiga[glob_node as usize];
         let ty = if saizi_node != NO_NODE && self.node_aina(saizi_node) == AST_NAMBARI {
             let count = self.ast_thamani[saizi_node as usize] as u32;
@@ -746,10 +747,10 @@ impl<'a> Lowerer<'a> {
             self.global_types.insert(name.clone(), ty.clone());
         }
 
-        // Initialiser: parser stores in kulia (not tiga — tiga is array size above).
+        // Kianzisha: mchanganuzi huhifadhi katika kulia (si tiga — tiga ni ukubwa wa safu hapo juu).
         let init_node = self.ast_kulia[glob_node as usize];
 
-        // Evaluate constant initialisers (integer literals only for now).
+        // Tathmini vianzisha thabiti (halisi za nambari kamili pekee kwa sasa).
         let size = ty.width_bytes();
         let bytes = if init_node != NO_NODE && init_node >= 0
             && self.node_aina(init_node) == AST_NAMBARI {
@@ -771,7 +772,7 @@ impl<'a> Lowerer<'a> {
         });
     }
 
-    /// Register a struct definition in the module's type table.
+    /// Sajili ufafanuzi wa muundo katika jedwali la aina za moduli.
     fn lower_muundo(&mut self, muundo_node: i32) {
         let name_node = self.ast_kushoto[muundo_node as usize];
         if name_node == NO_NODE { return; }
@@ -794,12 +795,12 @@ impl<'a> Lowerer<'a> {
 }
 
 // ============================================================================
-// Statement lowering
+// Kuteremsha taarifa
 // ============================================================================
 
 impl<'a> Lowerer<'a> {
-    /// Walk the AST and pre-intern all integer constants so that
-    /// `func.values.len()` is stable before instruction ValueId assignment.
+    /// Tembea AST na fanya thabiti zote za nambari kamili ndani kabla ili
+    /// `func.values.len()` iwe thabiti kabla ya ugawaji wa ValueId wa amri.
     fn collect_constants(&mut self, node: i32) {
         if node == NO_NODE || node < 0 { return; }
         let idx = node as usize;
@@ -809,8 +810,8 @@ impl<'a> Lowerer<'a> {
             AST_NAMBARI => {
                 let val = self.ast_thamani[idx] as i128;
                 self.func.intern_const(Const::Int(val));
-                // Also visit nne: call argument chains use nne, so a literal
-                // may be followed by another argument (e.g. fread(..., 1, 262144)).
+                // Pia tembelea nne: misururu ya hoja za wito hutumia nne, kwa hivyo halisi
+                // inaweza kufuatwa na hoja nyingine (mf. fread(..., 1, 262144)).
                 self.collect_constants(self.ast_nne[idx]);
                 return;
             }
@@ -832,31 +833,31 @@ impl<'a> Lowerer<'a> {
         self.collect_constants(self.ast_kulia[idx]);
         self.collect_constants(self.ast_tiga[idx]);
         self.collect_constants(self.ast_nne[idx]);
-        // AST_KIPINDI stores its condition expression in ast_thamani
-        // (ast_nne is reserved for the sibling statement chain).
+        // AST_KIPINDI huhifadhi usemi wake wa sharti katika ast_thamani
+        // (ast_nne imetengwa kwa msururu wa taarifa ndugu).
         if kind == AST_KIPINDI {
             self.collect_constants(self.ast_thamani[idx]);
         }
     }
 
-    /// Walk the AST recursively and collect all `AST_TANGAZO` (local variable
-    /// declaration) nodes together with their resolved types.
+    /// Tembea AST kwa kurudia na kusanya nodi zote za `AST_TANGAZO` (tangazo
+    /// la kigezo cha ndani) pamoja na aina zao zilizotatuliwa.
     ///
-    /// This is used during the pre-pass in `lower_function` so that every
-    /// local's `Alloca` instruction can be emitted into the entry block instead
-    /// of the current block, preventing alloca-in-loop stack exhaustion.
+    /// Hii inatumika wakati wa kupita-awali katika `kazi_ya_kuteremsha` ili
+    /// kila amri ya `Alloca` ya ndani iweze kutolewa ndani ya kizuizi cha
+    /// kuingia badala ya kizuizi cha sasa, kuzuia uchovu wa mrundikano wa alloca-katika-mzunguko.
     fn collect_local_decls(&self, node: i32, decls: &mut Vec<(i32, IrType)>) {
         if node == NO_NODE || node < 0 { return; }
         let idx = node as usize;
         if idx >= self.ast_aina.len() { return; }
         let kind = self.ast_aina[idx];
         if kind == AST_TANGAZO {
-            // Resolve type using the same logic as lower_local_decl.
+            // Tatua aina kwa kutumia mantiki sawa na lower_local_decl.
             let var_ty = if self.ast_thamani[idx] != 0 {
-                // Parser format: type encoded in thamani.
+                // Muundo wa mchanganuzi: aina imesimbwa katika thamani.
                 self.read_type_from_thamani(node)
             } else {
-                // Test/legacy format: type node in kulia, init in tiga.
+                // Muundo wa jaribio/urithi: nodi ya aina katika kulia, kianzisha katika tiga.
                 let type_node = self.ast_kulia[idx];
                 if type_node != NO_NODE && type_node >= 0 {
                     self.read_type_from_node(type_node)
@@ -865,27 +866,27 @@ impl<'a> Lowerer<'a> {
                 }
             };
             decls.push((node, var_ty));
-            // Do NOT return early — a local decl may have an init expression
-            // that itself contains nested expressions.  Continue recursing.
+            // USIRUDISHE mapema — tangazo la ndani linaweza kuwa na usemi wa kianzisha
+            // ambao wenyewe una misemo iliyopachikwa.  Endelea kurudia.
         }
         self.collect_local_decls(self.ast_kushoto[idx], decls);
         self.collect_local_decls(self.ast_kulia[idx], decls);
         self.collect_local_decls(self.ast_tiga[idx], decls);
         self.collect_local_decls(self.ast_nne[idx], decls);
-        // AST_KIPINDI stores its condition expression in ast_thamani
-        // (ast_nne is reserved for the sibling statement chain).
+        // AST_KIPINDI huhifadhi usemi wake wa sharti katika ast_thamani
+        // (ast_nne imetengwa kwa msururu wa taarifa ndugu).
         if kind == AST_KIPINDI {
             self.collect_local_decls(self.ast_thamani[idx], decls);
         }
     }
 
-    /// Lower a statement node (or an expression used as a statement).
+    /// Teremsha nodi ya taarifa (au usemi unaotumika kama taarifa).
     ///
-    /// Returns the `BlockId` of the *continuation* block — the block to which
-    /// control flows after this statement completes normally.
+    /// Inarudisha `BlockId` ya kizuizi cha *muendelezo* — kizuizi ambacho
+    /// mtiririko-dhibiti unapita baada ya taarifa hii kukamilika kwa kawaida.
     fn lower_stmt(&mut self, node: i32) -> BlockId {
         if node == NO_NODE || node < 0 {
-            // Empty statement → create a trivial pass-through block.
+            // Taarifa tupu → unda kizuizi rahisi cha kupita.
             let blk = self.new_block("empty");
             self.set_terminator(blk, Terminator::Br(blk));
             return blk;
@@ -893,7 +894,7 @@ impl<'a> Lowerer<'a> {
 
         let kind = self.node_aina(node);
         match kind {
-            // ---- compound / expression-as-stmt --------------------------------
+            // ---- mchanganyiko / usemi-kama-taarifa ----------------------------
             AST_ASIMILIA => self.lower_assign(node),
             AST_KAMA => self.lower_if(node),
             AST_WAKATI => self.lower_while(node),
@@ -906,38 +907,38 @@ impl<'a> Lowerer<'a> {
             AST_TENGA => self.lower_heap_alloc_stmt(node),
             AST_ACHILIA => self.lower_heap_free_stmt(node),
             AST_WITO => {
-                // Expression statement (call result discarded).
+                // Taarifa ya usemi (matokeo ya wito yametupwa).
                 let blk = self.new_block("call_stmt");
                 let (_val, end_blk) = self.lower_expr_into(node, blk);
-                // Set a placeholder terminator so lower_block can chain it.
+                // Weka kimalizio cha kishika nafasi ili lower_block kiweze kukiunganisha.
                 self.set_terminator(end_blk, Terminator::Br(end_blk));
                 end_blk
             }
-            // ---- expression as statement --------------------------------------
+            // ---- usemi kama taarifa -------------------------------------------
             _ => {
-                // Any expression node used as statement: evaluate and discard.
+                // Nodi yoyote ya usemi inayotumika kama taarifa: tathmini na tupe.
                 let blk = self.new_block("expr_stmt");
                 let (_val, end_blk) = self.lower_expr_into(node, blk);
-                // Set a placeholder terminator so lower_block can chain it
-                // (short-circuit operators set their own terminators; don't overwrite).
+                // Weka kimalizio cha kishika nafasi ili lower_block kiweze kukiunganisha
+                // (waendeshaji fupi-hali huweka vimalizio vyao wenyewe; usiandike juu).
                 self.patch_br_if_needed(end_blk, end_blk);
                 end_blk
             }
         }
     }
 
-    /// Lower a block (a chain of statements linked via `ast_nne`).
+    /// Teremsha kizuizi (msururu wa taarifa zilizounganishwa kupitia `ast_nne`).
     ///
-    /// Returns the `BlockId` of the entry block for this sequence.
+    /// Inarudisha `BlockId` ya kizuizi cha kuingia kwa mfuatano huu.
     fn lower_block(&mut self, first_stmt: i32) -> BlockId {
         if first_stmt == NO_NODE || first_stmt < 0 {
             let blk = self.new_block("empty_body");
-            // Use a self-loop placeholder; the caller or finaliser will fix it.
+            // Tumia kishika nafasi cha kujizungusha; mpigaji au kimalizia kitarekebisha.
             self.set_terminator(blk, Terminator::Br(blk));
             return blk;
         }
 
-        // Walk the statement chain, linking each statement to the next.
+        // Tembea msururu wa taarifa, ukiunganisha kila taarifa kwa inayofuata.
         let mut current = first_stmt;
         let entry_id = self.new_block("body");
         let mut prev_block = entry_id;
@@ -947,13 +948,13 @@ impl<'a> Lowerer<'a> {
             let next_stmt = self.ast_nne[current as usize];
             let stmt_blk = self.lower_stmt(current);
 
-            // If stmt_blk is a condition block (BrCond), the real fall-through
-            // is the merge block.  Walk the false branch; if it ends in Ret,
-            // walk the true branch instead.  Recursively handle nested BrConds.
+            // Ikiwa stmt_blk ni kizuizi cha sharti (BrCond), kipitio halisi
+            // ni kizuizi cha muunganiko.  Tembea tawi la uongo; ikiwa linaisha kwa Ret,
+            // tembea tawi la kweli badala yake.  Shughulikia BrConds zilizopachikwa kwa kurudia.
             let actual_prev = match &self.func.blocks[stmt_blk.0].terminator {
                 Terminator::BrCond(_, true_blk, false_blk) => {
                     let mut seen: Vec<BlockId> = Vec::new();
-                    fn walk_branch(
+                    fn tembea_tawi(
                         blocks: &[IrBlock],
                         start: BlockId,
                         seen: &mut Vec<BlockId>,
@@ -964,12 +965,12 @@ impl<'a> Lowerer<'a> {
                         seen.push(start);
                         match &blocks[start.0].terminator {
                             Terminator::Br(t) if *t != start => {
-                                walk_branch(blocks, *t, seen)
+                                tembea_tawi(blocks, *t, seen)
                             }
                             Terminator::BrCond(_, t, f) => {
-                                let (fb, f_ret) = walk_branch(blocks, *f, seen);
+                                let (fb, f_ret) = tembea_tawi(blocks, *f, seen);
                                 if f_ret {
-                                    walk_branch(blocks, *t, seen)
+                                    tembea_tawi(blocks, *t, seen)
                                 } else {
                                     (fb, false)
                                 }
@@ -980,9 +981,9 @@ impl<'a> Lowerer<'a> {
                             _ => (start, false),
                         }
                     }
-                    let (result, is_ret) = walk_branch(&self.func.blocks, *false_blk, &mut seen);
+                    let (result, is_ret) = tembea_tawi(&self.func.blocks, *false_blk, &mut seen);
                     if is_ret {
-                        walk_branch(&self.func.blocks, *true_blk, &mut seen).0
+                        tembea_tawi(&self.func.blocks, *true_blk, &mut seen).0
                     } else {
                         result
                     }
@@ -996,9 +997,9 @@ impl<'a> Lowerer<'a> {
                 is_first = false;
             } else {
                 let prev_term = &self.func.blocks[prev_block.0].terminator;
-                let needs_chain = matches!(prev_term, Terminator::RetVoid)
+                let inahitaji_mnyororo = matches!(prev_term, Terminator::RetVoid)
                     || matches!(prev_term, Terminator::Br(b) if *b == prev_block);
-                if needs_chain {
+                if inahitaji_mnyororo {
                     self.set_terminator(prev_block, Terminator::Br(stmt_blk));
                 }
                 prev_block = actual_prev;
@@ -1007,18 +1008,18 @@ impl<'a> Lowerer<'a> {
             current = next_stmt;
         }
 
-        // If the last statement didn't set a real terminator, add a self-loop
-        // placeholder.  The caller (or a later pass) is responsible for
-        // replacing this with Ret/RetVoid appropriate for the function.
+        // Ikiwa taarifa ya mwisho haikuweka kimalizio halisi, ongeza kishika nafasi
+        // cha kujizungusha.  Mpigaji (au kupita kwa baadaye) anawajibika
+        // kubadilisha hili kwa Ret/RetVoid inayofaa kazi.
         let last_block = prev_block;
-        let needs_term = match &self.func.blocks[last_block.0].terminator {
-            Terminator::Br(b) if *b == last_block => true, // placeholder
-            // RetVoid is a valid terminator (from new_block default or
-            // from an explicit rudisha;).  Do NOT replace it with a
-            // self-loop — that would prevent rudisha from returning.
+        let inahitaji_kimalizio = match &self.func.blocks[last_block.0].terminator {
+            Terminator::Br(b) if *b == last_block => true, // kishika nafasi
+            // RetVoid ni kimalizio halali (kutoka chaguo-msingi cha new_block au
+            // kutoka rudisha wazi).  USIBADILISHE na kujizungusha —
+            // hiyo ingezuia rudisha kurudi.
             _ => false,
         };
-        if needs_term {
+        if inahitaji_kimalizio {
             self.set_terminator(last_block, Terminator::Br(last_block));
         }
 
@@ -1028,26 +1029,26 @@ impl<'a> Lowerer<'a> {
 }
 
 // ============================================================================
-// Statement lowering — individual statement kinds
+// Kuteremsha taarifa — aina za taarifa binafsi
 // ============================================================================
 
 impl<'a> Lowerer<'a> {
-    /// Lower `ASIMILIA` (assignment): `target = value`.
+    /// Teremsha `ASIMILIA` (ugawaji): `lengo = thamani`.
     ///
-    /// Layout:
-    /// * `ast_kushoto[node]` → lvalue
-    /// * `ast_kulia[node]`   → rvalue expression
+    /// Mpangilio:
+    /// * `ast_kushoto[node]` → thamani-l (lvalue)
+    /// * `ast_kulia[node]`   → usemi wa thamani-r (rvalue)
     fn lower_assign(&mut self, node: i32) -> BlockId {
         let lhs_node = self.ast_kushoto[node as usize];
         let rhs_node = self.ast_kulia[node as usize];
 
         let blk = self.new_block("assign");
 
-        // Compute the LHS pointer first.
+        // Kwanza hesabu kielekezi cha upande wa kushoto (LHS).
         let ptr = self.lower_lvalue(lhs_node, blk);
 
-        // If the LHS is a struct type, provide it as sret_dest so a
-        // struct-returning call on the RHS writes directly to the LHS.
+        // Ikiwa LHS ni aina ya muundo, toa kama sret_dest ili wito
+        // unaorudisha muundo kwenye RHS uandike moja kwa moja kwenye LHS.
         let lhs_ty = self.resolve_expr_type(lhs_node);
         let is_struct_assign = matches!(&lhs_ty, Some(IrType::Struct { .. }));
         if is_struct_assign {
@@ -1056,15 +1057,15 @@ impl<'a> Lowerer<'a> {
 
         let (rhs_val, end_blk) = self.lower_expr_into(rhs_node, blk);
 
-        // If sret_dest was consumed by lower_call, the struct was written
-        // directly to ptr and no Store is needed.
+        // Ikiwa sret_dest ililiwa na lower_call, muundo uliandikwa moja
+        // kwa moja kwenye ptr na hakuna Store inayohitajika.
         let sret_consumed = is_struct_assign && self.sret_dest.is_none();
         if !sret_consumed {
             let store_ty = lhs_ty.unwrap_or(IrType::I32);
             if is_struct_assign {
-                // Struct assignment: rhs_val is the RHS alloca pointer
-                // (lower_identifier returns info.ptr for struct types).
-                // Use MemCopy to copy the struct bytes.
+                // Ugawaji wa muundo: rhs_val ni kielekezi cha alloca cha RHS
+                // (lower_identifier inarudisha info.ptr kwa aina za muundo).
+                // Tumia MemCopy kunakili baiti za muundo.
                 let struct_size = store_ty.width_bytes() as u64;
                 if struct_size > 0 {
                     self.emit(end_blk, Instruction::MemCopy(ptr, rhs_val, struct_size));
@@ -1078,12 +1079,12 @@ impl<'a> Lowerer<'a> {
         end_blk
     }
 
-    /// Lower `KAMA` (if): `kama (cond) then_block [tiga else_block]`.
+    /// Teremsha `KAMA` (kama): `kama (sharti) tawi_la_kweli [tiga tawi_la_sivyo]`.
     ///
-    /// Layout:
-    /// * `ast_kushoto[node]` → condition expression
-    /// * `ast_kulia[node]`   → then branch
-    /// * `ast_tiga[node]`    → else branch (optional, -1 if absent)
+    /// Mpangilio:
+    /// * `ast_kushoto[node]` → usemi wa sharti
+    /// * `ast_kulia[node]`   → tawi la kweli
+    /// * `ast_tiga[node]`    → tawi la sivyo (si lazima, -1 ikiwa halipo)
     fn lower_if(&mut self, node: i32) -> BlockId {
         let cond_node = self.ast_kushoto[node as usize];
         let then_node = self.ast_kulia[node as usize];
@@ -1095,7 +1096,7 @@ impl<'a> Lowerer<'a> {
         let then_blk = self.lower_block(then_node);
         let merge_blk = self.new_block("if.merge");
 
-        // Branch from condition.
+        // Tawi kutoka sharti.
         if else_node != NO_NODE && else_node >= 0 {
             let else_blk = self.lower_block(else_node);
             self.set_terminator(
@@ -1111,22 +1112,22 @@ impl<'a> Lowerer<'a> {
             );
             self.patch_br_if_needed(then_blk, merge_blk);
         }
-        // Ensure merge_blk can be patched by lower_block's caller.
+        // Hakikisha merge_blk inaweza kurekebishwa na mpigaji wa lower_block.
         self.set_terminator(merge_blk, Terminator::Br(merge_blk));
 
-        // Return cond_blk so lower_block branches the entry block to the
-        // condition block (not the merge block), making the condition
-        // reachable.  lower_block's actual_prev logic follows the BrCond's
-        // false branch to find the merge block for chaining the next
-        // statement.
+        // Rudisha cond_blk ili lower_block ipeleke kizuizi cha kuingia kwenye
+        // kizuizi cha sharti (si kizuizi cha muunganiko), na kufanya sharti
+        // lifikike.  Mantiki ya actual_prev ya lower_block inafuata tawi la
+        // uongo la BrCond kupata kizuizi cha muunganiko kwa kuunganisha
+        // taarifa inayofuata.
         cond_blk
     }
 
-    /// Lower `WAKATI` (while loop): `wakati (cond) { body }`.
+    /// Teremsha `WAKATI` (mzunguko wa wakati): `wakati (sharti) { mwili }`.
     ///
-    /// Layout:
-    /// * `ast_kushoto[node]` → condition expression
-    /// * `ast_tiga[node]`    → loop body
+    /// Mpangilio:
+    /// * `ast_kushoto[node]` → usemi wa sharti
+    /// * `ast_tiga[node]`    → mwili wa mzunguko
     fn lower_while(&mut self, node: i32) -> BlockId {
         let cond_node = self.ast_kushoto[node as usize];
         let body_node = self.ast_kulia[node as usize];
@@ -1134,12 +1135,12 @@ impl<'a> Lowerer<'a> {
         let header_blk = self.new_block("while.header");
         let body_blk = self.new_block("while.body");
         let exit_blk = self.new_block("while.exit");
-        // Set a self-loop placeholder on exit_blk so that lower_block's
-        // actual_prev logic correctly identifies it as the fall-through
-        // path (instead of RetVoid, which would be treated as a return).
+        // Weka kishika nafasi cha kujizungusha kwenye exit_blk ili mantiki
+        // ya actual_prev ya lower_block itambue kwa usahihi kama njia ya
+        // kipitio (badala ya RetVoid, ambayo ingechukuliwa kama rudisha).
         self.set_terminator(exit_blk, Terminator::Br(exit_blk));
 
-        // Push loop context so that `break` → exit, `continue` → header.
+        // Sukuma mazingira ya mzunguko ili `vunja` → exit, `endelea` → header.
         self.loops.push(LoopInfo {
             header: header_blk,
             exit: exit_blk,
