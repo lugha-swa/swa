@@ -76,6 +76,7 @@ N32 mzizi_mkuu = -1;
 
 // sret pointer vid for struct-return functions
 N32 sret_vid_sasa = -1;
+N32 sret_scratch_vid = -1;   // pre-allocated scratch alloca for sret temps
 
 // -------------------------------------------------------
 // Helper: allocate a new SSA value ID
@@ -462,6 +463,25 @@ W0 nakili_muundo(N32 dest_vid, N32 src_vid, N32 ukubwa) {
 }
 
 // -------------------------------------------------------
+// Helper: extend a value to match a wider integer width.
+// Returns the original vid if already the target width,
+// or a new vid with a sext/zext instruction.
+// -------------------------------------------------------
+N32 panua_aina(N32 vid, N32 upana_lengo) {
+    N32 enc = vid_aina_arr[vid];
+    kama (enc & 1) { rudisha vid; }  // pointer — skip
+    N32 upana = enc & 254;
+    kama (upana >= upana_lengo) { rudisha vid; }
+    N32 familia = (enc >> 8) & 255;
+    N8* ext_inst = "sext";
+    kama (familia == 2) { ext_inst = "zext"; }  // unsigned
+    N32 ext_vid = vid_mpya();
+    vid_aina_arr[ext_vid] = (familia << 8) | upana_lengo;
+    andika("  %%v%d = %s i%d %%v%d to i%d\n", ext_vid, ext_inst, upana, vid, upana_lengo);
+    rudisha ext_vid;
+}
+
+// -------------------------------------------------------
 // Pre-pass: collect all local variable declarations so their
 // allocas can be emitted in the entry block (prevents
 // alloca-in-loop stack exhaustion).
@@ -593,6 +613,15 @@ W0 teremsha_kazi(N32 kazi_node) {
             wigo_alloca[var_node] = av;  // store alloca vid
         }
         j = j + 1;
+    }
+
+    // Allocate scratch buffer for sret temp returns
+    kama (ni_sret) {
+        sret_scratch_vid = vid_mpya();
+        vid_aina_arr[sret_scratch_vid] = 1; // ptr
+        andika("  %%v%d = alloca ", sret_scratch_vid);
+        chapisha_aina(ret_enc);
+        andika("\n");
     }
 
     // Emit body
@@ -975,7 +1004,14 @@ N32 teremsha_usemi(N32 node) {
         N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
         N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
         N32 lhs_enc = vid_aina_arr[lhs_vid];
-        N32 upana = lhs_enc & 254;
+        N32 rhs_enc = vid_aina_arr[rhs_vid];
+        N32 lhs_upana = lhs_enc & 254;
+        N32 rhs_upana = rhs_enc & 254;
+        // Coerce to wider width
+        N32 upana = lhs_upana;
+        kama (rhs_upana > upana) { upana = rhs_upana; }
+        lhs_vid = panua_aina(lhs_vid, upana);
+        rhs_vid = panua_aina(rhs_vid, upana);
 
         N8* inst = "add";
         kama (aina == 7)  { inst = "sub"; }
@@ -983,7 +1019,13 @@ N32 teremsha_usemi(N32 node) {
         kama (aina == 32) { inst = "sdiv"; }
 
         N32 vid = vid_mpya();
-        vid_aina_arr[vid] = lhs_enc;
+        kama (upana > lhs_upana) {
+            // Widen result type
+            N32 familia = (lhs_enc >> 8) & 255;
+            vid_aina_arr[vid] = (familia << 8) | upana;
+        } sivyo {
+            vid_aina_arr[vid] = lhs_enc;
+        }
         andika("  %%v%d = %s i%d %%v%d, %%v%d\n",
                vid, inst, upana, lhs_vid, rhs_vid);
         rudisha vid;
@@ -995,6 +1037,8 @@ N32 teremsha_usemi(N32 node) {
         N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
         N32 lhs_enc = vid_aina_arr[lhs_vid];
         N32 upana = lhs_enc & 254;
+        // Coerce RHS to LHS width (shift amount should match shift width)
+        rhs_vid = panua_aina(rhs_vid, upana);
 
         N8* inst = "shl";
         kama (aina == 41) { inst = "ashr"; }  // >>
@@ -1012,7 +1056,14 @@ N32 teremsha_usemi(N32 node) {
         N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
         N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
         N32 lhs_enc = vid_aina_arr[lhs_vid];
-        N32 upana = lhs_enc & 254;
+        N32 rhs_enc = vid_aina_arr[rhs_vid];
+        N32 lhs_upana = lhs_enc & 254;
+        N32 rhs_upana = rhs_enc & 254;
+        // Coerce to wider width
+        N32 upana = lhs_upana;
+        kama (rhs_upana > upana) { upana = rhs_upana; }
+        lhs_vid = panua_aina(lhs_vid, upana);
+        rhs_vid = panua_aina(rhs_vid, upana);
 
         N8* cond = "eq";
         kama (aina == 20) { cond = "eq"; }   // ==
@@ -1044,7 +1095,13 @@ N32 teremsha_usemi(N32 node) {
         N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
         N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
         N32 lhs_enc = vid_aina_arr[lhs_vid];
-        N32 upana = lhs_enc & 254;
+        N32 rhs_enc = vid_aina_arr[rhs_vid];
+        N32 lhs_upana = lhs_enc & 254;
+        N32 rhs_upana = rhs_enc & 254;
+        N32 upana = lhs_upana;
+        kama (rhs_upana > upana) { upana = rhs_upana; }
+        lhs_vid = panua_aina(lhs_vid, upana);
+        rhs_vid = panua_aina(rhs_vid, upana);
 
         N32 vid = vid_mpya();
         vid_aina_arr[vid] = lhs_enc;
@@ -1058,7 +1115,13 @@ N32 teremsha_usemi(N32 node) {
         N32 lhs_vid = teremsha_usemi(ast_kushoto[node]);
         N32 rhs_vid = teremsha_usemi(ast_kulia[node]);
         N32 lhs_enc = vid_aina_arr[lhs_vid];
-        N32 upana = lhs_enc & 254;
+        N32 rhs_enc = vid_aina_arr[rhs_vid];
+        N32 lhs_upana = lhs_enc & 254;
+        N32 rhs_upana = rhs_enc & 254;
+        N32 upana = lhs_upana;
+        kama (rhs_upana > upana) { upana = rhs_upana; }
+        lhs_vid = panua_aina(lhs_vid, upana);
+        rhs_vid = panua_aina(rhs_vid, upana);
 
         N32 vid = vid_mpya();
         vid_aina_arr[vid] = lhs_enc;
@@ -1430,17 +1493,12 @@ W0 teremsha_taarifa(N32 node, N32 ret_enc) {
                 kama (src_addr >= 0) {
                     nakili_muundo(sret_vid_sasa, src_addr, ukubwa_muundo(ret_enc));
                 } sivyo {
-                    // Complex expression: evaluate, store to temp, memcpy
+                    // Complex expression: evaluate, store to temp scratch, memcpy
                     N32 rv = teremsha_usemi(expr_node);
-                    N32 tmp = vid_mpya();
-                    vid_aina_arr[tmp] = 1;
-                    andika("  %%v%d = alloca ", tmp);
-                    chapisha_aina(ret_enc);
-                    andika("\n");
                     andika("  store ");
                     chapisha_aina(ret_enc);
-                    andika(" %%v%d, ptr %%v%d\n", rv, tmp);
-                    nakili_muundo(sret_vid_sasa, tmp, ukubwa_muundo(ret_enc));
+                    andika(" %%v%d, ptr %%v%d\n", rv, sret_scratch_vid);
+                    nakili_muundo(sret_vid_sasa, sret_scratch_vid, ukubwa_muundo(ret_enc));
                 }
                 andika("  ret void\n");
             } sivyo {
