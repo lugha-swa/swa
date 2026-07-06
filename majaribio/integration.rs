@@ -197,7 +197,7 @@ fn jaribio_bloku_tupu() {
 
 #[test]
 fn jaribio_neno_muhimu_kama_jina_la_kigezo() {
-    let src = "W0 fanya() { N32 hali = 42; N32 kawaida = hali + 1; }";
+    let src = "W0 fanya() { N32 hali = 42; N32 wakati = hali + 1; }";
     let ir = compile_and_verify(src).expect("inapaswa kukusanyika");
     assert!(ir.contains("fanya"));
 }

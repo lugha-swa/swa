@@ -5,7 +5,7 @@
 ### Nyaraka
 
 - [readme.md](readme.md) -- Muhtasari wa mradi na maelekezo ya ujenzi
-- [ramani.md](ramani.md) -- Ramani ya maendeleo ya mradi
+- [hati/ramani.md](hati/ramani.md) -- Ramani ya maendeleo ya mradi
 - [hati/marekebisho.md](hati/marekebisho.md) -- Marekebisho ya mende yaliyofanyika
 - [hati/masuala.md](hati/masuala.md) -- Masuala yanayojulikana
 

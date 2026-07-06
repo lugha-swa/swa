@@ -30,7 +30,7 @@ hesabu_na_onyesha(15, 7);
 - **Aina 25 za nambari** -- N8 hadi N128, A8 hadi A128, D16 hadi D80, B1 hadi B64, W0 hadi W64
 - **Kumbukumbu ya moja kwa moja** -- tenga, achilia na badili kumbukumbu wewe mwenyewe, hakuna ukusanyaji taka
 - **ABI thabiti** -- Swa ABI v1.0 kwa mwingiliano wa lugha
-- **Hali ya sasa**: Majaribio 174 yanapita (145 ya maktaba + 28 ya ujumuishaji + 1 wa nyaraka). Alloca-in-loop imerekebishwa. K6 (kujikusanya kamili) inapita. codegen.swa native x86-64 backend inajengwa.
+- **Hali ya sasa**: Majaribio 174 yanapita (145 ya maktaba + 28 ya ujumuishaji + 1 wa nyaraka). Alloca-in-loop imerekebishwa. K6 (kujikusanya kamili) inapita. uzalishaji.swa native x86-64 backend inajengwa.
 
 ## Muundo wa Mradi
 
@@ -92,7 +92,7 @@ Kiswahili duniani.
 - **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)** -- Kanuni za maadili
 - **[SECURITY.md](SECURITY.md)** -- Sera ya usalama
 - **[SUPPORT.md](SUPPORT.md)** -- Kupata msaada
-- **[ramani.md](ramani.md)** -- Ramani ya mradi
+- **[hati/ramani.md](hati/ramani.md)** -- Ramani ya mradi
 - **[GitHub Discussions](https://github.com/Kandemark/swa/discussions)** -- Majadiliano
 - **[GitHub Issues](https://github.com/Kandemark/swa/issues)** -- Ripoti za hitilafu na maombi ya vipengele
 

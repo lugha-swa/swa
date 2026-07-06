@@ -5,7 +5,7 @@
 - **Keywords:** 42 za Kiswahili (hakuna Kiingereza katika sintaksia)
 - **Aina:** 25 za nambari (N8-N128, A8-A128, D16-D80, B1-B64, W0-W64)
 - **Majaribio:** 174/174 yanapita
-- **Backend:** LLVM (sasa), codegen.swa (inajengwa -- lengo ni kuondoa LLVM)
+- **Backend:** LLVM (sasa), uzalishaji.swa (inajengwa -- lengo ni kuondoa LLVM)
 
 ## Hatua ya 0: Mkusanyaji wa Bootstrap wa Rust [PASS] IMEFANIKIWA
 
@@ -37,7 +37,7 @@
   - [ ] Uthibitishaji wa aina kwa taarifa zote
   - [ ] Uthibitishaji wa hoja za mwito wa kazi
   - [ ] Uthibitishaji wa matawi ya `chagua`
-- [ ] **codegen.swa** -- Anzisha native x86-64 backend iliyoandikwa kwa Swa
+- [ ] **uzalishaji.swa** -- Anzisha native x86-64 backend iliyoandikwa kwa Swa
   - [ ] Uzalishaji wa maagizo ya msingi ya x86-64 (mov, add, sub, etc.)
   - [ ] Uteuzi wa maagizo kwa aina za kawaida (N32, N64, A64, D64)
   - [ ] Ushughulikiaji wa vitanzi na matawi (jmp, je, jne)
@@ -67,7 +67,7 @@
 
 ## Hatua ya 4: Kuondoa Utegemezi wa LLVM [GOAL] LENGO KUU
 
-- [ ] Native x86-64 backend (codegen.swa) inazalisha binary bila LLVM
+- [ ] Native x86-64 backend (uzalishaji.swa) inazalisha binary bila LLVM
 - [ ] Mkusanyaji wote unajitegemea -- hakuna Rust, hakuna LLVM
 - [ ] Uthibitisho: Swa inajikusanya kupitia mnyororo kamili wa Swa -> Swa -> binary (bila LLVM)
 - [ ] Hii inafanya Swa kuwa lugha ya kwanza ya Kiafrika yenye mkusanyaji anayejitegemea kikamilifu
@@ -88,7 +88,7 @@ Angalia [`CONTRIBUTING.md`](CONTRIBUTING.md). Masuala yenye lebo `good-first-iss
 
 ## Vipaumbele vya Sasa (Julai 2026)
 
-1. codegen.swa -- anzisha native x86-64 backend (hatua muhimu kwa uhuru kutoka LLVM)
+1. uzalishaji.swa -- anzisha native x86-64 backend (hatua muhimu kwa uhuru kutoka LLVM)
 2. Rekebisha hitilafu ya O1 kwenye `tokeni_soma_kitambulisho`
 3. `mteremko.swa` -- sret + alloca-in-loop fix (hiyo ndiyo kazi muhimu zaidi sasa)
 4. `mkaguzi.swa` -- kukamilisha ukaguzi wa aina
