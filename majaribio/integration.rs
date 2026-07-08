@@ -288,7 +288,7 @@ fn jaribio_msingi_orodha() {
 
 #[test]
 fn jaribio_stage1() {
-    let src = std::fs::read_to_string("stage1.swa")
+    let src = std::fs::read_to_string("msingi/stage1.swa")
         .expect("inapaswa kusoma faili");
     let ir = compile_and_verify(&src).expect("stage1.swa inapaswa kukusanyika");
     assert!(ir.contains("ongeza_faili"), "IR inapaswa kuwa na ongeza_faili");
@@ -317,11 +317,11 @@ fn jaribio_k6_kujikusanya_kamili() {
     }
     let clang = clang.unwrap();
 
-    let src = std::fs::read_to_string("stage1.swa")
+    let src = std::fs::read_to_string("msingi/stage1.swa")
         .expect("inapaswa kusoma faili");
     let mut driver = Driver::new();
     let ir_module = driver
-        .compile_to_ir(&src, PathBuf::from("stage1.swa"))
+        .compile_to_ir(&src, PathBuf::from("msingi/stage1.swa"))
         .expect("stage1.swa inapaswa kuchanganua na kuteremsha");
 
     let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
