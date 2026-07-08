@@ -1,7 +1,7 @@
-//! Build script — tells the linker where to find LLVM.
+//! Hati ya ujenzi — inaelekeza kiunganishi mahali pa kupata LLVM.
 //!
-//! On Linux/macOS we use `llvm-config` to locate the shared library.
-//! On Windows we fall back to the environment variable `LLVM_PREFIX`.
+//! Kwenye Linux/macOS tunatumia `llvm-config` kutafuta maktaba shiriki.
+//! Kwenye Windows tunatumia kigezo cha mazingira `LLVM_PREFIX`.
 
 fn main() {
     let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap_or_default();
