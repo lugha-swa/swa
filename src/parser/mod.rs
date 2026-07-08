@@ -310,12 +310,22 @@ impl<'a> Parser<'a> {
             if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) {
                 let name = self.sasa().lexeme.clone(); self.sogeza();
                 let mut init: i32 = NO_NODE;
+                let mut saizi_ya_safu: i32 = NO_NODE;
+                if self.tokeni_ni("[") {
+                    self.sogeza();
+                    saizi_ya_safu = self.changanua_usemi();
+                    if self.tokeni_ni("]") { self.sogeza(); }
+                }
                 if self.tokeni_ni("=") { self.sogeza(); init = self.changanua_usemi(); }
                 if self.tokeni_ni(";") { self.sogeza(); }
                 let name_n = self.ast.node_mpya(AST_KITAMBULISHO, 0, NO_NODE, NO_NODE);
                 self.ast.hifadhi_jina(name_n, &name);
                 self.ast.thamani[name_n as usize] = va;
-                return self.ast.node_mpya(AST_TANGAZO, va, name_n, init);
+                let node = self.ast.node_mpya(AST_TANGAZO, va, name_n, init);
+                if saizi_ya_safu != NO_NODE {
+                    self.ast.tiga[node as usize] = saizi_ya_safu;
+                }
+                return node;
             }
         }
 
