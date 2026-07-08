@@ -1,300 +1,359 @@
 husisha { msambazaji.swa }
 
 // ==========================================================
-// uzalishaji.swa :: Kiteremshi cha x86-64 asilia
-// Hutoa msimbo wa assembly (.s) moja kwa moja kutoka AST.
-// Hakuna LLVM, hakuna C++, hakuna tegemezi.
+// uzalishaji.swa :: Kizalishe cha machine code asilia
+// Hutoa ELF binary (.o) moja kwa moja kutoka AST.
+// Hakuna LLVM, hakuna GNU as, hakuna tegemezi.
 // ==========================================================
 
 // -------------------------------------------------------
-// Rejesta za x86-64 tunazotumia
-//   %rax  - thamani ya kurudi
-//   %rdi  - hoja ya kwanza
-//   %rsi  - hoja ya pili
-//   %rdx  - hoja ya tatu
-//   %rsp  - kielekezi cha rafu
-//   %rbp  - kielekezi cha msingi
+// Visaidizi vya kutoa baiti kwenye binary
 // -------------------------------------------------------
 
-// -------------------------------------------------------
-// Jina la kazi ya sasa (kwa lebo)
-// -------------------------------------------------------
-N8 jina_la_kazi[256];
-N32 jina_la_kazi_urefu = 0;
+W0 andika_baiti(N32 b) {
+    andika("%c", b & 255);
+}
 
-// -------------------------------------------------------
-// Kukusanya majina ya kazi zote (kwa miito)
-// -------------------------------------------------------
-N32 kazi_jina_off[128];
-N32 kazi_idadi = 0;
+W0 andika_neno2(N32 v) {
+    andika_baiti(v & 255);
+    andika_baiti((v >> 8) & 255);
+}
 
-// -------------------------------------------------------
-// Kichwa cha ELF na maelekezo ya awali
-// -------------------------------------------------------
-W0 codegen_kichwa() {
-    andika(".globl main\n");
-    andika(".text\n");
+W0 andika_neno4(N32 v) {
+    andika_neno2(v & 65535);
+    andika_neno2((v >> 16) & 65535);
+}
+
+W0 andika_neno8_kama_neno4(N32 lo, N32 hi) {
+    andika_neno4(lo);
+    andika_neno4(hi);
 }
 
 // -------------------------------------------------------
-// Kukusanya majina ya kazi kutoka AST
+// Mashine za x86-64 — opcodes tunazohitaji
 // -------------------------------------------------------
-W0 codegen_kusanya_kazi(N32 mzizi) {
-    N32 node = ast_kushoto[mzizi];
-    wakati (node != -1) {
-        kama (ast_aina[node] == 2) {  // AST_KAZI
-            N32 name_node = ast_kushoto[node];
-            N8* jina = ast_pool + ast_jina_off[name_node];
-            kama (kazi_idadi < 128) {
-                // Hifadhi jina la kazi
-                N32 i = 0;
-                wakati (jina[i] != 0) { i = i + 1; }
-                kazi_jina_off[kazi_idadi] = name_node;
-                kazi_idadi = kazi_idadi + 1;
-            }
-        }
-        node = ast_nne[node];
+
+// mov eax, imm32  (B8 + imm32)
+W0 andika_mov_eax(N32 thamani) {
+    andika_baiti(0xB8);
+    andika_neno4(thamani);
+}
+
+// ret (C3)
+W0 andika_ret() {
+    andika_baiti(0xC3);
+}
+
+// push rax (50)
+W0 andika_push_rax() {
+    andika_baiti(0x50);
+}
+
+// pop rcx (59)
+W0 andika_pop_rcx() {
+    andika_baiti(0x59);
+}
+
+// add eax, ecx (01 C8)
+W0 andika_add_eax_ecx() {
+    andika_baiti(0x01);
+    andika_baiti(0xC8);
+}
+
+// sub eax, ecx (29 C8)
+W0 andika_sub_eax_ecx() {
+    andika_baiti(0x29);
+    andika_baiti(0xC8);
+}
+
+// imul eax, ecx (0F AF C1)
+W0 andika_imul_eax_ecx() {
+    andika_baiti(0x0F);
+    andika_baiti(0xAF);
+    andika_baiti(0xC1);
+}
+
+// cmp eax, ecx (39 C8)
+W0 andika_cmp_eax_ecx() {
+    andika_baiti(0x39);
+    andika_baiti(0xC8);
+}
+
+// sete al (0F 94 C0)
+W0 andika_sete_al() {
+    andika_baiti(0x0F);
+    andika_baiti(0x94);
+    andika_baiti(0xC0);
+}
+
+// setl al (0F 9C C0)
+W0 andika_setl_al() {
+    andika_baiti(0x0F);
+    andika_baiti(0x9C);
+    andika_baiti(0xC0);
+}
+
+// movzx eax, al (0F B6 C0)
+W0 andika_movzx_eax_al() {
+    andika_baiti(0x0F);
+    andika_baiti(0xB6);
+    andika_baiti(0xC0);
+}
+
+// neg eax (F7 D8)
+W0 andika_neg_eax() {
+    andika_baiti(0xF7);
+    andika_baiti(0xD8);
+}
+
+// call rel32 (E8 + offset)
+// Kwa sasa tunatumia nafasi-bandari (placeholder)
+W0 andika_call_bandari(N32 offset) {
+    andika_baiti(0xE8);
+    andika_neno4(offset);
+}
+
+// jmp rel8 (EB + offset)
+W0 andika_jmp_fupi(N32 offset) {
+    andika_baiti(0xEB);
+    andika_baiti(offset & 255);
+}
+
+// je rel8 (74 + offset)
+W0 andika_je_fupi(N32 offset) {
+    andika_baiti(0x74);
+    andika_baiti(offset & 255);
+}
+
+// -------------------------------------------------------
+// Sehemu za ELF — tunatoa binary .o moja kwa moja
+// -------------------------------------------------------
+
+// Hesabu ya sehemu ya ELF kwa sasa
+N32 elf_nafasi_ya_maandishi = 0;  // offset ya .text kwenye faili
+N32 elf_ukubwa_wa_maandishi = 0;   // ukubwa wa .text
+
+// Anwani za rejesta kwa jina la kazi (kwa mwito)
+N32 lebo_nafasi[32];
+N8* lebo_jina[32];
+N32 lebo_idadi = 0;
+
+W0 lebo_hifadhi(N8* jina) {
+    // Hifadhi nafasi ya sasa (kwa marekebisho ya mbele)
+    kama (lebo_idadi < 32) {
+        lebo_jina[lebo_idadi] = jina;
+        lebo_nafasi[lebo_idadi] = elf_ukubwa_wa_maandishi;
+        lebo_idadi = lebo_idadi + 1;
     }
 }
 
 // -------------------------------------------------------
-// Toa kazi kwa assembly
+// Kitoa ELF header
 // -------------------------------------------------------
-W0 codegen_kazi(N32 kazi_node) {
-    N32 name_node = ast_kushoto[kazi_node];
-    N8* jina = ast_pool + ast_jina_off[name_node];
+W0 andika_elf_kichwa(N32 ukubwa_wa_maandishi) {
+    // ELF magic
+    andika_baiti(0x7F);
+    andika_baiti(0x45);  // E
+    andika_baiti(0x4C);  // L
+    andika_baiti(0x46);  // F
 
-    // Lebo ya kazi
-    andika("%s:\n", jina);
+    // Darasa: 64-bit (2)
+    andika_baiti(2);
+    // Data: little-endian (1)
+    andika_baiti(1);
+    // Toleo la ELF (1)
+    andika_baiti(1);
+    // OS/ABI: System V (0)
+    andika_baiti(0);
+    // Padding
+    andika_neno8_kama_neno4(0, 0);
 
-    // Mwili wa kazi
-    N32 body = ast_tiga[kazi_node];
-    kama (body != -1) {
-        codegen_taarifa(body);
-    }
+    // Aina: ET_REL = 1 (relocatable)
+    andika_neno2(1);
+    // Mashine: x86-64 = 0x3E
+    andika_neno2(0x3E);
+    // Toleo (1)
+    andika_neno4(1);
 
-    // Ikiwa hakuna kurudi, ongeza ret
-    andika("    ret\n");
+    // Kiingilio (0 kwa .o)
+    andika_neno8_kama_neno4(0, 0);
+    // Hakuna kichwa cha programu
+    andika_neno8_kama_neno4(0, 0);
+
+    // Maelekezo ya sehemu: baada ya kichwa + .text
+    N32 shoff = 64 + ukubwa_wa_maandishi;
+    andika_neno8_kama_neno4(shoff, 0);
+
+    // Bendera (0)
+    andika_neno4(0);
+
+    // Ukubwa wa kichwa cha ELF (64)
+    andika_neno2(64);
+    // Ukubwa wa kichwa cha programu (0)
+    andika_neno2(0);
+    // Idadi ya vichwa vya programu (0)
+    andika_neno2(0);
+    // Ukubwa wa kichwa cha sehemu (64)
+    andika_neno2(64);
+    // Idadi ya vichwa vya sehemu (3: null, .text, .symtab)
+    andika_neno2(3);
+    // Faharisi ya jedwali la nyuzi za sehemu (2)
+    andika_neno2(2);
 }
 
 // -------------------------------------------------------
-// Toa taarifa kwa assembly
+// Kitoa programu (sehemu ya .text)
 // -------------------------------------------------------
-W0 codegen_taarifa(N32 node) {
+W0 uzalishaji_taarifa(N32 node) {
     kama (node == -1) { rudisha; }
 
     N32 aina = ast_aina[node];
 
-    // AST_RUDISHA (3) -- rudisha thamani
+    // AST_RUDISHA (3) — rudisha thamani
     kama (aina == 3) {
-        N32 expr_node = ast_kushoto[node];
-        kama (expr_node != -1) {
-            codegen_usemi(expr_node);  // matokeo yatakuwa %rax
+        N32 expr = ast_kushoto[node];
+        kama (expr != -1) {
+            uzalishaji_usemi(expr);
         }
-        andika("    ret\n");
+        andika_ret();
         rudisha;
     }
 
-    // AST_TANGAZO (11) -- tangazo la kigeu la ndani
-    kama (aina == 11) {
-        N32 var_node = ast_kushoto[node];
-        N32 init_node = ast_kulia[node];
-        kama (init_node != -1) {
-            codegen_usemi(init_node);
-            andika("    push %%rax\n");
-        } sivyo {
-            andika("    push $0\n");
-        }
-        rudisha;
-    }
-
-    // AST_KAMA (9) -- ikiwa (if)
-    kama (aina == 9) {
-        N32 cond_node = ast_kushoto[node];
-        N32 then_node = ast_kulia[node];
-        N32 else_node = ast_tiga[node];
-
-        codegen_usemi(cond_node);
-        andika("    cmp $0, %%rax\n");
-        andika("    je .Lelse\n");
-        codegen_taarifa(then_node);
-        andika("    jmp .Lend\n");
-        andika(".Lelse:\n");
-        kama (else_node != -1) {
-            codegen_taarifa(else_node);
-        }
-        andika(".Lend:\n");
-        rudisha;
-    }
-
-    // AST_WAKATI (10) -- wakati (while)
-    kama (aina == 10) {
-        N32 cond_node = ast_kushoto[node];
-        N32 body_node = ast_kulia[node];
-
-        andika(".Lloop:\n");
-        codegen_usemi(cond_node);
-        andika("    cmp $0, %%rax\n");
-        andika("    je .Lexit\n");
-        codegen_taarifa(body_node);
-        andika("    jmp .Lloop\n");
-        andika(".Lexit:\n");
-        rudisha;
-    }
-
-    // AST_ASIMILIA (37) -- ugawaji (assignment)
-    kama (aina == 37) {
-        N32 rhs_node = ast_kulia[node];
-        kama (rhs_node != -1) {
-            codegen_usemi(rhs_node);  // thamani iko %rax
-            andika("    push %%rax\n");
-        }
-        rudisha;
-    }
+    // AST_NAMBARI (4) — namba halisi (used as statement)
+    // AST_TANGAZO (11) — tangazo (hatujaweka rafu bado)
+    // AST_KAMA (9) — ikiwa
+    // AST_WAKATI (10) — wakati
+    // AST_ASIMILIA (37) — ugawaji
 
     // Endelea na ndugu
-    codegen_taarifa(ast_nne[node]);
+    uzalishaji_taarifa(ast_nne[node]);
 }
 
 // -------------------------------------------------------
-// Toa usemi kwa assembly
-// Matokeo: thamani iko kwenye %rax
+// Kitoa usemi — matokeo yanaingia %rax
 // -------------------------------------------------------
-W0 codegen_usemi(N32 node) {
+W0 uzalishaji_usemi(N32 node) {
     kama (node == -1) { rudisha; }
 
     N32 aina = ast_aina[node];
 
-    // AST_NAMBARI (4) -- namba halisi
+    // AST_NAMBARI (4) — namba halisi
     kama (aina == 4) {
         N32 val = ast_thamani[node];
-        andika("    movl $%d, %%eax\n", val);
+        andika_mov_eax(val);
         rudisha;
     }
 
-    // AST_JUMLISHA (6) -- ongeza
+    // AST_JUMLISHA (6) — ongeza
     kama (aina == 6) {
         N32 lhs = ast_kushoto[node];
         N32 rhs = ast_kulia[node];
-        codegen_usemi(rhs);
-        andika("    push %%rax\n");
-        codegen_usemi(lhs);
-        andika("    pop %%rcx\n");
-        andika("    addl %%ecx, %%eax\n");
+        uzalishaji_usemi(rhs);
+        andika_push_rax();
+        uzalishaji_usemi(lhs);
+        andika_pop_rcx();
+        andika_add_eax_ecx();
         rudisha;
     }
 
-    // AST_TOFAUTI (7) -- toa
+    // AST_TOFAUTI (7) — toa
     kama (aina == 7) {
         N32 lhs = ast_kushoto[node];
         kama (lhs == -1) {
-            // Unary minus
-            N32 rhs = ast_kulia[node];
-            codegen_usemi(rhs);
-            andika("    negl %%eax\n");
+            uzalishaji_usemi(ast_kulia[node]);
+            andika_neg_eax();
         } sivyo {
             N32 rhs = ast_kulia[node];
-            codegen_usemi(rhs);
-            andika("    push %%rax\n");
-            codegen_usemi(lhs);
-            andika("    pop %%rcx\n");
-            andika("    subl %%ecx, %%eax\n");
+            uzalishaji_usemi(rhs);
+            andika_push_rax();
+            uzalishaji_usemi(lhs);
+            andika_pop_rcx();
+            andika_sub_eax_ecx();
         }
         rudisha;
     }
 
-    // AST_ZIDISHA (31) -- zidisha
+    // AST_ZIDISHA (31) — zidisha
     kama (aina == 31) {
         N32 lhs = ast_kushoto[node];
         N32 rhs = ast_kulia[node];
-        codegen_usemi(rhs);
-        andika("    push %%rax\n");
-        codegen_usemi(lhs);
-        andika("    pop %%rcx\n");
-        andika("    imull %%ecx, %%eax\n");
+        uzalishaji_usemi(rhs);
+        andika_push_rax();
+        uzalishaji_usemi(lhs);
+        andika_pop_rcx();
+        andika_imul_eax_ecx();
         rudisha;
     }
 
-    // AST_SAWA (20) -- linganisha (==)
+    // AST_SAWA (20) — linganisha (==)
     kama (aina == 20) {
-        N32 lhs = ast_kushoto[node];
-        N32 rhs = ast_kulia[node];
-        codegen_usemi(rhs);
-        andika("    push %%rax\n");
-        codegen_usemi(lhs);
-        andika("    pop %%rcx\n");
-        andika("    cmpl %%ecx, %%eax\n");
-        andika("    sete %%al\n");
-        andika("    movzbl %%al, %%eax\n");
+        uzalishaji_usemi(ast_kulia[node]);
+        andika_push_rax();
+        uzalishaji_usemi(ast_kushoto[node]);
+        andika_pop_rcx();
+        andika_cmp_eax_ecx();
+        andika_sete_al();
+        andika_movzx_eax_al();
         rudisha;
     }
 
-    // AST_CHINI (22) -- chini (<)
+    // AST_CHINI (22) — chini (<)
     kama (aina == 22) {
-        N32 lhs = ast_kushoto[node];
-        N32 rhs = ast_kulia[node];
-        codegen_usemi(rhs);
-        andika("    push %%rax\n");
-        codegen_usemi(lhs);
-        andika("    pop %%rcx\n");
-        andika("    cmpl %%ecx, %%eax\n");
-        andika("    setl %%al\n");
-        andika("    movzbl %%al, %%eax\n");
+        uzalishaji_usemi(ast_kulia[node]);
+        andika_push_rax();
+        uzalishaji_usemi(ast_kushoto[node]);
+        andika_pop_rcx();
+        andika_cmp_eax_ecx();
+        andika_setl_al();
+        andika_movzx_eax_al();
         rudisha;
     }
-
-    // AST_WITO (8) -- mwito wa kazi
-    kama (aina == 8) {
-        N32 callee_node = ast_kushoto[node];
-        N8* callee = ast_pool + ast_jina_off[callee_node];
-        // Hoja
-        N32 arg = ast_kulia[node];
-        N32 arg_count = 0;
-        wakati (arg != -1) {
-            codegen_usemi(arg);
-            andika("    push %%rax\n");
-            arg_count = arg_count + 1;
-            arg = ast_kulia[arg];
-        }
-        // Pop arguments kwenye rejesta
-        kama (arg_count >= 1) {
-            andika("    pop %%rdi\n");
-        }
-        kama (arg_count >= 2) {
-            andika("    pop %%rsi\n");
-        }
-        kama (arg_count >= 3) {
-            andika("    pop %%rdx\n");
-        }
-        andika("    call %s\n", callee);
-        rudisha;
-    }
-
-    // AST_KITAMBULISHO (5) -- jina la kigeu
-    kama (aina == 5) {
-        // Pakia kutoka rafu (kwa sasa, rahisi)
-        andika("    movl (%%rsp), %%eax\n");
-        rudisha;
-    }
-
-    // Rudia watoto kwa ajili ya usemi usiojulikana
-    codegen_usemi(ast_kushoto[node]);
-    codegen_usemi(ast_kulia[node]);
 }
 
 // -------------------------------------------------------
-// Kiingilio kikuu -- toa assembly kwa AST nzima
+// Kitoa kazi kama machine code
 // -------------------------------------------------------
-W0 codegen_toa(N32 mzizi) {
-    codegen_kichwa();
-    codegen_kusanya_kazi(mzizi);
+W0 uzalishaji_kazi(N32 kazi_node) {
+    N32 name_node = ast_kushoto[kazi_node];
+    N8* jina = ast_pool + ast_jina_off[name_node];
 
-    // Toa kila kazi
+    // Hifadhi nafasi ya lebo ya kazi
+    lebo_hifadhi(jina);
+
+    N32 body = ast_tiga[kazi_node];
+    kama (body != -1) {
+        uzalishaji_taarifa(body);
+    }
+    // Hakikisha kuna ret mwishoni
+    andika_ret();
+}
+
+// -------------------------------------------------------
+// Kiingilio kikuu — toa ELF .o kwa AST nzima
+// -------------------------------------------------------
+W0 uzalishaji_kuu(N32 mzizi) {
+    // Kwanza: kusanya ukubwa wa .text kwa kutembea AST
+    // Kwa sasa tunakadiria na kutoa baada ya kichwa
+    // Tunahitaji kujua ukubwa kabla ya kutoa kichwa
+    // Kwa hivyo: toa msimbo kwanza, kisha hesabu
+
+    // Kwa sasa, toa ELF rahisi tu:
+    // Tunachukulia ukubwa mdogo kwa mfano rahisi
+
+    N32 ukubwa_wa_maandishi = 64;  // makadirio
+
+    // Toa kichwa cha ELF
+    andika_elf_kichwa(ukubwa_wa_maandishi);
+
+    // Toa msimbo wa mashine (sehemu ya .text)
     N32 node = ast_kushoto[mzizi];
     wakati (node != -1) {
         kama (ast_aina[node] == 2) {  // AST_KAZI
-            codegen_kazi(node);
+            uzalishaji_kazi(node);
         }
         node = ast_nne[node];
     }
+
+    // Kwa sasa tunatumia ELF isiyokamilika bila vichwa vya sehemu
+    // Lengo: kwanza toa msimbo sahihi, kisha ongeza vichwa vya sehemu
 }
