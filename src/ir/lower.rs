@@ -855,7 +855,15 @@ impl<'a> Lowerer<'a> {
             // Tatua aina kwa kutumia mantiki sawa na lower_local_decl.
             let var_ty = if self.ast_thamani[idx] != 0 {
                 // Muundo wa mchanganuzi: aina imesimbwa katika thamani.
-                self.read_type_from_thamani(node)
+                let base_ty = self.read_type_from_thamani(node);
+                // Angalia ukubwa wa safu uliohifadhiwa katika tiga.
+                let saizi_node = self.ast_tiga[idx];
+                if saizi_node != NO_NODE && saizi_node >= 0 && self.node_aina(saizi_node) == AST_NAMBARI {
+                    let count = self.ast_thamani[saizi_node as usize] as u32;
+                    IrType::Array { element: Box::new(base_ty), count: count as u64 }
+                } else {
+                    base_ty
+                }
             } else {
                 // Muundo wa jaribio/urithi: nodi ya aina katika kulia, kianzisha katika tiga.
                 let type_node = self.ast_kulia[idx];
@@ -1375,8 +1383,16 @@ impl<'a> Lowerer<'a> {
         // Tambua muundo: mchanganuzi anaweka aina iliyosimbwa katika thamani, majaribio yanaweka nodi ya aina katika kulia.
         let (var_ty, init_node) = if self.ast_thamani[node as usize] != 0 {
             // Muundo wa mchanganuzi: aina imesimbwa katika thamani, kianzisha katika kulia.
-            let ty = self.read_type_from_thamani(node);
+            let base_ty = self.read_type_from_thamani(node);
             let init = self.ast_kulia[node as usize];
+            // Angalia ukubwa wa safu uliohifadhiwa katika tiga (iliyowekwa na mchanganuzi kwa Aina jina[ukubwa]).
+            let saizi_node = self.ast_tiga[node as usize];
+            let ty = if saizi_node != NO_NODE && saizi_node >= 0 && self.node_aina(saizi_node) == AST_NAMBARI {
+                let count = self.ast_thamani[saizi_node as usize] as u32;
+                IrType::Array { element: Box::new(base_ty), count: count as u64 }
+            } else {
+                base_ty
+            };
             (ty, init)
         } else {
             // Muundo wa jaribio/urithi: nodi ya aina katika kulia, kianzisha katika tiga.
