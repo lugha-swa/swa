@@ -1089,6 +1089,11 @@ fn lower_instruction(
                 } else if val_kind == LLVMTypeKind::Integer as u32
                     && target_kind == LLVMTypeKind::Pointer as u32 {
                     LLVMBuildIntToPtr(builder, value, llvm_ty, c_str("inttoptr").as_ptr())
+                } else if val_kind == LLVMTypeKind::Pointer as u32
+                    && target_kind == LLVMTypeKind::Integer as u32 {
+                    // Kielekezi → namba kamili: fanya ptrtoint ili kupata thamani sahihi
+                    // na upana sahihi (huzuia uhifadhi wa baiti 8 kwenye nafasi ya baiti 4).
+                    LLVMBuildPtrToInt(builder, value, llvm_ty, c_str("ptrtoint").as_ptr())
                 } else {
                     value
                 };
@@ -1729,6 +1734,10 @@ fn coerce_int(
             && target_kind == LLVMTypeKind::Pointer as u32
         {
             LLVMBuildBitCast(builder, val, target_ty, c_str("ptr_cast").as_ptr())
+        } else if val_kind == LLVMTypeKind::Integer as u32
+            && target_kind == LLVMTypeKind::Pointer as u32
+        {
+            LLVMBuildIntToPtr(builder, val, target_ty, c_str("inttoptr").as_ptr())
         } else {
             // Sio namba — rudisha kama ilivyo.
             val
@@ -1970,6 +1979,37 @@ fn pre_declare_libc(module: LLVMModuleRef) {
             if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
                 let mut param_tys = [ptr_type(), LLVMInt64Type()];
                 let fn_ty = LLVMFunctionType(ptr_type(), param_tys.as_mut_ptr(), 2, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // mmap: ptr (ptr, i64, i32, i32, i32, i64) → ptr
+        {
+            let name = c_str("mmap");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type(), LLVMInt64Type(), LLVMInt32Type(),
+                    LLVMInt32Type(), LLVMInt32Type(), LLVMInt64Type()];
+                let fn_ty = LLVMFunctionType(ptr_type(), param_tys.as_mut_ptr(), 6, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // mprotect: i32 (ptr, i64, i32) → int
+        {
+            let name = c_str("mprotect");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type(), LLVMInt64Type(), LLVMInt32Type()];
+                let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 3, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // munmap: i32 (ptr, i64) → int
+        {
+            let name = c_str("munmap");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type(), LLVMInt64Type()];
+                let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 2, 0);
                 LLVMAddFunction(module, name.as_ptr(), fn_ty);
             }
         }
