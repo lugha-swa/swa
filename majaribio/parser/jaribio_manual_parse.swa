@@ -1,31 +1,15 @@
 husisha "../../msingi/kumbukumbu.swa"
-husisha "../../msingi/mfuatano.swa"
-husisha "../../msingi/msomaji.swa"
 husisha "../../msingi/msambazaji.swa"
 
 N32 main() {
     N8* s = "N32 f() { rudisha 1; }";
     N64 u = 22;
-
-    // Manually set up parser state
-    Msomaji ms = msomaji_mpya(s, u);
-    Tokeni sasa, inayo;
-    tokeni_inayofuata(&sasa, &ms);
-    andika("; T1: a=%d c=%c\n", sasa.aina, sasa.mwanzo[0]);
-
-    // Create Msambazaji manually
-    Msambazaji p;
-    p.msomaji = ms;
-    p.sasa = sasa;
-    tokeni_inayofuata(&p.inayofuata, &p.msomaji);
-    p.kosa = 0;
-
-    andika("; T1_in_p: a=%d c=%c\n", p.sasa.aina, p.sasa.mwanzo[0]);
+    Msambazaji p = msambazaji_mpya(s, u);
     N32 mzizi = changanua(&p);
     kama (p.kosa != 0) {
         andika("; KOSA: %d\n", p.kosa);
         rudisha 1;
     }
-    andika("; OK mzizi=%d\n", mzizi);
+    andika("; mzizi=%d\n", mzizi);
     rudisha 0;
 }
