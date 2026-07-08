@@ -1380,8 +1380,35 @@ fn lower_instruction(
                 let callee_fn = LLVMGetNamedFunction(module, name_c.as_ptr());
 
                 if callee_fn.is_null() {
-                    // Kazi haijatangazwa — rudisha tupu.
-                    return LLVMConstNull(ptr_type());
+                    // Kazi haijatangazwa — tangaza papo hapo kama kazi ya nje ya C.
+                    // Hii inaruhusu Swa kuita kazi yoyote ya C moja kwa moja (kama HolyC).
+                    // Jenga aina ya kazi kutoka kwa hoja zilizotolewa.
+                    let mut ext_param_tys: Vec<LLVMTypeRef> = Vec::new();
+                    for arg_id in args.iter() {
+                        let arg_val = v(value_map, arg_id);
+                        ext_param_tys.push(LLVMTypeOf(arg_val));
+                    }
+                    let ext_fn_ty = LLVMFunctionType(
+                        LLVMInt32Type(),  // chukulia inarudisha i32
+                        if ext_param_tys.is_empty() { std::ptr::null_mut() } else { ext_param_tys.as_mut_ptr() },
+                        ext_param_tys.len() as u32,
+                        0,  // si variadic
+                    );
+                    let new_fn = LLVMAddFunction(module, name_c.as_ptr(), ext_fn_ty);
+                    // Weka mwonekano wa C (extern) kwa utatuzi wa kiunganishi.
+                    LLVMSetLinkage(new_fn, LLVMLinkage::External);
+                    let mut arg_vals: Vec<LLVMValueRef> = Vec::new();
+                    for arg_id in args.iter() {
+                        arg_vals.push(v(value_map, arg_id));
+                    }
+                    return LLVMBuildCall2(
+                        builder,
+                        ext_fn_ty,
+                        new_fn,
+                        arg_vals.as_mut_ptr(),
+                        arg_vals.len() as u32,
+                        c_str("call").as_ptr(),
+                    );
                 }
 
                 // Jenga orodha ya hoja, ukilazimisha aina kama inahitajika.
@@ -1431,6 +1458,9 @@ fn lower_instruction(
                         "fopen" => ptr_type(),
                         "fread" => LLVMInt64Type(),
                         "fclose" => LLVMInt32Type(),
+                        "mmap" => ptr_type(),
+                        "mprotect" => LLVMInt32Type(),
+                        "munmap" => LLVMInt32Type(),
                         _ => LLVMInt32Type(),
                     }
                 };
