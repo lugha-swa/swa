@@ -317,22 +317,19 @@ fn jaribio_k6_kujikusanya_kamili() {
     }
     let clang = clang.unwrap();
 
-    let src = std::fs::read_to_string("msingi/stage1.swa")
-        .expect("inapaswa kusoma faili");
-    let mut driver = Driver::new();
-    let ir_module = driver
-        .compile_to_ir(&src, PathBuf::from("msingi/stage1.swa"))
-        .expect("stage1.swa inapaswa kuchanganua na kuteremsha");
-
+    // Tumia kande kukusanya stage1.swa hadi binary — njia ya LLVM bado
+    // inahitajika kwa bootstrap lakini uzalishaji.swa ndiyo nyuma chaguo-msingi
+    // kwenye binary inayotoka. Hii inaepuka hitilafu ya LLVM 22 trunc-to-ptr.
     let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
     let obj_path = dir.path().join("stage1.o");
     let exe_path = dir.path().join("stage1");
 
-    let backend = LlvmBackend::new()
-        .with_opt_level(kande_lib::codegen::llvm::ffi::LLVMCodeGenOptLevel::Less); // O1 — pinga FastISel
-    backend
-        .compile_to_file(&ir_module, &obj_path)
-        .expect("inapaswa kutoa faili la kitu");
+    let kande = std::process::Command::new("cargo")
+        .args(["run", "--release", "--", "msingi/stage1.swa", "-o"])
+        .arg(&obj_path)
+        .output()
+        .expect("inapaswa kuendesha kande");
+    assert!(kande.status.success(), "kande inapaswa kukusanya stage1.swa");
 
     // Andika kiunganishi kidogo cha C kinachoelekeza andika -> printf.
     let trampoline_c = dir.path().join("trampoline.c");
@@ -362,12 +359,15 @@ fn jaribio_k6_kujikusanya_kamili() {
     assert!(link_status.success(), "clang inapaswa kuunganisha kwa mafanikio");
 
     // Endesha mkusanyaji uliojikusanya dhidi ya faili rahisi la .swa.
+    // Sasa stage1 inatoa ELF binary (uzalishaji.swa) si LLVM IR tena.
     let test_input = dir.path().join("jaribio.swa");
-    std::fs::write(&test_input, "N32 main() {\n    andika(\"; mzizi=42\\n\");\n    rudisha 0;\n}\n")
+    std::fs::write(&test_input, "N32 main() { rudisha 42; }\n")
         .expect("inapaswa kuandika faili la jaribio");
 
+    let test_obj = dir.path().join("jaribio.o");
     let output = std::process::Command::new(&exe_path)
         .arg(&test_input)
+        .stdout(std::fs::File::create(&test_obj).expect("inapaswa kuunda faili la kitu"))
         .output()
         .expect("inapaswa kuendesha binary iliyounganishwa");
 
@@ -376,13 +376,27 @@ fn jaribio_k6_kujikusanya_kamili() {
 
     let exit_code = output.status.code().unwrap_or(-1);
     eprintln!("; K6: msimbo wa kutoka = {exit_code}");
-    eprintln!("; K6: stdout len={} stderr len={}", stdout.len(), stderr.len());
-    if !stdout.is_empty() {{ eprintln!("; K6 stdout: {stdout}"); }}
     if !stderr.is_empty() {{ eprintln!("; K6 stderr: {stderr}"); }}
     assert!(output.status.success(),
-        "stage1 inapaswa kurudisha 0, ilirudisha {exit_code}\nstdout: {stdout}\nstderr: {stderr}");
-    assert!(stdout.contains("; mzizi="),
-        "stage1 inapaswa kuchapisha mzizi wa AST\nstdout: {stdout}\nstderr: {stderr}");
+        "stage1 inapaswa kurudisha 0, ilirudisha {exit_code}\nstderr: {stderr}");
+
+    // Thibitisha pato ni ELF binary halali
+    let obj_bytes = std::fs::read(&test_obj).expect("inapaswa kusoma faili la kitu");
+    assert!(obj_bytes.len() > 64, "ELF inapaswa kuwa na ukubwa zaidi ya baiti 64");
+    assert_eq!(&obj_bytes[0..4], &[0x7f, 0x45, 0x4c, 0x46], "ELF magic inapaswa kuwepo");
+
+    // Unganisha na uendeshe binary iliyozalishwa
+    let test_exe = dir.path().join("jaribio_exe");
+    let link = std::process::Command::new(&clang)
+        .arg(&test_obj)
+        .arg("-o").arg(&test_exe)
+        .arg("-no-pie")
+        .status().expect("clang");
+    assert!(link.success(), "kuunganisha kunapaswa kufaulu");
+
+    let run = std::process::Command::new(&test_exe).status().expect("kuendesha");
+    assert!(run.success(), "binary inapaswa kukimbia");
+    assert_eq!(run.code(), Some(42), "binary inapaswa kurudisha 42");
 }
 
 /// Tafuta clang kwenye mfumo — njia sawa na dereva.
