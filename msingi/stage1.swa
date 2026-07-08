@@ -56,54 +56,40 @@ W0 ondoa_husisha() {
 }
 
 N32 main(N32 argc, N8** argv) {
-    // Bendera: --native huchagua nyuma ya x86-64 asilia (uzalishaji.swa).
-    // Kwa kawaida (hakuna bendera) tumia nyuma ya LLVM IR (mteremko.swa) kama awali.
-    N32 ni_native = 0;
+    // Nyuma chaguo-msingi ni uzalishaji.swa (x86-64 asilia, hakuna LLVM).
+    // Bendera ya --llvm huchagua nyuma ya zamani ya LLVM IR (mteremko.swa).
+    N32 ni_llvm = 0;
     N32 faili_idx = 1;
 
-    // Angalia kama hoja ya kwanza ni "--native"
+    // Angalia kama hoja ya kwanza ni "--llvm"
     kama (argc > 1) {
         N8* a = argv[1];
         N32 ni_sawa = 1;
         kama (a[0] != 45) { ni_sawa = 0; }
         kama (a[1] != 45) { ni_sawa = 0; }
-        kama (a[2] != 110) { ni_sawa = 0; }
-        kama (a[3] != 97) { ni_sawa = 0; }
-        kama (a[4] != 116) { ni_sawa = 0; }
-        kama (a[5] != 105) { ni_sawa = 0; }
-        kama (a[6] != 118) { ni_sawa = 0; }
-        kama (a[7] != 101) { ni_sawa = 0; }
-        kama (a[8] != 0) { ni_sawa = 0; }
+        kama (a[2] != 108) { ni_sawa = 0; }
+        kama (a[3] != 108) { ni_sawa = 0; }
+        kama (a[4] != 118) { ni_sawa = 0; }
+        kama (a[5] != 109) { ni_sawa = 0; }
+        kama (a[6] != 0) { ni_sawa = 0; }
         kama (ni_sawa) {
-            ni_native = 1;
+            ni_llvm = 1;
             faili_idx = 2;
         }
     }
 
-    // Hali ya kujitegemea (hakuna hoja ya faili): pakia maktaba yote.
-    // Unapokusanya faili ya mtumiaji, pakia faili hiyo pekee - hii inaweka
-    // mchanganuzi kuwa mwepesi.  Maktaba tayari imekusanywa ndani ya binary
-    // na mkusanyaji wa kuanzisha wa Rust.
-    kama (ni_native == 0) {
-        kama (argc <= 1) {
-            ongeza_faili("kumbukumbu.swa");
-            ongeza_faili("mfuatano.swa");
-            ongeza_faili("msomaji.swa");
-            ongeza_faili("msambazaji.swa");
+    // Hali ya kujikusanya (hakuna hoja ya faili): pakia maktaba yote.
+    // Kwa kawaida, uzalishaji.swa ndio nyuma chaguo-msingi.
+    kama (argc <= faili_idx) {
+        ongeza_faili("kumbukumbu.swa");
+        ongeza_faili("mfuatano.swa");
+        ongeza_faili("msomaji.swa");
+        ongeza_faili("msambazaji.swa");
+        kama (ni_llvm) {
             ongeza_faili("mteremko.swa");
-            ongeza_faili("mkaguzi.swa");
-            ongeza_faili("uzalishaji.swa");
         }
-    } sivyo {
-        kama (argc <= 2) {
-            ongeza_faili("kumbukumbu.swa");
-            ongeza_faili("mfuatano.swa");
-            ongeza_faili("msomaji.swa");
-            ongeza_faili("msambazaji.swa");
-            ongeza_faili("mteremko.swa");
-            ongeza_faili("mkaguzi.swa");
-            ongeza_faili("uzalishaji.swa");
-        }
+        ongeza_faili("mkaguzi.swa");
+        ongeza_faili("uzalishaji.swa");
     }
 
     kama (faili_idx < argc) {
@@ -124,7 +110,7 @@ N32 main(N32 argc, N8** argv) {
 
     // Tolea ufuatiliaji kwenye stderr wakati wa nyuma ya LLVM tu;
     // nyuma asilia inahitaji stdout safi kwa ELF binary.
-    kama (ni_native == 0) {
+    kama (ni_llvm == 1) {
         andika("; mzizi=%d\n", mzizi);
     }
 
@@ -135,13 +121,13 @@ N32 main(N32 argc, N8** argv) {
         rudisha 1;
     }
 
-    // 3. Uzalishaji wa msimbo -- chagua nyuma kwa bendera
-    kama (ni_native) {
-        // Nyuma ya x86-64 asilia (machine code mbichi)
-        uzalishaji_kuu(mzizi);
-    } sivyo {
-        // Nyuma ya LLVM IR (kwa kawaida, nyuma sambamba)
+    // 3. Uzalishaji wa msimbo -- x86-64 asilia ndio chaguo-msingi
+    kama (ni_llvm) {
+        // Nyuma ya LLVM IR (ya zamani, kwa --llvm pekee)
         teremsha(mzizi);
+    } sivyo {
+        // Nyuma ya x86-64 asilia (chaguo-msingi, hakuna LLVM)
+        uzalishaji_kuu(mzizi);
     }
 
     rudisha 0;
