@@ -1080,9 +1080,15 @@ fn lower_instruction(
                 // Geuza thamani kwa aina ya sehemu ikiwa upana hutofautiana.
                 let llvm_ty = ir_type_to_llvm(store_ty, struct_types);
                 let val_ty = LLVMTypeOf(value);
-                let cast = if LLVMGetTypeKind(val_ty) as u32 == LLVMTypeKind::Integer as u32
+                let val_kind = LLVMGetTypeKind(val_ty) as u32;
+                let target_kind = LLVMGetTypeKind(llvm_ty) as u32;
+                let cast = if val_kind == LLVMTypeKind::Integer as u32
+                    && target_kind == LLVMTypeKind::Integer as u32
                     && LLVMGetIntTypeWidth(val_ty) != LLVMGetIntTypeWidth(llvm_ty) {
                     LLVMBuildIntCast2(builder, value, llvm_ty, 1, c_str("cast").as_ptr())
+                } else if val_kind == LLVMTypeKind::Integer as u32
+                    && target_kind == LLVMTypeKind::Pointer as u32 {
+                    LLVMBuildIntToPtr(builder, value, llvm_ty, c_str("inttoptr").as_ptr())
                 } else {
                     value
                 };

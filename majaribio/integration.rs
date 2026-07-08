@@ -317,19 +317,25 @@ fn jaribio_k6_kujikusanya_kamili() {
     }
     let clang = clang.unwrap();
 
-    // Tumia kande kukusanya stage1.swa hadi binary — njia ya LLVM bado
-    // inahitajika kwa bootstrap lakini uzalishaji.swa ndiyo nyuma chaguo-msingi
-    // kwenye binary inayotoka. Hii inaepuka hitilafu ya LLVM 22 trunc-to-ptr.
+    // Hitilafu ya LLVM 22 trunc-to-ptr imerekebishwa (StoreTyped sasa inatumia
+    // IntToPtr badala ya IntCast2 kwa vielekezi). Tunarudi kwenye njia ya moja
+    // kwa moja ya compile_to_ir + compile_to_file.
+    let src = std::fs::read_to_string("msingi/stage1.swa")
+        .expect("inapaswa kusoma faili");
+    let mut driver = Driver::new();
+    let ir_module = driver
+        .compile_to_ir(&src, PathBuf::from("msingi/stage1.swa"))
+        .expect("stage1.swa inapaswa kuchanganua na kuteremsha");
+
     let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
     let obj_path = dir.path().join("stage1.o");
     let exe_path = dir.path().join("stage1");
 
-    let kande = std::process::Command::new("cargo")
-        .args(["run", "--release", "--", "msingi/stage1.swa", "-o"])
-        .arg(&obj_path)
-        .output()
-        .expect("inapaswa kuendesha kande");
-    assert!(kande.status.success(), "kande inapaswa kukusanya stage1.swa");
+    let backend = LlvmBackend::new()
+        .with_opt_level(kande_lib::codegen::llvm::ffi::LLVMCodeGenOptLevel::Less);
+    backend
+        .compile_to_file(&ir_module, &obj_path)
+        .expect("inapaswa kutoa faili la kitu");
 
     // Andika kiunganishi kidogo cha C kinachoelekeza andika -> printf.
     let trampoline_c = dir.path().join("trampoline.c");
@@ -394,9 +400,10 @@ fn jaribio_k6_kujikusanya_kamili() {
         .status().expect("clang");
     assert!(link.success(), "kuunganisha kunapaswa kufaulu");
 
-    let run = std::process::Command::new(&test_exe).status().expect("kuendesha");
-    assert!(run.success(), "binary inapaswa kukimbia");
-    assert_eq!(run.code(), Some(42), "binary inapaswa kurudisha 42");
+    let run = std::process::Command::new(&test_exe).output().expect("kuendesha");
+    let run_exit = run.status.code().unwrap_or(-1);
+    eprintln!("; K6: binary exit={run_exit}");
+    assert_eq!(run_exit, 42, "binary inapaswa kurudisha 42, ilirudisha {run_exit}");
 }
 
 /// Tafuta clang kwenye mfumo — njia sawa na dereva.

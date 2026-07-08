@@ -1,0 +1,22 @@
+husisha C::stdio
+husisha { msambazaji.swa }
+husisha { uzalishaji.swa }
+
+N8 chanzo_buf[196608];
+N32 chanzo_urefu = 0;
+
+W0 ongeza_faili(N8* njia) {
+    N8* hali = "r"; N8* f = fopen(njia, hali);
+    kama (f == tupu) { rudisha; }
+    N64 n = fread(chanzo_buf + chanzo_urefu, 1, 131072, f);
+    fclose(f); chanzo_urefu = chanzo_urefu + n;
+}
+N32 main(N32 argc, N8** argv) {
+    kama (argc <= 1) { rudisha 0; }
+    ongeza_faili(argv[1]);
+    chanzo_buf[chanzo_urefu] = 0;
+    Msambazaji p = msambazaji_mpya(chanzo_buf, chanzo_urefu);
+    N32 mzizi = changanua(&p);
+    uzalishaji_kuu(mzizi);
+    rudisha 0;
+}
