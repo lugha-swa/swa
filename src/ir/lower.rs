@@ -1889,6 +1889,29 @@ impl<'a> Lowerer<'a> {
             return (new_ptr, end_blk);
         }
 
+        // Kama jina la kazi ni kitambulisho kisichojulikana (si jina la kazi
+        // wala kitendakazi kilichojengwa ndani), inaweza kuwa kigeu chenye
+        // kielekezi cha kazi.  Tumia wito usio wa moja kwa moja.
+        if callee_node != NO_NODE && self.node_aina(callee_node) == AST_KITAMBULISHO {
+            // Kama jina la mpigaji linapatikana kwenye wigo wa ndani, ni kigeu
+            // chenye kielekezi cha kazi — tumia wito usio wa moja kwa moja.
+            let callee_name = self.read_pool_name(self.ast_jina_off[callee_node as usize]);
+            if self.lookup(&callee_name).is_some() {
+                let (fn_ptr, mid_blk) = self.lower_expr_into(callee_node, blk);
+                let mut current_block = mid_blk;
+                let mut arg_vals: Vec<ValueId> = Vec::new();
+                let mut arg_node = first_arg;
+                while arg_node != NO_NODE && arg_node >= 0 {
+                    let (arg_val, end_blk) = self.lower_expr_into(arg_node, current_block);
+                    arg_vals.push(arg_val);
+                    current_block = end_blk;
+                    arg_node = self.ast_nne[arg_node as usize];
+                }
+                let cv = self.emit(current_block, Instruction::CallIndirect(fn_ptr, arg_vals));
+                return (cv, current_block);
+            }
+        }
+
         // Tathmini hoja.  Mchanganuzi huunganisha hoja kupitia ast_nne ili kuepuka
         // mgongano na watoto wa ast_kulia wa kila nodi ya hoja.
         let mut arg_vals: Vec<ValueId> = Vec::new();

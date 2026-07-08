@@ -1498,3 +1498,46 @@ W0 uzalishaji_kuu(N32 mzizi) {
     andika_elf_shdr(23, 4, 4, rela_off, rela_size, 2, 1, 8, 24);     // .rela.text
     andika_elf_shdr(36, 3, 0, shstrtab_off, shstrtab_size, 0, 0, 1, 0);  // .shstrtab
 }
+
+// ==========================================================
+// JIT: Tekeleza moja kwa moja kwenye kumbukumbu
+// Hakuna faili, hakuna kiunganishi.
+// ==========================================================
+
+W0 uzalishaji_jit(N32 mzizi) {
+    bafa_text_wapi = 0;
+    lebo_idadi = 0;
+    lebo_buf_idadi = 0;
+    fixup_idadi = 0;
+    mzunguko_undani = 0;
+    nje_idadi = 0;
+    nje_pool_wapi = 1;
+    rela_idadi = 0;
+    str_idadi = 0;
+    str_buf_wapi = 1;
+
+    N32 node = ast_kushoto[mzizi];
+    wakati (node != -1) {
+        kama (ast_aina[node] == 2) { uzalishaji_kazi(node); }
+        node = ast_nne[node];
+    }
+    N32 ukubwa = bafa_text_wapi;
+    kama (ukubwa == 0) { rudisha; }
+
+    N8* anwani = mmap(0, ukubwa, 7, 34, -1, 0);
+    kama (anwani == 0) {
+        andika("; KOSA: mmap imeshindwa\n");
+        rudisha;
+    }
+
+    N32 i = 0;
+    wakati (i < ukubwa) {
+        anwani[i] = bafa_text[i];
+        i = i + 1;
+    }
+
+    N32 matokeo = anwani();
+    andika("; JIT: matokeo=%d\n", matokeo);
+
+    munmap(anwani, ukubwa);
+}
