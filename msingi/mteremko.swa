@@ -651,11 +651,13 @@ N32 teremsha_safu(N32 node) {
 
     // Kwa hati-ya-safu, tunahitaji anwani ya msingi (alloca) si thamani iliyopakiwa
     N32 base_addr_vid = -1;
+    N32 ni_global = 0;
     kama (ast_aina[base_node] == 5) {  // KITAMBULISHO
         N8* bjina = ast_pool + ast_jina_off[base_node];
         base_addr_vid = tafuta_wigo(bjina);
+        kama (base_addr_vid == -2) { ni_global = 1; }
     }
-    kama (base_addr_vid < 0) {
+    kama (base_addr_vid < 0 && ni_global == 0) {
         // Mbadala: tathmini kama usemi (inaweza kuwa alloca kutoka usemi mdogo)
         base_addr_vid = teremsha_usemi(base_node);
     }
@@ -664,8 +666,14 @@ N32 teremsha_safu(N32 node) {
 
     N32 gep_vid = vid_mpya();
     vid_aina_arr[gep_vid] = 1; // kielekezi
-    andika("  %%v%d = getelementptr i32, ptr %%v%d, i32 %%v%d\n",
-           gep_vid, base_addr_vid, idx_vid);
+    kama (ni_global) {
+        N8* bjina = ast_pool + ast_jina_off[base_node];
+        andika("  %%v%d = getelementptr i32, ptr @%s, i32 %%v%d\n",
+               gep_vid, bjina, idx_vid);
+    } sivyo {
+        andika("  %%v%d = getelementptr i32, ptr %%v%d, i32 %%v%d\n",
+               gep_vid, base_addr_vid, idx_vid);
+    }
 
     N32 load_vid = vid_mpya();
     vid_aina_arr[load_vid] = (1 << 8) | 32; // i32
