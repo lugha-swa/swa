@@ -7,11 +7,19 @@ husisha { msambazaji.swa }
 // ==========================================================
 
 // -------------------------------------------------------
-// Visaidizi vya kutoa baiti kwenye binary
+// Bafa ndogo ya .text — inahitajika kwa marekebisho ya
+// kuruka mbele (forward branch fixup). Sehemu nyingine
+// hutoka moja kwa moja kwenye stdout.
 // -------------------------------------------------------
 
+N8 bafa_text[8192];
+N32 bafa_text_wapi = 0;
+
 W0 andika_baiti(N32 b) {
-    andika("%c", b & 255);
+    kama (bafa_text_wapi < 8192) {
+        bafa_text[bafa_text_wapi] = b & 255;
+        bafa_text_wapi = bafa_text_wapi + 1;
+    }
 }
 
 W0 andika_neno2(N32 v) {
@@ -30,175 +38,447 @@ W0 andika_neno8_kama_neno4(N32 lo, N32 hi) {
 }
 
 // -------------------------------------------------------
+// Futa bafa ya .text hadi stdout
+// -------------------------------------------------------
+W0 futa_bafa_text() {
+    N32 i = 0;
+    wakati (i < bafa_text_wapi) {
+        andika("%c", bafa_text[i]);
+        i = i + 1;
+    }
+}
+
+// -------------------------------------------------------
+// Andika moja kwa moja kwenye stdout (sio bafa)
+// -------------------------------------------------------
+W0 andika_baiti_moja_kwa_moja(N32 b) {
+    andika("%c", b & 255);
+}
+
+W0 andika_neno2_moja_kwa_moja(N32 v) {
+    andika_baiti_moja_kwa_moja(v & 255);
+    andika_baiti_moja_kwa_moja((v >> 8) & 255);
+}
+
+W0 andika_neno4_moja_kwa_moja(N32 v) {
+    andika_neno2_moja_kwa_moja(v & 65535);
+    andika_neno2_moja_kwa_moja((v >> 16) & 65535);
+}
+
+W0 andika_neno8_moja_kwa_moja(N32 lo, N32 hi) {
+    andika_neno4_moja_kwa_moja(lo);
+    andika_neno4_moja_kwa_moja(hi);
+}
+
+// -------------------------------------------------------
 // Mashine za x86-64 — opcodes tunazohitaji
 // -------------------------------------------------------
 
 // mov eax, imm32  (B8 + imm32)
 W0 andika_mov_eax(N32 thamani) {
-    andika_baiti(0xB8);
+    andika_baiti(184);
     andika_neno4(thamani);
 }
 
 // ret (C3)
 W0 andika_ret() {
-    andika_baiti(0xC3);
+    andika_baiti(195);
 }
 
 // push rax (50)
 W0 andika_push_rax() {
-    andika_baiti(0x50);
+    andika_baiti(80);
 }
 
 // pop rcx (59)
 W0 andika_pop_rcx() {
-    andika_baiti(0x59);
+    andika_baiti(89);
 }
 
 // add eax, ecx (01 C8)
 W0 andika_add_eax_ecx() {
-    andika_baiti(0x01);
-    andika_baiti(0xC8);
+    andika_baiti(1);
+    andika_baiti(200);
 }
 
 // sub eax, ecx (29 C8)
 W0 andika_sub_eax_ecx() {
-    andika_baiti(0x29);
-    andika_baiti(0xC8);
+    andika_baiti(41);
+    andika_baiti(200);
 }
 
 // imul eax, ecx (0F AF C1)
 W0 andika_imul_eax_ecx() {
-    andika_baiti(0x0F);
-    andika_baiti(0xAF);
-    andika_baiti(0xC1);
+    andika_baiti(15);
+    andika_baiti(175);
+    andika_baiti(193);
 }
 
 // cmp eax, ecx (39 C8)
 W0 andika_cmp_eax_ecx() {
-    andika_baiti(0x39);
-    andika_baiti(0xC8);
+    andika_baiti(57);
+    andika_baiti(200);
 }
 
 // sete al (0F 94 C0)
 W0 andika_sete_al() {
-    andika_baiti(0x0F);
-    andika_baiti(0x94);
-    andika_baiti(0xC0);
+    andika_baiti(15);
+    andika_baiti(148);
+    andika_baiti(192);
 }
 
 // setl al (0F 9C C0)
 W0 andika_setl_al() {
-    andika_baiti(0x0F);
-    andika_baiti(0x9C);
-    andika_baiti(0xC0);
+    andika_baiti(15);
+    andika_baiti(156);
+    andika_baiti(192);
 }
 
 // movzx eax, al (0F B6 C0)
 W0 andika_movzx_eax_al() {
-    andika_baiti(0x0F);
-    andika_baiti(0xB6);
-    andika_baiti(0xC0);
+    andika_baiti(15);
+    andika_baiti(182);
+    andika_baiti(192);
 }
 
 // neg eax (F7 D8)
 W0 andika_neg_eax() {
-    andika_baiti(0xF7);
-    andika_baiti(0xD8);
+    andika_baiti(247);
+    andika_baiti(216);
 }
 
 // call rel32 (E8 + offset)
-// Kwa sasa tunatumia nafasi-bandari (placeholder)
 W0 andika_call_bandari(N32 offset) {
-    andika_baiti(0xE8);
+    andika_baiti(232);
     andika_neno4(offset);
 }
 
 // jmp rel8 (EB + offset)
 W0 andika_jmp_fupi(N32 offset) {
-    andika_baiti(0xEB);
+    andika_baiti(235);
     andika_baiti(offset & 255);
 }
 
 // je rel8 (74 + offset)
 W0 andika_je_fupi(N32 offset) {
-    andika_baiti(0x74);
+    andika_baiti(116);
     andika_baiti(offset & 255);
 }
 
+// test eax, eax (85 C0)
+W0 andika_test_eax_eax() {
+    andika_baiti(133);
+    andika_baiti(192);
+}
+
+// setne al (0F 95 C0)
+W0 andika_setne_al() {
+    andika_baiti(15);
+    andika_baiti(149);
+    andika_baiti(192);
+}
+
+// setg al (0F 9F C0) -- signed greater
+W0 andika_setg_al() {
+    andika_baiti(15);
+    andika_baiti(159);
+    andika_baiti(192);
+}
+
+// setle al (0F 9E C0) -- signed less or equal
+W0 andika_setle_al() {
+    andika_baiti(15);
+    andika_baiti(158);
+    andika_baiti(192);
+}
+
+// setge al (0F 9D C0) -- signed greater or equal
+W0 andika_setge_al() {
+    andika_baiti(15);
+    andika_baiti(157);
+    andika_baiti(192);
+}
+
 // -------------------------------------------------------
-// Sehemu za ELF — tunatoa binary .o moja kwa moja
+// Rukia zenye urefu wa 32-bit (rel32)
 // -------------------------------------------------------
 
-// Hesabu ya sehemu ya ELF kwa sasa
-N32 elf_nafasi_ya_maandishi = 0;  // offset ya .text kwenye faili
-N32 elf_ukubwa_wa_maandishi = 0;   // ukubwa wa .text
+// je rel32 (0F 84 + 4-byte offset)
+W0 andika_je_rel32(N32 offset) {
+    andika_baiti(15);
+    andika_baiti(132);
+    andika_neno4(offset);
+}
 
-// Anwani za rejesta kwa jina la kazi (kwa mwito)
+// jne rel32 (0F 85 + 4-byte offset)
+W0 andika_jne_rel32(N32 offset) {
+    andika_baiti(15);
+    andika_baiti(133);
+    andika_neno4(offset);
+}
+
+// jmp rel32 (E9 + 4-byte offset)
+W0 andika_jmp_rel32(N32 offset) {
+    andika_baiti(233);
+    andika_neno4(offset);
+}
+
+// -------------------------------------------------------
+// Lebo za kazi (kwa jedwali la alama)
+// -------------------------------------------------------
+
 N32 lebo_nafasi[32];
 N8* lebo_jina[32];
 N32 lebo_idadi = 0;
 
 W0 lebo_hifadhi(N8* jina) {
-    // Hifadhi nafasi ya sasa (kwa marekebisho ya mbele)
     kama (lebo_idadi < 32) {
         lebo_jina[lebo_idadi] = jina;
-        lebo_nafasi[lebo_idadi] = elf_ukubwa_wa_maandishi;
+        lebo_nafasi[lebo_idadi] = bafa_text_wapi;
         lebo_idadi = lebo_idadi + 1;
     }
 }
 
 // -------------------------------------------------------
-// Kitoa ELF header
+// Lebo za kuruka (za mtiririko wa udhibiti ndani ya kazi)
 // -------------------------------------------------------
-W0 andika_elf_kichwa(N32 ukubwa_wa_maandishi) {
-    // ELF magic
-    andika_baiti(0x7F);
-    andika_baiti(0x45);  // E
-    andika_baiti(0x4C);  // L
-    andika_baiti(0x46);  // F
 
-    // Darasa: 64-bit (2)
-    andika_baiti(2);
-    // Data: little-endian (1)
-    andika_baiti(1);
-    // Toleo la ELF (1)
-    andika_baiti(1);
-    // OS/ABI: System V (0)
-    andika_baiti(0);
-    // Padding
-    andika_neno8_kama_neno4(0, 0);
+N32 lebo_buf_nafasi[64];
+N32 lebo_buf_imewekwa[64];
+N32 lebo_buf_idadi = 0;
 
-    // Aina: ET_REL = 1 (relocatable)
-    andika_neno2(1);
-    // Mashine: x86-64 = 0x3E
-    andika_neno2(0x3E);
-    // Toleo (1)
-    andika_neno4(1);
+N32 fixup_nafasi[256];
+N32 fixup_lebo[256];
+N32 fixup_idadi = 0;
 
-    // Kiingilio (0 kwa .o)
-    andika_neno8_kama_neno4(0, 0);
-    // Hakuna kichwa cha programu
-    andika_neno8_kama_neno4(0, 0);
+N32 mzunguko_lebo_endelea[16];
+N32 mzunguko_lebo_toka[16];
+N32 mzunguko_undani = 0;
 
-    // Maelekezo ya sehemu: baada ya kichwa + .text
-    N32 shoff = 64 + ukubwa_wa_maandishi;
-    andika_neno8_kama_neno4(shoff, 0);
+N32 lebo_buf_mpya() {
+    N32 id = lebo_buf_idadi;
+    lebo_buf_idadi = lebo_buf_idadi + 1;
+    lebo_buf_imewekwa[id] = 0;
+    rudisha id;
+}
 
-    // Bendera (0)
-    andika_neno4(0);
+// Weka lebo mahali pa sasa na rekebisha marekebisho yanayoiendea
+W0 weka_lebo(N32 lebo_id) {
+    lebo_buf_nafasi[lebo_id] = bafa_text_wapi;
+    lebo_buf_imewekwa[lebo_id] = 1;
+    N32 i = 0;
+    wakati (i < fixup_idadi) {
+        kama (fixup_lebo[i] == lebo_id) {
+            N32 pos = fixup_nafasi[i];
+            N32 offset = bafa_text_wapi - (pos + 4);
+            bafa_text[pos] = offset & 255;
+            bafa_text[pos + 1] = (offset >> 8) & 255;
+            bafa_text[pos + 2] = (offset >> 16) & 255;
+            bafa_text[pos + 3] = (offset >> 24) & 255;
+        }
+        i = i + 1;
+    }
+}
 
-    // Ukubwa wa kichwa cha ELF (64)
-    andika_neno2(64);
-    // Ukubwa wa kichwa cha programu (0)
-    andika_neno2(0);
-    // Idadi ya vichwa vya programu (0)
-    andika_neno2(0);
-    // Ukubwa wa kichwa cha sehemu (64)
-    andika_neno2(64);
-    // Idadi ya vichwa vya sehemu (3: null, .text, .symtab)
-    andika_neno2(3);
-    // Faharisi ya jedwali la nyuzi za sehemu (2)
-    andika_neno2(2);
+// Toa je rel32 kwa lebo (inashughulikia kuruka nyuma na mbele)
+W0 toa_je_lebo(N32 lebo_id) {
+    andika_baiti(15); andika_baiti(132);
+    kama (lebo_buf_imewekwa[lebo_id]) {
+        N32 offset = lebo_buf_nafasi[lebo_id] - (bafa_text_wapi + 4);
+        andika_neno4(offset);
+    } sivyo {
+        fixup_nafasi[fixup_idadi] = bafa_text_wapi;
+        fixup_lebo[fixup_idadi] = lebo_id;
+        fixup_idadi = fixup_idadi + 1;
+        andika_neno4(0);
+    }
+}
+
+// Toa jne rel32 kwa lebo
+W0 toa_jne_lebo(N32 lebo_id) {
+    andika_baiti(15); andika_baiti(133);
+    kama (lebo_buf_imewekwa[lebo_id]) {
+        N32 offset = lebo_buf_nafasi[lebo_id] - (bafa_text_wapi + 4);
+        andika_neno4(offset);
+    } sivyo {
+        fixup_nafasi[fixup_idadi] = bafa_text_wapi;
+        fixup_lebo[fixup_idadi] = lebo_id;
+        fixup_idadi = fixup_idadi + 1;
+        andika_neno4(0);
+    }
+}
+
+// Toa jmp rel32 kwa lebo
+W0 toa_jmp_lebo(N32 lebo_id) {
+    andika_baiti(233);
+    kama (lebo_buf_imewekwa[lebo_id]) {
+        N32 offset = lebo_buf_nafasi[lebo_id] - (bafa_text_wapi + 4);
+        andika_neno4(offset);
+    } sivyo {
+        fixup_nafasi[fixup_idadi] = bafa_text_wapi;
+        fixup_lebo[fixup_idadi] = lebo_id;
+        fixup_idadi = fixup_idadi + 1;
+        andika_neno4(0);
+    }
+}
+
+// -------------------------------------------------------
+// Visaidizi vya kuandika vipengele vya ELF (moja kwa moja)
+// -------------------------------------------------------
+
+W0 andika_elf_sym(N32 st_name, N32 st_info, N32 st_shndx, N32 st_value, N32 st_size) {
+    andika_neno4_moja_kwa_moja(st_name);
+    andika_baiti_moja_kwa_moja(st_info & 255);
+    andika_baiti_moja_kwa_moja(0);
+    andika_neno2_moja_kwa_moja(st_shndx);
+    andika_neno8_moja_kwa_moja(st_value, 0);
+    andika_neno8_moja_kwa_moja(st_size, 0);
+}
+
+W0 andika_elf_shdr(N32 sh_name, N32 sh_type, N32 sh_flags, N32 sh_offset,
+                   N32 sh_size, N32 sh_link, N32 sh_info,
+                   N32 sh_addralign, N32 sh_entsize) {
+    andika_neno4_moja_kwa_moja(sh_name);
+    andika_neno4_moja_kwa_moja(sh_type);
+    andika_neno8_moja_kwa_moja(sh_flags, 0);
+    andika_neno8_moja_kwa_moja(0, 0);
+    andika_neno8_moja_kwa_moja(sh_offset, 0);
+    andika_neno8_moja_kwa_moja(sh_size, 0);
+    andika_neno4_moja_kwa_moja(sh_link);
+    andika_neno4_moja_kwa_moja(sh_info);
+    andika_neno8_moja_kwa_moja(sh_addralign, 0);
+    andika_neno8_moja_kwa_moja(sh_entsize, 0);
+}
+
+// -------------------------------------------------------
+// Kutoa ELF header (64 baiti, moja kwa moja)
+// -------------------------------------------------------
+W0 andika_elf_kichwa(N32 shoff, N32 shnum, N32 shstrndx) {
+    andika_baiti_moja_kwa_moja(127); andika_baiti_moja_kwa_moja(69);
+    andika_baiti_moja_kwa_moja(76); andika_baiti_moja_kwa_moja(70);
+    andika_baiti_moja_kwa_moja(2);
+    andika_baiti_moja_kwa_moja(1);
+    andika_baiti_moja_kwa_moja(1);
+    andika_baiti_moja_kwa_moja(0);
+    andika_neno8_moja_kwa_moja(0, 0);
+    andika_neno2_moja_kwa_moja(1);
+    andika_neno2_moja_kwa_moja(62);
+    andika_neno4_moja_kwa_moja(1);
+    andika_neno8_moja_kwa_moja(0, 0);
+    andika_neno8_moja_kwa_moja(0, 0);
+    andika_neno8_moja_kwa_moja(shoff, 0);
+    andika_neno4_moja_kwa_moja(0);
+    andika_neno2_moja_kwa_moja(64);
+    andika_neno2_moja_kwa_moja(0);
+    andika_neno2_moja_kwa_moja(0);
+    andika_neno2_moja_kwa_moja(64);
+    andika_neno2_moja_kwa_moja(shnum);
+    andika_neno2_moja_kwa_moja(shstrndx);
+}
+
+// -------------------------------------------------------
+// Kutoa sehemu za ELF (moja kwa moja)
+// -------------------------------------------------------
+W0 andika_shstrtab() {
+    // \0 .text \0 .symtab \0 .strtab \0 .shstrtab \0
+    andika_baiti_moja_kwa_moja(0);
+    andika_baiti_moja_kwa_moja(46); andika_baiti_moja_kwa_moja(116);
+    andika_baiti_moja_kwa_moja(101); andika_baiti_moja_kwa_moja(120);
+    andika_baiti_moja_kwa_moja(116); andika_baiti_moja_kwa_moja(0);
+    andika_baiti_moja_kwa_moja(46); andika_baiti_moja_kwa_moja(115);
+    andika_baiti_moja_kwa_moja(121); andika_baiti_moja_kwa_moja(109);
+    andika_baiti_moja_kwa_moja(116); andika_baiti_moja_kwa_moja(97);
+    andika_baiti_moja_kwa_moja(98); andika_baiti_moja_kwa_moja(0);
+    andika_baiti_moja_kwa_moja(46); andika_baiti_moja_kwa_moja(115);
+    andika_baiti_moja_kwa_moja(116); andika_baiti_moja_kwa_moja(114);
+    andika_baiti_moja_kwa_moja(116); andika_baiti_moja_kwa_moja(97);
+    andika_baiti_moja_kwa_moja(98); andika_baiti_moja_kwa_moja(0);
+    andika_baiti_moja_kwa_moja(46); andika_baiti_moja_kwa_moja(115);
+    andika_baiti_moja_kwa_moja(104); andika_baiti_moja_kwa_moja(115);
+    andika_baiti_moja_kwa_moja(116); andika_baiti_moja_kwa_moja(114);
+    andika_baiti_moja_kwa_moja(116); andika_baiti_moja_kwa_moja(97);
+    andika_baiti_moja_kwa_moja(98); andika_baiti_moja_kwa_moja(0);
+}
+
+W0 andika_strtab() {
+    andika_baiti_moja_kwa_moja(0);
+    andika_baiti_moja_kwa_moja(109); andika_baiti_moja_kwa_moja(97);
+    andika_baiti_moja_kwa_moja(105); andika_baiti_moja_kwa_moja(110);
+    andika_baiti_moja_kwa_moja(0);
+}
+
+W0 andika_symtab(N32 text_size, N32 main_off, N32 main_size) {
+    andika_elf_sym(0, 0, 0, 0, 0);
+    andika_elf_sym(1, 18, 1, main_off, main_size);
+}
+
+W0 andika_vichwa(N32 text_size, N32 symtab_off, N32 strtab_off,
+                 N32 shstrtab_off) {
+    andika_elf_shdr(0, 0, 0, 0, 0, 0, 0, 0, 0);
+    andika_elf_shdr(1, 1, 6, 64, text_size, 0, 0, 16, 0);
+    andika_elf_shdr(7, 2, 0, symtab_off, 48, 3, 1, 8, 24);
+    andika_elf_shdr(15, 3, 0, strtab_off, 6, 0, 0, 1, 0);
+    andika_elf_shdr(23, 3, 0, shstrtab_off, 33, 0, 0, 1, 0);
+}
+
+// -------------------------------------------------------
+// Utoaji wa kama (if/else) — AST_KAMA (9)
+// -------------------------------------------------------
+W0 uzalishaji_kama(N32 node) {
+    N32 cond = ast_kushoto[node];
+    N32 then_body = ast_kulia[node];
+    N32 else_body = -1;
+    N32 sivyo_node = ast_tiga[node];
+    kama (sivyo_node != -1) {
+        else_body = ast_kushoto[sivyo_node];
+    }
+
+    N32 lebo_else = lebo_buf_mpya();
+    N32 lebo_mwisho = lebo_buf_mpya();
+
+    uzalishaji_usemi(cond);
+    andika_test_eax_eax();
+
+    kama (else_body != -1) {
+        toa_je_lebo(lebo_else);
+        uzalishaji_taarifa(then_body);
+        toa_jmp_lebo(lebo_mwisho);
+        weka_lebo(lebo_else);
+        uzalishaji_taarifa(else_body);
+        weka_lebo(lebo_mwisho);
+    } sivyo {
+        toa_je_lebo(lebo_mwisho);
+        uzalishaji_taarifa(then_body);
+        weka_lebo(lebo_mwisho);
+    }
+}
+
+// Uzalishaji wa wakati (while) — AST_WAKATI (10)
+W0 uzalishaji_wakati(N32 node) {
+    N32 cond = ast_kushoto[node];
+    N32 body = ast_kulia[node];
+
+    N32 lebo_body = lebo_buf_mpya();
+    N32 lebo_cond = lebo_buf_mpya();
+    N32 lebo_exit = lebo_buf_mpya();
+
+    mzunguko_lebo_endelea[mzunguko_undani] = lebo_cond;
+    mzunguko_lebo_toka[mzunguko_undani] = lebo_exit;
+    mzunguko_undani = mzunguko_undani + 1;
+
+    toa_jmp_lebo(lebo_cond);
+
+    weka_lebo(lebo_body);
+    uzalishaji_taarifa(body);
+
+    weka_lebo(lebo_cond);
+    uzalishaji_usemi(cond);
+    andika_test_eax_eax();
+    toa_jne_lebo(lebo_body);
+
+    weka_lebo(lebo_exit);
+
+    mzunguko_undani = mzunguko_undani - 1;
 }
 
 // -------------------------------------------------------
@@ -219,11 +499,33 @@ W0 uzalishaji_taarifa(N32 node) {
         rudisha;
     }
 
-    // AST_NAMBARI (4) — namba halisi (used as statement)
-    // AST_TANGAZO (11) — tangazo (hatujaweka rafu bado)
-    // AST_KAMA (9) — ikiwa
-    // AST_WAKATI (10) — wakati
-    // AST_ASIMILIA (37) — ugawaji
+    // AST_KAMA (9) — kama / ikiwa
+    kama (aina == 9) {
+        uzalishaji_kama(node);
+        rudisha;
+    }
+
+    // AST_WAKATI (10) — wakati / mzunguko
+    kama (aina == 10) {
+        uzalishaji_wakati(node);
+        rudisha;
+    }
+
+    // AST_VUNJA (16) — vunja mzunguko
+    kama (aina == 16) {
+        kama (mzunguko_undani > 0) {
+            toa_jmp_lebo(mzunguko_lebo_toka[mzunguko_undani - 1]);
+        }
+        rudisha;
+    }
+
+    // AST_ENDELEA (17) — endelea mzunguko
+    kama (aina == 17) {
+        kama (mzunguko_undani > 0) {
+            toa_jmp_lebo(mzunguko_lebo_endelea[mzunguko_undani - 1]);
+        }
+        rudisha;
+    }
 
     // Endelea na ndugu
     uzalishaji_taarifa(ast_nne[node]);
@@ -317,7 +619,7 @@ W0 uzalishaji_kazi(N32 kazi_node) {
     N32 name_node = ast_kushoto[kazi_node];
     N8* jina = ast_pool + ast_jina_off[name_node];
 
-    // Hifadhi nafasi ya lebo ya kazi
+    // Hifadhi nafasi ya lebo ya kazi (kwa jedwali la alama)
     lebo_hifadhi(jina);
 
     N32 body = ast_tiga[kazi_node];
@@ -332,20 +634,14 @@ W0 uzalishaji_kazi(N32 kazi_node) {
 // Kiingilio kikuu — toa ELF .o kwa AST nzima
 // -------------------------------------------------------
 W0 uzalishaji_kuu(N32 mzizi) {
-    // Kwanza: kusanya ukubwa wa .text kwa kutembea AST
-    // Kwa sasa tunakadiria na kutoa baada ya kichwa
-    // Tunahitaji kujua ukubwa kabla ya kutoa kichwa
-    // Kwa hivyo: toa msimbo kwanza, kisha hesabu
+    // Weka upya buffer
+    bafa_text_wapi = 0;
+    lebo_idadi = 0;
+    lebo_buf_idadi = 0;
+    fixup_idadi = 0;
+    mzunguko_undani = 0;
 
-    // Kwa sasa, toa ELF rahisi tu:
-    // Tunachukulia ukubwa mdogo kwa mfano rahisi
-
-    N32 ukubwa_wa_maandishi = 64;  // makadirio
-
-    // Toa kichwa cha ELF
-    andika_elf_kichwa(ukubwa_wa_maandishi);
-
-    // Toa msimbo wa mashine (sehemu ya .text)
+    // 1. Toa msimbo wa .text kwenye buffer (inavyohitajika kwa marekebisho ya lebo)
     N32 node = ast_kushoto[mzizi];
     wakati (node != -1) {
         kama (ast_aina[node] == 2) {  // AST_KAZI
@@ -354,6 +650,51 @@ W0 uzalishaji_kuu(N32 mzizi) {
         node = ast_nne[node];
     }
 
-    // Kwa sasa tunatumia ELF isiyokamilika bila vichwa vya sehemu
-    // Lengo: kwanza toa msimbo sahihi, kisha ongeza vichwa vya sehemu
+    N32 text_size = bafa_text_wapi;
+
+    // 2. Hesabu ofseti za sehemu
+    N32 symtab_off = 64 + text_size;
+    N32 strtab_off = symtab_off + 48;
+    N32 shstrtab_off = strtab_off + 6;
+    N32 shoff = shstrtab_off + 33;
+
+    // Tafuta lebo ya "main" kwenye orodha ya lebo
+    N32 main_off = 0;
+    N32 main_size = text_size;
+    N32 i = 0;
+    wakati (i < lebo_idadi) {
+        N8* jina = lebo_jina[i];
+        kama (jina[0] == 109 && jina[1] == 97 &&
+              jina[2] == 105 && jina[3] == 110 &&
+              jina[4] == 0) {
+            main_off = lebo_nafasi[i];
+            kama (i + 1 < lebo_idadi) {
+                main_size = lebo_nafasi[i+1] - lebo_nafasi[i];
+            } sivyo {
+                main_size = text_size - lebo_nafasi[i];
+            }
+        }
+        i = i + 1;
+    }
+
+    // 3. Toa ELF kwa stdout
+    //    Kichwa → bafa (.text) → symtab → strtab → shstrtab → vichwa
+
+    // Kichwa cha ELF (64 baiti, moja kwa moja)
+    andika_elf_kichwa(shoff, 5, 4);
+
+    // Futa bafa ya .text (msimbo wa mashine)
+    futa_bafa_text();
+
+    // .symtab (48 baiti)
+    andika_symtab(text_size, main_off, main_size);
+
+    // .strtab (6 baiti)
+    andika_strtab();
+
+    // .shstrtab (33 baiti)
+    andika_shstrtab();
+
+    // Vichwa vya sehemu (320 baiti)
+    andika_vichwa(text_size, symtab_off, strtab_off, shstrtab_off);
 }
