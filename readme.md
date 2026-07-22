@@ -1,6 +1,12 @@
-# SWA -- Lugha ya Kupanga ya Kiswahili
+# SWA — Lugha ya Kupanga ya Kiswahili
 
-**Swa** ni lugha ya kupanga yenye sintaksia kamili ya Kiswahili. Hakuna neno la Kiingereza linatumika katika sintaksia yake. Inakusanya moja kwa moja hadi msimbo wa mashine kupitia LLVM.
+**Swa** ni lugha ya kupanga yenye sintaksia kamili ya Kiswahili. Hakuna neno
+la Kiingereza linatumika katika sintaksia yake. Inakusanya moja kwa moja hadi
+msimbo wa mashine — kwanza kwa njia asilia (`uzalishaji.swa`) inayotoa ELF
+binary moja kwa moja bila LLVM wala mkusanyaji msaidizi, na pia kwa njia ya
+LLVM kwa majukwaa zaidi.
+
+Makao rasmi: **[lugha-swa](https://github.com/lugha-swa)**
 
 ## Mfano
 
@@ -93,12 +99,12 @@ Kiswahili duniani.
 - **[SECURITY.md](SECURITY.md)** -- Sera ya usalama
 - **[SUPPORT.md](SUPPORT.md)** -- Kupata msaada
 - **[hati/ramani.md](hati/ramani.md)** -- Ramani ya mradi
-- **[GitHub Discussions](https://github.com/Kandemark/swa/discussions)** -- Majadiliano
-- **[GitHub Issues](https://github.com/Kandemark/swa/issues)** -- Ripoti za hitilafu na maombi ya vipengele
+- **[GitHub Discussions](https://github.com/lugha-swa/swa/discussions)** -- Majadiliano
+- **[GitHub Issues](https://github.com/lugha-swa/swa/issues)** -- Ripoti za hitilafu na maombi ya vipengele
 
 ### Kwa Waanzishaji
 
-Tafuta lebo [`good-first-issue`](https://github.com/Kandemark/swa/labels/good-first-issue).
+Tafuta lebo [`good-first-issue`](https://github.com/lugha-swa/swa/labels/good-first-issue).
 Masuala haya yameandaliwa mahsusi kwa wachangiaji wapya!
 
 ## Leseni

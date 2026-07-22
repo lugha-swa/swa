@@ -10,7 +10,7 @@ Karibu! Swa ni lugha ya programu ya Kiswahili inayojikusanya. Tunafurahi unapota
 
 ### 1. Kwa Waanzishaji -- "Good First Issues"
 
-Tafuta lebo `good-first-issue` kwenye [ukurasa wa masuala](https://github.com/Kandemark/swa/issues). Masuala haya yamechaguliwa kwa wachangiaji wapya:
+Tafuta lebo `good-first-issue` kwenye [ukurasa wa masuala](https://github.com/lugha-swa/swa/issues). Masuala haya yamechaguliwa kwa wachangiaji wapya:
 
 - Kuongeza maoni ya Kiswahili kwenye msimbo
 - Kutafsiri nyaraka
@@ -51,7 +51,7 @@ Tumia kiolezo cha **Ombi la Kipengele**. Kumbuka:
 
 ### Kujenga
 ```sh
-git clone https://github.com/Kandemark/swa.git
+git clone https://github.com/lugha-swa/swa.git
 cd swa
 cargo build --release
 cargo test  # Majaribio 174 yanapaswa kupita
@@ -88,8 +88,8 @@ cargo run --release -- mfano.swa -o mfano.o
 
 ## Mawasiliano
 
-- [GitHub Discussions](https://github.com/Kandemark/swa/discussions)
-- [GitHub Issues](https://github.com/Kandemark/swa/issues)
+- [GitHub Discussions](https://github.com/lugha-swa/swa/discussions)
+- [GitHub Issues](https://github.com/lugha-swa/swa/issues)
 
 ---
 

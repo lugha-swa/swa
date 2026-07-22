@@ -12,12 +12,12 @@
 ### Maswali na Majibu
 
 Kwa maswali ya jumla:
-- **[GitHub Discussions](https://github.com/Kandemark/swa/discussions)** -- Mahali pazuri pa kuuliza maswali
+- **[GitHub Discussions](https://github.com/lugha-swa/swa/discussions)** -- Mahali pazuri pa kuuliza maswali
 - Angalia kwanza ikiwa swali lako tayari limeulizwa
 
 ### Kuripoti Hitilafu
 
-- **[GitHub Issues](https://github.com/Kandemark/swa/issues)** -- Tumia kiolezo cha "Ripoti ya Hitilafu"
+- **[GitHub Issues](https://github.com/lugha-swa/swa/issues)** -- Tumia kiolezo cha "Ripoti ya Hitilafu"
 - Hakikisha umejumuisha: mazingira, hatua za kuzalisha, matokeo
 
 ### Masuala ya Usalama
