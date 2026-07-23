@@ -1430,13 +1430,27 @@ W0 uzalishaji_desimali_jumlisha(N32 node, N32 kazi_node) {
     andika_cvttss2si_eax_xmm0();
 }
 
-// Nyoosha (*ptr) — pakia thamani kutoka anwani
+// Nyoosha (*ptr) na uandikishaji wa safu (arr[idx])
+// AST_TAJA ina watoto wawili: msingi (kushoto) na faharasa (kulia).
+// Kama faharasa != -1, ni arr[idx]; sivyo, ni *ptr.
 W0 uzalishaji_nyoosha(N32 node, N32 kazi_node) {
-    // Tathmini usemi wa kielekezi
     N32 ptr_node = ast_kushoto[node];
-    kama (ptr_node != -1) {
+    kama (ptr_node == -1) { rudisha; }
+
+    N32 idx_node = ast_kulia[node];
+    kama (idx_node != -1) {
+        // Uandikishaji wa safu: arr[idx] → *(msingi + idx * 4)
+        uzalishaji_usemi(idx_node, kazi_node);          // eax = idx
+        andika_baiti(193); andika_baiti(224); andika_baiti(2);  // shl eax, 2  (idx * 4)
+        andika_push_rax();                              // hifadhi ofseti
+        uzalishaji_usemi(ptr_node, kazi_node);          // eax = msingi
+        andika_pop_rcx();                               // ecx = ofseti
+        andika_add_eax_ecx();                           // eax = msingi + ofseti
+        andika_mov_eax_anwani_eax();                    // eax = [eax]
+    } sivyo {
+        // Nyoosha tu: *ptr
         uzalishaji_usemi(ptr_node, kazi_node);
-        andika_mov_eax_anwani_eax();  // mov eax, [eax]
+        andika_mov_eax_anwani_eax();                    // mov eax, [eax]
     }
 }
 
