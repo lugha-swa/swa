@@ -12,7 +12,7 @@ husisha { msambazaji.swa }
 // hutoka moja kwa moja kwenye stdout.
 // -------------------------------------------------------
 
-N8 bafa_text[16384];
+N8 bafa_text[131072];
 N32 bafa_text_wapi = 0;
 
 // Vigezo vya ulimwengu
@@ -24,7 +24,7 @@ N32 data_ulimwengu_jina_off[32];
 N32 data_ulimwengu_idadi = 0;
 
 W0 andika_baiti(N32 b) {
-    kama (bafa_text_wapi < 16384) {
+    kama (bafa_text_wapi < 131072) {
         bafa_text[bafa_text_wapi] = b & 255;
         bafa_text_wapi = bafa_text_wapi + 1;
     }
@@ -708,8 +708,8 @@ N32 nje_idadi = 0;
 // Marekebisho ya uhusianisho (relocations) kwa .rela.text
 // -------------------------------------------------------
 
-N32 rela_text_off[256];   // nafasi katika bafa_text inayohitaji kurekebishwa
-N32 rela_nje_id[256];     // faharisi ya alama ya nje
+N32 rela_text_off[512];   // nafasi katika bafa_text inayohitaji kurekebishwa
+N32 rela_nje_id[512];     // faharisi ya alama ya nje
 N32 rela_idadi = 0;
 
 // -------------------------------------------------------
@@ -717,11 +717,11 @@ N32 rela_idadi = 0;
 // -------------------------------------------------------
 
 N8 str_buf[4096];
-N32 str_off[64];
-N32 str_len[64];
+N32 str_off[256];
+N32 str_len[256];
 N32 str_buf_wapi = 1;
 N32 str_idadi = 0;
-N32 str_lebo_id[64];
+N32 str_lebo_id[256];
 
 // -------------------------------------------------------
 // Bafa za muda kwa ajili ya hoja za wito
@@ -852,7 +852,7 @@ N32 kusanya_herufi(N8* raw) {
     }
 
     // Ongeza mpya
-    kama (str_idadi < 64) {
+    kama (str_idadi < 256) {
         N32 o = str_buf_wapi;
         str_off[str_idadi] = o;
         str_len[str_idadi] = len;
@@ -1074,7 +1074,7 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
         andika_neno4(offset);
     } sivyo {
         N32 nje_id = pata_au_unda_nje(callee);
-        kama (rela_idadi < 256) {
+        kama (rela_idadi < 512) {
             rela_text_off[rela_idadi] = bafa_text_wapi;
             rela_nje_id[rela_idadi] = nje_id;
             rela_idadi = rela_idadi + 1;
@@ -1260,7 +1260,7 @@ W0 uzalishaji_tenga(N32 node, N32 kazi_node) {
     N32 nje_id = pata_au_unda_nje("malloc");
     andika_push_rax();
     andika_baiti(232);
-    kama (rela_idadi < 256) {
+    kama (rela_idadi < 512) {
         rela_text_off[rela_idadi] = bafa_text_wapi;
         rela_nje_id[rela_idadi] = nje_id;
         rela_idadi = rela_idadi + 1;
@@ -1274,7 +1274,7 @@ W0 uzalishaji_achilia(N32 node, N32 kazi_node) {
     N32 nje_id = pata_au_unda_nje("free");
     andika_push_rax();
     andika_baiti(232);
-    kama (rela_idadi < 256) {
+    kama (rela_idadi < 512) {
         rela_text_off[rela_idadi] = bafa_text_wapi;
         rela_nje_id[rela_idadi] = nje_id;
         rela_idadi = rela_idadi + 1;
