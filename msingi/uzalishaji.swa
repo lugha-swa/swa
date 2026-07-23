@@ -15,6 +15,14 @@ husisha { msambazaji.swa }
 N8 bafa_text[16384];
 N32 bafa_text_wapi = 0;
 
+// Vigezo vya ulimwengu
+N8 bafa_data[4096];
+N32 bafa_data_wapi = 0;
+N32 data_ulimwengu_off[32];
+N32 data_ulimwengu_size[32];
+N32 data_ulimwengu_jina_off[32];
+N32 data_ulimwengu_idadi = 0;
+
 W0 andika_baiti(N32 b) {
     kama (bafa_text_wapi < 16384) {
         bafa_text[bafa_text_wapi] = b & 255;
@@ -1595,6 +1603,28 @@ W0 uzalishaji_kuu(N32 mzizi) {
     str_buf_wapi = 1;
     N32 sj = 0;
     wakati (sj < 64) { str_lebo_id[sj] = 0; sj = sj + 1; }
+
+    // 0. Futa data ya ulimwengu
+    bafa_data_wapi = 0; data_ulimwengu_idadi = 0;
+
+    // 0b. Kusanya vigezo vya ulimwengu (pre-scan)
+    N32 gn = ast_kushoto[mzizi];
+    wakati (gn != -1) {
+        kama (ast_aina[gn] == 35 && data_ulimwengu_idadi < 32) {  // AST_TANGAZO_ULIMWENGU
+            N32 name_n = ast_kushoto[gn];
+            data_ulimwengu_jina_off[data_ulimwengu_idadi] = ast_jina_off[name_n];
+            data_ulimwengu_off[data_ulimwengu_idadi] = bafa_data_wapi;
+            // Nakili baiti za kianzilishi (kwa sasa, weka sifuri)
+            N32 sz = 4;  // N32 = baiti 4 kwa chaguo-msingi
+            data_ulimwengu_size[data_ulimwengu_idadi] = sz;
+            N32 k = 0;
+            wakati (k < sz && bafa_data_wapi < 4096) {
+                bafa_data[bafa_data_wapi] = 0; bafa_data_wapi = bafa_data_wapi + 1; k = k + 1;
+            }
+            data_ulimwengu_idadi = data_ulimwengu_idadi + 1;
+        }
+        gn = ast_nne[gn];
+    }
 
     // 1. Toa msimbo wa .text kwenye buffer
     N32 node = ast_kushoto[mzizi];
