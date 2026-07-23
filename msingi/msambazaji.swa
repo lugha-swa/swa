@@ -1298,6 +1298,7 @@ N32 changanua_muundo(Msambazaji* p) {
 
     N32 kwanza_sehemu = -1;
     N32 prev = -1;
+    N32 running_offset = 0;
 
     wakati (1 == 1) {
         kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
@@ -1316,6 +1317,18 @@ N32 changanua_muundo(Msambazaji* p) {
         N32 fname = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
         hifadhi_jina(fname, p->sasa.mwanzo, p->sasa.urefu);
         ast_thamani[fname] = field_aina;
+        ast_tiga[fname] = running_offset;  // hifadhi ofseti ya baiti
+        // Kokotoa ukubwa wa baiti kutoka kwa encoding ya aina
+        kama (field_aina != 0) {
+            N32 mshale_f = field_aina & 1;
+            kama (mshale_f) { running_offset = running_offset + 8; }
+            sivyo {
+                N32 familia_f = (field_aina >> 8) & 255;
+                N32 upana_f = field_aina & 254;
+                kama (familia_f >= 1) { running_offset = running_offset + (upana_f / 8); }
+                sivyo { running_offset = running_offset + 4; }
+            }
+        } sivyo { running_offset = running_offset + 4; }
         sogeza(p); // tumia jina la shamba
 
         // Semicolon ya hiari inayofuata
