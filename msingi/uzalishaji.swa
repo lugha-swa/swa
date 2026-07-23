@@ -1629,10 +1629,15 @@ W0 uzalishaji_nyoosha(N32 node, N32 kazi_node) {
     }
 }
 
-// Anwani-ya (&var) — chukua anwani ya kigeu
+// Anwani-ya (&expr) — chukua anwani ya usemi
 W0 uzalishaji_anwani_ya(N32 node, N32 kazi_node) {
     N32 var_node = ast_kushoto[node];
-    kama (var_node != -1) {
+    kama (var_node == -1) { andika_xor_eax_eax(); rudisha; }
+
+    N32 aina_var = ast_aina[var_node];
+
+    // &kigeu — anwani ya kigeu cha ndani
+    kama (aina_var == 5) {
         N8* jina = ast_pool + ast_jina_off[var_node];
         N32 i = 0;
         wakati (i < var_idadi) {
@@ -1643,7 +1648,52 @@ W0 uzalishaji_anwani_ya(N32 node, N32 kazi_node) {
             }
             i = i + 1;
         }
+        andika_xor_eax_eax();
+        rudisha;
     }
+
+    // &kigeu.sehemu — anwani ya sehemu ya muundo
+    kama (aina_var == 33) {
+        N32 struct_node = ast_kushoto[var_node];
+        N32 offset = ast_tiga[var_node];
+        uzalishaji_usemi(struct_node, kazi_node);
+        kama (offset > 0) { andika_add_eax_imm32(offset); }
+        rudisha;
+    }
+
+    // &kielekezi->sehemu — anwani kupitia kielekezi
+    kama (aina_var == 34) {
+        N32 ptr_node = ast_kushoto[var_node];
+        N32 offset = ast_tiga[var_node];
+        uzalishaji_usemi(ptr_node, kazi_node);
+        andika_mov_eax_anwani_eax();  // eax = *ptr
+        kama (offset > 0) { andika_add_eax_imm32(offset); }
+        rudisha;
+    }
+
+    // &*ptr au &arr[idx] — anwani ya elementi iliyonyooshwa
+    kama (aina_var == 29) {
+        N32 base = ast_kushoto[var_node];
+        N32 idx = ast_kulia[var_node];
+        kama (idx != -1) {
+            // &arr[idx] — anwani = msingi + idx * saizi
+            N32 saizi = ast_tiga[var_node];
+            kama (saizi == 0) { saizi = 4; }
+            uzalishaji_usemi(idx, kazi_node);
+            kama (saizi == 8) { andika_baiti(193); andika_baiti(224); andika_baiti(3); }
+            sivyo kama (saizi == 2) { andika_baiti(193); andika_baiti(224); andika_baiti(1); }
+            sivyo kama (saizi != 1) { andika_baiti(193); andika_baiti(224); andika_baiti(2); }
+            andika_push_rax();
+            uzalishaji_usemi(base, kazi_node);
+            andika_pop_rcx();
+            andika_add_eax_ecx();
+            rudisha;
+        }
+        // &*ptr — anwani ni ptr yenyewe
+        uzalishaji_usemi(base, kazi_node);
+        rudisha;
+    }
+
     andika_xor_eax_eax();
 }
 
