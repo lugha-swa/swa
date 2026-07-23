@@ -1538,7 +1538,20 @@ W0 uzalishaji_usemi(N32 node, N32 kazi_node) {
 
 // PAKIA KIGEZO CHA KAZI
 N32 pakia_kigezo_ikiwa_ni_paramu(N32 node, N8* jina, N32 kazi_node) {
-    kama (kazi_node >= 0 && ast_kulia[kazi_node] != -1) { andika_mov_eax_rbp_off(4); rudisha 1; }
+    kama (kazi_node < 0) { rudisha 0; }
+    N32 param = ast_kulia[kazi_node];
+    N32 idx = 0;
+    wakati (param != -1) {
+        N32 pname_node = ast_kushoto[param];
+        N8* pjina = ast_pool + ast_jina_off[pname_node];
+        kama (linganisha_mfuatano(pjina, jina) == 0) {
+            N32 off = 4 + (idx * 4);
+            andika_mov_eax_rbp_off(off);
+            rudisha 1;
+        }
+        param = ast_kulia[param];
+        idx = idx + 1;
+    }
     rudisha 0;
 }
 // -------------------------------------------------------
