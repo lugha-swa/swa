@@ -1146,10 +1146,10 @@ N32 changanua_bloku(Msambazaji* p) {
     N32 kwanza = -1;
     N32 prev = -1;
     wakati (1 == 1) {
+        kama (p->sasa.urefu == 0) { vunja; }  // EOF — acha mara moja
         kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
             kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
         }
-        kama (p->sasa.urefu == 0) { vunja; }
         N32 stmt = changanua_taarifa(p);
         kama (stmt == -1) { vunja; }
         kama (prev == -1) { kwanza = stmt; }
@@ -1180,15 +1180,13 @@ N32 changanua_taarifa(Msambazaji* p) {
     N32 r_tangazo = changanua_taarifa_tangazo(p);
     kama (r_tangazo != -1) { rudisha r_tangazo; }
     // ---- Taarifa ya usemi  usemi ; ----
-    {
-        N32 expr = changanua_usemi(p);
-        kama (expr != -1) {
-            kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
-                kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
-            }
-            kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, ";")) { sogeza(p); }
-            rudisha expr;
+    N32 expr = changanua_usemi(p);
+    kama (expr != -1) {
+        kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
+            kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
         }
+        kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, ";")) { sogeza(p); }
+        rudisha expr;
     }
 
     rudisha -1;
