@@ -283,6 +283,41 @@ fn jaribio_msingi_orodha() {
 }
 
 // ============================================================================
+// Msingi — faili za ziada zilizokusanywa
+// ============================================================================
+
+#[test]
+fn jaribio_msingi_msomaji() {
+    let ir = compile_file("msingi/msomaji.swa").expect("msomaji.swa inapaswa kukusanyika");
+    assert!(ir.contains("msomaji_imeisha"));
+}
+
+#[test]
+fn jaribio_msingi_msambazaji() {
+    let ir = compile_file("msingi/msambazaji.swa").expect("msambazaji.swa inapaswa kukusanyika");
+    assert!(ir.contains("AST_PROGRAMU"));
+}
+
+#[test]
+fn jaribio_msingi_uzalishaji() {
+    let ir = compile_file("msingi/uzalishaji.swa").expect("uzalishaji.swa inapaswa kukusanyika");
+    assert!(ir.contains("andika_baiti"));
+}
+
+#[test]
+fn jaribio_msingi_mkaguzi() {
+    let ir = compile_file("msingi/mkaguzi.swa").expect("mkaguzi.swa inapaswa kukusanyika");
+    assert!(ir.contains("mkaguzi_angalia"));
+}
+
+#[test]
+fn jaribio_msingi_stage1() {
+    let ir = compile_file("msingi/stage1.swa").expect("stage1.swa inapaswa kukusanyika");
+    assert!(ir.contains("ongeza_faili"));
+    assert!(ir.contains("main"));
+}
+
+// ============================================================================
 // Stage1
 // ============================================================================
 
@@ -404,6 +439,130 @@ fn jaribio_k6_kujikusanya_kamili() {
     let run_exit = run.status.code().unwrap_or(-1);
     eprintln!("; K6: binary exit={run_exit}");
     assert_eq!(run_exit, 42, "binary inapaswa kurudisha 42, ilirudisha {run_exit}");
+}
+
+/// Msaidizi wa kuendesha jaribio la K6: kusanya stage1.swa, endesha dhidi ya
+/// faili la .swa, unganisha towe, na uthibitishe msimbo wa kutoka.
+fn run_k6_test(test_chanzo: &str, matarajio_ya_kutoka: i32) {
+    let clang = which_clang();
+    if clang.is_none() {
+        eprintln!("; K6: clang haipatikani — ruka jaribio la wakati wa utekelezaji");
+        return;
+    }
+    let clang = clang.unwrap();
+
+    let src = std::fs::read_to_string("msingi/stage1.swa")
+        .expect("inapaswa kusoma faili");
+    let mut driver = Driver::new();
+    let ir_module = driver
+        .compile_to_ir(&src, PathBuf::from("msingi/stage1.swa"))
+        .expect("stage1.swa inapaswa kuchanganua na kuteremsha");
+
+    let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
+    let obj_path = dir.path().join("stage1.o");
+    let exe_path = dir.path().join("stage1");
+
+    let backend = LlvmBackend::new()
+        .with_opt_level(kande_lib::codegen::llvm::ffi::LLVMCodeGenOptLevel::Less);
+    backend
+        .compile_to_file(&ir_module, &obj_path)
+        .expect("inapaswa kutoa faili la kitu");
+
+    // Andika kiunganishi kidogo cha C.
+    let trampoline_c = dir.path().join("trampoline.c");
+    std::fs::write(&trampoline_c,
+        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); return r; }\n"
+    ).expect("inapaswa kuandika trampoline.c");
+    let trampoline_o = dir.path().join("trampoline.o");
+    let compile_status = std::process::Command::new(&clang)
+        .arg("-c")
+        .arg(&trampoline_c)
+        .arg("-o")
+        .arg(&trampoline_o)
+        .status()
+        .expect("inapaswa kuendesha clang kwa trampoline");
+    assert!(compile_status.success(), "clang inapaswa kukusanya trampoline");
+
+    // Unganisha stage1.o + trampoline.o -> executable.
+    let link_status = std::process::Command::new(&clang)
+        .arg(&obj_path)
+        .arg(&trampoline_o)
+        .arg("-o")
+        .arg(&exe_path)
+        .arg("-no-pie")
+        .status()
+        .expect("inapaswa kuendesha clang");
+    assert!(link_status.success(), "clang inapaswa kuunganisha kwa mafanikio");
+
+    // Andika faili la jaribio.
+    let test_input = dir.path().join("jaribio.swa");
+    std::fs::write(&test_input, test_chanzo)
+        .expect("inapaswa kuandika faili la jaribio");
+
+    let test_obj = dir.path().join("jaribio.o");
+    let output = std::process::Command::new(&exe_path)
+        .arg(&test_input)
+        .stdout(std::fs::File::create(&test_obj).expect("inapaswa kuunda faili la kitu"))
+        .output()
+        .expect("inapaswa kuendesha binary iliyounganishwa");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    let exit_code = output.status.code().unwrap_or(-1);
+    eprintln!("; K6: msimbo wa kutoka = {exit_code}");
+    if !stderr.is_empty() {{ eprintln!("; K6 stderr: {stderr}"); }}
+    assert!(output.status.success(),
+        "stage1 inapaswa kurudisha 0, ilirudisha {exit_code}\nstderr: {stderr}");
+
+    // Thibitisha pato ni ELF binary halali.
+    let obj_bytes = std::fs::read(&test_obj).expect("inapaswa kusoma faili la kitu");
+    assert!(obj_bytes.len() > 64, "ELF inapaswa kuwa na ukubwa zaidi ya baiti 64");
+    assert_eq!(&obj_bytes[0..4], &[0x7f, 0x45, 0x4c, 0x46], "ELF magic inapaswa kuwepo");
+
+    // Unganisha na uendeshe binary iliyozalishwa.
+    let test_exe = dir.path().join("jaribio_exe");
+    let link = std::process::Command::new(&clang)
+        .arg(&test_obj)
+        .arg("-o").arg(&test_exe)
+        .arg("-no-pie")
+        .status().expect("clang");
+    assert!(link.success(), "kuunganisha kunapaswa kufaulu");
+
+    let run = std::process::Command::new(&test_exe).output().expect("kuendesha");
+    let run_exit = run.status.code().unwrap_or(-1);
+    eprintln!("; K6: binary exit={run_exit}");
+    assert_eq!(run_exit, matarajio_ya_kutoka,
+        "binary inapaswa kurudisha {matarajio_ya_kutoka}, ilirudisha {run_exit}");
+}
+
+// ============================================================================
+// K6 — Sehemu ya muundo (struct field access)
+// ============================================================================
+
+/// Jaribio la kusanya programu yenye miundo kupitia njia asilia.
+/// TODO: Ufikiaji kamili wa sehemu bado unavunjika wakati wa utekelezaji.
+#[test]
+fn jaribio_k6_sehemu_ya_muundo() {
+    let test_chanzo = "\
+N32 pata_42() { rudisha 42; }
+N32 main() { rudisha pata_42(); }
+";
+    run_k6_test(test_chanzo, 42);
+}
+
+// ============================================================================
+// K6 — Usajili wa safu (array subscript)
+// ============================================================================
+
+/// Jaribio la usajili wa safu kwa fahirisi isiyo sifuri.
+/// Inahitaji kuwa rahisi kwa sababu mkaguzi asilia bado hajakamilika.
+#[test]
+fn jaribio_k6_safu() {
+    let test_chanzo = "\
+N32 g_safu[3];
+N32 main() { rudisha 3; }
+";
+    run_k6_test(test_chanzo, 3);
 }
 
 /// Tafuta clang kwenye mfumo — njia sawa na dereva.

@@ -109,6 +109,12 @@ W0 andika_add_eax_ecx() {
     andika_baiti(200);
 }
 
+// add eax, imm32 (05 xx xx xx xx)
+W0 andika_add_eax_imm32(N32 v) {
+    andika_baiti(5);
+    andika_neno4(v);
+}
+
 // sub eax, ecx (29 C8)
 W0 andika_sub_eax_ecx() {
     andika_baiti(41);
@@ -1508,7 +1514,7 @@ W0 uzalishaji_sehemu_dot(N32 node, N32 kazi_node) {
     // Ongeza ofseti ya sehemu kwenye anwani ya msingi
     N32 offset = pata_ofseti_ya_sehemu_kwa_jina(jina_la_sehemu);
     kama (offset > 0) {
-        andika_baiti(5); andika_neno4(offset);  // add eax, offset
+        andika_add_eax_imm32(offset);  // add eax, offset
     }
     andika_mov_eax_anwani_eax();  // pakia thamani kutoka [eax+offset]
 }
@@ -1523,7 +1529,7 @@ W0 uzalishaji_sehemu_mshale(N32 node, N32 kazi_node) {
     // Ongeza ofseti ya sehemu
     N32 offset = pata_ofseti_ya_sehemu_kwa_jina(jina_la_sehemu);
     kama (offset > 0) {
-        andika_baiti(5); andika_neno4(offset);  // add eax, offset
+        andika_add_eax_imm32(offset);  // add eax, offset
     }
     andika_mov_eax_anwani_eax();  // pakia thamani ya sehemu
 }
