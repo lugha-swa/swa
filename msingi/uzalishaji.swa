@@ -1631,17 +1631,20 @@ W0 uzalishaji_usemi(N32 node, N32 kazi_node) {
 N32 pakia_kigezo_ikiwa_ni_paramu(N32 node, N8* jina, N32 kazi_node) {
     kama (kazi_node < 0) { rudisha 0; }
     N32 param = ast_kulia[kazi_node];
-    N32 idx = 0;
+    N32 cur_off = 0;
     wakati (param != -1) {
         N32 pname_node = ast_kushoto[param];
         N8* pjina = ast_pool + ast_jina_off[pname_node];
+        // Kokotoa ukubwa wa kigezo hiki
+        N32 enc = ast_thamani[pname_node];
+        N32 sz = ukubwa_kutoka_enc(enc);
+        kama (sz == 0) { sz = 4; }
+        cur_off = cur_off + sz;  // ofseti kutoka rbp
         kama (linganisha_mfuatano(pjina, jina) == 0) {
-            N32 off = 4 + (idx * 4);
-            andika_mov_eax_rbp_off(off);
+            andika_mov_eax_rbp_off(cur_off);
             rudisha 1;
         }
         param = ast_kulia[param];
-        idx = idx + 1;
     }
     rudisha 0;
 }
@@ -1651,16 +1654,30 @@ N32 pakia_kigezo_ikiwa_ni_paramu(N32 node, N8* jina, N32 kazi_node) {
 W0 uzalishaji_kazi(N32 kazi_node) {
     lebo_hifadhi(ast_pool + ast_jina_off[ast_kushoto[kazi_node]]);
     var_idadi = 0; var_stack_idadi = 0; var_pool_wapi = 1;
-    N32 n = 0; N32 pn = ast_kulia[kazi_node];
-    kama(pn!=-1){n=1;pn=ast_kulia[pn];kama(pn!=-1){n=2;pn=ast_kulia[pn];kama(pn!=-1){n=3;pn=ast_kulia[pn];kama(pn!=-1){n=4;pn=ast_kulia[pn];kama(pn!=-1){n=5;pn=ast_kulia[pn];kama(pn!=-1){n=6;}}}}}}
-    var_stack_idadi = n * 4; var_idadi = n;
+    // Pitia vigezo na ukusanye ukubwa wao
+    N32 n = 0;
+    N32 param_stack = 0;
+    N32 param_off[6];
+    N32 pn = ast_kulia[kazi_node];
+    wakati (pn != -1) {
+        kama (n >= 6) { vunja; }
+        N32 name_node = ast_kushoto[pn];
+        N32 enc = ast_thamani[name_node];
+        N32 sz = ukubwa_kutoka_enc(enc);
+        kama (sz == 0) { sz = 4; }
+        param_off[n] = param_stack + sz;
+        param_stack = param_stack + sz;
+        n = n + 1;
+        pn = ast_kulia[pn];
+    }
+    var_stack_idadi = param_stack; var_idadi = n;
     andika_push_rbp(); andika_mov_rbp_rsp(); andika_baiti(72); andika_baiti(129); andika_baiti(236); sub_rsp_nafasi = bafa_text_wapi; andika_neno4(0); frame_imeshinda = 1;
-    kama(n>0){andika_mov_eax_edi();andika_mov_rbp_off_eax(4);}
-    kama(n>1){andika_mov_eax_esi();andika_mov_rbp_off_eax(8);}
-    kama(n>2){andika_mov_eax_edx();andika_mov_rbp_off_eax(12);}
-    kama(n>3){andika_mov_eax_ecx();andika_mov_rbp_off_eax(16);}
-    kama(n>4){andika_mov_eax_r8d();andika_mov_rbp_off_eax(20);}
-    kama(n>5){andika_mov_eax_r9d();andika_mov_rbp_off_eax(24);}
+    kama(n>0){andika_mov_eax_edi();andika_mov_rbp_off_eax(param_off[0]);}
+    kama(n>1){andika_mov_eax_esi();andika_mov_rbp_off_eax(param_off[1]);}
+    kama(n>2){andika_mov_eax_edx();andika_mov_rbp_off_eax(param_off[2]);}
+    kama(n>3){andika_mov_eax_ecx();andika_mov_rbp_off_eax(param_off[3]);}
+    kama(n>4){andika_mov_eax_r8d();andika_mov_rbp_off_eax(param_off[4]);}
+    kama(n>5){andika_mov_eax_r9d();andika_mov_rbp_off_eax(param_off[5]);}
     N32 body = ast_tiga[kazi_node]; kama(body!=-1){uzalishaji_taarifa(body, kazi_node);}
     N32 rsp=var_stack_idadi;kama(rsp%16!=0){rsp=rsp+(16-rsp%16);}bafa_text[sub_rsp_nafasi]=rsp&255;bafa_text[sub_rsp_nafasi+1]=(rsp>>8)&255;bafa_text[sub_rsp_nafasi+2]=(rsp>>16)&255;bafa_text[sub_rsp_nafasi+3]=(rsp>>24)&255;
     andika_leave(); andika_ret();
