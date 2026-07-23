@@ -399,20 +399,54 @@ N32 mkaguzi_kagua_usemi(N32 node) {
         rudisha base_no_ptr;
     }
 
-    // Ufikiaji wa sehemu
+    // Ufikiaji wa sehemu ya muundo
     kama (aina == 33) {  // SEHEMU_DOT
         mkaguzi_kagua_usemi(ast_kushoto[node]);
-        // Tafuta aina ya sehemu
         N32 field_node = ast_kulia[node];
-        N32 fenc = ast_thamani[field_node];
-        kama (fenc != 0) { rudisha fenc; }
-        rudisha (1 << 8) | 32;  // i32 chaguo-msingi
+        N8* sehemu_jina = ast_pool + ast_jina_off[field_node];
+        // Tembea miundo yote kutafuta sehemu na ofseti yake
+        N32 si = 0;
+        wakati (si < ast_idadi) {
+            kama (ast_aina[si] == 12) {  // AST_MUUNDO
+                N32 fn = ast_kulia[si];
+                wakati (fn != -1) {
+                    N32 fname_node = ast_kushoto[fn];
+                    N8* fn_jina = ast_pool + ast_jina_off[fname_node];
+                    kama (jina_linganisha(fn_jina, sehemu_jina)) {
+                        ast_tiga[node] = ast_tiga[fname_node];  // hifadhi ofseti
+                        N32 fenc = ast_thamani[fname_node];
+                        kama (fenc != 0) { rudisha fenc; }
+                        rudisha (1 << 8) | 32;
+                    }
+                    fn = ast_kulia[fn];
+                }
+            }
+            si = si + 1;
+        }
+        rudisha (1 << 8) | 32;  // haikupatikana — i32 chaguo-msingi
     }
     kama (aina == 34) {  // SEHEMU_MSHALE
         mkaguzi_kagua_usemi(ast_kushoto[node]);
         N32 field_node = ast_kulia[node];
-        N32 fenc = ast_thamani[field_node];
-        kama (fenc != 0) { rudisha fenc; }
+        N8* sehemu_jina = ast_pool + ast_jina_off[field_node];
+        N32 si = 0;
+        wakati (si < ast_idadi) {
+            kama (ast_aina[si] == 12) {  // AST_MUUNDO
+                N32 fn = ast_kulia[si];
+                wakati (fn != -1) {
+                    N32 fname_node = ast_kushoto[fn];
+                    N8* fn_jina = ast_pool + ast_jina_off[fname_node];
+                    kama (jina_linganisha(fn_jina, sehemu_jina)) {
+                        ast_tiga[node] = ast_tiga[fname_node];  // hifadhi ofseti
+                        N32 fenc = ast_thamani[fname_node];
+                        kama (fenc != 0) { rudisha fenc; }
+                        rudisha (1 << 8) | 32;
+                    }
+                    fn = ast_kulia[fn];
+                }
+            }
+            si = si + 1;
+        }
         rudisha (1 << 8) | 32;
     }
 

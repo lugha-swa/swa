@@ -1505,33 +1505,28 @@ N32 pata_ofseti_ya_sehemu(N8* jina_la_muundo, N8* jina_la_sehemu) {
 }
 
 // Sehemu ya muundo kwa nukta: struct.field  (AST_SEHEMU_DOT = 33)
+// Ofseti ya baiti imehifadhiwa na mkaguzi katika ast_tiga[node]
 W0 uzalishaji_sehemu_dot(N32 node, N32 kazi_node) {
     N32 struct_node = ast_kushoto[node];
-    N32 field_node = ast_kulia[node];
-    N8* jina_la_sehemu = ast_pool + ast_jina_off[field_node];
-    // Tathmini usemi wa muundo — inarudisha anwani ya msingi
+    N32 offset = ast_tiga[node];
     uzalishaji_usemi(struct_node, kazi_node);
-    // Ongeza ofseti ya sehemu kwenye anwani ya msingi
-    N32 offset = pata_ofseti_ya_sehemu_kwa_jina(jina_la_sehemu);
     kama (offset > 0) {
-        andika_add_eax_imm32(offset);  // add eax, offset
+        andika_add_eax_imm32(offset);
     }
-    andika_mov_eax_anwani_eax();  // pakia thamani kutoka [eax+offset]
+    andika_mov_eax_anwani_eax();
 }
 
 // Sehemu ya muundo kwa mshale: ptr->field  (AST_SEHEMU_MSHALE = 34)
+// Ofseti ya baiti imehifadhiwa na mkaguzi katika ast_tiga[node]
 W0 uzalishaji_sehemu_mshale(N32 node, N32 kazi_node) {
     N32 ptr_node = ast_kushoto[node];
-    N32 field_node = ast_kulia[node];
-    N8* jina_la_sehemu = ast_pool + ast_jina_off[field_node];
+    N32 offset = ast_tiga[node];
     uzalishaji_usemi(ptr_node, kazi_node);  // eax = kielekezi
-    andika_mov_eax_anwani_eax();  // nyoosha: eax = *ptr (anwani ya muundo)
-    // Ongeza ofseti ya sehemu
-    N32 offset = pata_ofseti_ya_sehemu_kwa_jina(jina_la_sehemu);
+    andika_mov_eax_anwani_eax();  // nyoosha: eax = *ptr
     kama (offset > 0) {
-        andika_add_eax_imm32(offset);  // add eax, offset
+        andika_add_eax_imm32(offset);
     }
-    andika_mov_eax_anwani_eax();  // pakia thamani ya sehemu
+    andika_mov_eax_anwani_eax();  // pakia sehemu
 }
 
 // Vishikizi vya aina 33-44: sehemu, asimilia, bit, ternary

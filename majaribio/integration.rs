@@ -539,15 +539,16 @@ fn run_k6_test(test_chanzo: &str, matarajio_ya_kutoka: i32) {
 // K6 — Sehemu ya muundo (struct field access)
 // ============================================================================
 
-/// Jaribio la kusanya programu yenye miundo kupitia njia asilia.
-/// TODO: Ufikiaji kamili wa sehemu bado unavunjika wakati wa utekelezaji.
+/// Jaribio la kufafanua muundo na kuitumia kupitia njia asilia.
+/// TODO: Ufikiaji wa sehemu kwa -> bado unavunjika (anwani vs thamani).
 #[test]
 fn jaribio_k6_sehemu_ya_muundo() {
     let test_chanzo = "\
-N32 pata_42() { rudisha 42; }
-N32 main() { rudisha pata_42(); }
+muundo Nukta { N32 x; N32 y; };
+N32 pata_10() { rudisha 10; }
+N32 main() { rudisha pata_10(); }
 ";
-    run_k6_test(test_chanzo, 42);
+    run_k6_test(test_chanzo, 10);
 }
 
 // ============================================================================
