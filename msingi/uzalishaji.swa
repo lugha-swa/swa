@@ -156,6 +156,28 @@ W0 andika_mov_eax_ecx() { andika_baiti(137); andika_baiti(200); }
 W0 andika_mov_eax_r8d() { andika_baiti(68); andika_baiti(137); andika_baiti(192); }
 W0 andika_mov_eax_r9d() { andika_baiti(68); andika_baiti(137); andika_baiti(200); }
 
+// SSE — desimali (D32/D64)
+// addss xmm0, xmm1  (F3 0F 58 C1)
+W0 andika_addss_xmm0_xmm1() { andika_baiti(243); andika_baiti(15); andika_baiti(88); andika_baiti(193); }
+// subss xmm0, xmm1  (F3 0F 5C C1)
+W0 andika_subss_xmm0_xmm1() { andika_baiti(243); andika_baiti(15); andika_baiti(92); andika_baiti(193); }
+// mulss xmm0, xmm1  (F3 0F 59 C1)
+W0 andika_mulss_xmm0_xmm1() { andika_baiti(243); andika_baiti(15); andika_baiti(89); andika_baiti(193); }
+// divss xmm0, xmm1  (F3 0F 5E C1)
+W0 andika_divss_xmm0_xmm1() { andika_baiti(243); andika_baiti(15); andika_baiti(94); andika_baiti(193); }
+// cvtsi2ss xmm0, eax  (F3 0F 2A C0) — N32 → D32
+W0 andika_cvtsi2ss_xmm0_eax() { andika_baiti(243); andika_baiti(15); andika_baiti(42); andika_baiti(192); }
+// cvttss2si eax, xmm0  (F3 0F 2C C0) — D32 → N32
+W0 andika_cvttss2si_eax_xmm0() { andika_baiti(243); andika_baiti(15); andika_baiti(44); andika_baiti(192); }
+// movd xmm1, eax  (66 0F 6E C8) — N32 → xmm1
+W0 andika_movd_xmm1_eax() { andika_baiti(102); andika_baiti(15); andika_baiti(110); andika_baiti(200); }
+// sub rsp, 8; movss [rsp], xmm0  — sukuma D32 kwenye rafu
+W0 andika_push_xmm0() { andika_baiti(72); andika_baiti(131); andika_baiti(236); andika_baiti(8); andika_baiti(0); andika_baiti(0); andika_baiti(0); andika_baiti(243); andika_baiti(15); andika_baiti(17); andika_baiti(4); andika_baiti(36); }
+// movss xmm1, [rsp]; add rsp, 8 — vuta D32 kutoka rafu
+W0 andika_pop_xmm1() { andika_baiti(243); andika_baiti(15); andika_baiti(16); andika_baiti(12); andika_baiti(36); andika_baiti(72); andika_baiti(131); andika_baiti(196); andika_baiti(8); andika_baiti(0); andika_baiti(0); andika_baiti(0); }
+// movd eax, xmm0 — xmm0 → eax (kwa kurudisha thamani)
+W0 andika_movd_eax_xmm0() { andika_baiti(102); andika_baiti(15); andika_baiti(126); andika_baiti(192); }
+
 // call rel32 (E8 + offset)
 W0 andika_call_bandari(N32 offset) {
     andika_baiti(232);
@@ -1383,6 +1405,21 @@ W0 uzalishaji_usemi_kati_b(N32 node, N32 kazi_node, N32 aina) {
     sivyo kama (aina == 30) { uzalishaji_anwani_ya(node, kazi_node); rudisha; }
     sivyo kama (aina == 31) { uzalishaji_zidisha(node, kazi_node); rudisha; }
     sivyo kama (aina == 32) { uzalishaji_gawanya(node, kazi_node); rudisha; }
+}
+
+// Desimali — jumlisha kwa D32 (ongezeko la msingi la kuelea)
+W0 uzalishaji_desimali_jumlisha(N32 node, N32 kazi_node) {
+    // Tathmini RHS → eax, badili hadi xmm0
+    uzalishaji_usemi(ast_kulia[node], kazi_node);
+    andika_cvtsi2ss_xmm0_eax();
+    andika_push_xmm0();
+    // Tathmini LHS → eax, badili hadi xmm0
+    uzalishaji_usemi(ast_kushoto[node], kazi_node);
+    andika_cvtsi2ss_xmm0_eax();
+    andika_pop_xmm1();
+    andika_addss_xmm0_xmm1();
+    // Badilisha tokeo kurudi kwa N32
+    andika_cvttss2si_eax_xmm0();
 }
 
 // Nyoosha (*ptr) — pakia thamani kutoka anwani
