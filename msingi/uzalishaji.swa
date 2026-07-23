@@ -1500,9 +1500,17 @@ W0 uzalishaji_nyoosha(N32 node, N32 kazi_node) {
 
     N32 idx_node = ast_kulia[node];
     kama (idx_node != -1) {
-        // Uandikishaji wa safu: arr[idx] → *(msingi + idx * 4)
+        // Uandikishaji wa safu: arr[idx] → *(msingi + idx * saizi_ya_elementi)
+        N32 saizi = ast_tiga[node];  // imehifadhiwa na mkaguzi
+        kama (saizi == 0) { saizi = 4; }  // chaguo-msingi
         uzalishaji_usemi(idx_node, kazi_node);          // eax = idx
-        andika_baiti(193); andika_baiti(224); andika_baiti(2);  // shl eax, 2  (idx * 4)
+        kama (saizi == 8) {
+            andika_baiti(193); andika_baiti(224); andika_baiti(3);  // shl eax, 3 (×8)
+        } sivyo kama (saizi == 2) {
+            andika_baiti(193); andika_baiti(224); andika_baiti(1);  // shl eax, 1 (×2)
+        } sivyo kama (saizi != 1) {
+            andika_baiti(193); andika_baiti(224); andika_baiti(2);  // shl eax, 2 (×4)
+        }
         andika_push_rax();                              // hifadhi ofseti
         uzalishaji_usemi(ptr_node, kazi_node);          // eax = msingi
         andika_pop_rcx();                               // ecx = ofseti
