@@ -54,6 +54,9 @@ N32 AST_HAMISHA_KULIA   = 41;  // >>
 N32 AST_BIT_AU          = 42;  // |
 N32 AST_BIT_NA          = 43;  // &
 N32 AST_TERNARY         = 44;  // ? :
+N32 AST_KWELI           = 45;  // kweli
+N32 AST_UONGO           = 46;  // uongo
+N32 AST_TUPU            = 47;  // tupu
 
 // -------------------------------------------------------
 // Safu bapa za AST
@@ -697,6 +700,22 @@ N32 changanua_primary(Msambazaji* p) {
         hifadhi_jina(s, p->sasa.mwanzo, p->sasa.urefu);
         sogeza(p);
         rudisha s;
+    }
+
+    // Vihalisi vya B1 na W0: kweli, uongo, tupu
+    kama (p->sasa.urefu >= 4 && p->sasa.mwanzo[0] >= 97) {
+        kama (neno_ni(&p->sasa, "kweli")) {
+            sogeza(p);
+            rudisha node_mpya(AST_KWELI, 0, -1, -1);
+        }
+        kama (neno_ni(&p->sasa, "uongo")) {
+            sogeza(p);
+            rudisha node_mpya(AST_UONGO, 0, -1, -1);
+        }
+        kama (neno_ni(&p->sasa, "tupu")) {
+            sogeza(p);
+            rudisha node_mpya(AST_TUPU, 0, -1, -1);
+        }
     }
 
     // Kitambulisho
