@@ -219,10 +219,11 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         kama (init_node != -1) {
             N32 init_enc = mkaguzi_kagua_usemi(init_node);
             // Angalia kama aina ya kianzio inalingana na aina ya tangazo
+            // Inaruhusu upanuzi (N32→N64) lakini inakataa usinyezaji (N64→N32)
             kama (init_enc >= 0 && var_enc != 0) {
-                N32 var_base = var_enc & 254;  // ondoa biti ya kielekezi
+                N32 var_base = var_enc & 254;
                 N32 init_base = init_enc & 254;
-                kama (var_base != init_base && init_enc != 0) {
+                kama (var_base < init_base) {
                     andika("kosa: aina ya kianzio hailingani na tangazo la '%s'\n", var_jina);
                     mkaguzi_makosa = mkaguzi_makosa + 1;
                 }
@@ -238,7 +239,8 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         kama (lhs_enc >= 0 && rhs_enc >= 0) {
             N32 lhs_base = lhs_enc & 254;
             N32 rhs_base = rhs_enc & 254;
-            kama (lhs_base != rhs_base && rhs_enc != 0 && lhs_enc != 0) {
+            // Ruhusu upanuzi lakini kataa usinyezaji
+            kama (lhs_base < rhs_base && rhs_enc != 0 && lhs_enc != 0) {
                 andika("kosa: aina za ugawaji haziendani\n");
                 mkaguzi_makosa = mkaguzi_makosa + 1;
             }
@@ -306,11 +308,9 @@ N32 mkaguzi_kagua_usemi(N32 node) {
 
     N32 aina = ast_aina[node];
 
-    // Halisi ya nambari kamili
+    // Halisi ya nambari kamili — inafaa kwa aina yoyote (bila upana maalum)
     kama (aina == 4) {
-        N32 val = ast_thamani[node];
-        // Amua upana kutoka kwa thamani (i32 chaguo-msingi)
-        rudisha (1 << 8) | 32;
+        rudisha 0;  // "aina yoyote" — haisababishi makosa ya utangamano
     }
 
     // Kitambulisho
