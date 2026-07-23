@@ -688,9 +688,22 @@ W0 jina_hifadhi(N8* pool, N32* wapi, N8* jina) {
 }
 
 // -------------------------------------------------------
+// Kokotoa ukubwa wa baiti kutoka kwa usimbaji wa aina
+// Umbizo: ((familia << 8) | upana_bits | mshale_bit)
+// -------------------------------------------------------
+N32 ukubwa_kutoka_enc(N32 enc) {
+    kama (enc == 0) { rudisha 4; }     // chaguo-msingi: N32
+    kama (enc & 1) { rudisha 8; }      // kielekezi → baiti 8 (x86-64)
+    N32 familia = (enc >> 8) & 255;
+    N32 upana = enc & 254;             // biti, ondoa mshale
+    kama (familia >= 1 && familia <= 5) { rudisha upana / 8; }
+    rudisha 4;                          // chaguo-msingi
+}
+
+// -------------------------------------------------------
 // Tafuta au unda kigeu cha ndani kwa jina
 // -------------------------------------------------------
-N32 pata_au_unda_kigeu(N8* jina) {
+N32 pata_au_unda_kigeu_ukubwa(N8* jina, N32 saizi) {
     N32 i = 0;
     wakati (i < var_idadi) {
         N8* vjina = var_pool + var_jina_off[i];
@@ -701,12 +714,17 @@ N32 pata_au_unda_kigeu(N8* jina) {
         N32 off = var_pool_wapi;
         jina_hifadhi(var_pool, &var_pool_wapi, jina);
         var_jina_off[var_idadi] = off;
-        var_rbp_off[var_idadi] = var_stack_idadi + 4;  // umbali chanya kutoka rbp
-        var_stack_idadi = var_stack_idadi + 4;
+        var_rbp_off[var_idadi] = var_stack_idadi + saizi;  // umbali kutoka rbp
+        var_stack_idadi = var_stack_idadi + saizi;
         var_idadi = var_idadi + 1;
         rudisha var_idadi - 1;
     }
     rudisha -1;
+}
+
+// Kisaidizi cha upatani wa nyuma — chaguo-msingi N32 (baiti 4)
+N32 pata_au_unda_kigeu(N8* jina) {
+    rudisha pata_au_unda_kigeu_ukubwa(jina, 4);
 }
 
 // -------------------------------------------------------
@@ -822,7 +840,8 @@ W0 uzalishaji_wakati(N32 node, N32 kazi_node) {
             N32 var_node = ast_kushoto[init];
             N32 init_val = ast_kulia[init];
             N8* var_jina = ast_pool + ast_jina_off[var_node];
-            N32 vidx = pata_au_unda_kigeu(var_jina);
+            N32 saizi = ukubwa_kutoka_enc(ast_thamani[var_node]);
+            N32 vidx = pata_au_unda_kigeu_ukubwa(var_jina, saizi);
             kama (vidx >= 0) {
                 N32 off = var_rbp_off[vidx];
                 kama (init_val != -1) {
@@ -1027,8 +1046,8 @@ W0 uzalishaji_taarifa(N32 node, N32 kazi_node) {
         N32 var_node = ast_kushoto[node];
         N32 init_node = ast_kulia[node];
         N8* var_jina = ast_pool + ast_jina_off[var_node];
-
-        N32 vidx = pata_au_unda_kigeu(var_jina);
+        N32 saizi = ukubwa_kutoka_enc(ast_thamani[var_node]);
+        N32 vidx = pata_au_unda_kigeu_ukubwa(var_jina, saizi);
         kama (vidx >= 0) {
             N32 off = var_rbp_off[vidx];
             kama (init_node != -1) {
