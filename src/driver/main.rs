@@ -244,7 +244,7 @@ fn main() {
             match driver.compile_to_ir(&source, file_path) {
                 Ok(module) => { for d in driver.diagnostics.all() { eprintln!("{}", d.render(&source)); }
                     let opt_level = if opt_flag {
-                        LLVMCodeGenOptLevel::Less
+                        LLVMCodeGenOptLevel::Default
                     } else {
                         LLVMCodeGenOptLevel::None
                     };
