@@ -759,6 +759,22 @@ N32 changanua_primary(Msambazaji* p) {
         rudisha node_mpya(AST_TOFAUTI, 0, -1, operand);
     }
 
+    // Kiambishi NYOOSHA unari  *usemi (kielekezi nyoosha)
+    kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, "*")) {
+        sogeza(p);
+        N32 operand = changanua_primary(p);
+        kama (operand == -1) { rudisha -1; }
+        rudisha node_mpya(AST_TAJA, 0, operand, -1);
+    }
+
+    // Kiambishi ANWANI-YA unari  &usemi
+    kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, "&")) {
+        sogeza(p);
+        N32 operand = changanua_primary(p);
+        kama (operand == -1) { rudisha -1; }
+        rudisha node_mpya(AST_KUMBUKA, 0, operand, -1);
+    }
+
     // sizeof(usemi) -- swala la ukubwa lililojengewa (ukubwa ndio neno kuu)
     kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "ukubwa")) {

@@ -259,6 +259,12 @@ W0 andika_mov_rbp_rsp() {
     andika_baiti(229);
 }
 
+// mov eax, [eax] — nyoosha (8B 00)
+W0 andika_mov_eax_anwani_eax() { andika_baiti(139); andika_baiti(0); }
+
+// lea eax, [rbp+disp8] — anwani ya kigeu cha ndani (8D 45 xx)
+W0 andika_lea_eax_rbp_off(N32 off) { andika_baiti(141); andika_baiti(69); andika_baiti((256 - off) & 255); }
+
 // mov eax, [rbp + disp8] (8B 45 xx) — disp8 ni hasi kwa vigeu vya ndani
 W0 andika_mov_eax_rbp_off(N32 off) {
     // off ni umbali chanya kutoka kwa rbp (k.m. 4, 8, 12)
@@ -1373,8 +1379,38 @@ W0 uzalishaji_usemi_kati_b(N32 node, N32 kazi_node, N32 aina) {
     kama (aina == 26) { uzalishaji_na(node, kazi_node); rudisha; }
     sivyo kama (aina == 27) { uzalishaji_au(node, kazi_node); rudisha; }
     sivyo kama (aina == 28) { uzalishaji_si(node, kazi_node); rudisha; }
+    sivyo kama (aina == 29) { uzalishaji_nyoosha(node, kazi_node); rudisha; }
+    sivyo kama (aina == 30) { uzalishaji_anwani_ya(node, kazi_node); rudisha; }
     sivyo kama (aina == 31) { uzalishaji_zidisha(node, kazi_node); rudisha; }
     sivyo kama (aina == 32) { uzalishaji_gawanya(node, kazi_node); rudisha; }
+}
+
+// Nyoosha (*ptr) — pakia thamani kutoka anwani
+W0 uzalishaji_nyoosha(N32 node, N32 kazi_node) {
+    // Tathmini usemi wa kielekezi
+    N32 ptr_node = ast_kushoto[node];
+    kama (ptr_node != -1) {
+        uzalishaji_usemi(ptr_node, kazi_node);
+        andika_mov_eax_anwani_eax();  // mov eax, [eax]
+    }
+}
+
+// Anwani-ya (&var) — chukua anwani ya kigeu
+W0 uzalishaji_anwani_ya(N32 node, N32 kazi_node) {
+    N32 var_node = ast_kushoto[node];
+    kama (var_node != -1) {
+        N8* jina = ast_pool + ast_jina_off[var_node];
+        N32 i = 0;
+        wakati (i < var_idadi) {
+            N8* vjina = var_pool + var_jina_off[i];
+            kama (jina_linganisha(vjina, jina)) {
+                andika_lea_eax_rbp_off(var_rbp_off[i]);  // lea eax, [rbp-offset]
+                rudisha;
+            }
+            i = i + 1;
+        }
+    }
+    andika_xor_eax_eax();
 }
 
 // Vishikizi vya aina 37-44: asimilia, bit, ternary
