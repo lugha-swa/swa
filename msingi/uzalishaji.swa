@@ -1413,9 +1413,54 @@ W0 uzalishaji_anwani_ya(N32 node, N32 kazi_node) {
     andika_xor_eax_eax();
 }
 
-// Vishikizi vya aina 37-44: asimilia, bit, ternary
+// Tafuta ofseti ya sehemu ya muundo kwa kuchambua AST
+N32 pata_ofseti_ya_sehemu(N8* jina_la_muundo, N8* jina_la_sehemu) {
+    // Tembea nodi zote za AST_MUUNDO kutafuta muundo na sehemu yake
+    N32 si = 0; N32 ofseti = 0;
+    wakati (si < ast_idadi) {
+        kama (ast_aina[si] == 12) {  // AST_MUUNDO
+            N8* mn = ast_pool + ast_jina_off[ast_kushoto[si]];
+            kama (jina_linganisha(mn, jina_la_muundo)) {
+                // Muundo umepatikana — tafuta sehemu yake
+                N32 fn = ast_kulia[si]; ofseti = 0;
+                wakati (fn != -1) {
+                    N8* sn = ast_pool + ast_jina_off[ast_kushoto[fn]];
+                    kama (jina_linganisha(sn, jina_la_sehemu)) { rudisha ofseti; }
+                    // Ongeza ukubwa wa sehemu (N32 = 4 kwa chaguo-msingi)
+                    ofseti = ofseti + 4;
+                    fn = ast_kulia[fn];
+                }
+            }
+        }
+        si = si + 1;
+    }
+    rudisha 0;  // haikupatikana — rudisha 0
+}
+
+// Sehemu ya muundo kwa nukta: struct.field  (AST_SEHEMU_DOT = 33)
+W0 uzalishaji_sehemu_dot(N32 node, N32 kazi_node) {
+    N32 struct_node = ast_kushoto[node];
+    N32 field_node = ast_kulia[node];
+    N8* jina_la_sehemu = ast_pool + ast_jina_off[field_node];
+    // Tathmini usemi wa muundo — inarudisha anwani ya msingi
+    uzalishaji_usemi(struct_node, kazi_node);
+    // Kwa sasa: pakia tu [eax] (thamani ya kwanza ya muundo)
+    andika_mov_eax_anwani_eax();
+}
+
+// Sehemu ya muundo kwa mshale: ptr->field  (AST_SEHEMU_MSHALE = 34)
+W0 uzalishaji_sehemu_mshale(N32 node, N32 kazi_node) {
+    N32 ptr_node = ast_kushoto[node];
+    N32 field_node = ast_kulia[node];
+    uzalishaji_usemi(ptr_node, kazi_node);  // eax = kielekezi
+    andika_mov_eax_anwani_eax();  // pakia thamani ya kwanza
+}
+
+// Vishikizi vya aina 33-44: sehemu, asimilia, bit, ternary
 W0 uzalishaji_usemi_juu_a(N32 node, N32 kazi_node, N32 aina) {
-    kama (aina == 37) { uzalishaji_asimilia(node, kazi_node); rudisha; }
+    kama (aina == 33) { uzalishaji_sehemu_dot(node, kazi_node); rudisha; }
+    sivyo kama (aina == 34) { uzalishaji_sehemu_mshale(node, kazi_node); rudisha; }
+    sivyo kama (aina == 37) { uzalishaji_asimilia(node, kazi_node); rudisha; }
     sivyo kama (aina == 39) { uzalishaji_hamisha_kushoto(node, kazi_node); rudisha; }
     sivyo kama (aina == 41) { uzalishaji_hamisha_kulia(node, kazi_node); rudisha; }
     sivyo kama (aina == 42) { uzalishaji_bit_au(node, kazi_node); rudisha; }
