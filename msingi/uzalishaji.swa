@@ -298,6 +298,9 @@ W0 andika_mov_rbp_rsp() {
 // mov eax, [eax] — nyoosha (8B 00)
 W0 andika_mov_eax_anwani_eax() { andika_baiti(139); andika_baiti(0); }
 
+// mov [ecx], eax — hifadhi eax kwenye anwani iliyo kwa ecx (89 01)
+W0 andika_mov_anwani_ecx_eax() { andika_baiti(137); andika_baiti(1); }
+
 // lea eax, [rbp+disp8] — anwani ya kigeu cha ndani (8D 45 xx)
 W0 andika_lea_eax_rbp_off(N32 off) { andika_baiti(141); andika_baiti(69); andika_baiti((256 - off) & 255); }
 
@@ -1358,7 +1361,10 @@ W0 uzalishaji_ternary(N32 node, N32 kazi_node) {
 W0 uzalishaji_asimilia(N32 node, N32 kazi_node) {
     N32 lhs = ast_kushoto[node];
     N32 rhs = ast_kulia[node];
-    kama (ast_aina[lhs] == 5) {
+    N32 aina_lhs = ast_aina[lhs];
+
+    // Kigeu cha kawaida: x = thamani
+    kama (aina_lhs == 5) {
         N8* jina = ast_pool + ast_jina_off[lhs];
         N32 i = 0;
         wakati (i < var_idadi) {
@@ -1370,7 +1376,37 @@ W0 uzalishaji_asimilia(N32 node, N32 kazi_node) {
             }
             i = i + 1;
         }
+        rudisha;
     }
+
+    // Sehemu ya muundo kwa nukta: kigeu.sehemu = thamani
+    kama (aina_lhs == 33) {
+        N32 struct_node = ast_kushoto[lhs];
+        N32 offset = ast_tiga[lhs];
+        uzalishaji_usemi(struct_node, kazi_node);       // eax = anwani ya muundo
+        kama (offset > 0) { andika_add_eax_imm32(offset); }
+        andika_push_rax();                               // hifadhi anwani ya sehemu
+        uzalishaji_usemi(rhs, kazi_node);                // eax = thamani
+        andika_pop_rcx();                                // ecx = anwani ya sehemu
+        andika_mov_anwani_ecx_eax();                     // [ecx] = eax
+        rudisha;
+    }
+
+    // Sehemu ya muundo kwa mshale: kielekezi->sehemu = thamani
+    kama (aina_lhs == 34) {
+        N32 ptr_node = ast_kushoto[lhs];
+        N32 offset = ast_tiga[lhs];
+        uzalishaji_usemi(ptr_node, kazi_node);           // eax = kielekezi
+        andika_mov_eax_anwani_eax();                     // eax = anwani ya muundo
+        kama (offset > 0) { andika_add_eax_imm32(offset); }
+        andika_push_rax();                               // hifadhi anwani ya sehemu
+        uzalishaji_usemi(rhs, kazi_node);                // eax = thamani
+        andika_pop_rcx();                                // ecx = anwani ya sehemu
+        andika_mov_anwani_ecx_eax();                     // [ecx] = eax
+        rudisha;
+    }
+
+    // Chaguo-msingi: tathmini upande wa kulia tu
     uzalishaji_usemi(rhs, kazi_node);
 }
 
