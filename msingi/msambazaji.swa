@@ -61,19 +61,19 @@ N32 AST_TUPU            = 47;  // tupu
 // -------------------------------------------------------
 // Safu bapa za AST
 // -------------------------------------------------------
-N32 ast_aina[32768];
-N32 ast_thamani[32768];
-N32 ast_kushoto[32768];
-N32 ast_kulia[32768];
-N32 ast_tiga[32768];
-N32 ast_nne[32768];
+N32 ast_aina[16384];
+N32 ast_thamani[16384];
+N32 ast_kushoto[16384];
+N32 ast_kulia[16384];
+N32 ast_tiga[16384];
+N32 ast_nne[16384];
 N32 ast_idadi = 0;
 N32 vigezo_kwanza_global = -1;
 N32 vigezo_prev_global = -1;
 
-N8  ast_pool[262144];
+N8  ast_pool[131072];
 N32 ast_pool_wapi = 0;
-N32 ast_jina_off[32768];
+N32 ast_jina_off[16384];
 
 // -------------------------------------------------------
 // Muundo wa hali ya mchanganuzi
@@ -162,6 +162,8 @@ N32 neno_ni(Tokeni* t, N8* neno) {
         kama (t->mwanzo[i] != neno[i]) { rudisha 0; }
         i = i + 1;
     }
+    // Hakikisha neno pia lina urefu sawa
+    kama (neno[i] != 0) { rudisha 0; }
     rudisha 1;
 }
 
@@ -511,17 +513,15 @@ N32 changanua_taarifa_tangazo(Msambazaji* p) {
             ast_thamani[var_name] = decl_type;
             sogeza(p);
 
-            // Ruka mabano ya ukubwa wa safu yakipo: jina[ukubwa]
+            // Ruka [ukubwa] kama ipo (kwa matamko ya safu ya ndani)
             kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
                 kama (neno_ni(&p->sasa, "[")) {
-                    sogeza(p); // ruka '['
-                    kama (p->sasa.urefu > 0) { sogeza(p); } // ruka ukubwa
-                    kama (neno_ni(&p->sasa, "]")) { sogeza(p); } // ruka ']'
+                    sogeza(p);
+                    kama (p->sasa.urefu > 0) { sogeza(p); }
+                    kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
+                        kama (neno_ni(&p->sasa, "]")) { sogeza(p); }
+                    }
                 }
-            }
-            kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, "[")) {
-                sogeza(p); kama (p->sasa.urefu > 0) { sogeza(p); }
-                kama (neno_ni(&p->sasa, "]")) { sogeza(p); }
             }
 
             N32 init = -1;
@@ -754,19 +754,8 @@ N32 changanua_primary(Msambazaji* p) {
     N32 r_orodha = changanua_primary_orodha(p);
     kama (r_orodha != -1) { rudisha r_orodha; }
 
-    // Kiambishi KANUSHA kimantiki si usemi
-    // Tahadhari: 'si' ni neno kuu LAKINI pia ni jina halali la kigeu.
-    // Hutofautisha: kama baada ya 'si' kunafuata = ; , ) ] } au viendeshi,
-    // basi 'si' ni kitambulisho. Sivyo, ni neno kuu la kukanusha.
-    kama (p->sasa.urefu == 2 && neno_ni(&p->sasa, "si")) {
-        N32 ni_kitambulisho = 1;  // ONYESHA: 'si' DAIMA ni kitambulisho
-        kama (ni_kitambulisho == 0) {
-            sogeza(p);
-            N32 operand = changanua_usemi_upande(p);
-            kama (operand == -1) { rudisha -1; }
-            rudisha node_mpya(AST_SI, 0, operand, -1);
-        }
-    }
+    // Kiambishi KANUSHA kimantiki si usemi — IMEZIMWA
+    // 'si' sasa inashughulikiwa kama kitambulisho cha kawaida
 
     // Kiambishi TOA unari  -usemi
     kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, "-")) {
