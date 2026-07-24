@@ -1192,7 +1192,7 @@ W0 uzalishaji_kitambulisho(N32 node, N32 kazi_node) {
 
     // Angalia kama hii ni herufi halisi (inaanza na ")
     kama (jina[0] == 34) {
-        N32 si = kusanya_herufi(jina);
+        N32 idx2 = kusanya_herufi(jina);
         kama (str_lebo_id[si] == 0 && lebo_buf_idadi < 256) {
             str_lebo_id[si] = lebo_buf_mpya();
         }
@@ -1700,10 +1700,10 @@ W0 uzalishaji_anwani_ya(N32 node, N32 kazi_node) {
 // Tafuta ofseti ya sehemu ya muundo kwa kuchambua AST (kwa jina la sehemu)
 // Inatumia ast_tiga iliyohifadhiwa wakati wa uchanganuzi wa muundo
 N32 pata_ofseti_ya_sehemu_kwa_jina(N8* jina_la_sehemu) {
-    N32 si = 0;
-    wakati (si < ast_idadi) {
-        kama (ast_aina[si] == 12) {  // AST_MUUNDO
-            N32 fn = ast_kulia[si];
+    N32 idx = 0;
+    wakati (idx < ast_idadi) {
+        kama (ast_aina[idx] == 12) {  // AST_MUUNDO
+            N32 fn = ast_kulia[idx];
             wakati (fn != -1) {
                 N32 fname_node = ast_kushoto[fn];
                 N8* sn = ast_pool + ast_jina_off[fname_node];
@@ -1713,7 +1713,7 @@ N32 pata_ofseti_ya_sehemu_kwa_jina(N8* jina_la_sehemu) {
                 fn = ast_kulia[fn];
             }
         }
-        si = si + 1;
+                idx = idx + 1;
     }
     rudisha 0;  // haikupatikana
 }
@@ -1835,7 +1835,7 @@ W0 uzalishaji_kazi(N32 kazi_node) {
     kama(n>4){andika_mov_eax_r8d();andika_mov_rbp_off_eax(param_off[4]);}
     kama(n>5){andika_mov_eax_r9d();andika_mov_rbp_off_eax(param_off[5]);}
     N32 body = ast_tiga[kazi_node]; kama(body!=-1){uzalishaji_taarifa(body, kazi_node);}
-    N32 rsp=var_stack_idadi;kama(rsp%16!=0){rsp=rsp+(16-rsp%16);}bafa_text[sub_rsp_nafasi]=rsp&255;bafa_text[sub_rsp_nafasi+1]=(rsp>>8)&255;bafa_text[sub_rsp_nafasi+2]=(rsp>>16)&255;bafa_text[sub_rsp_nafasi+3]=(rsp>>24)&255;
+    N32 rsp=var_stack_idadi;kama((rsp & 15) != 0){rsp=rsp+(16-(rsp & 15));}bafa_text[sub_rsp_nafasi]=rsp&255;bafa_text[sub_rsp_nafasi+1]=(rsp>>8)&255;bafa_text[sub_rsp_nafasi+2]=(rsp>>16)&255;bafa_text[sub_rsp_nafasi+3]=(rsp>>24)&255;
     andika_leave(); andika_ret();
 }
 
@@ -1925,15 +1925,15 @@ W0 uzalishaji_kuu(N32 mzizi) {
     // .strtab: "\0" + majina ya kazi zote + majina ya nje
     N32 strtab_hesabu = 1;  // "\0"
     N32 lebo_strtab_off[128];
-    N32 si = 0;
-    wakati (si < lebo_idadi) { lebo_strtab_off[si] = strtab_hesabu; strtab_hesabu = strtab_hesabu + jina_urefu(lebo_jina[si]) + 1; si = si + 1; }
-    si = 0;
+    N32 j = 0;
+    wakati (idx2 < lebo_idadi) { lebo_strtab_off[idx2] = strtab_hesabu; strtab_hesabu = strtab_hesabu + jina_urefu(lebo_jina[idx2]) + 1; j = j + 1; }
+    j = 0;
     wakati (si < nje_idadi) {
-        strtab_nje_off[si] = strtab_hesabu;
-        N8* njina = nje_pool + nje_jina_off[si];
+        strtab_nje_off[j] = strtab_hesabu;
+        N8* njina = nje_pool + nje_jina_off[j];
         N32 nlen = jina_urefu(njina);
         strtab_hesabu = strtab_hesabu + nlen + 1;
-        si = si + 1;
+        j = j + 1;
     }
     N32 strtab_size = strtab_hesabu;
 
