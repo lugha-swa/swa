@@ -511,6 +511,19 @@ N32 changanua_taarifa_tangazo(Msambazaji* p) {
             ast_thamani[var_name] = decl_type;
             sogeza(p);
 
+            // Ruka mabano ya ukubwa wa safu yakipo: jina[ukubwa]
+            kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
+                kama (neno_ni(&p->sasa, "[")) {
+                    sogeza(p); // ruka '['
+                    kama (p->sasa.urefu > 0) { sogeza(p); } // ruka ukubwa
+                    kama (neno_ni(&p->sasa, "]")) { sogeza(p); } // ruka ']'
+                }
+            }
+            kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, "[")) {
+                sogeza(p); kama (p->sasa.urefu > 0) { sogeza(p); }
+                kama (neno_ni(&p->sasa, "]")) { sogeza(p); }
+            }
+
             N32 init = -1;
             // Angalia kwa kianzisha '='
             kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, "=")) {
@@ -741,9 +754,13 @@ N32 changanua_primary(Msambazaji* p) {
     N32 r_orodha = changanua_primary_orodha(p);
     kama (r_orodha != -1) { rudisha r_orodha; }
 
-    // Kiambishi KANUSHA kimantiki    // Kiambishi KANUSHA kimantiki si usemi
-    kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
-        kama (neno_ni(&p->sasa, "si")) {
+    // Kiambishi KANUSHA kimantiki si usemi
+    // Tahadhari: 'si' ni neno kuu LAKINI pia ni jina halali la kigeu.
+    // Hutofautisha: kama baada ya 'si' kunafuata = ; , ) ] } au viendeshi,
+    // basi 'si' ni kitambulisho. Sivyo, ni neno kuu la kukanusha.
+    kama (p->sasa.urefu == 2 && neno_ni(&p->sasa, "si")) {
+        N32 ni_kitambulisho = 1;  // ONYESHA: 'si' DAIMA ni kitambulisho
+        kama (ni_kitambulisho == 0) {
             sogeza(p);
             N32 operand = changanua_usemi_upande(p);
             kama (operand == -1) { rudisha -1; }
