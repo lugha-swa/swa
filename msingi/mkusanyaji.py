@@ -76,21 +76,38 @@ class X64:
     def mov_rbp_off(self, reg, off, size=4):
         """mov reg, [rbp-off] (load from stack)"""
         r = {'eax':0,'rax':0,'ecx':1,'edx':2,'esi':6,'edi':7,'rdi':7,'rsi':6}.get(reg, 0)
-        modrm = 0x40 | (r << 3) | 5  # mod=01, reg=r, rm=rbp
+        modrm, disp = self._rbp_disp(off)
+        modrm = (modrm & 0xC7) | (r << 3)
         if size == 8:
-            self.emit(0x48, 0x8b, modrm, (256 - off) & 0xFF)
+            self.emit(0x48, 0x8b, modrm)
         else:
-            self.emit(0x8b, modrm, (256 - off) & 0xFF)
+            self.emit(0x8b, modrm)
+        self.b.extend(disp)
+
+    def _lea_rax_rbp_off(self, off):
+        """lea rax, [rbp-off]"""
+        modrm, disp = self._rbp_disp(off)
+        self.emit(0x48, 0x8d, (modrm & 0xC7) | (0 << 3))  # reg=0 (rax)
+        self.b.extend(disp)
+
+    def _rbp_disp(self, off):
+        """Rudisha (modrm, [disp_bytes]) kwa [rbp-off]."""
+        if off <= 127:
+            return (0x40 | 5, bytes([(256 - off) & 0xFF]))  # mod=01, rm=rbp, disp8
+        else:
+            return (0x80 | 5, struct.pack('<i', -off))  # mod=10, rm=rbp, disp32
 
     def mov_off_rbp(self, off, reg, size=4):
         """mov [rbp-off], reg (store to stack)."""
         rmap = {'eax':0,'rax':0,'ecx':1,'edx':2,'ebx':3,'esi':6,'edi':7,'rdi':7,'rsi':6}
         r = rmap.get(reg, 0)
-        modrm = 0x40 | (r << 3) | 5  # mod=01, reg=r, rm=rbp
+        modrm, disp = self._rbp_disp(off)
+        modrm = (modrm & 0xC7) | (r << 3)  # ingiza reg kwenye modrm
         if size == 8:
-            self.emit(0x48, 0x89, modrm, (256 - off) & 0xFF)
+            self.emit(0x48, 0x89, modrm)
         else:
-            self.emit(0x89, modrm, (256 - off) & 0xFF)
+            self.emit(0x89, modrm)
+        self.b.extend(disp)
 
     def mov_eax_imm(self, v):
         self.emit(0xb8); self.i32(v)
@@ -1194,21 +1211,15 @@ class Kizalishe:
 
         # Angalia kama mpigiwa anarudisha muundo (sret)
         ni_sret = False
-        sret_size = 0
         if kazi and self._ni_muundo(kazi.aina_ya_kurudi):
             ni_sret = True
-            sret_size = self._ukubwa_wa_muundo_kutoka_aina(kazi.aina_ya_kurudi)
-            # Tenga nafasi kwenye rafu kwa thamani ya kurudi
-            align = min(sret_size, 8)
-            if self.env.rafu_juu % align:
-                self.env.rafu_juu += align - (self.env.rafu_juu % align)
-            sret_buf_off = self.env.rafu_juu + sret_size
-            self.env.rafu_juu = sret_buf_off
-            # Pitisha kielekezi cha sret kwenye rdi
-            self.x.emit(0x48, 0x8d, 0x45, (256 - sret_buf_off) & 0xFF)  # lea rax, [rbp-sret_buf]
-            self.x.emit(0x48, 0x89, 0xc7)  # mov rdi, rax
+            # Tumia nafasi iliyotengwa mapema kwenye prologue
+            sret_buf_off = getattr(self, '_sret_buf_off', 0)
+            if sret_buf_off:
+                self.x._lea_rax_rbp_off(sret_buf_off)
+                self.x.emit(0x48, 0x89, 0xc7)  # mov rdi, rax
 
-        # Pitisha hoja (zinaanza kutoka rsi kwa sababu rdi ni sret)
+        # Pitisha hoja (zinaanza kutoka rsi kama rdi ni sret)
         start_reg = 1 if ni_sret else 0
         for i, arg in enumerate(node.hoja[:6 - start_reg]):
             self.zalishe_usemi(arg, 'eax')
@@ -1231,10 +1242,11 @@ class Kizalishe:
         else:
             self.x.call_rel32(node.jina)
 
-        # Baada ya wito, kama ni sret, pakia matokeo kutoka kwenye sret buf
+        # Baada ya wito wa sret, pakia kielekezi cha matokeo
         if ni_sret:
-            # Matokeo tayari yako kwenye sret_buf — rudisha kielekezi chake
-            self.x.emit(0x48, 0x8d, 0x45, (256 - sret_buf_off) & 0xFF)  # lea rax, [rbp-sret_buf]
+            sret_buf_off = getattr(self, '_sret_buf_off', 0)
+            if sret_buf_off:
+                self.x._lea_rax_rbp_off(sret_buf_off)
         # Matokeo yako kwenye eax
 
     def zalishe_operesheni(self, node):
@@ -1442,6 +1454,31 @@ class Kizalishe:
         elif isinstance(node, Operesheni):
             self.zalishe_usemi(node)
 
+    def _ina_wito_wa_muundo(self, mwili):
+        """Angalia kama mwili una wito wowote wa kazi inayorudisha muundo."""
+        if isinstance(mwili, list):
+            for s in mwili:
+                if self._ina_wito_wa_muundo(s): return True
+        elif isinstance(mwili, Wito):
+            kazi = self.env.kazi_zote.get(mwili.jina)
+            if kazi and self._ni_muundo(kazi.aina_ya_kurudi):
+                return True
+        elif isinstance(mwili, (Kama,)):
+            if self._ina_wito_wa_muundo(mwili.basi): return True
+            if self._ina_wito_wa_muundo(mwili.sivyo): return True
+        elif isinstance(mwili, Wakati):
+            if self._ina_wito_wa_muundo(mwili.mwili): return True
+        elif isinstance(mwili, Rudisha):
+            if mwili.usemi and self._ina_wito_wa_muundo(mwili.usemi): return True
+        elif isinstance(mwili, Tangazo):
+            if mwili.kianzio and self._ina_wito_wa_muundo(mwili.kianzio): return True
+        elif isinstance(mwili, Ugawaji):
+            if mwili.usemi and self._ina_wito_wa_muundo(mwili.usemi): return True
+        elif isinstance(mwili, Operesheni):
+            if self._ina_wito_wa_muundo(mwili.kushoto): return True
+            if self._ina_wito_wa_muundo(mwili.kulia): return True
+        return False
+
     def _tengua_vigezo_awali(self, mwili):
         """Tembea AST na utenge nafasi ya rafu kwa vigezo vyote vya ndani."""
         if isinstance(mwili, list):
@@ -1499,6 +1536,12 @@ class Kizalishe:
             self.tengua_nafasi(jina, aina)
 
         self._tengua_vigezo_awali(kazi.mwili)
+
+        # Tenga nafasi ya sret ikiwa kazi inaita miundo
+        self._sret_buf_off = 0
+        if self._ina_wito_wa_muundo(kazi.mwili):
+            self._sret_buf_off = self.env.rafu_juu + 256
+            self.env.rafu_juu = self._sret_buf_off
 
         self.x.label(kazi.jina)
         self.x.push_rbp()
