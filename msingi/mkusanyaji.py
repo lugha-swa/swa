@@ -1171,6 +1171,13 @@ class Kizalishe:
             self.x.emit(0x0f, 0xb7, 0x00)  # movzx eax, word [eax]
         # Matokeo yako kwenye eax
 
+    def zalishe_lvalue_ulimwengu(self, jina):
+        """Toa anwani ya kigezo cha ulimwengu kwenye rax (lvalue).
+        Alama tofauti: 0xCAFEBABE — inabadilishwa kuwa lea tu (bila mov)."""
+        self.x._global_refs.append((len(self.x.b), jina))
+        self.x.emit(0x48, 0xb8)  # mov rax, imm64
+        self.x.b.extend(b'\xbe\xba\xfe\xca\xbe\xba\xfe\xca')  # 0xCAFEBABECAFEBABE
+
     def zalishe_wito(self, node):
         """Zalisha wito wa kazi."""
         kazi = self.env.kazi_zote.get(node.jina)
@@ -1306,6 +1313,12 @@ class Kizalishe:
                 off, aina = info
                 self.zalishe_usemi(node.usemi, 'eax')
                 self.x.mov_off_rbp(off, 'eax', aina.ukubwa)
+            else:
+                # Kigezo cha ulimwengu: pata anwani yake na uhifadhi
+                self.zalishe_lvalue_ulimwengu(node.jina)
+                # Anwani iko kwenye rax. Hifadhi thamani ya RHS
+                self.zalishe_usemi(node.usemi, 'ecx')
+                self.x.emit(0x89, 0x08)  # mov [rax], ecx
 
         elif isinstance(node, Rudisha):
             if node.usemi:
@@ -1556,15 +1569,21 @@ def kusanya(chanzo, aina_ya_pato='exec'):
         if aina_ya_pato == 'asm':
             return msimbo
         if aina_ya_pato == 'obj':
-            # Badilisha alama za 0xDEADBEEF kuwa lea rax,[rip+0]; nop;nop;nop
-            MARKER = bytes([0x48, 0xb8, 0xef, 0xbe, 0xad, 0xde, 0xef, 0xbe, 0xad, 0xde])
+            # Badilisha alama za 0xDEADBEEF (rvalue) kuwa lea + mov
+            MARKER_RV = bytes([0x48, 0xb8, 0xef, 0xbe, 0xad, 0xde, 0xef, 0xbe, 0xad, 0xde])
+            # Badilisha alama za 0xCAFEBABE (lvalue) kuwa lea + nop
+            MARKER_LV = bytes([0x48, 0xb8, 0xbe, 0xba, 0xfe, 0xca, 0xbe, 0xba, 0xfe, 0xca])
             patched = bytearray(msimbo)
-            pos = 0
-            while True:
-                pos = patched.find(MARKER, pos)
-                if pos < 0: break
-                patched[pos:pos+10] = b'\x48\x8d\x05\x00\x00\x00\x00\x90\x90\x90'
-                pos += 10
+            for marker, replacement in [
+                (MARKER_RV, b'\x48\x8d\x05\x00\x00\x00\x00\x8b\x00\x90'),  # lea + mov + nop
+                (MARKER_LV, b'\x48\x8d\x05\x00\x00\x00\x00\x90\x90\x90'),  # lea + nop x3
+            ]:
+                pos = 0
+                while True:
+                    pos = patched.find(marker, pos)
+                    if pos < 0: break
+                    patched[pos:pos+10] = replacement
+                    pos += 10
             msimbo = bytes(patched)
 
             # Kusanya taarifa za uhamishaji
@@ -1599,7 +1618,7 @@ def kusanya(chanzo, aina_ya_pato='exec'):
                     if name in known_extern:
                         ext_refs.append((pos, 'call', label))
                         seen.add(label)
-            # Marejeleo ya vigezo vya ulimwengu — ongeza yenye majina halali
+            # Marejeleo ya vigezo vya ulimwengu (rvalue na lvalue)
             for pos, name in getattr(gen.x, '_global_refs', []):
                 if len(name) >= 3:
                     ext_refs.append((pos + 3, 'lea', name))
