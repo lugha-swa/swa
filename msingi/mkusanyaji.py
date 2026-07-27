@@ -731,6 +731,12 @@ class Mchanganuzi:
             self.lex.tarajia_herufi(')')
             return expr
 
+        # & — anwani-ya (address-of)
+        if self.lex.angalia_herufi('&'):
+            self.lex.advance()
+            op = self.changanua_usemi_juu()
+            return Operesheni('&', op, None)
+
         # tupu
         if self.lex.angalia_neno('tupu'):
             self.lex.soma_neno()
@@ -1059,11 +1065,23 @@ class Kizalishe:
         self.env = Mazingira()
         self.env.kazi_zote = programu.kazi
         self.miundo_ofseti = {}
+        muundo_ukubwa = {}
+        for jina, muundo in programu.miundo.items():
+            ukubwa = 0
+            for sehemu_jina, aina in muundo.sehemu:
+                sz = aina.ukubwa if aina else 4
+                if aina and aina.jina in muundo_ukubwa:
+                    sz = muundo_ukubwa[aina.jina]
+                if sz > 1 and ukubwa % sz:
+                    ukubwa += sz - (ukubwa % sz)
+                ukubwa += sz
+            muundo_ukubwa[jina] = max(ukubwa, 4)
         for jina, muundo in programu.miundo.items():
             offset = 0
             for sehemu_jina, aina in muundo.sehemu:
                 ukubwa = aina.ukubwa if aina else 4
-                # Pangilia
+                if aina and aina.jina in muundo_ukubwa:
+                    ukubwa = muundo_ukubwa[aina.jina]
                 if ukubwa > 1 and offset % ukubwa:
                     offset += ukubwa - (offset % ukubwa)
                 self.miundo_ofseti[(jina, sehemu_jina)] = (offset, ukubwa)
@@ -1152,6 +1170,38 @@ class Kizalishe:
     def _wito_nje(self, jina):
         """Wito wa kazi ya nje — hutumia visaidizi vya syscall vilivyojengwa ndani."""
         self.x.call_rel32('_' + jina)  # _malloc, _free, n.k.
+
+    def zalishe_sehemu_lvalue(self, node):
+        """Toa ANWANI ya sehemu ya muundo (si thamani)."""
+        # Pata anwani ya msingi
+        if node.ni_mshale:
+            # ->: msingi tayari ni kielekezi
+            self.zalishe_usemi(node.msingi, 'eax')
+        else:
+            # .: msingi ni muundo kwenye rafu
+            if isinstance(node.msingi, Kitambulisho):
+                info = self.tafuta_kigezo(node.msingi.jina)
+                if info:
+                    off, _ = info
+                    self.x._lea_rax_rbp_off(off)
+                else:
+                    self.x.xor_reg('eax')
+                    return
+            else:
+                self.zalishe_usemi(node.msingi, 'eax')
+
+        # Ongeza ofseti ya sehemu
+        offset = 0
+        for (mj, sj), (off, sz) in self.miundo_ofseti.items():
+            if sj == node.sehemu_jina:
+                offset = off
+                break
+        if offset > 0:
+            if offset <= 127:
+                self.x.emit(0x48, 0x83, 0xc0, offset)  # add rax, offset
+            else:
+                self.x.emit(0x48, 0x05)  # add rax, imm32
+                self.x.b.extend(struct.pack('<I', offset))
 
     def zalishe_sehemu(self, node):
         """Zalisha ufikiaji wa sehemu ya muundo (-> au .)."""
@@ -1252,10 +1302,28 @@ class Kizalishe:
     def zalishe_operesheni(self, node):
         """Zalisha msimbo kwa operesheni."""
         op = node.op
-        size = 4  # default N32
+        size = 4
+
+        if op == '&':
+            # Anwani-ya: toa anwani ya operesheni
+            kushoto = node.kushoto
+            if isinstance(kushoto, Sehemu):
+                # &p.sehemu — anwani ya sehemu ya muundo
+                self.zalishe_sehemu_lvalue(kushoto)
+            elif isinstance(kushoto, Kitambulisho):
+                # &kigeu — anwani ya kigeu cha ndani
+                info = self.tafuta_kigezo(kushoto.jina)
+                if info:
+                    off, _ = info
+                    self.x._lea_rax_rbp_off(off)
+                else:
+                    # Kigezo cha ulimwengu
+                    self.zalishe_lvalue_ulimwengu(kushoto.jina)
+            else:
+                self.x.xor_reg('eax')
+            return
 
         if op == '=':
-            # Ugawaji: shughulikiwa kwenye taarifa
             self.zalishe_usemi(node.kulia, 'eax')
             return
 
