@@ -79,6 +79,46 @@ fn jaribio_kama_ndani_ya_wakati() {
     assert!(ir.contains("tafuta"));
 }
 
+#[test]
+fn jaribio_chagua_rahisi() {
+    // Jaribio rahisi la chagua: linganisha thamani na hali mbili + chaguo-msingi
+    let src = "N32 kadiria(N32 x) { chagua (x) { hali 1: rudisha 10; hali 2: rudisha 20; sivyo: rudisha 0; } }";
+    let ir = compile_and_verify(src).expect("inapaswa kukusanyika");
+    assert!(ir.contains("kadiria"), "IR inapaswa kuwa na jina la kazi");
+    assert!(ir.contains("switch"), "IR inapaswa kuwa na maagizo ya switch");
+}
+
+#[test]
+fn jaribio_chagua_hali_nyingi() {
+    // Chagua yenye hali nyingi na maadili tofauti
+    let src = "N32 siku_kwa_namba(N32 n) {
+        chagua (n) {
+            hali 1: rudisha 100;
+            hali 2: rudisha 200;
+            hali 3: rudisha 300;
+            hali 4: rudisha 400;
+            hali 5: rudisha 500;
+            sivyo: rudisha 0;
+        }
+    }";
+    let ir = compile_and_verify(src).expect("inapaswa kukusanyika");
+    assert!(ir.contains("siku_kwa_namba"), "IR inapaswa kuwa na jina la kazi");
+}
+
+#[test]
+fn jaribio_chagua_ndani_ya_kazi() {
+    // Chagua ndani ya kazi inayotumia kigezo
+    let src = "N32 tathmini(N32 alama) {
+        chagua (alama) {
+            hali 1: rudisha 50;
+            hali 2: rudisha 70;
+            sivyo: rudisha 30;
+        }
+    }";
+    let ir = compile_and_verify(src).expect("inapaswa kukusanyika");
+    assert!(ir.contains("tathmini"), "IR inapaswa kuwa na jina la kazi");
+}
+
 // ============================================================================
 // Vigezo vya ulimwengu
 // ============================================================================

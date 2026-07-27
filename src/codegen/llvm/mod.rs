@@ -1633,10 +1633,34 @@ fn lower_terminator(
                 if let Some(&default_bb) = llvm_blocks.get(&default_block.0) {
                     let switch =
                         LLVMBuildSwitch(builder, scrut, default_bb, arms.len() as u32);
+                    // Pata aina ya skrutinia ili kuhakikisha thabiti za hali
+                    // zinatupwa kwa aina sawa. Thabiti za `Const::Int` hupewa
+                    // `i64` kama chaguo-msingi, lakini skrutinia inaweza kuwa
+                    // `i32` au `i8` n.k. Bila utupaji huu, LLVM inakataa
+                    // moduli kwa "Switch constants must all be same type".
+                    let scrut_ty = LLVMTypeOf(scrut);
                     for (case_val_id, case_block) in arms {
                         let case_val = vv(value_map, case_val_id);
+                        let case_val_ty = LLVMTypeOf(case_val);
+                        let case_cast = if LLVMGetTypeKind(case_val_ty) as u32
+                            == LLVMTypeKind::Integer as u32
+                            && LLVMGetTypeKind(scrut_ty) as u32
+                                == LLVMTypeKind::Integer as u32
+                            && LLVMGetIntTypeWidth(case_val_ty)
+                                != LLVMGetIntTypeWidth(scrut_ty)
+                        {
+                            LLVMBuildIntCast2(
+                                builder,
+                                case_val,
+                                scrut_ty,
+                                1, // isiwe na ishara
+                                c_str("switchcast").as_ptr(),
+                            )
+                        } else {
+                            case_val
+                        };
                         if let Some(&case_bb) = llvm_blocks.get(&case_block.0) {
-                            LLVMAddCase(switch, case_val, case_bb);
+                            LLVMAddCase(switch, case_cast, case_bb);
                         }
                     }
                 }
