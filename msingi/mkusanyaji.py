@@ -1371,6 +1371,24 @@ class Kizalishe:
                     self.zalishe_lvalue_ulimwengu(lhs.jina)
             elif isinstance(lhs, Sehemu):
                 self.zalishe_sehemu_lvalue(lhs)
+            elif isinstance(lhs, Operesheni) and lhs.op == 'taja':
+                # Safu ya ulimwengu: chanzo_buf[j] = thamani — toa anwani
+                # Tathmini idx, hifadhi
+                self.zalishe_usemi(lhs.kulia, 'eax')
+                self.x.push('rax')
+                # Pata anwani ya msingi (chanzo_buf)
+                if isinstance(lhs.kushoto, Kitambulisho):
+                    info = self.tafuta_kigezo(lhs.kushoto.jina)
+                    if info:
+                        off, _ = info
+                        self.x._lea_rax_rbp_off(off)
+                    else:
+                        self.zalishe_lvalue_ulimwengu(lhs.kushoto.jina)
+                else:
+                    self.zalishe_usemi(lhs.kushoto, 'eax')
+                # Ongeza idx * elem_size (tumia elem_size=1 kwa N8*)
+                self.x.pop('rcx')
+                self.x.emit(0x48, 0x01, 0xc8)  # add rax, rcx
             else:
                 self.x.xor_reg('eax')
             # Hifadhi
