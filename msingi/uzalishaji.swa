@@ -1988,6 +1988,42 @@ N32 pakia_kigezo_ikiwa_ni_paramu(N32 node, N8* jina, N32 kazi_node) {
     rudisha 0;
 }
 // -------------------------------------------------------
+// Kipitishi cha awali: kusanya vigeu vyote vya ndani
+// ili kuepuka alloca-in-loop — hoji yote kwenye utangulizi
+// -------------------------------------------------------
+W0 kusanya_vigeu_vya_ndani(N32 node) {
+    kama (node == -1) { rudisha; }
+    N32 aina = ast_aina[node];
+
+    kama (aina == 11) {  // AST_TANGAZO
+        N32 var_node = ast_kushoto[node];
+        N8* jina = ast_pool + ast_jina_off[var_node];
+        N32 enc = ast_thamani[var_node];
+        kama (enc == 0) { enc = ast_thamani[node]; }
+        N32 sz = ukubwa_kutoka_enc(enc);
+        kama (sz == 0) { sz = 4; }
+        // Sajili kigeu mapema (kabla ya kutoa utangulizi)
+        pata_au_unda_kigeu_ukubwa(jina, sz);
+        // Pia angalia ikiwa kuna ukubwa wa safu (ast_tiga)
+        kama (ast_tiga[node] != -1) {
+            // Ongeza nafasi ya ziada kwa safu
+            N32 elem_sz = sz;
+            N32 count = ast_thamani[ast_tiga[node]];
+            kama (count > 0) { pata_au_unda_kigeu_ukubwa(jina, elem_sz * count); }
+        }
+        rudisha;
+    }
+
+    // Tembelea watoto kwa kujirudia
+    kusanya_vigeu_vya_ndani(ast_kushoto[node]);
+    kusanya_vigeu_vya_ndani(ast_kulia[node]);
+    kusanya_vigeu_vya_ndani(ast_tiga[node]);
+    kusanya_vigeu_vya_ndani(ast_nne[node]);
+    // Kwa KIPINDI, thamani ina sharti
+    kama (aina == 15) { kusanya_vigeu_vya_ndani(ast_thamani[node]); }
+}
+
+// -------------------------------------------------------
 // Kitoa kazi kama machine code
 // -------------------------------------------------------
 W0 uzalishaji_kazi(N32 kazi_node) {
@@ -2012,6 +2048,12 @@ W0 uzalishaji_kazi(N32 kazi_node) {
         pn = ast_kulia[pn];
     }
     var_stack_idadi = param_stack; var_idadi = n;
+    // KIPITISHA AWALI: kusanya vigeu vyote vya ndani mapema
+    // Hii inazuia alloca-in-loop — nafasi yote ya rafu inatengwa
+    // kwenye utangulizi badala ya ndani ya mizunguko
+    N32 body = ast_tiga[kazi_node];
+    kama (body != -1) { kusanya_vigeu_vya_ndani(body); }
+    // Sasa toa utangulizi na ukubwa kamili wa rafu
     andika_push_rbp(); andika_mov_rbp_rsp(); andika_baiti(72); andika_baiti(129); andika_baiti(236); sub_rsp_nafasi = bafa_text_wapi; andika_neno4(0); frame_imeshinda = 1;
     kama(n>0){andika_mov_eax_edi();andika_mov_rbp_off_eax(param_off[0]);}
     kama(n>1){andika_mov_eax_esi();andika_mov_rbp_off_eax(param_off[1]);}
@@ -2019,7 +2061,7 @@ W0 uzalishaji_kazi(N32 kazi_node) {
     kama(n>3){andika_mov_eax_ecx();andika_mov_rbp_off_eax(param_off[3]);}
     kama(n>4){andika_mov_eax_r8d();andika_mov_rbp_off_eax(param_off[4]);}
     kama(n>5){andika_mov_eax_r9d();andika_mov_rbp_off_eax(param_off[5]);}
-    N32 body = ast_tiga[kazi_node]; kama(body!=-1){uzalishaji_taarifa(body, kazi_node);}
+    kama(body!=-1){uzalishaji_taarifa(body, kazi_node);}
     N32 rsp=var_stack_idadi;kama((rsp & 15) != 0){rsp=rsp+(16-(rsp & 15));}bafa_text[sub_rsp_nafasi]=rsp&255;bafa_text[sub_rsp_nafasi+1]=(rsp>>8)&255;bafa_text[sub_rsp_nafasi+2]=(rsp>>16)&255;bafa_text[sub_rsp_nafasi+3]=(rsp>>24)&255;
     andika_leave(); andika_ret();
 }
