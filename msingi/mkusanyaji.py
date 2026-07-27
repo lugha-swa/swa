@@ -1421,14 +1421,41 @@ def kusanya(chanzo, aina_ya_pato='exec'):
         return None
 
 
-def andika_assembly(msimbo, njia_ya_pato, kiungo='libc'):
+def tafuta_vigezo_vya_ulimwengu(chanzo):
+    """Chambua chanzo kutafuta matamko ya vigezo vya ulimwengu.
+    Rudisha orodha ya (jina, ukubwa)."""
+    import re
+    vigezo = []
+    for match in re.finditer(r'^\s*(N8|N32|N64)\s+(\w+)\s*\[(\d+)\]\s*;', chanzo, re.MULTILINE):
+        aina_jina = match.group(1)
+        jina = match.group(2)
+        ukubwa_wa_safu = int(match.group(3))
+        saizi = {'N8': 1, 'N32': 4, 'N64': 8}.get(aina_jina, 4)
+        vigezo.append((jina, ukubwa_wa_safu * saizi))
+    for match in re.finditer(r'^\s*(N32|N64)\s+(\w+)\s*=\s*0\s*;', chanzo, re.MULTILINE):
+        jina = match.group(2)
+        saizi = {'N32': 4, 'N64': 8}.get(match.group(1), 4)
+        if (jina, saizi) not in vigezo:
+            vigezo.append((jina, saizi))
+    return vigezo
+
+
+def andika_assembly(msimbo, njia_ya_pato, kiungo='libc', globals_list=None):
     """Andika msimbo kama assembly ya GNU.
     kiungo='libc': badilisha _fopen→fopen n.k.
-    kiungo='syscall': weka visaidizi vya syscall."""
+    kiungo='syscall': weka visaidizi vya syscall.
+    globals_list: list of (jina, ukubwa) kwa .comm."""
     with open(njia_ya_pato, 'w') as f:
         f.write('.intel_syntax noprefix\n')
         f.write('.globl main\n')
         f.write('.globl _start\n')
+
+        # Jenga orodha ya vigezo vya ulimwengu kutoka chanzo
+        if globals_list is None:
+            globals_list = []
+        for jina, ukubwa in globals_list:
+            f.write(f'.comm {jina}, {ukubwa}, 16\n')
+
         f.write('.text\n')
 
         # Andika kazi zote kama .byte
@@ -1484,11 +1511,11 @@ def main():
         msimbo = kusanya(chanzo, 'asm')
         if msimbo is None:
             sys.exit(1)
-        asm_path = njia_ya_pato or 'out.s'
-        andika_assembly(msimbo, asm_path)
+        asm_path = (njia_ya_pato or 'out') + '.s'
+        exe_path = njia_ya_pato or 'out'
+        globals_vars = tafuta_vigezo_vya_ulimwengu(chanzo)
+        andika_assembly(msimbo, asm_path, globals_list=globals_vars)
         print(f"  -> {asm_path} ({len(msimbo)} baiti)")
-        # Pia unganisha moja kwa moja
-        exe_path = asm_path.replace('.s', '')
         import subprocess
         r = subprocess.run(['gcc', '-nostdlib', '-no-pie', asm_path, '-o', exe_path],
                          capture_output=True)
