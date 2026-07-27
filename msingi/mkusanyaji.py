@@ -1202,12 +1202,24 @@ class Kizalishe:
             else:
                 self.zalishe_usemi(node.msingi, 'eax')
 
-        # Ongeza ofseti ya sehemu
+        # Ongeza ofseti ya sehemu — tafuta kwa kutumia aina ya msingi
         offset = 0
-        for (mj, sj), (off, sz) in self.miundo_ofseti.items():
-            if sj == node.sehemu_jina:
-                offset = off
-                break
+        # Pata jina la muundo kutoka kwa aina ya msingi
+        base_type_name = None
+        if isinstance(node.msingi, Kitambulisho):
+            info = self.tafuta_kigezo(node.msingi.jina)
+            if info: base_type_name = info[1].jina
+        # Tafuta ofseti kwa jina la muundo na sehemu
+        if base_type_name:
+            key = (base_type_name, node.sehemu_jina)
+            if key in self.miundo_ofseti:
+                offset, _ = self.miundo_ofseti[key]
+        if offset == 0:
+            # Zindukia: tafuta kwa jina la sehemu tu
+            for (mj, sj), (off, sz) in self.miundo_ofseti.items():
+                if sj == node.sehemu_jina:
+                    offset = off
+                    break
         if offset > 0:
             if offset <= 127:
                 self.x.emit(0x48, 0x83, 0xc0, offset)  # add rax, offset
@@ -1235,15 +1247,21 @@ class Kizalishe:
             else:
                 self.zalishe_usemi(node.msingi, 'eax')
 
-        # Tafuta ofseti ya sehemu
-        # Tunahitaji kujua aina ya msingi ili kupata muundo sahihi.
-        # Kwa sasa, tafuta kwenye miundo yote.
-        offset = 0; ukubwa = 4
-        found = False
-        for (mj, sj), (off, sz) in self.miundo_ofseti.items():
-            if sj == node.sehemu_jina:
-                offset = off; ukubwa = sz; found = True
-                break
+        # Tafuta ofseti ya sehemu kwa aina ya msingi
+        offset = 0; ukubwa = 4; found = False
+        base_type_name = None
+        if isinstance(node.msingi, Kitambulisho):
+            info = self.tafuta_kigezo(node.msingi.jina)
+            if info: base_type_name = info[1].jina
+        if base_type_name:
+            key = (base_type_name, node.sehemu_jina)
+            if key in self.miundo_ofseti:
+                offset, ukubwa = self.miundo_ofseti[key]; found = True
+        if not found:
+            for (mj, sj), (off, sz) in self.miundo_ofseti.items():
+                if sj == node.sehemu_jina:
+                    offset = off; ukubwa = sz; found = True
+                    break
 
         if found and offset > 0:
             self.x.emit(0x48, 0x83, 0xc0, offset)  # add rax, offset
