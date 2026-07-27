@@ -1314,10 +1314,11 @@ class Kizalishe:
                 self.zalishe_usemi(node.usemi, 'eax')
                 self.x.mov_off_rbp(off, 'eax', aina.ukubwa)
             else:
-                # Kigezo cha ulimwengu: pata anwani yake na uhifadhi
+                # Kigezo cha ulimwengu: tathmini RHS kwanza, kisha hifadhi
+                self.zalishe_usemi(node.usemi, 'eax')
+                self.x.push('rax')  # hifadhi thamani ya RHS
                 self.zalishe_lvalue_ulimwengu(node.jina)
-                # Anwani iko kwenye rax. Hifadhi thamani ya RHS
-                self.zalishe_usemi(node.usemi, 'ecx')
+                self.x.pop('rcx')   # rejesha RHS
                 self.x.emit(0x89, 0x08)  # mov [rax], ecx
 
         elif isinstance(node, Rudisha):
