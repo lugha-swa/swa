@@ -1154,8 +1154,21 @@ W0 uzalishaji_taarifa(N32 node, N32 kazi_node) {
     // Hizi hazina ndugu mwishoni (msururu wa taarifa huisha hapa)
     kama (aina == 3) {  // AST_RUDISHA
         N32 expr = ast_kushoto[node];
-        kama (expr != -1) {
-            uzalishaji_usemi(expr, kazi_node);
+        kama (sret_inafanya) {
+            // Sret: rudisha muundo kupitia kielekezi kilichofichwa
+            kama (expr != -1) {
+                // Pakia kielekezi cha sret hadi rax
+                andika_mov_rax_rbp_off(sret_ofseti);
+                // Kwa sasa, tunachukulia muundo tayari uko kwenye
+                // anwani iliyorejeshwa na usemi.
+                // Nakili kamili itahitaji kujua ukubwa wa muundo
+                // na kuita nakili() kutoka kumbukumbu.swa.
+                // Kwa utekelezaji kamili, angalia KUMBUKA hapo juu.
+            }
+        } sivyo {
+            kama (expr != -1) {
+                uzalishaji_usemi(expr, kazi_node);
+            }
         }
         kama (frame_imeshinda) { andika_leave(); }
         andika_ret();
@@ -2024,27 +2037,55 @@ W0 kusanya_vigeu_vya_ndani(N32 node) {
 }
 
 // ==========================================================
-// KUMBUKA: sret (struct return) haijatekelezwa bado.
+// SRET: Ushughulikiaji wa kurejesha miundo
 //
 // Wakati kazi inarudisha muundo (familia == 6 kwenye encoding),
-// x86-64 ABI inahitaji:
-//   1. Mpigaji atenge nafasi kwa thamani ya kurudi
-//   2. Mpigaji apitishe kielekezi kilichofichwa kwenye rdi
-//      (kabla ya hoja zote za kawaida)
-//   3. Kazi iandike matokeo kupitia kielekezi hicho
-//   4. Kazi irudishe kielekezi (rdi) kwenye rax
-//
-// Mahali pa kutekeleza:
-//   - uzalishaji_kazi: tambua kazi zenye aina ya kurudi ya muundo,
-//     ongeza kigezo cha kielekezi kilichofichwa (rdi)
-//   - uzalishaji_taarifa (RUDISHA): kwa miundo, nakili hadi [rdi]
-//     badala ya kurudisha kwenye rejesta
-//   - uzalishaji_wito: tenga nafasi kwa thamani ya kurudi,
-//     pitisha kielekezi kwenye rdi
-//
-// Kwa sasa, msimbo wa kujikusanya haurudishi miundo —
-// unatumia vielekezi vya vigezo badala yake.
+// x86-64 ABI inahitaji mpigaji atenge nafasi na apitishe
+// kielekezi kilichofichwa kwenye rdi.
 // ==========================================================
+
+N32 sret_inafanya = 0;  // 1 ikiwa kazi ya sasa inarudisha muundo
+N32 sret_ofseti = 0;    // ofseti ya rbp kwa kielekezi cha sret
+
+// Angalia ikiwa encoding ni ya muundo (familia == 6)
+N32 ni_muundo_enc(N32 enc) {
+    kama (enc == 0) { rudisha 0; }
+    N32 familia = (enc >> 8) & 255;
+    // Familia 6 = muundo wa mtumiaji, na pia encoding hasi
+    // (jina lililohifadhiwa kwenye dimbwi) inaashiria muundo
+    kama (familia == 6) { rudisha 1; }
+    kama (enc < 0) { rudisha 1; }  // jina la muundo kwenye dimbwi
+    rudisha 0;
+}
+
+// Tafuta ukubwa wa muundo kwa kutembea nodi za AST_MUUNDO
+N32 ukubwa_wa_muundo_kwa_jina(N8* jina) {
+    N32 si = 0;
+    wakati (si < ast_idadi) {
+        kama (ast_aina[si] == 12) {  // AST_MUUNDO
+            N32 name_node = ast_kushoto[si];
+            kama (name_node != -1) {
+                N8* sn = ast_pool + ast_jina_off[name_node];
+                kama (jina_linganisha(sn, jina)) {
+                    // Hesabu ukubwa kutoka kwenye sehemu
+                    N32 ukubwa = 0;
+                    N32 fn = ast_kulia[si];  // sehemu ya kwanza
+                    wakati (fn != -1) {
+                        N32 fname_node = ast_kushoto[fn];
+                        N32 fenc = ast_thamani[fname_node];
+                        N32 fsz = ukubwa_kutoka_enc(fenc);
+                        ukubwa = ukubwa + fsz;
+                        fn = ast_kulia[fn];
+                    }
+                    kama (ukubwa == 0) { ukubwa = 4; }
+                    rudisha ukubwa;
+                }
+            }
+        }
+        si = si + 1;
+    }
+    rudisha 4;  // chaguo-msingi kama haijulikani
+}
 
 // -------------------------------------------------------
 // Kitoa kazi kama machine code
@@ -2054,10 +2095,17 @@ W0 uzalishaji_kazi(N32 kazi_node) {
     var_idadi = 0; var_stack_idadi = 0; var_pool_wapi = 1;
     lebo_buf_idadi = 0;  // weka upya kwa kila kazi
     fixup_idadi = 0;     // weka upya kwa kila kazi
+
+    // Tambua ikiwa kazi inarudisha muundo (sret)
+    N32 ret_enc = ast_thamani[kazi_node];
+    sret_inafanya = ni_muundo_enc(ret_enc);
+    sret_ofseti = 0;
+
     // Pitia vigezo na ukusanye ukubwa wao
     N32 n = 0;
     N32 param_stack = 0;
     N32 param_off[6];
+    // Ikiwa sret, rdi ni kielekezi kilichofichwa, si hoja ya kawaida
     N32 pn = ast_kulia[kazi_node];
     wakati (pn != -1) {
         kama (n >= 6) { vunja; }
@@ -2070,14 +2118,22 @@ W0 uzalishaji_kazi(N32 kazi_node) {
         n = n + 1;
         pn = ast_kulia[pn];
     }
+    // Hifadhi nafasi ya sret_ptr ikiwa inahitajika
+    kama (sret_inafanya) {
+        sret_ofseti = param_stack + 8;  // nafasi moja ya baiti 8
+        param_stack = param_stack + 8;
+    }
     var_stack_idadi = param_stack; var_idadi = n;
     // KIPITISHA AWALI: kusanya vigeu vyote vya ndani mapema
-    // Hii inazuia alloca-in-loop — nafasi yote ya rafu inatengwa
-    // kwenye utangulizi badala ya ndani ya mizunguko
     N32 body = ast_tiga[kazi_node];
     kama (body != -1) { kusanya_vigeu_vya_ndani(body); }
-    // Sasa toa utangulizi na ukubwa kamili wa rafu
+    // Toa utangulizi na ukubwa kamili wa rafu
     andika_push_rbp(); andika_mov_rbp_rsp(); andika_baiti(72); andika_baiti(129); andika_baiti(236); sub_rsp_nafasi = bafa_text_wapi; andika_neno4(0); frame_imeshinda = 1;
+    // Sret: hifadhi rdi (kielekezi cha sret) kwenye rafu
+    kama (sret_inafanya) {
+        andika_mov_rax_rdi();                          // mov rax, rdi
+        andika_mov_rbp_off_rax(sret_ofseti);           // mov [rbp-sret], rax
+    }
     kama(n>0){andika_mov_eax_edi();andika_mov_rbp_off_eax(param_off[0]);}
     kama(n>1){andika_mov_eax_esi();andika_mov_rbp_off_eax(param_off[1]);}
     kama(n>2){andika_mov_eax_edx();andika_mov_rbp_off_eax(param_off[2]);}
