@@ -235,8 +235,14 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         kama (init_node != -1) {
             N32 init_enc = mkaguzi_kagua_usemi(init_node);
             // Angalia kama aina ya kianzio inalingana na aina ya tangazo
-            // Inaruhusu upanuzi (N32→N64) lakini inakataa usinyezaji (N64→N32)
-            // Ukaguzi wa aina ya kianzio umerukwa kwa sasa
+            kama (init_enc >= 0 && var_enc != 0) {
+                N32 var_base = var_enc & 254;
+                N32 init_base = init_enc & 254;
+                kama (var_base != init_base) {
+                    andika("kosa: aina ya kianzio hailingani na tangazo la '%s'\n", var_jina);
+                    mkaguzi_makosa = mkaguzi_makosa + 1;
+                }
+            }
         }
         rudisha;
     }
@@ -246,7 +252,13 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         N32 lhs_enc = mkaguzi_kagua_usemi(lhs_node);
         N32 rhs_enc = mkaguzi_kagua_usemi(rhs_node);
         kama (lhs_enc >= 0 && rhs_enc >= 0) {
-            // Ukaguzi wa aina za ugawaji umerukwa kwa sasa
+            N32 lhs_base = lhs_enc & 254;
+            N32 rhs_base = rhs_enc & 254;
+            // Inaruhusu upanuzi (N32→N64) lakini inakataa tofauti za familia
+            kama (lhs_base != rhs_base) {
+                andika("kosa: aina ya ugawaji hailingani (L=%d, R=%d)\n", lhs_base, rhs_base);
+                mkaguzi_makosa = mkaguzi_makosa + 1;
+            }
         }
         rudisha;
     }
@@ -264,13 +276,23 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         N32 name_node = ast_kushoto[node];
         kama (name_node != -1) {
             N8* jina = ast_pool + ast_jina_off[name_node];
-            // Angalia hoja (ziko kwenye nodi ya WITO, si nodi ya jina)
+            // Hesabu hoja zilizotolewa
+            N32 hoja_idadi = 0;
             N32 a = ast_kulia[node];
             wakati (a != -1) {
                 mkaguzi_kagua_usemi(a);
+                hoja_idadi = hoja_idadi + 1;
                 a = ast_tiga[a];
             }
-            // Ukaguzi wa idadi ya hoja umerukwa (bado una mende)
+            // Angalia idadi ya hoja dhidi ya tangazo la kazi
+            N32 inatarajiwa = mkaguzi_tafuta_kazi(jina);
+            kama (inatarajiwa >= 0) {
+                kama (hoja_idadi != inatarajiwa) {
+                    andika("kosa: idadi ya hoja kwa '%s' si sahihi (%d badala ya %d)\n",
+                        jina, hoja_idadi, inatarajiwa);
+                    mkaguzi_makosa = mkaguzi_makosa + 1;
+                }
+            }
         }
         rudisha;
     }
@@ -338,7 +360,11 @@ N32 mkaguzi_kagua_usemi(N32 node) {
             kama (rhs >= 0) {
                 N32 lhs_base = lhs & 254;
                 N32 rhs_base = rhs & 254;
-                // Ukaguzi wa aina za operesheni umerukwa
+                // Angalia upatanifu wa aina za operesheni
+                kama (lhs_base != rhs_base) {
+                    andika("kosa: aina haziendani kwenye operesheni (l=%d, r=%d)\n", lhs_base, rhs_base);
+                    mkaguzi_makosa = mkaguzi_makosa + 1;
+                }
             }
         }
         // Hifadhi ukubwa wa matokeo kwa mzalishaji (N32=4, N64=8, n.k.)
