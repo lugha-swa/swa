@@ -1,0 +1,111 @@
+husisha { kumbukumbu.swa }
+
+muundo Ramani {
+    N32* funguo;
+    N32* thamani;
+    N32 uwezo;
+    N32 idadi;
+};
+
+Ramani* ramani_mpya(N32 uwezo) {
+    Ramani* r = tenga(ukubwa(Ramani));
+    r->funguo = tenga(ukubwa(N32) * uwezo);
+    r->thamani = tenga(ukubwa(N32) * uwezo);
+    r->uwezo = uwezo;
+    r->idadi = 0;
+    N32 i = 0;
+    wakati (i < uwezo) {
+        r->funguo[i] = -1;
+        i = i + 1;
+    }
+    rudisha r;
+}
+
+W0 ramani_weka(Ramani* r, N32 funguo, N32 thamani) {
+    kama (r->idadi >= r->uwezo) {
+        rudisha;
+    }
+    N32 idx = funguo % r->uwezo;
+    N32 kaburi = -1;
+    N32 hatua = 0;
+    wakati (hatua < r->uwezo) {
+        kama (r->funguo[idx] == funguo) {
+            r->thamani[idx] = thamani;
+            rudisha;
+        }
+        kama (r->funguo[idx] == -2 && kaburi == -1) {
+            kaburi = idx;
+        }
+        kama (r->funguo[idx] == -1) {
+            kama (kaburi != -1) {
+                idx = kaburi;
+            }
+            r->funguo[idx] = funguo;
+            r->thamani[idx] = thamani;
+            r->idadi = r->idadi + 1;
+            rudisha;
+        }
+        idx = (idx + 1) % r->uwezo;
+        hatua = hatua + 1;
+    }
+    kama (kaburi != -1) {
+        r->funguo[kaburi] = funguo;
+        r->thamani[kaburi] = thamani;
+        r->idadi = r->idadi + 1;
+    }
+}
+
+N32 ramani_pata(Ramani* r, N32 funguo) {
+    N32 idx = funguo % r->uwezo;
+    N32 hatua = 0;
+    wakati (hatua < r->uwezo) {
+        kama (r->funguo[idx] == funguo) {
+            rudisha r->thamani[idx];
+        }
+        kama (r->funguo[idx] == -1) {
+            rudisha -1;
+        }
+        idx = (idx + 1) % r->uwezo;
+        hatua = hatua + 1;
+    }
+    rudisha -1;
+}
+
+N32 ramani_ina(Ramani* r, N32 funguo) {
+    N32 idx = funguo % r->uwezo;
+    N32 hatua = 0;
+    wakati (hatua < r->uwezo) {
+        kama (r->funguo[idx] == funguo) {
+            rudisha 1;
+        }
+        kama (r->funguo[idx] == -1) {
+            rudisha 0;
+        }
+        idx = (idx + 1) % r->uwezo;
+        hatua = hatua + 1;
+    }
+    rudisha 0;
+}
+
+W0 ramani_futa(Ramani* r, N32 funguo) {
+    N32 idx = funguo % r->uwezo;
+    N32 hatua = 0;
+    wakati (hatua < r->uwezo) {
+        kama (r->funguo[idx] == funguo) {
+            r->funguo[idx] = -2;
+            r->idadi = r->idadi - 1;
+            rudisha;
+        }
+        kama (r->funguo[idx] == -1) {
+            rudisha;
+        }
+        idx = (idx + 1) % r->uwezo;
+        hatua = hatua + 1;
+    }
+}
+
+W0 ramani_huru(Ramani* r) {
+    achilia(r->funguo);
+    achilia(r->thamani);
+    achilia(r);
+}
