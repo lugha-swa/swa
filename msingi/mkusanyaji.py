@@ -274,13 +274,161 @@ def make_elf(code_bytes):
     entry = BASE + 0x78
     ehdr = b'\x7fELF\x02\x01\x01\x00' + b'\x00'*8
     ehdr += struct.pack('<HHIQQQIHHHHHH',
-        2, 0x3E, 1, entry, 64, 0, 0, 64, 56, 1, 0, 0, 0)
+        2, 0x3E, 1,  # e_type, e_machine, e_version
+        entry,       # e_entry
+        64,          # e_phoff
+        0,           # e_shoff (hakuna sehemu kwa executable yetu)
+        0,           # e_flags
+        64,          # e_ehsize
+        56,          # e_phentsize
+        1,           # e_phnum
+        0,           # e_shentsize
+        0,           # e_shnum
+        0)           # e_shstrndx
 
     total_file_size = 64 + 56 + len(code_bytes)
     memsz = len(code_bytes) + 0x1000
     phdr = struct.pack('<IIQQQQQQ', 1, 7, 0, BASE, BASE, total_file_size, memsz, PAGE)
 
     return ehdr + phdr + code_bytes
+
+
+def make_elf_obj(code_bytes, labels, ext_refs):
+    """Tengeneza faili la .o (ELF64 relocatable) linaloweza kuunganishwa.
+
+    code_bytes: msimbo wa mashine
+    labels: dict ya jina -> offset (ndani ya code_bytes)
+    ext_refs: list ya (offset, aina, jina) kwa marejeleo
+              aina: 'call' (R_X86_64_PLT32), 'lea' (R_X86_64_PC32)
+    """
+    # Kwanza, jenga .strtab (majina yote)
+    strtab = b'\x00'
+    def add_str(s):
+        nonlocal strtab
+        b = s.encode() if isinstance(s, str) else s
+        if b + b'\x00' not in strtab:
+            strtab += b + b'\x00'
+        return strtab.find(b + b'\x00')
+
+    # Majina ya sehemu
+    sh_names = {}
+    for n in ['.text', '.data', '.bss', '.rela.text', '.symtab', '.strtab']:
+        sh_names[n] = add_str(n)
+
+    # Majina ya alama za nje
+    nje_names = list(set(ref[2] for ref in ext_refs if ref[2]))
+    nje_offs = {}
+    for n in nje_names:
+        nje_offs[n] = add_str(n)
+
+    # Majina ya alama za ndani (kazi zilizo na lebo)
+    ndani_offs = {}
+    for name in labels:
+        ndani_offs[name] = add_str(name)
+
+    # Jenga .symtab (Elf64_Sym = 24 bytes: IBBHQQ)
+    def elf_sym(st_name, st_info, st_other, st_shndx, st_value, st_size):
+        return struct.pack('<IBBHQQ', st_name, st_info, st_other, st_shndx, st_value, st_size)
+
+    symtab = elf_sym(0, 0, 0, 0, 0, 0)  # Entry 0: NULL
+    sym_count = 1
+
+    text_sec_idx = sym_count; sym_count += 1
+    data_sec_idx = sym_count; sym_count += 1
+    bss_sec_idx = sym_count; sym_count += 1
+
+    symtab += elf_sym(sh_names['.text'], 3, 0, 1, 0, 0)   # STT_SECTION, .text
+    symtab += elf_sym(sh_names['.data'], 3, 0, 2, 0, 0)   # STT_SECTION, .data
+    symtab += elf_sym(sh_names['.bss'], 3, 0, 3, 0, 0)    # STT_SECTION, .bss
+
+    # Alama za ndani: LOCAL kwanza (_*), kisha GLOBAL (mtumiaji)
+    ndani_map = {}
+    local_count = 4  # NULL + .text + .data + .bss
+    # Panga: LOCAL kwanza, kisha GLOBAL (kwa mpangilio wa alfabeti ndani ya kila kundi)
+    local_names = sorted([n for n in labels if n.startswith('_')])
+    global_names = sorted([n for n in labels if not n.startswith('_')])
+    for name in local_names:
+        ndani_map[name] = sym_count; sym_count += 1
+        symtab += elf_sym(ndani_offs[name], 0x02, 0, 1, labels[name], 0)
+        local_count += 1
+    for name in global_names:
+        ndani_map[name] = sym_count; sym_count += 1
+        symtab += elf_sym(ndani_offs[name], 0x12, 0, 1, labels[name], 0)
+
+    # Alama za nje (STB_GLOBAL | STT_NOTYPE)
+    nje_map = {}
+    for name in nje_names:
+        nje_map[name] = sym_count; sym_count += 1
+        symtab += elf_sym(nje_offs[name], 0x10, 0, 0, 0, 0)
+
+    # Jenga .rela.text
+    rela = b''
+    for offset, aina, jina in ext_refs:
+        if jina in nje_map:
+            sym_idx = nje_map[jina]
+            if aina == 'call':
+                r_type = 4  # R_X86_64_PLT32
+                rela += struct.pack('<QQq', offset, (sym_idx << 32) | r_type, -4)
+            elif aina == 'lea':
+                r_type = 2  # R_X86_64_PC32
+                rela += struct.pack('<QQq', offset, (sym_idx << 32) | r_type, -4)
+        elif jina in ndani_map:
+            sym_idx = ndani_map[jina]
+            r_type = 2  # R_X86_64_PC32
+            rela += struct.pack('<QQq', offset, (sym_idx << 32) | r_type, -4)
+
+    # Pia ongeza uhamishaji kwa wito wa ndani (kazi zinazoitwa)
+    # Chambua msimbo kwa maagizo ya call (e8)
+    for i in range(len(code_bytes) - 4):
+        if code_bytes[i] == 0xe8:  # call rel32
+            target = i + 5 + struct.unpack('<i', code_bytes[i+1:i+5])[0]
+            if target < 0 or target >= len(code_bytes):
+                # Wito wa nje — tayari umeshughulikiwa
+                pass
+
+    # Jenga vichwa vya sehemu (7: NULL, .text, .data, .bss, .rela.text, .symtab, .strtab)
+    symtab_off = 64 + len(code_bytes) + len(rela)
+    strtab_off = symtab_off + len(symtab)
+    shdr_off = strtab_off + len(strtab)
+
+    shdr = b'\x00' * 64  # NULL
+
+    def mk_shdr(name, typ, flags, off, size, link, info, align, entsize):
+        return struct.pack('<IIQQQQIIQQ',
+            sh_names.get(name, add_str(name)),  # sh_name
+            typ,                                 # sh_type
+            flags,                               # sh_flags
+            0,                                   # sh_addr
+            off,                                 # sh_offset
+            size,                                # sh_size
+            link,                                # sh_link
+            info,                                # sh_info
+            align,                               # sh_addralign
+            entsize)                             # sh_entsize
+
+    shdr += mk_shdr('.text', 1, 6, 64, len(code_bytes), 0, 0, 16, 0)
+    shdr += mk_shdr('.data', 1, 3, 64 + len(code_bytes), 0, 0, 0, 1, 0)
+    shdr += mk_shdr('.bss', 8, 3, 64 + len(code_bytes), 0, 0, 0, 1, 0)
+    shdr += mk_shdr('.rela.text', 4, 0, 64 + len(code_bytes), len(rela), 5, 1, 8, 24)
+    shdr += mk_shdr('.symtab', 2, 0, symtab_off, len(symtab), 6, local_count, 8, 24)
+    shdr += mk_shdr('.strtab', 3, 0x20, strtab_off, len(strtab), 0, 0, 1, 0)
+
+    # ELF header (ET_REL)
+    ehdr = b'\x7fELF\x02\x01\x01\x00' + b'\x00'*8
+    ehdr += struct.pack('<HHIQQQIHHHHHH',
+        1, 0x3E, 1,  # e_type, e_machine, e_version
+        0,           # e_entry = 0
+        0,           # e_phoff = 0 (hakuna vichwa vya programu kwa ET_REL)
+        shdr_off,    # e_shoff
+        0,           # e_flags
+        64,          # e_ehsize
+        0,           # e_phentsize
+        0,           # e_phnum
+        64,          # e_shentsize
+        7,           # e_shnum (NULL + 6 sehemu)
+        6)           # e_shstrndx
+
+    return ehdr + code_bytes + rela + symtab + strtab + shdr
 
 
 # ============================================================
@@ -1442,9 +1590,31 @@ def kusanya(chanzo, aina_ya_pato='exec'):
         msimbo = gen.zalishe_programu()
 
         if aina_ya_pato == 'asm':
-            return msimbo  # rudisha msimbo mbichi
+            return msimbo
         if aina_ya_pato == 'obj':
-            return make_elf_obj(msimbo)
+            # Kusanya taarifa za uhamishaji
+            labels = {}  # jina -> offset
+            ext_refs = []  # (offset, aina, jina)
+            # Alama za kazi za mtumiaji TU
+            for jina in prog.kazi:
+                if jina in gen.x.labels:
+                    labels[jina] = gen.x.labels[jina]
+            # Alama za visaidizi vya syscall (zinahitajika kwa wito wa ndani)
+            for stub in ['_malloc', '_free', '_printf', '_fopen', '_fread', '_fclose']:
+                if stub in gen.x.labels:
+                    labels[stub] = gen.x.labels[stub]
+            # _start — iwe LOCAL (STB_LOCAL) isigongane na libc
+            if '_start' in gen.x.labels:
+                labels['_start'] = gen.x.labels['_start']
+            # Marejeleo ya nje: zile ambazo HAZIKO kwenye lebo ZOTE za ndani
+            all_labels = dict(gen.x.labels)  # lebo zote (pamoja na za ndani)
+            for pos, label in gen.x.fixups_32:
+                if label not in all_labels:
+                    ext_refs.append((pos, 'call', label))
+            # Marejeleo ya vigezo vya ulimwengu
+            for pos, name in getattr(gen.x, '_global_refs', []):
+                ext_refs.append((pos + 3, 'lea', name))  # +3 kwa disp32 kwenye lea
+            return make_elf_obj(msimbo, labels, ext_refs)
         return make_elf(msimbo)
 
     except SyntaxError as e:
