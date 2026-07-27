@@ -18,9 +18,13 @@ const AST_WAKATI: u32 = 10;
 const AST_TANGAZO: u32 = 11;
 const AST_MUUNDO: u32 = 12;
 const AST_SEHEMU: u32 = 13;
+const AST_CHAGUA: u32 = 14;
+const AST_HALI: u32 = 47;
 const AST_KIPINDI: u32 = 15;
 const AST_VUNJA: u32 = 16;
 const AST_ENDELEA: u32 = 17;
+const AST_TENGA: u32 = 18;
+const AST_ACHILIA: u32 = 19;
 const AST_SAWA: u32 = 20;
 const AST_TOFAUTI_SI: u32 = 21;
 const AST_CHINI: u32 = 22;
@@ -200,6 +204,18 @@ impl<'a> Parser<'a> {
             TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_) => {
                 let name = self.sasa().lexeme.clone();
                 self.sogeza();
+                if name == "tenga" && self.tokeni_ni("(") {
+                    self.sogeza();
+                    let arg = self.changanua_usemi();
+                    if self.tokeni_ni(")") { self.sogeza(); }
+                    return self.ast.node_mpya(AST_TENGA, 0, arg, NO_NODE);
+                }
+                if name == "achilia" && self.tokeni_ni("(") {
+                    self.sogeza();
+                    let arg = self.changanua_usemi();
+                    if self.tokeni_ni(")") { self.sogeza(); }
+                    return self.ast.node_mpya(AST_ACHILIA, 0, arg, NO_NODE);
+                }
                 if self.tokeni_ni("(") {
                     self.sogeza();
                     let call = self.ast.node_mpya(AST_WITO, 0, NO_NODE, NO_NODE);
@@ -392,6 +408,65 @@ impl<'a> Parser<'a> {
             if self.tokeni_ni("}") { self.sogeza(); }
             let n = self.ast.node_mpya(AST_KIPINDI, cond, init, body);
             self.ast.tiga[n as usize] = step;
+            return n;
+        }
+
+        if self.tokeni_ni("chagua") {
+            self.sogeza();
+            if self.tokeni_ni("(") { self.sogeza(); }
+            let tested = self.changanua_usemi();
+            if self.tokeni_ni(")") { self.sogeza(); }
+            if self.tokeni_ni("{") { self.sogeza(); }
+
+            let mut first_case: i32 = NO_NODE;
+            let mut prev_case: i32 = NO_NODE;
+            let mut default_body: i32 = NO_NODE;
+
+            while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
+                if self.tokeni_ni("hali") {
+                    self.sogeza();
+                    let label = self.changanua_usemi();
+                    if self.tokeni_ni(":") { self.sogeza(); }
+
+                    // Changanua mwili wa hali hii
+                    let mut case_body: i32 = NO_NODE;
+                    let mut cp: i32 = NO_NODE;
+                    while !self.tokeni_ni("}") && !self.tokeni_ni("hali") && !self.tokeni_ni("sivyo") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
+                        let s = self.changanua_taarifa();
+                        if s == NO_NODE { break; }
+                        if cp == NO_NODE { case_body = s; } else { self.ast.nne[cp as usize] = s; }
+                        cp = s;
+                        while self.ast.nne[cp as usize] != NO_NODE && self.ast.nne[cp as usize] >= 0 { cp = self.ast.nne[cp as usize]; }
+                    }
+
+                    let case_node = self.ast.node_mpya(AST_HALI, 0, label, NO_NODE);
+                    self.ast.tiga[case_node as usize] = case_body;
+                    if prev_case == NO_NODE { first_case = case_node; }
+                    else { self.ast.nne[prev_case as usize] = case_node; }
+                    prev_case = case_node;
+                    continue;
+                }
+                if self.tokeni_ni("sivyo") {
+                    self.sogeza();
+                    if self.tokeni_ni(":") { self.sogeza(); }
+
+                    // Changanua mwili wa chaguo-msingi
+                    let mut dp: i32 = NO_NODE;
+                    while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
+                        let s = self.changanua_taarifa();
+                        if s == NO_NODE { break; }
+                        if dp == NO_NODE { default_body = s; } else { self.ast.nne[dp as usize] = s; }
+                        dp = s;
+                        while self.ast.nne[dp as usize] != NO_NODE && self.ast.nne[dp as usize] >= 0 { dp = self.ast.nne[dp as usize]; }
+                    }
+                    break;
+                }
+                break;
+            }
+            if self.tokeni_ni("}") { self.sogeza(); }
+
+            let n = self.ast.node_mpya(AST_CHAGUA, 0, tested, first_case);
+            self.ast.tiga[n as usize] = default_body;
             return n;
         }
 
