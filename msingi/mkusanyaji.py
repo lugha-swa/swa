@@ -954,6 +954,7 @@ class Mchanganuzi:
 
         # Wito wa kazi kama taarifa: jina(hoja);
         if c.isalpha():
+            pos_awali = self.lex.pos
             tok = self.lex.soma_neno()
             if tok and self.lex.angalia_herufi('('):
                 self.lex.advance()
@@ -965,6 +966,7 @@ class Mchanganuzi:
                 self.lex.tarajia_herufi(')')
                 self.lex.tarajia_herufi(';')
                 return Wito(tok.thamani, hoja)
+            self.lex.pos = pos_awali  # rejesha kama si wito
 
         # Usemi kama taarifa
         expr = self.changanua_usemi()
