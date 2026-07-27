@@ -3492,14 +3492,14 @@ mod tests {
         // Aina zilizosimbwa
         let n32_enc: i32 = (1 << 11) | (4 << 3) | 0;   // N32
         let n64_enc: i32 = (1 << 11) | (5 << 3) | 0;   // N64
-        let w0_enc: i32 = (5 << 11) | (0 << 3) | 0;     // W0 (haitumiki hapa)
+        let _w0_enc: i32 = (5 << 11) | (0 << 3) | 0;     // W0 (haitumiki hapa)
 
         // Majina
         let jina_jaribio = b.pool_name("jaribio");
         let jina_n = b.pool_name("n");
         let jina_i = b.pool_name("i");
-        let lit0 = b.pool_name("0");   // si halisi halisi, kwa dimbwi tu
-        let lit1 = b.pool_name("1");
+        let _lit0 = b.pool_name("0");   // si halisi halisi, kwa dimbwi tu
+        let _lit1 = b.pool_name("1");
 
         // -- Kigezo n: N64 --
         let p_n = b.node(0, NO_NODE, NO_NODE, NO_NODE, NO_NODE, n64_enc, jina_n);

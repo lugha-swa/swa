@@ -704,6 +704,7 @@ mod tests {
     }
 
     /// Kisaidizi: kusanya jozi (kind_debug, lexeme).
+    #[allow(dead_code)]
     fn token_debug(source: &str) -> Vec<(String, String)> {
         let lexer = Lexer::new(source);
         lexer

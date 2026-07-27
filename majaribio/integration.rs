@@ -267,7 +267,7 @@ fn jaribio_kazi_isiyo_na_mwili() {
 // ============================================================================
 
 #[test]
-fn jaribio_husisha_C() {
+fn jaribio_husisha_c() {
     // husisha C::stdio inapaswa kurukwa bila hitilafu
     let src = "husisha C::stdio\nW0 fanya() {}";
     let ir = compile_and_verify(src).expect("inapaswa kukusanyika");
@@ -465,7 +465,7 @@ fn jaribio_k6_kujikusanya_kamili() {
         .output()
         .expect("inapaswa kuendesha binary iliyounganishwa");
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let _stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
     let exit_code = output.status.code().unwrap_or(-1);
@@ -559,7 +559,7 @@ fn run_k6_test(test_chanzo: &str, matarajio_ya_kutoka: i32) {
         .output()
         .expect("inapaswa kuendesha binary iliyounganishwa");
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let _stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
     let exit_code = output.status.code().unwrap_or(-1);
     eprintln!("; K6: msimbo wa kutoka = {exit_code}");

@@ -1060,7 +1060,7 @@ fn lower_instruction(
 
             // -- uundaji wa thabiti ---------------------------------------------
             crate::ir::Instruction::Const(c) => {
-                unsafe { materialize_const(c, LLVMInt64Type()) }
+                materialize_const(c, LLVMInt64Type())
             }
 
             // -- kumbukumbu --------------------------------------------------------
@@ -1974,7 +1974,7 @@ fn pre_declare_libc(module: LLVMModuleRef) {
             if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
                 let mut param_tys = [ptr_type()];
                 let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 1, 1);
-                unsafe { LLVMAddFunction(module, name.as_ptr(), fn_ty); }
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
             }
         }
 
@@ -2360,7 +2360,7 @@ mod tests {
         let val_vid = f.intern_const(Const::Int(1));
         let const_count = f.values.len();
         let heap_alloc_vid = ValueId(param_count + const_count + 0);
-        let store_vid = ValueId(param_count + const_count + 1);
+        let _store_vid = ValueId(param_count + const_count + 1);
         let _heap_free_vid = ValueId(param_count + const_count + 2);
 
         f.blocks[entry.0].push(Instruction::HeapAlloc(size_vid));
