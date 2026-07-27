@@ -1635,21 +1635,30 @@ def kusanya(chanzo, aina_ya_pato='exec'):
 
 def tafuta_vigezo_vya_ulimwengu(chanzo):
     """Chambua chanzo kutafuta matamko ya vigezo vya ulimwengu.
-    Rudisha orodha ya (jina, ukubwa)."""
+    Rudisha orodha ya (jina, ukubwa, kianzio). kianzio ni None kama haipo."""
     import re
-    vigezo = []
+    vigezo = {}  # jina -> (ukubwa, kianzio)
+    # Safu: N8 jina[ukubwa];
     for match in re.finditer(r'^\s*(N8|N32|N64)\s+(\w+)\s*\[(\d+)\]\s*;', chanzo, re.MULTILINE):
         aina_jina = match.group(1)
         jina = match.group(2)
         ukubwa_wa_safu = int(match.group(3))
         saizi = {'N8': 1, 'N32': 4, 'N64': 8}.get(aina_jina, 4)
-        vigezo.append((jina, ukubwa_wa_safu * saizi))
-    for match in re.finditer(r'^\s*(N32|N64)\s+(\w+)\s*=\s*0\s*;', chanzo, re.MULTILINE):
+        vigezo[jina] = (ukubwa_wa_safu * saizi, 0)
+    # Vigezo vyenye kianzio: N32 jina = thamani;
+    for match in re.finditer(r'^\s*(N32|N64|N8)\s+(\w+)\s*=\s*(-?\d+)\s*;', chanzo, re.MULTILINE):
         jina = match.group(2)
-        saizi = {'N32': 4, 'N64': 8}.get(match.group(1), 4)
-        if (jina, saizi) not in vigezo:
-            vigezo.append((jina, saizi))
-    return vigezo
+        thamani = int(match.group(3))
+        saizi = {'N8': 1, 'N32': 4, 'N64': 8}.get(match.group(1), 4)
+        if jina not in vigezo:
+            vigezo[jina] = (saizi, thamani)
+    # Vigezo bila kianzio: N32 jina;
+    for match in re.finditer(r'^\s*(N32|N64|N8)\s+(\w+)\s*;', chanzo, re.MULTILINE):
+        jina = match.group(2)
+        saizi = {'N8': 1, 'N32': 4, 'N64': 8}.get(match.group(1), 4)
+        if jina not in vigezo:
+            vigezo[jina] = (saizi, 0)
+    return [(jina, ukubwa, kianzio) for jina, (ukubwa, kianzio) in vigezo.items()]
 
 
 def andika_assembly(msimbo, njia_ya_pato, kiungo='libc', globals_list=None):
@@ -1665,7 +1674,8 @@ def andika_assembly(msimbo, njia_ya_pato, kiungo='libc', globals_list=None):
         # Jenga orodha ya vigezo vya ulimwengu kutoka chanzo
         if globals_list is None:
             globals_list = []
-        for jina, ukubwa in globals_list:
+        for item in globals_list:
+            jina = item[0]; ukubwa = item[1]
             f.write(f'.comm {jina}, {ukubwa}, 16\n')
 
         f.write('.text\n')
