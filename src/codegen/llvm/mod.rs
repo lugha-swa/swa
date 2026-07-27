@@ -50,9 +50,14 @@ static LLVM_INIT: OnceLock<usize> = OnceLock::new();
 /// Sehemu ya `opt_level` inadhibiti kiwango cha uboreshaji wa
 /// kutengeneza msimbo kinachotumwa kwa mashine lengwa ya LLVM
 /// (cha kawaida: `None` / O0).
+///
+/// Sehemu ya `optimize` inawasha bomba la kupita za uboreshaji
+/// wa LLVM (mem2reg, instcombine, gvn, simplifycfg, always-inline)
+/// wakati imewekwa kuwa `true`.
 pub struct LlvmBackend {
     context: LLVMContextRef,
     opt_level: LLVMCodeGenOptLevel,
+    optimize: bool,
 }
 
 impl LlvmBackend {
@@ -61,12 +66,18 @@ impl LlvmBackend {
     /// Unda nyuma mpya ya LLVM, ukianzisha usaidizi wa lengwa kwenye wito wa kwanza.
     pub fn new() -> Self {
         let context = Self::get_context();
-        Self { context, opt_level: LLVMCodeGenOptLevel::None }
+        Self { context, opt_level: LLVMCodeGenOptLevel::None, optimize: false }
     }
 
     /// Weka kiwango cha uboreshaji wa kutengeneza msimbo (muundo wa kijenzi).
     pub fn with_opt_level(mut self, level: LLVMCodeGenOptLevel) -> Self {
         self.opt_level = level;
+        self
+    }
+
+    /// Washa bomba la kupita za uboreshaji wa LLVM (muundo wa kijenzi).
+    pub fn with_opt(mut self) -> Self {
+        self.optimize = true;
         self
     }
 
@@ -113,8 +124,6 @@ impl LlvmBackend {
         output_path: &Path,
     ) -> Result<(), Vec<Diagnostic>> {
         let llvm_module = self.compile(ir_module)?;
-        // Endesha kupita za uboreshaji kabla ya utoaji kama imewezeshwa.
-        self.optimize_module(llvm_module);
         self.emit_object(llvm_module, output_path)
     }
 
@@ -160,8 +169,6 @@ impl LlvmBackend {
                 return Err(vec![Diagnostic::error(msg, SourceSpan::point(0, 0))]);
             }
 
-            // Endesha kupita za uboreshaji kabla ya utoaji kama imewezeshwa.
-            self.optimize_module(out_module);
             let result = self.emit_object(out_module, output_path);
             LLVMDisposeModule(out_module);
             result
@@ -403,10 +410,10 @@ impl LlvmBackend {
     ///   GVN (uondoaji wa upakiaji unaorudiwa), simplifycfg (usafishaji wa CFG).
     /// - Kiwango cha moduli: always-inline (weka ndani kazi za `always_inline`).
     ///
-    /// Hii inaitwa na [`compile_to_file`] na [`compile_ll`] kabla ya
-    /// kutoa faili ya kitu.
+    /// Hii inaitwa na [`emit_object`] kati ya uundaji wa mashine lengwa
+    /// na utoaji wa msimbo.
     pub fn optimize_module(&self, module: LLVMModuleRef) {
-        if self.opt_level as i32 <= 0 {
+        if !self.optimize {
             return;
         }
         unsafe {
@@ -499,6 +506,10 @@ impl LlvmBackend {
                     SourceSpan::point(0, 0),
                 )]);
             }
+
+            // Endesha bomba la kupita za uboreshaji kati ya uundaji wa
+            // mashine lengwa na utoaji wa msimbo.
+            self.optimize_module(module);
 
             let path_str = output_path.to_string_lossy();
             let path_c = CString::new(path_str.as_ref()).unwrap();
@@ -2209,7 +2220,7 @@ mod tests {
 
     #[test]
     fn z_test_compile_opt_infrastructure() {
-        let b = backend().with_opt_level(LLVMCodeGenOptLevel::Less);
+        let b = backend().with_opt();
         let mut m = IrModule::new("opt_ssa_test");
 
         let mut f = Function::new("z_opt_fn", IrType::I64, vec![("x".into(), IrType::I64)]);

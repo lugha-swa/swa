@@ -8,7 +8,6 @@
 //!   kande --ll file.ll          — sanya maandishi ya LLVM IR hadi .o
 //!   kande --tokens file.swa     — chapisha mkondo wa tokeni
 
-use kande_lib::codegen::llvm::ffi::LLVMCodeGenOptLevel;
 use kande_lib::codegen::llvm::LlvmBackend;
 use kande_lib::driver::Driver;
 use std::env;
@@ -243,12 +242,11 @@ fn main() {
             };
             match driver.compile_to_ir(&source, file_path) {
                 Ok(module) => { for d in driver.diagnostics.all() { eprintln!("{}", d.render(&source)); }
-                    let opt_level = if opt_flag {
-                        LLVMCodeGenOptLevel::Default
+                    let backend = if opt_flag {
+                        LlvmBackend::new().with_opt()
                     } else {
-                        LLVMCodeGenOptLevel::None
+                        LlvmBackend::new()
                     };
-                    let backend = LlvmBackend::new().with_opt_level(opt_level);
                     match backend.compile_to_file(&module, &obj_path) {
                         Ok(()) => {
                             if want_link {
