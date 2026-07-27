@@ -338,7 +338,7 @@ mod majaribio {
 
     fn aina_n32() -> IrType { IrType::I32 }
     fn aina_n64() -> IrType { IrType::I64 }
-    fn aina_f64() -> IrType { IrType::F64 }
+    fn _aina_f64() -> IrType { IrType::F64 }
     fn aina_w0() -> IrType { IrType::Void }
 
     // -- Jedwali la alama --
