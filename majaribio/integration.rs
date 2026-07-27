@@ -282,6 +282,19 @@ fn jaribio_msingi_orodha() {
     assert!(!ir_module.functions.is_empty(), "orodha.swa inapaswa kuwa na kazi");
 }
 
+
+#[test]
+fn jaribio_msingi_ramani() {
+    // ramani.swa uses husisha — test that it parses and lowers successfully.
+    let src = std::fs::read_to_string("msingi/ramani.swa")
+        .expect("inapaswa kusoma faili");
+    let mut driver = Driver::new();
+    let result = driver.compile_to_ir(&src, PathBuf::from("msingi/ramani.swa"));
+    assert!(result.is_ok(), "ramani.swa inapaswa kuchanganua: {:?}", result.err());
+    let ir_module = result.unwrap();
+    assert!(!ir_module.functions.is_empty(), "ramani.swa inapaswa kuwa na kazi");
+}
+
 // ============================================================================
 // Msingi — faili za ziada zilizokusanywa
 // ============================================================================
