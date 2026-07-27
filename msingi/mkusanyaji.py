@@ -675,7 +675,9 @@ class Mchanganuzi:
         jina = tok.thamani
         # Angalia kama ni aina inayojulikana
         aina_zinazojulikana = {'N32', 'N64', 'N8', 'W0', 'N8*', 'N16', 'A32', 'A64',
-                               'D32', 'D64', 'B1', 'B8', 'B16', 'B32', 'B64'}
+                               'D32', 'D64', 'B1', 'B8', 'B16', 'B32', 'B64',
+                               'Msambazaji', 'Msomaji', 'Tokeni', 'Mteremshi',
+                               'Orodha', 'Ramani', 'Jedwali'}
         if jina not in aina_zinazojulikana:
             # Rudisha nafasi — si aina
             self.lex.pos = pos_awali
@@ -1606,13 +1608,12 @@ def kusanya(chanzo, aina_ya_pato='exec'):
             all_labels = dict(gen.x.labels)
             # Orodha ya alama za nje zinazojulikana
             known_extern = {'fopen', 'fread', 'fclose', 'malloc', 'free', 'printf',
-                          'andika', 'mmap', 'munmap', 'msambazaji_mpya'}
+                          'andika', 'mmap', 'munmap'}
             def is_valid_label(s):
                 if not s: return False
-                # Lazima ianze na herufi au _
                 if not (s[0].isalpha() or s[0] == '_'): return False
-                # Inaweza kuwa na herufi, nambari, na _
-                return all(c.isalnum() or c == '_' for c in s) and len(s) >= 3
+                if len(s) < 3: return False
+                return all(c.isalnum() or c == '_' for c in s)
             seen = set()
             for pos, label in gen.x.fixups_32:
                 if label not in all_labels and label not in seen and is_valid_label(label):
@@ -1620,9 +1621,10 @@ def kusanya(chanzo, aina_ya_pato='exec'):
                     if name in known_extern:
                         ext_refs.append((pos, 'call', label))
                         seen.add(label)
-            # Marejeleo ya vigezo vya ulimwengu
+            # Marejeleo ya vigezo vya ulimwengu (chuja kwa ukubwa)
             for pos, name in getattr(gen.x, '_global_refs', []):
-                ext_refs.append((pos + 3, 'lea', name))  # +3 kwa disp32 kwenye lea
+                if is_valid_label(name):
+                    ext_refs.append((pos + 3, 'lea', name))
             return make_elf_obj(msimbo, labels, ext_refs)
         return make_elf(msimbo)
 
