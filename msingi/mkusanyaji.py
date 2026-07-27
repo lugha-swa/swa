@@ -1605,6 +1605,14 @@ class Kizalishe:
 
         self._tengua_vigezo_awali(kazi.mwili)
 
+        # Rekebisha ukubwa wa vigezo vyenye aina za miundo
+        for jina, (off, aina) in list(self.env.vigezo.items()):
+            if aina and self._ni_muundo(aina):
+                new_size = self._ukubwa_wa_muundo_kutoka_aina(aina)
+                if new_size != aina.ukubwa:
+                    aina.ukubwa = new_size
+                    # Rejesha ofseti (huenda ikabadilika baadaye — kwa sasa, acha)
+
         # Tenga nafasi ya sret ikiwa kazi inaita miundo
         self._sret_buf_off = 0
         if self._ina_wito_wa_muundo(kazi.mwili):
