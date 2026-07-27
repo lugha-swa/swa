@@ -2023,6 +2023,29 @@ W0 kusanya_vigeu_vya_ndani(N32 node) {
     kama (aina == 15) { kusanya_vigeu_vya_ndani(ast_thamani[node]); }
 }
 
+// ==========================================================
+// KUMBUKA: sret (struct return) haijatekelezwa bado.
+//
+// Wakati kazi inarudisha muundo (familia == 6 kwenye encoding),
+// x86-64 ABI inahitaji:
+//   1. Mpigaji atenge nafasi kwa thamani ya kurudi
+//   2. Mpigaji apitishe kielekezi kilichofichwa kwenye rdi
+//      (kabla ya hoja zote za kawaida)
+//   3. Kazi iandike matokeo kupitia kielekezi hicho
+//   4. Kazi irudishe kielekezi (rdi) kwenye rax
+//
+// Mahali pa kutekeleza:
+//   - uzalishaji_kazi: tambua kazi zenye aina ya kurudi ya muundo,
+//     ongeza kigezo cha kielekezi kilichofichwa (rdi)
+//   - uzalishaji_taarifa (RUDISHA): kwa miundo, nakili hadi [rdi]
+//     badala ya kurudisha kwenye rejesta
+//   - uzalishaji_wito: tenga nafasi kwa thamani ya kurudi,
+//     pitisha kielekezi kwenye rdi
+//
+// Kwa sasa, msimbo wa kujikusanya haurudishi miundo —
+// unatumia vielekezi vya vigezo badala yake.
+// ==========================================================
+
 // -------------------------------------------------------
 // Kitoa kazi kama machine code
 // -------------------------------------------------------
