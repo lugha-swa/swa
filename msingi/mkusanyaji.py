@@ -1014,7 +1014,7 @@ class Kizalishe:
     def zalishe_wito(self, node):
         """Zalisha wito wa kazi."""
         kazi = self.env.kazi_zote.get(node.jina)
-        num_params = len(kazi.vigezo) if kazi else len(node.hoja)
+        ni_ya_nje = kazi is None  # haipo kwenye kazi za mtumiaji
 
         # Pitisha hoja kwenye rejesta za 64-bit (sahihi kwa vielekezi)
         for i, arg in enumerate(node.hoja[:6]):
@@ -1032,7 +1032,10 @@ class Kizalishe:
             elif i == 5:
                 self.x.emit(0x49, 0x89, 0xc1)  # mov r9, rax
 
-        self.x.call_rel32(node.jina)
+        if ni_ya_nje:
+            self.x.call_rel32('_' + node.jina)  # _fopen, _fread, n.k.
+        else:
+            self.x.call_rel32(node.jina)
         # Matokeo yako kwenye eax
 
     def zalishe_operesheni(self, node):
@@ -1109,24 +1112,27 @@ class Kizalishe:
                     aina = info[1]
                     kina = aina.jina.count('_star') + aina.jina.count('*')
                     if kina >= 2:
-                        elem_size = 8  # kielekezi-cha-kielekezi
+                        elem_size = 8
                     elif kina == 1:
-                        # Angalia aina ya msingi
                         jina_msingi = aina.jina.replace('_star', '').replace('*', '')
                         if jina_msingi == 'N8': elem_size = 1
                         elif jina_msingi == 'N32': elem_size = 4
                         elif jina_msingi == 'N64': elem_size = 8
                         else: elem_size = 4
-            # eax = base, ecx = idx
-            # Kwanza, zidisha idx kwa ukubwa wa elementi
+            # Zidisha idx kwa ukubwa wa elementi
             if elem_size > 1:
                 if elem_size == 8:
                     self.x.emit(0x48, 0xc1, 0xe1, 0x03)  # shl rcx, 3
+                    self.x.emit(0x48, 0x01, 0xc8)  # add rax, rcx (64-bit!)
                 elif elem_size == 4:
                     self.x.emit(0xc1, 0xe1, 0x02)        # shl ecx, 2
+                    self.x.add_eax_ecx()                  # add eax, ecx (32-bit ok)
                 elif elem_size == 2:
                     self.x.emit(0xc1, 0xe1, 0x01)        # shl ecx, 1
-            self.x.add_eax_ecx()       # eax = base + idx*size
+                    self.x.add_eax_ecx()
+            else:
+                self.x.add_eax_ecx()
+            # Pakia thamani
             if elem_size == 8:
                 self.x.emit(0x48, 0x8b, 0x00)  # mov rax, [rax]
             elif elem_size == 4:
@@ -1297,9 +1303,12 @@ class Kizalishe:
         self.x.emit(0x48, 0x31, 0xed)  # xor rbp, rbp (alama ya mwisho wa rafu)
         self.x.pop('rdi')               # pop rdi = argc
         self.x.emit(0x48, 0x89, 0xe6)  # mov rsi, rsp (argv = rsp)
-        # Pangilia rafu kwa 16 kabla ya wito
-        self.x.emit(0x48, 0x83, 0xe4, 0xf0)  # and rsp, -16
+        # Hakikisha rafu imepangiliwa kwa 16
+        # Baada ya pop rdi, rsp % 16 == 8 (kernel inaweka rafu iliyopangiliwa)
+        # Sukuma mara moja kurejesha pangilio
+        self.x.push('rax')              # rsp % 16 == 0 sasa
         self.x.call_rel32('main')
+        self.x.add_rsp(8)               # rejesha rafu
         # eax ina thamani ya kurudi
         self.x.emit(0x89, 0xc7)  # mov edi, eax
         self.x.mov_eax_imm(60)   # sys_exit
@@ -1389,7 +1398,7 @@ class Kizalishe:
 
 def kusanya(chanzo, aina_ya_pato='exec'):
     """Kusanya chanzo cha Swa hadi binary ya ELF.
-    aina_ya_pato: 'exec' kwa executable, 'obj' kwa .o (relocatable)."""
+    aina_ya_pato: 'exec' kwa executable, 'obj' kwa .o, 'asm' kwa assembly."""
     try:
         mp = Mchanganuzi(chanzo)
         prog = mp.changanua_programu()
@@ -1401,6 +1410,8 @@ def kusanya(chanzo, aina_ya_pato='exec'):
         gen = Kizalishe(prog)
         msimbo = gen.zalishe_programu()
 
+        if aina_ya_pato == 'asm':
+            return msimbo  # rudisha msimbo mbichi
         if aina_ya_pato == 'obj':
             return make_elf_obj(msimbo)
         return make_elf(msimbo)
@@ -1410,18 +1421,53 @@ def kusanya(chanzo, aina_ya_pato='exec'):
         return None
 
 
+def andika_assembly(msimbo, njia_ya_pato, kiungo='libc'):
+    """Andika msimbo kama assembly ya GNU.
+    kiungo='libc': badilisha _fopen→fopen n.k.
+    kiungo='syscall': weka visaidizi vya syscall."""
+    with open(njia_ya_pato, 'w') as f:
+        f.write('.intel_syntax noprefix\n')
+        f.write('.globl main\n')
+        f.write('.globl _start\n')
+        f.write('.text\n')
+
+        # Andika kazi zote kama .byte
+        msimbo_out = msimbo
+        if kiungo == 'libc':
+            # Badilisha visaidizi vya syscall kuwa wito halisi wa libc
+            msimbo_out = msimbo.replace(b'_fopen', b'fopen')
+            msimbo_out = msimbo_out.replace(b'_fread', b'fread')
+            msimbo_out = msimbo_out.replace(b'_fclose', b'fclose')
+            msimbo_out = msimbo_out.replace(b'_malloc', b'malloc')
+            msimbo_out = msimbo_out.replace(b'_free', b'free')
+            msimbo_out = msimbo_out.replace(b'_printf', b'printf')
+
+        for i in range(0, len(msimbo_out)):
+            if i % 16 == 0:
+                f.write('\n.byte ')
+            f.write(f'0x{msimbo_out[i]:02x}')
+            if i < len(msimbo_out) - 1 and (i % 16) != 15:
+                f.write(', ')
+        f.write('\n')
+    return True
+
+
 def main():
     aina_ya_pato = 'exec'
     faili_za_chanzo = []
+    njia_ya_pato = None
 
     args = sys.argv[1:]
     i = 0
     while i < len(args):
-        if args[i] == '-c':
+        if args[i] == '-S':
+            aina_ya_pato = 'asm'
+        elif args[i] == '-c':
             aina_ya_pato = 'obj'
         elif args[i] == '-o':
             i += 1
-            njia_ya_pato = args[i]
+            if i < len(args):
+                njia_ya_pato = args[i]
         else:
             faili_za_chanzo.append(args[i])
         i += 1
@@ -1434,20 +1480,28 @@ def main():
             with open(f) as fh:
                 chanzo += fh.read() + '\n'
 
+    if aina_ya_pato == 'asm':
+        msimbo = kusanya(chanzo, 'asm')
+        if msimbo is None:
+            sys.exit(1)
+        asm_path = njia_ya_pato or 'out.s'
+        andika_assembly(msimbo, asm_path)
+        print(f"  -> {asm_path} ({len(msimbo)} baiti)")
+        # Pia unganisha moja kwa moja
+        exe_path = asm_path.replace('.s', '')
+        import subprocess
+        r = subprocess.run(['gcc', '-nostdlib', '-no-pie', asm_path, '-o', exe_path],
+                         capture_output=True)
+        if r.returncode == 0:
+            os.chmod(exe_path, 0o755)
+            print(f"  -> {exe_path} (imeunganishwa na gcc)")
+        else:
+            print(f"  gcc hitilafu: {r.stderr.decode()[:200]}")
+        return
+
     binary = kusanya(chanzo, aina_ya_pato)
     if binary is None:
         sys.exit(1)
-
-    # Amua jina la pato
-    njia_ya_pato = None
-    for a in sys.argv[1:]:
-        if a == '-o':
-            idx = sys.argv.index('-o')
-            if idx + 1 < len(sys.argv):
-                njia_ya_pato = sys.argv[idx + 1]
-            break
-    if njia_ya_pato is None and faili_za_chanzo:
-        njia_ya_pato = faili_za_chanzo[0].replace('.swa', '.o' if aina_ya_pato == 'obj' else '')
 
     if njia_ya_pato:
         with open(njia_ya_pato, 'wb') as f:
