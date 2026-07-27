@@ -31,20 +31,28 @@ hesabu_na_onyesha(15, 7);
 ## Vipengele
 
 - **Maneno muhimu 42** ya Kiswahili -- hakuna Kiingereza katika sintaksia
-- **Kujitegemea** -- mkusanyaji umeandikwa kwa Swa yenyewe (bootstrap)
-- **LLVM backend** -- inatoa msimbo wa mashine wa majukwaa mbalimbali (x86, ARM, AArch64, RISC-V)
-- **Aina 25 za nambari** -- N8 hadi N128, A8 hadi A128, D16 hadi D80, B1 hadi B64, W0 hadi W64
-- **Kumbukumbu ya moja kwa moja** -- tenga, achilia na badili kumbukumbu wewe mwenyewe, hakuna ukusanyaji taka
-- **ABI thabiti** -- Swa ABI v1.0 kwa mwingiliano wa lugha
-- **Hali ya sasa**: Majaribio 174 yanapita (145 ya maktaba + 28 ya ujumuishaji + 1 wa nyaraka). Alloca-in-loop imerekebishwa. K6 (kujikusanya kamili) inapita. uzalishaji.swa native x86-64 backend inajengwa.
+- **Kujitegemea (~85%)** -- mkusanyaji umeandikwa kwa Swa yenyewe (bootstrap)
+- **Vizalishe viwili**: LLVM (majukwaa yote) + asilia (x86-64 ELF moja kwa moja)
+- **Aina 25 za nambari** — N8–N128, A8–A128, D16–D80, B1–B64, W0–W64 zote zinashughulikiwa
+- **Kumbukumbu ya moja kwa moja** -- tenga, achilia, hakuna ukusanyaji taka
+- **Majaribio**: 181 yanapita (145 maktaba + 36 ujumuishaji). K6 bootstrap inafanya kazi.
 
 ## Muundo wa Mradi
 
 | Njia | Maelezo |
 |---|---|
 | `src/` | Mkusanyaji wa Rust (msomaji, mchanganuzi, IR, LLVM backend) |
-| `msingi/` | Maktaba ya msingi ya kujitegemea kwa Swa |
-| `stage1.swa` | Kiendeshi cha bootstrap -- huanzisha mnyororo wa kujikusanya |
+| `msingi/` | Maktaba ya msingi ya kujitegemea kwa Swa — bomba zima |
+| `msingi/msomaji.swa` | Msomaji (lexer) — kamili |
+| `msingi/msambazaji.swa` | Mchanganuzi (parser) — kamili, nodi 47 za AST |
+| `msingi/mkaguzi.swa` | Mkaguzi wa kisemantiki — kamili (aina, hoja, ugawaji) |
+| `msingi/mteremko.swa` | Kiteremshi cha AST→IR — kamili |
+| `msingi/uzalishaji.swa` | Kizalishe asilia cha x86-64 — kamili (aina zote, sret, alloca) |
+| `msingi/ramani.swa` | Jedwali la hashi |
+| `msingi/orodha.swa` | Safu inayobadilika |
+| `msingi/mfuatano.swa` | Shughuli za mifuatano |
+| `msingi/kumbukumbu.swa` | Shughuli za kumbukumbu |
+| `gharama/` | Zana za ujenzi na majaribio |
 
 ## Kujenga
 
@@ -81,12 +89,31 @@ Lengo ni kuondoa utegemezi wa Rust na kuwa na mkusanyaji ulioandikwa kwa Swa pek
 
 | Kipimo | Thamani |
 |--------|---------|
-| Majaribio | 174/174 [PASS] |
-| Kujikusanya (K6) | Inapita [PASS] |
-| Mkusanyaji wa Rust | Inajenga bila hitilafu [PASS] |
-| Mchanganuzi wa Swa | Vipengele vyote vya lugha [PASS] |
-| Kiteremshi cha Swa | Kinaendelea (40%) [WIP] |
-| Mkaguzi wa Swa | Kinaendelea (20%) [WIP] |
+| **Majaribio** | 181/181 [PASS] |
+| **Kujikusanya (K6)** | Inapita [PASS] |
+| **Mchanganuzi wa Swa** | Kamili [DONE] |
+| **Mkaguzi wa Swa** | Kamili [DONE] |
+| **Kiteremshi cha Swa** | Kamili [DONE] |
+| **Kizalishe asilia cha x86-64** | Kamili [DONE] |
+| **Usambazaji wa aina** | Aina zote 25 [DONE] |
+| **Urejeshaji wa makosa** | Kamili [DONE] |
+| **Alloca-in-loop** | Imerekebishwa [DONE] |
+| **Sret (struct return)** | Imetekelezwa [DONE] |
+| **`--opt` (LLVM passes)** | Inafanya kazi [DONE] |
+| **Uhuru wa jumla** | **~85%** |
+
+## Ramani
+
+Angalia **[hati/ramani.md](hati/ramani.md)** kwa mpango kamili.
+
+| Hatua | Maelezo | Hali |
+|-------|---------|------|
+| 0 | Mkusanyaji wa bootstrap wa Rust | ✅ Imekamilika |
+| 1 | Kujikusanya kwa msingi | ✅ Imekamilika |
+| 2 | Mkusanyaji kamili wa kujikusanya | ✅ Imekamilika |
+| 3 | Ondoa utegemezi wa Rust | 🎯 Lengo |
+| 4 | Ondoa utegemezi wa LLVM | 🎯 Lengo |
+| 5 | Lugha kamili ya mifumo | 🔮 Baadaye |
 
 ## Jumuiya
 
