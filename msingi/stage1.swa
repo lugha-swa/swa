@@ -1,6 +1,7 @@
 husisha C::stdio
 husisha { msambazaji.swa }
 husisha { mkaguzi.swa }
+husisha { mteremko.swa }
 husisha { uzalishaji.swa }
 
 N8 chanzo_buf[196608];
@@ -96,6 +97,13 @@ N32 main(N32 argc, N8** argv) {
     // 2. Ukaguzi wa kisemantiki
     N32 makosa = mkaguzi_angalia(mzizi);
     kama (makosa != 0) { andika("; ONYO: makosa %d, inaendelea\n", makosa); }
+
+    // 3. Teremsha AST hadi IR (uthibitishaji wa muundo)
+    Mteremshi t;
+    N32 ir_mzizi = teremsha(&t, mzizi);
+    kama (t.makosa != 0) {
+        andika("; ONYO: makosa ya kuteremsha %d, inaendelea\n", t.makosa);
+    }
 
     kama (ni_jit) { uzalishaji_jit(mzizi); } sivyo { uzalishaji_kuu(mzizi); }
 
