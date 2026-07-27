@@ -8,6 +8,7 @@
 //!   kande --ll file.ll          — sanya maandishi ya LLVM IR hadi .o
 //!   kande --tokens file.swa     — chapisha mkondo wa tokeni
 
+use kande_lib::codegen::llvm::ffi::LLVMCodeGenOptLevel;
 use kande_lib::codegen::llvm::LlvmBackend;
 use kande_lib::driver::Driver;
 use std::env;
@@ -81,12 +82,15 @@ fn main() {
         eprintln!("  kande --ll file.ll         — sanya LLVM IR faili");
         eprintln!("  kande --check file.swa     — kagua bila kutoa msimbo");
         eprintln!("  kande --tokens file.swa    — toa tokeni");
+        eprintln!("  kande --opt file.swa       — sanya kwa kupita za LLVM (FastISel)");
+        eprintln!("  kande --O2 file.swa        — sanya kwa O2 + kupita (inaweza kugusa hitilafu ya LLVM)");
         process::exit(1);
     }
 
-    // Changanua bendera ya hiari ya pato -o na bendera ya uboreshaji --opt / -O.
+    // Changanua bendera ya hiari ya pato -o na bendera za uboreshaji --opt / --O2.
     let mut output_path: Option<PathBuf> = None;
     let mut opt_flag = false;
+    let mut o2_flag = false;
     let mut positional: Vec<String> = Vec::new();
     {
         let mut i = 1;
@@ -98,6 +102,8 @@ fn main() {
                 }
             } else if args[i] == "--opt" || args[i] == "-O" {
                 opt_flag = true;
+            } else if args[i] == "--O2" {
+                o2_flag = true;
             } else {
                 positional.push(args[i].clone());
             }
@@ -242,7 +248,9 @@ fn main() {
             };
             match driver.compile_to_ir(&source, file_path) {
                 Ok(module) => { for d in driver.diagnostics.all() { eprintln!("{}", d.render(&source)); }
-                    let backend = if opt_flag {
+                    let backend = if o2_flag {
+                        LlvmBackend::new().with_opt_level(LLVMCodeGenOptLevel::Default).with_opt()
+                    } else if opt_flag {
                         LlvmBackend::new().with_opt()
                     } else {
                         LlvmBackend::new()
