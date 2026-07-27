@@ -202,7 +202,11 @@ class X64:
 
     def resolve_fixups(self):
         for pos, label in self.fixups_32:
-            target = self.labels[label]
+            target = self.labels.get(label)
+            if target is None:
+                # Lebo ya nje (mf. malloc, free, printf) —
+                # acha kama ilivyo; kiunganishi kitashughulikia
+                continue
             delta = target - (pos + 4)
             self.b[pos:pos+4] = struct.pack('<i', delta)
 
@@ -376,8 +380,9 @@ class Nodi:
     pass
 
 class Programu(Nodi):
-    def __init__(self, kazi):
+    def __init__(self, kazi, miundo=None):
         self.kazi = kazi  # dict: jina -> Kazi
+        self.miundo = miundo or {}  # dict: jina -> Muundo
 
 class Kazi(Nodi):
     def __init__(self, jina, aina_ya_kurudi, vigezo, mwili):
@@ -428,7 +433,27 @@ class Operesheni(Nodi):
         self.kushoto = kushoto
         self.kulia = kulia
 
+class Muundo(Nodi):
+    def __init__(self, jina, sehemu):
+        self.jina = jina
+        self.sehemu = sehemu  # list of (jina, Aina)
+
+class Sehemu(Nodi):
+    def __init__(self, msingi, sehemu_jina, ni_mshale=False):
+        self.msingi = msingi      # usemi wa msingi (kitambulisho au *)
+        self.sehemu_jina = sehemu_jina  # jina la sehemu
+        self.ni_mshale = ni_mshale      # True kwa ->, False kwa .
+
+class Tenga(Nodi):
+    def __init__(self, ukubwa):
+        self.ukubwa = ukubwa
+
+class Achilia(Nodi):
+    def __init__(self, ptr):
+        self.ptr = ptr
+
 class Tupu(Nodi): pass
+
 class Ugawaji(Nodi):
     def __init__(self, jina, usemi):
         self.jina = jina
@@ -484,6 +509,32 @@ class Mchanganuzi:
             self.lex.soma_neno()
             return Tupu()
 
+        # tenga(ukubwa)
+        if self.lex.angalia_neno('tenga'):
+            self.lex.soma_neno()
+            self.lex.tarajia_herufi('(')
+            ukubwa = self.changanua_usemi()
+            self.lex.tarajia_herufi(')')
+            return Tenga(ukubwa)
+
+        # achilia(ptr)
+        if self.lex.angalia_neno('achilia'):
+            self.lex.soma_neno()
+            self.lex.tarajia_herufi('(')
+            ptr = self.changanua_usemi()
+            self.lex.tarajia_herufi(')')
+            return Achilia(ptr)
+
+        # badili(ptr, size) — realloc
+        if self.lex.angalia_neno('badili'):
+            self.lex.soma_neno()
+            self.lex.tarajia_herufi('(')
+            ptr = self.changanua_usemi()
+            self.lex.tarajia_herufi(',')
+            size = self.changanua_usemi()
+            self.lex.tarajia_herufi(')')
+            return Wito('badili', [ptr, size])
+
         # Jina au wito
         tok = self.lex.soma_neno()
         if tok is None:
@@ -503,7 +554,7 @@ class Mchanganuzi:
         return Kitambulisho(tok.thamani)
 
     def changanua_usemi_juu(self):
-        """Safu, uga: expr[expr], expr.jina"""
+        """Safu, uga: expr[expr], expr.jina, expr->jina"""
         node = self.changanua_usemi_msingi()
         if node is None:
             return None
@@ -514,8 +565,21 @@ class Mchanganuzi:
                 self.lex.advance()
                 idx = self.changanua_usemi()
                 self.lex.tarajia_herufi(']')
-                # N8* base + idx → taja: load byte from [base+idx]
                 node = Operesheni('taja', node, idx)
+                continue
+            # .sehemu
+            if self.lex.angalia_herufi('.'):
+                self.lex.advance()
+                tok = self.lex.soma_neno()
+                if tok:
+                    node = Sehemu(node, tok.thamani, ni_mshale=False)
+                continue
+            # ->sehemu
+            if self.lex.angalia_herufi('-') and self.lex.herufi(1) == '>':
+                self.lex.advance(); self.lex.advance()
+                tok = self.lex.soma_neno()
+                if tok:
+                    node = Sehemu(node, tok.thamani, ni_mshale=True)
                 continue
             break
 
@@ -679,10 +743,27 @@ class Mchanganuzi:
         return taarifa
 
     def changanua_kazi(self):
-        """Changanua ufafanuzi wa kazi: Aina jina (vigezo) { mwili }"""
+        """Changanua ufafanuzi wa kazi: Aina jina (vigezo) { mwili } au muundo"""
         self.lex.ruka_nafasi_na_maelezo()
         if self.lex.herufi() == '\0':
             return None
+
+        # muundo Jina { sehemu* };
+        if self.lex.tarajia_neno('muundo'):
+            tok_jina = self.lex.soma_neno()
+            if tok_jina is None:
+                return None
+            self.lex.tarajia_herufi('{')
+            sehemu = []
+            while not self.lex.angalia_herufi('}') and self.lex.herufi() != '\0':
+                aina_sehemu = self.changanua_aina()
+                jina_sehemu_tok = self.lex.soma_neno()
+                if jina_sehemu_tok:
+                    sehemu.append((jina_sehemu_tok.thamani, aina_sehemu or AINA_N32))
+                self.lex.tarajia_herufi(';')
+            self.lex.tarajia_herufi('}')
+            self.lex.tarajia_herufi(';')
+            return Muundo(tok_jina.thamani, sehemu)
 
         aina = self.changanua_aina()
         if aina is None:
@@ -711,13 +792,17 @@ class Mchanganuzi:
     def changanua_programu(self):
         """Changanua programu nzima."""
         kazi = {}
+        miundo = {}
         while self.lex.herufi() != '\0':
             k = self.changanua_kazi()
             if k is None:
-                self.lex.advance()  # ruka herufi isiyotambulika
+                self.lex.advance()
                 continue
-            kazi[k.jina] = k
-        return Programu(kazi)
+            if isinstance(k, Muundo):
+                miundo[k.jina] = k
+            else:
+                kazi[k.jina] = k
+        return Programu(kazi, miundo)
 
 
 # ============================================================
@@ -740,6 +825,17 @@ class Kizalishe:
         self.x = X64()
         self.env = Mazingira()
         self.env.kazi_zote = programu.kazi
+        # Jenga jedwali la ofseti za sehemu za miundo
+        self.miundo_ofseti = {}  # (jina_la_muundo, jina_la_sehemu) -> (offset, ukubwa)
+        for jina, muundo in programu.miundo.items():
+            offset = 0
+            for sehemu_jina, aina in muundo.sehemu:
+                ukubwa = aina.ukubwa if aina else 4
+                # Pangilia
+                if ukubwa > 1 and offset % ukubwa:
+                    offset += ukubwa - (offset % ukubwa)
+                self.miundo_ofseti[(jina, sehemu_jina)] = (offset, ukubwa)
+                offset += ukubwa
 
     def tengua_nafasi(self, jina, aina):
         """Tenga nafasi ya rafu kwa kigezo kipya."""
@@ -767,10 +863,15 @@ class Kizalishe:
             return
 
         if isinstance(node, Nambari):
+            try:
+                v = int(node.thamani)
+            except (ValueError, TypeError):
+                self.x.xor_reg(reg)
+                return
             if reg == 'eax':
-                self.x.mov_eax_imm(node.thamani)
+                self.x.mov_eax_imm(v)
             else:
-                self.x.mov_ri('rax', node.thamani)
+                self.x.mov_ri('rax', v)
 
         elif isinstance(node, Kitambulisho):
             info = self.tafuta_kigezo(node.jina)
@@ -786,6 +887,22 @@ class Kizalishe:
         elif isinstance(node, Tupu):
             self.x.xor_reg(reg)
 
+        elif isinstance(node, Tenga):
+            # malloc(ukubwa)
+            self.zalishe_usemi(node.ukubwa, 'eax')
+            # mov edi, eax; call malloc
+            self.x.emit(0x89, 0xc7)  # mov edi, eax
+            self._wito_nje('malloc')
+
+        elif isinstance(node, Achilia):
+            # free(ptr)
+            self.zalishe_usemi(node.ptr, 'eax')
+            self.x.emit(0x89, 0xc7)  # mov edi, eax
+            self._wito_nje('free')
+
+        elif isinstance(node, Sehemu):
+            self.zalishe_sehemu(node)
+
         elif isinstance(node, Wito):
             self.zalishe_wito(node)
 
@@ -794,6 +911,54 @@ class Kizalishe:
 
         else:
             self.x.xor_reg(reg)
+
+    def _wito_nje(self, jina):
+        """Wito wa kazi ya nje (C) — hupitisha jina kama lebo isiyojulikana."""
+        self.x.call_rel32(jina)
+
+    def zalishe_sehemu(self, node):
+        """Zalisha ufikiaji wa sehemu ya muundo (-> au .)."""
+        # Pakia anwani ya msingi
+        if node.ni_mshale:
+            # ->: msingi ni kielekezi — pakia anwani
+            self.zalishe_usemi(node.msingi, 'eax')
+            # eax = anwani ya muundo (tayari ni kielekezi)
+        else:
+            # .: msingi ni muundo kwenye rafu — pata anwani yake
+            if isinstance(node.msingi, Kitambulisho):
+                info = self.tafuta_kigezo(node.msingi.jina)
+                if info:
+                    off, aina = info
+                    self.x.emit(0x8d, 0x45, (256 - off) & 0xFF)  # lea eax, [rbp-off]
+                else:
+                    self.x.xor_reg('eax')
+                    return
+            else:
+                self.zalishe_usemi(node.msingi, 'eax')
+
+        # Tafuta ofseti ya sehemu
+        # Tunahitaji kujua aina ya msingi ili kupata muundo sahihi.
+        # Kwa sasa, tafuta kwenye miundo yote.
+        offset = 0; ukubwa = 4
+        found = False
+        for (mj, sj), (off, sz) in self.miundo_ofseti.items():
+            if sj == node.sehemu_jina:
+                offset = off; ukubwa = sz; found = True
+                break
+
+        if found and offset > 0:
+            self.x.emit(0x48, 0x83, 0xc0, offset)  # add rax, offset
+
+        # Pakia thamani kutoka [eax]
+        if ukubwa == 8:
+            self.x.emit(0x48, 0x8b, 0x00)  # mov rax, [rax]
+        elif ukubwa == 4:
+            self.x.emit(0x8b, 0x00)  # mov eax, [eax]
+        elif ukubwa == 1:
+            self.x.emit(0x0f, 0xb6, 0x00)  # movzx eax, byte [eax]
+        elif ukubwa == 2:
+            self.x.emit(0x0f, 0xb7, 0x00)  # movzx eax, word [eax]
+        # Matokeo yako kwenye eax
 
     def zalishe_wito(self, node):
         """Zalisha wito wa kazi."""
