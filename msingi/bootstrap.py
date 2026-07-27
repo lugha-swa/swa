@@ -580,7 +580,7 @@ def jenga_bootstrap():
 
 if __name__ == '__main__':
     binary = jenga_bootstrap()
-    njia = '/home/kandemark/projects/swa/msingi/bootstrap.bin'
+    njia = '/home/kandemark/Projects/compilers/swa/msingi/bootstrap.bin'
     with open(njia, 'wb') as f:
         f.write(binary)
     os.chmod(njia, 0o755)
