@@ -844,16 +844,42 @@ class Mchanganuzi:
         """Changanua programu nzima."""
         kazi = {}
         miundo = {}
+        vigezo_vya_ulimwengu = {}  # jina -> (ukubwa, kianzio)
         while self.lex.herufi() != '\0':
             k = self.changanua_kazi()
             if k is None:
+                # Jaribu kutambua tangazo la kigezo cha ulimwengu:
+                # Aina jina[ukubwa]; au Aina jina = thamani;
+                pos = self.lex.pos
+                aina = self.changanua_aina()
+                if aina:
+                    tok = self.lex.soma_neno()
+                    if tok and tok.aina == TOK_JINA:
+                        jina = tok.thamani
+                        ukubwa = aina.ukubwa
+                        # Angalia [ukubwa] kwa safu
+                        if self.lex.tarajia_herufi('['):
+                            saizi_tok = self.lex.soma_nambari()
+                            if saizi_tok:
+                                ukubwa = aina.ukubwa * saizi_tok.thamani
+                            self.lex.tarajia_herufi(']')
+                        kianzio = None
+                        if self.lex.tarajia_herufi('='):
+                            kianzio = self.changanua_usemi()
+                        if self.lex.tarajia_herufi(';'):
+                            vigezo_vya_ulimwengu[jina] = (ukubwa, kianzio)
+                            continue
+                # Hairuhusu — ruka
+                self.lex.pos = pos
                 self.lex.advance()
                 continue
             if isinstance(k, Muundo):
                 miundo[k.jina] = k
             else:
                 kazi[k.jina] = k
-        return Programu(kazi, miundo)
+        prog = Programu(kazi, miundo)
+        prog.vigezo_vya_ulimwengu = vigezo_vya_ulimwengu
+        return prog
 
 
 # ============================================================
@@ -874,10 +900,10 @@ class Kizalishe:
     def __init__(self, programu):
         self.prog = programu
         self.x = X64()
+        self.x._global_refs = []  # (pos, jina) kwa marejeleo ya vigezo vya ulimwengu
         self.env = Mazingira()
         self.env.kazi_zote = programu.kazi
-        # Jenga jedwali la ofseti za sehemu za miundo
-        self.miundo_ofseti = {}  # (jina_la_muundo, jina_la_sehemu) -> (offset, ukubwa)
+        self.miundo_ofseti = {}
         for jina, muundo in programu.miundo.items():
             offset = 0
             for sehemu_jina, aina in muundo.sehemu:
@@ -933,7 +959,12 @@ class Kizalishe:
                 else:
                     self.x.mov_rbp_off('rax', off, 8)
             else:
-                self.x.xor_reg(reg)
+                # Labda ni kigezo cha ulimwengu — weka alama ya kujazwa
+                # Alama: 10 baiti (mov rax, imm64) yenye 0xDEADBEEF
+                # itabadilishwa kuwa lea rax, [rip+jina] kwenye assembly
+                self.x._global_refs.append((len(self.x.b), node.jina))
+                self.x.emit(0x48, 0xb8)  # mov rax, imm64
+                self.x.b.extend(b'\xef\xbe\xad\xde\xef\xbe\xad\xde')  # 0xDEADBEEFDEADBEEF
 
         elif isinstance(node, Tupu):
             self.x.xor_reg(reg)
@@ -1469,6 +1500,7 @@ def andika_assembly(msimbo, njia_ya_pato, kiungo='libc', globals_list=None):
             msimbo_out = msimbo_out.replace(b'_free', b'free')
             msimbo_out = msimbo_out.replace(b'_printf', b'printf')
 
+        # Andika msimbo wote kama .byte
         for i in range(0, len(msimbo_out)):
             if i % 16 == 0:
                 f.write('\n.byte ')
