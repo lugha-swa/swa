@@ -1219,49 +1219,20 @@ class Kizalishe:
         self.x.pop('rcx')
 
         if op == '+':
-            if size >= 8: self.x.add_rax_rcx()
-            else: self.x.add_eax_ecx()
+            self.x.add_rax_rcx() if size >= 8 else self.x.add_eax_ecx()
         elif op == '-':
             if size >= 8: self.x.sub_rax_rcx()
-            else:
-                # eax -= ecx
-                self.x.sub_eax_ecx()
+            else: self.x.sub_eax_ecx()
         elif op == '*':
-            if size >= 8: self.x.imul_rax_rcx()
-            else: self.x.imul_eax_ecx()
+            self.x.imul_rax_rcx() if size >= 8 else self.x.imul_eax_ecx()
         elif op == '/':
             if size >= 8: self.x.cqo()
             else: self.x.cdq()
             self.x.idiv_ecx() if size < 8 else self.x.idiv_rcx()
-        elif op == '==':
-            if size >= 8: self.x.cmp_rax_rcx()
-            else: self.x.cmp_eax_ecx()
-            self.x.sete_al()
-            self.x.movzx_eax_al()
-        elif op == '!=':
-            if size >= 8: self.x.cmp_rax_rcx()
-            else: self.x.cmp_eax_ecx()
-            self.x.setne_al()
-            self.x.movzx_eax_al()
-        elif op == '<':
-            if size >= 8: self.x.cmp_rax_rcx()
-            else: self.x.cmp_eax_ecx()
-            self.x.setl_al()
-            self.x.movzx_eax_al()
-        elif op == '>':
-            if size >= 8: self.x.cmp_rax_rcx()
-            else: self.x.cmp_eax_ecx()
-            self.x.setg_al()
-            self.x.movzx_eax_al()
-        elif op == '<=':
-            if size >= 8: self.x.cmp_rax_rcx()
-            else: self.x.cmp_eax_ecx()
-            self.x.setle_al()
-            self.x.movzx_eax_al()
-        elif op == '>=':
-            if size >= 8: self.x.cmp_rax_rcx()
-            else: self.x.cmp_eax_ecx()
-            self.x.setge_al()
+        elif op in ('==', '!=', '<', '>', '<=', '>='):
+            self.x.cmp_rax_rcx() if size >= 8 else self.x.cmp_eax_ecx()
+            {'==': self.x.sete_al, '!=': self.x.setne_al, '<': self.x.setl_al,
+             '>': self.x.setg_al, '<=': self.x.setle_al, '>=': self.x.setge_al}[op]()
             self.x.movzx_eax_al()
         elif op == 'taja':
             # base[idx] — pakia kulingana na aina ya msingi
@@ -1279,19 +1250,15 @@ class Kizalishe:
                         elif jina_msingi == 'N32': elem_size = 4
                         elif jina_msingi == 'N64': elem_size = 8
                         else: elem_size = 4
-            # Zidisha idx kwa ukubwa wa elementi
+            # Zidisha idx kwa ukubwa wa elementi (tumia 64-bit kila wakati)
             if elem_size > 1:
                 if elem_size == 8:
                     self.x.emit(0x48, 0xc1, 0xe1, 0x03)  # shl rcx, 3
-                    self.x.emit(0x48, 0x01, 0xc8)  # add rax, rcx (64-bit!)
                 elif elem_size == 4:
-                    self.x.emit(0xc1, 0xe1, 0x02)        # shl ecx, 2
-                    self.x.add_eax_ecx()                  # add eax, ecx (32-bit ok)
+                    self.x.emit(0x48, 0xc1, 0xe1, 0x02)  # shl rcx, 2 (64-bit)
                 elif elem_size == 2:
-                    self.x.emit(0xc1, 0xe1, 0x01)        # shl ecx, 1
-                    self.x.add_eax_ecx()
-            else:
-                self.x.add_eax_ecx()
+                    self.x.emit(0x48, 0xc1, 0xe1, 0x01)  # shl rcx, 1 (64-bit)
+            self.x.emit(0x48, 0x01, 0xc8)  # add rax, rcx (64-bit daima)
             # Pakia thamani
             if elem_size == 8:
                 self.x.emit(0x48, 0x8b, 0x00)  # mov rax, [rax]
@@ -1589,6 +1556,17 @@ def kusanya(chanzo, aina_ya_pato='exec'):
         if aina_ya_pato == 'asm':
             return msimbo
         if aina_ya_pato == 'obj':
+            # Badilisha alama za 0xDEADBEEF kuwa lea rax,[rip+0]; nop;nop;nop
+            MARKER = bytes([0x48, 0xb8, 0xef, 0xbe, 0xad, 0xde, 0xef, 0xbe, 0xad, 0xde])
+            patched = bytearray(msimbo)
+            pos = 0
+            while True:
+                pos = patched.find(MARKER, pos)
+                if pos < 0: break
+                patched[pos:pos+10] = b'\x48\x8d\x05\x00\x00\x00\x00\x90\x90\x90'
+                pos += 10
+            msimbo = bytes(patched)
+
             # Kusanya taarifa za uhamishaji
             labels = {}  # jina -> offset
             ext_refs = []  # (offset, aina, jina)
@@ -1621,9 +1599,9 @@ def kusanya(chanzo, aina_ya_pato='exec'):
                     if name in known_extern:
                         ext_refs.append((pos, 'call', label))
                         seen.add(label)
-            # Marejeleo ya vigezo vya ulimwengu (chuja kwa ukubwa)
+            # Marejeleo ya vigezo vya ulimwengu — ongeza yenye majina halali
             for pos, name in getattr(gen.x, '_global_refs', []):
-                if is_valid_label(name):
+                if len(name) >= 3:
                     ext_refs.append((pos + 3, 'lea', name))
             return make_elf_obj(msimbo, labels, ext_refs)
         return make_elf(msimbo)
