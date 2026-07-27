@@ -1374,8 +1374,8 @@ N32 changanua(Msambazaji* p) {
         N32 node = -1;
 
         // Ruka maelekezo ya husisha (mistari ya kichakata-awali — ruka mstari mzima)
-        kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] == 104) {
-            kama (p->sasa.mwanzo[1] == 117) {
+        kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
+            kama (neno_ni(&p->sasa, "husisha")) {
                 N32 mstari_husisha = p->sasa.mstari;
                 sogeza(p); // tumia neno kuu "husisha"
                 // Ruka tokeni zote kwenye mstari huo huo
@@ -1398,13 +1398,15 @@ N32 changanua(Msambazaji* p) {
             node = changanua_kazi(p);
         }
 
-        // Kama hakuna kilicholingana na hatuko EOF, ni kosa.
+        // Kama hakuna kilicholingana, weka kosa lakini endelea
+        // (kurejesha-hitilafu: badala ya kukoma, ruka na uchukue mengine)
         kama (node == -1) {
             kama (p->sasa.urefu != 0) {
-                p->kosa = 1;
-                andika("hitilafu: kipengele kisichotarajiwa kwenye mstari %d c0=%d u=%d\n", p->sasa.mstari, p->sasa.mwanzo[0], p->sasa.urefu);
+                p->kosa = 1;  // alama kwamba mchanganuo ulishindwa
+                sogeza(p);    // ruka tokeni lisilotambulika
+                endelea;      // endelea kutafuta makosa zaidi
             }
-            vunja;
+            vunja;  // EOF
         }
 
         kama (prev == -1) { kwanza = node; }
