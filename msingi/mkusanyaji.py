@@ -972,21 +972,23 @@ class Mchanganuzi:
         if tok_jina is None:
             return None
 
-        self.lex.tarajia_herufi('(')
-        vigezo = []
-        if not self.lex.angalia_herufi(')'):
-            while True:
-                pa = self.changanua_aina()
-                if pa is None: break
-                pn = self.lex.soma_neno()
-                if pn is None: break
-                vigezo.append((pn.thamani, pa))
-                if not self.lex.tarajia_herufi(','):
-                    break
-        self.lex.tarajia_herufi(')')
-
-        mwili = self.changanua_bloku()
-        return Kazi(tok_jina.thamani, aina, vigezo, mwili)
+        if self.lex.tarajia_herufi('('):
+            vigezo = []
+            if not self.lex.angalia_herufi(')'):
+                while True:
+                    pa = self.changanua_aina()
+                    if pa is None: break
+                    pn = self.lex.soma_neno()
+                    if pn is None: break
+                    vigezo.append((pn.thamani, pa))
+                    if not self.lex.tarajia_herufi(','):
+                        break
+            self.lex.tarajia_herufi(')')
+            mwili = self.changanua_bloku()
+            return Kazi(tok_jina.thamani, aina, vigezo, mwili)
+        elif self.lex.tarajia_herufi(';'):
+            return None  # tangazo la mbele
+        return None  # si kazi — pengine kigezo cha ulimwengu
 
     def changanua_programu(self):
         """Changanua programu nzima."""
@@ -996,30 +998,7 @@ class Mchanganuzi:
         while self.lex.herufi() != '\0':
             k = self.changanua_kazi()
             if k is None:
-                # Jaribu kutambua tangazo la kigezo cha ulimwengu:
-                # Aina jina[ukubwa]; au Aina jina = thamani;
-                pos = self.lex.pos
-                aina = self.changanua_aina()
-                if aina:
-                    tok = self.lex.soma_neno()
-                    if tok and tok.aina == TOK_JINA:
-                        jina = tok.thamani
-                        ukubwa = aina.ukubwa
-                        # Angalia [ukubwa] kwa safu
-                        if self.lex.tarajia_herufi('['):
-                            saizi_tok = self.lex.soma_nambari()
-                            if saizi_tok:
-                                ukubwa = aina.ukubwa * saizi_tok.thamani
-                            self.lex.tarajia_herufi(']')
-                        kianzio = None
-                        if self.lex.tarajia_herufi('='):
-                            kianzio = self.changanua_usemi()
-                        if self.lex.tarajia_herufi(';'):
-                            vigezo_vya_ulimwengu[jina] = (ukubwa, kianzio)
-                            continue
-                # Hairuhusu — ruka
-                self.lex.pos = pos
-                self.lex.advance()
+                self.lex.advance()  # ruka herufi isiyotambulika
                 continue
             if isinstance(k, Muundo):
                 miundo[k.jina] = k
@@ -1547,6 +1526,22 @@ class Kizalishe:
         self.x.emit(0x0f, 0x05)                 # syscall
         self.x.ret()
 
+        # _andika — placeholder (itabadilishwa na printf wakati wa kuunganisha)
+        self.x.label('_andika')
+        self.x.ret()
+
+        # _mmap — syscall 9 (kwa uzalishaji_jit)
+        self.x.label('_mmap')
+        self.x.emit(0xb8, 0x09, 0x00, 0x00, 0x00)
+        self.x.emit(0x0f, 0x05)
+        self.x.ret()
+
+        # _munmap — syscall 11
+        self.x.label('_munmap')
+        self.x.emit(0xb8, 0x0b, 0x00, 0x00, 0x00)
+        self.x.emit(0x0f, 0x05)
+        self.x.ret()
+
     def zalishe_programu(self):
         """Zalisha programu nzima."""
         # _start LAZIMA iwe mwanzo kabisa — ndio inayoitwa na kernel
@@ -1595,22 +1590,36 @@ def kusanya(chanzo, aina_ya_pato='exec'):
             # Kusanya taarifa za uhamishaji
             labels = {}  # jina -> offset
             ext_refs = []  # (offset, aina, jina)
-            # Alama za kazi za mtumiaji TU
+            # Alama za kazi za mtumiaji (sio vigezo vya ulimwengu)
+            bss_names = set(getattr(prog, 'vigezo_vya_ulimwengu', {}).keys())
             for jina in prog.kazi:
-                if jina in gen.x.labels:
+                if jina in gen.x.labels and jina not in bss_names:
                     labels[jina] = gen.x.labels[jina]
             # Alama za visaidizi vya syscall (zinahitajika kwa wito wa ndani)
-            for stub in ['_malloc', '_free', '_printf', '_fopen', '_fread', '_fclose']:
+            for stub in ['_malloc', '_free', '_printf', '_fopen', '_fread', '_fclose', '_andika', '_mmap', '_munmap']:
                 if stub in gen.x.labels:
                     labels[stub] = gen.x.labels[stub]
             # _start — iwe LOCAL (STB_LOCAL) isigongane na libc
             if '_start' in gen.x.labels:
                 labels['_start'] = gen.x.labels['_start']
             # Marejeleo ya nje: zile ambazo HAZIKO kwenye lebo ZOTE za ndani
-            all_labels = dict(gen.x.labels)  # lebo zote (pamoja na za ndani)
+            all_labels = dict(gen.x.labels)
+            # Orodha ya alama za nje zinazojulikana
+            known_extern = {'fopen', 'fread', 'fclose', 'malloc', 'free', 'printf',
+                          'andika', 'mmap', 'munmap', 'msambazaji_mpya'}
+            def is_valid_label(s):
+                if not s: return False
+                # Lazima ianze na herufi au _
+                if not (s[0].isalpha() or s[0] == '_'): return False
+                # Inaweza kuwa na herufi, nambari, na _
+                return all(c.isalnum() or c == '_' for c in s) and len(s) >= 3
+            seen = set()
             for pos, label in gen.x.fixups_32:
-                if label not in all_labels:
-                    ext_refs.append((pos, 'call', label))
+                if label not in all_labels and label not in seen and is_valid_label(label):
+                    name = label.lstrip('_')
+                    if name in known_extern:
+                        ext_refs.append((pos, 'call', label))
+                        seen.add(label)
             # Marejeleo ya vigezo vya ulimwengu
             for pos, name in getattr(gen.x, '_global_refs', []):
                 ext_refs.append((pos + 3, 'lea', name))  # +3 kwa disp32 kwenye lea
