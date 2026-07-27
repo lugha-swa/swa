@@ -108,12 +108,12 @@ Angalia **[hati/ramani.md](hati/ramani.md)** kwa mpango kamili.
 
 | Hatua | Maelezo | Hali |
 |-------|---------|------|
-| 0 | Mkusanyaji wa bootstrap wa Rust | ✅ Imekamilika |
-| 1 | Kujikusanya kwa msingi | ✅ Imekamilika |
-| 2 | Mkusanyaji kamili wa kujikusanya | ✅ Imekamilika |
-| 3 | Ondoa utegemezi wa Rust | 🎯 Lengo |
-| 4 | Ondoa utegemezi wa LLVM | 🎯 Lengo |
-| 5 | Lugha kamili ya mifumo | 🔮 Baadaye |
+| 0 | Mkusanyaji wa bootstrap wa Rust | Imekamilika |
+| 1 | Kujikusanya kwa msingi | Imekamilika |
+| 2 | Mkusanyaji kamili wa kujikusanya | Imekamilika |
+| 3 | Ondoa utegemezi wa Rust | Lengo |
+| 4 | Ondoa utegemezi wa LLVM | Lengo |
+| 5 | Lugha kamili ya mifumo | Baadaye |
 
 ## Jumuiya
 
