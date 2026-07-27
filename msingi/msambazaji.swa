@@ -141,6 +141,24 @@ W0 sogeza(Msambazaji* p) {
 }
 
 // -------------------------------------------------------
+// Ruka tokeni hadi kwenye kifikisha (';', '}', au EOF).
+// Hairuki kifikisha chenyewe — mpigaji anaamua la kufanya.
+// Rudisha: 1 = ';', 2 = '}', 0 = EOF
+// -------------------------------------------------------
+N32 ruka_hadi_kifikisha(Msambazaji* p) {
+    wakati (p->sasa.urefu != 0) {
+        // Angalia kama tokeni ya sasa ni kifikisha
+        kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
+            kama (neno_ni(&p->sasa, ";")) { rudisha 1; }
+            kama (neno_ni(&p->sasa, "}")) { rudisha 2; }
+        }
+        kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, ";")) { rudisha 1; }
+        sogeza(p);
+    }
+    rudisha 0; // EOF
+}
+
+// -------------------------------------------------------
 // Tarajia tokeni ya aina fulani; tumia ikifaulu
 // -------------------------------------------------------
 N32 tarajia(Msambazaji* p, N32 aina_tokeni) {
@@ -666,7 +684,13 @@ N32 changanua_kazi_mwili(Msambazaji* p) {
         kama (p->sasa.urefu == 0) { vunja; }
 
         N32 stmt = changanua_taarifa(p);
-        kama (stmt == -1) { vunja; }
+        kama (stmt == -1) {
+            p->kosa = 1;
+            N32 fika = ruka_hadi_kifikisha(p);
+            kama (fika == 1) { sogeza(p); endelea; }  // tumia ';', endelea
+            kama (fika == 2) { vunja; }               // '}' — loop itaiona
+            vunja;                                      // EOF
+        }
         kama (prev == -1) { body = stmt; }
         sivyo { ast_nne[prev] = stmt; }
         prev = stmt;
@@ -1164,7 +1188,13 @@ N32 changanua_bloku(Msambazaji* p) {
             kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
         }
         N32 stmt = changanua_taarifa(p);
-        kama (stmt == -1) { vunja; }
+        kama (stmt == -1) {
+            p->kosa = 1;
+            N32 fika = ruka_hadi_kifikisha(p);
+            kama (fika == 1) { sogeza(p); endelea; }  // tumia ';', endelea
+            kama (fika == 2) { vunja; }               // '}' — bloku loop itaiona
+            vunja;                                      // EOF
+        }
         kama (prev == -1) { kwanza = stmt; }
         sivyo { ast_nne[prev] = stmt; }
         prev = stmt;
@@ -1374,8 +1404,8 @@ N32 changanua(Msambazaji* p) {
         N32 node = -1;
 
         // Ruka maelekezo ya husisha (mistari ya kichakata-awali — ruka mstari mzima)
-        kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] == 104) {
-            kama (p->sasa.mwanzo[1] == 117) {
+        kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
+            kama (neno_ni(&p->sasa, "husisha")) {
                 N32 mstari_husisha = p->sasa.mstari;
                 sogeza(p); // tumia neno kuu "husisha"
                 // Ruka tokeni zote kwenye mstari huo huo
@@ -1398,13 +1428,15 @@ N32 changanua(Msambazaji* p) {
             node = changanua_kazi(p);
         }
 
-        // Kama hakuna kilicholingana na hatuko EOF, ni kosa.
+        // Kama hakuna kilicholingana, weka kosa lakini endelea
+        // (kurejesha-hitilafu: badala ya kukoma, ruka na uchukue mengine)
         kama (node == -1) {
             kama (p->sasa.urefu != 0) {
-                p->kosa = 1;
-                andika("hitilafu: kipengele kisichotarajiwa kwenye mstari %d c0=%d u=%d\n", p->sasa.mstari, p->sasa.mwanzo[0], p->sasa.urefu);
+                p->kosa = 1;  // alama kwamba mchanganuo ulishindwa
+                sogeza(p);    // ruka tokeni lisilotambulika
+                endelea;      // endelea kutafuta makosa zaidi
             }
-            vunja;
+            vunja;  // EOF
         }
 
         kama (prev == -1) { kwanza = node; }
