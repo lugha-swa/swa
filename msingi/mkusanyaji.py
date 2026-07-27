@@ -842,7 +842,10 @@ class Mchanganuzi:
         while True:
             op = None
             c = self.lex.herufi()
-            if c == '+': op = '+'
+            if c == '=' and self.lex.herufi(1) == '=': op = '=='; self.lex.advance()
+            elif c == '!' and self.lex.herufi(1) == '=': op = '!='; self.lex.advance()
+            elif c == '=': op = '='
+            elif c == '+': op = '+'
             elif c == '-': op = '-'
             elif c == '<':
                 if self.lex.herufi(1) == '=': op = '<='; self.lex.advance()
@@ -852,8 +855,6 @@ class Mchanganuzi:
                 if self.lex.herufi(1) == '=': op = '>='; self.lex.advance()
                 elif self.lex.herufi(1) == '>': op = '>>'; self.lex.advance()
                 else: op = '>'
-            elif c == '=' and self.lex.herufi(1) == '=': op = '=='; self.lex.advance()
-            elif c == '!' and self.lex.herufi(1) == '=': op = '!='; self.lex.advance()
             elif c == '&' and self.lex.herufi(1) == '&': op = '&&'; self.lex.advance()
             elif c == '|' and self.lex.herufi(1) == '|': op = '||'; self.lex.advance()
             else: break
@@ -1324,7 +1325,26 @@ class Kizalishe:
             return
 
         if op == '=':
+            # Ugawaji: lvalue = rvalue
+            lhs = node.kushoto
+            # Tathmini RHS kwanza
             self.zalishe_usemi(node.kulia, 'eax')
+            self.x.push('rax')
+            # Pata anwani ya LHS
+            if isinstance(lhs, Kitambulisho):
+                info = self.tafuta_kigezo(lhs.jina)
+                if info:
+                    off, aina = info
+                    self.x._lea_rax_rbp_off(off)
+                else:
+                    self.zalishe_lvalue_ulimwengu(lhs.jina)
+            elif isinstance(lhs, Sehemu):
+                self.zalishe_sehemu_lvalue(lhs)
+            else:
+                self.x.xor_reg('eax')
+            # Hifadhi
+            self.x.pop('rcx')
+            self.x.emit(0x89, 0x08)  # mov [rax], ecx
             return
 
         # Tathmini upande wa kulia kwanza, hifadhi
