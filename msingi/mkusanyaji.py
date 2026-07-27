@@ -835,7 +835,19 @@ class Mchanganuzi:
         return node
 
     def changanua_usemi(self):
-        """+, -, ulinganishi, &&"""
+        """= (ugawaji) — ina kiwango cha chini kabisa"""
+        node = self.changanua_usemi_linganishi()
+        if node is None: return None
+
+        # Angalia kama ni ugawaji: expr = expr
+        if self.lex.angalia_herufi('=') and self.lex.herufi(1) != '=':
+            self.lex.advance()
+            right = self.changanua_usemi()
+            return Operesheni('=', node, right)
+        return node
+
+    def changanua_usemi_linganishi(self):
+        """||, &&, ulinganishi, +, -, hesabu"""
         node = self.changanua_usemi_hesabu()
         if node is None: return None
 
@@ -844,7 +856,6 @@ class Mchanganuzi:
             c = self.lex.herufi()
             if c == '=' and self.lex.herufi(1) == '=': op = '=='; self.lex.advance()
             elif c == '!' and self.lex.herufi(1) == '=': op = '!='; self.lex.advance()
-            elif c == '=': op = '='
             elif c == '+': op = '+'
             elif c == '-': op = '-'
             elif c == '<':
@@ -1477,7 +1488,9 @@ class Kizalishe:
                         info = self.tafuta_kigezo(node.usemi.jina)
                         if info:
                             src_off, _ = info
-                            self.x.emit(0x48, 0x8d, 0x75, (256 - src_off) & 0xFF)  # lea rsi, [rbp-src]
+                            modrm, disp = self.x._rbp_disp(src_off)
+                            self.x.emit(0x48, 0x8d, (modrm & 0xC7) | (6 << 3))  # lea rsi, [rbp-src]
+                            self.x.b.extend(disp)
                             # rep movsb: cld; mov ecx, size; rep movsb
                             self.x.emit(0xfc)  # cld
                             self.x.emit(0xb9)  # mov ecx, imm32
