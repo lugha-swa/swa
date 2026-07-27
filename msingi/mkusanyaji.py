@@ -1391,9 +1391,36 @@ class Kizalishe:
                 self.x.emit(0x48, 0x01, 0xc8)  # add rax, rcx
             else:
                 self.x.xor_reg('eax')
-            # Hifadhi
-            self.x.pop('rcx')
-            self.x.emit(0x89, 0x08)  # mov [rax], ecx
+            # Hifadhi — angalia kama ni muundo unaohitaji nakala
+            rhs = node.kulia
+            ni_muundo_rhs = False
+            if isinstance(rhs, Wito):
+                kazi_rhs = self.env.kazi_zote.get(rhs.jina)
+                if kazi_rhs and self._ni_muundo(kazi_rhs.aina_ya_kurudi):
+                    ni_muundo_rhs = True
+                    struct_size = self._ukubwa_wa_muundo_kutoka_aina(kazi_rhs.aina_ya_kurudi)
+
+            if ni_muundo_rhs:
+                # Nakili kutoka sret buf (tayari iko kwenye rax baada ya wito)
+                # hadi kwenye anwani ya LHS (iliyoko kwenye rax kutoka hapo juu)
+                # Kwa urahisi: tumia rep movsb
+                # rdi = LHS address (tayari iko kwenye rax — ihifadhi)
+                self.x.emit(0x48, 0x89, 0xc7)  # mov rdi, rax (dst = LHS)
+                # rsi = RHS (sret buffer — iko kwenye rax kabla ya wito)
+                # Hii ni ngumu kwa sababu rax imebadilishwa.
+                # Badala yake, tumia mbinu rahisi: hifadhi LHS, pata RHS kutoka sret_buf
+                sret_buf_off = getattr(self, '_sret_buf_off', 0)
+                if sret_buf_off:
+                    modrm, disp = self.x._rbp_disp(sret_buf_off)
+                    self.x.emit(0x48, 0x8d, (modrm & 0xC7) | (6 << 3))  # lea rsi, [rbp-buf]
+                    self.x.b.extend(disp)
+                    self.x.emit(0xfc)  # cld
+                    self.x.emit(0xb9)  # mov ecx, imm32
+                    self.x.b.extend(struct.pack('<I', struct_size))
+                    self.x.emit(0xf3, 0xa4)  # rep movsb
+            else:
+                self.x.pop('rcx')
+                self.x.emit(0x89, 0x08)  # mov [rax], ecx
             return
 
         # Tathmini upande wa kulia kwanza, hifadhi
