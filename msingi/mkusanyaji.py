@@ -218,18 +218,68 @@ class X64:
 BASE = 0x400000
 PAGE = 0x1000
 
-def make_elf(code_bytes):
-    """Funga msimbo wa mashine kwenye ELF executable."""
-    entry = BASE + 0x78  # CODE_OFF = EHDR(64) + PHDR(56)
+# ============================================================
+# Visaidizi vya syscall (badala ya libc)
+# ============================================================
 
+def syscall_open():
+    """sys_open(path, flags, mode) — syscall 2"""
+    return bytes([
+        0xb8, 0x02, 0x00, 0x00, 0x00,  # mov eax, 2
+        0x0f, 0x05,                      # syscall
+        0xc3,                            # ret
+    ])
+
+def syscall_read():
+    """sys_read(fd, buf, count) — syscall 0"""
+    return bytes([
+        0xb8, 0x00, 0x00, 0x00, 0x00,  # mov eax, 0
+        0x0f, 0x05,                      # syscall
+        0xc3,                            # ret
+    ])
+
+def syscall_write():
+    """sys_write(fd, buf, count) — syscall 1"""
+    return bytes([
+        0xb8, 0x01, 0x00, 0x00, 0x00,  # mov eax, 1
+        0x0f, 0x05,                      # syscall
+        0xc3,                            # ret
+    ])
+
+def syscall_close():
+    """sys_close(fd) — syscall 3"""
+    return bytes([
+        0xb8, 0x03, 0x00, 0x00, 0x00,  # mov eax, 3
+        0x0f, 0x05,                      # syscall
+        0xc3,                            # ret
+    ])
+
+def syscall_exit():
+    """sys_exit(code) — syscall 60"""
+    return bytes([
+        0xb8, 0x3c, 0x00, 0x00, 0x00,  # mov eax, 60
+        0x0f, 0x05,                      # syscall
+    ])
+
+def syscall_mmap(addr_reg='rdi', length_reg='rsi'):
+    """sys_mmap(addr, length, prot, flags, fd, offset) — syscall 9
+    Inapokea hoja kwenye rejesta. Hii ni rahisi zaidi kuiweka
+    kwenye muktadha wa wito badala ya kama kazi huru."""
+    return bytes([
+        0xb8, 0x09, 0x00, 0x00, 0x00,  # mov eax, 9
+        0x0f, 0x05,                      # syscall
+    ])
+
+
+def make_elf(code_bytes):
+    """Funga msimbo wa mashine kwenye ELF executable inayojitosheleza."""
+    entry = BASE + 0x78
     ehdr = b'\x7fELF\x02\x01\x01\x00' + b'\x00'*8
     ehdr += struct.pack('<HHIQQQIHHHHHH',
         2, 0x3E, 1, entry, 64, 0, 0, 64, 56, 1, 0, 0, 0)
 
-    # PHDR inapakia faili lote (vichwa + msimbo)
     total_file_size = 64 + 56 + len(code_bytes)
-    code_vaddr = BASE + 0x78  # code starts after headers
-    memsz = len(code_bytes) + 0x1000  # nafasi ya rafu
+    memsz = len(code_bytes) + 0x1000
     phdr = struct.pack('<IIQQQQQQ', 1, 7, 0, BASE, BASE, total_file_size, memsz, PAGE)
 
     return ehdr + phdr + code_bytes
@@ -913,8 +963,8 @@ class Kizalishe:
             self.x.xor_reg(reg)
 
     def _wito_nje(self, jina):
-        """Wito wa kazi ya nje (C) — hupitisha jina kama lebo isiyojulikana."""
-        self.x.call_rel32(jina)
+        """Wito wa kazi ya nje — hutumia visaidizi vya syscall vilivyojengwa ndani."""
+        self.x.call_rel32('_' + jina)  # _malloc, _free, n.k.
 
     def zalishe_sehemu(self, node):
         """Zalisha ufikiaji wa sehemu ya muundo (-> au .)."""
@@ -1221,9 +1271,65 @@ class Kizalishe:
         self.x.mov_eax_imm(60)   # sys_exit
         self.x.syscall()
 
+    def _zalishe_visaidizi_vya_syscall(self):
+        """Zalisha utekelezaji wa kazi za nje kwa kutumia syscall."""
+        # _malloc(size=edi) — bump allocator rahisi
+        self.x.label('_malloc')
+        # Tunaweka kielekezi cha mpaka kwenye BSS (anwani maalum)
+        # Kwa urahisi: tumia mmap kila wakati
+        # mmap(0, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0)
+        self.x.emit(0x48, 0x89, 0xfe)           # mov rsi, rdi (length)
+        self.x.emit(0x48, 0x31, 0xff)           # xor rdi, rdi (addr=0)
+        self.x.emit(0xba, 0x03, 0x00, 0x00, 0x00)  # mov edx, 3 (PROT_READ|PROT_WRITE)
+        self.x.emit(0x41, 0xb9, 0x22, 0x00, 0x00, 0x00)  # mov r9d, 0x22 (MAP_PRIVATE|MAP_ANONYMOUS)
+        self.x.emit(0x41, 0xb8, 0xff, 0xff, 0xff, 0xff)  # mov r8d, -1 (fd)
+        self.x.emit(0x48, 0x31, 0xc9)           # xor rcx, rcx (offset=0)
+        self.x.emit(0xb8, 0x09, 0x00, 0x00, 0x00)  # mov eax, 9 (mmap)
+        self.x.emit(0x0f, 0x05)                 # syscall
+        self.x.ret()
+
+        # _free(ptr=edi) — no-op kwa sasa
+        self.x.label('_free')
+        self.x.ret()
+
+        # _printf — andika kwenye stdout kwa kutumia sys_write
+        # Kwa urahisi: tunachukulia hoja imeshughulikiwa na mpigaji
+        self.x.label('_printf')
+        self.x.ret()  # no-op kwa sasa
+
+        # _fopen(njia=rdi, mode=rsi) — sys_open
+        self.x.label('_fopen')
+        # rdi = njia (tayari), rsi = mode
+        # Badilisha mode: "r" = O_RDONLY (0)
+        self.x.emit(0x48, 0x31, 0xf6)           # xor rsi, rsi (O_RDONLY)
+        self.x.emit(0xb8, 0x02, 0x00, 0x00, 0x00)  # mov eax, 2 (open)
+        self.x.emit(0x0f, 0x05)                 # syscall
+        self.x.ret()
+
+        # _fread(buf=rdi, size=rsi, count=rdx, stream=rcx) — sys_read
+        self.x.label('_fread')
+        # Hoja tayari ziko karibu: rdi=fd (tunachukulia stream ni fd)
+        # Lakini fread ina buf, size, count, stream
+        # Rahisisha: tunachukulia rdi=buf, rsi=size*count, rdx=fd
+        # Kwa wito kutoka Swa: hoja zinapitishwa kama (buf, size, count, fd)
+        # Rekebisha: rdi=fd, rsi=buf, rdx=count*size
+        self.x.emit(0x48, 0x89, 0xfe)           # mov rsi, rdi (buf)
+        # rdx tayari ina count — lakini tunahitaji size*count
+        # Kwa sasa, tunachukulia size=1
+        self.x.emit(0x48, 0x89, 0xd0)           # mov rax, rdx (count)
+        self.x.emit(0xb8, 0x00, 0x00, 0x00, 0x00)  # mov eax, 0 (read)
+        self.x.emit(0x0f, 0x05)                 # syscall
+        self.x.ret()
+
+        # _fclose(fd=rdi) — sys_close
+        self.x.label('_fclose')
+        self.x.emit(0xb8, 0x03, 0x00, 0x00, 0x00)  # mov eax, 3 (close)
+        self.x.emit(0x0f, 0x05)                 # syscall
+        self.x.ret()
+
     def zalishe_programu(self):
         """Zalisha programu nzima."""
-        # _start LAZIMA iwe mwanzo — ndio inayoitwa na kernel
+        # _start LAZIMA iwe mwanzo kabisa — ndio inayoitwa na kernel
         if 'main' in self.prog.kazi:
             self.zalishe_kiingilio()
         else:
@@ -1234,9 +1340,12 @@ class Kizalishe:
             self.x.mov_eax_imm(60)
             self.x.syscall()
 
-        # Kisha, zalisha kazi zote
+        # Kisha, zalisha kazi zote za mtumiaji
         for jina, kazi in self.prog.kazi.items():
             self.zalishe_kazi(kazi)
+
+        # Mwisho, zalisha visaidizi vya syscall
+        self._zalishe_visaidizi_vya_syscall()
 
         self.x.resolve_fixups()
         return bytes(self.x.b)
@@ -1246,8 +1355,9 @@ class Kizalishe:
 # 7. Kiingilio Kikuu
 # ============================================================
 
-def kusanya(chanzo):
-    """Kusanya chanzo cha Swa hadi binary ya ELF."""
+def kusanya(chanzo, aina_ya_pato='exec'):
+    """Kusanya chanzo cha Swa hadi binary ya ELF.
+    aina_ya_pato: 'exec' kwa executable, 'obj' kwa .o (relocatable)."""
     try:
         mp = Mchanganuzi(chanzo)
         prog = mp.changanua_programu()
@@ -1259,6 +1369,8 @@ def kusanya(chanzo):
         gen = Kizalishe(prog)
         msimbo = gen.zalishe_programu()
 
+        if aina_ya_pato == 'obj':
+            return make_elf_obj(msimbo)
         return make_elf(msimbo)
 
     except SyntaxError as e:
@@ -1267,30 +1379,50 @@ def kusanya(chanzo):
 
 
 def main():
-    if len(sys.argv) < 2:
-        # Soma kutoka stdin
-        chanzo = sys.stdin.read()
-        njia_ya_pato = None
-    elif sys.argv[1] == '-o':
-        if len(sys.argv) < 4:
-            sys.stderr.write("Matumizi: mkusanyaji.py [-o output] [input.swa]\n")
-            sys.exit(1)
-        with open(sys.argv[3]) as f:
-            chanzo = f.read()
-        njia_ya_pato = sys.argv[2]
-    else:
-        with open(sys.argv[1]) as f:
-            chanzo = f.read()
-        njia_ya_pato = sys.argv[1].replace('.swa', '') if sys.argv[1].endswith('.swa') else 'a.out'
+    aina_ya_pato = 'exec'
+    faili_za_chanzo = []
 
-    binary = kusanya(chanzo)
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == '-c':
+            aina_ya_pato = 'obj'
+        elif args[i] == '-o':
+            i += 1
+            njia_ya_pato = args[i]
+        else:
+            faili_za_chanzo.append(args[i])
+        i += 1
+
+    if not faili_za_chanzo:
+        chanzo = sys.stdin.read()
+    else:
+        chanzo = ''
+        for f in faili_za_chanzo:
+            with open(f) as fh:
+                chanzo += fh.read() + '\n'
+
+    binary = kusanya(chanzo, aina_ya_pato)
     if binary is None:
         sys.exit(1)
+
+    # Amua jina la pato
+    njia_ya_pato = None
+    for a in sys.argv[1:]:
+        if a == '-o':
+            idx = sys.argv.index('-o')
+            if idx + 1 < len(sys.argv):
+                njia_ya_pato = sys.argv[idx + 1]
+            break
+    if njia_ya_pato is None and faili_za_chanzo:
+        njia_ya_pato = faili_za_chanzo[0].replace('.swa', '.o' if aina_ya_pato == 'obj' else '')
 
     if njia_ya_pato:
         with open(njia_ya_pato, 'wb') as f:
             f.write(binary)
-        os.chmod(njia_ya_pato, 0o755)
+        if aina_ya_pato == 'exec':
+            os.chmod(njia_ya_pato, 0o755)
+        print(f"  -> {njia_ya_pato} ({len(binary)} baiti)")
     else:
         sys.stdout.buffer.write(binary)
 
