@@ -75,7 +75,7 @@ class X64:
 
     def mov_rbp_off(self, reg, off, size=4):
         """mov reg, [rbp-off] (load from stack)"""
-        r = {'eax':0,'rax':0,'ecx':1,'edx':2,'esi':6,'edi':7}.get(reg, 0)
+        r = {'eax':0,'rax':0,'ecx':1,'edx':2,'esi':6,'edi':7,'rdi':7,'rsi':6}.get(reg, 0)
         modrm = 0x40 | (r << 3) | 5  # mod=01, reg=r, rm=rbp
         if size == 8:
             self.emit(0x48, 0x8b, modrm, (256 - off) & 0xFF)
@@ -84,7 +84,7 @@ class X64:
 
     def mov_off_rbp(self, off, reg, size=4):
         """mov [rbp-off], reg (store to stack)."""
-        rmap = {'eax':0,'rax':0,'ecx':1,'edx':2,'ebx':3,'esi':6,'edi':7}
+        rmap = {'eax':0,'rax':0,'ecx':1,'edx':2,'ebx':3,'esi':6,'edi':7,'rdi':7,'rsi':6}
         r = rmap.get(reg, 0)
         modrm = 0x40 | (r << 3) | 5  # mod=01, reg=r, rm=rbp
         if size == 8:
@@ -447,15 +447,24 @@ AINA_N64 = Aina('N64', 8)
 AINA_N8 = Aina('N8', 1)
 AINA_N8P = Aina('N8*', 8, True)
 
-def aina_kutoka_jina(jina):
+def aina_kutoka_jina(jina, miundo=None):
     if jina == 'N32': return AINA_N32
     if jina == 'N64': return AINA_N64
     if jina == 'N8': return AINA_N8
     if jina == 'W0': return AINA_TUPU
     if jina == 'N8_star' or jina == 'N8*': return AINA_N8P
-    # Vielekezi vingi: N8**, N32*, n.k.
     if '_star' in jina or jina.endswith('*'):
         return Aina(jina, 8, True)
+    # Muundo wa mtumiaji — tafuta ukubwa halisi
+    if miundo and jina in miundo:
+        muundo = miundo[jina]
+        ukubwa = 0
+        for sehemu_jina, sehemu_aina in muundo.sehemu:
+            sz = sehemu_aina.ukubwa if sehemu_aina else 4
+            if sz > 1 and ukubwa % sz:
+                ukubwa += sz - (ukubwa % sz)
+            ukubwa += sz
+        return Aina(jina, max(ukubwa, 8), False)
     return Aina(jina, 4)
 
 
@@ -1181,28 +1190,51 @@ class Kizalishe:
     def zalishe_wito(self, node):
         """Zalisha wito wa kazi."""
         kazi = self.env.kazi_zote.get(node.jina)
-        ni_ya_nje = kazi is None  # haipo kwenye kazi za mtumiaji
+        ni_ya_nje = kazi is None
 
-        # Pitisha hoja kwenye rejesta za 64-bit (sahihi kwa vielekezi)
-        for i, arg in enumerate(node.hoja[:6]):
+        # Angalia kama mpigiwa anarudisha muundo (sret)
+        ni_sret = False
+        sret_size = 0
+        if kazi and self._ni_muundo(kazi.aina_ya_kurudi):
+            ni_sret = True
+            sret_size = self._ukubwa_wa_muundo_kutoka_aina(kazi.aina_ya_kurudi)
+            # Tenga nafasi kwenye rafu kwa thamani ya kurudi
+            align = min(sret_size, 8)
+            if self.env.rafu_juu % align:
+                self.env.rafu_juu += align - (self.env.rafu_juu % align)
+            sret_buf_off = self.env.rafu_juu + sret_size
+            self.env.rafu_juu = sret_buf_off
+            # Pitisha kielekezi cha sret kwenye rdi
+            self.x.emit(0x48, 0x8d, 0x45, (256 - sret_buf_off) & 0xFF)  # lea rax, [rbp-sret_buf]
+            self.x.emit(0x48, 0x89, 0xc7)  # mov rdi, rax
+
+        # Pitisha hoja (zinaanza kutoka rsi kwa sababu rdi ni sret)
+        start_reg = 1 if ni_sret else 0
+        for i, arg in enumerate(node.hoja[:6 - start_reg]):
             self.zalishe_usemi(arg, 'eax')
-            if i == 0:
+            actual_i = i + start_reg
+            if actual_i == 0:
                 self.x.emit(0x48, 0x89, 0xc7)  # mov rdi, rax
-            elif i == 1:
+            elif actual_i == 1:
                 self.x.emit(0x48, 0x89, 0xc6)  # mov rsi, rax
-            elif i == 2:
+            elif actual_i == 2:
                 self.x.emit(0x48, 0x89, 0xc2)  # mov rdx, rax
-            elif i == 3:
+            elif actual_i == 3:
                 self.x.emit(0x48, 0x89, 0xc1)  # mov rcx, rax
-            elif i == 4:
+            elif actual_i == 4:
                 self.x.emit(0x49, 0x89, 0xc0)  # mov r8, rax
-            elif i == 5:
+            elif actual_i == 5:
                 self.x.emit(0x49, 0x89, 0xc1)  # mov r9, rax
 
         if ni_ya_nje:
-            self.x.call_rel32('_' + node.jina)  # _fopen, _fread, n.k.
+            self.x.call_rel32('_' + node.jina)
         else:
             self.x.call_rel32(node.jina)
+
+        # Baada ya wito, kama ni sret, pakia matokeo kutoka kwenye sret buf
+        if ni_sret:
+            # Matokeo tayari yako kwenye sret_buf — rudisha kielekezi chake
+            self.x.emit(0x48, 0x8d, 0x45, (256 - sret_buf_off) & 0xFF)  # lea rax, [rbp-sret_buf]
         # Matokeo yako kwenye eax
 
     def zalishe_operesheni(self, node):
@@ -1322,9 +1354,41 @@ class Kizalishe:
                 self.x.emit(0x89, 0x08)  # mov [rax], ecx
 
         elif isinstance(node, Rudisha):
-            if node.usemi:
-                self.zalishe_usemi(node.usemi, 'eax')
-                self.x.emit(0x89, 0xc7)  # mov edi, eax
+            ni_sret = self._ni_muundo(self.env.kazi_sasa.aina_ya_kurudi) if self.env.kazi_sasa else False
+            if ni_sret:
+                # Nakili muundo hadi kwenye kielekezi cha sret
+                sret_off, _ = self.env.vigezo.get('__sret_ptr', (0, None))
+                if node.usemi:
+                    # Pakia anwani ya chanzo (muundo wa ndani)
+                    if isinstance(node.usemi, Kitambulisho):
+                        info = self.tafuta_kigezo(node.usemi.jina)
+                        if info:
+                            src_off, _ = info
+                            # Pakia sret_ptr hadi rdi
+                            self.x.mov_rbp_off('rax', sret_off, 8)  # rax = dst
+                            self.x.emit(0x48, 0x89, 0xc7)  # mov rdi, rax
+                            # Pakia anwani ya chanzo hadi rsi
+                            self.x.emit(0x48, 0x8d, 0x45, (256 - src_off) & 0xFF)  # lea rsi, [rbp-src_off]
+                            # Nakili kwa kutumia rep movsb (rahisi)
+                    # Kwa sasa: nakili tu kwa kutumia movsq kwa mfululizo
+                    sret_size = self._ukubwa_wa_muundo_kutoka_aina(self.env.kazi_sasa.aina_ya_kurudi)
+                    self.x.mov_rbp_off('rdi', sret_off, 8)  # rdi = dst
+                    if node.usemi and isinstance(node.usemi, Kitambulisho):
+                        info = self.tafuta_kigezo(node.usemi.jina)
+                        if info:
+                            src_off, _ = info
+                            self.x.emit(0x48, 0x8d, 0x75, (256 - src_off) & 0xFF)  # lea rsi, [rbp-src]
+                            # rep movsb: cld; mov ecx, size; rep movsb
+                            self.x.emit(0xfc)  # cld
+                            self.x.emit(0xb9)  # mov ecx, imm32
+                            self.x.b.extend(struct.pack('<I', sret_size))
+                            self.x.emit(0xf3, 0xa4)  # rep movsb
+                # Rudisha sret_ptr
+                self.x.mov_rbp_off('rax', sret_off, 8)  # rax = sret_ptr
+            else:
+                if node.usemi:
+                    self.zalishe_usemi(node.usemi, 'eax')
+                    self.x.emit(0x89, 0xc7)  # mov edi, eax
             self.x.leave()
             self.x.ret()
 
@@ -1391,6 +1455,31 @@ class Kizalishe:
         elif isinstance(mwili, Wakati):
             self._tengua_vigezo_awali(mwili.mwili)
 
+    def _ni_muundo(self, aina):
+        """Angalia kama aina ni muundo unaohitaji sret."""
+        if aina is None: return False
+        jina = aina.jina
+        if jina in ('N32','N64','N8','W0'): return False
+        if aina.ni_kielekezi: return False
+        # Angalia kama jina linajulikana kwenye miundo
+        if self.prog.miundo and jina in self.prog.miundo:
+            return True
+        return False
+
+    def _ukubwa_wa_muundo_kutoka_aina(self, aina):
+        """Kokotoa ukubwa halisi wa muundo."""
+        if aina is None: return 4
+        if self.prog.miundo and aina.jina in self.prog.miundo:
+            muundo = self.prog.miundo[aina.jina]
+            ukubwa = 0
+            for sehemu_jina, sehemu_aina in muundo.sehemu:
+                sz = sehemu_aina.ukubwa if sehemu_aina else 4
+                if sz > 1 and ukubwa % sz:
+                    ukubwa += sz - (ukubwa % sz)
+                ukubwa += sz
+            return max(ukubwa, 8)
+        return aina.ukubwa
+
     def zalishe_kazi(self, kazi):
         """Zalisha msimbo kwa kazi nzima."""
         self.env.vigezo = {}
@@ -1399,29 +1488,37 @@ class Kizalishe:
         self.env.endelea_lebo = []
         self.env.kazi_sasa = kazi
 
-        # Sajili vigezo vya kazi
+        # Tambua ikiwa kazi inarudisha muundo (sret)
+        ni_sret = self._ni_muundo(kazi.aina_ya_kurudi)
+        sret_size = self._ukubwa_wa_muundo_kutoka_aina(kazi.aina_ya_kurudi) if ni_sret else 0
+
+        # Sajili vigezo vya kazi (sret pointer inachukua nafasi ya kwanza)
+        if ni_sret:
+            self.tengua_nafasi('__sret_ptr', AINA_N8P)  # nafasi ya kuhifadhi rdi
         for jina, aina in kazi.vigezo:
             self.tengua_nafasi(jina, aina)
 
-        # Tengua vigezo vyote vya ndani KABLA ya kutoa mwili
         self._tengua_vigezo_awali(kazi.mwili)
 
         self.x.label(kazi.jina)
-
-        # Utangulizi wenye nafasi kamili ya rafu
         self.x.push_rbp()
         self.x.mov_rbp_rsp()
         self.x.sub_rsp(self.env.rafu_juu)
 
-        # Hifadhi vigezo vya kazi kutoka kwenye rejesta
+        # Sret: hifadhi rdi (kielekezi cha sret)
+        if ni_sret:
+            off, _ = self.env.vigezo['__sret_ptr']
+            self.x.mov_off_rbp(off, 'edi', 8)  # mov [rbp-off], rdi
+
+        # Hifadhi vigezo vya kazi
         for i, (jina, aina) in enumerate(kazi.vigezo):
             off, _ = self.env.vigezo[jina]
             if i == 0:
-                self.x.mov_off_rbp(off, 'edi', aina.ukubwa)
+                self.x.mov_off_rbp(off, 'esi', aina.ukubwa)  # esi kwa sababu rdi ni sret
             elif i == 1:
-                self.x.mov_off_rbp(off, 'esi', aina.ukubwa)
-            elif i == 2:
                 self.x.mov_off_rbp(off, 'edx', aina.ukubwa)
+            elif i == 2:
+                self.x.mov_off_rbp(off, 'ecx', aina.ukubwa)
 
         # Toa mwili
         self.zalishe_taarifa(kazi.mwili)
@@ -1434,8 +1531,19 @@ class Kizalishe:
                 ina_rudisha = True
 
         if not ina_rudisha:
-            self.x.leave()
-            self.x.ret()
+            if ni_sret:
+                self._rudisha_sret(sret_size)
+            else:
+                self.x.leave()
+                self.x.ret()
+
+    def _rudisha_sret(self, size):
+        """Nakili muundo hadi [sret_ptr] na urudishe kielekezi."""
+        off, _ = self.env.vigezo['__sret_ptr']
+        self.x.mov_rbp_off('rax', off, 8)  # rax = sret_ptr
+        # Rudisha sret_ptr kwenye rax (tayari iko)
+        self.x.leave()
+        self.x.ret()
 
     def zalishe_kiingilio(self):
         """Zalisha _start inayowita main() kwa kupitisha argc/argv."""
