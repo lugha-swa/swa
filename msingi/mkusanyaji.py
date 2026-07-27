@@ -76,23 +76,21 @@ class X64:
     def mov_rbp_off(self, reg, off, size=4):
         """mov reg, [rbp-off] (load from stack)"""
         r = {'eax':0,'rax':0,'ecx':1,'edx':2,'esi':6,'edi':7}.get(reg, 0)
+        modrm = 0x40 | (r << 3) | 5  # mod=01, reg=r, rm=rbp
         if size == 8:
-            self.emit(0x48, 0x8b, 0x45, (256 - off) & 0xFF)
+            self.emit(0x48, 0x8b, modrm, (256 - off) & 0xFF)
         else:
-            self.emit(0x8b, 0x45, (256 - off) & 0xFF)
-        # fixup for 8-byte:
-        if size == 8 and reg in ('rax','eax'):
-            pass  # already correct
+            self.emit(0x8b, modrm, (256 - off) & 0xFF)
 
     def mov_off_rbp(self, off, reg, size=4):
-        """mov [rbp-off], reg (store to stack). reg is source register name."""
-        rmap = {'eax':0,'rax':0,'ecx':1,'edx':2,'esi':6,'edi':7}
+        """mov [rbp-off], reg (store to stack)."""
+        rmap = {'eax':0,'rax':0,'ecx':1,'edx':2,'ebx':3,'esi':6,'edi':7}
         r = rmap.get(reg, 0)
+        modrm = 0x40 | (r << 3) | 5  # mod=01, reg=r, rm=rbp
         if size == 8:
-            # REX.W + 89 + modrm
-            self.emit(0x48, 0x89, 0x45, (256 - off) & 0xFF)
+            self.emit(0x48, 0x89, modrm, (256 - off) & 0xFF)
         else:
-            self.emit(0x89, 0x45, (256 - off) & 0xFF)
+            self.emit(0x89, modrm, (256 - off) & 0xFF)
 
     def mov_eax_imm(self, v):
         self.emit(0xb8); self.i32(v)
@@ -307,6 +305,9 @@ def aina_kutoka_jina(jina):
     if jina == 'N8': return AINA_N8
     if jina == 'W0': return AINA_TUPU
     if jina == 'N8_star' or jina == 'N8*': return AINA_N8P
+    # Vielekezi vingi: N8**, N32*, n.k.
+    if '_star' in jina or jina.endswith('*'):
+        return Aina(jina, 8, True)
     return Aina(jina, 4)
 
 
@@ -1015,25 +1016,22 @@ class Kizalishe:
         kazi = self.env.kazi_zote.get(node.jina)
         num_params = len(kazi.vigezo) if kazi else len(node.hoja)
 
-        # Pitisha hoja kwenye rejesta (kwa sasa, hadi 6)
-        regs = ['edi', 'esi', 'edx', 'ecx', 'r8d', 'r9d']
-        saved = []
+        # Pitisha hoja kwenye rejesta za 64-bit (sahihi kwa vielekezi)
         for i, arg in enumerate(node.hoja[:6]):
             self.zalishe_usemi(arg, 'eax')
             if i == 0:
-                self.x.emit(0x89, 0xc7)  # mov edi, eax
+                self.x.emit(0x48, 0x89, 0xc7)  # mov rdi, rax
             elif i == 1:
-                self.x.emit(0x89, 0xc6)  # mov esi, eax
+                self.x.emit(0x48, 0x89, 0xc6)  # mov rsi, rax
             elif i == 2:
-                self.x.emit(0x89, 0xc2)  # mov edx, eax
+                self.x.emit(0x48, 0x89, 0xc2)  # mov rdx, rax
             elif i == 3:
-                self.x.emit(0x89, 0xc1)  # mov ecx, eax
+                self.x.emit(0x48, 0x89, 0xc1)  # mov rcx, rax
             elif i == 4:
-                self.x.emit(0x44, 0x89, 0xc0)  # mov r8d, eax
+                self.x.emit(0x49, 0x89, 0xc0)  # mov r8, rax
             elif i == 5:
-                self.x.emit(0x44, 0x89, 0xc8)  # mov r9d, eax
+                self.x.emit(0x49, 0x89, 0xc1)  # mov r9, rax
 
-        # Pangilia rafu kwa 16 kabla ya wito
         self.x.call_rel32(node.jina)
         # Matokeo yako kwenye eax
 
@@ -1103,10 +1101,40 @@ class Kizalishe:
             self.x.setge_al()
             self.x.movzx_eax_al()
         elif op == 'taja':
-            # N8* base + idx → load byte
-            # eax = base, ecx = idx (tayari vipo)
-            self.x.add_eax_ecx()       # eax = base + idx
-            self.x.emit(0x0f, 0xb6, 0x00)  # movzx eax, byte [eax]
+            # base[idx] — pakia kulingana na aina ya msingi
+            elem_size = 1
+            if isinstance(node.kushoto, Kitambulisho):
+                info = self.tafuta_kigezo(node.kushoto.jina)
+                if info:
+                    aina = info[1]
+                    kina = aina.jina.count('_star') + aina.jina.count('*')
+                    if kina >= 2:
+                        elem_size = 8  # kielekezi-cha-kielekezi
+                    elif kina == 1:
+                        # Angalia aina ya msingi
+                        jina_msingi = aina.jina.replace('_star', '').replace('*', '')
+                        if jina_msingi == 'N8': elem_size = 1
+                        elif jina_msingi == 'N32': elem_size = 4
+                        elif jina_msingi == 'N64': elem_size = 8
+                        else: elem_size = 4
+            # eax = base, ecx = idx
+            # Kwanza, zidisha idx kwa ukubwa wa elementi
+            if elem_size > 1:
+                if elem_size == 8:
+                    self.x.emit(0x48, 0xc1, 0xe1, 0x03)  # shl rcx, 3
+                elif elem_size == 4:
+                    self.x.emit(0xc1, 0xe1, 0x02)        # shl ecx, 2
+                elif elem_size == 2:
+                    self.x.emit(0xc1, 0xe1, 0x01)        # shl ecx, 1
+            self.x.add_eax_ecx()       # eax = base + idx*size
+            if elem_size == 8:
+                self.x.emit(0x48, 0x8b, 0x00)  # mov rax, [rax]
+            elif elem_size == 4:
+                self.x.emit(0x8b, 0x00)        # mov eax, [eax]
+            elif elem_size == 2:
+                self.x.emit(0x0f, 0xb7, 0x00)  # movzx eax, word [eax]
+            else:
+                self.x.emit(0x0f, 0xb6, 0x00)  # movzx eax, byte [eax]
         elif op == '&&':
             # Tathmini ya fupi-hali
             self.x.test_eax_eax()
@@ -1263,8 +1291,14 @@ class Kizalishe:
             self.x.ret()
 
     def zalishe_kiingilio(self):
-        """Zalisha _start inayowita main()."""
+        """Zalisha _start inayowita main() kwa kupitisha argc/argv."""
         self.x.label('_start')
+        # Linux x86-64: [rsp] = argc, [rsp+8] = argv
+        self.x.emit(0x48, 0x31, 0xed)  # xor rbp, rbp (alama ya mwisho wa rafu)
+        self.x.pop('rdi')               # pop rdi = argc
+        self.x.emit(0x48, 0x89, 0xe6)  # mov rsi, rsp (argv = rsp)
+        # Pangilia rafu kwa 16 kabla ya wito
+        self.x.emit(0x48, 0x83, 0xe4, 0xf0)  # and rsp, -16
         self.x.call_rel32('main')
         # eax ina thamani ya kurudi
         self.x.emit(0x89, 0xc7)  # mov edi, eax
@@ -1273,17 +1307,15 @@ class Kizalishe:
 
     def _zalishe_visaidizi_vya_syscall(self):
         """Zalisha utekelezaji wa kazi za nje kwa kutumia syscall."""
-        # _malloc(size=edi) — bump allocator rahisi
+        # _malloc(size=edi) — tumia mmap
         self.x.label('_malloc')
-        # Tunaweka kielekezi cha mpaka kwenye BSS (anwani maalum)
-        # Kwa urahisi: tumia mmap kila wakati
         # mmap(0, size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0)
-        self.x.emit(0x48, 0x89, 0xfe)           # mov rsi, rdi (length)
-        self.x.emit(0x48, 0x31, 0xff)           # xor rdi, rdi (addr=0)
+        self.x.emit(0x48, 0x89, 0xfe)           # mov rsi, rdi (length = arg1)
+        self.x.emit(0x48, 0x31, 0xff)           # xor rdi, rdi (addr = 0)
         self.x.emit(0xba, 0x03, 0x00, 0x00, 0x00)  # mov edx, 3 (PROT_READ|PROT_WRITE)
         self.x.emit(0x41, 0xb9, 0x22, 0x00, 0x00, 0x00)  # mov r9d, 0x22 (MAP_PRIVATE|MAP_ANONYMOUS)
-        self.x.emit(0x41, 0xb8, 0xff, 0xff, 0xff, 0xff)  # mov r8d, -1 (fd)
-        self.x.emit(0x48, 0x31, 0xc9)           # xor rcx, rcx (offset=0)
+        self.x.emit(0x41, 0xb8, 0xff, 0xff, 0xff, 0xff)  # mov r8d, -1 (fd = -1)
+        self.x.emit(0x48, 0x31, 0xc9)           # xor rcx, rcx (offset = 0)
         self.x.emit(0xb8, 0x09, 0x00, 0x00, 0x00)  # mov eax, 9 (mmap)
         self.x.emit(0x0f, 0x05)                 # syscall
         self.x.ret()
@@ -1292,36 +1324,36 @@ class Kizalishe:
         self.x.label('_free')
         self.x.ret()
 
-        # _printf — andika kwenye stdout kwa kutumia sys_write
-        # Kwa urahisi: tunachukulia hoja imeshughulikiwa na mpigaji
+        # _printf — andika kwenye stdout
+        # Kwa urahisi: tunachukulia hoja imeshughulikiwa tayari
         self.x.label('_printf')
-        self.x.ret()  # no-op kwa sasa
+        self.x.ret()
 
-        # _fopen(njia=rdi, mode=rsi) — sys_open
+        # _fopen(njia=rdi, mode=rsi) -> fd
         self.x.label('_fopen')
-        # rdi = njia (tayari), rsi = mode
-        # Badilisha mode: "r" = O_RDONLY (0)
-        self.x.emit(0x48, 0x31, 0xf6)           # xor rsi, rsi (O_RDONLY)
+        # rdi = njia (tayari), rsi = mode string (tunapuuza, tunatumia O_RDONLY)
+        self.x.emit(0x48, 0x31, 0xf6)           # xor rsi, rsi (flags = O_RDONLY)
+        self.x.emit(0x48, 0x31, 0xd2)           # xor rdx, rdx (mode = 0)
         self.x.emit(0xb8, 0x02, 0x00, 0x00, 0x00)  # mov eax, 2 (open)
         self.x.emit(0x0f, 0x05)                 # syscall
-        self.x.ret()
+        self.x.ret()                            # rax = fd
 
-        # _fread(buf=rdi, size=rsi, count=rdx, stream=rcx) — sys_read
+        # _fread(buf=rdi, size=rsi, count=rdx, stream=rcx) -> bytes read
         self.x.label('_fread')
-        # Hoja tayari ziko karibu: rdi=fd (tunachukulia stream ni fd)
-        # Lakini fread ina buf, size, count, stream
-        # Rahisisha: tunachukulia rdi=buf, rsi=size*count, rdx=fd
-        # Kwa wito kutoka Swa: hoja zinapitishwa kama (buf, size, count, fd)
-        # Rekebisha: rdi=fd, rsi=buf, rdx=count*size
-        self.x.emit(0x48, 0x89, 0xfe)           # mov rsi, rdi (buf)
-        # rdx tayari ina count — lakini tunahitaji size*count
-        # Kwa sasa, tunachukulia size=1
-        self.x.emit(0x48, 0x89, 0xd0)           # mov rax, rdx (count)
+        # Hoja za Swa: buf(rdi), size=1(rsi), count(rdx), fd(rcx)
+        # Hoja za sys_read: fd(rdi), buf(rsi), count(rdx)
+        # Tunahitaji: rdi=fd, rsi=buf, rdx=count
+        self.x.push('rbx')                      # hifadhi rbx
+        self.x.emit(0x48, 0x89, 0xcb)           # mov rbx, rcx (rbx = fd)
+        self.x.emit(0x48, 0x89, 0xfe)           # mov rsi, rdi (rsi = buf)
+        self.x.emit(0x48, 0x89, 0xdf)           # mov rdi, rbx (rdi = fd)
+        # rdx tayari ina count (sawa kwa sys_read)
         self.x.emit(0xb8, 0x00, 0x00, 0x00, 0x00)  # mov eax, 0 (read)
         self.x.emit(0x0f, 0x05)                 # syscall
-        self.x.ret()
+        self.x.pop('rbx')                       # rejesha rbx
+        self.x.ret()                            # rax = bytes read
 
-        # _fclose(fd=rdi) — sys_close
+        # _fclose(fd=rdi) -> 0
         self.x.label('_fclose')
         self.x.emit(0xb8, 0x03, 0x00, 0x00, 0x00)  # mov eax, 3 (close)
         self.x.emit(0x0f, 0x05)                 # syscall
