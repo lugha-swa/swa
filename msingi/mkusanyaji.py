@@ -466,6 +466,7 @@ class Mchanganuzi:
 
     def changanua_usemi_msingi(self):
         """Usemi wa msingi: nambari, kitambulisho, wito, (usemi)"""
+        self.lex.ruka_nafasi_na_maelezo()
         # Nambari
         if self.lex.herufi().isdigit():
             tok = self.lex.soma_nambari()
@@ -672,6 +673,8 @@ class Mchanganuzi:
             stmt = self.changanua_taarifa()
             if stmt:
                 taarifa.append(stmt)
+            else:
+                self.lex.advance()  # ruka herufi isiyotambulika
         self.lex.tarajia_herufi('}')
         return taarifa
 
@@ -932,7 +935,6 @@ class Kizalishe:
             if node.usemi:
                 self.zalishe_usemi(node.usemi, 'eax')
                 self.x.emit(0x89, 0xc7)  # mov edi, eax
-            self.x.sub_rsp(self.env.rafu_juu)
             self.x.leave()
             self.x.ret()
 
@@ -986,6 +988,19 @@ class Kizalishe:
         elif isinstance(node, Operesheni):
             self.zalishe_usemi(node)
 
+    def _tengua_vigezo_awali(self, mwili):
+        """Tembea AST na utenge nafasi ya rafu kwa vigezo vyote vya ndani."""
+        if isinstance(mwili, list):
+            for s in mwili:
+                self._tengua_vigezo_awali(s)
+        elif isinstance(mwili, Tangazo):
+            self.tengua_nafasi(mwili.jina, mwili.aina)
+        elif isinstance(mwili, Kama):
+            self._tengua_vigezo_awali(mwili.basi)
+            self._tengua_vigezo_awali(mwili.sivyo)
+        elif isinstance(mwili, Wakati):
+            self._tengua_vigezo_awali(mwili.mwili)
+
     def zalishe_kazi(self, kazi):
         """Zalisha msimbo kwa kazi nzima."""
         self.env.vigezo = {}
@@ -994,17 +1009,23 @@ class Kizalishe:
         self.env.endelea_lebo = []
         self.env.kazi_sasa = kazi
 
+        # Sajili vigezo vya kazi
+        for jina, aina in kazi.vigezo:
+            self.tengua_nafasi(jina, aina)
+
+        # Tengua vigezo vyote vya ndani KABLA ya kutoa mwili
+        self._tengua_vigezo_awali(kazi.mwili)
+
         self.x.label(kazi.jina)
 
-        # Utangulizi
+        # Utangulizi wenye nafasi kamili ya rafu
         self.x.push_rbp()
         self.x.mov_rbp_rsp()
+        self.x.sub_rsp(self.env.rafu_juu)
 
-        # Sajili vigezo kwenye rafu
+        # Hifadhi vigezo vya kazi kutoka kwenye rejesta
         for i, (jina, aina) in enumerate(kazi.vigezo):
-            self.tengua_nafasi(jina, aina)
             off, _ = self.env.vigezo[jina]
-            # Pakia kutoka kwenye rejesta ya hoja
             if i == 0:
                 self.x.mov_off_rbp(off, 'edi', aina.ukubwa)
             elif i == 1:
@@ -1012,23 +1033,17 @@ class Kizalishe:
             elif i == 2:
                 self.x.mov_off_rbp(off, 'edx', aina.ukubwa)
 
-        # Tenga nafasi ya vigezo vya ndani (itakusanywa wakati wa kutoa mwili)
         # Toa mwili
         self.zalishe_taarifa(kazi.mwili)
 
         # Angalia kama mwili unaishia na rudisha
-        # Ikiwa ndivyo, tayari imetoa leave;ret — usirudie
         ina_rudisha = False
         if isinstance(kazi.mwili, list) and kazi.mwili:
             mwisho = kazi.mwili[-1]
             if isinstance(mwisho, Rudisha):
                 ina_rudisha = True
-            elif isinstance(mwisho, Kama) and mwisho.basi and mwisho.sivyo:
-                # Kama inaishia na kama/sivyo, kila tawi linahitaji rudisha
-                pass  # Changamano — acha epilogue ifanye kazi
 
         if not ina_rudisha:
-            self.x.sub_rsp(self.env.rafu_juu)
             self.x.leave()
             self.x.ret()
 
