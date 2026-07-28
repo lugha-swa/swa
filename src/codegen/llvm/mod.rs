@@ -1481,6 +1481,7 @@ fn lower_instruction(
                         "free" => LLVMVoidType(),
                         "printf" => LLVMInt32Type(),
                         "andika" => LLVMInt32Type(),
+                        "andika_stderr" => LLVMInt32Type(),
                         "fopen" => ptr_type(),
                         "fread" => LLVMInt64Type(),
                         "fclose" => LLVMInt32Type(),
@@ -1498,7 +1499,7 @@ fn lower_instruction(
                         rebuilt_param_tys.as_mut_ptr()
                     },
                     rebuilt_param_tys.len() as u32,
-                    if callee == "printf" || callee == "andika" { 1 } else { 0 },
+                    if callee == "printf" || callee == "andika" || callee == "andika_stderr" { 1 } else { 0 },
                 );
 
                 let name = if inferred_ret_ty == LLVMVoidType() {
@@ -1981,6 +1982,16 @@ fn pre_declare_libc(module: LLVMModuleRef) {
         // andika: imetangazwa kama kazi tofauti; kiunganishi inaweka ramani kwa printf.
         {
             let name = c_str("andika");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type()];
+                let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 1, 1);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // andika_stderr: kama andika lakini inaandika kwenye stderr kwa utatuzi
+        {
+            let name = c_str("andika_stderr");
             if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
                 let mut param_tys = [ptr_type()];
                 let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 1, 1);

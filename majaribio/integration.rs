@@ -634,3 +634,46 @@ fn which_clang() -> Option<String> {
     }
     None
 }
+
+// ============================================================================
+// K6 — Sret (struct return via native backend)
+// ============================================================================
+
+/// Jaribio la kurudisha muundo kupitia sret kwenye kizalishe asilia.
+/// Huhakikisha muundo unakiliwa kwa usahihi kutoka kwa kazi hadi kwa mpigaji.
+#[test]
+fn jaribio_k6_sret_simple() {
+    let test_chanzo = "\
+muundo Nukta { N32 x; N32 y; };
+Nukta tengeneza_nukta(N32 a, N32 b) {
+    Nukta p;
+    p.x = a;
+    p.y = b;
+    rudisha p;
+}
+N32 main() {
+    Nukta n = tengeneza_nukta(10, 20);
+    rudisha n.x + n.y;
+}
+";
+    run_k6_test(test_chanzo, 30);
+}
+
+/// Jaribio la kurejesha muundo na kusoma sehemu zake.
+#[test]
+fn jaribio_k6_sret_sehemu() {
+    let test_chanzo = "\
+muundo Jozi { N32 kwanza; N32 pili; };
+Jozi tengeneza_jozi(N32 a, N32 b) {
+    Jozi j;
+    j.kwanza = a;
+    j.pili = b;
+    rudisha j;
+}
+N32 main() {
+    Jozi r = tengeneza_jozi(7, 3);
+    rudisha r.kwanza - r.pili;
+}
+";
+    run_k6_test(test_chanzo, 4);
+}
