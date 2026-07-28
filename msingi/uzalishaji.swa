@@ -164,6 +164,12 @@ W0 andika_or_eax_ecx() { andika_baiti(9); andika_baiti(200); }
 W0 andika_shl_eax_cl() { andika_baiti(211); andika_baiti(224); }
 W0 andika_sar_eax_cl() { andika_baiti(211); andika_baiti(248); }
 
+// === Visaidizi vya 32-bit bila ishara (unsigned) ===
+// div ecx — unsigned divide edx:eax / ecx  (F7 F1)
+W0 andika_div_ecx() { andika_baiti(247); andika_baiti(241); }
+// shr eax, cl — shift right logical  (D3 E8)
+W0 andika_shr_eax_cl() { andika_baiti(211); andika_baiti(232); }
+
 
 // === Visaidizi vya 64-bit (REX.W) kwa N64 ===
 
@@ -210,6 +216,16 @@ W0 andika_shl_rax_cl() {
 // sar rax, cl (48 D3 F8)
 W0 andika_sar_rax_cl() {
     andika_baiti(72); andika_baiti(211); andika_baiti(248);
+}
+
+// === Visaidizi vya 64-bit bila ishara (unsigned) ===
+// div rcx — unsigned divide rdx:rax / rcx  (48 F7 F1)
+W0 andika_div_rcx_rax() {
+    andika_baiti(72); andika_baiti(247); andika_baiti(241);
+}
+// shr rax, cl — shift right logical  (48 D3 E8)
+W0 andika_shr_rax_cl() {
+    andika_baiti(72); andika_baiti(211); andika_baiti(232);
 }
 
 // mov rax, rdi (48 89 F8)
@@ -292,12 +308,23 @@ W0 andika_cvtsi2sd_xmm0_eax() { andika_baiti(242); andika_baiti(15); andika_bait
 // cvttsd2si eax, xmm0  (F2 0F 2C C0) — D64 → N32
 W0 andika_cvttsd2si_eax_xmm0() { andika_baiti(242); andika_baiti(15); andika_baiti(44); andika_baiti(192); }
 
-// === Kisaidizi cha usambazaji wa aina ===
+// === Visaidizi vya usambazaji wa aina ===
 // Rudisha 1 ikiwa encoding ni ya desimali (familia D=3)
 N32 ni_desimali_enc(N32 enc) {
     kama (enc == 0) { rudisha 0; }
     N32 familia = (enc >> 8) & 255;
     rudisha (familia == 3);
+}
+
+// Rudisha 1 ikiwa encoding ni bila ishara (familia A=2, B=4, W=5)
+// Aina hizi hutumia div (si idiv), shr (si sar), setb/seta (si setl/setg)
+N32 ni_bila_ishara_enc(N32 enc) {
+    kama (enc == 0) { rudisha 0; }
+    N32 familia = (enc >> 8) & 255;
+    kama (familia == 2) { rudisha 1; }
+    kama (familia == 4) { rudisha 1; }
+    kama (familia == 5) { rudisha 1; }
+    rudisha 0;
 }
 
 // call rel32 (E8 + offset)
@@ -364,8 +391,10 @@ W0 andika_setae_al() { andika_baiti(15); andika_baiti(147); andika_baiti(192); }
 
 // Kisaidizi: setCC inayofaa kwa aina na mwelekeo
 // mwelekeo: 0=chini(<), 1=juu(>), 2=chini_sawa(<=), 3=juu_sawa(>=)
+// Desimali na aina bila ishara hutumia setb/seta/setbe/setae
+// Aina zenye ishara hutumia setl/setg/setle/setge
 W0 weka_setcc_kwa_enc(N32 enc, N32 mwelekeo) {
-    kama (ni_desimali_enc(enc)) {
+    kama (ni_desimali_enc(enc) || ni_bila_ishara_enc(enc)) {
         kama (mwelekeo == 0) { andika_setb_al(); }
         sivyo kama (mwelekeo == 1) { andika_seta_al(); }
         sivyo kama (mwelekeo == 2) { andika_setbe_al(); }
@@ -749,6 +778,7 @@ N8 var_pool[1024];
 N32 var_pool_wapi = 1;
 N32 var_jina_off[64];
 N32 var_rbp_off[64];   // umbali chanya kutoka rbp (k.m. 4, 8, 12)
+N32 var_enc[64];       // usimbaji wa aina kwa upakiaji sahihi wa upana
 N32 var_idadi = 0;
 N32 var_stack_idadi = 0;  // jumla ya baiti za vigeu kwenye rafu
 N32 frame_imeshinda = 0;  // 1 kama rafu ilianzishwa
@@ -836,9 +866,10 @@ N32 ukubwa_kutoka_enc(N32 enc) {
 }
 
 // -------------------------------------------------------
-// Tafuta au unda kigeu cha ndani kwa jina
+// Tafuta au unda kigeu cha ndani kwa jina na usimbaji wa aina
+// enc: usimbaji wa aina (kwa upakiaji sahihi wa upana baadaye)
 // -------------------------------------------------------
-N32 pata_au_unda_kigeu_ukubwa(N8* jina, N32 saizi) {
+N32 pata_au_unda_kigeu_ukubwa(N8* jina, N32 saizi, N32 enc) {
     N32 i = 0;
     wakati (i < var_idadi) {
         N8* vjina = var_pool + var_jina_off[i];
@@ -850,6 +881,7 @@ N32 pata_au_unda_kigeu_ukubwa(N8* jina, N32 saizi) {
         jina_hifadhi(var_pool, &var_pool_wapi, jina);
         var_jina_off[var_idadi] = off;
         var_rbp_off[var_idadi] = var_stack_idadi + saizi;  // umbali kutoka rbp
+        var_enc[var_idadi] = enc;  // hifadhi usimbaji kwa upakiaji wa upana
         var_stack_idadi = var_stack_idadi + saizi;
         var_idadi = var_idadi + 1;
         rudisha var_idadi - 1;
@@ -859,7 +891,7 @@ N32 pata_au_unda_kigeu_ukubwa(N8* jina, N32 saizi) {
 
 // Kisaidizi cha upatani wa nyuma — chaguo-msingi N32 (baiti 4)
 N32 pata_au_unda_kigeu(N8* jina) {
-    rudisha pata_au_unda_kigeu_ukubwa(jina, 4);
+    rudisha pata_au_unda_kigeu_ukubwa(jina, 4, 1028);  // 1028 = N32: familia 1, upana 32
 }
 
 // -------------------------------------------------------
@@ -976,7 +1008,8 @@ W0 uzalishaji_wakati(N32 node, N32 kazi_node) {
             N32 init_val = ast_kulia[init];
             N8* var_jina = ast_pool + ast_jina_off[var_node];
             N32 saizi = ukubwa_kutoka_enc(ast_thamani[var_node]);
-            N32 vidx = pata_au_unda_kigeu_ukubwa(var_jina, saizi);
+            N32 var_enc_val = ast_thamani[var_node];
+            N32 vidx = pata_au_unda_kigeu_ukubwa(var_jina, saizi, var_enc_val);
             kama (vidx >= 0) {
                 N32 off = var_rbp_off[vidx];
                 kama (init_val != -1) {
@@ -1195,7 +1228,8 @@ W0 uzalishaji_taarifa(N32 node, N32 kazi_node) {
         N32 init_node = ast_kulia[node];
         N8* var_jina = ast_pool + ast_jina_off[var_node];
         N32 saizi = ukubwa_kutoka_enc(ast_thamani[var_node]);
-        N32 vidx = pata_au_unda_kigeu_ukubwa(var_jina, saizi);
+        N32 var_enc_val2 = ast_thamani[var_node];
+        N32 vidx = pata_au_unda_kigeu_ukubwa(var_jina, saizi, var_enc_val2);
         kama (vidx >= 0) {
             N32 off = var_rbp_off[vidx];
             kama (init_node != -1) {
@@ -1610,6 +1644,7 @@ W0 uzalishaji_gawanya(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
     N32 saizi = ast_tiga[node];
     N32 ni_d = ni_desimali_enc(enc);
+    N32 ni_b = ni_bila_ishara_enc(enc);
 
     kama (ni_d) {
         uzalishaji_usemi(ast_kulia[node], kazi_node);
@@ -1618,7 +1653,6 @@ W0 uzalishaji_gawanya(N32 node, N32 kazi_node) {
         uzalishaji_usemi(ast_kushoto[node], kazi_node);
         andika_movd_xmm0_eax();
         vuta_thamani_rcx(enc);
-        // divss: xmm0/xmm1 → xmm0 (lhs/rhs)
         kama (saizi >= 8) { andika_divsd_xmm0_xmm1(); }
         sivyo { andika_divss_xmm0_xmm1(); }
     } sivyo {
@@ -1627,8 +1661,13 @@ W0 uzalishaji_gawanya(N32 node, N32 kazi_node) {
         kama (saizi >= 8) { andika_cqo(); }
         sivyo { andika_cdq(); }
         andika_pop_rcx();
-        kama (saizi >= 8) { andika_idiv_rcx_rax(); }
-        sivyo { andika_idiv_ecx(); }
+        kama (saizi >= 8) {
+            kama (ni_b) { andika_div_rcx_rax(); }
+            sivyo { andika_idiv_rcx_rax(); }
+        } sivyo {
+            kama (ni_b) { andika_div_ecx(); }
+            sivyo { andika_idiv_ecx(); }
+        }
     }
 }
 
@@ -1642,12 +1681,20 @@ W0 uzalishaji_hamisha_kushoto(N32 node, N32 kazi_node) {
 }
 
 // AST_HAMISHA_KULIA (41) -- hamisha kulia (>>)
+// Zenye ishara → sar (arithmetic), bila ishara → shr (logical)
 W0 uzalishaji_hamisha_kulia(N32 node, N32 kazi_node) {
+    N32 enc = ast_thamani[node];
     N32 saizi = ast_tiga[node];
+    N32 ni_b = ni_bila_ishara_enc(enc);
     uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
     uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
-    kama (saizi >= 8) { andika_sar_rax_cl(); }
-    sivyo { andika_sar_eax_cl(); }
+    kama (saizi >= 8) {
+        kama (ni_b) { andika_shr_rax_cl(); }
+        sivyo { andika_sar_rax_cl(); }
+    } sivyo {
+        kama (ni_b) { andika_shr_eax_cl(); }
+        sivyo { andika_sar_eax_cl(); }
+    }
 }
 
 // AST_BIT_AU (42) -- AU ya biti (|)
@@ -2016,13 +2063,13 @@ W0 kusanya_vigeu_vya_ndani(N32 node) {
         N32 sz = ukubwa_kutoka_enc(enc);
         kama (sz == 0) { sz = 4; }
         // Sajili kigeu mapema (kabla ya kutoa utangulizi)
-        pata_au_unda_kigeu_ukubwa(jina, sz);
+        pata_au_unda_kigeu_ukubwa(jina, sz, enc);
         // Pia angalia ikiwa kuna ukubwa wa safu (ast_tiga)
         kama (ast_tiga[node] != -1) {
             // Ongeza nafasi ya ziada kwa safu
             N32 elem_sz = sz;
             N32 count = ast_thamani[ast_tiga[node]];
-            kama (count > 0) { pata_au_unda_kigeu_ukubwa(jina, elem_sz * count); }
+            kama (count > 0) { pata_au_unda_kigeu_ukubwa(jina, elem_sz * count, enc); }
         }
         rudisha;
     }
