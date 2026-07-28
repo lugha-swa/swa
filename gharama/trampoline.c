@@ -21,3 +21,12 @@ int andika(const char* muundo, ...) {
     fflush(stdout);
     return matokeo;
 }
+
+int andika_stderr(const char* muundo, ...) {
+    va_list hoja;
+    va_start(hoja, muundo);
+    int matokeo = vfprintf(stderr, muundo, hoja);
+    va_end(hoja);
+    fflush(stderr);
+    return matokeo;
+}
