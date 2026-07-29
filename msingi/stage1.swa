@@ -4,7 +4,9 @@ husisha { mkaguzi.swa }
 husisha { mteremko.swa }
 husisha { uzalishaji.swa }
 
-N8 chanzo_buf[196608];
+// Hifadhi chanzo cha mkusanyaji mzima wakati wa kujikusanya.
+// Maktaba ya msingi imepita 196,608B; acha baiti moja kwa termineta ya NUL.
+N8 chanzo_buf[1048576];
 N32 chanzo_urefu = 0;
 
 W0 ongeza_faili(N8* njia) {
@@ -14,7 +16,13 @@ W0 ongeza_faili(N8* njia) {
         andika("; KOSA: faili halifunguki: %s\n", njia);
         rudisha;
     }
-    N64 n = fread(chanzo_buf + chanzo_urefu, 1, 196608, f);
+    N32 nafasi = 1048575 - chanzo_urefu;
+    kama (nafasi <= 0) {
+        andika("; KOSA: chanzo ni kikubwa mno\n");
+        fclose(f);
+        rudisha;
+    }
+    N64 n = fread(chanzo_buf + chanzo_urefu, 1, nafasi, f);
     fclose(f);
     chanzo_urefu = chanzo_urefu + n;
 }

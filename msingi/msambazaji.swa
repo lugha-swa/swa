@@ -593,7 +593,10 @@ N32 changanua_taarifa_tangazo(Msambazaji* p) {
                 kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
                     kama (neno_ni(&p->sasa, "[")) {
                         sogeza(p);
-                        kama (p->sasa.urefu > 0) { sogeza(p); }
+                    kama (p->sasa.urefu > 0) {
+                        safu_ukubwa = neno_kwa_nambari(p->sasa.mwanzo, p->sasa.urefu);
+                        sogeza(p);
+                    }
                         kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
                             kama (neno_ni(&p->sasa, "]")) { sogeza(p); }
                         }
@@ -1328,6 +1331,8 @@ N32 changanua_kazi(Msambazaji* p) {
     N32 name_node = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
     hifadhi_jina(name_node, p->sasa.mwanzo, p->sasa.urefu);
     sogeza(p); // tumia jina
+    // Hifadhi usimbaji wa aina kwenye nodi ya jina (sawa na matamko ya ndani)
+    ast_thamani[name_node] = ret_aina;
 
     // --------------------------------------------------
     // FIX: Tofautisha kazi kutoka kwa kigezo cha kimataifa.
@@ -1344,18 +1349,25 @@ N32 changanua_kazi(Msambazaji* p) {
         kama (ni_paren == 0) {
             // Kigezo cha kimataifa:  N32 jina [= usemi];
             ni_global = 1;
-            // Ruka mabano ya ukubwa wa safu yakipo: jina[ukubwa]
+            // Hifadhi ukubwa wa safu yakipo: jina[ukubwa]
+            N32 safu_ukubwa = 0;
             kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
                 kama (neno_ni(&p->sasa, "[")) {
                     sogeza(p); // ruka '['
-                    kama (p->sasa.urefu > 0) { sogeza(p); } // ruka ukubwa
+                    kama (p->sasa.urefu > 0) {
+                        safu_ukubwa = neno_kwa_nambari(p->sasa.mwanzo, p->sasa.urefu);
+                        sogeza(p); // ruka ukubwa
+                    }
                     kama (neno_ni(&p->sasa, "]")) { sogeza(p); } // ruka ']'
                 }
             }
             kama (p->sasa.urefu == 1) {
                 kama (neno_ni(&p->sasa, "[")) {
                     sogeza(p);
-                    kama (p->sasa.urefu > 0) { sogeza(p); }
+                    kama (p->sasa.urefu > 0) {
+                        safu_ukubwa = neno_kwa_nambari(p->sasa.mwanzo, p->sasa.urefu);
+                        sogeza(p);
+                    }
                     kama (neno_ni(&p->sasa, "]")) { sogeza(p); }
                 }
             }
@@ -1372,7 +1384,12 @@ N32 changanua_kazi(Msambazaji* p) {
             kama (p->sasa.urefu == 1) {
                 kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
             }
-            global_node = node_mpya(AST_TANGAZO_ULIMWENGU, 0, name_node, init);
+            global_node = node_mpya(AST_TANGAZO_ULIMWENGU, ret_aina, name_node, init);
+            // Hifadhi ukubwa wa safu (kama ipo) kwenye ast_tiga
+            kama (safu_ukubwa > 0) {
+                N32 size_node = node_mpya(AST_NAMBARI, safu_ukubwa, -1, -1);
+                ast_tiga[global_node] = size_node;
+            }
         }
     }
     kama (ni_global) { rudisha global_node; }

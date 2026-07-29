@@ -541,6 +541,88 @@ impl LlvmBackend {
             Ok(())
         }
     }
+
+    /// Toa moduli ya LLVM kwa faili ya msimbo wa mkutano (assembly).
+    ///
+    /// Sawa na [`emit_object`] lakini hutoa AssemblyFile badala ya ObjectFile.
+    /// Hutumika kwa majaribio ya uthibitishaji wa msimbo wa mashine.
+    pub fn emit_assembly(
+        &self,
+        module: LLVMModuleRef,
+        output_path: &Path,
+    ) -> Result<(), Vec<Diagnostic>> {
+        unsafe {
+            let triple = default_target_triple();
+            let triple_c = CString::new(triple.as_str()).unwrap();
+
+            let mut target: LLVMTargetRef = std::ptr::null_mut();
+            let mut error: *mut std::ffi::c_char = std::ptr::null_mut();
+
+            let failed = LLVMGetTargetFromTriple(triple_c.as_ptr(), &mut target, &mut error);
+            if failed != 0 {
+                let msg = if error.is_null() {
+                    "failed to look up target from triple".to_string()
+                } else {
+                    let s = std::ffi::CStr::from_ptr(error).to_string_lossy().into_owned();
+                    LLVMDisposeMessage(error);
+                    s
+                };
+                return Err(vec![Diagnostic::error(msg, SourceSpan::point(0, 0))]);
+            }
+
+            let cpu_c = c_str("");
+            let features_c = c_str("");
+            let tm = LLVMCreateTargetMachine(
+                target,
+                triple_c.as_ptr(),
+                cpu_c.as_ptr(),
+                features_c.as_ptr(),
+                self.opt_level,
+                LLVMRelocMode::Default,
+                LLVMCodeModel::Default,
+            );
+
+            if tm.is_null() {
+                return Err(vec![Diagnostic::error(
+                    "failed to create target machine",
+                    SourceSpan::point(0, 0),
+                )]);
+            }
+
+            // Endesha bomba la kupita za uboreshaji kati ya uundaji wa
+            // mashine lengwa na utoaji wa msimbo.
+            self.optimize_module(module);
+
+            let path_str = output_path.to_string_lossy();
+            let path_c = CString::new(path_str.as_ref()).unwrap();
+            let mut emit_error: *mut std::ffi::c_char = std::ptr::null_mut();
+
+            let emit_failed = LLVMTargetMachineEmitToFile(
+                tm,
+                module,
+                path_c.as_ptr(),
+                LLVMCodeGenFileType::AssemblyFile,
+                &mut emit_error,
+            );
+
+            LLVMDisposeTargetMachine(tm);
+
+            if emit_failed != 0 {
+                let msg = if emit_error.is_null() {
+                    "assembly emission failed (no details)".to_string()
+                } else {
+                    let s = std::ffi::CStr::from_ptr(emit_error)
+                        .to_string_lossy()
+                        .into_owned();
+                    LLVMDisposeMessage(emit_error);
+                    s
+                };
+                return Err(vec![Diagnostic::error(msg, SourceSpan::point(0, 0))]);
+            }
+
+            Ok(())
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -2815,6 +2897,121 @@ mod tests {
         for ty in &types_to_test {
             let llvm_ty = ir_type_to_llvm(ty, &struct_types);
             assert!(!llvm_ty.is_null(), "ir_type_to_llvm({:?}) returned null", ty);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // jaribio_o1_sub_iliyohifadhiwa — thibitisha Sub inalala katika O0 na O1
+    //
+    // Hitilafu ya O1 (iliyoripotiwa dhidi ya LLVM 18.1): SelectionDAG ya LLVM
+    // inakusanya vibaya utoaji wa kielekezi kwenye O1, ikidondosha operanda ya
+    // utoaji na kusababisha `t->urefu = m->nafasi - anza` kuwa sawa na
+    // `t->urefu = m->nafasi`. Jaribio hili linathibitisha kwamba utoaji wa
+    // `i64 sub` unatokea katika msimbo wa mkutano kwenye viwango vyote vya
+    // uboreshaji vya LLVM.
+    //
+    // Jaribio linakagua dondoo mbili:
+    //   1. `sub_two(a, b)` — utoaji rahisi wa vigezo viwili (kama
+    //      `m->nafasi - mwanzo_nafasi` ambapo mwanzo_nafasi ni kigezo cha kazi)
+    //   2. `sub_from_struct(m_ptr, b)` — GEP+pakia+utoa (mfano halisi:
+    //      m->nafasi - b, kama inavyotumika kwenye msomaji.swa)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_o1_sub_preserved() {
+        // Unda moduli ya IR yenye majaribio mawili.
+        let mut m = IrModule::new("sub_test");
+
+        // -- Kazi 1: sub_two(a: i64, b: i64) -> a - b -------------------------
+        let mut f1 = Function::new(
+            "sub_two",
+            IrType::I64,
+            vec![
+                ("a".into(), IrType::I64),
+                ("b".into(), IrType::I64),
+            ],
+        );
+        f1.return_class = IrReturnClass::Direct;
+        f1.source_return_ty = IrType::I64;
+
+        let e1 = f1.push_block(IrBlock::new("entry", Terminator::RetVoid));
+        f1.entry = e1;
+        f1.blocks[e1.0].push(Instruction::Sub(ValueId(0), ValueId(1)));
+        f1.blocks[e1.0].terminator = Terminator::Ret(ValueId(2));
+        m.push_function(f1);
+
+        // -- Kazi 2: sub_from_struct(m_ptr, b) -> m->nafasi - b ---------------
+        // Hii inaiga kikamilifu mfano wa msomaji.swa:
+        //   t->urefu = m->nafasi - mwanzo_nafasi;
+        // ambapo m ni kielekezi cha muundo Msomaji {nafasi: i64, ...}.
+        let msomaji_ty = IrType::Struct {
+            name: "Msomaji".into(),
+            fields: vec![
+                ("nafasi".into(), IrType::I64),
+                ("safu".into(), IrType::I64),
+                ("mstari".into(), IrType::I64),
+            ],
+        };
+        m.push_type("Msomaji", msomaji_ty.clone());
+
+        let mut f2 = Function::new(
+            "sub_from_struct",
+            IrType::I64,
+            vec![
+                ("m_ptr".into(), IrType::Ptr(Box::new(msomaji_ty.clone()))),
+                ("b".into(), IrType::I64),
+            ],
+        );
+        f2.return_class = IrReturnClass::Direct;
+        f2.source_return_ty = IrType::I64;
+
+        let e2 = f2.push_block(IrBlock::new("entry", Terminator::RetVoid));
+        f2.entry = e2;
+
+        // param_count=2: ValueId(0)=m_ptr, ValueId(1)=b
+        // FieldAddr(m_ptr, uga 0) → matokeo ni ValueId(2)
+        f2.blocks[e2.0].push(Instruction::FieldAddr(ValueId(0), 0, None));
+        // Pakia m->nafasi kutoka ValueId(2) → matokeo ni ValueId(3)
+        f2.blocks[e2.0].push(Instruction::Load(IrType::I64, ValueId(2)));
+        // Sub: m->nafasi - b → ValueId(3) - ValueId(1) = matokeo ValueId(4)
+        f2.blocks[e2.0].push(Instruction::Sub(ValueId(3), ValueId(1)));
+        f2.blocks[e2.0].terminator = Terminator::Ret(ValueId(4));
+        m.push_function(f2);
+
+        // Jaribu kwenye viwango vyote vya uboreshaji vya LLVM.
+        let levels: Vec<(&str, LLVMCodeGenOptLevel)> = vec![
+            ("O0", LLVMCodeGenOptLevel::None),
+            ("O1", LLVMCodeGenOptLevel::Less),
+            ("O2", LLVMCodeGenOptLevel::Default),
+        ];
+
+        for (label, opt_level) in &levels {
+            let b = LlvmBackend::new().with_opt_level(*opt_level);
+            let llvm_mod = b.compile(&m)
+                .unwrap_or_else(|e| panic!("{label}: compile failed: {:?}", e));
+
+            let asm_path = std::path::PathBuf::from(format!("/tmp/test_o1_sub_{}.s", label));
+            b.emit_assembly(llvm_mod, &asm_path)
+                .unwrap_or_else(|e| panic!("{label}: emit_assembly failed: {:?}", e));
+
+            let asm = std::fs::read_to_string(&asm_path)
+                .unwrap_or_else(|e| panic!("{label}: read assembly failed: {e}"));
+
+            // Angalia kwamba amri ya 'sub' ipo kwa kila kazi.
+            // Tunahesabu matukio — inapaswa kuwa na angalau 2 (moja kwa kila kazi).
+            let sub_count = asm.matches("sub").count()
+                + asm.matches("\tsubq").count()
+                + asm.matches("\tsubl").count();
+            assert!(
+                sub_count >= 2,
+                "{label}: SUB haipo mara za kutosha (yapatikana {sub_count}, yanahitajika >= 2). \
+                 SelectionDAG inaweza kuidondosha.\nAssembly:\n{}",
+                asm
+            );
+
+            // Safisha.
+            let _ = std::fs::remove_file(&asm_path);
+            unsafe { LLVMDisposeModule(llvm_mod); }
         }
     }
 }

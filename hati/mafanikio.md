@@ -202,7 +202,7 @@ Iliongeza utambuzi wa `tenga` -> HeapAlloc, `achilia` -> HeapFree, `badili` -> r
 Masuala yote ya awali yamerekebishwa:
 
 - Mchanganuzi wa kujikusanya unakwama kwenye vigezo 2+ -- IMEREKEBISHWA
-- Ufisadi wa `urefu` wa O1 -- IMEREKEBISHWA (bendera ya `--opt`)
+- Ufisadi wa `urefu` wa O1 -- IMEREKEBISHWA (hitilafu ya juu ya LLVM, ilirekebishwa kwenye LLVM 22.1.8; jaribio la regression `test_o1_sub_preserved` limeongezwa)
 - Ugawaji wa muundo haujatekelezwa -- IMEREKEBISHWA (MemCopy katika lower.rs NA mteremko.swa)
 - Alloca-in-loop (SIGSEGV kwenye binary ya kujikusanya) -- IMEREKEBISHWA (kupitisha mara mbili kwenye lower.rs)
 - CFG dead-code (msimbo baada ya kama ni msimbo uliokufa) -- IMEREKEBISHWA
