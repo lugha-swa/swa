@@ -370,6 +370,21 @@ fn jaribio_msingi_stage1() {
     assert!(ir.contains("main"));
 }
 
+#[test]
+fn jaribio_stage1_hifadhi_chanzo_yatosha_kwa_msingi_wote() {
+    let faili = [
+        "kumbukumbu.swa", "mfuatano.swa", "msomaji.swa", "msambazaji.swa",
+        "mteremko.swa", "mkaguzi.swa", "uzalishaji.swa", "orodha.swa", "ramani.swa",
+    ];
+    let jumla: u64 = faili.iter()
+        .map(|jina| std::fs::metadata(format!("msingi/{jina}"))
+            .expect("faili ya msingi inapaswa kuwepo").len())
+        .sum();
+
+    assert!(jumla < 1_048_576,
+        "chanzo cha msingi ({jumla}B) lazima kitoshe kwenye chanzo_buf ya stage1");
+}
+
 // ============================================================================
 // Stage1
 // ============================================================================
@@ -428,7 +443,7 @@ fn jaribio_k6_kujikusanya_kamili() {
     // Andika kiunganishi kidogo cha C kinachoelekeza andika -> printf.
     let trampoline_c = dir.path().join("trampoline.c");
     std::fs::write(&trampoline_c,
-        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); return r; }\n"
+        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); fflush(stdout); return r; }\nint andika_stderr(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stderr,f,a); va_end(a); fflush(stderr); return r; }\n"
     ).expect("inapaswa kuandika trampoline.c");
     let trampoline_o = dir.path().join("trampoline.o");
     let compile_status = std::process::Command::new(&clang)
@@ -524,7 +539,7 @@ fn run_k6_test(test_chanzo: &str, matarajio_ya_kutoka: i32) {
     // Andika kiunganishi kidogo cha C.
     let trampoline_c = dir.path().join("trampoline.c");
     std::fs::write(&trampoline_c,
-        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); return r; }\n"
+        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); fflush(stdout); return r; }\nint andika_stderr(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stderr,f,a); va_end(a); fflush(stderr); return r; }\n"
     ).expect("inapaswa kuandika trampoline.c");
     let trampoline_o = dir.path().join("trampoline.o");
     let compile_status = std::process::Command::new(&clang)
