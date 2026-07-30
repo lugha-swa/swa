@@ -3,6 +3,7 @@
 //! Huchambua tokeni kutoka kwa msomaji hadi AST ya safu bapa inayotumiwa na
 //! `ir::lower::lower()`.
 
+use crate::diagnostics::{DiagnosticBag, SourceSpan};
 use crate::lexer::token::{Token, TokenKind};
 
 const AST_PROGRAMU: u32 = 1;
@@ -47,12 +48,17 @@ const AST_BIT_AU: u32 = 41;
 const AST_BIT_NA: u32 = 42;
 const AST_TERNARY: u32 = 43;
 const AST_ASIMILIA: u32 = 37;
+const AST_MODULO: u32 = 48;
 const AST_SAFU: u32 = 38;
 const AST_MFUATANO: u32 = 40;
 const AST_KWELI: u32 = 44;
 const AST_UONGO: u32 = 45;
 const AST_TUPU: u32 = 46;
 const NO_NODE: i32 = -1;
+
+/// Matokeo ya `ruka_hadi_kifikisha` — kizuizi kilichopatikana.
+#[derive(Debug, PartialEq, Eq)]
+enum Kifikisha { NusuKoloni, MabanoYaWima, Mwisho }
 
 // ---------------------------------------------------------------------------
 // Kijenzi cha AST — hukusanya safu bapa
@@ -102,20 +108,87 @@ struct Parser<'a> {
     tokens: &'a [Token],
     pos: usize,
     ast: AstBuilder,
-    kosa: bool,
+    diagnostics: &'a mut DiagnosticBag,
+    /// Tokeni sintetiki ya Mwisho inayotumika wakati tokeni halisi zimeisha.
+    mwisho_token: Token,
 }
 
 impl<'a> Parser<'a> {
-    fn new(tokens: &'a [Token]) -> Self {
-        Self { tokens, pos: 0, ast: AstBuilder::new(), kosa: false }
+    fn new(tokens: &'a [Token], diagnostics: &'a mut DiagnosticBag) -> Self {
+        let mwisho_token = Token {
+            kind: TokenKind::Mwisho,
+            lexeme: String::new(),
+            span: SourceSpan::point(0, 0),
+        };
+        Self { tokens, pos: 0, ast: AstBuilder::new(), diagnostics, mwisho_token }
     }
 
     fn sasa(&self) -> &Token {
         if self.pos < self.tokens.len() { &self.tokens[self.pos] }
-        else { &self.tokens[self.tokens.len().saturating_sub(1)] }
+        else { &self.mwisho_token }
+    }
+
+    /// Rekodi kosa kwenye nafasi ya tokeni ya sasa.
+    fn kosa(&mut self, ujumbe: &str) {
+        let span = self.sasa().span;
+        self.diagnostics.error(ujumbe, span);
+    }
+
+    /// Je, kuna makosa yoyote yaliyorekodiwa?
+    #[allow(dead_code)]
+    fn ina_makosa(&self) -> bool {
+        self.diagnostics.has_errors()
     }
 
     fn sogeza(&mut self) { if self.pos < self.tokens.len() { self.pos += 1; } }
+
+    /// Ruka tokeni hadi kifikisha cha taarifa (`;`, `}`, au mwisho wa faili).
+    ///
+    /// Hairuki kifikisha chenyewe — mpigaji anaamua nini cha kufanya nacho.
+    ///
+    /// Hutambua vifikisha tu wakati viko kwenye ngazi ya taarifa
+    /// (si ndani ya vielezi), kwa kuangalia kama herufi ya kwanza ya tokeni
+    /// iko nje ya masafa ya herufi [A-Za-z].
+    fn ruka_hadi_kifikisha(&mut self) -> Kifikisha {
+        while !matches!(self.sasa().kind, TokenKind::Mwisho) {
+            let ch = self.sasa().lexeme.as_bytes().first().copied().unwrap_or(0);
+            // Angalia vifikisha tu wakati tokeni haianzi na herufi
+            // (hivyo hatutachanganya `;` au `}` ndani ya vielezi / mifuatano)
+            if ch < 65 || ch > 122 {
+                if self.tokeni_ni(";") { return Kifikisha::NusuKoloni; }
+                if self.tokeni_ni("}") { return Kifikisha::MabanoYaWima; }
+            }
+            // Kesi maalum: `;` yenye urefu wa 1
+            if self.sasa().lexeme.len() == 1 && self.tokeni_ni(";") {
+                return Kifikisha::NusuKoloni;
+            }
+            self.sogeza();
+        }
+        Kifikisha::Mwisho
+    }
+
+    /// Saidizi ya urejeshaji: panua tokeni ya sasa ikiwa inalingana,
+    /// vinginevyo rekodi kosa na urejeshe.
+    fn tarajia(&mut self, kifikisha: &str, ujumbe: &str) -> bool {
+        if self.tokeni_ni(kifikisha) {
+            self.sogeza();
+            true
+        } else {
+            self.kosa(ujumbe);
+            false
+        }
+    }
+
+    /// Saidizi ya urejeshaji kwa miili ya bloku inaposhindikana kuchanganua
+    /// taarifa. Hurejesha `true` ikiwa inapaswa kuendelea kitanzi,
+    /// `false` ikiwa inapaswa kuvunja (EOF).
+    fn recover_ya_mwili(&mut self) -> bool {
+        match self.ruka_hadi_kifikisha() {
+            Kifikisha::NusuKoloni => { self.sogeza(); true }
+            Kifikisha::MabanoYaWima => { /* acha } kwa hali ya kitanzi */ true }
+            Kifikisha::Mwisho => false,
+        }
+    }
 
     fn tokeni_ni(&self, s: &str) -> bool {
         let t = self.sasa();
@@ -207,13 +280,13 @@ impl<'a> Parser<'a> {
                 if name == "tenga" && self.tokeni_ni("(") {
                     self.sogeza();
                     let arg = self.changanua_usemi();
-                    if self.tokeni_ni(")") { self.sogeza(); }
+                    self.tarajia(")", "')' inatarajiwa baada ya hoja ya tenga");
                     return self.ast.node_mpya(AST_TENGA, 0, arg, NO_NODE);
                 }
                 if name == "achilia" && self.tokeni_ni("(") {
                     self.sogeza();
                     let arg = self.changanua_usemi();
-                    if self.tokeni_ni(")") { self.sogeza(); }
+                    self.tarajia(")", "')' inatarajiwa baada ya hoja ya achilia");
                     return self.ast.node_mpya(AST_ACHILIA, 0, arg, NO_NODE);
                 }
                 if self.tokeni_ni("(") {
@@ -226,7 +299,7 @@ impl<'a> Parser<'a> {
                         prev = a;
                         if self.tokeni_ni(",") { self.sogeza(); continue; } else { break; }
                     }}
-                    if self.tokeni_ni(")") { self.sogeza(); }
+                    self.tarajia(")", "')' inatarajiwa baada ya hoja za wito");
                     let name_n = self.ast.node_mpya(AST_KITAMBULISHO, 0, NO_NODE, NO_NODE);
                     self.ast.hifadhi_jina(name_n, &name);
                     self.ast.kushoto[call as usize] = name_n;
@@ -237,7 +310,7 @@ impl<'a> Parser<'a> {
                 self.ast.hifadhi_jina(n, &name);
                 n
             }
-            TokenKind::MabanoKushoto => { self.sogeza(); let e = self.changanua_usemi(); if self.tokeni_ni(")") { self.sogeza(); } e }
+            TokenKind::MabanoKushoto => { self.sogeza(); let e = self.changanua_usemi(); self.tarajia(")", "')' inatarajiwa kufunga usemi wa mabano"); e }
             _ => NO_NODE,
         }
     }
@@ -246,7 +319,7 @@ impl<'a> Parser<'a> {
         let mut node = self.changanua_primary();
         if node == NO_NODE { return NO_NODE; }
         loop {
-            if self.tokeni_ni("[") { self.sogeza(); let i = self.changanua_usemi(); if self.tokeni_ni("]") { self.sogeza(); } node = self.ast.node_mpya(AST_SAFU, 0, node, i); continue; }
+            if self.tokeni_ni("[") { self.sogeza(); let i = self.changanua_usemi(); self.tarajia("]", "']' inatarajiwa kufunga faharasa ya safu"); node = self.ast.node_mpya(AST_SAFU, 0, node, i); continue; }
             if self.tokeni_ni(".") { self.sogeza(); if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) { let fname = self.sasa().lexeme.clone(); self.sogeza(); let n = self.ast.node_mpya(AST_SEHEMU_DOT, 0, node, NO_NODE); self.ast.hifadhi_jina(n, &fname); node = n; continue; } break; }
             if self.tokeni_ni("->") || (self.tokeni_ni("-") && self.pos+1 < self.tokens.len() && self.tokens[self.pos+1].lexeme == ">") {
                 if self.tokeni_ni("-") { self.sogeza(); self.sogeza(); } else { self.sogeza(); }
@@ -276,7 +349,7 @@ impl<'a> Parser<'a> {
         left
     }
 
-    fn changanua_zidisha(&mut self) -> i32 { self.binop(Self::changanua_unary, &[("*", AST_ZIDISHA), ("/", AST_GAWANYA), ("%", AST_GAWANYA)]) }
+    fn changanua_zidisha(&mut self) -> i32 { self.binop(Self::changanua_unary, &[("*", AST_ZIDISHA), ("/", AST_GAWANYA), ("%", AST_MODULO)]) }
     fn changanua_jumlisha(&mut self) -> i32 { self.binop(Self::changanua_zidisha, &[("+", AST_JUMLISHA), ("-", AST_TOFAUTI)]) }
     fn changanua_hamisha(&mut self) -> i32 { self.binop(Self::changanua_jumlisha, &[("<<", AST_HAMISHA_KUSHOTO), (">>", AST_HAMISHA_KULIA)]) }
     fn changanua_linganisha(&mut self) -> i32 { self.binop(Self::changanua_hamisha, &[("<", AST_CHINI), (">", AST_JUU), ("<=", AST_CHINI_SAWA), (">=", AST_JUU_SAWA)]) }
@@ -312,7 +385,7 @@ impl<'a> Parser<'a> {
             self.sogeza();
             let mut first: i32 = NO_NODE; let mut prev: i32 = NO_NODE;
             while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
-                let s = self.changanua_taarifa(); if s == NO_NODE { break; }
+                let s = self.changanua_taarifa(); if s == NO_NODE { if !self.recover_ya_mwili() { break; } continue; }
                 if prev == NO_NODE { first = s; } else { self.ast.nne[prev as usize] = s; } prev = s;
                 while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
             }
@@ -330,7 +403,7 @@ impl<'a> Parser<'a> {
                 if self.tokeni_ni("[") {
                     self.sogeza();
                     saizi_ya_safu = self.changanua_usemi();
-                    if self.tokeni_ni("]") { self.sogeza(); }
+                    self.tarajia("]", "']' inatarajiwa baada ya ukubwa wa safu");
                 }
                 if self.tokeni_ni("=") { self.sogeza(); init = self.changanua_usemi(); }
                 if self.tokeni_ni(";") { self.sogeza(); }
@@ -352,10 +425,10 @@ impl<'a> Parser<'a> {
         if self.tokeni_ni("kama") {
             self.sogeza(); if self.tokeni_ni("(") { self.sogeza(); }
             let cond = self.changanua_usemi();
-            if self.tokeni_ni(")") { self.sogeza(); } if self.tokeni_ni("{") { self.sogeza(); }
+            self.tarajia(")", "')' inatarajiwa baada ya sharti la kama"); if self.tokeni_ni("{") { self.sogeza(); }
             let mut body: i32 = NO_NODE; let mut prev: i32 = NO_NODE;
             while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
-                let s = self.changanua_taarifa(); if s == NO_NODE { break; }
+                let s = self.changanua_taarifa(); if s == NO_NODE { if !self.recover_ya_mwili() { break; } continue; }
                 if prev == NO_NODE { body = s; } else { self.ast.nne[prev as usize] = s; } prev = s;
                 while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
             }
@@ -367,7 +440,7 @@ impl<'a> Parser<'a> {
                     if self.tokeni_ni("{") { self.sogeza(); }
                     let mut pe: i32 = NO_NODE;
                     while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
-                        let s = self.changanua_taarifa(); if s == NO_NODE { break; }
+                        let s = self.changanua_taarifa(); if s == NO_NODE { if !self.recover_ya_mwili() { break; } continue; }
                         if pe == NO_NODE { else_b = s; } else { self.ast.nne[pe as usize] = s; } pe = s;
                         while self.ast.nne[pe as usize] != NO_NODE && self.ast.nne[pe as usize] >= 0 { pe = self.ast.nne[pe as usize]; }
                     }
@@ -382,10 +455,10 @@ impl<'a> Parser<'a> {
         if self.tokeni_ni("wakati") {
             self.sogeza(); if self.tokeni_ni("(") { self.sogeza(); }
             let cond = self.changanua_usemi();
-            if self.tokeni_ni(")") { self.sogeza(); } if self.tokeni_ni("{") { self.sogeza(); }
+            self.tarajia(")", "')' inatarajiwa baada ya sharti la wakati"); if self.tokeni_ni("{") { self.sogeza(); }
             let mut body: i32 = NO_NODE; let mut prev: i32 = NO_NODE;
             while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
-                let s = self.changanua_taarifa(); if s == NO_NODE { break; }
+                let s = self.changanua_taarifa(); if s == NO_NODE { if !self.recover_ya_mwili() { break; } continue; }
                 if prev == NO_NODE { body = s; } else { self.ast.nne[prev as usize] = s; } prev = s;
                 while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
             }
@@ -397,11 +470,11 @@ impl<'a> Parser<'a> {
             self.sogeza(); if self.tokeni_ni("(") { self.sogeza(); }
             let init = if self.tokeni_ni(";") { NO_NODE } else { let e = self.changanua_usemi(); if self.tokeni_ni(";") { self.sogeza(); } e };
             let cond = if self.tokeni_ni(";") { NO_NODE } else { let e = self.changanua_usemi(); if self.tokeni_ni(";") { self.sogeza(); } e };
-            let step = if self.tokeni_ni(")") { NO_NODE } else { let e = self.changanua_usemi(); if self.tokeni_ni(")") { self.sogeza(); } e };
+            let step = if self.tokeni_ni(")") { NO_NODE } else { let e = self.changanua_usemi(); self.tarajia(")", "')' inatarajiwa baada ya hatua ya kwa"); e };
             if self.tokeni_ni("{") { self.sogeza(); }
             let mut body: i32 = NO_NODE; let mut prev: i32 = NO_NODE;
             while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
-                let s = self.changanua_taarifa(); if s == NO_NODE { break; }
+                let s = self.changanua_taarifa(); if s == NO_NODE { if !self.recover_ya_mwili() { break; } continue; }
                 if prev == NO_NODE { body = s; } else { self.ast.nne[prev as usize] = s; } prev = s;
                 while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
             }
@@ -415,7 +488,7 @@ impl<'a> Parser<'a> {
             self.sogeza();
             if self.tokeni_ni("(") { self.sogeza(); }
             let tested = self.changanua_usemi();
-            if self.tokeni_ni(")") { self.sogeza(); }
+            self.tarajia(")", "')' inatarajiwa baada ya usemi wa chagua");
             if self.tokeni_ni("{") { self.sogeza(); }
 
             let mut first_case: i32 = NO_NODE;
@@ -433,7 +506,7 @@ impl<'a> Parser<'a> {
                     let mut cp: i32 = NO_NODE;
                     while !self.tokeni_ni("}") && !self.tokeni_ni("hali") && !self.tokeni_ni("sivyo") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
                         let s = self.changanua_taarifa();
-                        if s == NO_NODE { break; }
+                        if s == NO_NODE { if !self.recover_ya_mwili() { break; } continue; }
                         if cp == NO_NODE { case_body = s; } else { self.ast.nne[cp as usize] = s; }
                         cp = s;
                         while self.ast.nne[cp as usize] != NO_NODE && self.ast.nne[cp as usize] >= 0 { cp = self.ast.nne[cp as usize]; }
@@ -454,7 +527,7 @@ impl<'a> Parser<'a> {
                     let mut dp: i32 = NO_NODE;
                     while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
                         let s = self.changanua_taarifa();
-                        if s == NO_NODE { break; }
+                        if s == NO_NODE { if !self.recover_ya_mwili() { break; } continue; }
                         if dp == NO_NODE { default_body = s; } else { self.ast.nne[dp as usize] = s; }
                         dp = s;
                         while self.ast.nne[dp as usize] != NO_NODE && self.ast.nne[dp as usize] >= 0 { dp = self.ast.nne[dp as usize]; }
@@ -473,6 +546,11 @@ impl<'a> Parser<'a> {
         // mrejesho: taarifa ya usemi
         let e = self.changanua_usemi();
         if self.tokeni_ni(";") { self.sogeza(); }
+        else if e == NO_NODE && !matches!(self.sasa().kind, TokenKind::Mwisho) {
+            // Hakuna taarifa iliyotambulika — sogeza mbele ili kuzuia kitanzi kisicho na mwisho
+            self.kosa("taarifa isiyotambulika");
+            self.sogeza();
+        }
         e
     }
 
@@ -481,7 +559,7 @@ impl<'a> Parser<'a> {
     fn changanua_kazi(&mut self) -> i32 {
         if !self.ni_aina() { return NO_NODE; }
         let ret_a = self.changanua_aina();
-        if !matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) { self.kosa = true; return NO_NODE; }
+        if !matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) { self.kosa("jina la kazi linatarajiwa"); return NO_NODE; }
         let name = self.sasa().lexeme.clone(); self.sogeza();
 
         // === MAREKEBISHO: angalia ( dhidi ya = / ; ===
@@ -497,7 +575,7 @@ impl<'a> Parser<'a> {
             if self.tokeni_ni("[") {
                 self.sogeza(); // ruka [
                 saizi_ya_safu = self.changanua_usemi(); // nasa usemi wa ukubwa
-                if self.tokeni_ni("]") { self.sogeza(); }
+                self.tarajia("]", "']' inatarajiwa baada ya ukubwa wa safu ya ulimwengu");
             }
             let mut init: i32 = NO_NODE;
             if self.tokeni_ni("=") { self.sogeza(); init = self.changanua_usemi(); }
@@ -526,8 +604,17 @@ impl<'a> Parser<'a> {
             }
             break;
         }
-        if self.tokeni_ni(")") { self.sogeza(); }
-        if self.tokeni_ni("{") { self.sogeza(); }
+        self.tarajia(")", "')' inatarajiwa baada ya vigezo vya kazi");
+
+        // Tangazo la mbele (forward declaration): hakuna mwili wa { }
+        if !self.tokeni_ni("{") {
+            if self.tokeni_ni(";") { self.sogeza(); }
+            let func = self.ast.node_mpya(AST_KAZI, ret_a, name_n, first_p);
+            self.ast.tiga[func as usize] = NO_NODE;
+            if first_p != NO_NODE { self.ast.kulia[name_n as usize] = first_p; }
+            return func;
+        }
+        self.sogeza(); // ruka '{'
 
         // Changanua mwili
         let mut body: i32 = NO_NODE; let mut prev_s: i32 = NO_NODE;
@@ -548,9 +635,9 @@ impl<'a> Parser<'a> {
 
     fn changanua_muundo(&mut self) -> i32 {
         self.sogeza();
-        if !matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) { self.kosa = true; return NO_NODE; }
+        if !matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) { self.kosa("jina la muundo linatarajiwa"); return NO_NODE; }
         let sname = self.sasa().lexeme.clone(); self.sogeza();
-        if !self.tokeni_ni("{") { self.kosa = true; return NO_NODE; } self.sogeza();
+        if !self.tokeni_ni("{") { self.kosa("{ inatarajiwa baada ya jina la muundo"); return NO_NODE; } self.sogeza();
 
         let sn = self.ast.node_mpya(AST_MUUNDO, 0, NO_NODE, NO_NODE);
         let nn = self.ast.node_mpya(AST_KITAMBULISHO, 0, NO_NODE, NO_NODE);
@@ -626,7 +713,11 @@ impl<'a> Parser<'a> {
             }
             if self.tokeni_ni("muundo") { node = self.changanua_muundo(); }
             if node == NO_NODE { node = self.changanua_kazi(); }
-            if node == NO_NODE { self.kosa = true; break; }
+            if node == NO_NODE {
+                self.kosa("kipengele cha ngazi ya juu hakutambulika");
+                if !self.recover_ya_mwili() { break; }
+                continue;
+            }
             if prev == NO_NODE { first = node; } else { self.ast.nne[prev as usize] = node; }
             prev = node;
             while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
@@ -640,14 +731,19 @@ impl<'a> Parser<'a> {
 // ---------------------------------------------------------------------------
 
 /// Chambua tokeni hadi safu bapa za AST zinazotumiwa na `ir::lower::lower()`.
-pub fn parse_full(tokens: &[Token]) -> Result<(Vec<u32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<u8>, usize), String> {
-    let mut p = Parser::new(tokens);
-    p.changanua();
-    if p.kosa {
-        let t = p.sasa();
-        let msg = format!("parse error at line {} col {} near '{}'", t.span.start.line, t.span.start.column, t.lexeme);
-        return Err(msg);
+///
+/// Hurejesha `Vec<Diagnostic>` yenye sehemu sahihi za chanzo ikitokea makosa ya uchanganuzi.
+pub fn parse_full(tokens: &[Token]) -> Result<(Vec<u32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<i32>, Vec<u8>, usize), Vec<crate::diagnostics::Diagnostic>> {
+    let mut diagnostics = DiagnosticBag::new();
+    let (count, aina, thamani, kushoto, kulia, tiga, nne, jina_off, pool) = {
+        let mut p = Parser::new(tokens, &mut diagnostics);
+        p.changanua();
+        let count = p.ast.aina.len();
+        (count, p.ast.aina, p.ast.thamani, p.ast.kushoto, p.ast.kulia, p.ast.tiga, p.ast.nne, p.ast.jina_off, p.ast.pool)
+    };
+    // Sasa diagnostics haijakopwa tena — tunaweza kuiangalia
+    if diagnostics.has_errors() {
+        return Err(diagnostics.all().to_vec());
     }
-    let count = p.ast.aina.len();
-    Ok((p.ast.aina, p.ast.thamani, p.ast.kushoto, p.ast.kulia, p.ast.tiga, p.ast.nne, p.ast.jina_off, p.ast.pool, count))
+    Ok((aina, thamani, kushoto, kulia, tiga, nne, jina_off, pool, count))
 }

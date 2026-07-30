@@ -72,6 +72,7 @@ const AST_SEHEMU_MSHALE: u32 = 34;
 const AST_TANGAZO_ULIMWENGU: u32 = 35;
 const AST_HAMISHA_KUSHOTO: u32 = 36;
 const AST_ASIMILIA: u32 = 37;
+const AST_MODULO: u32 = 48;
 const AST_SAFU: u32 = 38;
 const AST_HAMISHA_KULIA: u32 = 39;
 const AST_MFUATANO: u32 = 40;
@@ -1652,6 +1653,7 @@ impl<'a> Lowerer<'a> {
             }
             AST_ZIDISHA => self.lower_binary_op(node, current_block, |l, r| Instruction::Mul(l, r)),
             AST_GAWANYA => self.lower_binary_op(node, current_block, |l, r| Instruction::DivS(l, r)),
+            AST_MODULO => self.lower_binary_op(node, current_block, |l, r| Instruction::RemS(l, r)),
 
             // -- shughuli za biti ----------------------------------------------
             AST_HAMISHA_KUSHOTO => self.lower_binary_op(node, current_block, |l, r| Instruction::Shl(l, r)),
