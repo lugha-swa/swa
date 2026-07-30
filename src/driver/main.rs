@@ -17,7 +17,7 @@ use std::process;
 
 /// Jaribu kuunganisha faili la kitu hadi faili linaloweza kutekelezwa kupitia clang.
 /// Hurejesha hali ya kutoka ya clang kwenye mafanikio, None kama clang haipatikani.
-fn try_link(obj: &Path, exe: &Path) -> Option<i32> {
+fn try_link(obj: &Path, exe: &Path, target: &str) -> Option<i32> {
     let clang_paths = ["clang", "C:\\LLVM18\\bin\\clang.exe"];
     let clang = clang_paths.iter().find(|p| {
         let c = std::process::Command::new(p).arg("--version")
@@ -30,10 +30,10 @@ fn try_link(obj: &Path, exe: &Path) -> Option<i32> {
         Some(c) => c,
         None => return None,
     };
-    // Tumia lengwa la GNU kwenye Windows — linalingana na tatu ya IR iliyowekwa na nyuma.
-    let target = if cfg!(windows) { "x86_64-pc-windows-gnu" } else { "x86_64-unknown-linux-gnu" };
     // Tafuta libgcc kwa __chkstk (mfumo mkubwa wa rafu kutoka safu kubwa).
-    let gcc_base = if cfg!(windows) {
+    let gcc_base = if target.starts_with("aarch64") {
+        std::path::PathBuf::from("/usr/lib/gcc/aarch64-linux-gnu")
+    } else if cfg!(windows) {
         std::path::PathBuf::from("C:\\ProgramData\\mingw64\\mingw64\\lib\\gcc\\x86_64-w64-mingw32")
     } else {
         std::path::PathBuf::from("/usr/lib/gcc/x86_64-linux-gnu")
@@ -84,6 +84,7 @@ fn main() {
         eprintln!("  kande --tokens file.swa    — toa tokeni");
         eprintln!("  kande --opt file.swa       — sanya kwa kupita za LLVM (FastISel)");
         eprintln!("  kande --O2 file.swa        — sanya kwa O2 + kupita (inaweza kugusa hitilafu ya LLVM)");
+        eprintln!("  kande --target <triple> file.swa -o file.o  — lengwa mtambuka");
         process::exit(1);
     }
 
@@ -91,6 +92,7 @@ fn main() {
     let mut output_path: Option<PathBuf> = None;
     let mut opt_flag = false;
     let mut o2_flag = false;
+    let mut target_triple: Option<String> = None;
     let mut positional: Vec<String> = Vec::new();
     {
         let mut i = 1;
@@ -104,6 +106,11 @@ fn main() {
                 opt_flag = true;
             } else if args[i] == "--O2" {
                 o2_flag = true;
+            } else if args[i] == "--target" {
+                i += 1;
+                if i < args.len() {
+                    target_triple = Some(args[i].clone());
+                }
             } else {
                 positional.push(args[i].clone());
             }
@@ -204,7 +211,10 @@ fn main() {
         "llvm" => {
             match driver.compile_to_ir(&source, file_path) {
                 Ok(module) => { for d in driver.diagnostics.all() { eprintln!("{}", d.render(&source)); }
-                    let backend = kande_lib::codegen::llvm::LlvmBackend::new();
+                    let backend = {
+                        let b = kande_lib::codegen::llvm::LlvmBackend::new();
+                        if let Some(ref t) = target_triple { b.with_target(t.clone()) } else { b }
+                    };
                     match backend.compile(&module) {
                         Ok(llvm_module) => {
                             unsafe {
@@ -248,17 +258,21 @@ fn main() {
             };
             match driver.compile_to_ir(&source, file_path) {
                 Ok(module) => { for d in driver.diagnostics.all() { eprintln!("{}", d.render(&source)); }
-                    let backend = if o2_flag {
-                        LlvmBackend::new().with_opt_level(LLVMCodeGenOptLevel::Default).with_opt()
-                    } else if opt_flag {
-                        LlvmBackend::new().with_opt()
-                    } else {
-                        LlvmBackend::new()
+                    let backend = {
+                        let b = if o2_flag {
+                            LlvmBackend::new().with_opt_level(LLVMCodeGenOptLevel::Default).with_opt()
+                        } else if opt_flag {
+                            LlvmBackend::new().with_opt()
+                        } else {
+                            LlvmBackend::new()
+                        };
+                        if let Some(ref t) = target_triple { b.with_target(t.clone()) } else { b }
                     };
                     match backend.compile_to_file(&module, &obj_path) {
                         Ok(()) => {
                             if want_link {
-                                match try_link(&obj_path, &out_path) {
+                                let link_target = target_triple.as_deref().unwrap_or(if cfg!(windows) { "x86_64-pc-windows-gnu" } else { "x86_64-unknown-linux-gnu" });
+                                match try_link(&obj_path, &out_path, link_target) {
                                     Some(0) => {
                                         println!("Kande: {} → {} (linked)", file_arg, out_path.display());
                                     }
@@ -303,7 +317,10 @@ fn main() {
                     process::exit(1);
                 }
             };
-            let backend = LlvmBackend::new();
+            let backend = {
+                let b = LlvmBackend::new();
+                if let Some(ref t) = target_triple { b.with_target(t.clone()) } else { b }
+            };
             match backend.compile_ll(&ll_text, &obj_path) {
                 Ok(()) => {
                     println!("Kande: {} → {}", file_arg, obj_path.display());
