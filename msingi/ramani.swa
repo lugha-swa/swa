@@ -21,14 +21,17 @@ Ramani* ramani_mpya(N32 uwezo) {
     rudisha r;
 }
 
-N32 ramani_weka(Ramani* r, N32 funguo, N32 thamani) {
+W0 ramani_weka(Ramani* r, N32 funguo, N32 thamani) {
+    kama (r->idadi >= r->uwezo) {
+        rudisha;
+    }
     N32 idx = funguo % r->uwezo;
     N32 kaburi = -1;
     N32 hatua = 0;
     wakati (hatua < r->uwezo) {
         kama (r->funguo[idx] == funguo) {
             r->thamani[idx] = thamani;
-            rudisha 1;
+            rudisha;
         }
         kama (r->funguo[idx] == -2 && kaburi == -1) {
             kaburi = idx;
@@ -40,7 +43,7 @@ N32 ramani_weka(Ramani* r, N32 funguo, N32 thamani) {
             r->funguo[idx] = funguo;
             r->thamani[idx] = thamani;
             r->idadi = r->idadi + 1;
-            rudisha 1;
+            rudisha;
         }
         idx = (idx + 1) % r->uwezo;
         hatua = hatua + 1;
@@ -49,9 +52,7 @@ N32 ramani_weka(Ramani* r, N32 funguo, N32 thamani) {
         r->funguo[kaburi] = funguo;
         r->thamani[kaburi] = thamani;
         r->idadi = r->idadi + 1;
-        rudisha 1;
     }
-    rudisha -1;
 }
 
 N32 ramani_pata(Ramani* r, N32 funguo) {

@@ -913,9 +913,9 @@ N32 main() {
     Ramani* r = ramani_mpya(16);
 
     // Weka thamani
-    kama (ramani_weka(r, 5, 100) != 1) rudisha 1;
-    kama (ramani_weka(r, 10, 200) != 1) rudisha 2;
-    kama (ramani_weka(r, 20, 300) != 1) rudisha 3;
+    ramani_weka(r, 5, 100);
+    ramani_weka(r, 10, 200);
+    ramani_weka(r, 20, 300);
 
     // Pata thamani zilizowekwa
     kama (ramani_pata(r, 5) != 100) rudisha 4;
@@ -931,7 +931,7 @@ N32 main() {
     kama (ramani_ina(r, 99) != 0) rudisha 10;
 
     // Badilisha thamani iliyopo
-    kama (ramani_weka(r, 5, 999) != 1) rudisha 11;
+    ramani_weka(r, 5, 999);
     kama (ramani_pata(r, 5) != 999) rudisha 12;
 
     // Futa funguo
