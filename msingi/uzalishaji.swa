@@ -1724,6 +1724,27 @@ W0 uzalishaji_achilia(N32 node, N32 kazi_node) {
     andika_neno4(0);
 }
 
+// AST_BADILI (48) -- badili kumbukumbu (realloc)
+W0 uzalishaji_badili(N32 node, N32 kazi_node) {
+    // Tathmini size (kulia), kisha ptr (kushoto) — kulia kwenda kushoto kwa rafu
+    uzalishaji_usemi(ast_kulia[node], kazi_node);
+    andika_push_rax();
+    uzalishaji_usemi(ast_kushoto[node], kazi_node);
+    andika_push_rax();
+    // Pop kwenye rejista za x86-64 System V: rdi (ptr), rsi (size)
+    andika_pop_rdi();
+    andika_pop_rsi();
+    andika_xor_eax_eax();
+    N32 nje_id = pata_au_unda_nje("realloc");
+    andika_baiti(232);
+    kama (rela_idadi < 512) {
+        rela_text_off[rela_idadi] = bafa_text_wapi;
+        rela_nje_id[rela_idadi] = nje_id;
+        rela_idadi = rela_idadi + 1;
+    }
+    andika_neno4(0);
+}
+
 // Msaidizi wa kulinganisha — huchagua 32-bit au 64-bit
 W0 uzalishaji_cmp_kwa_saizi(N32 saizi) {
     kama (saizi >= 8) { andika_cmp_rax_rcx(); }
@@ -2131,6 +2152,7 @@ W0 uzalishaji_usemi_kati_a1(N32 node, N32 kazi_node, N32 aina) {
     sivyo kama (aina == 19) { uzalishaji_achilia(node, kazi_node); rudisha; }
     sivyo kama (aina == 20) { uzalishaji_sawa(node, kazi_node); rudisha; }
     sivyo kama (aina == 21) { uzalishaji_tofauti_si(node, kazi_node); rudisha; }
+    sivyo kama (aina == 48) { uzalishaji_badili(node, kazi_node); rudisha; }
 }
 
 // Vishikizi vya aina 22-25: ulinganishi wa ukubwa (<, >, <=, >=)
@@ -2364,6 +2386,7 @@ W0 uzalishaji_usemi(N32 node, N32 kazi_node) {
     kama (aina <= 32) { uzalishaji_usemi_kati_b(node, kazi_node, aina); rudisha; }
     kama (aina <= 44) { uzalishaji_usemi_juu_a(node, kazi_node, aina); rudisha; }
     kama (aina <= 47) { uzalishaji_usemi_juu_b(node, kazi_node, aina); rudisha; }
+    kama (aina == 48) { uzalishaji_usemi_kati_a1(node, kazi_node, aina); rudisha; }
 }
 
 // PAKIA KIGEZO CHA KAZI
