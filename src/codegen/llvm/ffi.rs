@@ -622,7 +622,7 @@ extern "C" {
         kind_id: u32,
         ty: LLVMTypeRef,
     ) -> LLVMAttributeRef;
-    pub fn LLVMSetFunctionCallConv(fn_val: LLVMValueRef, cc: u32); (K4, K5, K6: urejeshaji wa makosa ya parser, pipeline ya uboreshaji, na maktaba ya kawaida)
+    pub fn LLVMSetFunctionCallConv(fn_val: LLVMValueRef, cc: u32);
 
     // -- DIBuilder (vibadala vya msingi vya habari za utatuzi) ----------------
 
