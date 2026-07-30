@@ -263,6 +263,34 @@ fn jaribio_kazi_isiyo_na_mwili() {
 }
 
 // ============================================================================
+// K9 — Majaribio ya kisemantiki ya taarifa za rudisha
+// ============================================================================
+
+#[test]
+fn jaribio_k9a_void_kurudisha_thamani() {
+    // Kazi ya W0 yenye rudisha yenye thamani — inapaswa kushindwa
+    let src = "W0 fanya() { rudisha 5; }";
+    let result = compile_and_verify(src);
+    assert!(result.is_err(), "W0 kazi inayorudisha thamani inapaswa kushindwa");
+}
+
+#[test]
+fn jaribio_k9b_nonvoid_kurudisha_tupu() {
+    // Kazi ya N32 yenye rudisha tupu — inapaswa kushindwa
+    let src = "N32 fanya() { rudisha; }";
+    let result = compile_and_verify(src);
+    assert!(result.is_err(), "kaziya N32 inayorudisha tupu inapaswa kushindwa");
+}
+
+#[test]
+fn jaribio_k9c_kurudisha_sahihi() {
+    // Kazi ya N32 yenye rudisha sahihi — inapaswa kufaulu
+    let src = "N32 fanya() { rudisha 42; }";
+    let ir = compile_and_verify(src).expect("rudisha sahihi inapaswa kukusanyika");
+    assert!(ir.contains("fanya"));
+}
+
+// ============================================================================
 // Husisha
 // ============================================================================
 
