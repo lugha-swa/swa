@@ -1989,6 +1989,32 @@ W0 uzalishaji_gawanya(N32 node, N32 kazi_node) {
     }
 }
 
+// AST_MODULO (49) -- asilimia
+W0 uzalishaji_modulo(N32 node, N32 kazi_node) {
+    N32 enc = ast_thamani[node];
+    N32 saizi = ast_tiga[node];
+    N32 ni_b = ni_bila_ishara_enc(enc);
+
+    // Hakuna modulo ya moja kwa moja kwa desimali;
+    // kwa sasa tunaishia tu na nambari kamili.
+    uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
+    uzalishaji_usemi(ast_kushoto[node], kazi_node);
+    kama (saizi >= 8) { andika_cqo(); }
+    sivyo { andika_cdq(); }
+    andika_pop_rcx();
+    kama (saizi >= 8) {
+        kama (ni_b) { andika_div_rcx_rax(); }
+        sivyo { andika_idiv_rcx_rax(); }
+        // Salio iko kwenye rdx; isogeze kwenye rax
+        andika_mov_rax_rdx();
+    } sivyo {
+        kama (ni_b) { andika_div_ecx(); }
+        sivyo { andika_idiv_ecx(); }
+        // Salio iko kwenye edx; isogeze kwenye eax
+        andika_mov_eax_edx();
+    }
+}
+
 // AST_HAMISHA_KUSHOTO (39) -- hamisha kushoto (<<)
 W0 uzalishaji_hamisha_kushoto(N32 node, N32 kazi_node) {
     N32 saizi = ast_tiga[node];
@@ -2387,6 +2413,7 @@ W0 uzalishaji_usemi(N32 node, N32 kazi_node) {
     kama (aina <= 44) { uzalishaji_usemi_juu_a(node, kazi_node, aina); rudisha; }
     kama (aina <= 47) { uzalishaji_usemi_juu_b(node, kazi_node, aina); rudisha; }
     kama (aina == 48) { uzalishaji_usemi_kati_a1(node, kazi_node, aina); rudisha; }
+    kama (aina == 49) { uzalishaji_modulo(node, kazi_node); rudisha; }
 }
 
 // PAKIA KIGEZO CHA KAZI
