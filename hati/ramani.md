@@ -87,10 +87,10 @@ IR inatumika TU kwenye njia ya Rust → LLVM.
   - [x] `nasibu.swa` — nambari nasibu
   - [x] `wakati.swa` — vipimo vya wakati
 
-### Urekebishaji kutoka feat/k4 (ya kuchukuliwa kwa kuchagua)
-- [ ] **fgetc: N8 + 0xFF** — kwenye `faili.swa`, fgetc inarudisha N8 lakini inahitaji
+### Urekebishaji kutoka feat/k4 (umekamilika)
+- [x] **fgetc: N8 + 0xFF** — kwenye `faili.swa`, fgetc inarudisha N8 lakini inahitaji
       kuficha na 0xFF ili kushughulikia kwa usahihi thamani hasi za EOF
-- [ ] **ramani_weka: ulinzi wa kufurika** — kwenye `ramani.swa`, hakikisha
+- [x] **ramani_weka: ulinzi wa kufurika** — kwenye `ramani.swa`, hakikisha
       uwekaji kwenye jedwali la hashi hauzidi uwezo
 
 ## Hatua ya 3: Kuondoa Utegemezi wa Rust [GOAL] LENGO KUU
