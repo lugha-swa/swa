@@ -630,7 +630,7 @@ fn lower_function(
                     sret_kind,
                     0,
                 );
-                LLVMAddAttributeAtIndex(llvm_func, 0, attr);
+                LLVMAddAttributeAtIndex(llvm_func, 1, attr);
             }
         }
 
