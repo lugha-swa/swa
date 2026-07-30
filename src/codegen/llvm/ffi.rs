@@ -601,6 +601,11 @@ extern "C" {
         kind_id: u32,
         val: u64,
     ) -> LLVMAttributeRef;
+    pub fn LLVMCreateTypeAttribute(
+        ctx: LLVMContextRef,
+        kind_id: u32,
+        ty: LLVMTypeRef,
+    ) -> LLVMAttributeRef;
     pub fn LLVMAddAttributeAtIndex(
         func: LLVMValueRef,
         index: u32,
@@ -608,12 +613,11 @@ extern "C" {
     );
     pub fn LLVMGetEnumAttributeKind(attr: LLVMAttributeRef) -> u32;
     pub fn LLVMGetEnumAttributeKindForName(name: *const c_char, len: usize) -> u32;
-    pub fn LLVMGetStringAttributeKind(name: *const c_char) -> u32;
-    pub fn LLVMCreateTypeAttribute(
-        ctx: LLVMContextRef,
-        kind_id: u32,
-        ty: LLVMTypeRef,
-    ) -> LLVMAttributeRef;
+    pub fn LLVMGetStringAttributeKind(
+        attr: LLVMAttributeRef,
+        length: *mut u32,
+    ) -> *const c_char;
+    pub fn LLVMSetFunctionCallConv(fn_val: LLVMValueRef, cc: u32);
 
     // -- DIBuilder (vibadala vya msingi vya habari za utatuzi) ----------------
 

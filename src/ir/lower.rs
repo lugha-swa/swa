@@ -72,6 +72,7 @@ const AST_SEHEMU_MSHALE: u32 = 34;
 const AST_TANGAZO_ULIMWENGU: u32 = 35;
 const AST_HAMISHA_KUSHOTO: u32 = 36;
 const AST_ASIMILIA: u32 = 37;
+const AST_MODULO: u32 = 48;
 const AST_SAFU: u32 = 38;
 const AST_HAMISHA_KULIA: u32 = 39;
 const AST_MFUATANO: u32 = 40;
@@ -379,6 +380,35 @@ impl<'a> Lowerer<'a> {
             }
             self.ast_pool[off..end].to_vec()
         }
+    }
+
+    /// Kwa tangazo la safu lenye `[]` (ukubwa usiojulikana) na kianzisha cha
+    /// mfuatano halisi, hesabu urefu wa safu unaohitajika kutoka kwa mfuatano halisi.
+    /// Hurejesha idadi ya baiti (baiti za mfuatano halisi zilizochakatwa kwa utorokaji
+    /// + 1 kwa kimalizio cha ncha-tupu).
+    fn compute_string_array_len(&self, init_node: i32) -> u64 {
+        if init_node == NO_NODE || init_node < 0 {
+            return 1; // angalau kimalizio cha ncha-tupu
+        }
+        let offset = self.ast_jina_off[init_node as usize];
+        let raw_bytes = self.read_pool_bytes(offset);
+        let mut count: u64 = 0;
+        let mut i = 0;
+        while i < raw_bytes.len() {
+            if raw_bytes[i] == b'\\' && i + 1 < raw_bytes.len() {
+                i += 1;
+                // Mifuatano ya utorokaji inayotambulika hutumia baiti 2 ghafi → herufi 1.
+                // Zisizotambulika huhifadhi baiti zote mbili (backslash + herufi).
+                match raw_bytes[i] {
+                    b'n' | b't' | b'r' | b'\\' | b'"' | b'0' => { count += 1; }
+                    _ => { count += 2; }
+                }
+            } else {
+                count += 1;
+            }
+            i += 1;
+        }
+        count + 1 // kimalizio cha ncha-tupu
     }
 
     /// Soma jina la aina kutoka dimbwi kwenye kukabilisha kilichohifadhiwa katika `ast_thamani[idx]`.
@@ -862,7 +892,16 @@ impl<'a> Lowerer<'a> {
                     let count = self.ast_thamani[saizi_node as usize] as u32;
                     IrType::Array { element: Box::new(base_ty), count: count as u64 }
                 } else {
-                    base_ty
+                    // Hakuna ukubwa uliotajwa wazi (mf. `N8 arr[] = "..."`).
+                    // Angalia kama kianzisha ni mfuatano halisi — kama ni hivyo,
+                    // tambua urefu wa safu kutoka kwa mfuatano huo.
+                    let init_node = self.ast_kulia[idx];
+                    if init_node != NO_NODE && init_node >= 0 && self.node_aina(init_node) == AST_MFUATANO {
+                        let count = self.compute_string_array_len(init_node);
+                        IrType::Array { element: Box::new(base_ty), count }
+                    } else {
+                        base_ty
+                    }
                 }
             } else {
                 // Muundo wa jaribio/urithi: nodi ya aina katika kulia, kianzisha katika tiga.
@@ -1391,7 +1430,15 @@ impl<'a> Lowerer<'a> {
                 let count = self.ast_thamani[saizi_node as usize] as u32;
                 IrType::Array { element: Box::new(base_ty), count: count as u64 }
             } else {
-                base_ty
+                // Hakuna ukubwa uliotajwa wazi (mf. `N8 arr[] = "..."`).
+                // Angalia kama kianzisha ni mfuatano halisi — kama ni hivyo,
+                // tambua urefu wa safu kutoka kwa mfuatano huo.
+                if init != NO_NODE && init >= 0 && self.node_aina(init) == AST_MFUATANO {
+                    let count = self.compute_string_array_len(init);
+                    IrType::Array { element: Box::new(base_ty), count }
+                } else {
+                    base_ty
+                }
             };
             (ty, init)
         } else {
@@ -1439,6 +1486,15 @@ impl<'a> Lowerer<'a> {
                     let struct_size = var_ty.width_bytes() as u64;
                     if struct_size > 0 {
                         self.emit(end_blk, Instruction::MemCopy(alloc, init_val, struct_size));
+                    }
+                } else if matches!(&var_ty, IrType::Array { .. }) {
+                    // Kwa safu iliyoanzishwa na mfuatano halisi (mf. `N8 arr[] = "..."`),
+                    // init_val ni kielekezi cha mfuatano wa kimataifa. Tumia MemCopy
+                    // kunakili baiti badala ya StoreTyped ambayo ingehifadhi thamani ya
+                    // kielekezi yenyewe.
+                    let array_size = var_ty.width_bytes() as u64;
+                    if array_size > 0 {
+                        self.emit(end_blk, Instruction::MemCopy(alloc, init_val, array_size));
                     }
                 } else {
                     self.emit(end_blk, Instruction::StoreTyped(init_val, alloc, var_ty.clone()));
@@ -1652,6 +1708,7 @@ impl<'a> Lowerer<'a> {
             }
             AST_ZIDISHA => self.lower_binary_op(node, current_block, |l, r| Instruction::Mul(l, r)),
             AST_GAWANYA => self.lower_binary_op(node, current_block, |l, r| Instruction::DivS(l, r)),
+            AST_MODULO => self.lower_binary_op(node, current_block, |l, r| Instruction::RemS(l, r)),
 
             // -- shughuli za biti ----------------------------------------------
             AST_HAMISHA_KUSHOTO => self.lower_binary_op(node, current_block, |l, r| Instruction::Shl(l, r)),
@@ -1767,6 +1824,14 @@ impl<'a> Lowerer<'a> {
             // Kwa aina za muundo, rudisha tu kielekezi cha alloca (vielekezi visivyo wazi).
             if matches!(&info.ty, IrType::Struct { .. }) {
                 return (alloca_ptr, blk);
+            }
+            // Kwa aina za safu ya ndani, rudisha kielekezi cha kwanza (kuoza-safu-kwa-kielekezi).
+            // Safu za ndani zinakaa kwenye alloca kama [N x T]; Gep(alloca, [0]) inabadilisha
+            // kielekezi cha safu kuwa kielekezi cha kipengele cha kwanza (T*).
+            if matches!(&info.ty, IrType::Array { .. }) {
+                let zero = self.const_val(Const::Int(0));
+                let elem_ptr = self.emit(blk, Instruction::Gep(alloca_ptr, vec![zero]));
+                return (elem_ptr, blk);
             }
             let loaded_ty = info.ty.clone();
             let val = self.emit(blk, Instruction::Load(loaded_ty, alloca_ptr));
@@ -3492,14 +3557,14 @@ mod tests {
         // Aina zilizosimbwa
         let n32_enc: i32 = (1 << 11) | (4 << 3) | 0;   // N32
         let n64_enc: i32 = (1 << 11) | (5 << 3) | 0;   // N64
-        let w0_enc: i32 = (5 << 11) | (0 << 3) | 0;     // W0 (haitumiki hapa)
+        let _w0_enc: i32 = (5 << 11) | (0 << 3) | 0;     // W0 (haitumiki hapa)
 
         // Majina
         let jina_jaribio = b.pool_name("jaribio");
         let jina_n = b.pool_name("n");
         let jina_i = b.pool_name("i");
-        let lit0 = b.pool_name("0");   // si halisi halisi, kwa dimbwi tu
-        let lit1 = b.pool_name("1");
+        let _lit0 = b.pool_name("0");   // si halisi halisi, kwa dimbwi tu
+        let _lit1 = b.pool_name("1");
 
         // -- Kigezo n: N64 --
         let p_n = b.node(0, NO_NODE, NO_NODE, NO_NODE, NO_NODE, n64_enc, jina_n);

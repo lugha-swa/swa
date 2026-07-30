@@ -52,12 +52,16 @@ static LLVM_INIT: OnceLock<usize> = OnceLock::new();
 /// (cha kawaida: `None` / O0).
 ///
 /// Sehemu ya `optimize` inawasha bomba la kupita za uboreshaji
-/// wa LLVM (mem2reg, instcombine, gvn, simplifycfg, always-inline)
+/// wa LLVM (mem2reg, instcombine, dce, gvn, simplifycfg, always-inline)
 /// wakati imewekwa kuwa `true`.
+///
+/// Sehemu ya `target_triple` inaruhusu kubatilisha tatu ya lengwa
+/// chaguo-msingi (ya mwenyeji) kwa mkusanyiko mtambuka.
 pub struct LlvmBackend {
     context: LLVMContextRef,
     opt_level: LLVMCodeGenOptLevel,
     optimize: bool,
+    target_triple: Option<String>,
 }
 
 impl LlvmBackend {
@@ -66,7 +70,7 @@ impl LlvmBackend {
     /// Unda nyuma mpya ya LLVM, ukianzisha usaidizi wa lengwa kwenye wito wa kwanza.
     pub fn new() -> Self {
         let context = Self::get_context();
-        Self { context, opt_level: LLVMCodeGenOptLevel::None, optimize: false }
+        Self { context, opt_level: LLVMCodeGenOptLevel::None, optimize: false, target_triple: None }
     }
 
     /// Weka kiwango cha uboreshaji wa kutengeneza msimbo (muundo wa kijenzi).
@@ -79,6 +83,19 @@ impl LlvmBackend {
     pub fn with_opt(mut self) -> Self {
         self.optimize = true;
         self
+    }
+
+    /// Weka tatu ya lengwa kwa mkusanyiko mtambuka (muundo wa kijenzi).
+    ///
+    /// Kama haijaitwa, `default_target_triple()` ya mwenyeji inatumika.
+    pub fn with_target(mut self, triple: String) -> Self {
+        self.target_triple = Some(triple);
+        self
+    }
+
+    /// Rudisha tatu ya lengwa inayotumika: ile iliyowekwa wazi, au ile ya mwenyeji.
+    fn effective_triple(&self) -> String {
+        self.target_triple.clone().unwrap_or_else(default_target_triple)
     }
 
     /// Rudisha muktadha wa LLVM wa kimataifa, ukianzisha malengo ya kawaida mara moja.
@@ -124,7 +141,9 @@ impl LlvmBackend {
         output_path: &Path,
     ) -> Result<(), Vec<Diagnostic>> {
         let llvm_module = self.compile(ir_module)?;
-        self.emit_object(llvm_module, output_path)
+        let result = self.emit_object(llvm_module, output_path);
+        unsafe { LLVMDisposeModule(llvm_module); }
+        result
     }
 
     /// Changanua maandishi ya LLVM IR na toa faili ya kitu kwa `output_path`.
@@ -203,7 +222,7 @@ impl LlvmBackend {
             // Weka tatu ya lengwa. Kwenye Windows tunaweza kupata tatu ya MSVC
             // kutoka LLVM, lakini kiunganishi cha GNU (MinGW) ndicho kinachopatikana.
             // Lazimisha tatu ya GNU ili kuunganisha kufanikiwe.
-            let triple = default_target_triple();
+            let triple = self.effective_triple();
             let triple = if triple.contains("windows-msvc") {
                 "x86_64-pc-windows-gnu".to_string()
             } else {
@@ -324,7 +343,6 @@ impl LlvmBackend {
                     if global.is_const { LLVMSetGlobalConstant(llvm_global, 1); LLVMSetLinkage(llvm_global, LLVMLinkage::Private); }
                 }
             }
-
             // -- 4. Tangaza mapema kazi ZOTE (maktabac + mtumiaji) -------------
             pre_declare_libc(module);
 
@@ -407,7 +425,8 @@ impl LlvmBackend {
     /// Hutumia meneja mpya wa kupita kupitia `LLVMRunPasses`. Mstari wa
     /// usindikaji unajumuisha:
     /// - Kiwango cha kazi: mem2reg (pandisha allocas hadi SSA), instcombine (peephole),
-    ///   GVN (uondoaji wa upakiaji unaorudiwa), simplifycfg (usafishaji wa CFG).
+    ///   DCE (uondoaji wa msimbo uliokufa), GVN (uondoaji wa upakiaji unaorudiwa),
+    ///   simplifycfg (usafishaji wa CFG).
     /// - Kiwango cha moduli: always-inline (weka ndani kazi za `always_inline`).
     ///
     /// Hii inaitwa na [`emit_object`] kati ya uundaji wa mashine lengwa
@@ -429,12 +448,12 @@ impl LlvmBackend {
 
             // Kamba ya mstari wa usindikaji hutumia sintaksia mpya ya meneja wa
             // kupita:
-            //   function(mem2reg,instcombine,gvn,simplifycfg)
+            //   function(mem2reg,instcombine,dce,gvn,simplifycfg)
             //     — kupita za kiwango cha kazi zinazotumika kwa kila kazi
             //   always-inline
             //     — kupita kwa kiwango cha moduli kuweka ndani kazi za always_inline
             let pipeline = c_str(
-                "function(mem2reg,instcombine<no-verify-fixpoint>,gvn,simplifycfg),\
+                "function(mem2reg,instcombine<no-verify-fixpoint>,dce,gvn,simplifycfg),\
                  always-inline",
             );
             let err = LLVMRunPasses(
@@ -470,7 +489,7 @@ impl LlvmBackend {
         output_path: &Path,
     ) -> Result<(), Vec<Diagnostic>> {
         unsafe {
-            let triple = default_target_triple();
+            let triple = self.effective_triple();
             let triple_c = CString::new(triple.as_str()).unwrap();
 
             let mut target: LLVMTargetRef = std::ptr::null_mut();
@@ -528,6 +547,88 @@ impl LlvmBackend {
             if emit_failed != 0 {
                 let msg = if emit_error.is_null() {
                     "object file emission failed (no details)".to_string()
+                } else {
+                    let s = std::ffi::CStr::from_ptr(emit_error)
+                        .to_string_lossy()
+                        .into_owned();
+                    LLVMDisposeMessage(emit_error);
+                    s
+                };
+                return Err(vec![Diagnostic::error(msg, SourceSpan::point(0, 0))]);
+            }
+
+            Ok(())
+        }
+    }
+
+    /// Toa moduli ya LLVM kwa faili ya msimbo wa mkutano (assembly).
+    ///
+    /// Sawa na [`emit_object`] lakini hutoa AssemblyFile badala ya ObjectFile.
+    /// Hutumika kwa majaribio ya uthibitishaji wa msimbo wa mashine.
+    pub fn emit_assembly(
+        &self,
+        module: LLVMModuleRef,
+        output_path: &Path,
+    ) -> Result<(), Vec<Diagnostic>> {
+        unsafe {
+            let triple = self.effective_triple();
+            let triple_c = CString::new(triple.as_str()).unwrap();
+
+            let mut target: LLVMTargetRef = std::ptr::null_mut();
+            let mut error: *mut std::ffi::c_char = std::ptr::null_mut();
+
+            let failed = LLVMGetTargetFromTriple(triple_c.as_ptr(), &mut target, &mut error);
+            if failed != 0 {
+                let msg = if error.is_null() {
+                    "failed to look up target from triple".to_string()
+                } else {
+                    let s = std::ffi::CStr::from_ptr(error).to_string_lossy().into_owned();
+                    LLVMDisposeMessage(error);
+                    s
+                };
+                return Err(vec![Diagnostic::error(msg, SourceSpan::point(0, 0))]);
+            }
+
+            let cpu_c = c_str("");
+            let features_c = c_str("");
+            let tm = LLVMCreateTargetMachine(
+                target,
+                triple_c.as_ptr(),
+                cpu_c.as_ptr(),
+                features_c.as_ptr(),
+                self.opt_level,
+                LLVMRelocMode::Default,
+                LLVMCodeModel::Default,
+            );
+
+            if tm.is_null() {
+                return Err(vec![Diagnostic::error(
+                    "failed to create target machine",
+                    SourceSpan::point(0, 0),
+                )]);
+            }
+
+            // Endesha bomba la kupita za uboreshaji kati ya uundaji wa
+            // mashine lengwa na utoaji wa msimbo.
+            self.optimize_module(module);
+
+            let path_str = output_path.to_string_lossy();
+            let path_c = CString::new(path_str.as_ref()).unwrap();
+            let mut emit_error: *mut std::ffi::c_char = std::ptr::null_mut();
+
+            let emit_failed = LLVMTargetMachineEmitToFile(
+                tm,
+                module,
+                path_c.as_ptr(),
+                LLVMCodeGenFileType::AssemblyFile,
+                &mut emit_error,
+            );
+
+            LLVMDisposeTargetMachine(tm);
+
+            if emit_failed != 0 {
+                let msg = if emit_error.is_null() {
+                    "assembly emission failed (no details)".to_string()
                 } else {
                     let s = std::ffi::CStr::from_ptr(emit_error)
                         .to_string_lossy()
@@ -622,6 +723,8 @@ fn lower_function(
         }
 
         // -- 3. Tumia sifa sret kwenye kigezo cha kwanza ----------------------
+        // sret ni sifa ya aina (type attribute) katika LLVM 22.x —
+        // inabeba aina ya muundo inayorejeshwa.
         if func.sret_value_id.is_some() {
             // sret ni sifa ya aina (type attribute), sio enum attribute.
             // Tunatumia LLVMGetEnumAttributeKindForName kupata kitambulisho cha aina,
@@ -1070,7 +1173,7 @@ fn lower_instruction(
 
             // -- uundaji wa thabiti ---------------------------------------------
             crate::ir::Instruction::Const(c) => {
-                unsafe { materialize_const(c, LLVMInt64Type()) }
+                materialize_const(c, LLVMInt64Type())
             }
 
             // -- kumbukumbu --------------------------------------------------------
@@ -1121,30 +1224,20 @@ fn lower_instruction(
                 LLVMBuildStore(builder, cast, p)
             }
             crate::ir::Instruction::MemCopy(dest, src, size) => {
-                // Tumia asili ya LLVM memcpy: @llvm.memcpy.p0.p0.i64
+                // Ita kazi ya memcpy iliyotangazwa mapema.
                 let dest_ptr = v(value_map, dest);
                 let src_ptr = v(value_map, src);
                 let sz_val = LLVMConstInt(LLVMInt64Type(), *size, 0);
-                let volatile_flag = LLVMConstInt(LLVMInt1Type(), 0, 0);
-                let intrinsic_name = c_str("llvm.memcpy.p0.p0.i64");
-                let callee = LLVMGetNamedFunction(module, intrinsic_name.as_ptr());
-                let callee = if callee.is_null() {
-                    let mut param_tys = [ptr_type(), ptr_type(), LLVMInt64Type(), LLVMInt1Type()];
-                    let fn_ty = LLVMFunctionType(LLVMVoidType(), param_tys.as_mut_ptr(), 4, 0);
-                    LLVMAddFunction(module, intrinsic_name.as_ptr(), fn_ty)
-                } else {
-                    callee
-                };
-                // Pata tena aina ya kazi kwa wito.
-                let param_count = LLVMCountParams(callee);
-                let mut rebuilt: Vec<LLVMTypeRef> = (0..param_count)
-                    .map(|i| LLVMTypeOf(LLVMGetParam(callee, i)))
-                    .collect();
-                let fn_ty = LLVMFunctionType(LLVMVoidType(),
-                    if rebuilt.is_empty() { std::ptr::null_mut() } else { rebuilt.as_mut_ptr() },
-                    rebuilt.len() as u32, 0);
-                let mut args = [dest_ptr, src_ptr, sz_val, volatile_flag];
-                LLVMBuildCall2(builder, fn_ty, callee, args.as_mut_ptr(), 4, std::ptr::null());
+                let memcpy_fn = LLVMGetNamedFunction(module, c_str("memcpy").as_ptr());
+                let args = [dest_ptr, src_ptr, sz_val];
+                LLVMBuildCall2(
+                    builder,
+                    LLVMFunctionType(ptr_type(), [ptr_type(), ptr_type(), LLVMInt64Type()].as_mut_ptr(), 3, 0),
+                    memcpy_fn,
+                    args.as_ptr() as *mut LLVMValueRef,
+                    3,
+                    c_str("").as_ptr(),
+                );
                 LLVMConstNull(LLVMInt8Type())
             }
 
@@ -1481,9 +1574,14 @@ fn lower_instruction(
                         "free" => LLVMVoidType(),
                         "printf" => LLVMInt32Type(),
                         "andika" => LLVMInt32Type(),
+                        "andika_stderr" => LLVMInt32Type(),
                         "fopen" => ptr_type(),
                         "fread" => LLVMInt64Type(),
+                        "fwrite" => LLVMInt64Type(),
                         "fclose" => LLVMInt32Type(),
+                        "time" => LLVMInt64Type(),
+                        "rand" => LLVMInt32Type(),
+                        "srand" => LLVMVoidType(),
                         "mmap" => ptr_type(),
                         "mprotect" => LLVMInt32Type(),
                         "munmap" => LLVMInt32Type(),
@@ -1498,7 +1596,7 @@ fn lower_instruction(
                         rebuilt_param_tys.as_mut_ptr()
                     },
                     rebuilt_param_tys.len() as u32,
-                    if callee == "printf" || callee == "andika" { 1 } else { 0 },
+                    if callee == "printf" || callee == "andika" || callee == "andika_stderr" { 1 } else { 0 },
                 );
 
                 let name = if inferred_ret_ty == LLVMVoidType() {
@@ -1643,10 +1741,34 @@ fn lower_terminator(
                 if let Some(&default_bb) = llvm_blocks.get(&default_block.0) {
                     let switch =
                         LLVMBuildSwitch(builder, scrut, default_bb, arms.len() as u32);
+                    // Pata aina ya skrutinia ili kuhakikisha thabiti za hali
+                    // zinatupwa kwa aina sawa. Thabiti za `Const::Int` hupewa
+                    // `i64` kama chaguo-msingi, lakini skrutinia inaweza kuwa
+                    // `i32` au `i8` n.k. Bila utupaji huu, LLVM inakataa
+                    // moduli kwa "Switch constants must all be same type".
+                    let scrut_ty = LLVMTypeOf(scrut);
                     for (case_val_id, case_block) in arms {
                         let case_val = vv(value_map, case_val_id);
+                        let case_val_ty = LLVMTypeOf(case_val);
+                        let case_cast = if LLVMGetTypeKind(case_val_ty) as u32
+                            == LLVMTypeKind::Integer as u32
+                            && LLVMGetTypeKind(scrut_ty) as u32
+                                == LLVMTypeKind::Integer as u32
+                            && LLVMGetIntTypeWidth(case_val_ty)
+                                != LLVMGetIntTypeWidth(scrut_ty)
+                        {
+                            LLVMBuildIntCast2(
+                                builder,
+                                case_val,
+                                scrut_ty,
+                                1, // isiwe na ishara
+                                c_str("switchcast").as_ptr(),
+                            )
+                        } else {
+                            case_val
+                        };
                         if let Some(&case_bb) = llvm_blocks.get(&case_block.0) {
-                            LLVMAddCase(switch, case_val, case_bb);
+                            LLVMAddCase(switch, case_cast, case_bb);
                         }
                     }
                 }
@@ -1929,6 +2051,16 @@ fn pre_declare_libc(module: LLVMModuleRef) {
             }
         }
 
+        // memcpy: ptr (ptr, ptr, i64) -> ptr
+        {
+            let name = c_str("memcpy");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type(), ptr_type(), LLVMInt64Type()];
+                let fn_ty = LLVMFunctionType(ptr_type(), param_tys.as_mut_ptr(), 3, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
         // printf: i32 (ptr, ...)
         {
             let name = c_str("printf");
@@ -1960,7 +2092,17 @@ fn pre_declare_libc(module: LLVMModuleRef) {
             if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
                 let mut param_tys = [ptr_type()];
                 let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 1, 1);
-                unsafe { LLVMAddFunction(module, name.as_ptr(), fn_ty); }
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // andika_stderr: kama andika lakini inaandika kwenye stderr kwa utatuzi
+        {
+            let name = c_str("andika_stderr");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type()];
+                let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 1, 1);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
             }
         }
 
@@ -1990,6 +2132,45 @@ fn pre_declare_libc(module: LLVMModuleRef) {
             if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
                 let mut param_tys = [ptr_type()];
                 let fn_ty = LLVMFunctionType(LLVMInt32Type(), param_tys.as_mut_ptr(), 1, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // fwrite: i64 (ptr, i64, i64, ptr) → size_t
+        {
+            let name = c_str("fwrite");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type(), LLVMInt64Type(), LLVMInt64Type(), ptr_type()];
+                let fn_ty = LLVMFunctionType(LLVMInt64Type(), param_tys.as_mut_ptr(), 4, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // time: i64 (ptr) → time_t
+        {
+            let name = c_str("time");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type()];
+                let fn_ty = LLVMFunctionType(LLVMInt64Type(), param_tys.as_mut_ptr(), 1, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // rand: i32 () → int
+        {
+            let name = c_str("rand");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let fn_ty = LLVMFunctionType(LLVMInt32Type(), std::ptr::null_mut(), 0, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // srand: void (i32) → void
+        {
+            let name = c_str("srand");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [LLVMInt32Type()];
+                let fn_ty = LLVMFunctionType(LLVMVoidType(), param_tys.as_mut_ptr(), 1, 0);
                 LLVMAddFunction(module, name.as_ptr(), fn_ty);
             }
         }
@@ -2114,9 +2295,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "direct return module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("direct_ret_fn"), "IR should contain function name");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2155,10 +2338,12 @@ mod tests {
 
         let result = b.compile(&m);
         assert!(result.is_ok(), "sret module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("make_triple"), "IR should contain function name");
             assert!(ir.contains("sret"), "IR should contain sret attribute");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2179,9 +2364,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "void return module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("do_nothing"), "IR should contain function name");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2212,9 +2399,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "alloca+store module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("alloca"), "IR should contain alloca");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2318,9 +2507,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "heap alloc module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("malloc"), "IR should contain malloc call");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2346,7 +2537,7 @@ mod tests {
         let val_vid = f.intern_const(Const::Int(1));
         let const_count = f.values.len();
         let heap_alloc_vid = ValueId(param_count + const_count + 0);
-        let store_vid = ValueId(param_count + const_count + 1);
+        let _store_vid = ValueId(param_count + const_count + 1);
         let _heap_free_vid = ValueId(param_count + const_count + 2);
 
         f.blocks[entry.0].push(Instruction::HeapAlloc(size_vid));
@@ -2357,6 +2548,10 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "heap alloc+free module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
+        unsafe {
+            LLVMDisposeModule(llvm_module);
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -2383,9 +2578,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "float arithmetic module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("fadd"), "IR should contain fadd instruction");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2414,9 +2611,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "integer comparison module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("icmp"), "IR should contain icmp instruction");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2587,10 +2786,12 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "orodha module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("Orodha") || ir.contains("init_orodha"),
                 "IR should contain struct or function name");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2627,9 +2828,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "printf module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("printf"), "IR should contain printf");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2662,9 +2865,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "StringAddr module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("my_str"), "IR should contain string global name");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2691,9 +2896,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "malloc call module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("malloc"), "IR should contain malloc");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2780,6 +2987,121 @@ mod tests {
         for ty in &types_to_test {
             let llvm_ty = ir_type_to_llvm(ty, &struct_types);
             assert!(!llvm_ty.is_null(), "ir_type_to_llvm({:?}) returned null", ty);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // jaribio_o1_sub_iliyohifadhiwa — thibitisha Sub inalala katika O0 na O1
+    //
+    // Hitilafu ya O1 (iliyoripotiwa dhidi ya LLVM 18.1): SelectionDAG ya LLVM
+    // inakusanya vibaya utoaji wa kielekezi kwenye O1, ikidondosha operanda ya
+    // utoaji na kusababisha `t->urefu = m->nafasi - anza` kuwa sawa na
+    // `t->urefu = m->nafasi`. Jaribio hili linathibitisha kwamba utoaji wa
+    // `i64 sub` unatokea katika msimbo wa mkutano kwenye viwango vyote vya
+    // uboreshaji vya LLVM.
+    //
+    // Jaribio linakagua dondoo mbili:
+    //   1. `sub_two(a, b)` — utoaji rahisi wa vigezo viwili (kama
+    //      `m->nafasi - mwanzo_nafasi` ambapo mwanzo_nafasi ni kigezo cha kazi)
+    //   2. `sub_from_struct(m_ptr, b)` — GEP+pakia+utoa (mfano halisi:
+    //      m->nafasi - b, kama inavyotumika kwenye msomaji.swa)
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_o1_sub_preserved() {
+        // Unda moduli ya IR yenye majaribio mawili.
+        let mut m = IrModule::new("sub_test");
+
+        // -- Kazi 1: sub_two(a: i64, b: i64) -> a - b -------------------------
+        let mut f1 = Function::new(
+            "sub_two",
+            IrType::I64,
+            vec![
+                ("a".into(), IrType::I64),
+                ("b".into(), IrType::I64),
+            ],
+        );
+        f1.return_class = IrReturnClass::Direct;
+        f1.source_return_ty = IrType::I64;
+
+        let e1 = f1.push_block(IrBlock::new("entry", Terminator::RetVoid));
+        f1.entry = e1;
+        f1.blocks[e1.0].push(Instruction::Sub(ValueId(0), ValueId(1)));
+        f1.blocks[e1.0].terminator = Terminator::Ret(ValueId(2));
+        m.push_function(f1);
+
+        // -- Kazi 2: sub_from_struct(m_ptr, b) -> m->nafasi - b ---------------
+        // Hii inaiga kikamilifu mfano wa msomaji.swa:
+        //   t->urefu = m->nafasi - mwanzo_nafasi;
+        // ambapo m ni kielekezi cha muundo Msomaji {nafasi: i64, ...}.
+        let msomaji_ty = IrType::Struct {
+            name: "Msomaji".into(),
+            fields: vec![
+                ("nafasi".into(), IrType::I64),
+                ("safu".into(), IrType::I64),
+                ("mstari".into(), IrType::I64),
+            ],
+        };
+        m.push_type("Msomaji", msomaji_ty.clone());
+
+        let mut f2 = Function::new(
+            "sub_from_struct",
+            IrType::I64,
+            vec![
+                ("m_ptr".into(), IrType::Ptr(Box::new(msomaji_ty.clone()))),
+                ("b".into(), IrType::I64),
+            ],
+        );
+        f2.return_class = IrReturnClass::Direct;
+        f2.source_return_ty = IrType::I64;
+
+        let e2 = f2.push_block(IrBlock::new("entry", Terminator::RetVoid));
+        f2.entry = e2;
+
+        // param_count=2: ValueId(0)=m_ptr, ValueId(1)=b
+        // FieldAddr(m_ptr, uga 0) → matokeo ni ValueId(2)
+        f2.blocks[e2.0].push(Instruction::FieldAddr(ValueId(0), 0, None));
+        // Pakia m->nafasi kutoka ValueId(2) → matokeo ni ValueId(3)
+        f2.blocks[e2.0].push(Instruction::Load(IrType::I64, ValueId(2)));
+        // Sub: m->nafasi - b → ValueId(3) - ValueId(1) = matokeo ValueId(4)
+        f2.blocks[e2.0].push(Instruction::Sub(ValueId(3), ValueId(1)));
+        f2.blocks[e2.0].terminator = Terminator::Ret(ValueId(4));
+        m.push_function(f2);
+
+        // Jaribu kwenye viwango vyote vya uboreshaji vya LLVM.
+        let levels: Vec<(&str, LLVMCodeGenOptLevel)> = vec![
+            ("O0", LLVMCodeGenOptLevel::None),
+            ("O1", LLVMCodeGenOptLevel::Less),
+            ("O2", LLVMCodeGenOptLevel::Default),
+        ];
+
+        for (label, opt_level) in &levels {
+            let b = LlvmBackend::new().with_opt_level(*opt_level);
+            let llvm_mod = b.compile(&m)
+                .unwrap_or_else(|e| panic!("{label}: compile failed: {:?}", e));
+
+            let asm_path = std::path::PathBuf::from(format!("/tmp/test_o1_sub_{}.s", label));
+            b.emit_assembly(llvm_mod, &asm_path)
+                .unwrap_or_else(|e| panic!("{label}: emit_assembly failed: {:?}", e));
+
+            let asm = std::fs::read_to_string(&asm_path)
+                .unwrap_or_else(|e| panic!("{label}: read assembly failed: {e}"));
+
+            // Angalia kwamba amri ya 'sub' ipo kwa kila kazi.
+            // Tunahesabu matukio — inapaswa kuwa na angalau 2 (moja kwa kila kazi).
+            let sub_count = asm.matches("sub").count()
+                + asm.matches("\tsubq").count()
+                + asm.matches("\tsubl").count();
+            assert!(
+                sub_count >= 2,
+                "{label}: SUB haipo mara za kutosha (yapatikana {sub_count}, yanahitajika >= 2). \
+                 SelectionDAG inaweza kuidondosha.\nAssembly:\n{}",
+                asm
+            );
+
+            // Safisha.
+            let _ = std::fs::remove_file(&asm_path);
+            unsafe { LLVMDisposeModule(llvm_mod); }
         }
     }
 }

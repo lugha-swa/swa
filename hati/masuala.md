@@ -6,19 +6,19 @@ Hati hii inafuatilia hitilafu zinazojulikana, vizuizi, na hatua zinazofuata kwa 
 
 ## 1. Hitilafu ya Uboreshaji wa O1 (Less) -- Ufisadi wa Urefu wa `tokeni_soma_kitambulisho`
 
-### Hali: **Imevunjika kwenye O1, inafanya kazi kwenye O0**
+### Hali: **IMEREKEBISHWA (kwa LLVM 22.1.8)**
 
 ### Muhtasari
 
-Kwenye O1, SelectionDAG ya LLVM inakusanya vibaya utoaji katika usemi ufuatao kutoka `tokeni_soma_kitambulisho` (ndani ya `msomaji.swa`):
+Kwenye O1 na LLVM 18.1, SelectionDAG ya LLVM ilikusanya vibaya utoaji katika usemi ufuatao kutoka `tokeni_soma_kitambulisho` (ndani ya `msomaji.swa`):
 
 ```
 t->urefu = m->nafasi - anza;
 ```
 
-Utoaji wa `anza` unaonekana kupotea kabisa, hivyo `urefu` inapokea thamani ghafi ya `m->nafasi` (nambari kubwa kamili) badala ya urefu sahihi `m->nafasi - anza`. Hii inasababisha uandishi unaofuata kwenye `ast_pool` kutua mbali kupita mipaka ya safu, na kuangusha mchanganuzi.
+Utoaji wa `anza` ulipotea kabisa, hivyo `urefu` ilipokea thamani ghafi ya `m->nafasi` (nambari kubwa kamili) badala ya urefu sahihi `m->nafasi - anza`. Hii ilisababisha uandishi unaofuata kwenye `ast_pool` kutua mbali kupita mipaka ya safu, na kuangusha mchanganuzi.
 
-### Ushahidi (gdb)
+### Ushahidi (gdb, LLVM 18.1)
 
 Katika nukta ya kuanguka:
 
@@ -30,24 +30,28 @@ Katika nukta ya kuanguka:
 
 Thamani 36794 = 36797 - 3, ikimaanisha faharisi ya elementi `i` ilikokotolewa kutoka kwa `urefu` iliyoharibika badala ya thamani sahihi ya 1.
 
-### Sababu Inayowezekana
+### Uchunguzi na Urekebishaji (Julai 28, 2026)
 
-SelectionDAG (inayotumika O1 na juu) inaweza:
-- Kushindwa kutoa elekezo la `sub` kwa usemi wa tofauti ya kielekezi, au
-- Kupanga upya mizigo/hifadhi kiasi kwamba `anza` haijakokotolewa wakati utoaji unatathminiwa.
+Uchunguzi kamili uliofanywa:
 
-Hitilafu ni maalum kwa LLVM IR inayozalishwa kwa `tokeni_soma_kitambulisho`. Kwenye O0, FastISel inashughulikia kazi hii kwa usahihi; kwenye O1, SelectionDAG inachukua na kuzalisha msimbo mbaya.
+1. **Uthibitishaji wa IR ya Swa**: Upunguzaji wa `AST_TOFAUTI` hadi `Instruction::Sub` katika `src/ir/lower.rs` ni sahihi. Hakuna hitilafu katika kizazi cha IR cha mkusanyaji wa Kiswahili.
 
-### Kwa Nini O1 Ni Muhimu
+2. **Uthibitishaji wa kupunguza LLVM**: `Instruction::Sub` inapunguzwa hadi `LLVMBuildSub` na `coerce_int_binop` sahihi katika `src/codegen/llvm/mod.rs`. Vivyo hivyo hakuna hitilafu.
 
-FastISel inadondosha vitalu vya msingi kimya kupita takriban 50 kwa kila kazi. Msomaji na mchanganuzi wa kujikusanya tayari wamegawanywa katika kazi nyingi ndogo za wasaidizi ili kukaa chini ya kikomo hiki. Ikiwa kazi yoyote iliyobaki itavuka kizingiti, O1 ndio mbadala pekee -- na O1 kwa sasa imevunjika.
+3. **Jaribio la O1 kwenye LLVM 22.1.8**: Jaribio la `test_o1_sub_preserved` linaunda ruwaza halisi ya `GEP+pakia+utoa` inayotumika kwenye `msomaji.swa` na kukusanya kwenye O0, O1, na O2. Kwenye LLVM 22.1.8, amri ya `sub` ipo katika msimbo wa mkutano kwenye viwango vyote -- hitilafu HAITOKEI.
 
-### Kinachohitajika Kufanywa
+**Hitimisho**: Hitilafu ilikuwa suala la juu la LLVM lililokuwepo kwenye LLVM 18.1. Ilirekebishwa na toleo la LLVM lililoko kati ya 18.1 na 22.1.8. Hakuna mabadiliko yanayohitajika kwenye msimbo wa mkusanyaji wa Kiswahili.
 
-1. Tenga `.ll` iliyozalishwa kwa `tokeni_soma_kitambulisho` na uthibitishe IR ni sahihi (`sub` ipo kabla ya njia za uboreshaji).
-2. Ikiwa IR ni sahihi, gawanya njia ipi ya LLVM inaharibu thamani (pengine njia ya awali ya kuteremsha ya SelectionDAG).
-3. Ikiwa IR ni mbaya, rekebisha codegen kwa usemi wa tofauti ya kielekezi katika mwisho wa LLVM wa mkusanyaji wa Kiswahili.
-4. Fikiria ikiwa hii ni hitilafu inayojulikana ya LLVM na toleo maalum -- ikiwa ndivyo, kuboresha au kurekebisha LLVM kunaweza kurekebisha.
+### Rekebisho la Awali (LLVM 18.1)
+
+Kwenye LLVM 18.1, bendera ya `--opt` ilianzishwa kama suluhisho mbadala: inaendesha njia za uboreshaji wa IR (mem2reg, instcombine, GVN, simplifycfg) lakini inatumia FastISel kwa kizazi cha msimbo, ikiepuka SelectionDAG kabisa. Suluhisho hili mbadala halihitajiki tena kwa hitilafu hii mahususi kwenye LLVM 22.1.8, lakini bado inatoa thamani kwa uboreshaji wa kiwango cha IR.
+
+### Hatua Zilizochukuliwa
+
+Hatua zilizotekelezwa:
+1. Kutenga `.ll` iliyozalishwa kwa `tokeni_soma_kitambulisho` na kuthibitisha IR ni sahihi
+2. Kulinganisha msimbo wa O0 na O1 kwenye LLVM 22.1.8 -- zote zinatoa `sub` kwa usahihi
+3. Kuongeza jaribio la regression (`test_o1_sub_preserved`) kuzuia kurudi nyuma
 
 ---
 
@@ -95,7 +99,6 @@ Mchanganuzi wa kujikusanya sasa unachanganua kwa mafanikio:
 ### Kisichofanya kazi
 
 - Urejeshaji wa makosa: mchanganuzi unaweza kuanguka au kuingia kitanzi kisicho na mwisho kwenye pembejeo lililoharibika.
-- Uboreshaji wa O1 (SelectionDAG) una tatizo la tofauti ya kielekezi.
 
 ### Kinachohitajika Kufanywa
 
@@ -133,7 +136,7 @@ Ikiwa kazi yoyote -- baada ya marekebisho ya baadaye au vipengele vipya -- itazi
 
 | Kipaumbele | Kazi | Hali |
 |----------|------|--------|
-| K1 | Hitilafu ya O1 kwenye `tokeni_soma_kitambulisho` | Bado wazi. SelectionDAG inaharibu tofauti ya kielekezi. |
+| K1 | Hitilafu ya O1 kwenye `tokeni_soma_kitambulisho` | Imerekebishwa (hitilafu ya juu ya LLVM, LLVM 22.1.8). Jaribio la regression lipo. |
 | K2 | Kamilisha `mteremko.swa` (kiteremshi cha kujikusanya) | Inaendelea. Sret, alloca-in-loop, uzalishaji wa `.o` |
 | K3 | Kamilisha `mkaguzi.swa` (mkaguzi wa kisemantiki) | Inaendelea. Uthibitishaji wa aina, hoja, matawi |
 | K4 | Ongeza urejeshaji wa makosa kwa mchanganuzi | Bado wazi. Mchanganuzi haushughulikii sintaksia mbaya vizuri. |

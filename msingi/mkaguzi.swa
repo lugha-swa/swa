@@ -100,14 +100,32 @@ N32 kazi_jina_pool_wapi = 1;
 N32 kazi_jina_off[512];
 N32 kazi_param_count[512];
 
+// Jedwali la aina za kurudi kwa kazi — linajazwa wakati wa usajili
+N32 kazi_ret_idadi = 0;
+N8  kazi_ret_pool[8192];
+N32 kazi_ret_pool_wapi = 1;
+N32 kazi_ret_jina_off[512];
+N32 kazi_ret_aina[512];
+
+// Hifadhi za aina za vigezo kwa ukaguzi wa hoja za mwito
+N32 kazi_param_enc[4096];     // aina za vigezo bapa
+N32 kazi_param_enc_wapi = 0;  // nafasi ya sasa katika kazi_param_enc
+N32 kazi_param_start[512];    // fahirisi ya mwanzo wa vigezo kwa kila kazi
+
 W0 mkaguzi_sajili_kazi(N32 kazi_node) {
     kama (kazi_idadi >= 512) { rudisha; }
     N32 name_node = ast_kushoto[kazi_node];
     N8* jina = ast_pool + ast_jina_off[name_node];
-    // Hesabu vigezo (viko kwenye nodi ya kazi, si nodi ya jina)
+    // Hesabu vigezo na hifadhi aina zao (viko kwenye nodi ya kazi, si nodi ya jina)
     N32 pc = 0;
+    N32 param_start = kazi_param_enc_wapi;
+    kazi_param_start[kazi_idadi] = param_start;
     N32 p = ast_kulia[kazi_node];
     wakati (p != -1) {
+        kama (kazi_param_enc_wapi < 4096) {
+            kazi_param_enc[kazi_param_enc_wapi] = ast_thamani[p];
+            kazi_param_enc_wapi = kazi_param_enc_wapi + 1;
+        }
         pc = pc + 1;
         p = ast_kulia[p];
     }
@@ -122,6 +140,13 @@ W0 mkaguzi_sajili_kazi(N32 kazi_node) {
     kazi_jina_off[kazi_idadi] = off;
     kazi_param_count[kazi_idadi] = pc;
     kazi_idadi = kazi_idadi + 1;
+
+    // Pia sajili aina ya kurudi kwa ukaguzi wa matumizi ya wito
+    kama (kazi_ret_idadi < 512) {
+        kazi_ret_jina_off[kazi_ret_idadi] = off;
+        kazi_ret_aina[kazi_ret_idadi] = ast_thamani[kazi_node];
+        kazi_ret_idadi = kazi_ret_idadi + 1;
+    }
 }
 
 N32 mkaguzi_tafuta_kazi(N8* jina) {
@@ -129,6 +154,22 @@ N32 mkaguzi_tafuta_kazi(N8* jina) {
     wakati (i < kazi_idadi) {
         N8* kj = kazi_jina_pool + kazi_jina_off[i];
         kama (jina_linganisha(kj, jina)) { rudisha kazi_param_count[i]; }
+        i = i + 1;
+    }
+    rudisha -1;
+}
+
+// Tafuta encoding ya aina ya parameta kwa jina la kazi na faharisi ya parameta
+N32 mkaguzi_tafuta_param_enc(N8* jina, N32 idx) {
+    N32 i = 0;
+    wakati (i < kazi_idadi) {
+        N8* kj = kazi_jina_pool + kazi_jina_off[i];
+        kama (jina_linganisha(kj, jina)) {
+            kama (idx < kazi_param_count[i]) {
+                rudisha kazi_param_enc[kazi_param_start[i] + idx];
+            }
+            rudisha -1;
+        }
         i = i + 1;
     }
     rudisha -1;
@@ -143,9 +184,8 @@ W0 mkaguzi_kagua_kazi(N32 kazi_node) {
     wigo_sukuma();
     N32 p = ast_kulia[kazi_node];
     wakati (p != -1) {
-        N32 pname_node = ast_kushoto[p];
-        N8* pjina = ast_pool + ast_jina_off[pname_node];
-        N32 penc = ast_thamani[pname_node];
+        N8* pjina = ast_pool + ast_jina_off[p];
+        N32 penc = ast_thamani[p];
         kama (penc == 0) { penc = ast_thamani[p]; }
         wigo_ongeza(pjina, penc);
         p = ast_kulia[p];
@@ -235,7 +275,7 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         kama (init_node != -1) {
             N32 init_enc = mkaguzi_kagua_usemi(init_node);
             // Angalia kama aina ya kianzio inalingana na aina ya tangazo
-            kama (init_enc >= 0 && var_enc != 0) {
+            kama (init_enc > 0 && var_enc != 0) {
                 N32 var_base = var_enc & 254;
                 N32 init_base = init_enc & 254;
                 kama (var_base != init_base) {
@@ -244,6 +284,7 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
                 }
             }
         }
+        mkaguzi_kagua_taarifa(ast_nne[node]);
         rudisha;
     }
     kama (aina == 37) {  // ASIMILIA (ugawaji)
@@ -251,7 +292,7 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         N32 rhs_node = ast_kulia[node];
         N32 lhs_enc = mkaguzi_kagua_usemi(lhs_node);
         N32 rhs_enc = mkaguzi_kagua_usemi(rhs_node);
-        kama (lhs_enc >= 0 && rhs_enc >= 0) {
+        kama (lhs_enc > 0 && rhs_enc > 0) {
             N32 lhs_base = lhs_enc & 254;
             N32 rhs_base = rhs_enc & 254;
             // Inaruhusu upanuzi (N32→N64) lakini inakataa tofauti za familia
@@ -260,6 +301,7 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
                 mkaguzi_makosa = mkaguzi_makosa + 1;
             }
         }
+        mkaguzi_kagua_taarifa(ast_nne[node]);
         rudisha;
     }
     kama (aina == 18) {  // TENGA
@@ -276,11 +318,22 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         N32 name_node = ast_kushoto[node];
         kama (name_node != -1) {
             N8* jina = ast_pool + ast_jina_off[name_node];
-            // Hesabu hoja zilizotolewa
+            // Hesabu na kagua hoja zilizotolewa
             N32 hoja_idadi = 0;
             N32 a = ast_kulia[node];
             wakati (a != -1) {
-                mkaguzi_kagua_usemi(a);
+                N32 arg_enc = mkaguzi_kagua_usemi(a);
+                // Angalia aina ya hoja dhidi ya aina ya parameta
+                N32 param_enc = mkaguzi_tafuta_param_enc(jina, hoja_idadi);
+                kama (param_enc > 0 && arg_enc > 0) {
+                    N32 arg_base = arg_enc & 254;
+                    N32 param_base = param_enc & 254;
+                    kama (arg_base != param_base && arg_enc != 0) {
+                        andika("kosa: aina ya hoja #%d kwa '%s' hailingani (arg=%d, param=%d)\n",
+                            hoja_idadi + 1, jina, arg_base, param_base);
+                        mkaguzi_makosa = mkaguzi_makosa + 1;
+                    }
+                }
                 hoja_idadi = hoja_idadi + 1;
                 a = ast_tiga[a];
             }
@@ -330,7 +383,7 @@ N32 mkaguzi_kagua_usemi(N32 node) {
     kama (aina == 5) {
         N8* jina = ast_pool + ast_jina_off[node];
         N32 enc = wigo_tafuta(jina);
-        kama (enc < 0) {
+        kama (enc == -1) {
             // Angalia vigeu vya ulimwengu
             N32 g = 0;
             wakati (g < global_idadi) {
@@ -339,12 +392,33 @@ N32 mkaguzi_kagua_usemi(N32 node) {
                 g = g + 1;
             }
         }
-        kama (enc < 0) {
+        kama (enc == -1) {
             // Angalia majina ya kazi (viashiria vya kazi)
             N32 pc = mkaguzi_tafuta_kazi(jina);
             kama (pc >= 0) { enc = 1; }  // kiashiria cha kazi
         }
         rudisha enc;
+    }
+
+    // Ternary (hali ? kweli : uwongo)
+    kama (aina == 43) {  // AST_TERNARY
+        mkaguzi_kagua_usemi(ast_kushoto[node]);   // hali
+        N32 true_enc = mkaguzi_kagua_usemi(ast_kulia[node]);    // tawi la kweli
+        N32 false_enc = mkaguzi_kagua_usemi(ast_tiga[node]);    // tawi la uwongo
+        // Angalia utangamano kati ya matawi
+        kama (true_enc > 0 && false_enc > 0) {
+            N32 true_base = true_enc & 254;
+            N32 false_base = false_enc & 254;
+            kama (true_base != false_base) {
+                andika("kosa: aina za matawi ya ternary haziendani (kweli=%d, uwongo=%d)\n",
+                    true_base, false_base);
+                mkaguzi_makosa = mkaguzi_makosa + 1;
+            }
+        }
+        // Hifadhi ukubwa na encoding kwa mzalishaji
+        ast_tiga[node] = ukubwa_kutoka_enc(true_enc);
+        ast_thamani[node] = true_enc;
+        rudisha true_enc;
     }
 
     // Oparesheni jozi — angalia utangamano wa aina za operesheni
@@ -353,11 +427,12 @@ N32 mkaguzi_kagua_usemi(N32 node) {
     kama (aina >= 31) { kama (aina <= 32) { ni_binary = 1; } }
     kama (aina >= 39) { kama (aina <= 43) { ni_binary = 1; } }
     kama (aina == 8) { ni_binary = 0; }  // WITO limehudumiwa tofauti hapo juu
+    kama (aina == 43) { ni_binary = 0; }  // TERNARY sio oparesheni jozi
     kama (ni_binary) {
         N32 lhs = mkaguzi_kagua_usemi(ast_kushoto[node]);
         N32 rhs = mkaguzi_kagua_usemi(ast_kulia[node]);
-        kama (lhs >= 0) {
-            kama (rhs >= 0) {
+        kama (lhs > 0) {
+            kama (rhs > 0) {
                 N32 lhs_base = lhs & 254;
                 N32 rhs_base = rhs & 254;
                 // Angalia upatanifu wa aina za operesheni
@@ -381,7 +456,7 @@ N32 mkaguzi_kagua_usemi(N32 node) {
             N8* jina = ast_pool + ast_jina_off[name_node];
             N32 j = 0;
             wakati (j < kazi_ret_idadi) {
-                N8* rj = kazi_ret_pool + kazi_ret_jina_off[j];
+                N8* rj = kazi_jina_pool + kazi_ret_jina_off[j];
                 kama (jina_linganisha(rj, jina)) { rudisha kazi_ret_aina[j]; }
                 j = j + 1;
             }
@@ -394,6 +469,10 @@ N32 mkaguzi_kagua_usemi(N32 node) {
         N32 op = mkaguzi_kagua_usemi(ast_kulia[node]);
         rudisha op;
     }
+    kama (aina == 30) {  // KUMBUKA (anwani-ya)
+        mkaguzi_kagua_usemi(ast_kushoto[node]);
+        rudisha 1;  // kielekezi
+    }
     kama (aina == 28) {  // SI (si)
         mkaguzi_kagua_usemi(ast_kushoto[node]);
         rudisha (4 << 8) | 1;  // B1 (boole)
@@ -402,6 +481,16 @@ N32 mkaguzi_kagua_usemi(N32 node) {
     // Halisi ya kamba
     kama (aina == 40) {
         rudisha 1;  // kielekezi (N8*)
+    }
+
+    // Safu halisi {a, b, c}
+    kama (aina == 38) {  // AST_SAFU
+        N32 elem = ast_kushoto[node];
+        wakati (elem != -1) {
+            mkaguzi_kagua_usemi(elem);
+            elem = ast_nne[elem];
+        }
+        rudisha 1;  // kielekezi (safu inaharibika hadi kielekezi)
     }
 
     // Faharasa ya safu
@@ -427,8 +516,9 @@ N32 mkaguzi_kagua_usemi(N32 node) {
             wakati (fn != -1) {
                 N32 fname_node = ast_kushoto[fn];
                 N8* fn_jina = ast_pool + ast_jina_off[fname_node];
+                N32 foffset = ast_tiga[fname_node];
                 kama (jina_linganisha(fn_jina, sehemu_jina)) {
-                    ast_tiga[node] = ast_tiga[fname_node];  // hifadhi ofseti
+                    ast_tiga[node] = foffset;  // hifadhi ofseti
                     N32 fenc = ast_thamani[fname_node];
                     kama (fenc != 0) { rudisha fenc; }
                     rudisha (1 << 8) | 32;

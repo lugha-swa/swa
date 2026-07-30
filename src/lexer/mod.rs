@@ -434,7 +434,7 @@ impl<'a> Lexer<'a> {
             '"'  => '"',
             '0'  => '\0',
             'a'  => '\x07', // tahadhari / kengele
-            'b'  => '\x08', // backspace
+            'b'  => '\x08', // nafasi rudinyuma
             'v'  => '\x0B', // tabu wima
             'f'  => '\x0C', // malisho ya ukurasa
             // Kutoroka kwa heksa: \xNN — mpigaji lazima achungulie mbele kwa nambari mbili za heksadesimali.
@@ -704,6 +704,7 @@ mod tests {
     }
 
     /// Kisaidizi: kusanya jozi (kind_debug, lexeme).
+    #[allow(dead_code)]
     fn token_debug(source: &str) -> Vec<(String, String)> {
         let lexer = Lexer::new(source);
         lexer

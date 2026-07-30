@@ -125,3 +125,93 @@ N32 tafuta_herufi_mwisho(N8* s, N8 c) {
     }
     rudisha matokeo;
 }
+
+// Ubadilishaji wa mfuatano hadi nambari.
+
+N32 mfuatano_hadi_n32(N8* s) {
+    N32 matokeo = 0;
+    N32 hasi = 0;
+    N32 i = 0;
+    // Ruka nafasi nyeupe mwanzoni.
+    wakati (s[i] == 32 || s[i] == 9 || s[i] == 10 || s[i] == 13) {
+        i = i + 1;
+    }
+    // Angalia alama ya hasi/chanya.
+    kama (s[i] == 45) {
+        hasi = 1;
+        i = i + 1;
+    } sivyo {
+        kama (s[i] == 43) {
+            i = i + 1;
+        }
+    }
+    // Soma tarakimu.
+    wakati (s[i] >= 48 && s[i] <= 57) {
+        matokeo = matokeo * 10 + (s[i] - 48);
+        i = i + 1;
+    }
+    kama (hasi == 1) {
+        rudisha 0 - matokeo;
+    }
+    rudisha matokeo;
+}
+
+N64 mfuatano_hadi_n64(N8* s) {
+    N64 matokeo = 0;
+    N32 hasi = 0;
+    N32 i = 0;
+    // Ruka nafasi nyeupe mwanzoni.
+    wakati (s[i] == 32 || s[i] == 9 || s[i] == 10 || s[i] == 13) {
+        i = i + 1;
+    }
+    // Angalia alama ya hasi/chanya.
+    kama (s[i] == 45) {
+        hasi = 1;
+        i = i + 1;
+    } sivyo {
+        kama (s[i] == 43) {
+            i = i + 1;
+        }
+    }
+    // Soma tarakimu.
+    wakati (s[i] >= 48 && s[i] <= 57) {
+        matokeo = matokeo * 10 + (s[i] - 48);
+        i = i + 1;
+    }
+    kama (hasi == 1) {
+        rudisha 0 - matokeo;
+    }
+    rudisha matokeo;
+}
+
+// Umbizaji wa nambari hadi mfuatano.
+
+// Badilisha N64 hadi mfuatano. Hurudisha urefu wa mfuatano ulioandikwa.
+N32 nambari_kwa_mfuatano_n64(N64 n, N8* buf) {
+    kama (n == 0) {
+        buf[0] = 48;
+        buf[1] = 0;
+        rudisha 1;
+    }
+    N32 hasi = 0;
+    N64 val = n;
+    kama (n < 0) {
+        buf[0] = 45;
+        hasi = 1;
+        val = 0 - n;
+    }
+    N32 len = 0;
+    N64 tmp = val;
+    wakati (tmp > 0) {
+        len = len + 1;
+        tmp = tmp / 10;
+    }
+    N32 pos = hasi + len;
+    buf[pos] = 0;
+    wakati (pos > hasi) {
+        pos = pos - 1;
+        buf[pos] = 48 + (val - (val / 10) * 10);
+        val = val / 10;
+    }
+    rudisha hasi + len;
+}

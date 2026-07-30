@@ -338,7 +338,7 @@ mod majaribio {
 
     fn aina_n32() -> IrType { IrType::I32 }
     fn aina_n64() -> IrType { IrType::I64 }
-    fn aina_f64() -> IrType { IrType::F64 }
+    fn _aina_f64() -> IrType { IrType::F64 }
     fn aina_w0() -> IrType { IrType::Void }
 
     // -- Jedwali la alama --
@@ -489,6 +489,107 @@ mod majaribio {
 }
 
 // ============================================================================
+// Visaidizi vya kusimbua aina na kutembea mwili
+// ============================================================================
+
+/// Simbua usimbaji wa `thamani` kuwa `IrType`.
+/// Hufuata mpangilio uleule wa `read_type_from_thamani` kwenye `ir/lower.rs`,
+/// lakini bila ufikiaji wa dimbwi la majina (miundo inarudishwa kama `I32`).
+fn thamani_hadi_ir_type(val: i32) -> IrType {
+    if val == 0 {
+        return IrType::Void;
+    }
+    // Maadili hasi ni marejeleo ya dimbwi la miundo — hakuna ufikiaji wa
+    // dimbwi hapa, kwa hivyo rudisha I32 kama kishika nafasi.
+    if val < 0 {
+        return IrType::I32;
+    }
+    let enc = val as u32;
+    // Usimbaji: ((familia & 255) << 11) | (upana_idx << 3) | (mshale & 7)
+    let familia = (enc >> 11) & 255;
+    let upana_idx = (enc >> 3) & 7;
+    let mshale = enc & 7;
+    let upana = match upana_idx {
+        0 => 0, 1 => 1, 2 => 8, 3 => 16, 4 => 32, 5 => 64, 6 => 128, _ => 32,
+    };
+    let base = match familia {
+        1 => match upana { 8 => IrType::I8, 16 => IrType::I16, 32 => IrType::I32, 64 => IrType::I64, 128 => IrType::I128, _ => IrType::I32 },
+        2 => match upana { 8 => IrType::A8, 16 => IrType::A16, 32 => IrType::A32, 64 => IrType::A64, 128 => IrType::A128, _ => IrType::A32 },
+        3 => match upana { 16 => IrType::F16, 32 => IrType::F32, 64 => IrType::F64, 80 => IrType::F64, 128 => IrType::F64, _ => IrType::F64 },
+        4 => match upana { 1 => IrType::B1, 8 => IrType::B8, 16 => IrType::B16, 32 => IrType::B32, 64 => IrType::B64, _ => IrType::B1 },
+        5 => match upana { 0 => IrType::Void, 8 => IrType::W8, 16 => IrType::W16, 32 => IrType::W32, 64 => IrType::W64, _ => IrType::Void },
+        6 => IrType::I32, // muundo — kishika nafasi
+        _ => IrType::I32,
+    };
+    let mut ty = base;
+    for _ in 0..mshale {
+        ty = IrType::Ptr(Box::new(ty));
+    }
+    ty
+}
+
+/// Tembea mwili wa kazi kwa kujirudia na ukague taarifa za `rudisha`.
+/// Hukagua kuwa:
+/// - Kazi za `W0` hazirudishi thamani
+/// - Kazi zisizo `W0` zinarudisha thamani
+fn kagua_mwili(
+    node: i32,
+    func_ret_enc: i32,
+    aina: &[u32],
+    kushoto: &[i32],
+    kulia: &[i32],
+    tiga: &[i32],
+    nne: &[i32],
+    thamani: &[i32],
+) -> Vec<Diagnostic> {
+    let mut diags = Vec::new();
+    if node < 0 {
+        return diags;
+    }
+    let idx = node as usize;
+    let aina_ya_nodi = aina[idx];
+
+    // AST_RUDISHA = 3
+    if aina_ya_nodi == 3 {
+        let expr_node = kushoto[idx];
+        let func_ret = thamani_hadi_ir_type(func_ret_enc);
+
+        if expr_node != -1 && func_ret == IrType::Void {
+            // Kazi ya W0 inarudisha thamani — hitilafu
+            let expr_ty = if (expr_node as usize) < thamani.len() {
+                thamani_hadi_ir_type(thamani[expr_node as usize])
+            } else {
+                IrType::I32
+            };
+            diags.push(Diagnostic::error(
+                format!(
+                    "aina ya kurudisha haikaliki: inatarajiwa '{}', lakini imepatikana '{}'",
+                    func_ret, expr_ty,
+                ),
+                crate::diagnostics::SourceSpan::point(0, 0),
+            ));
+        } else if expr_node == -1 && func_ret != IrType::Void {
+            // Kazi isiyo W0 inarudisha tupu — hitilafu
+            diags.push(Diagnostic::error(
+                format!(
+                    "aina ya kurudisha haikaliki: inatarajiwa '{}', lakini imepatikana '{}'",
+                    func_ret, IrType::Void,
+                ),
+                crate::diagnostics::SourceSpan::point(0, 0),
+            ));
+        }
+    }
+
+    // Rudia kwa watoto wote wa mti
+    diags.extend(kagua_mwili(kushoto[idx], func_ret_enc, aina, kushoto, kulia, tiga, nne, thamani));
+    diags.extend(kagua_mwili(kulia[idx], func_ret_enc, aina, kushoto, kulia, tiga, nne, thamani));
+    diags.extend(kagua_mwili(tiga[idx], func_ret_enc, aina, kushoto, kulia, tiga, nne, thamani));
+    diags.extend(kagua_mwili(nne[idx], func_ret_enc, aina, kushoto, kulia, tiga, nne, thamani));
+
+    diags
+}
+
+// ============================================================================
 // Ukaguzi wa haraka wa AST — kuitwa kutoka kwa kiendeshi
 // ============================================================================
 
@@ -497,7 +598,7 @@ mod majaribio {
 pub fn kagua_asti(
     aina: &[u32],
     kushoto: &[i32],
-    _kulia: &[i32],
+    kulia: &[i32],
     tiga: &[i32],
     nne: &[i32],
     thamani: &[i32],
@@ -553,8 +654,8 @@ pub fn kagua_asti(
                 majina_ya_kazi.insert(jina, true);
 
                 // Angalia aina ya kurudisha dhidi ya taarifa za rudisha
-                let _ret_enc = thamani[mtoto as usize];
-                // TODO: tembea mwili wa kazi na ulinganishe taarifa za rudisha
+                let ret_enc = thamani[mtoto as usize];
+                diags.extend(kagua_mwili(mwili, ret_enc, aina, kushoto, kulia, tiga, nne, thamani));
             }
         }
         mtoto = nne[mtoto as usize];

@@ -31,40 +31,40 @@ pub enum IrType {
     /// Aina tupu (`void`).
     Void,
 
-    // -- signed integers (Namba) -------------------------------------------
+    // -- namba kamili zenye ishara (Namba) -----------------------------------
     I8,
     I16,
     I32,
     I64,
     I128,
 
-    // -- unsigned integers -------------------------------------------------
+    // -- namba kamili bila ishara ---------------------------------------------
     A8,
     A16,
     A32,
     A64,
     A128,
 
-    // -- floating-point (Desimali) -----------------------------------------
+    // -- namba za desimali (Desimali) -----------------------------------------
     F16,
     F32,
     F64,
     F128,
 
-    // -- booleans & opaque bits (Buli) -------------------------------------
+    // -- buli na biti zisizo wazi (Buli) --------------------------------------
     B1,
     B8,
     B16,
     B32,
     B64,
 
-    // -- word-sized opaque types (Wazi) -----------------------------------
+    // -- aina za ukubwa wa neno (Wazi) ----------------------------------------
     W8,
     W16,
     W32,
     W64,
 
-    // -- compound types ----------------------------------------------------
+    // -- aina mchanganyiko ----------------------------------------------------
     /// Kielekezi kisicho wazi kwa `element`.
     Ptr(Box<IrType>),
 
@@ -124,34 +124,34 @@ impl IrType {
         match name {
             "W0" => Some(IrType::Void),
 
-            // Namba (signed)
+            // Namba zenye ishara
             "N8" => Some(IrType::I8),
             "N16" => Some(IrType::I16),
             "N32" => Some(IrType::I32),
             "N64" => Some(IrType::I64),
             "N128" => Some(IrType::I128),
 
-            // Unsigned (A = Asili — natural/non-negative integers)
+            // Bila ishara (A = Asili — namba asilia/zisizo hasi)
             "A8" => Some(IrType::A8),
             "A16" => Some(IrType::A16),
             "A32" => Some(IrType::A32),
             "A64" => Some(IrType::A64),
             "A128" => Some(IrType::A128),
 
-            // Desimali (float)
+            // Desimali
             "D16" => Some(IrType::F16),
             "D32" => Some(IrType::F32),
             "D64" => Some(IrType::F64),
             "D128" => Some(IrType::F128),
 
-            // Buli (boolean / opaque bit)
+            // Buli (boolean / biti isiyo wazi)
             "B1" => Some(IrType::B1),
             "B8" => Some(IrType::B8),
             "B16" => Some(IrType::B16),
             "B32" => Some(IrType::B32),
             "B64" => Some(IrType::B64),
 
-            // Wazi (word)
+            // Wazi
             "W8" => Some(IrType::W8),
             "W16" => Some(IrType::W16),
             "W32" => Some(IrType::W32),
@@ -232,9 +232,9 @@ impl IrType {
             IrType::I64 | IrType::A64 | IrType::B64 | IrType::W64 | IrType::F64 => 8,
             IrType::I128 | IrType::A128 | IrType::F128 => 16,
 
-            IrType::B1 => 1, // stored as a byte
+            IrType::B1 => 1, // huhifadhiwa kama baiti
 
-            // Assume 64-bit target
+            // Chukulia lengwa la 64-bit
             IrType::Ptr(_) | IrType::FnPtr { .. } => 8,
 
             IrType::Struct { fields, .. } => {
@@ -344,7 +344,7 @@ impl fmt::Display for AbiClass {
 }
 
 // ---------------------------------------------------------------------------
-// Tests
+// Majaribio
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
@@ -370,7 +370,7 @@ mod tests {
 
     #[test]
     fn test_from_swa_type_all_widths() {
-        // Namba (signed) — all widths
+        // Namba zenye ishara — upana wote
         for (name, expected) in [
             ("N8", IrType::I8),
             ("N16", IrType::I16),
@@ -380,7 +380,7 @@ mod tests {
         ] {
             assert_eq!(IrType::from_swa_type(name), Some(expected), "failed for {name}");
         }
-        // Unsigned — all widths
+        // Bila ishara — upana wote
         for (name, expected) in [
             ("A8", IrType::A8),
             ("A16", IrType::A16),
@@ -390,7 +390,7 @@ mod tests {
         ] {
             assert_eq!(IrType::from_swa_type(name), Some(expected), "failed for {name}");
         }
-        // Float — all widths
+        // Desimali — upana wote
         for (name, expected) in [
             ("D16", IrType::F16),
             ("D32", IrType::F32),
@@ -399,7 +399,7 @@ mod tests {
         ] {
             assert_eq!(IrType::from_swa_type(name), Some(expected), "failed for {name}");
         }
-        // Buli — all widths
+        // Buli — upana wote
         for (name, expected) in [
             ("B1", IrType::B1),
             ("B8", IrType::B8),
@@ -409,7 +409,7 @@ mod tests {
         ] {
             assert_eq!(IrType::from_swa_type(name), Some(expected), "failed for {name}");
         }
-        // Wazi — all widths
+        // Wazi — upana wote
         for (name, expected) in [
             ("W8", IrType::W8),
             ("W16", IrType::W16),
@@ -450,7 +450,7 @@ mod tests {
     #[test]
     fn test_abi_class_none() {
         assert_eq!(IrType::Void.abi_class(), None);
-        // Arrays don't classify directly — the ABI classifier flattens first
+        // Safu haziainishwi moja kwa moja — kiainishi ABI hubapa kwanza
         assert_eq!(
             IrType::Array {
                 element: Box::new(IrType::I32),

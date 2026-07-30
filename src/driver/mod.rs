@@ -191,7 +191,7 @@ impl Driver {
         // 2. Changanua (parse)
         let (aina, thamani, kushoto, kulia, tiga, nne, jina_off, pool, count) =
             crate::parser::parse_full(&tokens)
-                .map_err(|e| vec![Diagnostic::error(e, crate::diagnostics::SourceSpan::point(0, 0))])?;
+                .map_err(|diags| diags)?;
 
         // 2b. Ukaguzi wa haraka wa kisemantiki
         let diags_sema = crate::sema::kagua_asti(
@@ -199,6 +199,10 @@ impl Driver {
         );
         for d in diags_sema {
             self.diagnostics.push(d);
+        }
+        if self.diagnostics.has_errors() {
+            let all_diags: Vec<Diagnostic> = self.diagnostics.all().to_vec();
+            return Err(all_diags);
         }
 
         // 3. Teremsha hadi IR

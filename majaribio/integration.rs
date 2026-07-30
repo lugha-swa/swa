@@ -79,6 +79,46 @@ fn jaribio_kama_ndani_ya_wakati() {
     assert!(ir.contains("tafuta"));
 }
 
+#[test]
+fn jaribio_chagua_rahisi() {
+    // Jaribio rahisi la chagua: linganisha thamani na hali mbili + chaguo-msingi
+    let src = "N32 kadiria(N32 x) { chagua (x) { hali 1: rudisha 10; hali 2: rudisha 20; sivyo: rudisha 0; } }";
+    let ir = compile_and_verify(src).expect("inapaswa kukusanyika");
+    assert!(ir.contains("kadiria"), "IR inapaswa kuwa na jina la kazi");
+    assert!(ir.contains("switch"), "IR inapaswa kuwa na maagizo ya switch");
+}
+
+#[test]
+fn jaribio_chagua_hali_nyingi() {
+    // Chagua yenye hali nyingi na maadili tofauti
+    let src = "N32 siku_kwa_namba(N32 n) {
+        chagua (n) {
+            hali 1: rudisha 100;
+            hali 2: rudisha 200;
+            hali 3: rudisha 300;
+            hali 4: rudisha 400;
+            hali 5: rudisha 500;
+            sivyo: rudisha 0;
+        }
+    }";
+    let ir = compile_and_verify(src).expect("inapaswa kukusanyika");
+    assert!(ir.contains("siku_kwa_namba"), "IR inapaswa kuwa na jina la kazi");
+}
+
+#[test]
+fn jaribio_chagua_ndani_ya_kazi() {
+    // Chagua ndani ya kazi inayotumia kigezo
+    let src = "N32 tathmini(N32 alama) {
+        chagua (alama) {
+            hali 1: rudisha 50;
+            hali 2: rudisha 70;
+            sivyo: rudisha 30;
+        }
+    }";
+    let ir = compile_and_verify(src).expect("inapaswa kukusanyika");
+    assert!(ir.contains("tathmini"), "IR inapaswa kuwa na jina la kazi");
+}
+
 // ============================================================================
 // Vigezo vya ulimwengu
 // ============================================================================
@@ -223,11 +263,39 @@ fn jaribio_kazi_isiyo_na_mwili() {
 }
 
 // ============================================================================
+// K9 — Majaribio ya kisemantiki ya taarifa za rudisha
+// ============================================================================
+
+#[test]
+fn jaribio_k9a_void_kurudisha_thamani() {
+    // Kazi ya W0 yenye rudisha yenye thamani — inapaswa kushindwa
+    let src = "W0 fanya() { rudisha 5; }";
+    let result = compile_and_verify(src);
+    assert!(result.is_err(), "W0 kazi inayorudisha thamani inapaswa kushindwa");
+}
+
+#[test]
+fn jaribio_k9b_nonvoid_kurudisha_tupu() {
+    // Kazi ya N32 yenye rudisha tupu — inapaswa kushindwa
+    let src = "N32 fanya() { rudisha; }";
+    let result = compile_and_verify(src);
+    assert!(result.is_err(), "kaziya N32 inayorudisha tupu inapaswa kushindwa");
+}
+
+#[test]
+fn jaribio_k9c_kurudisha_sahihi() {
+    // Kazi ya N32 yenye rudisha sahihi — inapaswa kufaulu
+    let src = "N32 fanya() { rudisha 42; }";
+    let ir = compile_and_verify(src).expect("rudisha sahihi inapaswa kukusanyika");
+    assert!(ir.contains("fanya"));
+}
+
+// ============================================================================
 // Husisha
 // ============================================================================
 
 #[test]
-fn jaribio_husisha_C() {
+fn jaribio_husisha_c() {
     // husisha C::stdio inapaswa kurukwa bila hitilafu
     let src = "husisha C::stdio\nW0 fanya() {}";
     let ir = compile_and_verify(src).expect("inapaswa kukusanyika");
@@ -330,6 +398,21 @@ fn jaribio_msingi_stage1() {
     assert!(ir.contains("main"));
 }
 
+#[test]
+fn jaribio_stage1_hifadhi_chanzo_yatosha_kwa_msingi_wote() {
+    let faili = [
+        "kumbukumbu.swa", "mfuatano.swa", "msomaji.swa", "msambazaji.swa",
+        "mteremko.swa", "mkaguzi.swa", "uzalishaji.swa", "orodha.swa", "ramani.swa",
+    ];
+    let jumla: u64 = faili.iter()
+        .map(|jina| std::fs::metadata(format!("msingi/{jina}"))
+            .expect("faili ya msingi inapaswa kuwepo").len())
+        .sum();
+
+    assert!(jumla < 1_048_576,
+        "chanzo cha msingi ({jumla}B) lazima kitoshe kwenye chanzo_buf ya stage1");
+}
+
 // ============================================================================
 // Stage1
 // ============================================================================
@@ -350,11 +433,6 @@ fn jaribio_stage1() {
 
 /// Kusanya stage1.swa hadi faili la kitu, unganisha na clang, endesha
 /// dhidi ya faili rahisi la .swa, na uthibitishe matokeo.
-///
-/// IMEZIMWA: binary inaanguka (SIGSEGV, exit 139) hata kwa O1.
-/// Hitilafu za msingi za codegen zinazuia mkusanyaji wa kujikusanya
-/// kufanya kazi kwa usahihi.  Rekebisha codegen kwanza, kisha
-/// washa jaribio hili.
 #[test]
 fn jaribio_k6_kujikusanya_kamili() {
     // Angalia kama clang inapatikana.
@@ -388,7 +466,7 @@ fn jaribio_k6_kujikusanya_kamili() {
     // Andika kiunganishi kidogo cha C kinachoelekeza andika -> printf.
     let trampoline_c = dir.path().join("trampoline.c");
     std::fs::write(&trampoline_c,
-        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); return r; }\n"
+        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); fflush(stdout); return r; }\nint andika_stderr(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stderr,f,a); va_end(a); fflush(stderr); return r; }\n"
     ).expect("inapaswa kuandika trampoline.c");
     let trampoline_o = dir.path().join("trampoline.o");
     let compile_status = std::process::Command::new(&clang)
@@ -425,7 +503,7 @@ fn jaribio_k6_kujikusanya_kamili() {
         .output()
         .expect("inapaswa kuendesha binary iliyounganishwa");
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let _stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
 
     let exit_code = output.status.code().unwrap_or(-1);
@@ -484,7 +562,7 @@ fn run_k6_test(test_chanzo: &str, matarajio_ya_kutoka: i32) {
     // Andika kiunganishi kidogo cha C.
     let trampoline_c = dir.path().join("trampoline.c");
     std::fs::write(&trampoline_c,
-        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); return r; }\n"
+        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); fflush(stdout); return r; }\nint andika_stderr(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stderr,f,a); va_end(a); fflush(stderr); return r; }\n"
     ).expect("inapaswa kuandika trampoline.c");
     let trampoline_o = dir.path().join("trampoline.o");
     let compile_status = std::process::Command::new(&clang)
@@ -519,7 +597,7 @@ fn run_k6_test(test_chanzo: &str, matarajio_ya_kutoka: i32) {
         .output()
         .expect("inapaswa kuendesha binary iliyounganishwa");
 
-    let stdout = String::from_utf8_lossy(&output.stdout);
+    let _stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);
     let exit_code = output.status.code().unwrap_or(-1);
     eprintln!("; K6: msimbo wa kutoka = {exit_code}");
@@ -593,4 +671,427 @@ fn which_clang() -> Option<String> {
         }
     }
     None
+}
+
+// ============================================================================
+// K6 — Sret (struct return via native backend)
+// ============================================================================
+
+/// Jaribio la kurudisha muundo kupitia sret kwenye kizalishe asilia.
+/// Huhakikisha muundo unakiliwa kwa usahihi kutoka kwa kazi hadi kwa mpigaji.
+#[test]
+fn jaribio_k6_sret_simple() {
+    let test_chanzo = "\
+muundo Nukta { N32 x; N32 y; };
+Nukta tengeneza_nukta(N32 a, N32 b) {
+    Nukta p;
+    p.x = a;
+    p.y = b;
+    rudisha p;
+}
+N32 main() {
+    Nukta n = tengeneza_nukta(10, 20);
+    rudisha n.x + n.y;
+}
+";
+    run_k6_test(test_chanzo, 30);
+}
+
+/// Jaribio la kurejesha muundo na kusoma sehemu zake.
+#[test]
+fn jaribio_k6_sret_sehemu() {
+    let test_chanzo = "\
+muundo Jozi { N32 kwanza; N32 pili; };
+Jozi tengeneza_jozi(N32 a, N32 b) {
+    Jozi j;
+    j.kwanza = a;
+    j.pili = b;
+    rudisha j;
+}
+N32 main() {
+    Jozi r = tengeneza_jozi(7, 3);
+    rudisha r.kwanza - r.pili;
+}
+";
+    run_k6_test(test_chanzo, 4);
+}
+
+// ============================================================================
+// K10 — Msaidizi wa majaribio ya maktaba ya kawaida
+// ============================================================================
+
+/// Kusanya chanzo cha jaribio kinachotumia `husisha` kutoka saraka ya `msingi/`,
+/// unganisha na clang, endesha, na thibitisha msimbo wa kutoka.
+///
+/// `path_hint` hutumiwa kwa azimio la `husisha` — saraka yake mzazi
+/// ndiyo msingi wa utafutaji wa moduli zilizohusishwa.
+fn run_msingi_test(test_source: &str, expected_exit: i32) {
+    let clang = which_clang();
+    if clang.is_none() {
+        eprintln!("; K10: clang haipatikani — ruka jaribio la wakati wa utekelezaji");
+        return;
+    }
+    let clang = clang.unwrap();
+
+    // Tumia dereva wa Rust moja kwa moja kwa kasi.
+    // PathBuf ya "msingi/jaribio_k10.swa" ina maana parent_dir = "msingi/"
+    // hivyo husisha { kumbukumbu.swa } hutafutwa kwenye msingi/kumbukumbu.swa.
+    let mut driver = Driver::new();
+    let ir_module = driver
+        .compile_to_ir(test_source, PathBuf::from("msingi/jaribio_k10.swa"))
+        .expect("inapaswa kuchanganua na kuteremsha");
+
+    let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
+    let obj_path = dir.path().join("jaribio.o");
+    let exe_path = dir.path().join("jaribio_exe");
+
+    let backend = LlvmBackend::new();
+    backend
+        .compile_to_file(&ir_module, &obj_path)
+        .expect("inapaswa kutoa faili la kitu");
+
+    // Unganisha na clang (libc inaunganishwa kwa chaguo-msingi).
+    let link_status = std::process::Command::new(&clang)
+        .arg(&obj_path)
+        .arg("-o")
+        .arg(&exe_path)
+        .arg("-no-pie")
+        .status()
+        .expect("inapaswa kuendesha clang");
+    assert!(link_status.success(), "clang inapaswa kuunganisha kwa mafanikio");
+
+    let output = std::process::Command::new(&exe_path)
+        .output()
+        .expect("inapaswa kuendesha binary");
+    let exit_code = output.status.code().unwrap_or(-1);
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    eprintln!("; K10: exit={exit_code}");
+    if !stdout.is_empty() {
+        eprintln!("; K10 stdout: {stdout}");
+    }
+    if !stderr.is_empty() {
+        eprintln!("; K10 stderr: {stderr}");
+    }
+    assert_eq!(
+        exit_code, expected_exit,
+        "binary inapaswa kurudisha {expected_exit}, ilirudisha {exit_code}\nstdout: {stdout}\nstderr: {stderr}"
+    );
+}
+
+// ============================================================================
+// K10a — Jaribio la kumbukumbu.swa (nakili, weka_sifuri, linganisha_kumbukumbu)
+// ============================================================================
+
+#[test]
+fn jaribio_k10a_kumbukumbu() {
+    let test_source = "\
+husisha { kumbukumbu.swa }
+
+N32 main() {
+    N8 buf1[10];
+    N8 buf2[10];
+    weka_sifuri(buf1, 10);
+    weka_sifuri(buf2, 10);
+    buf1[0] = 65;
+    buf1[1] = 66;
+    nakili(buf2, buf1, 10);
+    kama (buf2[0] != 65) rudisha 1;
+    kama (buf2[1] != 66) rudisha 2;
+    kama (linganisha_kumbukumbu(buf1, buf2, 10) != 0) rudisha 3;
+    buf2[0] = 64;
+    kama (linganisha_kumbukumbu(buf1, buf2, 10) == 0) rudisha 4;
+    rudisha 0;
+}
+";
+    run_msingi_test(test_source, 0);
+}
+
+// ============================================================================
+// K10b — Jaribio la mfuatano.swa (ulinganishi, unakili, ubadilishaji)
+// ============================================================================
+
+#[test]
+fn jaribio_k10b_mfuatano() {
+    let test_source = "\
+husisha { mfuatano.swa }
+
+N32 main() {
+    // linganisha_mfuatano — inalinganisha mifuatano miwili
+    N8 s1[] = \"hello\";
+    N8 s2[] = \"hello\";
+    N8 s3[] = \"helpo\";
+    kama (linganisha_mfuatano(s1, s2) != 0) rudisha 1;
+    // s1 < s3 kwa sababu 'l' < 'p'
+    kama (linganisha_mfuatano(s1, s3) == 0) rudisha 2;
+
+    // nakili_mfuatano — inanakili mfuatano
+    N8 buf[32];
+    nakili_mfuatano(buf, s1);
+    kama (linganisha_mfuatano(buf, s1) != 0) rudisha 3;
+
+    // mfuatano_hadi_n32 — ubadilishaji mfuatano→namba
+    N8 namba1[] = \"42\";
+    kama (mfuatano_hadi_n32(namba1) != 42) rudisha 4;
+
+    N8 namba2[] = \"   -17\";
+    kama (mfuatano_hadi_n32(namba2) != -17) rudisha 5;
+
+    // nambari_kwa_mfuatano — ubadilishaji namba→mfuatano
+    N8 buf2[32];
+    nambari_kwa_mfuatano(99, buf2);
+    kama (buf2[0] != 57) rudisha 6;   // '9'
+    kama (buf2[1] != 57) rudisha 7;   // '9'
+    kama (buf2[2] != 0) rudisha 8;    // ncha-tupu
+
+    // tafuta_herufi — inatafuta herufi kwenye mfuatano
+    N8 s4[] = \"habari\";
+    kama (tafuta_herufi(s4, 98) != 1) rudisha 9;   // 'b' iko kwenye faharisi 1
+    kama (tafuta_herufi(s4, 122) != -1) rudisha 10;  // 'z' haipo
+
+    rudisha 0;
+}
+";
+    run_msingi_test(test_source, 0);
+}
+
+// ============================================================================
+// K10c — Jaribio la orodha.swa (orodha inayobadilika)
+// ============================================================================
+
+#[test]
+fn jaribio_k10c_orodha() {
+    let test_source = "\
+husisha { orodha.swa }
+
+N32 main() {
+    Orodha o = orodha_mpya(4);
+    kama (orodha_urefu(&o) != 0) rudisha 1;
+
+    orodha_ongeza(&o, 10);
+    orodha_ongeza(&o, 20);
+    orodha_ongeza(&o, 30);
+    kama (orodha_urefu(&o) != 3) rudisha 2;
+
+    kama (orodha_pata(&o, 0) != 10) rudisha 3;
+    kama (orodha_pata(&o, 1) != 20) rudisha 4;
+    kama (orodha_pata(&o, 2) != 30) rudisha 5;
+
+    // Faharisi batili inarudisha 0
+    kama (orodha_pata(&o, -1) != 0) rudisha 6;
+    kama (orodha_pata(&o, 100) != 0) rudisha 7;
+
+    // Futa kipengele cha mwisho
+    orodha_futa_mwisho(&o);
+    kama (orodha_urefu(&o) != 2) rudisha 8;
+    kama (orodha_pata(&o, 1) != 20) rudisha 9;
+
+    // Ongeza zaidi ya uwezo wa awali (inajaribu badili/realloc)
+    orodha_ongeza(&o, 40);
+    orodha_ongeza(&o, 50);
+    orodha_ongeza(&o, 60);
+    kama (orodha_urefu(&o) != 5) rudisha 10;
+    kama (orodha_pata(&o, 4) != 60) rudisha 11;
+
+    orodha_huru(&o);
+    rudisha 0;
+}
+";
+    run_msingi_test(test_source, 0);
+}
+
+// ============================================================================
+// K10d — Jaribio la ramani.swa (jedwali la hashi)
+// ============================================================================
+
+#[test]
+fn jaribio_k10d_ramani() {
+    let test_source = "\
+husisha { ramani.swa }
+
+N32 main() {
+    Ramani* r = ramani_mpya(16);
+
+    // Weka thamani
+    kama (ramani_weka(r, 5, 100) != 1) rudisha 1;
+    kama (ramani_weka(r, 10, 200) != 1) rudisha 2;
+    kama (ramani_weka(r, 20, 300) != 1) rudisha 3;
+
+    // Pata thamani zilizowekwa
+    kama (ramani_pata(r, 5) != 100) rudisha 4;
+    kama (ramani_pata(r, 10) != 200) rudisha 5;
+    kama (ramani_pata(r, 20) != 300) rudisha 6;
+
+    // Pata thamani isiyokuwepo
+    kama (ramani_pata(r, 99) != -1) rudisha 7;
+
+    // Angalia kuwepo
+    kama (ramani_ina(r, 5) != 1) rudisha 8;
+    kama (ramani_ina(r, 10) != 1) rudisha 9;
+    kama (ramani_ina(r, 99) != 0) rudisha 10;
+
+    // Badilisha thamani iliyopo
+    kama (ramani_weka(r, 5, 999) != 1) rudisha 11;
+    kama (ramani_pata(r, 5) != 999) rudisha 12;
+
+    // Futa funguo
+    ramani_futa(r, 10);
+    kama (ramani_ina(r, 10) != 0) rudisha 13;
+    kama (ramani_ina(r, 5) != 1) rudisha 14;
+
+    ramani_huru(r);
+    rudisha 0;
+}
+";
+    run_msingi_test(test_source, 0);
+}
+
+// ============================================================================
+// K10e — Jaribio la mpangilio.swa (upangaji wa safu)
+// ============================================================================
+
+#[test]
+fn jaribio_k10e_mpangilio() {
+    let test_source = "\
+husisha { mpangilio.swa }
+
+N32 main() {
+    N32 arr[5];
+    arr[0] = 50;
+    arr[1] = 30;
+    arr[2] = 10;
+    arr[3] = 40;
+    arr[4] = 20;
+
+    // Panga kwa kupanda
+    pangilia_n32(arr, 5);
+    kama (arr[0] != 10) rudisha 1;
+    kama (arr[1] != 20) rudisha 2;
+    kama (arr[2] != 30) rudisha 3;
+    kama (arr[3] != 40) rudisha 4;
+    kama (arr[4] != 50) rudisha 5;
+
+    // Panga kwa kushuka
+    pangilia_n32_kushuka(arr, 5);
+    kama (arr[0] != 50) rudisha 6;
+    kama (arr[1] != 40) rudisha 7;
+    kama (arr[2] != 30) rudisha 8;
+    kama (arr[3] != 20) rudisha 9;
+    kama (arr[4] != 10) rudisha 10;
+
+    // Safu yenye kipengele kimoja — inapaswa kupita bila hitilafu
+    N32 moja[1];
+    moja[0] = 99;
+    pangilia_n32(moja, 1);
+    kama (moja[0] != 99) rudisha 11;
+
+    // Safu tupu — inapaswa kupita bila hitilafu
+    N32 tupu[1];
+    pangilia_n32(tupu, 0);
+
+    rudisha 0;
+}
+";
+    run_msingi_test(test_source, 0);
+}
+
+// ============================================================================
+// K10f — Jaribio la hesabu.swa (hisabati)
+// ============================================================================
+
+#[test]
+fn jaribio_k10f_hesabu() {
+    let test_source = "\
+husisha { hesabu.swa }
+
+N32 main() {
+    // hesabu_kamili — kipeo (N32)
+    kama (hesabu_kamili(5, 3) != 5) rudisha 1;
+    kama (hesabu_kamili(2, 7) != 7) rudisha 2;
+    kama (hesabu_kamili(-1, -5) != -1) rudisha 3;
+
+    // hesabu_ndogo — kiukomo (N32)
+    kama (hesabu_ndogo(5, 3) != 3) rudisha 4;
+    kama (hesabu_ndogo(2, 7) != 2) rudisha 5;
+    kama (hesabu_ndogo(-1, -5) != -5) rudisha 6;
+
+    // neneo_n32 — thamani kamili (N32)
+    kama (neneo_n32(-5) != 5) rudisha 7;
+    kama (neneo_n32(3) != 3) rudisha 8;
+    kama (neneo_n32(0) != 0) rudisha 9;
+
+    rudisha 0;
+}
+";
+    run_msingi_test(test_source, 0);
+}
+
+// ============================================================================
+// K10g — Jaribio la faili.swa (I/O ya faili)
+// ============================================================================
+
+#[test]
+fn jaribio_k10g_faili() {
+    let test_source = "\
+husisha { kumbukumbu.swa }
+husisha { faili.swa }
+
+N32 main() {
+    // Andika faili
+    N8 njia[] = \"_jaribio_k10g.txt\";
+    N8 data[] = \"Habari, Swa!\";
+    N64 urefu = 12;
+    kama (faili_andika_yote(njia, data, urefu) != 0) rudisha 1;
+
+    // Angalia kama lipo
+    kama (faili_ipo(njia) != 1) rudisha 2;
+
+    // Soma faili lote
+    N8 buf[64];
+    weka_sifuri(buf, 64);
+    N64 soma = faili_soma_yote(njia, buf, 64);
+    kama (soma != urefu) rudisha 3;
+    kama (linganisha_kumbukumbu(buf, data, urefu) != 0) rudisha 4;
+
+    // Fungua na uandike kwa mkono
+    N8 hali[] = \"w\";
+    N8* f = faili_fungua(njia, hali);
+    kama (f == tupu) rudisha 5;
+    N8 andiko[] = \"Jaribio\";
+    N64 n = faili_andika(andiko, 1, 7, f);
+    faili_funga(f);
+    kama (n != 7) rudisha 6;
+
+    // Soma tena na uhakikishe
+    weka_sifuri(buf, 64);
+    soma = faili_soma_yote(njia, buf, 64);
+    kama (soma != 7) rudisha 7;
+    kama (linganisha_kumbukumbu(buf, andiko, 7) != 0) rudisha 8;
+
+    // faili_soma_mstari
+    N8 f2[] = \"_jaribio_k10g_mistari.txt\";
+    N8 mistari[] = \"mstari1\\nmstari2\\n\";
+    faili_andika_yote(f2, mistari, 16);
+    N8* fh = faili_fungua(f2, \"r\");
+    kama (fh == tupu) rudisha 9;
+    N8 mst_buf[32];
+    weka_sifuri(mst_buf, 32);
+    N32 len = faili_soma_mstari(fh, mst_buf, 32);
+    kama (len != 8) rudisha 10;
+    N8 tarajiwa1[] = \"mstari1\\n\";
+    kama (linganisha_kumbukumbu(mst_buf, tarajiwa1, 8) != 0) rudisha 11;
+    len = faili_soma_mstari(fh, mst_buf, 32);
+    kama (len != 8) rudisha 12;
+    N8 tarajiwa2[] = \"mstari2\\n\";
+    kama (linganisha_kumbukumbu(mst_buf, tarajiwa2, 8) != 0) rudisha 13;
+    faili_funga(fh);
+
+    // Angalia faili isiyokuwepo
+    N8 haipo[] = \"_haipo_kamwe.txt\";
+    kama (faili_ipo(haipo) != 0) rudisha 14;
+
+    rudisha 0;
+}
+";
+    run_msingi_test(test_source, 0);
 }

@@ -28,6 +28,107 @@ salamu("Dunia");
 hesabu_na_onyesha(15, 7);
 ```
 
+## Mifano Zaidi
+
+### Vigezo na Aina
+
+```swa
+N32 umri = 25;
+N64 idadi_ya_watu = 8000000000;
+D32 wastani = 3.14;
+B1 imewashwa = kweli;
+N8 herufi = 'A';
+```
+
+### Mtiririko wa Udhibiti
+
+```swa
+// Kama/Sivyo
+N32 kadirifu(N32 x) {
+    kama (x > 0) {
+        rudisha 1;
+    } sivyo kama (x < 0) {
+        rudisha -1;
+    } sivyo {
+        rudisha 0;
+    }
+}
+
+// Wakati (kitanzi)
+W0 hesabu_hadi(N32 n) {
+    N32 i = 0;
+    wakati (i < n) {
+        andika("%d\n", i);
+        i = i + 1;
+    }
+}
+
+// Chagua (switch)
+N32 siku_kwa_namba(N32 n) {
+    chagua (n) {
+        hali 1: rudisha 100;
+        hali 2: rudisha 200;
+        hali 3: rudisha 300;
+        sivyo: rudisha 0;
+    }
+}
+```
+
+### Miundo
+
+```swa
+muundo Nukta {
+    N32 x;
+    N32 y;
+};
+
+N32 pata_x(Nukta p) {
+    rudisha p.x;
+}
+
+W0 weka_x(Nukta* p, N32 v) {
+    p->x = v;
+}
+```
+
+### Safu na Kumbukumbu
+
+```swa
+N8 bafa[1024];              // safu ya ulimwengu
+N32 namba[5] = {1, 2, 3, 4, 5};
+
+W0 andika_bafa() {
+    bafa[0] = 65;           // andika kwenye safu
+    N32 ya_kwanza = namba[0];
+}
+
+// Kumbukumbu ya moja kwa moja
+W0 mfano_kumbukumbu() {
+    N32* p = tenga N32;     // tenga kumbukumbu
+    *p = 42;                // andika thamani
+    achilia(p);             // achilia kumbukumbu
+}
+```
+
+### Miito na Urejeshaji
+
+```swa
+// Tangazo la mbele
+W0 mkuu() {
+    msaidizi(42);
+}
+
+W0 msaidizi(N32 x) {
+    andika("Thamani: %d\n", x);
+}
+
+// Kujirudia
+N32 kitanzi(N32 n) {
+    kama (n <= 0) { rudisha 0; }
+    rudisha 1 + kitanzi(n - 1);
+}
+```
+
 ## Vipengele
 
 - **Maneno muhimu 42** ya Kiswahili -- hakuna Kiingereza katika sintaksia
@@ -35,7 +136,7 @@ hesabu_na_onyesha(15, 7);
 - **Vizalishe viwili**: LLVM (majukwaa yote) + asilia (x86-64 ELF moja kwa moja)
 - **Aina 25 za nambari** — N8–N128, A8–A128, D16–D80, B1–B64, W0–W64 zote zinashughulikiwa
 - **Kumbukumbu ya moja kwa moja** -- tenga, achilia, hakuna ukusanyaji taka
-- **Majaribio**: 181 yanapita (145 maktaba + 36 ujumuishaji). K6 bootstrap inafanya kazi.
+- **Majaribio**: 185 yanapita (145 maktaba + 39 ujumuishaji + 1 nyaraka). K6 bootstrap inafanya kazi.
 
 ## Muundo wa Mradi
 
@@ -63,7 +164,7 @@ hesabu_na_onyesha(15, 7);
 
 ```sh
 cargo build --release
-cargo test          # Majaribio 174: 145 ya maktaba + 28 ya ujumuishaji + 1 wa nyaraka
+cargo test          # Majaribio 185: 145 ya maktaba + 39 ya ujumuishaji + 1 wa nyaraka
 ```
 
 ## Matumizi
@@ -89,7 +190,7 @@ Lengo ni kuondoa utegemezi wa Rust na kuwa na mkusanyaji ulioandikwa kwa Swa pek
 
 | Kipimo | Thamani |
 |--------|---------|
-| **Majaribio** | 181/181 [PASS] |
+| **Majaribio** | 185/185 [PASS] |
 | **Kujikusanya (K6)** | Inapita [PASS] |
 | **Mchanganuzi wa Swa** | Kamili [DONE] |
 | **Mkaguzi wa Swa** | Kamili [DONE] |
