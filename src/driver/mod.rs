@@ -200,6 +200,10 @@ impl Driver {
         for d in diags_sema {
             self.diagnostics.push(d);
         }
+        if self.diagnostics.has_errors() {
+            let all_diags: Vec<Diagnostic> = self.diagnostics.all().to_vec();
+            return Err(all_diags);
+        }
 
         // 3. Teremsha hadi IR
         let module = crate::ir::lower::lower(
