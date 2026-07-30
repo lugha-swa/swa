@@ -405,11 +405,6 @@ fn jaribio_stage1() {
 
 /// Kusanya stage1.swa hadi faili la kitu, unganisha na clang, endesha
 /// dhidi ya faili rahisi la .swa, na uthibitishe matokeo.
-///
-/// IMEZIMWA: binary inaanguka (SIGSEGV, exit 139) hata kwa O1.
-/// Hitilafu za msingi za codegen zinazuia mkusanyaji wa kujikusanya
-/// kufanya kazi kwa usahihi.  Rekebisha codegen kwanza, kisha
-/// washa jaribio hili.
 #[test]
 fn jaribio_k6_kujikusanya_kamili() {
     // Angalia kama clang inapatikana.
