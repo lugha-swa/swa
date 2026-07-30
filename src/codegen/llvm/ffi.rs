@@ -606,8 +606,14 @@ extern "C" {
         index: u32,
         attr: LLVMAttributeRef,
     );
-    pub fn LLVMGetEnumAttributeKind(name: *const c_char) -> u32;
+    pub fn LLVMGetEnumAttributeKind(attr: LLVMAttributeRef) -> u32;
+    pub fn LLVMGetEnumAttributeKindForName(name: *const c_char, len: usize) -> u32;
     pub fn LLVMGetStringAttributeKind(name: *const c_char) -> u32;
+    pub fn LLVMCreateTypeAttribute(
+        ctx: LLVMContextRef,
+        kind_id: u32,
+        ty: LLVMTypeRef,
+    ) -> LLVMAttributeRef;
 
     // -- DIBuilder (vibadala vya msingi vya habari za utatuzi) ----------------
 
