@@ -715,7 +715,6 @@ N32 main() {
 ";
     run_k6_test(test_chanzo, 4);
 }
-
 // ============================================================================
 // K10 — Msaidizi wa majaribio ya maktaba ya kawaida
 // ============================================================================
@@ -1094,4 +1093,100 @@ N32 main() {
 }
 ";
     run_msingi_test(test_source, 0);
+}
+
+// ============================================================================
+// K11 — Vipengele vya msomaji (maoni ya kijiuzi, nambari za radiksi, utorokaji)
+// ============================================================================
+
+/// K11a: Maoni ya kijiuzi (/* ... */) yenye upachikaji.
+/// Hutumia kigezo cha `run_k6_test` kwa sababu msomaji wa .swa pekee
+/// ndio unaosaidia upachikaji huu.
+#[test]
+fn jaribio_k11a_maoni_ya_kijiuzi() {
+    let test_chanzo = "\
+N32 main() {
+    /* huu ni maoni ya kijiuzi */
+    N32 x = 21;
+    /* maoni yenye /* upachikaji */ ndani */
+    N32 y = 21;
+    /* maoni /* ya pili /* ya tatu */ */ mwishoni */
+    rudisha x +  /* maoni ya inline */ y;
+}
+";
+    run_k6_test(test_chanzo, 42);
+}
+
+/// K11b: Nambari za heksadesimali (0x), oktali (0o), na binary (0b).
+/// Thamani hazijabadilishwa kwa usahihi na mchanganuzi wa .swa bado,
+/// lakini msomaji unatambua tokeni hizo bila kuanguka.
+#[test]
+fn jaribio_k11b_nambari_za_radiksi() {
+    let test_chanzo = "\
+N32 main() {
+    N32 a = 0xFF;
+    N32 b = 0X1A;
+    N32 c = 0o77;
+    N32 d = 0O52;
+    N32 e = 0b1010;
+    N32 f = 0B1101;
+    rudisha 0;
+}
+";
+    run_k6_test(test_chanzo, 0);
+}
+
+/// K11c: Mfuatano wa utorokaji katika herufi (\n, \t, \\\\, \\xNN).
+/// Huhakikisha msomaji wa .swa unashughulikia tokeni za utorokaji
+/// katika herufi bila kuanguka. (Mifuatano ina mdudu wa awali kwenye stage1
+/// inayozuia majaribio kupitia njia ya kujikusanya.)
+#[test]
+fn jaribio_k11c_mfuatano_wa_utorokaji() {
+    let test_chanzo = "\
+N32 main() {
+    N8 a = '\\n';
+    N8 b = '\\t';
+    N8 c = '\\r';
+    N8 d = '\\\\';
+    N8 e = '\\0';
+    N8 f = '\\x41';
+    N8 g = '\\x5A';
+    rudisha 0;
+}
+";
+    run_k6_test(test_chanzo, 0);
+}
+
+// ============================================================================
+// K12 — Opereta ya asilimia (%)
+// ============================================================================
+
+/// K12: Opereta ya asilimia (%) na kiambatani (%=).
+/// Huhakikisha mchanganuzi na mzalishaji wa .swa
+/// vinashughulikia opereta ya asilimia kwenye nambari kamili.
+#[test]
+fn jaribio_k12_opereta_ya_asilimia() {
+    let test_chanzo = "\
+N32 main() {
+    N32 a = 42 % 10;
+    N32 b = 17 % 5;
+    N32 c = 100 % 7;
+    N32 d = 10;
+    d %= 3;
+    rudisha a + b + c + d;
+}
+";
+    run_k6_test(test_chanzo, 7);
+}
+
+/// K12b: Jaribio rahisi la % bila kiunganishi
+#[test]
+fn jaribio_k12b_modulo_pekee() {
+    let test_chanzo = "\
+N32 main() {
+    N32 a = 42 % 10;
+    rudisha a;
+}
+";
+    run_k6_test(test_chanzo, 2);
 }
