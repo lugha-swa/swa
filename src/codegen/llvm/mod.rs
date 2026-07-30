@@ -52,7 +52,7 @@ static LLVM_INIT: OnceLock<usize> = OnceLock::new();
 /// (cha kawaida: `None` / O0).
 ///
 /// Sehemu ya `optimize` inawasha bomba la kupita za uboreshaji
-/// wa LLVM (mem2reg, instcombine, gvn, simplifycfg, always-inline)
+/// wa LLVM (mem2reg, instcombine, dce, gvn, simplifycfg, always-inline)
 /// wakati imewekwa kuwa `true`.
 pub struct LlvmBackend {
     context: LLVMContextRef,
@@ -124,7 +124,9 @@ impl LlvmBackend {
         output_path: &Path,
     ) -> Result<(), Vec<Diagnostic>> {
         let llvm_module = self.compile(ir_module)?;
-        self.emit_object(llvm_module, output_path)
+        let result = self.emit_object(llvm_module, output_path);
+        unsafe { LLVMDisposeModule(llvm_module); }
+        result
     }
 
     /// Changanua maandishi ya LLVM IR na toa faili ya kitu kwa `output_path`.
@@ -324,7 +326,6 @@ impl LlvmBackend {
                     if global.is_const { LLVMSetGlobalConstant(llvm_global, 1); LLVMSetLinkage(llvm_global, LLVMLinkage::Private); }
                 }
             }
-
             // -- 4. Tangaza mapema kazi ZOTE (maktabac + mtumiaji) -------------
             pre_declare_libc(module);
 
@@ -407,7 +408,8 @@ impl LlvmBackend {
     /// Hutumia meneja mpya wa kupita kupitia `LLVMRunPasses`. Mstari wa
     /// usindikaji unajumuisha:
     /// - Kiwango cha kazi: mem2reg (pandisha allocas hadi SSA), instcombine (peephole),
-    ///   GVN (uondoaji wa upakiaji unaorudiwa), simplifycfg (usafishaji wa CFG).
+    ///   DCE (uondoaji wa msimbo uliokufa), GVN (uondoaji wa upakiaji unaorudiwa),
+    ///   simplifycfg (usafishaji wa CFG).
     /// - Kiwango cha moduli: always-inline (weka ndani kazi za `always_inline`).
     ///
     /// Hii inaitwa na [`emit_object`] kati ya uundaji wa mashine lengwa
@@ -429,12 +431,12 @@ impl LlvmBackend {
 
             // Kamba ya mstari wa usindikaji hutumia sintaksia mpya ya meneja wa
             // kupita:
-            //   function(mem2reg,instcombine,gvn,simplifycfg)
+            //   function(mem2reg,instcombine,dce,gvn,simplifycfg)
             //     — kupita za kiwango cha kazi zinazotumika kwa kila kazi
             //   always-inline
             //     — kupita kwa kiwango cha moduli kuweka ndani kazi za always_inline
             let pipeline = c_str(
-                "function(mem2reg,instcombine<no-verify-fixpoint>,gvn,simplifycfg),\
+                "function(mem2reg,instcombine<no-verify-fixpoint>,dce,gvn,simplifycfg),\
                  always-inline",
             );
             let err = LLVMRunPasses(
@@ -704,6 +706,8 @@ fn lower_function(
         }
 
         // -- 3. Tumia sifa sret kwenye kigezo cha kwanza ----------------------
+        // sret ni sifa ya aina (type attribute) katika LLVM 22.x —
+        // inabeba aina ya muundo inayorejeshwa.
         if func.sret_value_id.is_some() {
             // sret ni sifa ya aina (type attribute), sio enum attribute.
             // Tunatumia LLVMGetEnumAttributeKindForName kupata kitambulisho cha aina,
@@ -1566,7 +1570,11 @@ fn lower_instruction(
                         "andika_stderr" => LLVMInt32Type(),
                         "fopen" => ptr_type(),
                         "fread" => LLVMInt64Type(),
+                        "fwrite" => LLVMInt64Type(),
                         "fclose" => LLVMInt32Type(),
+                        "time" => LLVMInt64Type(),
+                        "rand" => LLVMInt32Type(),
+                        "srand" => LLVMVoidType(),
                         "mmap" => ptr_type(),
                         "mprotect" => LLVMInt32Type(),
                         "munmap" => LLVMInt32Type(),
@@ -2111,6 +2119,45 @@ fn pre_declare_libc(module: LLVMModuleRef) {
             }
         }
 
+        // fwrite: i64 (ptr, i64, i64, ptr) → size_t
+        {
+            let name = c_str("fwrite");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type(), LLVMInt64Type(), LLVMInt64Type(), ptr_type()];
+                let fn_ty = LLVMFunctionType(LLVMInt64Type(), param_tys.as_mut_ptr(), 4, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // time: i64 (ptr) → time_t
+        {
+            let name = c_str("time");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type()];
+                let fn_ty = LLVMFunctionType(LLVMInt64Type(), param_tys.as_mut_ptr(), 1, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // rand: i32 () → int
+        {
+            let name = c_str("rand");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let fn_ty = LLVMFunctionType(LLVMInt32Type(), std::ptr::null_mut(), 0, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // srand: void (i32) → void
+        {
+            let name = c_str("srand");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [LLVMInt32Type()];
+                let fn_ty = LLVMFunctionType(LLVMVoidType(), param_tys.as_mut_ptr(), 1, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
         // realloc: ptr (ptr, i64) → ptr
         {
             let name = c_str("realloc");
@@ -2231,9 +2278,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "direct return module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("direct_ret_fn"), "IR should contain function name");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2272,10 +2321,12 @@ mod tests {
 
         let result = b.compile(&m);
         assert!(result.is_ok(), "sret module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("make_triple"), "IR should contain function name");
             assert!(ir.contains("sret"), "IR should contain sret attribute");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2296,9 +2347,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "void return module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("do_nothing"), "IR should contain function name");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2329,9 +2382,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "alloca+store module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("alloca"), "IR should contain alloca");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2435,9 +2490,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "heap alloc module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("malloc"), "IR should contain malloc call");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2474,6 +2531,10 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "heap alloc+free module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
+        unsafe {
+            LLVMDisposeModule(llvm_module);
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -2500,9 +2561,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "float arithmetic module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("fadd"), "IR should contain fadd instruction");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2531,9 +2594,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "integer comparison module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("icmp"), "IR should contain icmp instruction");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2704,10 +2769,12 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "orodha module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("Orodha") || ir.contains("init_orodha"),
                 "IR should contain struct or function name");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2744,9 +2811,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "printf module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("printf"), "IR should contain printf");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2779,9 +2848,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "StringAddr module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("my_str"), "IR should contain string global name");
+            LLVMDisposeModule(llvm_module);
         }
     }
 
@@ -2808,9 +2879,11 @@ mod tests {
         m.push_function(f);
         let result = b.compile(&m);
         assert!(result.is_ok(), "malloc call module should compile: {:?}", result.err());
+        let llvm_module = result.unwrap();
         unsafe {
-            let ir = module_to_string(result.unwrap());
+            let ir = module_to_string(llvm_module);
             assert!(ir.contains("malloc"), "IR should contain malloc");
+            LLVMDisposeModule(llvm_module);
         }
     }
 

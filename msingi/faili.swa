@@ -1,0 +1,109 @@
+husisha C::stdio
+
+// faili.swa — Shughuli za I/O za faili
+//
+// Vifuniko vya Kiswahili kuzungushia maktaba ya stdio ya C.
+// Hutoa usomaji, uandikaji, na ushughulikiaji wa faili kwa kutumia
+// majina na makosa kwa Kiswahili.
+
+// Hali za ufunguzi zinazotumika na faili_fungua:
+//   "r"  — soma tu (faili lazima liwepo)
+//   "w"  — andika tu (huunda upya kama lipo)
+//   "a"  — ongeza mwishoni (huunda kama halipo)
+//   "r+" — soma na andika (faili lazima liwepo)
+//   "w+" — soma na andika (huunda upya)
+//   "a+" — soma na ongeza (huunda kama halipo)
+
+// Fungua faili. Hurudisha kishikio (N8*) au tupu kwa kushindwa.
+N8* faili_fungua(N8* njia, N8* hali) {
+    rudisha fopen(njia, hali);
+}
+
+// Funga faili.
+W0 faili_funga(N8* f) {
+    kama (f != tupu) {
+        fclose(f);
+    }
+}
+
+// Soma data kutoka faili. Hurudisha idadi ya vipengele vilivyosomwa.
+N64 faili_soma(N8* buf, N64 ukubwa, N64 idadi, N8* f) {
+    kama (f == tupu) {
+        rudisha 0;
+    }
+    rudisha fread(buf, ukubwa, idadi, f);
+}
+
+// Andika data kwenye faili. Hurudisha idadi ya vipengele vilivyoandikwa.
+N64 faili_andika(N8* buf, N64 ukubwa, N64 idadi, N8* f) {
+    kama (f == tupu) {
+        rudisha 0;
+    }
+    rudisha fwrite(buf, ukubwa, idadi, f);
+}
+
+// Soma faili lote na ulihifadhi kwenye bafa.
+// Hurudisha urefu wa data iliyosomwa, au -1 kwa kushindwa.
+// Bafa lazima iwe na nafasi ya kutosha.
+N64 faili_soma_yote(N8* njia, N8* buf, N64 uwezo) {
+    N8* f = fopen(njia, "r");
+    kama (f == tupu) {
+        rudisha -1;
+    }
+    N64 n = fread(buf, 1, uwezo - 1, f);
+    fclose(f);
+    buf[n] = 0;
+    rudisha n;
+}
+
+// Andika mfuatano kwenye faili. Hurudisha 0 kwa mafanikio, -1 kwa kushindwa.
+N32 faili_andika_yote(N8* njia, N8* data, N64 urefu) {
+    N8* f = fopen(njia, "w");
+    kama (f == tupu) {
+        rudisha -1;
+    }
+    N64 n = fwrite(data, 1, urefu, f);
+    fclose(f);
+    kama (n < urefu) {
+        rudisha -1;
+    }
+    rudisha 0;
+}
+
+// Angalia kama faili lipo.
+N32 faili_ipo(N8* njia) {
+    N8* f = fopen(njia, "r");
+    kama (f == tupu) {
+        rudisha 0;
+    }
+    fclose(f);
+    rudisha 1;
+}
+
+// Soma mstari mmoja kutoka faili hadi bafa.
+// Huacha kwenye '\n' au EOF. Hurudisha urefu uliosomwa au -1 kwa mwisho.
+N32 faili_soma_mstari(N8* f, N8* buf, N32 uwezo) {
+    kama (f == tupu || uwezo <= 0) {
+        rudisha -1;
+    }
+    N32 i = 0;
+    wakati (i < uwezo - 1) {
+        N8 c = fgetc(f);
+        kama (c == 0xFF) {
+            // EOF — angalia kwa kutumia feof
+            kama (i == 0) {
+                rudisha -1;
+            }
+            vunja;
+        }
+        kama (c == 10) {
+            buf[i] = c;
+            i = i + 1;
+            vunja;
+        }
+        buf[i] = c;
+        i = i + 1;
+    }
+    buf[i] = 0;
+    rudisha i;
+}
