@@ -136,7 +136,7 @@ N32 kitanzi(N32 n) {
 - **Vizalishe viwili**: LLVM (majukwaa yote) + asilia (x86-64 ELF moja kwa moja)
 - **Aina 25 za nambari** — N8–N128, A8–A128, D16–D80, B1–B64, W0–W64 zote zinashughulikiwa
 - **Kumbukumbu ya moja kwa moja** -- tenga, achilia, hakuna ukusanyaji taka
-- **Majaribio**: 185 yanapita (145 maktaba + 39 ujumuishaji + 1 nyaraka). K6 bootstrap inafanya kazi.
+- **Majaribio**: 204 yanapita (146 maktaba + 57 ujumuishaji + 1 nyaraka). K6 bootstrap inafanya kazi.
 
 ## Muundo wa Mradi
 
@@ -164,7 +164,7 @@ N32 kitanzi(N32 n) {
 
 ```sh
 cargo build --release
-cargo test          # Majaribio 185: 145 ya maktaba + 39 ya ujumuishaji + 1 wa nyaraka
+cargo test          # Majaribio 204: 146 ya maktaba + 57 ya ujumuishaji + 1 wa nyaraka
 ```
 
 ## Matumizi
@@ -190,7 +190,7 @@ Lengo ni kuondoa utegemezi wa Rust na kuwa na mkusanyaji ulioandikwa kwa Swa pek
 
 | Kipimo | Thamani |
 |--------|---------|
-| **Majaribio** | 185/185 [PASS] |
+| **Majaribio** | 204/204 [PASS] |
 | **Kujikusanya (K6)** | Inapita [PASS] |
 | **Mchanganuzi wa Swa** | Kamili [DONE] |
 | **Mkaguzi wa Swa** | Kamili [DONE] |
