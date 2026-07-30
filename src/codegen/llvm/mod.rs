@@ -54,10 +54,14 @@ static LLVM_INIT: OnceLock<usize> = OnceLock::new();
 /// Sehemu ya `optimize` inawasha bomba la kupita za uboreshaji
 /// wa LLVM (mem2reg, instcombine, dce, gvn, simplifycfg, always-inline)
 /// wakati imewekwa kuwa `true`.
+///
+/// Sehemu ya `target_triple` inaruhusu kubatilisha tatu ya lengwa
+/// chaguo-msingi (ya mwenyeji) kwa mkusanyiko mtambuka.
 pub struct LlvmBackend {
     context: LLVMContextRef,
     opt_level: LLVMCodeGenOptLevel,
     optimize: bool,
+    target_triple: Option<String>,
 }
 
 impl LlvmBackend {
@@ -66,7 +70,7 @@ impl LlvmBackend {
     /// Unda nyuma mpya ya LLVM, ukianzisha usaidizi wa lengwa kwenye wito wa kwanza.
     pub fn new() -> Self {
         let context = Self::get_context();
-        Self { context, opt_level: LLVMCodeGenOptLevel::None, optimize: false }
+        Self { context, opt_level: LLVMCodeGenOptLevel::None, optimize: false, target_triple: None }
     }
 
     /// Weka kiwango cha uboreshaji wa kutengeneza msimbo (muundo wa kijenzi).
@@ -79,6 +83,19 @@ impl LlvmBackend {
     pub fn with_opt(mut self) -> Self {
         self.optimize = true;
         self
+    }
+
+    /// Weka tatu ya lengwa kwa mkusanyiko mtambuka (muundo wa kijenzi).
+    ///
+    /// Kama haijaitwa, `default_target_triple()` ya mwenyeji inatumika.
+    pub fn with_target(mut self, triple: String) -> Self {
+        self.target_triple = Some(triple);
+        self
+    }
+
+    /// Rudisha tatu ya lengwa inayotumika: ile iliyowekwa wazi, au ile ya mwenyeji.
+    fn effective_triple(&self) -> String {
+        self.target_triple.clone().unwrap_or_else(default_target_triple)
     }
 
     /// Rudisha muktadha wa LLVM wa kimataifa, ukianzisha malengo ya kawaida mara moja.
@@ -205,7 +222,7 @@ impl LlvmBackend {
             // Weka tatu ya lengwa. Kwenye Windows tunaweza kupata tatu ya MSVC
             // kutoka LLVM, lakini kiunganishi cha GNU (MinGW) ndicho kinachopatikana.
             // Lazimisha tatu ya GNU ili kuunganisha kufanikiwe.
-            let triple = default_target_triple();
+            let triple = self.effective_triple();
             let triple = if triple.contains("windows-msvc") {
                 "x86_64-pc-windows-gnu".to_string()
             } else {
@@ -472,7 +489,7 @@ impl LlvmBackend {
         output_path: &Path,
     ) -> Result<(), Vec<Diagnostic>> {
         unsafe {
-            let triple = default_target_triple();
+            let triple = self.effective_triple();
             let triple_c = CString::new(triple.as_str()).unwrap();
 
             let mut target: LLVMTargetRef = std::ptr::null_mut();
@@ -554,7 +571,7 @@ impl LlvmBackend {
         output_path: &Path,
     ) -> Result<(), Vec<Diagnostic>> {
         unsafe {
-            let triple = default_target_triple();
+            let triple = self.effective_triple();
             let triple_c = CString::new(triple.as_str()).unwrap();
 
             let mut target: LLVMTargetRef = std::ptr::null_mut();
