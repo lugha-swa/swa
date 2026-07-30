@@ -610,7 +610,7 @@ fn lower_function(
 
         // Weka ABI ya C ikiwa imeombwa (extern "C").
         if func.c_abi {
-            let ccc_id = LLVMGetEnumAttributeKind(c_str("ccc").as_ptr());
+            let ccc_id = LLVMGetEnumAttributeKindForName(c_str("ccc").as_ptr(), 3);
             if ccc_id != 0 {
                 let attr = LLVMCreateEnumAttribute(
                     LLVMGetModuleContext(module),
@@ -623,12 +623,22 @@ fn lower_function(
 
         // -- 3. Tumia sifa sret kwenye kigezo cha kwanza ----------------------
         if func.sret_value_id.is_some() {
-            let sret_kind = LLVMGetEnumAttributeKind(c_str("sret").as_ptr());
+            // sret ni sifa ya aina (type attribute), sio enum attribute.
+            // Tunatumia LLVMGetEnumAttributeKindForName kupata kitambulisho cha aina,
+            // kisha LLVMCreateTypeAttribute kuunda sifa yenye aina ya muundo.
+            let sret_name = c_str("sret");
+            let sret_kind = LLVMGetEnumAttributeKindForName(sret_name.as_ptr(), 4);
             if sret_kind != 0 {
-                let attr = LLVMCreateEnumAttribute(
+                // Kigezo cha kwanza ni kielekezi-kwa-muundo (Ptr(T)).
+                // LLVMCreateTypeAttribute inahitaji aina ya T (muundo), sio Ptr(T).
+                let inner_ty = match &func.params[0].1 {
+                    IrType::Ptr(inner) => ir_type_to_llvm(inner, struct_types),
+                    other => ir_type_to_llvm(other, struct_types),
+                };
+                let attr = LLVMCreateTypeAttribute(
                     LLVMGetModuleContext(module),
                     sret_kind,
-                    0,
+                    inner_ty,
                 );
                 LLVMAddAttributeAtIndex(llvm_func, 1, attr);
             }
