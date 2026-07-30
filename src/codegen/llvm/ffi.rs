@@ -617,11 +617,6 @@ extern "C" {
         attr: LLVMAttributeRef,
         length: *mut u32,
     ) -> *const c_char;
-    pub fn LLVMCreateTypeAttribute(
-        ctx: LLVMContextRef,
-        kind_id: u32,
-        ty: LLVMTypeRef,
-    ) -> LLVMAttributeRef;
     pub fn LLVMSetFunctionCallConv(fn_val: LLVMValueRef, cc: u32);
 
     // -- DIBuilder (vibadala vya msingi vya habari za utatuzi) ----------------
