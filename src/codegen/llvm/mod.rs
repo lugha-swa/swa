@@ -1212,30 +1212,20 @@ fn lower_instruction(
                 LLVMBuildStore(builder, cast, p)
             }
             crate::ir::Instruction::MemCopy(dest, src, size) => {
-                // Tumia asili ya LLVM memcpy: @llvm.memcpy.p0.p0.i64
+                // Ita kazi ya memcpy iliyotangazwa mapema.
                 let dest_ptr = v(value_map, dest);
                 let src_ptr = v(value_map, src);
                 let sz_val = LLVMConstInt(LLVMInt64Type(), *size, 0);
-                let volatile_flag = LLVMConstInt(LLVMInt1Type(), 0, 0);
-                let intrinsic_name = c_str("llvm.memcpy.p0.p0.i64");
-                let callee = LLVMGetNamedFunction(module, intrinsic_name.as_ptr());
-                let callee = if callee.is_null() {
-                    let mut param_tys = [ptr_type(), ptr_type(), LLVMInt64Type(), LLVMInt1Type()];
-                    let fn_ty = LLVMFunctionType(LLVMVoidType(), param_tys.as_mut_ptr(), 4, 0);
-                    LLVMAddFunction(module, intrinsic_name.as_ptr(), fn_ty)
-                } else {
-                    callee
-                };
-                // Pata tena aina ya kazi kwa wito.
-                let param_count = LLVMCountParams(callee);
-                let mut rebuilt: Vec<LLVMTypeRef> = (0..param_count)
-                    .map(|i| LLVMTypeOf(LLVMGetParam(callee, i)))
-                    .collect();
-                let fn_ty = LLVMFunctionType(LLVMVoidType(),
-                    if rebuilt.is_empty() { std::ptr::null_mut() } else { rebuilt.as_mut_ptr() },
-                    rebuilt.len() as u32, 0);
-                let mut args = [dest_ptr, src_ptr, sz_val, volatile_flag];
-                LLVMBuildCall2(builder, fn_ty, callee, args.as_mut_ptr(), 4, std::ptr::null());
+                let memcpy_fn = LLVMGetNamedFunction(module, c_str("memcpy").as_ptr());
+                let args = [dest_ptr, src_ptr, sz_val];
+                LLVMBuildCall2(
+                    builder,
+                    LLVMFunctionType(ptr_type(), [ptr_type(), ptr_type(), LLVMInt64Type()].as_mut_ptr(), 3, 0),
+                    memcpy_fn,
+                    args.as_ptr() as *mut LLVMValueRef,
+                    3,
+                    c_str("").as_ptr(),
+                );
                 LLVMConstNull(LLVMInt8Type())
             }
 
@@ -2045,6 +2035,16 @@ fn pre_declare_libc(module: LLVMModuleRef) {
             if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
                 let mut param_tys = [ptr_type()];
                 let fn_ty = LLVMFunctionType(LLVMVoidType(), param_tys.as_mut_ptr(), 1, 0);
+                LLVMAddFunction(module, name.as_ptr(), fn_ty);
+            }
+        }
+
+        // memcpy: ptr (ptr, ptr, i64) -> ptr
+        {
+            let name = c_str("memcpy");
+            if LLVMGetNamedFunction(module, name.as_ptr()).is_null() {
+                let mut param_tys = [ptr_type(), ptr_type(), LLVMInt64Type()];
+                let fn_ty = LLVMFunctionType(ptr_type(), param_tys.as_mut_ptr(), 3, 0);
                 LLVMAddFunction(module, name.as_ptr(), fn_ty);
             }
         }
