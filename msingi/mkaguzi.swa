@@ -322,7 +322,9 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
             N32 hoja_idadi = 0;
             N32 a = ast_kulia[node];
             wakati (a != -1) {
+                N32 ijayo = ast_tiga[a];  // Hifadhi kabla mkaguzi_kagua_usemi abadilishe ast_tiga[a]
                 N32 arg_enc = mkaguzi_kagua_usemi(a);
+                ast_tiga[a] = ijayo;  // Rejesha kiungo cha mnyororo wa hoja
                 // Angalia aina ya hoja dhidi ya aina ya parameta
                 N32 param_enc = mkaguzi_tafuta_param_enc(jina, hoja_idadi);
                 kama (param_enc > 0 && arg_enc > 0) {
@@ -335,7 +337,7 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
                     }
                 }
                 hoja_idadi = hoja_idadi + 1;
-                a = ast_tiga[a];
+                a = ijayo;
             }
             // Angalia idadi ya hoja dhidi ya tangazo la kazi
             N32 inatarajiwa = mkaguzi_tafuta_kazi(jina);
@@ -462,7 +464,7 @@ N32 mkaguzi_kagua_usemi(N32 node) {
                 j = j + 1;
             }
         }
-        rudisha (1 << 8) | 32;  // i32 chaguo-msingi
+        rudisha 0;  // kazi ya nje — aina haijulikani, inakubaliana na yoyote
     }
 
     // Oparesheni unari
