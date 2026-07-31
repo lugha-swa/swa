@@ -769,6 +769,12 @@ N32 changanua_kazi_vigezo(Msambazaji* p) {
 }
 
 N32 changanua_kazi_mwili(Msambazaji* p) {
+    // Tangazo la mbele: hakuna mwili wa kazi, ishara pekee ni ';'
+    kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
+        kama (neno_ni(&p->sasa, ";")) { sogeza(p); rudisha -1; }
+    }
+    kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, ";")) { sogeza(p); rudisha -1; }
+
     // Changanua taarifa za mwili
     N32 body = -1;
     N32 prev = -1;
@@ -810,6 +816,7 @@ N32 changanua_primary_orodha(Msambazaji* p) {
                 }
                 kama (p->sasa.urefu == 0) { vunja; }
                 N32 elem = changanua_usemi(p);
+                kama (elem == -1) { vunja; }
                 kama (prev == -1) { kwanza = elem; }
                 sivyo { ast_kulia[prev] = elem; }
                 prev = elem;
@@ -948,6 +955,7 @@ N32 changanua_usemi_upande(Msambazaji* p) {
                     }
                     kama (p->sasa.urefu == 0) { vunja; }
                     N32 arg = changanua_usemi(p);
+                    kama (arg == -1) { vunja; }
                     kama (prev == -1) { args = arg; }
                     sivyo { ast_tiga[prev] = arg; }
                     prev = arg;
