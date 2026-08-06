@@ -1039,10 +1039,8 @@ N32 ukubwa_kutoka_enc(N32 enc) {
     kama (familia >= 1 && familia <= 5) { rudisha upana / 8; }
     // Aina za miundo — encoding hasi ina kianzio cha jina kwenye dimbwi
     kama (enc < 0) {
-        N32 name_off = (-enc) / 2;
-        kama (name_off > 0) {
-            rudisha ukubwa_wa_muundo_kwa_jina(ast_pool + name_off);
-        }
+        N32 name_off = ((-enc) / 2) - 1;
+        rudisha ukubwa_wa_muundo_kwa_jina(ast_pool + name_off);
     }
     rudisha 4;                          // chaguo-msingi
 }
@@ -1313,7 +1311,7 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
             kama (ni_muundo_enc(callee_ret_enc)) {
                 callee_ni_sret = 1;
                 kama (callee_ret_enc < 0) {
-                    N32 name_off = (-callee_ret_enc) / 2;
+                    N32 name_off = ((-callee_ret_enc) / 2) - 1;
                     sret_size = ukubwa_wa_muundo_kwa_jina(ast_pool + name_off);
                 }
                 kama (sret_size == 0) { sret_size = 8; }
@@ -1444,10 +1442,8 @@ W0 uzalishaji_taarifa(N32 node, N32 kazi_node) {
                 N32 ukubwa = 8;  // chaguo-msingi
                 kama (ret_enc < 0) {
                     // Jina la muundo liko kwenye dimbwi
-                    N32 name_off = (-ret_enc) / 2;
-                    kama (name_off > 0) {
-                        ukubwa = ukubwa_wa_muundo_kwa_jina(ast_pool + name_off);
-                    }
+                    N32 name_off = ((-ret_enc) / 2) - 1;
+                    ukubwa = ukubwa_wa_muundo_kwa_jina(ast_pool + name_off);
                 }
                 andika_mov_ecx_imm32(ukubwa);
 
@@ -2678,7 +2674,7 @@ N32 ni_muundo_enc(N32 enc) {
     // Familia 6 = muundo wa mtumiaji, na pia encoding hasi
     // (jina lililohifadhiwa kwenye dimbwi) inaashiria muundo
     kama (familia == 6) { rudisha 1; }
-    kama (enc < 0) { rudisha 1; }  // jina la muundo kwenye dimbwi
+    kama (enc < 0 && (enc & 1) == 0) { rudisha 1; }  // jina la muundo kwenye dimbwi (siyo kielekezi)
     rudisha 0;
 }
 
