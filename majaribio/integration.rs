@@ -1190,3 +1190,181 @@ N32 main() {
 ";
     run_k6_test(test_chanzo, 2);
 }
+
+// ============================================================================
+// K13 — Anwani-ya kielekezi->sehemu (&ptr->field)
+// ============================================================================
+
+/// K13: Anwani ya sehemu kupitia kielekezi (&p->sasa) kama hoja ya kazi.
+/// Hujaribu marekebisho mawili:
+/// 1. mkaguzi huitana WITO hoja ili kuweka ofseti ya sehemu katika ast_tiga
+/// 2. uzalishaji_anwani_ya SEHEMU_MSHALE haitakiwi kusoma thamani (*p) bali anwani (p)
+#[test]
+fn jaribio_k13_anwani_sehemu_kupitia_kielekezi_kama_hoja() {
+    let test_chanzo = "\
+muundo Nukta { N32 x; N32 y; }
+
+W0 andika_y_kupitia_anwani(N32* addr, N32 v) {
+    *addr = v;
+}
+
+N32 main() {
+    Nukta n[1];
+    n->x = 10;
+    n->y = 20;
+    andika_y_kupitia_anwani(&n->y, 42);  // &n->y kama hoja ya kazi
+    rudisha n->x + n->y;  // 10 + 42 = 52
+}
+";
+    run_k6_test(test_chanzo, 52);
+}
+
+/// K13_diag_a: &kigeu kama hoja ya kazi (KUMBUKA kwenye WITO).
+#[test]
+fn jaribio_k13_diag_a_anwani_kigeu_wito() {
+    let test_chanzo = "\
+W0 andika_kupitia_anwani(N32* addr, N32 v) {
+    *addr = v;
+}
+
+N32 main() {
+    N32 x = 10;
+    andika_kupitia_anwani(&x, 42);
+    rudisha x;  // 42
+}
+";
+    run_k6_test(test_chanzo, 42);
+}
+
+/// K13_diag_b: &muundo.sehemu (DOT) kama hoja ya kazi.
+#[test]
+fn jaribio_k13_diag_b_anwani_dot_wito() {
+    let test_chanzo = "\
+muundo Nukta { N32 x; N32 y; }
+
+W0 andika_y_kupitia_anwani(N32* addr, N32 v) {
+    *addr = v;
+}
+
+N32 main() {
+    Nukta n;
+    n.x = 10;
+    n.y = 20;
+    andika_y_kupitia_anwani(&n.y, 42);  // &n.y kwenye WITO
+    rudisha n.x + n.y;  // 10 + 42 = 52
+}
+";
+    run_k6_test(test_chanzo, 52);
+}
+
+/// K13_diag_c: &safu->sehemu (MSHALE kwenye muundo, si safu) kama hoja ya kazi.
+#[test]
+fn jaribio_k13_diag_c_anwani_mshale_muundo_wito() {
+    let test_chanzo = "\
+muundo Nukta { N32 x; N32 y; }
+
+W0 andika_y_kupitia_anwani(N32* addr, N32 v) {
+    *addr = v;
+}
+
+N32 main() {
+    Nukta n;
+    Nukta* p = &n;
+    p->x = 10;
+    p->y = 20;
+    andika_y_kupitia_anwani(&p->y, 42);  // &kielekezi->y kwenye WITO
+    rudisha n.x + n.y;  // 10 + 42 = 52
+}
+";
+    run_k6_test(test_chanzo, 52);
+}
+
+/// K13b: Anwani ya sehemu kupitia kielekezi (&p->sasa) isiyo hoja ya kazi.
+/// Hujaribu tu uzalishaji_anwani_ya kwa SEHEMU_MSHALE — hakuna WITO inayohusika.
+#[test]
+fn jaribio_k13b_anwani_sehemu_kupitia_kielekezi() {
+    let test_chanzo = "\
+muundo Nukta { N32 x; N32 y; }
+
+N32 main() {
+    Nukta n[1];
+    n->x = 10;
+    n->y = 20;
+    N32* addr = &n->y;  // &n->y SIO hoja ya kazi — inajaribu uzalishaji pekee
+    *addr = 42;
+    rudisha n->x + n->y;  // 10 + 42 = 52
+}
+";
+    run_k6_test(test_chanzo, 52);
+}
+
+/// K13c: Jaribio rahisi la &kigeu (anwani ya kigeu cha kawaida).
+/// Inatenga KUMBUKA pekee bila SEHEMU_MSHALE wala safu.
+#[test]
+fn jaribio_k13c_anwani_kigeu_simple() {
+    let test_chanzo = "\
+N32 main() {
+    N32 x = 42;
+    N32* addr = &x;
+    rudisha *addr;  // 42
+}
+";
+    run_k6_test(test_chanzo, 42);
+}
+
+/// K13d: Jaribio la &kigeu.sehemu (anwani ya sehemu ya muundo wa ndani).
+#[test]
+fn jaribio_k13d_anwani_sehemu_dot() {
+    let test_chanzo = "\
+muundo Nukta { N32 x; N32 y; }
+
+N32 main() {
+    Nukta n;
+    n.x = 10;
+    n.y = 20;
+    N32* addr = &n.y;
+    *addr = 42;
+    rudisha n.x + n.y;  // 10 + 42 = 52
+}
+";
+    run_k6_test(test_chanzo, 52);
+}
+
+/// K13e: Hakikisha kigeu cha ndani kinafanya kazi (bila &).
+#[test]
+fn jaribio_k13e_kigeu_bila_anwani() {
+    let test_chanzo = "\
+N32 main() {
+    N32 x = 42;
+    rudisha x;  // 42
+}
+";
+    run_k6_test(test_chanzo, 42);
+}
+
+/// K13f: Hakikisha &x na rudisha thabiti (bila kunyoosha).
+#[test]
+fn jaribio_k13f_anwani_bila_kunyoosha() {
+    let test_chanzo = "\
+N32 main() {
+    N32 x = 42;
+    N32* addr = &x;
+    rudisha 42;  // rudisha thabiti, usitumie *addr
+}
+";
+    run_k6_test(test_chanzo, 42);
+}
+
+/// K13g: Hakikisha kunyoosha kigeu cha kawaida (bila &).
+#[test]
+fn jaribio_k13g_kunyoosha_kigeu() {
+    let test_chanzo = "\
+N32 main() {
+    N32 x = 42;
+    N32* addr = &x;
+    N32 y = *addr;  // nakili thamani
+    rudisha y;       // 42
+}
+";
+    run_k6_test(test_chanzo, 42);
+}
