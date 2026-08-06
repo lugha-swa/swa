@@ -275,9 +275,10 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         kama (init_node != -1) {
             N32 init_enc = mkaguzi_kagua_usemi(init_node);
             // Angalia kama aina ya kianzio inalingana na aina ya tangazo
-            kama (init_enc > 0 && var_enc != 0) {
-                N32 var_base = var_enc & 254;
-                N32 init_base = init_enc & 254;
+            // Aina za mtumiaji (muundo) ni hasi; tumia != 0 && != -1
+            kama (init_enc != 0 && init_enc != -1 && var_enc != 0) {
+                N32 var_base = var_enc & -2;
+                N32 init_base = init_enc & -2;
                 kama (var_base != init_base) {
                     andika("kosa: aina ya kianzio hailingani na tangazo la '%s'\n", var_jina);
                     mkaguzi_makosa = mkaguzi_makosa + 1;
@@ -292,9 +293,10 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
         N32 rhs_node = ast_kulia[node];
         N32 lhs_enc = mkaguzi_kagua_usemi(lhs_node);
         N32 rhs_enc = mkaguzi_kagua_usemi(rhs_node);
-        kama (lhs_enc > 0 && rhs_enc > 0) {
-            N32 lhs_base = lhs_enc & 254;
-            N32 rhs_base = rhs_enc & 254;
+        // Aina za mtumiaji zinaweza kuwa hasi
+        kama (lhs_enc != 0 && lhs_enc != -1 && rhs_enc != 0 && rhs_enc != -1) {
+            N32 lhs_base = lhs_enc & -2;
+            N32 rhs_base = rhs_enc & -2;
             // Inaruhusu upanuzi (N32→N64) lakini inakataa tofauti za familia
             kama (lhs_base != rhs_base) {
                 andika("kosa: aina ya ugawaji hailingani (L=%d, R=%d)\n", lhs_base, rhs_base);
@@ -327,9 +329,10 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
                 ast_tiga[a] = ijayo;  // Rejesha kiungo cha mnyororo wa hoja
                 // Angalia aina ya hoja dhidi ya aina ya parameta
                 N32 param_enc = mkaguzi_tafuta_param_enc(jina, hoja_idadi);
-                kama (param_enc > 0 && arg_enc > 0) {
-                    N32 arg_base = arg_enc & 254;
-                    N32 param_base = param_enc & 254;
+                // Aina za mtumiaji (muundo) zinaweza kuwa hasi
+                kama (param_enc != 0 && param_enc != -1 && arg_enc != 0 && arg_enc != -1) {
+                    N32 arg_base = arg_enc & -2;
+                    N32 param_base = param_enc & -2;
                     kama (arg_base != param_base && arg_enc != 0) {
                         andika("kosa: aina ya hoja #%d kwa '%s' hailingani (arg=%d, param=%d)\n",
                             hoja_idadi + 1, jina, arg_base, param_base);
@@ -349,25 +352,28 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
                 }
             }
         }
+        mkaguzi_kagua_taarifa(ast_nne[node]);
         rudisha;
     }
     kama (aina == 3) {  // RUDISHA
         N32 expr_node = ast_kushoto[node];
         kama (expr_node != -1) {
             N32 ret_enc = mkaguzi_kagua_usemi(expr_node);
-            kama (ret_enc >= 0 && kazi_ret_enc != 0) {
-                N32 ret_base = ret_enc & 254;
-                N32 kazi_base = kazi_ret_enc & 254;
+            kama (ret_enc != 0 && ret_enc != -1 && kazi_ret_enc != 0) {
+                N32 ret_base = ret_enc & -2;
+                N32 kazi_base = kazi_ret_enc & -2;
                 kama (ret_base != kazi_base && ret_enc != 0) {
                     andika("kosa: aina ya kurudi hailingani na tangazo la kazi\n");
                     mkaguzi_makosa = mkaguzi_makosa + 1;
                 }
             }
         }
+        mkaguzi_kagua_taarifa(ast_nne[node]);
         rudisha;
     }
 
-    // Tembea ndugu
+    // WITO na RUDISHA huitana ndugu kabla ya rudisha
+    // Angalia juu.
     mkaguzi_kagua_taarifa(ast_nne[node]);
 }
 
@@ -408,9 +414,9 @@ N32 mkaguzi_kagua_usemi(N32 node) {
         N32 true_enc = mkaguzi_kagua_usemi(ast_kulia[node]);    // tawi la kweli
         N32 false_enc = mkaguzi_kagua_usemi(ast_tiga[node]);    // tawi la uwongo
         // Angalia utangamano kati ya matawi
-        kama (true_enc > 0 && false_enc > 0) {
-            N32 true_base = true_enc & 254;
-            N32 false_base = false_enc & 254;
+        kama (true_enc != 0 && true_enc != -1 && false_enc != 0 && false_enc != -1) {
+            N32 true_base = true_enc & -2;
+            N32 false_base = false_enc & -2;
             kama (true_base != false_base) {
                 andika("kosa: aina za matawi ya ternary haziendani (kweli=%d, uwongo=%d)\n",
                     true_base, false_base);
@@ -434,10 +440,10 @@ N32 mkaguzi_kagua_usemi(N32 node) {
     kama (ni_binary) {
         N32 lhs = mkaguzi_kagua_usemi(ast_kushoto[node]);
         N32 rhs = mkaguzi_kagua_usemi(ast_kulia[node]);
-        kama (lhs > 0) {
-            kama (rhs > 0) {
-                N32 lhs_base = lhs & 254;
-                N32 rhs_base = rhs & 254;
+        kama (lhs != 0 && lhs != -1) {
+            kama (rhs != 0 && rhs != -1) {
+                N32 lhs_base = lhs & -2;
+                N32 rhs_base = rhs & -2;
                 // Angalia upatanifu wa aina za operesheni
                 kama (lhs_base != rhs_base) {
                     andika("kosa: aina haziendani kwenye operesheni (l=%d, r=%d)\n", lhs_base, rhs_base);
@@ -454,6 +460,15 @@ N32 mkaguzi_kagua_usemi(N32 node) {
 
     // Wito wa kazi
     kama (aina == 8) {
+        // Kagua hoja zote za wito, hata kama wito uko katika nafasi ya usemi.
+        // Hifadhi ast_tiga kwa sababu SEHEMU_MSHALE/SEHEMU_DOT huiandika.
+        N32 a = ast_kulia[node];
+        wakati (a != -1) {
+            N32 ijayo = ast_tiga[a];  // hifadhi kiungo cha mnyororo
+            mkaguzi_kagua_usemi(a);
+            ast_tiga[a] = ijayo;  // rejesha kiungo cha mnyororo
+            a = ijayo;
+        }
         N32 name_node = ast_kushoto[node];
         kama (name_node != -1) {
             N8* jina = ast_pool + ast_jina_off[name_node];
@@ -473,8 +488,12 @@ N32 mkaguzi_kagua_usemi(N32 node) {
         rudisha op;
     }
     kama (aina == 30) {  // KUMBUKA (anwani-ya)
-        mkaguzi_kagua_usemi(ast_kushoto[node]);
-        rudisha 1;  // kielekezi
+        N32 sub_enc = mkaguzi_kagua_usemi(ast_kushoto[node]);
+        // Weka biti ya kielekezi (mshale=1) — tumia |1 badala ya &254|1
+        // kwa sababu aina za mtumiaji (muundo) zina encoding hasi, na
+        // &254 huharibu biti za juu kwenye namba hasi.
+        kama (sub_enc != 0 && sub_enc != -1) { rudisha sub_enc | 1; }
+        rudisha 1;  // kielekezi cha aina isiyojulikana
     }
     kama (aina == 28) {  // SI (si)
         mkaguzi_kagua_usemi(ast_kushoto[node]);
@@ -501,7 +520,7 @@ N32 mkaguzi_kagua_usemi(N32 node) {
         N32 base = mkaguzi_kagua_usemi(ast_kushoto[node]);
         mkaguzi_kagua_usemi(ast_kulia[node]);
         // Ondoa biti ya kielekezi kupata aina ya kipengele
-        N32 base_no_ptr = base & 254;
+        N32 base_no_ptr = base & -2;
         // Hifadhi ukubwa wa elementi kwa mzalishaji
         ast_tiga[node] = ukubwa_kutoka_enc(base_no_ptr);
         rudisha base_no_ptr;
