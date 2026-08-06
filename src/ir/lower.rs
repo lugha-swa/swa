@@ -272,6 +272,35 @@ pub fn lower(
         child = lr.ast_nne[child as usize];
     }
 
+    // Kupita-awali 3: sajili aina za vigezo vyote vya ulimwengu kabla ya
+    // kuteremsha kazi.  Bila kupita hili, kazi zinazorejelea vigezo vya
+    // ulimwengu vilivyotangazwa baadaye kwenye msimbo wa chanzo hupata
+    // Const::NullPtr badala ya GlobalAddr, na kusababisha SIGSEGV wakati
+    // wa utekelezaji.
+    child = lr.ast_kushoto[root as usize];
+    while child != NO_NODE {
+        if lr.node_aina(child) == AST_TANGAZO_ULIMWENGU {
+            let name_node = lr.ast_kushoto[child as usize];
+            let name = if name_node != NO_NODE {
+                lr.read_pool_name(lr.ast_jina_off[name_node as usize])
+            } else {
+                lr.read_pool_name(lr.ast_jina_off[child as usize])
+            };
+            let base_ty = lr.read_type_from_thamani(child);
+            let saizi_node = lr.ast_tiga[child as usize];
+            let ty = if saizi_node != NO_NODE && lr.node_aina(saizi_node) == AST_NAMBARI {
+                let count = lr.ast_thamani[saizi_node as usize] as u32;
+                IrType::Array { element: Box::new(base_ty), count: count as u64 }
+            } else {
+                base_ty
+            };
+            if !name.is_empty() {
+                lr.global_types.insert(name, ty);
+            }
+        }
+        child = lr.ast_nne[child as usize];
+    }
+
     // Kupita-kuu: teremsha kazi na vigezo vya ulimwengu (miundo tayari imefanywa).
     let mut child = lr.ast_kushoto[root as usize];
     while child != NO_NODE {

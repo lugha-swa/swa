@@ -91,6 +91,11 @@ muundo Msambazaji {
 // Kitenzi-njia cha nodi ya AST -- hakuna ukaguzi wa mipaka (tabia iliyopo)
 // -------------------------------------------------------
 N32 node_mpya(N32 aina, N32 thamani, N32 kushoto, N32 kulia) {
+    kama (ast_idadi >= 16384) {
+        andika("; DEB: HITILAFU node_mpya imefurika! idadi=%d aina=%d\n", ast_idadi, aina);
+        andika_stderr("; DEB: HITILAFU node_mpya imefurika! idadi=%d aina=%d\n", ast_idadi, aina);
+        rudisha -1;
+    }
     N32 idx = ast_idadi;
     ast_aina[idx] = aina;
     ast_thamani[idx] = thamani;
@@ -107,6 +112,12 @@ N32 node_mpya(N32 aina, N32 thamani, N32 kushoto, N32 kulia) {
 // Nakili jina/kamba ndani ya ast_pool na rekodi kukabilia kwake
 // -------------------------------------------------------
 W0 hifadhi_jina(N32 node, N8* maandishi, N64 urefu) {
+    kama (ast_pool_wapi + urefu + 1 > 1048576) {
+        N32 u = urefu;
+        andika("; DEB: HITILAFU hifadhi_jina imefurika! wapi=%d urefu=%d\n", ast_pool_wapi, u);
+        andika_stderr("; DEB: HITILAFU hifadhi_jina imefurika! wapi=%d urefu=%d\n", ast_pool_wapi, u);
+        rudisha;
+    }
     N32 off = ast_pool_wapi;
     ast_jina_off[node] = off;
     ast_pool_wapi = off + urefu + 1;
@@ -135,16 +146,16 @@ N32 tafuta_jina_dimbeni(N8* maandishi, N64 urefu) {
         }
         kama (i == urefu) {
             kama (ast_pool[pos + urefu] == 0) {
-                rudisha pos;  // tumepata jina lenye urefu sawa na null-terminated
+                rudisha pos;
             }
         }
         // Ruka hadi '\0' inayofuata
         wakati (pos < ast_pool_wapi && ast_pool[pos] != 0) {
             pos = pos + 1;
         }
-        kama (pos < ast_pool_wapi) { pos = pos + 1; }  // ruka '\0'
+        kama (pos < ast_pool_wapi) { pos = pos + 1; }
     }
-    rudisha 0;  // hakikupatikana
+    rudisha -1;
 }
 
 // -------------------------------------------------------
@@ -313,7 +324,7 @@ N32 changanua_aina_tokeni(Msambazaji* p) {
     // ukubwa halisi wa muundo husika wakati wa uzalishaji.
     kama (familia == 6) {
         N32 off = tafuta_jina_dimbeni(txt, n);
-        kama (off == 0) {
+        kama (off == -1) {
             off = ast_pool_wapi;
             N32 i = 0;
             wakati (i < n) {
@@ -583,6 +594,7 @@ N32 changanua_taarifa_tangazo(Msambazaji* p) {
         N32 decl_type = changanua_aina_tokeni(p);
         N32 kwanza = -1;
         N32 prev = -1;
+        N32 safu_ukubwa = 0;
 
         wakati (1 == 1) {
             kama ((p->sasa.mwanzo[0] >= 65 && p->sasa.mwanzo[0] != 91 && p->sasa.mwanzo[0] != 93 && p->sasa.mwanzo[0] != 123 && p->sasa.mwanzo[0] != 125)) {

@@ -4,7 +4,7 @@
 
 - **Keywords:** 42 za Kiswahili (hakuna Kiingereza katika sintaksia)
 - **Aina:** 25 za nambari (N8-N128, A8-A128, D16-D80, B1-B64, W0-W64)
-- **Majaribio:** 199/199 yanapita (146 maktaba + 52 ujumuishaji + 1 nyaraka)
+- **Majaribio:** 58/58 yanapita (57 ujumuishaji + 1 nyaraka)
 - **Backend:** LLVM (bootstrap ya Rust), uzalishaji.swa (native x86-64 kwa kujikusanya)
 
 ## Hatua ya 0: Mkusanyaji wa Bootstrap wa Rust [PASS] IMEFANIKIWA
@@ -13,7 +13,7 @@
 - [x] IR lowering (AST -> Swa IR)
 - [x] LLVM codegen (x86-64 native binaries)
 - [x] ABI classification (sret, struct returns)
-- [x] Majaribio 199/199 yanapita
+- [x] Majaribio 58/58 yanapita (57 ujumuishaji + 1 nyaraka)
 
 ## Hatua ya 1: Kujikusanya kwa Msingi [PASS] IMEFANIKIWA
 
@@ -46,15 +46,16 @@ hutoa IR lakini towe lake halitumiki katika mnyororo wa sasa wa kujikusanya.
 IR inatumika TU kwenye njia ya Rust → LLVM.
 
 ### Kipaumbele cha Juu
-- [ ] **PR #117** (feat/k12-modulo-v2) — ongeza opereta ya modulo (`%`), maoni ya bloku (`/* */`),
-      nambari za radiksi (0x/0o/0b), tokeni za asimilia mchanganyiko (+=, -=, *=, /=, %=)
-  - [x] Imepitiwa — mistari +325/-16, majaribio yote 199 yanapita
-  - [ ] Inahitaji kuunganishwa (merge)
+- [x] **PR #117** (feat/k12-modulo-v2) — imeunganishwa (merged) kwenye main
+  - [x] Opereta ya modulo (`%`), maoni ya bloku (`/* */`), nambari za radiksi (0x/0o/0b), tokeni za asimilia mchanganyiko (+=, -=, *=, /=, %=)
+  - [x] AST_MODULO (49) imetekelezwa kwenye mkaguzi.swa na uzalishaji.swa
 - [ ] **mkaguzi.swa** — kamilisha ukaguzi wa aina
   - [x] Aina nyingi za AST zinashughulikiwa: KAMA, WAKATI, CHAGUA, TANGAZO, ASIMILIA, n.k.
   - [x] Uthibitishaji wa hoja za mwito wa kazi (idadi + aina)
   - [x] Utafutaji wa sehemu za muundo kwa utendaji (kache ya nodi 32)
-  - [ ] Hakuna kishikizi cha AST_MODULO (49) — kitakuja na PR #117
+  - [x] AST_MODULO (49) — kishikizi kipo tangu PR #117
+  - [ ] AST_KWELI(45), AST_UONGO(46), AST_TUPU(47) — zinaanguka kwenye kishikizi chaguo-msingi (hazirudishi usimbaji wa aina)
+  - [ ] AST_BADILI(48) — haina kishikizi maalum, inaanguka kwenye chaguo-msingi
   - [ ] Uthibitishaji wa aina za hali za `chagua` dhidi ya usemi unaojaribiwa
 - [ ] **uzalishaji.swa** — kithibitisho na ukamilishaji
   - [x] Inashughulikia aina zote za usemi (4-48) kupitia kitatuzi chenye safu
@@ -66,9 +67,9 @@ IR inatumika TU kwenye njia ya Rust → LLVM.
   - [ ] **Pengo la ABI la desimali:** Hoja za kazi hupitishwa kwenye rejesta kamili
         (rdi, rsi, rdx, rcx, r8, r9), sio xmm0-xmm7. Hii haiathiri kujikusanya
         kwa sababu mkusanyaji wa Swa unatumia N32 pekee.
-  - [ ] Hakuna kishikizi cha AST_MODULO (49) — kitakuja na PR #117
+  - [x] AST_MODULO (49) — kishikizi kipo tangu PR #117
 - [ ] **mteremko.swa** — Hii SI kipaumbele tena kwa kujikusanya
-  - [x] Ina vishikizi vya aina zote za AST (isipokuwa AST_MODULO)
+  - [x] Ina vishikizi vya aina zote za AST
   - [x] Inadai sret na alloca-in-loop lakini HAZIJATEKELEZWA kwenye mwili wa kazi
   - [!] **Towe lake la IR ni msimbo uliokufa (dead code)** — uzalishaji.swa hukusanya moja kwa moja kutoka AST
   - [ ] Inaweza kuwa muhimu baadaye kwa hatua za uboreshaji (optimization passes)
@@ -122,9 +123,13 @@ Angalia [`CONTRIBUTING.md`](CONTRIBUTING.md). Masuala yenye lebo `good-first-iss
 
 ## Vipaumbele vya Sasa (Julai 2026)
 
-1. Unganisha PR #117 (k12-modulo-v2) — tayari imepitiwa
-2. Chukua marekebisho 2 kutoka feat/k4 (fgetc + ramani_weka)
-3. Ongeza AST_MODULO kwa mkaguzi.swa na uzalishaji.swa (pamoja na PR #117)
-4. Thibitisha ABI ya desimali kwenye uzalishaji.swa (rejesta za xmm)
-5. Jaribio la bootstrap kamili: Swa asilia → Swa inayojikusanya → pato linalofanana
-6. Ondoa utegemezi wa LLVM kwenye njia chaguo-msingi ya ujenzi
+1. ~~Unganisha PR #117 (k12-modulo-v2)~~ — IMESHAUNGANISHWA (770293d + 406407e ziko main)
+2. ~~Chukua marekebisho 2 kutoka feat/k4 (fgetc + ramani_weka)~~ — YAMESHAKAMILIKA (eebd796 iko main)
+3. ~~Ongeza AST_MODULO kwa mkaguzi.swa na uzalishaji.swa~~ — IMESHAKAMILIKA
+4. Unganisha marekebisho 2 ya kujikusanya kutoka tawi `kurekebisha/marejeo-ya-mbele-vigezo-vya-ulimwengu`:
+   - `825d604` sajili aina za vigezo vya ulimwengu kabla ya kuteremsha kazi
+   - `100091e` rekebisha mzunguko usio na mwisho katika kusanya_vigeu_vya_ndani
+5. Kamilisha mapengo madogo ya mkaguzi.swa: AST_KWELI/UONGO/TUPU (usimbaji wa aina), AST_BADILI (kishikizi), CHAGUA (uthibitishaji wa aina za hali)
+6. Thibitisha ABI ya desimali kwenye uzalishaji.swa (rejista za xmm)
+7. Jaribio la bootstrap kamili: Swa asilia → Swa inayojikusanya → Stage 2 inakusanya programu → pato linalofanana
+8. Ondoa utegemezi wa LLVM kwenye njia chaguo-msingi ya ujenzi
