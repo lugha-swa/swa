@@ -269,6 +269,39 @@ W0 andika_mov_rbp_off_rax(N32 off) {
     andika_baiti((256 - off) & 255);
 }
 
+// Msaidizi: hifadhi thamani kutoka rax au eax hadi [rbp-offset]
+// kulingana na usimbaji wa aina. Aina za baiti 64 (N64, kielekezi)
+// zinahitaji rax; aina nyingine zinatumia eax.
+W0 andika_mov_rbp_off_ax(N32 enc, N32 off) {
+    kama (ni_aina_ya_64bit(enc)) {
+        andika_mov_rbp_off_rax(off);
+    } sivyo {
+        andika_mov_rbp_off_eax(off);
+    }
+}
+
+// Msaidizi: hifadhi paramu kutoka rejesta ya x86 hadi rafu.
+// reg: 0=rdi/edi, 1=rsi/esi, 2=rdx/edx, 3=rcx/ecx, 4=r8/r8d, 5=r9/r9d
+W0 andika_mov_ax_reg_na_rbp_off(N32 enc, N32 reg, N32 off) {
+    kama (ni_aina_ya_64bit(enc)) {
+        kama (reg == 0) { andika_mov_rax_rdi(); }
+        sivyo kama (reg == 1) { andika_mov_rax_rsi(); }
+        sivyo kama (reg == 2) { andika_mov_rax_rdx(); }
+        sivyo kama (reg == 3) { andika_mov_rax_rcx(); }
+        sivyo kama (reg == 4) { andika_mov_rax_r8(); }
+        sivyo { andika_mov_rax_r9(); }
+        andika_mov_rbp_off_rax(off);
+    } sivyo {
+        kama (reg == 0) { andika_mov_eax_edi(); }
+        sivyo kama (reg == 1) { andika_mov_eax_esi(); }
+        sivyo kama (reg == 2) { andika_mov_eax_edx(); }
+        sivyo kama (reg == 3) { andika_mov_eax_ecx(); }
+        sivyo kama (reg == 4) { andika_mov_eax_r8d(); }
+        sivyo { andika_mov_eax_r9d(); }
+        andika_mov_rbp_off_eax(off);
+    }
+}
+
 // mov rdi, rax (48 89 C7)
 W0 andika_mov_rdi_rax() {
     andika_baiti(72); andika_baiti(137); andika_baiti(199);
@@ -1470,11 +1503,7 @@ W0 uzalishaji_taarifa(N32 node, N32 kazi_node) {
                     andika_mov_ecx_imm32(ukubwa);
                     andika_rep_movsb();
                 } sivyo {
-                    kama (ni_aina_ya_64bit(var_enc_val)) {
-                        andika_mov_rbp_off_rax(off);
-                    } sivyo {
-                        andika_mov_rbp_off_eax(off);
-                    }
+                    andika_mov_rbp_off_ax(var_enc_val, off);
                 }
             } sivyo {
                 kama (ni_muundo_enc(var_enc_val)) {
@@ -1489,11 +1518,7 @@ W0 uzalishaji_taarifa(N32 node, N32 kazi_node) {
                     andika_baiti(243); andika_baiti(170);
                 } sivyo {
                     andika_xor_eax_eax();
-                    kama (ni_aina_ya_64bit(var_enc_val)) {
-                        andika_mov_rbp_off_rax(off);
-                    } sivyo {
-                        andika_mov_rbp_off_eax(off);
-                    }
+                    andika_mov_rbp_off_ax(var_enc_val, off);
                 }
             }
         }
@@ -1521,11 +1546,7 @@ W0 uzalishaji_taarifa(N32 node, N32 kazi_node) {
                         andika_mov_ecx_imm32(ukubwa);
                         andika_rep_movsb();
                     } sivyo {
-                        kama (ni_aina_ya_64bit(lhs_enc)) {
-                            andika_mov_rbp_off_rax(var_rbp_off[i]);
-                        } sivyo {
-                            andika_mov_rbp_off_eax(var_rbp_off[i]);
-                        }
+                        andika_mov_rbp_off_ax(lhs_enc, var_rbp_off[i]);
                     }
                     imeshughulikiwa = 1;
                     vunja;
@@ -2120,11 +2141,7 @@ W0 uzalishaji_asimilia(N32 node, N32 kazi_node) {
                     andika_mov_ecx_imm32(ukubwa);
                     andika_rep_movsb();
                 } sivyo {
-                    kama (ni_aina_ya_64bit(lhs_enc)) {
-                        andika_mov_rbp_off_rax(var_rbp_off[i]);
-                    } sivyo {
-                        andika_mov_rbp_off_eax(var_rbp_off[i]);
-                    }
+                    andika_mov_rbp_off_ax(lhs_enc, var_rbp_off[i]);
                 }
                 rudisha;
             }
@@ -2751,18 +2768,18 @@ W0 uzalishaji_kazi(N32 kazi_node) {
     }
     // Kwa sret, vigezo huanzia rsi (rdi ni kielekezi cha sret)
     kama (sret_inafanya) {
-        kama(n>0){kama(ni_aina_ya_64bit(param_enc[0])){andika_mov_rax_rsi();andika_mov_rbp_off_rax(param_off[0]);}sivyo{andika_mov_eax_esi();andika_mov_rbp_off_eax(param_off[0]);}}
-        kama(n>1){kama(ni_aina_ya_64bit(param_enc[1])){andika_mov_rax_rdx();andika_mov_rbp_off_rax(param_off[1]);}sivyo{andika_mov_eax_edx();andika_mov_rbp_off_eax(param_off[1]);}}
-        kama(n>2){kama(ni_aina_ya_64bit(param_enc[2])){andika_mov_rax_rcx();andika_mov_rbp_off_rax(param_off[2]);}sivyo{andika_mov_eax_ecx();andika_mov_rbp_off_eax(param_off[2]);}}
-        kama(n>3){kama(ni_aina_ya_64bit(param_enc[3])){andika_mov_rax_r8();andika_mov_rbp_off_rax(param_off[3]);}sivyo{andika_mov_eax_r8d();andika_mov_rbp_off_eax(param_off[3]);}}
-        kama(n>4){kama(ni_aina_ya_64bit(param_enc[4])){andika_mov_rax_r9();andika_mov_rbp_off_rax(param_off[4]);}sivyo{andika_mov_eax_r9d();andika_mov_rbp_off_eax(param_off[4]);}}
+        kama(n>0){andika_mov_ax_reg_na_rbp_off(param_enc[0], 1, param_off[0]);}
+        kama(n>1){andika_mov_ax_reg_na_rbp_off(param_enc[1], 2, param_off[1]);}
+        kama(n>2){andika_mov_ax_reg_na_rbp_off(param_enc[2], 3, param_off[2]);}
+        kama(n>3){andika_mov_ax_reg_na_rbp_off(param_enc[3], 4, param_off[3]);}
+        kama(n>4){andika_mov_ax_reg_na_rbp_off(param_enc[4], 5, param_off[4]);}
     } sivyo {
-        kama(n>0){kama(ni_aina_ya_64bit(param_enc[0])){andika_mov_rax_rdi();andika_mov_rbp_off_rax(param_off[0]);}sivyo{andika_mov_eax_edi();andika_mov_rbp_off_eax(param_off[0]);}}
-        kama(n>1){kama(ni_aina_ya_64bit(param_enc[1])){andika_mov_rax_rsi();andika_mov_rbp_off_rax(param_off[1]);}sivyo{andika_mov_eax_esi();andika_mov_rbp_off_eax(param_off[1]);}}
-        kama(n>2){kama(ni_aina_ya_64bit(param_enc[2])){andika_mov_rax_rdx();andika_mov_rbp_off_rax(param_off[2]);}sivyo{andika_mov_eax_edx();andika_mov_rbp_off_eax(param_off[2]);}}
-        kama(n>3){kama(ni_aina_ya_64bit(param_enc[3])){andika_mov_rax_rcx();andika_mov_rbp_off_rax(param_off[3]);}sivyo{andika_mov_eax_ecx();andika_mov_rbp_off_eax(param_off[3]);}}
-        kama(n>4){kama(ni_aina_ya_64bit(param_enc[4])){andika_mov_rax_r8();andika_mov_rbp_off_rax(param_off[4]);}sivyo{andika_mov_eax_r8d();andika_mov_rbp_off_eax(param_off[4]);}}
-        kama(n>5){kama(ni_aina_ya_64bit(param_enc[5])){andika_mov_rax_r9();andika_mov_rbp_off_rax(param_off[5]);}sivyo{andika_mov_eax_r9d();andika_mov_rbp_off_eax(param_off[5]);}}
+        kama(n>0){andika_mov_ax_reg_na_rbp_off(param_enc[0], 0, param_off[0]);}
+        kama(n>1){andika_mov_ax_reg_na_rbp_off(param_enc[1], 1, param_off[1]);}
+        kama(n>2){andika_mov_ax_reg_na_rbp_off(param_enc[2], 2, param_off[2]);}
+        kama(n>3){andika_mov_ax_reg_na_rbp_off(param_enc[3], 3, param_off[3]);}
+        kama(n>4){andika_mov_ax_reg_na_rbp_off(param_enc[4], 4, param_off[4]);}
+        kama(n>5){andika_mov_ax_reg_na_rbp_off(param_enc[5], 5, param_off[5]);}
     }
     kama(body!=-1){uzalishaji_taarifa(body, kazi_node);}
     N32 rsp=var_stack_idadi;kama((rsp & 15) != 0){rsp=rsp+(16-(rsp & 15));}bafa_text[sub_rsp_nafasi]=rsp&255;bafa_text[sub_rsp_nafasi+1]=(rsp>>8)&255;bafa_text[sub_rsp_nafasi+2]=(rsp>>16)&255;bafa_text[sub_rsp_nafasi+3]=(rsp>>24)&255;
