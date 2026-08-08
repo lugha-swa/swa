@@ -574,6 +574,26 @@ N32 mkaguzi_kagua_usemi(N32 node) {
         rudisha (1 << 8) | 32;
     }
 
+    // Halisi za boole: kweli na uongo
+    kama (aina == 45) {  // AST_KWELI
+        rudisha (4 << 8) | 1;  // B1 (boole)
+    }
+    kama (aina == 46) {  // AST_UONGO
+        rudisha (4 << 8) | 1;  // B1 (boole)
+    }
+
+    // Halisi ya tupu
+    kama (aina == 47) {  // AST_TUPU
+        rudisha (5 << 8) | 0;  // W0 (tupu)
+    }
+
+    // badili(ptr, size) — panua/kaza kumbukumbu
+    kama (aina == 48) {  // AST_BADILI
+        mkaguzi_kagua_usemi(ast_kushoto[node]);  // kielekezi
+        mkaguzi_kagua_usemi(ast_kulia[node]);    // ukubwa
+        rudisha 1;  // kielekezi
+    }
+
     // Chaguo-msingi: tembea watoto na rudisha haijulikani
     mkaguzi_kagua_usemi(ast_kushoto[node]);
     mkaguzi_kagua_usemi(ast_kulia[node]);
