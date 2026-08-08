@@ -379,6 +379,73 @@ W0 andika_movd_eax_xmm0() { andika_baiti(102); andika_baiti(15); andika_baiti(12
 // movd xmm0, eax — eax → xmm0 (66 0F 6E C0)
 W0 andika_movd_xmm0_eax() { andika_baiti(102); andika_baiti(15); andika_baiti(110); andika_baiti(192); }
 
+// pop xmm0 — vuta D32 kutoka rafu hadi xmm0
+W0 andika_pop_xmm0() {
+    // movss xmm0, [rsp]; add rsp, 8
+    andika_baiti(243);  // F3
+    andika_baiti(15);   // 0F
+    andika_baiti(16);   // 10
+    andika_baiti(4);    // 04
+    andika_baiti(36);   // 24 — ModRM: [rsp]
+    andika_baiti(72);   // 48
+    andika_baiti(131);  // 83
+    andika_baiti(196);  // C4
+    andika_baiti(8);    // add rsp, 8
+    andika_baiti(0);
+    andika_baiti(0);
+    andika_baiti(0);
+}
+
+// mov al, imm8 (B0 + imm8)
+W0 andika_mov_al(N32 imm) {
+    andika_baiti(176);  // B0
+    andika_baiti(imm & 255);
+}
+
+// movss [rbp + disp8], xmmN — hifadhi D32 kwenye rafu (F3 0F 11 /r)
+W0 andika_movss_rbp_off_xmm(N32 reg, N32 off) {
+    andika_baiti(243);  // F3
+    andika_baiti(15);   // 0F
+    andika_baiti(17);   // 11
+    // ModRM: 01 reg rbp
+    N32 modrm = (1 << 6) | ((reg & 7) << 3) | 5;
+    andika_baiti(modrm);
+    andika_baiti((256 - off) & 255);
+}
+
+// movsd [rbp + disp8], xmmN — hifadhi D64 kwenye rafu (F2 0F 11 /r)
+W0 andika_movsd_rbp_off_xmm(N32 reg, N32 off) {
+    andika_baiti(242);  // F2
+    andika_baiti(15);   // 0F
+    andika_baiti(17);   // 11
+    // ModRM: 01 reg rbp
+    N32 modrm = (1 << 6) | ((reg & 7) << 3) | 5;
+    andika_baiti(modrm);
+    andika_baiti((256 - off) & 255);
+}
+
+// movss xmmN, [rbp + disp8] — pakia D32 kutoka rafu (F3 0F 10 /r)
+W0 andika_movss_xmm_rbp_off(N32 reg, N32 off) {
+    andika_baiti(243);  // F3
+    andika_baiti(15);   // 0F
+    andika_baiti(16);   // 10
+    // ModRM: 01 reg rbp
+    N32 modrm = (1 << 6) | ((reg & 7) << 3) | 5;
+    andika_baiti(modrm);
+    andika_baiti((256 - off) & 255);
+}
+
+// movsd xmmN, [rbp + disp8] — pakia D64 kutoka rafu (F2 0F 10 /r)
+W0 andika_movsd_xmm_rbp_off(N32 reg, N32 off) {
+    andika_baiti(242);  // F2
+    andika_baiti(15);   // 0F
+    andika_baiti(16);   // 10
+    // ModRM: 01 reg rbp
+    N32 modrm = (1 << 6) | ((reg & 7) << 3) | 5;
+    andika_baiti(modrm);
+    andika_baiti((256 - off) & 255);
+}
+
 // === SSE — D64 (double precision) ===
 // addsd xmm0, xmm1  (F2 0F 58 C1)
 W0 andika_addsd_xmm0_xmm1() { andika_baiti(242); andika_baiti(15); andika_baiti(88); andika_baiti(193); }
@@ -455,7 +522,9 @@ W0 andika_mov_rip_rel_rax(N32 urekebishaji_idx) {
 N32 ni_desimali_enc(N32 enc) {
     kama (enc == 0) { rudisha 0; }
     N32 familia = (enc >> 8) & 255;
-    rudisha (familia == 3);
+    kama (familia == 2) { rudisha 1; }
+    kama (familia == 3) { rudisha 1; }
+    rudisha 0;
 }
 
 // Rudisha 1 ikiwa encoding inahitaji usajili wa 64-bit
@@ -992,6 +1061,7 @@ N32 str_lebo_id[256];
 // -------------------------------------------------------
 
 N32 hoja_nodes[32];
+N32 hoja_enc[32];
 N32 hoja_idadi = 0;
 
 // -------------------------------------------------------
@@ -1330,8 +1400,9 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
     hoja_idadi = 0;
     N32 a = ast_kulia[node];
     wakati (a != -1) {
-        kama (hoja_idadi < 16) {
+        kama (hoja_idadi < 32) {
             hoja_nodes[hoja_idadi] = a;
+            hoja_enc[hoja_idadi] = ast_thamani[a];
             hoja_idadi = hoja_idadi + 1;
         }
         a = ast_tiga[a];  // hoja inayofuata kupitia ast_tiga
@@ -1342,25 +1413,48 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
     N32 i = hoja_idadi - 1;
     wakati (i >= 0) {
         uzalishaji_usemi(hoja_nodes[i], kazi_node);
-        andika_push_rax();
+        sukuma_thamani(hoja_enc[i]);
         i = i - 1;
     }
 
     // Vuta hoja kutoka rafu kwenda kwa rejesta kwa mpangilio wa kushoto kwenda kulia
-    // Kwa sret, rdi imetengwa kwa kielekezi cha bafa, hivyo hoja huanzia rsi
-    kama (callee_ni_sret) {
-        kama (hoja_idadi > 0) { andika_pop_rsi(); }
-        kama (hoja_idadi > 1) { andika_pop_rdx(); }
-        kama (hoja_idadi > 2) { andika_pop_rcx(); }
-        kama (hoja_idadi > 3) { andika_pop_r8(); }
-        kama (hoja_idadi > 4) { andika_pop_r9(); }
-    } sivyo {
-        kama (hoja_idadi > 0) { andika_pop_rdi(); }
-        kama (hoja_idadi > 1) { andika_pop_rsi(); }
-        kama (hoja_idadi > 2) { andika_pop_rdx(); }
-        kama (hoja_idadi > 3) { andika_pop_rcx(); }
-        kama (hoja_idadi > 4) { andika_pop_r8(); }
-        kama (hoja_idadi > 5) { andika_pop_r9(); }
+    // Fuatilia rejesta za GP na XMM kando — ABI ya System V AMD64
+    // Hoja za desimali (float/double) huenda kwa xmm0-xmm7
+    // Hoja za kawaida (int/ptr) huenda kwa rdi, rsi, rdx, rcx, r8, r9
+    N32 gp_reg = 0; N32 xmm_reg = 0;
+    kama (callee_ni_sret) { gp_reg = 1; }  // rdi imetengwa kwa kielekezi cha sret
+
+    N32 j = 0;
+    wakati (j < hoja_idadi) {
+        N32 enc = hoja_enc[j];
+        kama (ni_desimali_enc(enc)) {
+            kama (xmm_reg < 8) {
+                // Vuta thamani ya desimali kutoka rafu hadi xmm0
+                andika_pop_xmm0();
+                // Hamishia xmm0 kwenye rejesta sahihi ya XMM
+                kama (xmm_reg > 0) {
+                    // movaps xmmN, xmm0  (0F 28 /r, mod=11, r/m=xmm0)
+                    andika_baiti(15);   // 0F
+                    andika_baiti(40);   // 28
+                    N32 modrm = (3 << 6) | ((xmm_reg & 7) << 3) | 0;
+                    andika_baiti(modrm);
+                }
+                xmm_reg = xmm_reg + 1;
+            }
+            // Vinginevyo: rejesta zimejaa, hoja inasalia kwenye rafu
+        } sivyo {
+            kama (gp_reg < 6) {
+                kama (gp_reg == 0) { andika_pop_rdi(); }
+                sivyo kama (gp_reg == 1) { andika_pop_rsi(); }
+                sivyo kama (gp_reg == 2) { andika_pop_rdx(); }
+                sivyo kama (gp_reg == 3) { andika_pop_rcx(); }
+                sivyo kama (gp_reg == 4) { andika_pop_r8(); }
+                sivyo { andika_pop_r9(); }
+                gp_reg = gp_reg + 1;
+            }
+            // Vinginevyo: rejesta zimejaa, hoja inasalia kwenye rafu
+        }
+        j = j + 1;
     }
 
     // Kwa sret: tumia bafa ya muda iliyotengwa kwenye fremu
@@ -1371,8 +1465,8 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
         andika_mov_rdi_rax();                          // mov rdi, rax
     }
 
-    // Weka AL = 0 (hakuna rejesta za vekta)
-    andika_xor_eax_eax();
+    // Weka AL = idadi ya rejesta za XMM zilizotumika (ABI inahitaji kwa wito wa variadic)
+    andika_mov_al(xmm_reg);
 
     andika_baiti(232);  // call rel32
     kama (ni_ndani) {
@@ -2762,20 +2856,34 @@ W0 uzalishaji_kazi(N32 kazi_node) {
         andika_mov_rax_rdi();                          // mov rax, rdi
         andika_mov_rbp_off_rax(sret_ofseti);           // mov [rbp-sret], rax
     }
-    // Kwa sret, vigezo huanzia rsi (rdi ni kielekezi cha sret)
-    kama (sret_inafanya) {
-        kama(n>0){andika_mov_ax_reg_na_rbp_off(param_enc[0], 1, param_off[0]);}
-        kama(n>1){andika_mov_ax_reg_na_rbp_off(param_enc[1], 2, param_off[1]);}
-        kama(n>2){andika_mov_ax_reg_na_rbp_off(param_enc[2], 3, param_off[2]);}
-        kama(n>3){andika_mov_ax_reg_na_rbp_off(param_enc[3], 4, param_off[3]);}
-        kama(n>4){andika_mov_ax_reg_na_rbp_off(param_enc[4], 5, param_off[4]);}
-    } sivyo {
-        kama(n>0){andika_mov_ax_reg_na_rbp_off(param_enc[0], 0, param_off[0]);}
-        kama(n>1){andika_mov_ax_reg_na_rbp_off(param_enc[1], 1, param_off[1]);}
-        kama(n>2){andika_mov_ax_reg_na_rbp_off(param_enc[2], 2, param_off[2]);}
-        kama(n>3){andika_mov_ax_reg_na_rbp_off(param_enc[3], 3, param_off[3]);}
-        kama(n>4){andika_mov_ax_reg_na_rbp_off(param_enc[4], 4, param_off[4]);}
-        kama(n>5){andika_mov_ax_reg_na_rbp_off(param_enc[5], 5, param_off[5]);}
+    // Pakia vigezo kutoka rejesta hadi fremu, zikiheshimu ABI ya XMM
+    // Hoja za desimali huja kupitia xmm0-xmm7
+    // Hoja za kawaida huja kupitia rdi/rsi/rdx/rcx/r8/r9
+    // Kwa sret, rdi ni kielekezi cha sret, hivyo GP huanzia rsi
+    N32 gp_idx = 0; N32 xmm_idx = 0;
+    kama (sret_inafanya) { gp_idx = 1; }
+
+    N32 pi = 0;
+    wakati (pi < n) {
+        N32 enc = param_enc[pi];
+        N32 off = param_off[pi];
+        kama (ni_desimali_enc(enc)) {
+            kama (xmm_idx < 8) {
+                N32 familia = (enc >> 8) & 255;
+                kama (familia == 2) {  // D32 (float)
+                    andika_movss_rbp_off_xmm(xmm_idx, off);
+                } sivyo {  // D64 (double) — familia == 3
+                    andika_movsd_rbp_off_xmm(xmm_idx, off);
+                }
+                xmm_idx = xmm_idx + 1;
+            }
+        } sivyo {
+            kama (gp_idx < 6) {
+                andika_mov_ax_reg_na_rbp_off(enc, gp_idx, off);
+                gp_idx = gp_idx + 1;
+            }
+        }
+        pi = pi + 1;
     }
     kama(body!=-1){uzalishaji_taarifa(body, kazi_node);}
     N32 rsp=var_stack_idadi;kama((rsp & 15) != 0){rsp=rsp+(16-(rsp & 15));}bafa_text[sub_rsp_nafasi]=rsp&255;bafa_text[sub_rsp_nafasi+1]=(rsp>>8)&255;bafa_text[sub_rsp_nafasi+2]=(rsp>>16)&255;bafa_text[sub_rsp_nafasi+3]=(rsp>>24)&255;
