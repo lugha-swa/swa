@@ -1456,7 +1456,12 @@ N32 changanua_kazi(Msambazaji* p) {
 N32 changanua_muundo(Msambazaji* p) {
     sogeza(p); // tumia neno kuu 'muundo'
 
-    kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) { p->kosa = 1; rudisha -1; }
+    kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
+        p->kosa = 1;
+        N32 fika = ruka_hadi_kifikisha(p);
+        kama (fika == 1) { sogeza(p); }  // tumia ';', rudi kwa mchanganuzi wa kiwango cha juu
+        rudisha -1;
+    }
 
     N32 name = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
     hifadhi_jina(name, p->sasa.mwanzo, p->sasa.urefu);
@@ -1480,7 +1485,13 @@ N32 changanua_muundo(Msambazaji* p) {
             field_aina = changanua_aina_tokeni(p);
         }
 
-        kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) { p->kosa = 1; vunja; }
+        kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
+            p->kosa = 1;
+            N32 fika = ruka_hadi_kifikisha(p);
+            kama (fika == 1) { sogeza(p); endelea; }  // tumia ';', jaribu shamba linalofuata
+            kama (fika == 2) { vunja; }               // '}' — kitanzi kitaiona juu
+            vunja;                                      // EOF
+        }
 
         N32 fname = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
         hifadhi_jina(fname, p->sasa.mwanzo, p->sasa.urefu);
