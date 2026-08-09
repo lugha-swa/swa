@@ -1454,15 +1454,26 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
                 sivyo { andika_pop_xmm0_d64(); }
                 // Hamishia xmm0 kwenye rejesta sahihi ya XMM
                 kama (xmm_reg > 0) {
-                    // movaps xmmN, xmm0  (0F 28 /r, mod=11, r/m=xmm0)
-                    andika_baiti(15);   // 0F
-                    andika_baiti(40);   // 28
+                    kama (familia == 2) {
+                        // movaps xmmN, xmm0  (0F 28 /r, mod=11, r/m=xmm0) — D32
+                        andika_baiti(15);   // 0F
+                        andika_baiti(40);   // 28
+                    } sivyo {
+                        // movapd xmmN, xmm0  (66 0F 28 /r, mod=11, r/m=xmm0) — D64
+                        andika_baiti(102);  // 66
+                        andika_baiti(15);   // 0F
+                        andika_baiti(40);   // 28
+                    }
                     N32 modrm = (3 << 6) | ((xmm_reg & 7) << 3) | 0;
                     andika_baiti(modrm);
                 }
                 xmm_reg = xmm_reg + 1;
             }
-            // Vinginevyo: rejesta zimejaa, hoja inasalia kwenye rafu
+            // TODO: rafu overflow — hoja zilizozidi rejesta 8 za XMM hazijasogezwa.
+            // rsp imebadilika kutokana na pop za hoja zilizotangulia, lakini hoja
+            // iliyozidi inasalia kwenye nafasi yake ya awali kwenye rafu.
+            // Hili lilikuwepo hata kabla ya mabadiliko ya XMM. Linahitaji kurekebishwa
+            // kwa hoja za GP na XMM zote — angalia pia mstari wa 1483.
         } sivyo {
             kama (gp_reg < 6) {
                 kama (gp_reg == 0) { andika_pop_rdi(); }
@@ -1473,7 +1484,10 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
                 sivyo { andika_pop_r9(); }
                 gp_reg = gp_reg + 1;
             }
-            // Vinginevyo: rejesta zimejaa, hoja inasalia kwenye rafu
+            // TODO: rafu overflow — hoja zilizozidi rejesta 6 za GP hazijasogezwa.
+            // rsp imebadilika lakini hoja iliyozidi haijasogezwa.
+            // Hili lilikuwepo kabla ya mabadiliko ya XMM. Linahitaji kurekebishwa
+            // pamoja na kesi ya XMM — angalia pia mstari wa 1472.
         }
         j = j + 1;
     }
