@@ -269,21 +269,59 @@ W0 andika_mov_rbp_off_rax(N32 off) {
     andika_baiti((256 - off) & 255);
 }
 
-// Msaidizi: hifadhi thamani kutoka rax au eax hadi [rbp-offset]
-// kulingana na usimbaji wa aina. Aina za baiti 64 (N64, kielekezi)
-// zinahitaji rax; aina nyingine zinatumia eax.
+// Msaidizi: hifadhi thamani kutoka rax/eax/ax/al hadi [rbp-offset]
+// kulingana na usimbaji wa aina.
+// Aina za baiti 8 (N64, kielekezi): mov [rbp-off], rax
+// Aina za baiti 4 (N32, n.k.):     mov [rbp-off], eax
+// Aina za baiti 2 (B16):           mov [rbp-off], ax
+// Aina za baiti 1 (B1, B8):        mov [rbp-off], al
 W0 andika_mov_rbp_off_ax(N32 enc, N32 off) {
-    kama (ni_aina_ya_64bit(enc)) {
+    N32 uk = ukubwa_kutoka_enc(enc);
+    kama (uk >= 8) {
         andika_mov_rbp_off_rax(off);
-    } sivyo {
+    } sivyo kama (uk >= 4) {
         andika_mov_rbp_off_eax(off);
+    } sivyo kama (uk >= 2) {
+        andika_mov_rbp_off_ax16(off);
+    } sivyo {
+        andika_mov_rbp_off_al(off);
+    }
+}
+
+// Msaidizi: pakia thamani kutoka [rbp-off] hadi eax/rax kwa upana sahihi.
+// Kwa aina ndogo (baiti 1 na 2), inatumia movsx/movzx kwa upanuzi sahihi.
+// Aina zenye ishara (N): movsx — panua ishara
+// Aina bila ishara (A, B, W): movzx — panua sifuri
+W0 andika_mov_ax_na_rbp_off(N32 enc, N32 off) {
+    N32 uk = ukubwa_kutoka_enc(enc);
+    kama (uk >= 8) {
+        andika_mov_rax_rbp_off(off);
+    } sivyo kama (uk >= 4) {
+        andika_mov_eax_rbp_off(off);
+    } sivyo kama (uk >= 2) {
+        // Aina ya baiti 2: panua kwa ishara au sifuri
+        kama (ni_bila_ishara_enc(enc)) {
+            andika_movzx_eax_rbp_off_b2(off);
+        } sivyo {
+            andika_movsx_eax_rbp_off_b2(off);
+        }
+    } sivyo {
+        // Aina ya baiti 1: panua kwa ishara au sifuri
+        kama (ni_bila_ishara_enc(enc)) {
+            andika_movzx_eax_rbp_off_b1(off);
+        } sivyo {
+            andika_movsx_eax_rbp_off_b1(off);
+        }
     }
 }
 
 // Msaidizi: hifadhi paramu kutoka rejesta ya x86 hadi rafu.
 // reg: 0=rdi/edi, 1=rsi/esi, 2=rdx/edx, 3=rcx/ecx, 4=r8/r8d, 5=r9/r9d
+// Inashughulikia upana wote: baiti 8, 4, 2, na 1
 W0 andika_mov_ax_reg_na_rbp_off(N32 enc, N32 reg, N32 off) {
-    kama (ni_aina_ya_64bit(enc)) {
+    N32 uk = ukubwa_kutoka_enc(enc);
+    kama (uk >= 8) {
+        // Kesi ya baiti 8: rax ← rejesta, kisha [rbp-off] ← rax
         kama (reg == 0) { andika_mov_rax_rdi(); }
         sivyo kama (reg == 1) { andika_mov_rax_rsi(); }
         sivyo kama (reg == 2) { andika_mov_rax_rdx(); }
@@ -292,13 +330,22 @@ W0 andika_mov_ax_reg_na_rbp_off(N32 enc, N32 reg, N32 off) {
         sivyo { andika_mov_rax_r9(); }
         andika_mov_rbp_off_rax(off);
     } sivyo {
+        // Kesi za baiti 4/2/1: eax ← rejesta (inashughulikia upanuzi wa
+        // baiti ndogo kiotomatiki kupitia mov ya baiti 4)
         kama (reg == 0) { andika_mov_eax_edi(); }
         sivyo kama (reg == 1) { andika_mov_eax_esi(); }
         sivyo kama (reg == 2) { andika_mov_eax_edx(); }
         sivyo kama (reg == 3) { andika_mov_eax_ecx(); }
         sivyo kama (reg == 4) { andika_mov_eax_r8d(); }
         sivyo { andika_mov_eax_r9d(); }
-        andika_mov_rbp_off_eax(off);
+        // Hifadhi upana sahihi kwenye rafu
+        kama (uk >= 4) {
+            andika_mov_rbp_off_eax(off);
+        } sivyo kama (uk >= 2) {
+            andika_mov_rbp_off_ax16(off);
+        } sivyo {
+            andika_mov_rbp_off_al(off);
+        }
     }
 }
 
@@ -529,6 +576,99 @@ W0 andika_mov_rip_rel_rax(N32 urekebishaji_idx) {
     andika_neno4(0);
 }
 
+// mov [rip + disp32], al  (88 05 xx xx xx xx)
+W0 andika_mov_rip_rel_al(N32 urekebishaji_idx) {
+    andika_baiti(136);
+    andika_baiti(5);
+    andika_rela_ulimwengu(urekebishaji_idx);
+    andika_neno4(0);
+}
+
+// mov [rip + disp32], ax  (66 89 05 xx xx xx xx)
+W0 andika_mov_rip_rel_ax16(N32 urekebishaji_idx) {
+    andika_baiti(102);  // kiambishi awali cha operesheni ya baiti 2
+    andika_baiti(137);
+    andika_baiti(5);
+    andika_rela_ulimwengu(urekebishaji_idx);
+    andika_neno4(0);
+}
+
+// movsx eax, byte [rip + disp32]  (0F BE 05 xx xx xx xx)
+W0 andika_movsx_eax_rip_rel_b1(N32 urekebishaji_idx) {
+    andika_baiti(15);
+    andika_baiti(190);
+    andika_baiti(5);
+    andika_rela_ulimwengu(urekebishaji_idx);
+    andika_neno4(0);
+}
+
+// movsx eax, word [rip + disp32]  (0F BF 05 xx xx xx xx)
+W0 andika_movsx_eax_rip_rel_b2(N32 urekebishaji_idx) {
+    andika_baiti(15);
+    andika_baiti(191);
+    andika_baiti(5);
+    andika_rela_ulimwengu(urekebishaji_idx);
+    andika_neno4(0);
+}
+
+// movzx eax, byte [rip + disp32]  (0F B6 05 xx xx xx xx)
+W0 andika_movzx_eax_rip_rel_b1(N32 urekebishaji_idx) {
+    andika_baiti(15);
+    andika_baiti(182);
+    andika_baiti(5);
+    andika_rela_ulimwengu(urekebishaji_idx);
+    andika_neno4(0);
+}
+
+// movzx eax, word [rip + disp32]  (0F B7 05 xx xx xx xx)
+W0 andika_movzx_eax_rip_rel_b2(N32 urekebishaji_idx) {
+    andika_baiti(15);
+    andika_baiti(183);
+    andika_baiti(5);
+    andika_rela_ulimwengu(urekebishaji_idx);
+    andika_neno4(0);
+}
+
+// Msaidizi: hifadhi thamani kutoka rax/eax/ax/al hadi [rip+disp32]
+// kwa kigeu cha ulimwengu, kulingana na usimbaji wa aina.
+W0 andika_mov_rip_rel_ax(N32 enc, N32 urekebishaji_idx) {
+    N32 uk = ukubwa_kutoka_enc(enc);
+    kama (uk >= 8) {
+        andika_mov_rip_rel_rax(urekebishaji_idx);
+    } sivyo kama (uk >= 4) {
+        andika_mov_rip_rel_eax(urekebishaji_idx);
+    } sivyo kama (uk >= 2) {
+        andika_mov_rip_rel_ax16(urekebishaji_idx);
+    } sivyo {
+        andika_mov_rip_rel_al(urekebishaji_idx);
+    }
+}
+
+// Msaidizi: pakia thamani kutoka [rip+disp32] hadi eax/rax kwa upana
+// sahihi na upanuzi wa ishara/sifuri kwa aina ndogo.
+W0 andika_mov_ax_rip_rel(N32 enc, N32 urekebishaji_idx) {
+    N32 uk = ukubwa_kutoka_enc(enc);
+    kama (uk >= 8) {
+        andika_mov_rax_rip_rel(urekebishaji_idx);
+    } sivyo kama (uk >= 4) {
+        andika_mov_eax_rip_rel(urekebishaji_idx);
+    } sivyo kama (uk >= 2) {
+        // Aina ya baiti 2: panua kwa ishara au sifuri
+        kama (ni_bila_ishara_enc(enc)) {
+            andika_movzx_eax_rip_rel_b2(urekebishaji_idx);
+        } sivyo {
+            andika_movsx_eax_rip_rel_b2(urekebishaji_idx);
+        }
+    } sivyo {
+        // Aina ya baiti 1: panua kwa ishara au sifuri
+        kama (ni_bila_ishara_enc(enc)) {
+            andika_movzx_eax_rip_rel_b1(urekebishaji_idx);
+        } sivyo {
+            andika_movsx_eax_rip_rel_b1(urekebishaji_idx);
+        }
+    }
+}
+
 
 // === Visaidizi vya usambazaji wa aina ===
 // Rudisha 1 ikiwa encoding ni ya desimali (familia D=3)
@@ -715,6 +855,74 @@ W0 andika_mov_eax_rbp_off(N32 off) {
 // mov [rbp + disp8], eax (89 45 xx)
 W0 andika_mov_rbp_off_eax(N32 off) {
     andika_baiti(137);
+    andika_baiti(69);
+    andika_baiti((256 - off) & 255);
+}
+
+// mov [rbp + disp8], al (88 45 xx)
+W0 andika_mov_rbp_off_al(N32 off) {
+    andika_baiti(136);
+    andika_baiti(69);
+    andika_baiti((256 - off) & 255);
+}
+
+// mov [rbp + disp8], ax (66 89 45 xx)
+W0 andika_mov_rbp_off_ax16(N32 off) {
+    andika_baiti(102);  // 66 — kiambishi awali cha operesheni ya baiti 2
+    andika_baiti(137);
+    andika_baiti(69);
+    andika_baiti((256 - off) & 255);
+}
+
+// movsx eax, al (0F BE C0) — panua ishara kutoka baiti 1 hadi baiti 4
+W0 andika_movsx_eax_al() {
+    andika_baiti(15);
+    andika_baiti(190);
+    andika_baiti(192);
+}
+
+// movsx eax, ax (0F BF C0) — panua ishara kutoka baiti 2 hadi baiti 4
+W0 andika_movsx_eax_ax16() {
+    andika_baiti(15);
+    andika_baiti(191);
+    andika_baiti(192);
+}
+
+// movzx eax, ax (0F B7 C0) — panua sifuri kutoka baiti 2 hadi baiti 4
+W0 andika_movzx_eax_ax16() {
+    andika_baiti(15);
+    andika_baiti(183);
+    andika_baiti(192);
+}
+
+// movsx eax, byte [rbp + disp8] (0F BE 45 xx) — pakia baiti 1 kwa ishara
+W0 andika_movsx_eax_rbp_off_b1(N32 off) {
+    andika_baiti(15);
+    andika_baiti(190);
+    andika_baiti(69);
+    andika_baiti((256 - off) & 255);
+}
+
+// movsx eax, word [rbp + disp8] (0F BF 45 xx) — pakia baiti 2 kwa ishara
+W0 andika_movsx_eax_rbp_off_b2(N32 off) {
+    andika_baiti(15);
+    andika_baiti(191);
+    andika_baiti(69);
+    andika_baiti((256 - off) & 255);
+}
+
+// movzx eax, byte [rbp + disp8] (0F B6 45 xx) — pakia baiti 1 kwa sifuri
+W0 andika_movzx_eax_rbp_off_b1(N32 off) {
+    andika_baiti(15);
+    andika_baiti(182);
+    andika_baiti(69);
+    andika_baiti((256 - off) & 255);
+}
+
+// movzx eax, word [rbp + disp8] (0F B7 45 xx) — pakia baiti 2 kwa sifuri
+W0 andika_movzx_eax_rbp_off_b2(N32 off) {
+    andika_baiti(15);
+    andika_baiti(183);
     andika_baiti(69);
     andika_baiti((256 - off) & 255);
 }
@@ -1681,11 +1889,7 @@ W0 uzalishaji_taarifa(N32 node, N32 kazi_node) {
                     kama (jina_linganisha(gjina, jina)) {
                         N32 enc_u = data_ulimwengu_enc[gi];
                         uzalishaji_usemi(rhs, kazi_node);
-                        kama (ni_aina_ya_64bit(enc_u)) {
-                            andika_mov_rip_rel_rax(gi);
-                        } sivyo {
-                            andika_mov_rip_rel_eax(gi);
-                        }
+                        andika_mov_rip_rel_ax(enc_u, gi);
                         kupatikana_u = 1;
                         vunja;
                     }
@@ -1759,11 +1963,7 @@ W0 uzalishaji_kitambulisho(N32 node, N32 kazi_node) {
     wakati (i < var_idadi) {
         N8* vjina = var_pool + var_jina_off[i];
         kama (jina_linganisha(vjina, jina)) {
-            kama (ni_aina_ya_64bit(var_enc[i])) {
-                andika_mov_rax_rbp_off(var_rbp_off[i]);
-            } sivyo {
-                andika_mov_eax_rbp_off(var_rbp_off[i]);
-            }
+            andika_mov_ax_na_rbp_off(var_enc[i], var_rbp_off[i]);
             rudisha;
         }
         i = i + 1;
@@ -1777,11 +1977,7 @@ W0 uzalishaji_kitambulisho(N32 node, N32 kazi_node) {
         N8* gjina = ast_pool + data_ulimwengu_jina_off[gi];
         kama (jina_linganisha(gjina, jina)) {
             N32 enc = data_ulimwengu_enc[gi];
-            kama (ni_aina_ya_64bit(enc)) {
-                andika_mov_rax_rip_rel(gi);
-            } sivyo {
-                andika_mov_eax_rip_rel(gi);
-            }
+            andika_mov_ax_rip_rel(enc, gi);
             rudisha;
         }
         gi = gi + 1;
