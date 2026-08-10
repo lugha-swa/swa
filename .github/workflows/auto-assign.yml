@@ -1,0 +1,35 @@
+# Jina la utendaji
+name: Kugawa Matatizo Kiotomatiki
+
+# Wakati wa kuendesha
+on:
+  issues:
+    types: [opened]
+
+# Ruhusa
+permissions:
+  issues: write
+
+# Kazi za kufanya
+jobs:
+  gawa:
+    name: Gawa Tatizo Jipya
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Gawa kwa mwanachama
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const wanachama = ['anzania-btrfs', 'techlunatic-ctrl', 'Kandemark'];
+            const index = context.issue.number % wanachama.length;
+            const mteule = wanachama[index];
+
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              assignees: [mteule]
+            });
+
+            console.log(`Tatizo #${context.issue.number} limegawiwa kwa ${mteule}`);
