@@ -14,21 +14,21 @@ husisha C::stdio
 //   "w+" — soma na andika (huunda upya)
 //   "a+" — soma na ongeza (huunda kama halipo)
 
-// Fungua faili. Hurudisha kishikio (N8*) au tupu kwa kushindwa.
+// Fungua faili. Hurudisha kishikio (N8*) au 0 kwa kushindwa.
 N8* faili_fungua(N8* njia, N8* hali) {
     rudisha fopen(njia, hali);
 }
 
 // Funga faili.
 W0 faili_funga(N8* f) {
-    kama (f != tupu) {
+    kama (f != 0) {
         fclose(f);
     }
 }
 
 // Soma data kutoka faili. Hurudisha idadi ya vipengele vilivyosomwa.
 N64 faili_soma(N8* buf, N64 ukubwa, N64 idadi, N8* f) {
-    kama (f == tupu) {
+    kama (f == 0) {
         rudisha 0;
     }
     rudisha fread(buf, ukubwa, idadi, f);
@@ -36,7 +36,7 @@ N64 faili_soma(N8* buf, N64 ukubwa, N64 idadi, N8* f) {
 
 // Andika data kwenye faili. Hurudisha idadi ya vipengele vilivyoandikwa.
 N64 faili_andika(N8* buf, N64 ukubwa, N64 idadi, N8* f) {
-    kama (f == tupu) {
+    kama (f == 0) {
         rudisha 0;
     }
     rudisha fwrite(buf, ukubwa, idadi, f);
@@ -47,7 +47,7 @@ N64 faili_andika(N8* buf, N64 ukubwa, N64 idadi, N8* f) {
 // Bafa lazima iwe na nafasi ya kutosha.
 N64 faili_soma_yote(N8* njia, N8* buf, N64 uwezo) {
     N8* f = fopen(njia, "r");
-    kama (f == tupu) {
+    kama (f == 0) {
         rudisha -1;
     }
     N64 n = fread(buf, 1, uwezo - 1, f);
@@ -59,7 +59,7 @@ N64 faili_soma_yote(N8* njia, N8* buf, N64 uwezo) {
 // Andika mfuatano kwenye faili. Hurudisha 0 kwa mafanikio, -1 kwa kushindwa.
 N32 faili_andika_yote(N8* njia, N8* data, N64 urefu) {
     N8* f = fopen(njia, "w");
-    kama (f == tupu) {
+    kama (f == 0) {
         rudisha -1;
     }
     N64 n = fwrite(data, 1, urefu, f);
@@ -73,7 +73,7 @@ N32 faili_andika_yote(N8* njia, N8* data, N64 urefu) {
 // Angalia kama faili lipo.
 N32 faili_ipo(N8* njia) {
     N8* f = fopen(njia, "r");
-    kama (f == tupu) {
+    kama (f == 0) {
         rudisha 0;
     }
     fclose(f);
@@ -83,7 +83,7 @@ N32 faili_ipo(N8* njia) {
 // Soma mstari mmoja kutoka faili hadi bafa.
 // Huacha kwenye '\n' au EOF. Hurudisha urefu uliosomwa au -1 kwa mwisho.
 N32 faili_soma_mstari(N8* f, N8* buf, N32 uwezo) {
-    kama (f == tupu || uwezo <= 0) {
+    kama (f == 0 || uwezo <= 0) {
         rudisha -1;
     }
     N32 i = 0;
