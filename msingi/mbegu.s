@@ -214,6 +214,7 @@ token_col:      resw MAX_TOKENS
 token_len:      resw MAX_TOKENS
 token_count:    resq 1
 token_pos:      resq 1                  ; nafasi ya sasa ya usomaji wa tokeni
+line_sasa:      resq 1                  ; mstari wa sasa (1-msingi) kwa mchanganyaji
 
 ; ---------- Bafa la chanzo kwa mchanganuzi ----------
 ; Hifadhi anwani ya mwanzo ya kila tokeni ya neno/jina kwenye chanzo
@@ -739,6 +740,7 @@ ruka_maelezo:
         inc     r12
         jmp     .loop
 .newline:
+        inc     qword [line_sasa]       ; mstari mpya
         inc     r12                     ; ruka newline pia
 .done:
         ret
@@ -772,6 +774,10 @@ ruka_nafasi_na_maelezo:
         call    ruka_maelezo
         jmp     .loop
 .skip:
+        cmp     al, 10
+        jne     .skip_no_inc_line
+        inc     qword [line_sasa]        ; mstari mpya
+.skip_no_inc_line:
         inc     r12
         jmp     .loop
 .done:
@@ -1052,6 +1058,7 @@ changanua_chanzo:
         ; Weka upya vihesabio
         mov     qword [token_count], 0
         mov     qword [token_pos], 0
+        mov     qword [line_sasa], 1         ; mstari wa kwanza
 
         ; r12 = faharisi ya sasa kwenye chanzo
         ; r13 = anwani ya chanzo
@@ -1227,6 +1234,8 @@ changanua_chanzo:
         jae     .changanua_done
         mov     [token_ty + r15*4], eax
         mov     [token_val + r15*8], rbx
+        mov     edx, [line_sasa]
+        mov     [token_line + r15*4], edx
         mov     word [token_len + r15*2], 1
         inc     qword [token_count]
         jmp     .changanua_loop
@@ -1237,6 +1246,8 @@ changanua_chanzo:
         jae     .changanua_done
         mov     [token_ty + r15*4], eax
         mov     [token_val + r15*8], rbx
+        mov     edx, [line_sasa]
+        mov     [token_line + r15*4], edx
         mov     word [token_len + r15*2], 1
         inc     qword [token_count]
         jmp     .changanua_loop
@@ -2616,9 +2627,27 @@ changanua_programu:
         cmp     eax, 0
         jne     .try_function
 
-        ; Husisha - ruka hadi kwenye mabano ya kufunga }
-        ; Syntax: husisha { faili.swa }
-        inc     qword [token_pos]       ; ruka neno 'husisha', sasa tuko kwenye '{'
+        ; Husisha: aina mbili
+        ;   husisha { faili.swa }  — kiungo cha ndani chenye mabano
+        ;   husisha C::stdio       — kiungo cha C, hakina mabano
+        inc     qword [token_pos]       ; ruka neno 'husisha'
+        mov     rdi, [token_pos]
+        cmp     dword [token_ty + rdi*4], TOK_FUNGO
+        je      .husisha_brace           ; ina { — tumia kuruka kwa mabano
+
+        ; husisha C::xxx — ruka tokeni hadi mstari ubadilike
+        mov     edx, [token_line + rdi*4] ; hifadhi nambari ya mstari
+.husisha_c_line:
+        inc     qword [token_pos]
+        mov     rdi, [token_pos]
+        cmp     dword [token_ty + rdi*4], TOK_MWISHO
+        je      .programu_loop
+        cmp     edx, [token_line + rdi*4]
+        je      .husisha_c_line           ; bado kwenye mstari uleule
+        jmp     .programu_loop            ; mstari mpya — tumeshamaliza
+
+        ; husisha { faili.swa } — kuruka kwa mabano
+.husisha_brace:
         mov     ecx, 1                   ; kina cha mabano: { = +1, } = -1
 .husisha_skip:
         inc     qword [token_pos]
