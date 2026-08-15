@@ -466,7 +466,7 @@ fn jaribio_k6_kujikusanya_kamili() {
     // Andika kiunganishi kidogo cha C kinachoelekeza andika -> printf.
     let trampoline_c = dir.path().join("trampoline.c");
     std::fs::write(&trampoline_c,
-        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); fflush(stdout); return r; }\nint andika_stderr(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stderr,f,a); va_end(a); fflush(stderr); return r; }\nint tekeleza(void* kazi, int argc, void* argv, int ofseti) { int (*f)(int, void*) = (int (*)(int, void*))kazi; return f(argc, (void*)((char**)argv + ofseti)); }\nvoid* anwani_ya_kazi(const char* jina) { extern void* dlsym(void*, const char*); return dlsym((void*)0, jina); }\nunsigned long bits_ya_d64(const char* m, int u) { extern double strtod(const char*, char**); char b[64]; int i; if (u > 63) u = 63; for (i = 0; i < u; i++) b[i] = m[i]; b[u] = 0; double d = strtod(b, 0); union { double d; unsigned long l; } x; x.d = d; return x.l; }\n"
+        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); fflush(stdout); return r; }\nint andika_stderr(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stderr,f,a); va_end(a); fflush(stderr); return r; }\nint tekeleza(void* kazi, int argc, void* argv, int ofseti) { int (*f)(int, void*) = (int (*)(int, void*))kazi; return f(argc, (void*)((char**)argv + ofseti)); }\nvoid* anwani_ya_kazi(const char* jina) { extern void* dlsym(void*, const char*); return dlsym((void*)0, jina); }\nlong wito_wa_mfumo(long n, long a1, long a2, long a3, long a4, long a5) { extern long syscall(long, long, long, long, long, long, long); return syscall(n, a1, a2, a3, a4, a5, 0); }\nunsigned long bits_ya_d64(const char* m, int u) { extern double strtod(const char*, char**); char b[64]; int i; if (u > 63) u = 63; for (i = 0; i < u; i++) b[i] = m[i]; b[u] = 0; double d = strtod(b, 0); union { double d; unsigned long l; } x; x.d = d; return x.l; }\n"
     ).expect("inapaswa kuandika trampoline.c");
     let trampoline_o = dir.path().join("trampoline.o");
     let compile_status = std::process::Command::new(&clang)
@@ -562,7 +562,7 @@ fn run_k6_test(test_chanzo: &str, matarajio_ya_kutoka: i32) {
     // Andika kiunganishi kidogo cha C.
     let trampoline_c = dir.path().join("trampoline.c");
     std::fs::write(&trampoline_c,
-        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); fflush(stdout); return r; }\nint andika_stderr(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stderr,f,a); va_end(a); fflush(stderr); return r; }\nint tekeleza(void* kazi, int argc, void* argv, int ofseti) { int (*f)(int, void*) = (int (*)(int, void*))kazi; return f(argc, (void*)((char**)argv + ofseti)); }\nvoid* anwani_ya_kazi(const char* jina) { extern void* dlsym(void*, const char*); return dlsym((void*)0, jina); }\nunsigned long bits_ya_d64(const char* m, int u) { extern double strtod(const char*, char**); char b[64]; int i; if (u > 63) u = 63; for (i = 0; i < u; i++) b[i] = m[i]; b[u] = 0; double d = strtod(b, 0); union { double d; unsigned long l; } x; x.d = d; return x.l; }\n"
+        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); fflush(stdout); return r; }\nint andika_stderr(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stderr,f,a); va_end(a); fflush(stderr); return r; }\nint tekeleza(void* kazi, int argc, void* argv, int ofseti) { int (*f)(int, void*) = (int (*)(int, void*))kazi; return f(argc, (void*)((char**)argv + ofseti)); }\nvoid* anwani_ya_kazi(const char* jina) { extern void* dlsym(void*, const char*); return dlsym((void*)0, jina); }\nlong wito_wa_mfumo(long n, long a1, long a2, long a3, long a4, long a5) { extern long syscall(long, long, long, long, long, long, long); return syscall(n, a1, a2, a3, a4, a5, 0); }\nunsigned long bits_ya_d64(const char* m, int u) { extern double strtod(const char*, char**); char b[64]; int i; if (u > 63) u = 63; for (i = 0; i < u; i++) b[i] = m[i]; b[u] = 0; double d = strtod(b, 0); union { double d; unsigned long l; } x; x.d = d; return x.l; }\n"
     ).expect("inapaswa kuandika trampoline.c");
     let trampoline_o = dir.path().join("trampoline.o");
     let compile_status = std::process::Command::new(&clang)
@@ -749,9 +749,11 @@ fn run_msingi_test(test_source: &str, expected_exit: i32) {
         .compile_to_file(&ir_module, &obj_path)
         .expect("inapaswa kutoa faili la kitu");
 
-    // Unganisha na clang (libc inaunganishwa kwa chaguo-msingi).
+    // Unganisha na clang, pamoja na trampoline ya Swa (wito_wa_mfumo,
+    // andika, tekeleza n.k.) — libc inaunganishwa kwa chaguo-msingi.
     let link_status = std::process::Command::new(&clang)
         .arg(&obj_path)
+        .arg("gharama/trampoline.c")
         .arg("-o")
         .arg(&exe_path)
         .arg("-no-pie")

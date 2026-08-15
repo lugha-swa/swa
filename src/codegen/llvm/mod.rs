@@ -1861,6 +1861,19 @@ fn coerce_int(
         let val_kind = LLVMGetTypeKind(val_ty) as u32;
         let target_kind = LLVMGetTypeKind(target_ty) as u32;
 
+        // Kielekezi ↔ namba kamili — inahitajika kwa wito wa mfumo wa
+        // .swa (hoja za syscall huchanganya namba na vielekezi kwa nafasi).
+        if val_kind == LLVMTypeKind::Pointer as u32
+            && target_kind == LLVMTypeKind::Integer as u32
+        {
+            return LLVMBuildPtrToInt(builder, val, target_ty, c_str("ptrtoint").as_ptr());
+        }
+        if val_kind == LLVMTypeKind::Integer as u32
+            && target_kind == LLVMTypeKind::Pointer as u32
+        {
+            return LLVMBuildIntToPtr(builder, val, target_ty, c_str("inttoptr").as_ptr());
+        }
+
         if val_kind == LLVMTypeKind::Integer as u32
             && target_kind == LLVMTypeKind::Integer as u32
         {
