@@ -27,3 +27,137 @@ N32 linganisha_kumbukumbu(N8* a, N8* b, N64 n) {
     }
     rudisha 0;
 }
+
+// ==========================================================
+// Runtime ya syscalls — maktaba haihitaji libc tena
+// ==========================================================
+
+// Wito wa mfumo wa Linux — builtin ya mzalishaji (uzalishaji_wito)
+// na daraja la C kwa mbegu. Haina tangazo la .swa: kila mkaguzi
+// (wa Swa na wa Rust) hujenga saini kutoka hoja halisi za wito.
+
+N64 sys_soma(N32 faili, N8* bafa, N64 urefu) {
+    rudisha wito_wa_mfumo(0, faili, bafa, urefu, 0, 0, 0);
+}
+
+N64 sys_andika(N32 faili, N8* bafa, N64 urefu) {
+    rudisha wito_wa_mfumo(1, faili, bafa, urefu, 0, 0, 0);
+}
+
+N64 sys_fungua(N8* njia, N64 bendera) {
+    rudisha wito_wa_mfumo(2, njia, bendera, 0, 0, 0, 0);
+}
+
+N64 sys_funga(N32 faili) {
+    rudisha wito_wa_mfumo(3, faili, 0, 0, 0, 0, 0);
+}
+
+N64 sys_mmap(N8* anwani, N64 urefu, N64 ulinzi, N64 bendera, N64 faili) {
+    rudisha wito_wa_mfumo(9, anwani, urefu, ulinzi, bendera, faili, 0);
+}
+
+N64 sys_munmap(N8* anwani, N64 urefu) {
+    rudisha wito_wa_mfumo(11, anwani, urefu, 0, 0, 0, 0);
+}
+
+// ==========================================================
+// Uchapishaji — andika_n64 / andika_mfuatano / andika_baiti
+// Hizi ndizo kazi zinazoitwa na builtin ya andika katika mzalishaji.
+// ==========================================================
+
+W0 andika_n64(N32 faili, N64 v) {
+    N8 bafa[32];
+    N32 n = 0;
+    N32 mwanzo = 0;
+    kama (v < 0) {
+        bafa[n] = 45;  // '-'
+        n = n + 1;
+        v = 0 - v;
+        mwanzo = 1;
+    }
+    wakati (1 == 1) {
+        bafa[n] = 48 + (v - ((v / 10) * 10));
+        n = n + 1;
+        v = v / 10;
+        kama (v == 0) { vunja; }
+    }
+    // geuza mpangilio wa tarakimu
+    N32 i = mwanzo;
+    N32 j = n - 1;
+    wakati (i < j) {
+        N8 t = bafa[i];
+        bafa[i] = bafa[j];
+        bafa[j] = t;
+        i = i + 1;
+        j = j - 1;
+    }
+    sys_andika(faili, bafa, n);
+}
+
+W0 andika_mfuatano(N32 faili, N8* s) {
+    // Urefu wa mfuatano unahesabiwa hapa — kumbukumbu.swa
+    // haitegemei mfuatano.swa (jaribio la k10a linahusisha peke yake).
+    N64 u = 0;
+    wakati (s[u] != 0) {
+        u = u + 1;
+    }
+    sys_andika(faili, s, u);
+}
+
+W0 andika_herufi(N32 faili, N64 b) {
+    N8 bb = b;
+    sys_andika(faili, &bb, 1);
+}
+
+W0 andika_sehemu(N32 faili, N8* s, N64 urefu) {
+    sys_andika(faili, s, urefu);
+}
+
+// ==========================================================
+// Arena ya kumbukumbu — badala ya malloc/realloc/free
+// ==========================================================
+N8* arena_anwani = 0;
+N64 arena_nafasi = 0;
+
+N8* tenga(N64 ukubwa) {
+    kama (arena_anwani == 0) {
+        arena_anwani = sys_mmap(0, 1048576, 3, 34, 0 - 1);
+        kama (arena_anwani == 0 - 1) { rudisha 0; }
+    }
+    kama (ukubwa == 0) { ukubwa = 8; }
+    ukubwa = ukubwa + 8;  // nafasi ya ukubwa wa kipande (kwa badili)
+    kama (arena_nafasi + ukubwa > 1048576) { rudisha 0; }
+    N8* r = arena_anwani + arena_nafasi;
+    // hifadhi ukubwa mbele ya kipande (baiti 8)
+    N8* h = &ukubwa;
+    N32 bi = 0;
+    wakati (bi < 8) {
+        r[bi] = h[bi];
+        bi = bi + 1;
+    }
+    arena_nafasi = arena_nafasi + ukubwa;
+    rudisha r + 8;
+}
+
+W0 achilia(N8* p) {
+    // Arena haiwezi kufungua vipande — hakuna kitu
+}
+
+N8* badili(N8* p, N64 ukubwa) {
+    kama (p == 0) { rudisha tenga(ukubwa); }
+    kama (ukubwa == 0) { rudisha p; }
+    // soma ukubwa wa zamani kutoka kichwa cha kipande
+    N64 zamani = 0;
+    N8* h2 = &zamani;
+    N32 bi2 = 0;
+    wakati (bi2 < 8) {
+        h2[bi2] = p[bi2 - 8];
+        bi2 = bi2 + 1;
+    }
+    N8* r = tenga(ukubwa);
+    kama (r == 0) { rudisha 0; }
+    N64 nakili_urefu = zamani;
+    kama (ukubwa < zamani) { nakili_urefu = ukubwa; }
+    nakili(r, p, nakili_urefu);
+    rudisha r;
+}

@@ -56,3 +56,29 @@ unsigned long bits_ya_d64(const char* mwanzo, int urefu) {
     uu.d = d;
     return uu.u;
 }
+
+/* wito_wa_mfumo — daraja la syscall kwa mbegu (codegen ya Swa ni builtin) */
+long wito_wa_mfumo(long namba, long a1, long a2, long a3, long a4, long a5) {
+    register long r10 __asm__("r10") = a4;
+    register long r8 __asm__("r8") = a5;
+    register long r9 __asm__("r9") = 0;
+    __asm__ volatile(
+        "syscall"
+        : "+a"(namba)
+        : "D"(a1), "S"(a2), "d"(a3), "r"(r10), "r"(r8), "r"(r9)
+        : "rcx", "r11", "memory");
+    return namba;
+}
+
+/* ukubwa — rudisha ukubwa wa aina (kama sizeof) — kwa mbegu tu;
+   codegen ya Swa huikokotoa wakati wa kukusanya. */
+unsigned long ukubwa(unsigned long aina) {
+    switch (aina) {
+        case 1: return 1;   /* N8 */
+        case 2: return 2;   /* N16 */
+        case 3: return 4;   /* N32 */
+        case 4: return 8;   /* N64 */
+        case 5: return 8;   /* W0 */
+        default: return 8;
+    }
+}

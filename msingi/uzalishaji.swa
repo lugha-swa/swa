@@ -57,11 +57,8 @@ W0 andika_neno8_kama_neno4(N32 lo, N32 hi) {
 // Futa bafa ya .text hadi stdout
 // -------------------------------------------------------
 W0 futa_bafa_text() {
-    N32 i = 0;
-    wakati (i < bafa_text_wapi) {
-        andika("%c", bafa_text[i]);
-        i = i + 1;
-    }
+    // Andika bafa nzima ya .text kwa syscall moja (sio baiti kwa baiti)
+    sys_andika(1, bafa_text, bafa_text_wapi);
 }
 
 // -------------------------------------------------------
@@ -308,6 +305,114 @@ W0 andika_movss_xmm0_rbp_off(N32 off) {
 
 // call r11 (41 FF D3) — wito wa kielekezi cha kazi
 W0 andika_call_r11() { andika_baiti(65); andika_baiti(255); andika_baiti(211); }
+
+// cdqe (48 98) — panua ishara ya eax hadi rax (kwa %d za N32)
+W0 andika_cdqe() { andika_baiti(72); andika_baiti(152); }
+
+// mov rsi, rax (48 89 C6) — hoja ya pili ya wito wa ndani
+W0 andika_mov_rsi_rax2() { andika_baiti(72); andika_baiti(137); andika_baiti(198); }
+
+// Tafuta nafasi ya kazi ya ndani kwa jina (iliyokwishakusanywa)
+N32 kazi_nafasi_kwa_jina(N8* jina) {
+    N32 li = 0;
+    wakati (li < lebo_idadi) {
+        kama (jina_linganisha(lebo_jina[li], jina)) {
+            rudisha lebo_nafasi[li];
+        }
+        li = li + 1;
+    }
+    rudisha -1;
+}
+
+// Sehemu ya tungo: nakili kwenye bafa ya sehemu (kwa utorokaji wa \n na \\)
+// na urudishe lebo ya ndani ya bafa ya .text.
+N32 sehemu_tungo_hifadhi(N8* mwanzo, N32 urefu) {
+    kama (sehemu_idadi >= 1024) { rudisha -1; }
+    kama (sehemu_buf_wapi + urefu + 1 >= 4096) { rudisha -1; }
+    N32 off = sehemu_buf_wapi;
+    N32 i = 0;
+    wakati (i < urefu) {
+        N8 ch = mwanzo[i];
+        kama (ch == 92 && i + 1 < urefu) {
+            N8 e = mwanzo[i + 1];
+            kama (e == 110) { ch = 10; i = i + 1; }
+            sivyo kama (e == 92) { ch = 92; i = i + 1; }
+            sivyo kama (e == 37) { ch = 37; i = i + 1; }
+        }
+        sehemu_buf[sehemu_buf_wapi] = ch;
+        sehemu_buf_wapi = sehemu_buf_wapi + 1;
+        i = i + 1;
+    }
+    sehemu_buf[sehemu_buf_wapi] = 0;
+    sehemu_buf_wapi = sehemu_buf_wapi + 1;
+    sehemu_off[sehemu_idadi] = off;
+    sehemu_len[sehemu_idadi] = sehemu_buf_wapi - off - 1;
+    sehemu_lebo_id[sehemu_idadi] = lebo_buf_mpya();
+    sehemu_idadi = sehemu_idadi + 1;
+    rudisha sehemu_lebo_id[sehemu_idadi - 1];
+}
+
+// Toa wito wa andika_sehemu(fd, lebo, urefu) — wito wa ndani
+W0 andika_wito_sehemu(N32 fd, N32 lebo, N32 urefu) {
+    andika_baiti(191); andika_neno4(fd);        // mov edi, fd
+    toa_lea_rax_kwa_lebo(lebo);                 // lea rax, [rip+lebo]
+    andika_mov_rsi_rax2();                      // mov rsi, rax
+    andika_baiti(186); andika_neno4(urefu);     // mov edx, urefu
+    N32 nafasi = kazi_nafasi_kwa_jina("andika_sehemu");
+    kama (nafasi < 0) { rudisha; }
+    andika_baiti(232);                          // call rel32
+    N32 offset = nafasi - (bafa_text_wapi + 4);
+    andika_neno4(offset);
+}
+
+// Toa wito wa andika_n64(fd, rax) — thamani iko kwenye rax
+W0 andika_wito_n64(N32 fd) {
+    andika_mov_rsi_rax2();                      // mov rsi, rax
+    andika_baiti(191); andika_neno4(fd);        // mov edi, fd
+    N32 nafasi = kazi_nafasi_kwa_jina("andika_n64");
+    kama (nafasi < 0) { rudisha; }
+    andika_baiti(232);
+    N32 offset = nafasi - (bafa_text_wapi + 4);
+    andika_neno4(offset);
+}
+
+// Toa wito wa andika_mfuatano(fd, rax) — kielekezi kiko kwenye rax
+W0 andika_wito_mfuatano(N32 fd) {
+    andika_mov_rsi_rax2();                      // mov rsi, rax
+    andika_baiti(191); andika_neno4(fd);        // mov edi, fd
+    N32 nafasi = kazi_nafasi_kwa_jina("andika_mfuatano");
+    kama (nafasi < 0) { rudisha; }
+    andika_baiti(232);
+    N32 offset = nafasi - (bafa_text_wapi + 4);
+    andika_neno4(offset);
+}
+
+// Toa wito wa andika_baiti(fd, rax) — baiti moja
+W0 andika_wito_baiti(N32 fd) {
+    andika_mov_rsi_rax2();                      // mov rsi, rax
+    andika_baiti(191); andika_neno4(fd);        // mov edi, fd
+    N32 nafasi = kazi_nafasi_kwa_jina("andika_herufi");
+    kama (nafasi < 0) { rudisha; }
+    andika_baiti(232);
+    N32 offset = nafasi - (bafa_text_wapi + 4);
+    andika_neno4(offset);
+}
+
+// Toa sehemu zote za tungo mwishoni mwa .text na uweke lebo zao
+W0 andika_sehemu_halisi() {
+    N32 i = 0;
+    wakati (i < sehemu_idadi) {
+        weka_lebo(sehemu_lebo_id[i]);
+        N32 off = sehemu_off[i];
+        N32 len = sehemu_len[i];
+        N32 j = 0;
+        wakati (j < len) {
+            andika_baiti(sehemu_buf[off + j]);
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+}
 
 // Andika disp32 (baiti 4, mdogo-kwanza) kwenye bafa maalum kwa ofseti.
 // disp inaweza kuwa hasi — mgawanyo wa sakafu kama andika_disp32_ya_off.
@@ -1539,6 +1644,15 @@ N32 desimali_off[1024];
 N32 desimali_lebo_id[1024];
 N32 desimali_idadi = 0;
 
+// Sehemu za tungo za builtin ya andika — zinaandikwa mwishoni mwa .text
+// kama tungo, ili JIT iweze kuzifikia kwa rip-relative.
+N8 sehemu_buf[4096];
+N32 sehemu_off[1024];
+N32 sehemu_len[1024];
+N32 sehemu_lebo_id[1024];
+N32 sehemu_idadi = 0;
+N32 sehemu_buf_wapi = 1;
+
 // -------------------------------------------------------
 // Bafa za muda kwa ajili ya hoja za wito
 // -------------------------------------------------------
@@ -1554,6 +1668,7 @@ N32 param_enc[16];
 // ya wito wa nje wakati wa tathmini — nakili kwenye bafa hizi kwanza.
 // Kina kinatoa nafasi kwa viwango 8 vya wito vilivyopachikwa.
 N32 hoja_undani = 0;
+N32 ni_syscall_wito = 0;
 N32 hoja_nodes_bk[256];
 N32 hoja_enc_bk[256];
 
@@ -1868,6 +1983,7 @@ W0 uzalishaji_chagua(N32 node, N32 kazi_node) {
 // Utoaji wa wito wa kazi — AST_WITO (8)
 // -------------------------------------------------------
 W0 uzalishaji_wito(N32 node, N32 kazi_node) {
+    ni_syscall_wito = 0;
     N32 callee_node = ast_kushoto[node];
     N8* callee = ast_pool + ast_jina_off[callee_node];
 
@@ -1890,6 +2006,62 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
                 kama (sz == 0) { sz = 8; }
             }
             andika_mov_eax(sz);
+            rudisha;
+        }
+    }
+
+    // Wito wa mfumo (syscall) — builtin: hoja (namba, a1..a5) zinapangwa
+    // kwa ABI ya syscall: rax=namba, rdi=a1, rsi=a2, rdx=a3, r10=a4, r8=a5, r9=0.
+    kama (jina_linganisha(callee, "wito_wa_mfumo")) {
+        ni_syscall_wito = 1;
+    }
+
+    // Wito maalum wa andika/andika_stderr — uchapishaji wakati wa kukusanya.
+    // Codegen inachanganua muundo na kutoa wito wa kazi za ndani za
+    // kuchapisha (andika_sehemu, andika_n64, andika_mfuatano, andika_baiti).
+    kama (jina_linganisha(callee, "andika") || jina_linganisha(callee, "andika_stderr")) {
+        N32 a0 = ast_kulia[node];
+        kama (a0 != -1 && ast_aina[a0] == 5) {
+            N8* muundo = ast_pool + ast_jina_off[a0];
+            N32 fd = 1;
+            kama (jina_linganisha(callee, "andika_stderr")) { fd = 2; }
+            N32 urefu_m = jina_urefu(muundo);
+            N32 h = ast_tiga[a0];
+            N32 p = 1;               // baada ya nukuu ya mwanzo
+            N32 mwanzo_sehemu = 1;
+            wakati (p < urefu_m) {
+                kama (muundo[p] == 37) {   // '%'
+                    kama (p > mwanzo_sehemu) {
+                        N32 lebo = sehemu_tungo_hifadhi(muundo + mwanzo_sehemu, p - mwanzo_sehemu);
+                        kama (lebo >= 0) { andika_wito_sehemu(fd, lebo, sehemu_len[sehemu_idadi - 1]); }
+                    }
+                    N8 sp = muundo[p + 1];
+                    kama (h != -1) {
+                        kama (sp == 100) {  // %d
+                            N32 enc_h = ast_thamani[h];
+                            kama (ast_aina[h] == 45) { enc_h = ast_nne[h]; }
+                            uzalishaji_usemi(h, kazi_node);
+                            kama (ukubwa_kutoka_enc(enc_h) < 8) { andika_cdqe(); }
+                            andika_wito_n64(fd);
+                        } sivyo kama (sp == 115) {  // %s
+                            uzalishaji_usemi(h, kazi_node);
+                            andika_wito_mfuatano(fd);
+                        } sivyo kama (sp == 99) {  // %c
+                            uzalishaji_usemi(h, kazi_node);
+                            andika_wito_baiti(fd);
+                        }
+                        h = ast_tiga[h];
+                    }
+                    p = p + 2;
+                    mwanzo_sehemu = p;
+                } sivyo {
+                    p = p + 1;
+                }
+            }
+            kama (urefu_m - 1 > mwanzo_sehemu) {
+                N32 lebo = sehemu_tungo_hifadhi(muundo + mwanzo_sehemu, urefu_m - 1 - mwanzo_sehemu);
+                kama (lebo >= 0) { andika_wito_sehemu(fd, lebo, sehemu_len[sehemu_idadi - 1]); }
+            }
             rudisha;
         }
     }
@@ -2041,7 +2213,18 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
     // Weka AL = idadi ya rejesta za XMM zilizotumika (ABI inahitaji kwa wito wa variadic)
     andika_mov_al(xmm_reg);
 
-    kama (ni_kielekezi) {
+    kama (ni_syscall_wito) {
+        // Pangilia hoja kwa ABI ya syscall:
+        // rdi=namba, rsi=a1, rdx=a2, rcx=a3, r8=a4, r9=a5 →
+        // rax=namba, rdi=a1, rsi=a2, rdx=a3, r10=a4, r8=a5, r9=0
+        andika_baiti(77); andika_baiti(137); andika_baiti(194);  // mov r10, r8 (4D 89 C2) — a4 (bendera)
+        andika_baiti(72); andika_baiti(137); andika_baiti(248);  // mov rax, rdi (48 89 F8)
+        andika_baiti(72); andika_baiti(137); andika_baiti(247);  // mov rdi, rsi (48 89 F7)
+        andika_baiti(72); andika_baiti(137); andika_baiti(214);  // mov rsi, rdx (48 89 D6)
+        andika_baiti(72); andika_baiti(137); andika_baiti(202);  // mov rdx, rcx (48 89 CA)
+        andika_baiti(65); andika_baiti(89);                      // pop r9 (41 59) — hoja ya 7 (ofseti)
+        andika_baiti(15); andika_baiti(5);                        // syscall (0F 05)
+    } sivyo kama (ni_kielekezi) {
         andika_call_r11();  // call r11
     } sivyo {
         andika_baiti(232);  // call rel32
@@ -3654,6 +3837,8 @@ W0 uzalishaji_kuu(N32 mzizi) {
     str_idadi = 0;
     str_buf_wapi = 1;
     desimali_idadi = 0;
+    sehemu_idadi = 0;
+    sehemu_buf_wapi = 1;
     N32 sj = 0;
     wakati (sj < 1024) { str_lebo_id[sj] = -1; sj = sj + 1; }
 
@@ -3721,6 +3906,7 @@ W0 uzalishaji_kuu(N32 mzizi) {
     // 2. Toa herufi halisi mwishoni mwa buffer ya .text
     andika_herufi_halisi();
     andika_desimali_halisi();
+    andika_sehemu_halisi();
 
     N32 text_size = bafa_text_wapi;
 
@@ -3960,6 +4146,8 @@ W0 uzalishaji_jit(N32 mzizi, N32 argc_jit, N8** argv_jit, N32 ofseti_jit) {
     str_idadi = 0;
     str_buf_wapi = 1;
     desimali_idadi = 0;
+    sehemu_idadi = 0;
+    sehemu_buf_wapi = 1;
     N32 sj = 0;
     wakati (sj < 1024) { str_lebo_id[sj] = -1; sj = sj + 1; }
 
@@ -3978,6 +4166,7 @@ W0 uzalishaji_jit(N32 mzizi, N32 argc_jit, N8** argv_jit, N32 ofseti_jit) {
     // hii pia hurekebisha fixups zote zilizobaki.
     andika_herufi_halisi();
     andika_desimali_halisi();
+    andika_sehemu_halisi();
 
     N32 ukubwa = bafa_text_wapi;
     kama (ukubwa <= 5) { rudisha; }
@@ -4017,8 +4206,8 @@ W0 uzalishaji_jit(N32 mzizi, N32 argc_jit, N8** argv_jit, N32 ofseti_jit) {
     // haiwezi kufika. Thunk inaruka kwa anwani kamili kutoka slot.
     N32 slots_off = ukubwa;
     N32 jumla = ukubwa + rela_idadi * 14;
-    N8* kumbukumbu = mmap(0, jumla, 7, 34, -1, 0);
-    kama (kumbukumbu == -1) {
+    N8* kumbukumbu = sys_mmap(0, jumla, 7, 34, 0 - 1);
+    kama (kumbukumbu == 0 - 1) {
         andika_stderr("; KOSA: mmap imeshindwa\n");
         rudisha;
     }
@@ -4064,5 +4253,5 @@ W0 uzalishaji_jit(N32 mzizi, N32 argc_jit, N8** argv_jit, N32 ofseti_jit) {
     N32 matokeo = tekeleza(kumbukumbu, argc_jit, argv_jit, ofseti_jit);
     andika_stderr("; JIT: matokeo=%d\n", matokeo);
 
-    munmap(kumbukumbu, ukubwa);
+    sys_munmap(kumbukumbu, jumla);
 }
