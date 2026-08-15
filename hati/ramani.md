@@ -88,13 +88,17 @@ kwenye njia ya Rust → LLVM.
 
 ## Hatua ya 5: Kuziba Pengo la Mwisho la Bootstrap [IN PROGRESS] KAZI INAENDELEA
 
-- [ ] **Baiti za mkono:** andika mkusanyaji mdogo wa kwanza kwa opcodes
-      za x86-64 zilizoandikwa kwa mkono (bila NASM) — lengo: baiti 500
+- [x] **Baiti za mkono:** Kwanza (msingi/kwanza.bin) — baiti 393 zilizoandikwa
+      kwa mkono (ELF 64 + phdr 56 + msimbo 273) hubadilisha hex hadi binary.
+      Inajijenga (kwanza.hex -> kwanza.bin) na inazalisha mbegu.bin kutoka
+      mbegu.hex — NASM si sehemu ya mnyororo wa uzalishaji tena.
+      Uthibitisho: gharama/jenga-kwanza.sh (pia kwenye CI).
 - [ ] **Kiunganishi cha kujitegemea:** kuondoa ld/gcc kwenye mnyororo
       (self-hosted linker au ELF inayojitegemea)
 - [ ] **Runtime ya syscalls:** kuondoa libc/muda.c (fopen/fread/andika
       kupitia syscalls moja kwa moja)
-- [ ] 0% bootstrap gap — hakuna lugha nyingine popote kwenye mnyororo
+- [ ] 0% bootstrap gap — muda.c (C) na zana za kuunganisha bado ziko
+      kwenye mnyororo
 
 ## Hatua ya 6: Lugha Kamili ya Mifumo [FUTURE] BAADAYE
 
@@ -111,13 +115,14 @@ Angalia [`CONTRIBUTING.md`](CONTRIBUTING.md). Masuala yenye lebo `good-first-iss
 
 ## Vipaumbele vya Sasa (Agosti 2026)
 
-1. **Baiti za mkono (Hatua ya 5)** — mkusanyaji mdogo wa kwanza kwa opcodes
-   za mkono, kuondoa NASM kwenye mnyororo
-2. **ABI ya desimali** — hoja za float/double kupitia xmm0-xmm7
-3. **JIT kamili** — relocations za wito wa nje na kupitisha argv
-4. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha
-5. **Kiunganishi cha kujitegemea** — kuondoa ld/gcc kwenye mnyororo
-6. **Runtime ya syscalls** — kuondoa libc/muda.c
+1. ~~Baiti za mkono~~ — IMESHAFANYIKA (PR #147): Kwanza (baiti 393)
+   inazalisha mbegu.bin kutoka hex; NASM imeondolewa kwenye mnyororo
+2. **Kiunganishi cha kujitegemea** — kuondoa ld/gcc kwenye mnyororo
+3. **Runtime ya syscalls** — kuondoa libc/muda.c
+4. **ABI ya desimali kamili** — D32 na ugeuzi wa aina (D64 ndiyo pekee
+   inayofanya kazi kwa sasa)
+5. **Dereva wa Rust** — desimali katika codegen ya LLVM
+6. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha
 
 ## Historia Fupi ya Milestone (Julai-Agosti 2026)
 
