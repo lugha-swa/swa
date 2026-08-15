@@ -10,20 +10,19 @@ N8 chanzo_buf[1048576];
 N32 chanzo_urefu = 0;
 
 W0 ongeza_faili(N8* njia) {
-    N8* hali = "r";
-    N8* f = fopen(njia, hali);
-    kama (f == 0) {
+    N64 f = sys_fungua(njia, 0);
+    kama (f < 0) {
         andika_stderr("; KOSA: faili halifunguki: %s\n", njia);
         rudisha;
     }
     N32 nafasi = 1048575 - chanzo_urefu;
     kama (nafasi <= 0) {
         andika_stderr("; KOSA: chanzo ni kikubwa mno\n");
-        fclose(f);
+        sys_funga(f);
         rudisha;
     }
-    N64 n = fread(chanzo_buf + chanzo_urefu, 1, nafasi, f);
-    fclose(f);
+    N64 n = sys_soma(f, chanzo_buf + chanzo_urefu, nafasi);
+    sys_funga(f);
     chanzo_urefu = chanzo_urefu + n;
 }
 
