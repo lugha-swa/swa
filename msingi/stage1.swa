@@ -13,12 +13,12 @@ W0 ongeza_faili(N8* njia) {
     N8* hali = "r";
     N8* f = fopen(njia, hali);
     kama (f == 0) {
-        andika("; KOSA: faili halifunguki: %s\n", njia);
+        andika_stderr("; KOSA: faili halifunguki: %s\n", njia);
         rudisha;
     }
     N32 nafasi = 1048575 - chanzo_urefu;
     kama (nafasi <= 0) {
-        andika("; KOSA: chanzo ni kikubwa mno\n");
+        andika_stderr("; KOSA: chanzo ni kikubwa mno\n");
         fclose(f);
         rudisha;
     }
@@ -84,6 +84,7 @@ N32 main(N32 argc, N8** argv) {
         ongeza_faili("msingi/uzalishaji.swa");
         ongeza_faili("msingi/orodha.swa");
         ongeza_faili("msingi/ramani.swa");
+        ongeza_faili("msingi/stage1.swa");
     }
 
     kama (faili_idx < argc) {
@@ -98,19 +99,20 @@ N32 main(N32 argc, N8** argv) {
     Msambazaji p = msambazaji_mpya(chanzo_buf, chanzo_urefu);
     N32 mzizi = changanua(&p);
     kama (p.kosa != 0) {
-        andika("; KOSA: %d\n", p.kosa);
+        andika_stderr("; KOSA: %d\n", p.kosa);
         rudisha 1;
     }
 
+
     // 2. Ukaguzi wa kisemantiki
     N32 makosa = mkaguzi_angalia(mzizi);
-    kama (makosa != 0) { andika("; ONYO: makosa %d, inaendelea\n", makosa); }
+    kama (makosa != 0) { andika_stderr("; ONYO: makosa %d, inaendelea\n", makosa); }
 
     // 3. Teremsha AST hadi IR (uthibitishaji wa muundo)
     Mteremshi t;
     N32 ir_mzizi = teremsha(&t, mzizi);
     kama (t.makosa != 0) {
-        andika("; ONYO: makosa ya kuteremsha %d, inaendelea\n", t.makosa);
+        andika_stderr("; ONYO: makosa ya kuteremsha %d, inaendelea\n", t.makosa);
     }
 
     kama (ni_jit) { uzalishaji_jit(mzizi); } sivyo { uzalishaji_kuu(mzizi); }
