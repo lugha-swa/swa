@@ -160,11 +160,14 @@ N32 kitanzi(N32 n) {
 **Mahitaji:**
 - LLVM 18+ (C API) -- imejaribiwa kwenye LLVM 22.1 (Arch Linux) na LLVM 18 (Windows)
 - Rust (toleo jipya zaidi)
-- GCC au Clang (kwa kiunganishi)
+- Clang (kwa majaribio ya ujumuishaji ya wakati wa utekelezaji)
+- Hakuna kiunganishi kinachohitajika kwa mnyororo wa kujikusanya: `--exe`
+  inatoa ET_EXEC tuli inayojijenga yenyewe bila ld/gcc/libc
+  (stage2-exe == stage3-exe, sawa kwa baiti)
 
 ```sh
 cargo build --release
-cargo test          # Majaribio 204: 146 ya maktaba + 57 ya ujumuishaji + 1 wa nyaraka
+cargo test          # Majaribio 205: 146 ya maktaba + 58 ya ujumuishaji + 1 wa nyaraka
 ```
 
 ## Matumizi
