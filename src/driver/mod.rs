@@ -41,7 +41,7 @@ impl Driver {
 
     /// Chakia maelekezo ya `husisha` kwa kusoma na kupachika faili zilizojumuishwa.
     /// Hushughulikia `husisha C::stdio` (imechukuliwa — vichwa vya C) na
-    /// `husisha "path.swa"` (iliyopachikwa).
+    /// `husisha { njia }` (iliyopachikwa).
     fn resolve_husisha(
         &mut self,
         source: &str,
@@ -67,46 +67,7 @@ impl Driver {
                     i += 1;
                 }
 
-                if i < len && bytes[i] == b'"' {
-                    // Njia iliyonukuliwa: husisha "path/file.swa"
-                    i += 1;
-                    let path_start = i;
-                    while i < len && bytes[i] != b'"' {
-                        i += 1;
-                    }
-                    let rel_path = std::str::from_utf8(&bytes[path_start..i])
-                        .unwrap_or("");
-                    if i < len { i += 1; } // ruka nukta ya kufunga "
-                    // Ruka semicolon ya mwisho na mstari mpya.
-                    while i < len && (bytes[i] == b';' || bytes[i].is_ascii_whitespace()) {
-                        i += 1;
-                    }
-
-                    let include_path = parent_dir.join(rel_path);
-                    let canon = include_path.canonicalize().unwrap_or(include_path.clone());
-                    let canon_str = canon.to_string_lossy().to_string();
-
-                    if !already_included.contains(&canon_str) {
-                        already_included.push(canon_str.clone());
-                        match fs::read_to_string(&canon) {
-                            Ok(inc_source) => {
-                                let resolved = self.resolve_husisha(
-                                    &inc_source,
-                                    canon.parent().unwrap_or(parent_dir),
-                                    already_included,
-                                )?;
-                                out.push_str(&resolved);
-                                out.push('\n');
-                            }
-                            Err(e) => {
-                                return Err(vec![Diagnostic::error(
-                                    format!("haiwezi kufungua faili '{}': {}", rel_path, e),
-                                    crate::diagnostics::SourceSpan::point(0, 0),
-                                )]);
-                            }
-                        }
-                    }
-                } else if i < len && bytes[i] == b'{' {
+                if i < len && bytes[i] == b'{' {
                     // Sintaksia: husisha { njia }  au  husisha { njia };
                     i += 1; // ruka '{'
                     while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {

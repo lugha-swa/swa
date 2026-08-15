@@ -697,7 +697,7 @@ impl<'a> Parser<'a> {
                         }
                     }
                 }
-                // Sintaksia ya zamani: husisha C::stdio  au  husisha "path.swa"
+                // husisha C::stdio
                 else if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) {
                     self.sogeza();
                     if self.tokeni_ni("::") { self.sogeza(); }
@@ -705,8 +705,6 @@ impl<'a> Parser<'a> {
                     if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) {
                         self.sogeza();
                     }
-                } else if matches!(self.sasa().kind, TokenKind::Mfuato(_)) {
-                    self.sogeza(); // ruka hoja ya mfuato
                 }
                 if self.tokeni_ni(";") { self.sogeza(); }
                 continue;
