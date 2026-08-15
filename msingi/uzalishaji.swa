@@ -273,6 +273,24 @@ W0 andika_mov_r11_rax() { andika_baiti(73); andika_baiti(137); andika_baiti(195)
 // call r11 (41 FF D3) — wito wa kielekezi cha kazi
 W0 andika_call_r11() { andika_baiti(65); andika_baiti(255); andika_baiti(211); }
 
+// Andika disp32 (baiti 4, mdogo-kwanza) kwenye bafa maalum kwa ofseti.
+// disp inaweza kuwa hasi — mgawanyo wa sakafu kama andika_disp32_ya_off.
+W0 andika_disp32_kwenye(N8* bafa, N32 pos, N32 disp) {
+    N32 q0 = disp / 256;
+    kama (disp < 0 && (q0 * 256) != disp) { q0 = q0 - 1; }
+    N32 b0 = disp - (q0 * 256);
+    N32 q1 = q0 / 256;
+    kama (q0 < 0 && (q1 * 256) != q0) { q1 = q1 - 1; }
+    N32 b1 = q0 - (q1 * 256);
+    N32 q2 = q1 / 256;
+    kama (q1 < 0 && (q2 * 256) != q1) { q2 = q2 - 1; }
+    N32 b2 = q1 - (q2 * 256);
+    bafa[pos] = b0;
+    bafa[pos + 1] = b1;
+    bafa[pos + 2] = b2;
+    bafa[pos + 3] = q2;
+}
+
 // Andika disp32 (baiti 4, mdogo-kwanza) ya thamani hasi: [rbp - off]
 // Hesabu ya / na * (mbegu ina hitilafu katika & na >>); mgawanyo wa sakafu.
 W0 andika_disp32_ya_off(N32 off) {
@@ -3844,7 +3862,7 @@ W0 uzalishaji_kuu(N32 mzizi) {
 // Hakuna faili, hakuna kiunganishi.
 // ==========================================================
 
-W0 uzalishaji_jit(N32 mzizi, N32 argc_jit) {
+W0 uzalishaji_jit(N32 mzizi, N32 argc_jit, N8** argv_jit, N32 ofseti_jit) {
     bafa_text_wapi = 0;
     lebo_idadi = 0;
     lebo_buf_idadi = 0;
@@ -3905,7 +3923,14 @@ W0 uzalishaji_jit(N32 mzizi, N32 argc_jit) {
     bafa_text[3] = b2;
     bafa_text[4] = d2 / 256;
 
-    N8* kumbukumbu = mmap(0, ukubwa, 7, 34, -1, 0);
+    // Tenga nafasi ya thunks za wito wa nje mwishoni mwa bafa:
+    // kila nje inapata thunk ya baiti 6 (jmp [rip+disp32]) na slot ya
+    // baiti 8 yenye anwani kamili ya 64-bit. Bila thunks, tofauti kati
+    // ya bafa ya mmap (juu) na binary (chini) inazidi ±2GB — disp32
+    // haiwezi kufika. Thunk inaruka kwa anwani kamili kutoka slot.
+    N32 slots_off = ukubwa;
+    N32 jumla = ukubwa + rela_idadi * 14;
+    N8* kumbukumbu = mmap(0, jumla, 7, 34, -1, 0);
     kama (kumbukumbu == -1) {
         andika_stderr("; KOSA: mmap imeshindwa\n");
         rudisha;
@@ -3917,11 +3942,39 @@ W0 uzalishaji_jit(N32 mzizi, N32 argc_jit) {
         i = i + 1;
     }
 
+    // Rekebisha wito wa kazi za nje ndani ya bafa ya JIT
+    N32 r = 0;
+    wakati (r < rela_idadi) {
+        N8* jina_nje = nje_pool + nje_jina_off[rela_nje_id[r]];
+        N8* anwani_nje = anwani_ya_kazi(jina_nje);
+        kama (anwani_nje != 0) {
+            N32 thunk_pos = slots_off + r * 14;
+            N32 slot_pos = thunk_pos + 6;
+            // Thunk: jmp qword [rip+disp32] (FF 25 xx xx xx xx)
+            kumbukumbu[thunk_pos] = 255;
+            kumbukumbu[thunk_pos + 1] = 37;
+            andika_disp32_kwenye(kumbukumbu, thunk_pos + 2, slot_pos - (thunk_pos + 6));
+            // Slot: nakili baiti 8 za kielekezi kutoka kigeu
+            N8* s0 = &anwani_nje;
+            N32 bi = 0;
+            wakati (bi < 8) {
+                kumbukumbu[slot_pos + bi] = s0[bi];
+                bi = bi + 1;
+            }
+            // Patch ya wito: kwenda kwenye thunk (ndani ya bafa)
+            N32 pos = rela_text_off[r];
+            andika_disp32_kwenye(kumbukumbu, pos, thunk_pos - (pos + 4));
+        } sivyo {
+            andika_stderr("; JIT-RELA: %s haipatikani\n", jina_nje);
+        }
+        r = r + 1;
+    }
+
     // Ita bafa ya JIT kupitia daraja la C (tekeleza) — mbegu haina
     // wito wa kielekezi wa kazi, kwa hiyo hatuwezi kuita bafa moja kwa moja
     // ndani ya stage1. Wito wa kielekezi upo katika mzalishaji wa Swa
     // (uzalishaji_wito) kwa vizazi vya baadaye.
-    N32 matokeo = tekeleza(kumbukumbu, argc_jit);
+    N32 matokeo = tekeleza(kumbukumbu, argc_jit, argv_jit, ofseti_jit);
     andika_stderr("; JIT: matokeo=%d\n", matokeo);
 
     munmap(kumbukumbu, ukubwa);
