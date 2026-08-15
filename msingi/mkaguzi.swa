@@ -455,10 +455,20 @@ N32 mkaguzi_kagua_usemi(N32 node) {
             N32 pc = mkaguzi_tafuta_kazi(jina);
             kama (pc >= 0) { enc = 1; }  // kiashiria cha kazi
         }
+        // Hifadhi usimbaji kwenye nodi — uzalishaji wa wito unausoma
+        // kwa hoja za kigeu (rejeleo jipya la KITAMBULISHO lina thamani 0)
+        ast_thamani[node] = enc;
         rudisha enc;
     }
 
     // Ternary (hali ? kweli : uwongo)
+    kama (aina == 45) {  // AST_HALISI_D — desimali halisi (D64)
+        // ast_thamani/tiga hubeba baiti za thamani; enc inawekwa ast_nne
+        // kwa matumizi ya ukusanyaji wa hoja za wito.
+        ast_nne[node] = 832;
+        rudisha 832;  // D64: familia 3, upana 64
+    }
+
     kama (aina == 44) {  // AST_TERNARY
         mkaguzi_kagua_usemi(ast_kushoto[node]);   // hali
         N32 true_enc = mkaguzi_kagua_usemi(ast_kulia[node]);    // tawi la kweli

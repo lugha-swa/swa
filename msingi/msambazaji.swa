@@ -54,6 +54,7 @@ N32 AST_HAMISHA_KULIA   = 41;  // >>
 N32 AST_BIT_AU          = 42;  // |
 N32 AST_BIT_NA          = 43;  // &
 N32 AST_TERNARY         = 44;  // ? :
+N32 AST_HALISI_D        = 45;  // desimali halisi (D64)
 N32 AST_BADILI          = 48;  // badili(ptr, size) -> realloc
 N32 AST_MODULO          = 49;  // asilimia (%)
 
@@ -851,11 +852,33 @@ N32 changanua_primary_orodha(Msambazaji* p) {
 
 
 N32 changanua_primary(Msambazaji* p) {
-    // Halisi ya nambari
+    // Halisi ya nambari (au desimali kama kuna '.')
     kama (p->sasa.aina == TOKENI_NAMBARI) {
-        N32 val = tokeni_kwa_nambari(p->sasa.mwanzo, p->sasa.urefu);
+        N32 ni_d = 0;
+        N32 k2 = 0;
+        wakati (k2 < p->sasa.urefu) {
+            kama (p->sasa.mwanzo[k2] == 46) { ni_d = 1; vunja; }
+            k2 = k2 + 1;
+        }
+        kama (ni_d == 0) {
+            N32 val = tokeni_kwa_nambari(p->sasa.mwanzo, p->sasa.urefu);
+            sogeza(p);
+            rudisha node_mpya(AST_NAMBARI, val, -1, -1);
+        }
+        // Desimali halisi (D64): baiti kutoka daraja la C (strtod),
+        // zimehifadhiwa kwenye dimbwi la AST (baiti 8) — ast_thamani
+        // ina ofseti ya dimbwi; ast_tiga inabaki -1 kama kiungo cha hoja.
+        N64 bits = bits_ya_d64(p->sasa.mwanzo, p->sasa.urefu);
         sogeza(p);
-        rudisha node_mpya(AST_NAMBARI, val, -1, -1);
+        N32 off_d = ast_pool_wapi;
+        N8* bd = &bits;
+        N32 bdi = 0;
+        wakati (bdi < 8) {
+            ast_pool[off_d + bdi] = bd[bdi];
+            bdi = bdi + 1;
+        }
+        ast_pool_wapi = off_d + 8;
+        rudisha node_mpya(AST_HALISI_D, off_d, -1, -1);
     }
 
     // Halisi ya kamba (imetengwa kama TOKENI_MFUATANO -- inajumuisha alama za kunukuu)
