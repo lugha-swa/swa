@@ -4,8 +4,9 @@
 
 - **Keywords:** 42 za Kiswahili (hakuna Kiingereza katika sintaksia)
 - **Aina:** 25 za nambari (N8-N128, A8-A128, D16-D80, B1-B64, W0-W64)
-- **Majaribio:** 58/58 yanapita (57 ujumuishaji + 1 nyaraka)
-- **Backend:** LLVM (bootstrap ya Rust), uzalishaji.swa (native x86-64 kwa kujikusanya)
+- **Majaribio:** 67/67 ya ujumuishaji + 146 za kitengo (Rust), vipimo 5/5 vya mbegu, JIT 5/5
+- **Backend:** uzalishaji.swa (native x86-64, inajikusanya); LLVM inabaki kwenye dereva wa Rust kwa vipimo pekee
+- **Bootstrap:** mbegu (NASM) → stage1 → stage2 → stage3 → stage4 — sawa kwa baiti
 
 ## Hatua ya 0: Mkusanyaji wa Bootstrap wa Rust [PASS] IMEFANIKIWA
 
@@ -13,71 +14,53 @@
 - [x] IR lowering (AST -> Swa IR)
 - [x] LLVM codegen (x86-64 native binaries)
 - [x] ABI classification (sret, struct returns)
-- [x] Majaribio 58/58 yanapita (57 ujumuishaji + 1 nyaraka)
+- [x] Majaribio 67/67 ya ujumuishaji + 146 za kitengo
 
 ## Hatua ya 1: Kujikusanya kwa Msingi [PASS] IMEFANIKIWA
 
 - [x] Msomaji wa kujikusanya (`msomaji.swa`)
 - [x] Mchanganuzi wa kujikusanya (`msambazaji.swa`)
-- [x] Mkaguzi wa kisemantiki (`mkaguzi.swa`)
+- [x] Mkaguzi wa kisemantiki (`mkaguzi.swa`) — makosa 0 kwenye kujikusanya
 - [x] Kizalishaji cha native x86-64 (`uzalishaji.swa`)
 - [x] Binary inajikusanya (K6 inapita)
-- [x] Alloca-in-loop imerekebishwa (mbinu ya kupitisha mara mbili)
-- [x] CFG dead-code imerekebishwa (ufuatiliaji wa BrCond)
-- [x] Hitilafu ya O1 (SelectionDAG) imetatuliwa kwenye LLVM 22.1.8
 - [x] Vipengele vya lugha vinavyotumika: functions, loops (wakati/hali), if/else, structs, heap, unary minus, break/continue, short-circuit evaluation, assignment, bitwise ops, ternary
+- [x] Safu za ndani, hoja za rafu (7+), disp32, sret, vigezo vya ulimwengu kwa RIP-relative
 
-## Hatua ya 2: Mkusanyaji Kamili wa Kujikusanya [IN PROGRESS] KAZI INAENDELEA
+## Hatua ya 2: Mkusanyaji Kamili wa Kujikusanya [PASS] IMEFANIKIWA
 
-### Usanifu wa Sasa wa Kujikusanya
+### Mnyororo wa Kujikusanya wa Sasa
 
-Bootstrap inafanya kazi hivi:
-1. Rust `kande` husoma na kuchambua `msingi/*.swa` kupitia lexer/parser/IR lowering yake
-2. Rust huzaa binary ya Swa kupitia LLVM codegen
-3. Binary hiyo ya Swa inajikusanya yenyewe kwa kutumia pipeline yake asilia:
-   - `msomaji.swa` → usomaji (lexing)
-   - `msambazaji.swa` → uchanganuzi (parsing → AST)
-   - `mkaguzi.swa` → ukaguzi wa kisemantiki (aina, mawanda)
-   - `uzalishaji.swa` → uzalishaji wa msimbo wa mashine (ELF64 .o)
+1. `mbegu.bin` (NASM, syscalls pekee) husoma `msingi/*.swa` na kutoa `stage1.o`
+2. `stage1.bin` (codegen ya mbegu) inajikusanya maktaba → `stage2.o`
+3. `stage2.bin` (codegen ya Swa) inajikusanya maktaba → `stage3.o`
+4. `stage3.bin` inajikusanya → `stage4.o`
 
-**Uchunguzi muhimu wa usanifu:** `uzalishaji.swa` (mistari 2,913) hukusanya moja kwa moja
-kutoka AST (`husisha { msambazaji.swa }`), SI kutoka IR. `mteremko.swa` (mistari 649)
-hutoa IR lakini towe lake halitumiki katika mnyororo wa sasa wa kujikusanya.
-IR inatumika TU kwenye njia ya Rust → LLVM.
+**Uthibitisho:** stage2.o == stage3.o == stage4.o sawa kwa baiti (209KB),
+s3.err na s4.err tupu, vipimo 5/5 (ts_tupu→0, ts_le_uongo→0,
+ts_le_kweli→7, ts_lt_kweli→5, ts_argc→2).
 
-### Kipaumbele cha Juu
-- [x] **PR #117** (feat/k12-modulo-v2) — imeunganishwa (merged) kwenye main
-  - [x] Opereta ya modulo (`%`), maoni ya bloku (`/* */`), nambari za radiksi (0x/0o/0b), tokeni za asimilia mchanganyiko (+=, -=, *=, /=, %=)
-  - [x] AST_MODULO (49) imetekelezwa kwenye mkaguzi.swa na uzalishaji.swa
-- [ ] **mkaguzi.swa** — kamilisha ukaguzi wa aina
-  - [x] Aina nyingi za AST zinashughulikiwa: KAMA, WAKATI, CHAGUA, TANGAZO, ASIMILIA, n.k.
-  - [x] Uthibitishaji wa hoja za mwito wa kazi (idadi + aina)
-  - [x] Utafutaji wa sehemu za muundo kwa utendaji (kache ya nodi 32)
-  - [x] AST_MODULO (49) — kishikizi kipo tangu PR #117
-  - [ ] AST_KWELI(45), AST_UONGO(46), AST_TUPU(47) — zinaanguka kwenye kishikizi chaguo-msingi (hazirudishi usimbaji wa aina)
-  - [ ] AST_BADILI(48) — haina kishikizi maalum, inaanguka kwenye chaguo-msingi
-  - [ ] Uthibitishaji wa aina za hali za `chagua` dhidi ya usemi unaojaribiwa
-- [ ] **uzalishaji.swa** — kithibitisho na ukamilishaji
-  - [x] Inashughulikia aina zote za usemi (4-48) kupitia kitatuzi chenye safu
-  - [x] Inashughulikia taarifa: KAMA, WAKATI, CHAGUA, RUDISHA, VUNJA, ENDELEA
-  - [x] Inasaidia SSE/SSE2 kwa desimali (F32 na D64)
-  - [x] Inasaidia miundo (sehemu kwa nukta na mshale)
-  - [x] Inashughulikia sret kwa urejeshaji wa miundo
-  - [x] Inashughulikia vigezo vya ulimwengu kupitia RIP-relative addressing
-  - [ ] **Pengo la ABI la desimali:** Hoja za kazi hupitishwa kwenye rejesta kamili
-        (rdi, rsi, rdx, rcx, r8, r9), sio xmm0-xmm7. Hii haiathiri kujikusanya
-        kwa sababu mkusanyaji wa Swa unatumia N32 pekee.
-  - [x] AST_MODULO (49) — kishikizi kipo tangu PR #117
-- [ ] **mteremko.swa** — Hii SI kipaumbele tena kwa kujikusanya
-  - [x] Ina vishikizi vya aina zote za AST
-  - [x] Inadai sret na alloca-in-loop lakini HAZIJATEKELEZWA kwenye mwili wa kazi
-  - [!] **Towe lake la IR ni msimbo uliokufa (dead code)** — uzalishaji.swa hukusanya moja kwa moja kutoka AST
-  - [ ] Inaweza kuwa muhimu baadaye kwa hatua za uboreshaji (optimization passes)
-  - [ ] Ikiwa tutaamua kuondoa, tunaweza kuifuta. Ikiwa tutaamua kuitumia, inahitaji
-        sret na alloca-in-loop kutekelezwa KWELI na uzalishaji.swa kubadilishwa kusoma IR
+**JIT inafanya kazi (PR #143):** mmap → opcodes → rukia, na thamani ya
+kurudi inarudi kwa usahihi. Stub ya `jmp main`, tungo mwishoni mwa bafa,
+na daraja la C `tekeleza` kwa wito wa bafa (mbegu hana wito wa kielekezi).
+
+**Uchunguzi muhimu wa usanifu:** `uzalishaji.swa` (mistari ~3,900) hukusanya
+moja kwa moja kutoka AST, SI kutoka IR. `mteremko.swa` hutoa IR lakini
+towe lake halitumiki katika mnyororo wa kujikusanya — IR inatumika TU
+kwenye njia ya Rust → LLVM.
+
+### Kipaumbele cha Juu (kilichobaki)
+- [ ] **Pengo la ABI la desimali:** hoja za desimali bado hupitishwa kwenye
+      rejesta kamili (rdi...r9), si xmm0-xmm7. Haiathiri kujikusanya
+      (N32 pekee) lakini inahitajika kwa lugha kamili.
+- [ ] **AST_BADILI (48)** — haina kishikizi maalum katika mkaguzi
+- [ ] **Uthibitishaji wa aina za hali za `chagua`** dhidi ya usemi unaojaribiwa
+- [ ] **mteremko.swa** — towe lake ni msimbo mfu; uamuzi: kuifuta au kuikamilisha
+      kwa hatua za uboreshaji wa baadaye
+- [ ] **JIT kamili** — relocations za wito wa nje ndani ya msimbo wa JIT na
+      kupitisha argv (kwa sasa ni 0)
 
 ### Kipaumbele cha Kati
-- [ ] **Maktaba ya Kawaida**
+- [x] **Maktaba ya Kawaida**
   - [x] `orodha.swa` — orodha inayobadilika (dynamic array)
   - [x] `mfuatano.swa` — shughuli za nyuzi kamili
   - [x] `ramani.swa` — jedwali la hashi
@@ -88,31 +71,36 @@ IR inatumika TU kwenye njia ya Rust → LLVM.
   - [x] `nasibu.swa` — nambari nasibu
   - [x] `wakati.swa` — vipimo vya wakati
 
-### Urekebishaji kutoka feat/k4 (umekamilika)
-- [x] **fgetc: N8 + 0xFF** — kwenye `faili.swa`, fgetc inarudisha N8 lakini inahitaji
-      kuficha na 0xFF ili kushughulikia kwa usahihi thamani hasi za EOF
-- [x] **ramani_weka: ulinzi wa kufurika** — kwenye `ramani.swa`, hakikisha
-      uwekaji kwenye jedwali la hashi hauzidi uwezo
+## Hatua ya 3: Kuondoa Utegemezi wa Rust [PASS] IMEFANIKIWA
 
-## Hatua ya 3: Kuondoa Utegemezi wa Rust [GOAL] LENGO KUU
+- [x] Mkusanyaji wa Swa unajikusanya **bila kutumia kande**
+- [x] Bootstrap inafungwa: mbegu -> Swa -> Swa -> binary
+- [x] Uthibitisho: stage2.o == stage3.o == stage4.o sawa kwa baiti
+- [!] Rust `kande` inabaki kama chombo cha vipimo na ukuzaji (CI) tu —
+      si sehemu ya mnyororo wa uzalishaji
 
-- [ ] Mkusanyaji wa Swa unajikusanya **bila kutumia kande**
-- [ ] Bootstrap inafungwa: Swa -> Swa -> binary
-- [ ] Uthibitisho: binary ya Swa inazalisha binary inayofanya kazi
+## Hatua ya 4: Kuondoa Utegemezi wa LLVM [PASS kwa mnyororo] IMEFANIKIWA
 
-## Hatua ya 4: Kuondoa Utegemezi wa LLVM [GOAL] LENGO KUU
+- [x] Native x86-64 backend (uzalishaji.swa) inazalisha binary bila LLVM
+- [x] Mnyororo wa kujikusanya haugusi LLVM kabisa
+- [x] Uthibitisho: Swa inajikusanya kupitia mnyororo kamili wa Swa -> Swa -> binary
+- [!] LLVM inabaki ndani ya dereva wa Rust wa vipimo pekee
 
-- [ ] Native x86-64 backend (uzalishaji.swa) inazalisha binary bila LLVM
-- [ ] Mkusanyaji wote unajitegemea -- hakuna Rust, hakuna LLVM
-- [ ] Uthibitisho: Swa inajikusanya kupitia mnyororo kamili wa Swa -> Swa -> binary (bila LLVM)
-- [ ] Hii inafanya Swa kuwa lugha ya kwanza ya Kiafrika yenye mkusanyaji anayejitegemea kikamilifu
+## Hatua ya 5: Kuziba Pengo la Mwisho la Bootstrap [IN PROGRESS] KAZI INAENDELEA
 
-## Hatua ya 5: Lugha Kamili ya Mifumo [FUTURE] BAADAYE
+- [ ] **Baiti za mkono:** andika mkusanyaji mdogo wa kwanza kwa opcodes
+      za x86-64 zilizoandikwa kwa mkono (bila NASM) — lengo: baiti 500
+- [ ] **Kiunganishi cha kujitegemea:** kuondoa ld/gcc kwenye mnyororo
+      (self-hosted linker au ELF inayojitegemea)
+- [ ] **Runtime ya syscalls:** kuondoa libc/muda.c (fopen/fread/andika
+      kupitia syscalls moja kwa moja)
+- [ ] 0% bootstrap gap — hakuna lugha nyingine popote kwenye mnyororo
+
+## Hatua ya 6: Lugha Kamili ya Mifumo [FUTURE] BAADAYE
 
 - [ ] Maktaba ya kawaida kamili
 - [ ] Mfumo wa moduli / vifurushi
 - [ ] Zana za ujenzi (build system)
-- [ ] Kiunganishi cha kujikusanya (self-hosted linker)
 - [ ] Mazingira kamili ya uundaji
 
 ---
@@ -121,15 +109,21 @@ IR inatumika TU kwenye njia ya Rust → LLVM.
 
 Angalia [`CONTRIBUTING.md`](CONTRIBUTING.md). Masuala yenye lebo `good-first-issue` ni mahali pazuri pa kuanzia.
 
-## Vipaumbele vya Sasa (Julai 2026)
+## Vipaumbele vya Sasa (Agosti 2026)
 
-1. ~~Unganisha PR #117 (k12-modulo-v2)~~ — IMESHAUNGANISHWA (770293d + 406407e ziko main)
-2. ~~Chukua marekebisho 2 kutoka feat/k4 (fgetc + ramani_weka)~~ — YAMESHAKAMILIKA (eebd796 iko main)
-3. ~~Ongeza AST_MODULO kwa mkaguzi.swa na uzalishaji.swa~~ — IMESHAKAMILIKA
-4. Unganisha marekebisho 2 ya kujikusanya kutoka tawi `kurekebisha/marejeo-ya-mbele-vigezo-vya-ulimwengu`:
-   - `825d604` sajili aina za vigezo vya ulimwengu kabla ya kuteremsha kazi
-   - `100091e` rekebisha mzunguko usio na mwisho katika kusanya_vigeu_vya_ndani
-5. Kamilisha mapengo madogo ya mkaguzi.swa: AST_KWELI/UONGO/TUPU (usimbaji wa aina), AST_BADILI (kishikizi), CHAGUA (uthibitishaji wa aina za hali)
-6. Thibitisha ABI ya desimali kwenye uzalishaji.swa (rejista za xmm)
-7. Jaribio la bootstrap kamili: Swa asilia → Swa inayojikusanya → Stage 2 inakusanya programu → pato linalofanana
-8. Ondoa utegemezi wa LLVM kwenye njia chaguo-msingi ya ujenzi
+1. **Baiti za mkono (Hatua ya 5)** — mkusanyaji mdogo wa kwanza kwa opcodes
+   za mkono, kuondoa NASM kwenye mnyororo
+2. **ABI ya desimali** — hoja za float/double kupitia xmm0-xmm7
+3. **JIT kamili** — relocations za wito wa nje na kupitisha argv
+4. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha
+5. **Kiunganishi cha kujitegemea** — kuondoa ld/gcc kwenye mnyororo
+6. **Runtime ya syscalls** — kuondoa libc/muda.c
+
+## Historia Fupi ya Milestone (Julai-Agosti 2026)
+
+- PR #117: modulo, maoni ya bloku, radiksi, asimilia mchanganyiko — MERGED
+- PR #140: kuondoa maneno muhimu ya bloat (na, au, si, tupu, kweli, uongo) — MERGED
+- PR #131-133, #141: marejeo ya mbele, hifadhi/upakiaji wa aina, husisha nukuu,
+  AST_KWELI/UONGO/TUPU — MERGED
+- PR #142: mnyororo kamili wa kujikusanya na makosa 0 ya mkaguzi — MERGED
+- PR #143: JIT — thamani ya kurudi, stub ya main, daraja la tekeleza — MERGED
