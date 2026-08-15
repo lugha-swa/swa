@@ -30,3 +30,9 @@ int andika_stderr(const char* muundo, ...) {
     fflush(stderr);
     return matokeo;
 }
+
+// tekeleza — ita bafa ya JIT kama kazi N32(N32, N8**) (daraja kwa JIT)
+int tekeleza(void* kazi, int argc) {
+    int (*f)(int, void*) = (int (*)(int, void*))kazi;
+    return f(argc, 0);
+}
