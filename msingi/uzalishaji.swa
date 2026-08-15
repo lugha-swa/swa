@@ -1409,6 +1409,9 @@ N32 fixup_nafasi[65536];
 N32 fixup_lebo[65536];
 N32 fixup_idadi = 0;
 
+// Hali ya exe: 1 = toa ET_EXEC ya kujitegemea badala ya .o.
+N32 hali_exe_sasa = 0;
+
 // Msaidizi wa kuongeza kuingia kwa fixup (na ulinzi wa mipaka)
 W0 weka_fixup(N32 lebo_id) {
     kama (fixup_idadi < 65536) {
@@ -1984,6 +1987,9 @@ W0 uzalishaji_chagua(N32 node, N32 kazi_node) {
 // Utoaji wa wito wa kazi — AST_WITO (8)
 // -------------------------------------------------------
 W0 uzalishaji_wito(N32 node, N32 kazi_node) {
+    // Safu za ndani KABLA ya taarifa zote — mbegu huzihitaji mwanzoni.
+    N8 jina_ndani[24];
+    N8 tk[16];
     ni_syscall_wito = 0;
     ni_andika_nje = 0;
     N32 callee_node = ast_kushoto[node];
@@ -3827,9 +3833,102 @@ N32 thamani_isiyobadilika(N32 node) {
 }
 
 // -------------------------------------------------------
+// Utoaji wa exe (ET_EXEC ya kujitegemea, bila kiunganishi cha nje).
+// Mpangilio: kichwa+phdr (vaddr 0x400000, baiti 120), .text
+// (0x400078), .data, .bss (memsz pekee — kernel hujaza sifuri).
+// -------------------------------------------------------
+W0 uzalishaji_exe(N32 text_size, N32 data_size, N32 bss_size, N32 main_off) {
+
+    N32 text_vaddr = 4194424;   // 0x400078 (0x400000 + baiti 120)
+    N32 data_vaddr = text_vaddr + text_size;
+
+    // Rekebisha marejeo yote (RELA) moja kwa moja — hakuna ld.
+    // Ulimwengu → data_vaddr (+data_size kwa bss); nje → lebo ya
+    // ndani kwa jina (wito wa mbele uliandikwa kama nje).
+    N32 ri = 0;
+    wakati (ri < rela_idadi) {
+        N32 pos = rela_text_off[ri];
+        N32 nje_idx = rela_nje_id[ri];
+        N32 tgt = 0;
+        kama (nje_idx == -1) {
+            N32 gidx = rela_ulimwengu_idx[ri];
+            tgt = data_vaddr + data_ulimwengu_off[gidx];
+            tgt = tgt + (data_ulimwengu_bss[gidx] == 1) * data_size;
+        } sivyo {
+            tgt = text_vaddr + kazi_nafasi_kwa_jina(nje_pool + nje_jina_off[nje_idx]);
+        }
+        andika_disp32_kwenye(bafa_text, pos, tgt - (text_vaddr + pos + 4));
+        ri = ri + 1;
+    }
+
+    // Rekebisha wito wa _start → main (disp32 kwenye baiti 12-15).
+    andika_disp32_kwenye(bafa_text, 12, main_off - 16);
+
+    // Kichwa cha ELF (64) + phdr (56) — baiti 120.
+    // Kichwa + phdr kama maneno ya N32 (baiti 120 = maneno 30).
+    // Mbegu hufanya faharisi za safu x4 kwenye uhifadhi — safu ya N32
+    // ndiyo njia sahihi pekee ya kujaza baiti.
+    N32 kichwa32[30];
+    N32 filesz = 120 + text_size + data_size;
+    N32 memsz = filesz + bss_size;
+    kichwa32[0] = 1179403647;
+    kichwa32[1] = 65794;
+    kichwa32[2] = 0;
+    kichwa32[3] = 0;
+    kichwa32[4] = 4063234;
+    kichwa32[5] = 1;
+    kichwa32[6] = 4194424;
+    kichwa32[7] = 0;
+    kichwa32[8] = 64;
+    kichwa32[9] = 0;
+    kichwa32[10] = 0;
+    kichwa32[11] = 0;
+    kichwa32[12] = 0;
+    kichwa32[13] = 3670080;
+    kichwa32[14] = 1;
+    kichwa32[15] = 0;
+    kichwa32[16] = 1;
+    kichwa32[17] = 7;
+    kichwa32[18] = 0;
+    kichwa32[19] = 0;
+    kichwa32[20] = 4194304;
+    kichwa32[21] = 0;
+    kichwa32[22] = 4194304;
+    kichwa32[23] = 0;
+    kichwa32[24] = filesz;
+    kichwa32[25] = 0;
+    kichwa32[26] = memsz;
+    kichwa32[27] = 0;
+    kichwa32[28] = 4096;
+    kichwa32[29] = 0;
+    N32 ki = 0;
+    wakati (ki < 30) { andika_neno4_moja_kwa_moja(kichwa32[ki]); ki = ki + 1; }
+
+
+    // .text
+    futa_bafa_text();
+
+
+    // .data
+    ki = 0;
+    wakati (ki < bafa_data_wapi) {
+        andika_baiti_moja_kwa_moja(bafa_data[ki]);
+        ki = ki + 1;
+    }
+
+
+    // .bss: hakuna baiti — p_memsz huifunika.
+}
+
+// -------------------------------------------------------
 // Kiingilio kikuu — toa ELF .o kwa AST nzima
 // -------------------------------------------------------
-W0 uzalishaji_kuu(N32 mzizi) {
+
+W0 uzalishaji_kuu(N32 mzizi, N32 hali_exe) {
+    // Bafa la muda la hali ya exe: stub ya _start (baiti 26) na
+    // kichwa+phdr (baiti 120) — tangazo la kwanza (mbegu huhitaji
+    // safu za ndani mwanzoni mwa kazi).
+    N32 kipande32[7];
     // Weka upya buffer
     bafa_text_wapi = 0;
     lebo_idadi = 0;
@@ -3839,6 +3938,7 @@ W0 uzalishaji_kuu(N32 mzizi) {
     nje_idadi = 0;
     nje_pool_wapi = 1;
     rela_idadi = 0;
+    hali_exe_sasa = hali_exe;
 
     // Weka upya hali ya herufi halisi (kwa kazi zote)
     str_idadi = 0;
@@ -3848,6 +3948,23 @@ W0 uzalishaji_kuu(N32 mzizi) {
     sehemu_buf_wapi = 1;
     N32 sj = 0;
     wakati (sj < 1024) { str_lebo_id[sj] = -1; sj = sj + 1; }
+
+    // Katika hali ya exe: _start mwanzoni mwa .text — mov rdi,[rsp]
+    // (argc); lea rsi,[rsp+8] (argv); mov al,0; call main (disp32
+    // hurekebishwa baada ya main kutolewa); mov rdi,rax; mov eax,60;
+    // syscall.
+    kama (hali_exe) {
+        // Stub ya _start kama maneno ya N32 (baiti 28).
+        kipande32[0] = 607947592;
+        kipande32[1] = 611618120;
+        kipande32[2] = 3892359176;
+        kipande32[3] = 0;
+        kipande32[4] = 3100084552;
+        kipande32[5] = 60;
+        kipande32[6] = 1295;
+        sj = 0;
+        wakati (sj < 7) { andika_neno4(kipande32[sj]); sj = sj + 1; }
+    }
 
     // 0. Futa data ya ulimwengu
     bafa_data_wapi = 0; data_ulimwengu_idadi = 0; bss_wapi = 0;
@@ -4010,6 +4127,21 @@ W0 uzalishaji_kuu(N32 mzizi) {
 
     // 4. Toa ELF kwa stdout
     //    Kichwa → bafa (.text) → symtab → strtab → rela.text → shstrtab → vichwa
+
+    // ==================================================
+    // Hali ya exe: ET_EXEC ya kujitegemea (bila kiunganishi cha nje).
+    // Mpangilio: kichwa+phdr (vaddr 0x400000, baiti 120), .text
+    // (0x400078), .data, .bss (memsz pekee — kernel hujaza sifuri).
+    // Kumbuka: inatumia vigeu vilivyopo (text_off, i, sz, n.k.) —
+    // jedwali la vigeu vya ndani lina ukomo wa 64.
+    // ==================================================
+    kama (hali_exe) {
+        // Utoaji wa exe uko kwenye kazi yake — jedwali la vigeu vya
+        // ndani la mbegu halina nafasi zaidi hapa.
+        uzalishaji_exe(text_size, data_size, bss_size, main_off);
+
+        rudisha;
+    }
 
     // Kichwa cha ELF (64 baiti, moja kwa moja)
     andika_elf_kichwa(shoff, shnum, shstrndx);

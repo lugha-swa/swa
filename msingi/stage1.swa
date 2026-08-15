@@ -64,11 +64,15 @@ W0 ondoa_husisha() {
 
 N32 main(N32 argc, N8** argv) {
     N32 ni_jit = 0;
+    N32 ni_exe = 0;
     N32 faili_idx = 1;
     kama (argc > 1) {
         N8* a = argv[1];
         kama (a[0]==45 && a[1]==45 && a[2]==106 && a[3]==105 && a[4]==116 && a[5]==0) {
             ni_jit = 1; faili_idx = 2;
+        }
+        kama (a[0]==45 && a[1]==45 && a[2]==101 && a[3]==120 && a[4]==101 && a[5]==0) {
+            ni_exe = 1; faili_idx = 2;
         }
     }
 
@@ -114,7 +118,7 @@ N32 main(N32 argc, N8** argv) {
         andika_stderr("; ONYO: makosa ya kuteremsha %d, inaendelea\n", t.makosa);
     }
 
-    kama (ni_jit) { uzalishaji_jit(mzizi, argc - faili_idx, argv, faili_idx); } sivyo { uzalishaji_kuu(mzizi); }
+    kama (ni_jit) { uzalishaji_jit(mzizi, argc - faili_idx, argv, faili_idx); } sivyo { uzalishaji_kuu(mzizi, ni_exe); }
 
     rudisha 0;
 }
