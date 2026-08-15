@@ -267,6 +267,12 @@ W0 andika_mov_rax_rcx() { andika_baiti(72); andika_baiti(137); andika_baiti(200)
 // mov rcx, rax (48 89 C1) — kwa kukanusha kwa 64-bit (0 - rcx)
 W0 andika_mov_rcx_rax() { andika_baiti(72); andika_baiti(137); andika_baiti(193); }
 
+// mov r11, rax (49 89 C3) — hifadhi kielekezi cha kazi kwa wito wa ndani
+W0 andika_mov_r11_rax() { andika_baiti(73); andika_baiti(137); andika_baiti(195); }
+
+// call r11 (41 FF D3) — wito wa kielekezi cha kazi
+W0 andika_call_r11() { andika_baiti(65); andika_baiti(255); andika_baiti(211); }
+
 // Andika disp32 (baiti 4, mdogo-kwanza) ya thamani hasi: [rbp - off]
 // Hesabu ya / na * (mbegu ina hitilafu katika & na >>); mgawanyo wa sakafu.
 W0 andika_disp32_ya_off(N32 off) {
@@ -1841,6 +1847,20 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
         l = l + 1;
     }
 
+    // Wito wa kielekezi cha kazi: callee ni kigeu cha ndani chenye anwani
+    // (k.m. bafa ya JIT). Kielekezi hupakiwa na wito hutolewa kwa call r11.
+    N32 ni_kielekezi = 0;
+    kama (ni_ndani == 0) {
+        N32 vi = 0;
+        wakati (vi < var_idadi) {
+            kama (jina_linganisha(var_pool + var_jina_off[vi], callee)) {
+                ni_kielekezi = 1;
+                vunja;
+            }
+            vi = vi + 1;
+        }
+    }
+
     // Kusanya hoja kwenye safu (tumia bafa ya ulimwengu)
     // Hoja zimefungwa kupitia ast_tiga katika mchanganuzi wa Swa
     hoja_idadi = 0;
@@ -1875,6 +1895,12 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
         uzalishaji_usemi(hoja_nodes_bk[msingi + i], kazi_node);
         sukuma_thamani(hoja_enc_bk[msingi + i]);
         i = i - 1;
+    }
+
+    // Kwa wito wa kielekezi: pakia anwani ya kazi kwenye r11
+    kama (ni_kielekezi) {
+        uzalishaji_usemi(callee_node, kazi_node);   // rax = kielekezi
+        andika_mov_r11_rax();
     }
 
     // Vuta hoja kutoka rafu kwenda kwa rejesta kwa mpangilio wa kushoto kwenda kulia
@@ -1944,18 +1970,22 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
     // Weka AL = idadi ya rejesta za XMM zilizotumika (ABI inahitaji kwa wito wa variadic)
     andika_mov_al(xmm_reg);
 
-    andika_baiti(232);  // call rel32
-    kama (ni_ndani) {
-        N32 offset = ndani_off - (bafa_text_wapi + 4);
-        andika_neno4(offset);
+    kama (ni_kielekezi) {
+        andika_call_r11();  // call r11
     } sivyo {
-        N32 nje_id = pata_au_unda_nje(callee);
-        kama (rela_idadi < 65536) {
-            rela_text_off[rela_idadi] = bafa_text_wapi;
-            rela_nje_id[rela_idadi] = nje_id;
-            rela_idadi = rela_idadi + 1;
+        andika_baiti(232);  // call rel32
+        kama (ni_ndani) {
+            N32 offset = ndani_off - (bafa_text_wapi + 4);
+            andika_neno4(offset);
+        } sivyo {
+            N32 nje_id = pata_au_unda_nje(callee);
+            kama (rela_idadi < 65536) {
+                rela_text_off[rela_idadi] = bafa_text_wapi;
+                rela_nje_id[rela_idadi] = nje_id;
+                rela_idadi = rela_idadi + 1;
+            }
+            andika_neno4(0);
         }
-        andika_neno4(0);
     }
 
     // Safisha hoja za rafu zilizobaki (hoja 7+ za GP, baiti 8 kila moja)
@@ -3814,7 +3844,7 @@ W0 uzalishaji_kuu(N32 mzizi) {
 // Hakuna faili, hakuna kiunganishi.
 // ==========================================================
 
-W0 uzalishaji_jit(N32 mzizi) {
+W0 uzalishaji_jit(N32 mzizi, N32 argc_jit) {
     bafa_text_wapi = 0;
     lebo_idadi = 0;
     lebo_buf_idadi = 0;
@@ -3829,28 +3859,70 @@ W0 uzalishaji_jit(N32 mzizi) {
     N32 sj = 0;
     wakati (sj < 1024) { str_lebo_id[sj] = -1; sj = sj + 1; }
 
+    // Stub ya kuingia: jmp main — inatengenezwa baada ya kukusanya
+    // kwani lebo_nafasi ya main inajulikana mwishoni.
+    andika_baiti(233);  // jmp rel32
+    andika_neno4(0);
+
     N32 node = ast_kushoto[mzizi];
     wakati (node != -1) {
         kama (ast_aina[node] == 2) { uzalishaji_kazi(node); }
         node = ast_nne[node];
     }
-    N32 ukubwa = bafa_text_wapi;
-    kama (ukubwa == 0) { rudisha; }
 
-    N8* anwani = mmap(0, ukubwa, 7, 34, -1, 0);
-    kama (anwani == -1) {
+    // Ongeza tungo mwishoni mwa msimbo na uweke lebo zao —
+    // hii pia hurekebisha fixups zote zilizobaki.
+    andika_herufi_halisi();
+
+    N32 ukubwa = bafa_text_wapi;
+    kama (ukubwa <= 5) { rudisha; }
+
+    // Tafuta lebo ya "main" na urekebishe stub ya kuingia
+    N32 main_off = -1;
+    N32 l2 = 0;
+    wakati (l2 < lebo_idadi) {
+        N8* jn2 = lebo_jina[l2];
+        kama (jn2[0] == 109 && jn2[1] == 97 && jn2[2] == 105 &&
+              jn2[3] == 110 && jn2[4] == 0) {
+            main_off = lebo_nafasi[l2];
+            vunja;
+        }
+        l2 = l2 + 1;
+    }
+    kama (main_off < 0) {
+        andika_stderr("; KOSA: JIT haijapata lebo ya main\n");
+        rudisha;
+    }
+    // disp32 = main_off - 5 (baada ya opcode ya jmp); hesabu ya / na *
+    N32 disp = main_off - 5;
+    N32 b0 = disp - ((disp / 256) * 256);
+    N32 d1 = disp / 256;
+    N32 b1 = d1 - ((d1 / 256) * 256);
+    N32 d2 = d1 / 256;
+    N32 b2 = d2 - ((d2 / 256) * 256);
+    bafa_text[1] = b0;
+    bafa_text[2] = b1;
+    bafa_text[3] = b2;
+    bafa_text[4] = d2 / 256;
+
+    N8* kumbukumbu = mmap(0, ukubwa, 7, 34, -1, 0);
+    kama (kumbukumbu == -1) {
         andika_stderr("; KOSA: mmap imeshindwa\n");
         rudisha;
     }
 
     N32 i = 0;
     wakati (i < ukubwa) {
-        anwani[i] = bafa_text[i];
+        kumbukumbu[i] = bafa_text[i];
         i = i + 1;
     }
 
-    N32 matokeo = anwani();
+    // Ita bafa ya JIT kupitia daraja la C (tekeleza) — mbegu haina
+    // wito wa kielekezi wa kazi, kwa hiyo hatuwezi kuita bafa moja kwa moja
+    // ndani ya stage1. Wito wa kielekezi upo katika mzalishaji wa Swa
+    // (uzalishaji_wito) kwa vizazi vya baadaye.
+    N32 matokeo = tekeleza(kumbukumbu, argc_jit);
     andika_stderr("; JIT: matokeo=%d\n", matokeo);
 
-    munmap(anwani, ukubwa);
+    munmap(kumbukumbu, ukubwa);
 }
