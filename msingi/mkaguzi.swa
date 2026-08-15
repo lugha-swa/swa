@@ -73,6 +73,14 @@ N32 mkaguzi_aina_zifanane(N32 a, N32 b) {
     kama (a == 0 || b == 0 || a == -1 || b == -1) { rudisha 1; }
     kama (a < 0 || b < 0) {
         kama (a < 0 && b < 0) { rudisha 1; }
+        // Kielekezi cha muundo (hasi odd) dhidi ya kielekezi wa kawaida:
+        // teng a() inarudisha N8* na hupewa muundo* — mchanganyiko halali
+        // wa kielekezi. Muundo wenyewe (hasi hata) dhidi ya kielekezi si sawa.
+        kama (a < 0) {
+            kama ((a / 2) * 2 != a) { rudisha 1; }  // a ni kielekezi cha muundo
+            rudisha 0;
+        }
+        kama ((b / 2) * 2 != b) { rudisha 1; }  // b ni kielekezi cha muundo
         rudisha 0;
     }
     N32 fa = (a / 256) % 256;
