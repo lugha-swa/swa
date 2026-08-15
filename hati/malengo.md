@@ -26,12 +26,19 @@ Hakuna faili. Hakuna binary. Hakuna OS kati.
 - [ ] Mipaka iliyobaki: wito wa kazi za nje ndani ya msimbo wa JIT
       (relocations hazijarekebishwa bado) na kupitisha argv
 
-### Hatua ya 3: Kuziba pengo la bootstrap [MWISHO]
-Andika baiti 500 za mkono (opcodes za x86-64) zinazounda mkusanyaji
-mdogo wa Swa. Hii inavunja utegemezi wa mwisho kabisa.
-- [ ] mbegu.s bado inategemea NASM (mistari 9,146)
-- [ ] Hakuna lugha yoyote iliyowahi kuandika baiti za kwanza za mkusanyaji wake
-- [ ] 0% bootstrap gap
+### Hatua ya 3: Kuziba pengo la bootstrap [IMEFANYIKA KWA MBEGU]
+Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
+- [x] Kwanza (msingi/kwanza.bin): baiti 393 zilizoandikwa kwa mkono
+      (kichwa cha ELF 64 + kichwa cha programu 56 + msimbo 273) — hubadilisha
+      hex hadi binary na inajijenga yenyewe (kwanza.hex -> kwanza.bin)
+- [x] mbegu.bin inazalika kutoka mbegu.hex kupitia Kwanza — NASM
+      si sehemu ya mnyororo wa uzalishaji tena; mbegu.s ni rejea tu
+- [ ] Kiunganishi cha kujitegemea: ld/gcc bado zinahitajika kuunganisha
+      stage binaries
+- [ ] Runtime ya syscalls: .swa bado inatumia libc/muda.c (fopen, andika,
+      malloc) — inahitaji syscalls moja kwa moja
+- [ ] 0% bootstrap gap — muda.c (C) na zana za kuunganisha bado ziko
+      kwenye mnyororo
 
 ## Kanuni Zisizobadilika
 
