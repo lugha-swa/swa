@@ -10,6 +10,7 @@
 //   tenga   -> malloc   (imetolewa na libc, haihitaji kiunganishi)
 //   achilia -> free     (imetolewa na libc, haihitaji kiunganishi)
 
+#include <dlfcn.h>
 #include <stdarg.h>
 #include <stdio.h>
 
@@ -32,7 +33,12 @@ int andika_stderr(const char* muundo, ...) {
 }
 
 // tekeleza — ita bafa ya JIT kama kazi N32(N32, N8**) (daraja kwa JIT)
-int tekeleza(void* kazi, int argc) {
+int tekeleza(void* kazi, int argc, void* argv, int ofseti) {
     int (*f)(int, void*) = (int (*)(int, void*))kazi;
-    return f(argc, 0);
+    return f(argc, (void*)((char**)argv + ofseti));
+}
+
+// anwani_ya_kazi — tafuta anwani ya kazi ya nje kwa jina (kwa JIT)
+void* anwani_ya_kazi(const char* jina) {
+    return dlsym(RTLD_DEFAULT, jina);
 }
