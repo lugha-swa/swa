@@ -1669,6 +1669,7 @@ N32 param_enc[16];
 // Kina kinatoa nafasi kwa viwango 8 vya wito vilivyopachikwa.
 N32 hoja_undani = 0;
 N32 ni_syscall_wito = 0;
+N32 ni_andika_nje = 0;
 N32 hoja_nodes_bk[256];
 N32 hoja_enc_bk[256];
 
@@ -1984,6 +1985,7 @@ W0 uzalishaji_chagua(N32 node, N32 kazi_node) {
 // -------------------------------------------------------
 W0 uzalishaji_wito(N32 node, N32 kazi_node) {
     ni_syscall_wito = 0;
+    ni_andika_nje = 0;
     N32 callee_node = ast_kushoto[node];
     N8* callee = ast_pool + ast_jina_off[callee_node];
 
@@ -2021,7 +2023,10 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
     // kuchapisha (andika_sehemu, andika_n64, andika_mfuatano, andika_baiti).
     kama (jina_linganisha(callee, "andika") || jina_linganisha(callee, "andika_stderr")) {
         N32 a0 = ast_kulia[node];
-        kama (a0 != -1 && ast_aina[a0] == 5) {
+        // Kama kazi za kuchapisha za ndani hazipo (program ya mtumiaji
+        // bila maktaba), angukia kwenye wito wa nje wa C (andika ya muda).
+        kama (kazi_nafasi_kwa_jina("andika_sehemu") < 0) { ni_andika_nje = 1; }
+        kama (a0 != -1 && ast_aina[a0] == 5 && ni_andika_nje == 0) {
             N8* muundo = ast_pool + ast_jina_off[a0];
             N32 fd = 1;
             kama (jina_linganisha(callee, "andika_stderr")) { fd = 2; }
@@ -2551,7 +2556,9 @@ W0 uzalishaji_jumlisha(N32 node, N32 kazi_node) {
     N32 lhs = ast_kushoto[node];
     N32 rhs = ast_kulia[node];
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
+    // Ukubwa hukokotolewa kutoka enc — ast_tiga ya hoja ya wito
+    // hubadilishwa na mkaguzi kuwa kiungo cha mnyororo.
+    N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_d = ni_desimali_enc(enc);
 
     uzalishaji_usemi(rhs, kazi_node);
@@ -2572,7 +2579,7 @@ W0 uzalishaji_jumlisha(N32 node, N32 kazi_node) {
 W0 uzalishaji_tofauti(N32 node, N32 kazi_node) {
     N32 lhs = ast_kushoto[node];
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_d = ni_desimali_enc(enc);
 
     kama (lhs == -1) {
@@ -2709,7 +2716,6 @@ W0 vuta_thamani_rcx(N32 enc) {
 // AST_SAWA (20) -- linganisha (==)
 W0 uzalishaji_sawa(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
     N32 ni_d = ni_desimali_enc(enc);
 
     uzalishaji_usemi(ast_kulia[node], kazi_node);
@@ -2856,7 +2862,7 @@ W0 uzalishaji_si(N32 node, N32 kazi_node) {
 // AST_ZIDISHA (31) -- zidisha
 W0 uzalishaji_zidisha(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_d = ni_desimali_enc(enc);
 
     uzalishaji_usemi(ast_kulia[node], kazi_node);
@@ -2876,7 +2882,7 @@ W0 uzalishaji_zidisha(N32 node, N32 kazi_node) {
 // AST_GAWANYA (32) -- gawanya
 W0 uzalishaji_gawanya(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_d = ni_desimali_enc(enc);
     N32 ni_b = ni_bila_ishara_enc(enc);
 
@@ -2906,7 +2912,7 @@ W0 uzalishaji_gawanya(N32 node, N32 kazi_node) {
 // AST_MODULO (49) -- asilimia
 W0 uzalishaji_modulo(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_b = ni_bila_ishara_enc(enc);
 
     // Hakuna modulo ya moja kwa moja kwa desimali;
@@ -2931,7 +2937,7 @@ W0 uzalishaji_modulo(N32 node, N32 kazi_node) {
 
 // AST_HAMISHA_KUSHOTO (39) -- hamisha kushoto (<<)
 W0 uzalishaji_hamisha_kushoto(N32 node, N32 kazi_node) {
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(ast_thamani[node]);
     uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
     uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
     kama (saizi >= 8) { andika_shl_rax_cl(); }
@@ -2942,7 +2948,7 @@ W0 uzalishaji_hamisha_kushoto(N32 node, N32 kazi_node) {
 // Zenye ishara → sar (arithmetic), bila ishara → shr (logical)
 W0 uzalishaji_hamisha_kulia(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_b = ni_bila_ishara_enc(enc);
     uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
     uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
@@ -2957,7 +2963,7 @@ W0 uzalishaji_hamisha_kulia(N32 node, N32 kazi_node) {
 
 // AST_BIT_AU (42) -- AU ya biti (|)
 W0 uzalishaji_bit_au(N32 node, N32 kazi_node) {
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(ast_thamani[node]);
     uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
     uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
     kama (saizi >= 8) { andika_or_rax_rcx(); }
@@ -2966,7 +2972,7 @@ W0 uzalishaji_bit_au(N32 node, N32 kazi_node) {
 
 // AST_BIT_NA (43) -- NA ya biti (&)
 W0 uzalishaji_bit_na(N32 node, N32 kazi_node) {
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(ast_thamani[node]);
     uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
     uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
     kama (saizi >= 8) { andika_and_rax_rcx(); }
@@ -2975,7 +2981,7 @@ W0 uzalishaji_bit_na(N32 node, N32 kazi_node) {
 
 // AST_TERNARY (44) -- ? :
 W0 uzalishaji_ternary(N32 node, N32 kazi_node) {
-    N32 c2=ast_kushoto[node];N32 k2=ast_kulia[node];N32 s2=ast_tiga[node];
+    N32 c2=ast_kushoto[node];N32 k2=ast_kulia[node];N32 s2=ast_nne[node];
     N32 lb=lebo_buf_mpya();N32 lm=lebo_buf_mpya();
     uzalishaji_usemi(c2, kazi_node);andika_test_eax_eax();
     toa_je_lebo(lb);uzalishaji_usemi(k2, kazi_node);
@@ -3132,7 +3138,7 @@ W0 uzalishaji_asimilia(N32 node, N32 kazi_node) {
         N32 idx_node = ast_kulia[lhs];
         kama (idx_node != -1) {
             // Uandikishaji wa safu: arr[idx] = thamani
-            N32 saizi = ast_tiga[lhs];
+            N32 saizi = ukubwa_kutoka_enc(ast_thamani[lhs]);
             kama (saizi == 0) { saizi = 4; }
         uzalishaji_usemi(idx_node, kazi_node);          // eax = idx
             kama (saizi == 8) {
@@ -3362,7 +3368,7 @@ W0 uzalishaji_anwani_ya(N32 node, N32 kazi_node) {
         N32 idx = ast_kulia[var_node];
         kama (idx != -1) {
             // &arr[idx] — anwani = msingi + idx * saizi
-            N32 saizi = ast_tiga[var_node];
+            N32 saizi = ukubwa_kutoka_enc(ast_thamani[var_node]);
             kama (saizi == 0) { saizi = 4; }
             uzalishaji_usemi(idx, kazi_node);
             kama (saizi == 8) { andika_baiti(193); andika_baiti(224); andika_baiti(3); }
@@ -3557,11 +3563,12 @@ W0 kusanya_vigeu_vya_ndani(N32 node) {
     kusanya_vigeu_vya_ndani(ast_kulia[node]);
     // ast_tiga ina maana tofauti kulingana na aina ya nodi.
     // Kwa shughuli za hesabu/linganisho/biti (6-25,31-32,39-43,49),
-    //   mkaguzi ameweka UKUBWA WA AINA (4,8,16 n.k.).
+    //   hubeba kiungo cha hoja cha mnyororo wa wito au -1.
     // Kwa SEHEMU_DOT(33)/SEHEMU_MSHALE(34),
     //   mkaguzi ameweka OFSETI YA BAITI (0,4,8 n.k.).
-    // Kwa TAJA(29)/TANGAZO_ULIMWENGU(35)/TERNARY(44),
-    //   mkaguzi ameweka UKUBWA WA AINA.
+    // Kwa TANGAZO_ULIMWENGU(35),
+    //   mchanganuzi ameweka UKUBWA WA AINA.
+    // Kwa TERNARY(44), tawi la uwongo liko ast_nne.
     // Thamani hizi si nodi za AST — kuzitembelea husababisha
     // mzunguko usio na mwisho kwenye mti.
     N32 ruka_tiga = 0;
