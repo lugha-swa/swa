@@ -93,12 +93,15 @@ kwenye njia ya Rust → LLVM.
       Inajijenga (kwanza.hex -> kwanza.bin) na inazalisha mbegu.bin kutoka
       mbegu.hex — NASM si sehemu ya mnyororo wa uzalishaji tena.
       Uthibitisho: gharama/jenga-kwanza.sh (pia kwenye CI).
-- [ ] **Kiunganishi cha kujitegemea:** kuondoa ld/gcc kwenye mnyororo
-      (self-hosted linker au ELF inayojitegemea)
-- [ ] **Runtime ya syscalls:** kuondoa libc/muda.c (fopen/fread/andika
-      kupitia syscalls moja kwa moja)
-- [ ] 0% bootstrap gap — muda.c (C) na zana za kuunganisha bado ziko
-      kwenye mnyororo
+- [x] **Kiunganishi cha kujitegemea:** bendera ya `--exe` inatoa ET_EXEC
+      tuli (syscalls pekee, hakuna kichwa cha sehemu) — stage2-exe
+      inajijenga yenyewe sawa kwa baiti (stage3-exe) bila ld/gcc/libc.
+      Marejeo ya ndani yanatatuliwa na mkusanyaji mwenyewe (RELA-patch
+      + jedwali la lebo); `_start` inaitwa moja kwa moja na kernel.
+- [x] **Runtime ya syscalls:** mkusanyaji hautekelezi kupitia libc tena
+      (PR #149) — faili, mmap, na uchapishaji kupitia syscalls.
+- [ ] 0% bootstrap gap — hatua ya stage1 pekee ndiyo iliyobaki
+      (gcc/muda.c kuunganisha mbegu); kuanzia stage2 mnyororo ni safi.
 
 ## Hatua ya 6: Lugha Kamili ya Mifumo [FUTURE] BAADAYE
 
@@ -117,12 +120,14 @@ Angalia [`CONTRIBUTING.md`](CONTRIBUTING.md). Masuala yenye lebo `good-first-iss
 
 1. ~~Baiti za mkono~~ — IMESHAFANYIKA (PR #147): Kwanza (baiti 393)
    inazalisha mbegu.bin kutoka hex; NASM imeondolewa kwenye mnyororo
-2. **Kiunganishi cha kujitegemea** — kuondoa ld/gcc kwenye mnyororo
-3. **Runtime ya syscalls** — kuondoa libc/muda.c
-4. **ABI ya desimali kamili** — D32 na ugeuzi wa aina (D64 ndiyo pekee
+2. ~~Kiunganishi cha kujitegemea~~ — IMESHAFANYIKA: `--exe` inatoa ET_EXEC
+   tuli inayojijenga yenyewe bila ld/gcc/libc (stage2-exe == stage3-exe)
+3. ~~Runtime ya syscalls~~ — IMESHAFANYIKA (PR #149): syscalls moja kwa moja
+4. **Kuziba hatua ya stage1** — mbegu bado inahitaji gcc/muda.c kuunganishwa
+5. **ABI ya desimali kamili** — D32 na ugeuzi wa aina (D64 ndiyo pekee
    inayofanya kazi kwa sasa)
-5. **Dereva wa Rust** — desimali katika codegen ya LLVM
-6. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha
+6. **Dereva wa Rust** — desimali katika codegen ya LLVM
+7. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha
 
 ## Historia Fupi ya Milestone (Julai-Agosti 2026)
 
