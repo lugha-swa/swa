@@ -2570,25 +2570,66 @@ changanua_taarifa:
         inc     qword [token_pos]       ; tumia "kwa"
         mov     edi, TOK_MABANO_FUNGO
         call    tarajia_ishara
-        ; TODO: changanua kwa kikamilifu
-        ; Kwa sasa, ruka hadi )
-        mov     r12d, 1
-.kwa_skip:
+
+        ; --- Anzisha: tangazo/usemi au tupu (;) ---
+        mov     rdi, [token_pos]
+        cmp     dword [token_ty + rdi*4], TOK_NUKTA_MKATO
+        je      .kwa_init_tupu
+        call    changanua_taarifa       ; tangazo au usemi (hutumia ;)
+        mov     r13d, eax
+        jmp     .kwa_hali
+.kwa_init_tupu:
+        inc     qword [token_pos]
+        mov     r13d, -1
+
+.kwa_hali:
+        mov     rdi, [token_pos]
+        cmp     dword [token_ty + rdi*4], TOK_NUKTA_MKATO
+        je      .kwa_hali_tupu
+        call    changanua_usemi
+        mov     r14d, eax
+        mov     edi, TOK_NUKTA_MKATO
+        call    tarajia_ishara
+        jmp     .kwa_hatua
+.kwa_hali_tupu:
+        inc     qword [token_pos]
+        mov     r14d, -1
+
+.kwa_hatua:
         mov     rdi, [token_pos]
         cmp     dword [token_ty + rdi*4], TOK_MABANO_FUNGA
-        je      .kwa_skip_done
-        cmp     dword [token_ty + rdi*4], TOK_MWISHO
-        je      .kwa_skip_done
+        je      .kwa_hatua_tupu
+        call    changanua_usemi
+        mov     r15d, eax
+        mov     edi, TOK_MABANO_FUNGA
+        call    tarajia_ishara
+        jmp     .kwa_mwili
+.kwa_hatua_tupu:
         inc     qword [token_pos]
-        jmp     .kwa_skip
-.kwa_skip_done:
-        inc     qword [token_pos]       ; tumia )
+        mov     r15d, -1
+
+.kwa_mwili:
         call    changanua_block
-        mov     r13d, eax
-        mov     r8d, AST_KWA
-        mov     r9d, -1
-        mov     r10d, r13d
+        mov     r9d, eax                ; mwili asili (au -1)
+
+        ; Funga kwenye AST_BLOCK: mnyororo wa taarifa uko kwenye
+        ; ast_kushoto — hatua inawekwa kwenye ast_tiga ya block hili,
+        ; kwa alama -777777 kwenye ast_kulia (kielezi cha nodi huwa
+        ; >= -1 kamwe, hivyo hakuna mgongano).
+        mov     r10d, -1
         mov     r11d, -1
+        mov     r8d, AST_BLOCK
+        call    ast_nodi_mpya
+        mov     r8d, eax
+        mov     [ast_kushoto + r8*4], r9d
+        mov     [ast_tiga + r8*4], r15d
+        mov     dword [ast_kulia + r8*4], -777777
+
+        ; AST_WAKATI: kushoto=hali, kulia=mwili, tiga=anzisha
+        mov     r9d, r14d
+        mov     r10d, r8d
+        mov     r11d, r13d
+        mov     r8d, AST_WAKATI
         call    ast_nodi_mpya
         jmp     .done
 
@@ -7233,9 +7274,24 @@ uzalishaji_wakati:
         push    r13
         push    r14
         push    r15
+        push    rbx
 
         mov     r13d, [ast_kushoto + r12*4]  ; hali ya kitanzi
         mov     r14d, [ast_kulia + r12*4]    ; mwili wa kitanzi
+
+        ; Anzisha ya kwa (ast_tiga) — itolewe kabla ya kitanzi
+        mov     r15d, [ast_tiga + r12*4]
+        cmp     r15d, -1
+        je      .hakuna_anzisha
+        push    r12
+        push    r13
+        push    r14
+        mov     r12d, r15d
+        call    uzalishaji_ast
+        pop     r14
+        pop     r13
+        pop     r12
+.hakuna_anzisha:
 
         ; Rekodi mwanzo wa kitanzi
         mov     r15d, [text_buf_pos]          ; start_pos
@@ -7251,7 +7307,20 @@ uzalishaji_wakati:
         mov     rax, [continue_fixup_count]
         push    rax
 
-        ; Zalisha hali
+        ; Nafasi za kwa: [rsp+8]=hatua (faharisi, isomwe SASA kwa sababu
+        ; r14 haihifadhiwi na uzalishaji_ast), [rsp]=lengo la endelea
+        mov     r9d, -1
+        cmp     dword [ast_kulia + r14*4], -777777
+        jne     .hakuna_hatua_ya_kwa
+        mov     r9d, [ast_tiga + r14*4]
+.hakuna_hatua_ya_kwa:
+        push    r9
+        push    r9
+        mov     [rsp], r15d             ; lengo = start_pos (chaguo-msingi)
+
+        ; Zalisha hali (kitanzi kipofu: ruka hali na jz)
+        cmp     r13d, -1
+        je      .kitanzi_kipofu
         push    r12
         mov     r12d, r13d
         call    uzalishaji_ast
@@ -7272,6 +7341,8 @@ uzalishaji_wakati:
         xor     edi, edi
         call    gen_neno4                      ; kishikilia cha baiti 4
 
+.kitanzi_kipofu:
+
         ; Zalisha mwili wa kitanzi
         push    qword [local_count]     ; upeo wa kizuizi: hifadhi hesabu ya vigezo vya ndani
         push    r12
@@ -7283,6 +7354,21 @@ uzalishaji_wakati:
         pop     r8
         pop     r12
         pop     qword [local_count]     ; rejesha upeo wa nje
+
+        ; Hatua ya kwa: ikiwa ipo, lengo la endelea = nafasi ya hatua,
+        ; kisha toa hatua (semantiki ya C ya endelea kwenye kwa).
+        mov     rax, [rsp + 8]          ; slot ya hatua
+        cmp     rax, -1
+        je      .hakuna_hatua_kodijeni
+        mov     rcx, [text_buf_pos]
+        mov     [rsp], rcx              ; slot ya lengo = nafasi ya hatua
+        push    r12
+        push    r8
+        mov     r12d, eax
+        call    uzalishaji_ast
+        pop     r8
+        pop     r12
+.hakuna_hatua_kodijeni:
 
         ; jmp rel32 kurudi mwanzo wa kitanzi
         mov     al, 0xe9
@@ -7301,6 +7387,10 @@ uzalishaji_wakati:
         mov     [text_buf_pos], r10d
 
         ; Rekebisha jz: elekeza mwisho wa kitanzi
+        ; (kitanzi kipofu: hakuna jz — ruka; hali inasomwa upya kutoka AST
+        ; kwa sababu r13d imeharibiwa na mkusanyaji wa mwili)
+        cmp     dword [ast_kushoto + r12*4], -1
+        je      .kitanzi_kipofu_jz_done
         mov     edi, [text_buf_pos]           ; mwisho wa kitanzi
         sub     edi, r8d                      ; umbali kutoka fixup
         sub     edi, 4                        ; toa ukubwa wa kishikilia
@@ -7308,8 +7398,12 @@ uzalishaji_wakati:
         mov     [text_buf_pos], r8d
         call    gen_neno4                      ; andika ofseti sahihi ya jz
         mov     [text_buf_pos], r10d
+.kitanzi_kipofu_jz_done:
 
-        ; Toa mipaka ya awali kutoka rafu
+        ; Toa nafasi za kwa na mipaka kutoka rafu
+        pop     r9                         ; slot ya lengo
+        mov     ebx, r9d                   ; lengo la endelea
+        pop     r10                        ; slot ya hatua (tupa)
         pop     r14                        ; base ya endelea
         pop     r13                        ; base ya vunja
 
@@ -7343,7 +7437,7 @@ uzalishaji_wakati:
         jae     .fix_continues_done
         mov     edi, [continue_fixup_pos + rcx*4] ; nafasi ya fixup ya endelea hii
         push    rcx
-        mov     r10d, r15d                       ; lengo = mwanzo wa kitanzi
+        mov     r10d, ebx                        ; lengo = hatua au mwanzo
         sub     r10d, edi                        ; target - fixup_pos
         sub     r10d, 4                          ; target - fixup_pos - 4
         mov     r11d, [text_buf_pos]
@@ -7362,6 +7456,7 @@ uzalishaji_wakati:
         pop     r14
         pop     r13
         pop     r12
+        pop     rbx
         ret
 
 ; -------------------------------------------------------
