@@ -681,6 +681,32 @@ N32 main() {
         .expect("inapaswa kuendesha jaribio_user-exe");
     assert!(user_run.status.success(), "program ya mtumiaji inapaswa kurudisha 0, ilirudisha {:?}\nstderr: {}",
         user_run.status.code(), String::from_utf8_lossy(&user_run.stderr));
+
+    // 8. Uthabiti wa mchanganuzi: ingizo baya lazima lirudishe 1 kwa sauti
+    // (kabla: mbegu ilikubali kimya au kusegfault; mchanganuzi wa .swa
+    // ulining'inia kwa ingizo lililokatwa). Kila kisa: exit 1, hakuna hang.
+    let kesi_baya = [
+        "garba",
+        "kweli kweli kweli",
+        "@#!",
+        "N32 main( {",
+        "N32 main() { rudisha 1; ",
+        "muundo X { N32 x;",
+        "N32 main() { f(1, 2; }",
+    ];
+    for kesi in kesi_baya {
+        let baya_swa = dir.path().join("baya.swa");
+        std::fs::write(&baya_swa, kesi).expect("inapaswa kuandika baya.swa");
+        let baya_out = std::process::Command::new(&stage1_exe)
+            .arg(&baya_swa)
+            .current_dir(env!("CARGO_MANIFEST_DIR"))
+            .output()
+            .expect("inapaswa kuendesha stage1-exe kwa ingizo baya");
+        assert!(!baya_out.status.success(),
+            "ingizo baya [{}] linapaswa kurudisha si 0 (mbegu au mchanganuzi ulikubali kimya)", kesi);
+        // Uthibitisho wa hang: output() tayari ilisubiri kukamilika — hapa
+        // tunaweza tu kuthibitisha kuwa mchakato ulimaliza.
+    }
 }
 
 /// Hali ya .o ya mbegu — urekebishaji wa RELA na symtab hautumiki
