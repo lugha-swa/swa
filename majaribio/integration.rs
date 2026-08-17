@@ -710,6 +710,26 @@ N32 main() {
         // Uthibitisho wa hang: output() tayari ilisubiri kukamilika — hapa
         // tunaweza tu kuthibitisha kuwa mchakato ulimaliza.
     }
+
+    // 9. JIT ndani ya exe: --jit hukusanya na kuendesha program ya
+    // mtumiaji bila daraja la C — wito wa ndani unatatuliwa kupitia
+    // jedwali la anwani (anwani_ya_kazi) na thunks za bafa ya JIT.
+    let jit_swa = dir.path().join("jaribio_jit.swa");
+    std::fs::write(&jit_swa,
+        "N32 mbili(N32 x) { rudisha x * 2; }\nN32 main() { rudisha mbili(21); }\n"
+    ).expect("inapaswa kuandika jaribio_jit.swa");
+    let jit_out = std::process::Command::new(&stage1_exe)
+        .arg("--jit")
+        .arg(&jit_swa)
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .expect("inapaswa kuendesha stage1-exe --jit");
+    assert!(jit_out.status.success(), "stage1-exe --jit inapaswa kurudisha 0\nstderr: {}",
+        String::from_utf8_lossy(&jit_out.stderr));
+    let stderr_jit = String::from_utf8_lossy(&jit_out.stderr);
+    assert!(stderr_jit.contains("; JIT: matokeo=42"),
+        "JIT inapaswa kurudisha matokeo=42\nstderr: {}", stderr_jit);
+
 }
 
 /// Hali ya .o ya mbegu — urekebishaji wa RELA na symtab hautumiki
@@ -827,7 +847,7 @@ fn jaribio_o_kujijenga() {
     // Unganisha kwa clang na trampoline ndogo (madaraja ya JIT pekee).
     let trampoline_c = dir.path().join("trampoline.c");
     std::fs::write(&trampoline_c,
-        "int tekeleza(void* kazi, int argc, void* argv, int ofseti) { int (*f)(int, void*) = (int (*)(int, void*))kazi; return f(argc, (void*)((char**)argv + ofseti)); }\nvoid* anwani_ya_kazi(const char* jina) { return (void*)0; }\n"
+        "int tekeleza(void* kazi, int argc, void* argv, int ofseti) { int (*f)(int, void*) = (int (*)(int, void*))kazi; return f(argc, (void*)((char**)argv + ofseti)); }\n"
     ).expect("inapaswa kuandika trampoline.c");
     let trampoline_o = dir.path().join("trampoline.o");
     let compile_status = std::process::Command::new(&clang)

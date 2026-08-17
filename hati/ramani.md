@@ -133,7 +133,9 @@ Angalia [`CONTRIBUTING.md`](CONTRIBUTING.md). Masuala yenye lebo `good-first-iss
    moja kwa moja (`--exe`) — 0% bootstrap gap imefungwa
 5. **Uthabiti wa makosa ya mchanganuzi** — mbegu na mchanganuzi wa .swa
    dhidi ya ingizo baya (hati/mipaka.md sehemu 1-2)
-6. **JIT ndani ya exe** — tekeleza/anwani_ya_kazi kama kazi za .swa
+6. ~~JIT ndani ya exe~~ — IMESHAFANYIKA: tekeleza kama builtin,
+   anwani_ya_kazi ya ndani (jedwali la anwani 0x400078+ofseti) —
+   exe haina alama za nje kabisa
 7. **ABI ya desimali kamili** — D32 na ugeuzi wa aina (D64 ndiyo pekee
    inayofanya kazi kwa sasa)
 8. **Dereva wa Rust** — desimali katika codegen ya LLVM
