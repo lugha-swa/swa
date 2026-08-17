@@ -27,12 +27,12 @@
 %define MAX_AST_NODES     65536      ; upeo wa nodi za AST
 %define TEXT_BUF_SIZE     262144     ; 256 KB ya msimbo wa .text
 %define DATA_BUF_SIZE     4096       ; 4 KB ya data ya ulimwengu
-%define MAX_LABELS        4096       ; upeo wa lebo
-%define MAX_EXTERNS       4096       ; upeo wa alama za nje
-%define MAX_RELOCS        4096       ; upeo wa marekebisho
+%define MAX_LABELS        16384      ; upeo wa lebo
+%define MAX_EXTERNS       16384      ; upeo wa alama za nje
+%define MAX_RELOCS        16384      ; upeo wa marekebisho
 %define MAX_GLOBALS       512        ; upeo wa vigezo vya ulimwengu
 %define STR_POOL_SIZE     262144     ; bwawa la herufi (256 KB kwa faili kubwa)
-%define MAX_LOCALS        256        ; upeo wa vigezo vya ndani kwa kazi
+%define MAX_LOCALS        512        ; upeo wa vigezo vya ndani kwa kazi
 
 ; Aina za tokeni
 %define TOK_NENO          1          ; jina au neno muhimu
@@ -139,6 +139,12 @@ msg_oom:        db "Hitilafu: hakuna kumbukumbu", 10, 0
 msg_assignerr:  db "Hitilafu: uwekaji usiotumika", 10, 0
 msg_databuf:    db "Hitilafu: data_buf imejaa (sret)", 10, 0
 msg_hoja9:      db "Hitilafu: wito wenye hoja zaidi ya 9", 10, 0
+msg_main_kukosa: db "Hitilafu: main haipo", 10, 0
+
+; ---------- Majina maalum kwa hali ya exe ----------
+jina_exe_flag:  db "--exe", 0
+jina_wito_mfumo: db "wito_wa_mfumo", 0
+jina_main:      db "main", 0
 
 ; ---------- Vifunguo vya maneno muhimu ----------
 
@@ -297,6 +303,8 @@ break_fixup_count: resq 1               ; idadi ya marekebisho ya vunja
 compiler_state: resq 1                  ; 0=sawa, 1=kosa
 compiler_error_msg: resq 1              ; ujumbe wa kosa
 muundo_jina:     resd 1                 ; ofseti ya jina la muundo (kwa aina za mtumiaji)
+exe_mode:        resb 1                 ; 1 = toa ET_EXEC badala ya .o
+tmp_argc:        resq 1                 ; hifadhi ya argc wakati wa kuchanganua hoja
 
 ; ---------- Jedwali la miundo ----------
 muundo_count:    resq 1                 ; idadi ya miundo
@@ -3599,8 +3607,8 @@ changanua_programu:
 ; Hali ya uzalishaji
         section .bss
 gen_label_count:        resq 1
-gen_fixup_offset:       resd 4096
-gen_fixup_label:        resd 4096
+gen_fixup_offset:       resd MAX_RELOCS
+gen_fixup_label:        resd MAX_RELOCS
 gen_fixup_count:        resq 1
 gen_stack_size:         resq 1
 gen_current_func:       resq 1
@@ -3686,7 +3694,7 @@ gen_neno8:
 gen_fixup_ongeza:
         push    rbx
         mov     rbx, [gen_fixup_count]
-        cmp     rbx, 4096
+        cmp     rbx, MAX_RELOCS
         jae     .overflow
         mov     [gen_fixup_offset + rbx*4], edi
         mov     [gen_fixup_label + rbx*4], esi
@@ -6665,6 +6673,62 @@ uzalishaji_wambile:
         mov     al, 0x53
         call    gen_baiti
 .sio_rudisha:
+        ; Builtin ya wito_wa_mfumo — badala ya wito halisi, pangilia hoja
+        ; kwa ABI ya syscall (sawa na builtin ya uzalishaji.swa):
+        ; rax=namba, rdi=a1, rsi=a2, rdx=a3, r10=a4, r8=a5, r9=0.
+        ; Hoja ya 7 (ikiwa ipo) inatolewa na pop r9.
+        mov     rdi, r13
+        lea     rsi, [jina_wito_mfumo]
+        call    linganisha_mfuatano
+        cmp     eax, 0
+        jne     .sio_builtin_syscall
+        ; mov r10, r8 — 4D 89 C2 (a4: hoja ya 5)
+        mov     al, 0x4D
+        call    gen_baiti
+        mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0xC2
+        call    gen_baiti
+        ; mov rax, rdi — 48 89 F8 (namba ya syscall)
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0xF8
+        call    gen_baiti
+        ; mov rdi, rsi — 48 89 F7 (a1)
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0xF7
+        call    gen_baiti
+        ; mov rsi, rdx — 48 89 D6 (a2)
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0xD6
+        call    gen_baiti
+        ; mov rdx, rcx — 48 89 CA (a3)
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0xCA
+        call    gen_baiti
+        ; pop r9 — 41 59 (hoja ya 7: ofseti, daima 0 kwenye maktaba)
+        mov     al, 0x41
+        call    gen_baiti
+        mov     al, 0x59
+        call    gen_baiti
+        ; syscall — 0F 05
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x05
+        call    gen_baiti
+        jmp     .baada_ya_wito
+.sio_builtin_syscall:
         ; Kwa wito wa kazi inayorudisha muundo, weka r10 = eneo la muda la .data
         push    r12
         push    r8
@@ -6779,6 +6843,7 @@ uzalishaji_wambile:
 .sio_kusafisha:
 
         ; Matokeo yatakuwa kwenye eax baada ya wito
+.baada_ya_wito:
         pop     r15
         pop     r14
         pop     r13
@@ -8334,12 +8399,27 @@ _start:
 
         ; Angalia hoja za mstari wa amri
         pop     rax                     ; argc
+        mov     [tmp_argc], rax
         cmp     rax, 1
         jle     .tumia_stdin
 
-        ; Tuna hoja — tumia argv[1] kama jina la faili
+        ; Tuna hoja — argv[1] inaweza kuwa "--exe" au jina la faili
         pop     rdi                     ; argv[0] — ruka
         pop     rdi                     ; argv[1]
+        lea     rsi, [jina_exe_flag]
+        call    linganisha_mfuatano
+        cmp     eax, 0
+        jne     .soma_faili_argv1
+        mov     byte [exe_mode], 1
+        ; Kama kuna argv[2], soma faili — sivyo tumia stdin
+        mov     rax, [tmp_argc]
+        cmp     rax, 3
+        jl      .tumia_stdin
+        pop     rdi                     ; argv[2]
+        call    soma_chanzo_kutoka_faili
+        jmp     .anza_kukusanya
+
+.soma_faili_argv1:
         call    soma_chanzo_kutoka_faili
         jmp     .anza_kukusanya
 
@@ -8384,8 +8464,14 @@ _start:
         jmp     .gen_loop
 
 .gen_done:
-        ; Toa ELF kwa stdout
-        ; Kwa sasa, tunatoa ELF rahisi kwa mkono
+        ; Toa ELF kwa stdout — hali ya exe inatoa ET_EXEC tuli
+        ; moja kwa moja (hakuna ld, hakuna libc): 0% bootstrap gap.
+        cmp     byte [exe_mode], 0
+        je      .toa_o
+        call    toa_exe
+        xor     edi, edi
+        call    sys_exit
+.toa_o:
         call    toa_elf_rahisi
 
         ; Toka kwa mafanikio
@@ -8397,6 +8483,251 @@ _start:
         call    andika_mfuatano
         mov     edi, 1
         call    sys_exit
+
+; -------------------------------------------------------
+; toa_exe: toa ET_EXEC tuli moja kwa moja — hakuna ld, hakuna libc.
+;   Hii ndiyo hatua ya 0% bootstrap gap: mbegu inajenga exe ya
+;   stage1 bila kiunganishi chochote.
+;   Mpangilio wa faili: kichwa (64) + phdr (56) + stub ya _start
+;   (28) + .text + .data. .bss inafunikwa na p_memsz pekee.
+;   Awamu ya 1: rekebisha RELA zote kwenye text_buf (disp32).
+;   Awamu ya 2: tafuta ofseti ya main.
+;   Awamu ya 3: toa kila kitu kwa stdout.
+; -------------------------------------------------------
+toa_exe:
+        push    r12
+        push    r13
+        push    r14
+        push    r15
+        push    rbx
+
+        mov     r12d, [text_buf_pos]    ; text_size
+        mov     r15d, [data_buf_pos]    ; data_size
+
+        ; === Awamu ya 1: rekebisha RELA ===
+        ; Ulimwengu -> data_vaddr + off (+data_size kwa bss);
+        ; .data -> data_vaddr + (addend + 4); nje -> lebo ya ndani
+        ; kwa jina (wito wa mbele uliandikwa kama nje).
+        ; disp32 = tgt - pos - 4 (stub ya 28 hubatilika pande zote).
+        xor     r13d, r13d
+.rela_loop:
+        cmp     r13, [rela_count]
+        jae     .rela_done
+        mov     r14d, [rela_offset + r13*4]    ; pos
+        mov     eax, [rela_sym + r13*4]        ; sym
+        mov     ecx, [rela_addend + r13*4]     ; addend
+
+        cmp     eax, -1
+        je      .rela_sehemu
+        cmp     eax, -1
+        jg      .rela_nje
+        ; --- Ulimwengu: gidx = -sym - 2 ---
+        neg     eax
+        sub     eax, 2
+        mov     edx, [global_offset + rax*4]
+        cmp     dword [global_is_bss + rax*4], 0
+        je      .rela_ulimwengu_tgt
+        add     edx, r15d               ; bss -> baada ya .data
+.rela_ulimwengu_tgt:
+        add     edx, r12d               ; + text_size (data_vaddr = text_vaddr + text_size)
+        jmp     .rela_andika
+
+.rela_sehemu:
+        ; Rekebisho la .data: addend = data_offset - 4 (imefupishwa
+        ; katika mbegu, si -4 kawaida). disp32 = S + addend - P:
+        ; (text_size + data_offset) - 4 - pos = text_size + addend - pos.
+        ; Ongeza 4 hapa kwa sababu .rela_andika huondoa pos + 4.
+        mov     edx, r12d
+        add     edx, ecx
+        add     edx, 4
+        jmp     .rela_andika
+
+.rela_nje:
+        ; Tafuta lebo ya ndani kwa jina extern_name[sym].
+        ; tekeleza/anwani_ya_kazi hazipo kwenye lebo -> 0 (haziitwi
+        ; katika hali ya exe; JIT inahitaji kazi ya baadaye).
+        xor     edx, edx                ; chaguo-msingi: 0
+        push    r13
+        push    r14
+        mov     rbx, [extern_name + rax*8]
+        xor     ecx, ecx
+.rela_nje_scan:
+        cmp     rcx, [label_count]
+        jae     .rela_nje_sio
+        mov     rdi, [label_name + rcx*8]
+        mov     rsi, rbx
+        push    rcx
+        call    linganisha_mfuatano
+        pop     rcx
+        cmp     eax, 0
+        je      .rela_nje_iko
+        inc     rcx
+        jmp     .rela_nje_scan
+.rela_nje_iko:
+        mov     edx, [label_offset + rcx*4]
+.rela_nje_sio:
+        pop     r14
+        pop     r13
+
+.rela_andika:
+        sub     edx, r14d
+        sub     edx, 4                  ; disp32 = tgt - pos - 4
+        mov     [text_buf + r14], edx   ; andika disp32 (baiti 4, LE)
+        inc     r13
+        jmp     .rela_loop
+.rela_done:
+
+        ; === Awamu ya 2: tafuta ofseti ya main ===
+        xor     ecx, ecx
+.main_scan:
+        cmp     rcx, [label_count]
+        jae     .main_kukosa
+        mov     rdi, [label_name + rcx*8]
+        lea     rsi, [jina_main]
+        push    rcx
+        call    linganisha_mfuatano
+        pop     rcx
+        cmp     eax, 0
+        je      .main_iko
+        inc     rcx
+        jmp     .main_scan
+.main_iko:
+        mov     ebx, [label_offset + rcx*4]    ; main_off
+        jmp     .main_ok
+.main_kukosa:
+        lea     rdi, [msg_main_kukosa]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
+.main_ok:
+
+        ; === Awamu ya 3: toa kichwa + phdr + stub + text + data ===
+
+        ; --- Kichwa cha ELF (baiti 64) ---
+        ; e_ident: 7F 45 4C 46 02 01 01 00 + sufuri
+        mov     edi, 0x464C457F
+        call    andika_neno4_moja_kwa_moja
+        mov     edi, 0x00010102
+        call    andika_neno4_moja_kwa_moja
+        mov     edi, 0
+        call    andika_neno4_moja_kwa_moja
+        mov     edi, 0
+        call    andika_neno4_moja_kwa_moja
+        ; e_type=2 (EXEC), e_machine=0x3E
+        mov     edi, 0x003E0002
+        call    andika_neno4_moja_kwa_moja
+        ; e_version=1
+        mov     edi, 1
+        call    andika_neno4_moja_kwa_moja
+        ; e_entry = 0x400078
+        mov     edi, 0x400078
+        call    andika_neno4_moja_kwa_moja
+        mov     edi, 0
+        call    andika_neno4_moja_kwa_moja
+        ; e_phoff = 64
+        mov     edi, 64
+        call    andika_neno4_moja_kwa_moja
+        mov     edi, 0
+        call    andika_neno4_moja_kwa_moja
+        ; e_shoff = 0
+        mov     edi, 0
+        call    andika_neno4_moja_kwa_moja
+        mov     edi, 0
+        call    andika_neno4_moja_kwa_moja
+        ; e_flags = 0
+        mov     edi, 0
+        call    andika_neno4_moja_kwa_moja
+        ; e_ehsize=64, e_phentsize=56
+        mov     edi, 0x00380040
+        call    andika_neno4_moja_kwa_moja
+        ; e_phnum=1, e_shentsize=0
+        mov     edi, 1
+        call    andika_neno4_moja_kwa_moja
+        ; e_shnum=0, e_shstrndx=0
+        mov     edi, 0
+        call    andika_neno4_moja_kwa_moja
+
+        ; --- Kichwa cha programu (baiti 56): PT_LOAD, RWX, p_offset=0 ---
+        mov     edi, 1                  ; p_type = PT_LOAD
+        call    andika_neno4_moja_kwa_moja
+        mov     edi, 7                  ; p_flags = R|W|X
+        call    andika_neno4_moja_kwa_moja
+        mov     rdi, 0                  ; p_offset = 0
+        call    andika_neno8_moja_kwa_moja
+        mov     rdi, 0x400000           ; p_vaddr
+        call    andika_neno8_moja_kwa_moja
+        mov     rdi, 0x400000           ; p_paddr
+        call    andika_neno8_moja_kwa_moja
+        ; p_filesz = 120 (kichwa+phdr) + 28 (stub) + text + data
+        mov     r14d, r12d
+        add     r14d, r15d
+        add     r14d, 148
+        mov     rdi, r14
+        call    andika_neno8_moja_kwa_moja
+        ; p_memsz = filesz + bss
+        add     r14d, dword [bss_size]
+        mov     rdi, r14
+        call    andika_neno8_moja_kwa_moja
+        mov     rdi, 0x1000             ; p_align
+        call    andika_neno8_moja_kwa_moja
+
+        ; --- Stub ya _start (baiti 28) ---
+        ; Maneno 7 ya N32 — sawa na uzalishaji.swa (kipande32).
+        ; 48 8B 3C 24 — mov rdi, [rsp] (argc)
+        mov     edi, 607947592
+        call    andika_neno4_moja_kwa_moja
+        ; 48 8D 74 24 — lea rsi, [rsp+8] (argv), baiti ya mwisho kwenye neno linalofuata
+        mov     edi, 611618120
+        call    andika_neno4_moja_kwa_moja
+        ; 08 B0 00 E8 — mwisho wa lea + mov al,0 + call (disp32 inafuata)
+        mov     edi, 3892359176
+        call    andika_neno4_moja_kwa_moja
+        ; disp32 = main_off + 12 (wito uko baiti 11-14, kifuatacho 16)
+        mov     edi, ebx
+        add     edi, 12
+        call    andika_neno4_moja_kwa_moja
+        ; 48 89 C7 B8 — mov rdi, rax + mwanzo wa mov eax, 60
+        mov     edi, 3100084552
+        call    andika_neno4_moja_kwa_moja
+        ; 3C 00 00 00 — mwisho wa mov eax, 60
+        mov     edi, 60
+        call    andika_neno4_moja_kwa_moja
+        ; 0F 05 00 00 — syscall + padding
+        mov     edi, 1295
+        call    andika_neno4_moja_kwa_moja
+
+        ; --- .text (stub tayari imetolewa) ---
+        xor     ecx, ecx
+.text_loop:
+        cmp     ecx, r12d
+        jae     .text_done
+        movzx   edi, byte [text_buf + rcx]
+        push    rcx
+        call    andika_baiti_moja_kwa_moja
+        pop     rcx
+        inc     rcx
+        jmp     .text_loop
+.text_done:
+
+        ; --- .data ---
+        xor     ecx, ecx
+.data_loop:
+        cmp     ecx, r15d
+        jae     .data_done
+        movzx   edi, byte [data_buf + rcx]
+        push    rcx
+        call    andika_baiti_moja_kwa_moja
+        pop     rcx
+        inc     rcx
+        jmp     .data_loop
+.data_done:
+
+        pop     rbx
+        pop     r15
+        pop     r14
+        pop     r13
+        pop     r12
+        ret
 
 ; -------------------------------------------------------
 ; toa_elf_rahisi: toleo rahisi la kutoa ELF
