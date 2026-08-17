@@ -24,25 +24,37 @@ bila kikomo kwa ingizo kama `N32 main( {` (hakuna mwisho wa mabano).
 Makosa YANAYOTAMBULIWA yanarudisha 1 kwa usahihi (`; KOSA: 1`), lakini
 upotevu wa kurejesha kwa visa vya kukatwa haujashughulikiwa.
 
-## 3. Upeo wa tokeni: 65,536 [UKALI: KATI]
+## 3. Upeo wa tokeni: 65,536 — ukataji kimya [UKALI: JUU]
 
 Mbegu ina MAX_TOKENS 65,536. Chanzo kikubwa kuliko hicho kinakatwa
 **kimya kimya** — hakuna ujumbe wa kosa, mkusanyaji unarudisha 0 na
-program iliyokatwa (ambayo inakosea wakati wa utekelezaji). Kwa mfano,
-wito ~7,280 wa kazi kwa usemi rahisi ndio kikomo halisi cha chanzo
-kimoja. Upeo wa AST ni 65,536 sawa.
+program iliyokatwa (ambayo inakosea wakati wa utekelezaji). Hii ni
+darasa lilelile la kushindwa kama kukubali ingizo baya (sehemu ya 1):
+kuendelea kimya hadi ELF halali lakini program mbaya. Ukubwa halisi:
+wito ~7,280 wa kazi kwa mistari ya tokeni 9, na ~5,957 kwa tokeni 11
+— bajeti ya tokeni ni ileile (~65,52x) katika kesi zote mbili, na
+imepimwa kwa majaribio (si makadirio). Upeo wa AST ni 65,536 sawa —
+kukizidi, mbegu sasa INALIA kwa sauti (sehemu ya 4).
 
-## 4. Jedwali la nje: ingizo moja kwa kila wito, bila dedup [UKALI: CHINI]
+## 4. Mipaka ya majedwali — KOSA LAUTI, si uharibifu wa kimya [UKALI: CHINI]
 
-Kila wito wa mbele unachukua ingizo jipya la nje (MAX_EXTERNS 16,384)
-na ingizo la RELA (MAX_RELOCS 16,384). Hakuna uondoaji wa marudio —
-hii ni sahihi kiutendaji (imejaribiwa hadi wito 7,000), lakini:
+Kila mpaka wa jedwali ndani ya mbegu sasa unaangalia na KULIA kwa
+sauti (`Hitilafu: ... limejaa` + exit 1) badala ya kuendelea kimya:
 
-- Upeo wa nje haufikiki kwa sasa kwa sababu upeo wa tokeni unapiga
-  kwanza.
-- Ikiwa upeo wa tokeni utainuliwa: `.extern_full` inarudia faharisi 0
-  KIMYA (utatuzi mbaya) na `.skip_reloc` inaacha RELA KIMYA (wito kwa
-  anwani isiyo sahihi) — si makosa, ni uharibifu wa kimya.
+- jedwali la nje (MAX_EXTERNS 16,384) — kila wito wa mbele unachukua
+  ingizo jipya bila dedup (sahihi kiutendaji, imejaribiwa hadi wito
+  7,000; kikomo hakifikiwi kwa sasa kwa sababu kikomo cha tokeni
+  kinapiga kwanza)
+- jedwali la RELA (MAX_RELOCS 16,384) — maeneo yote: mizigo ya
+  ulimwengu, uhifadhi wa ulimwengu, tungo, nafasi za sret, na wito
+- jedwali la fixup, la ulimwengu (MAX_GLOBALS 512), la lebo
+  (MAX_LABELS 16,384), na la AST (MAX_AST_NODES 65,536)
+- chanzo kikubwa kuliko baiti 1,048,576 (MAX_SOURCE) — mbegu inalia
+  kwa sauti badala ya kusoma sehemu tu
+
+Uthibitisho: toleo la jaribio lenye MAX_TOKENS/MAX_AST_NODES
+lililoinuliwa hufikia kikomo cha nje kwa wito 16,500 na inalia
+`Hitilafu: jedwali la nje limejaa` — si uharibifu tena.
 
 ## 5. Maneno halisi ni 32-bit signed [UKALI: CHINI]
 

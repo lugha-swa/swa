@@ -140,6 +140,13 @@ msg_assignerr:  db "Hitilafu: uwekaji usiotumika", 10, 0
 msg_databuf:    db "Hitilafu: data_buf imejaa (sret)", 10, 0
 msg_hoja9:      db "Hitilafu: wito wenye hoja zaidi ya 9", 10, 0
 msg_main_kukosa: db "Hitilafu: main haipo", 10, 0
+msg_rela_full:   db "Hitilafu: jedwali la RELA limejaa", 10, 0
+msg_extern_full: db "Hitilafu: jedwali la nje limejaa", 10, 0
+msg_fixup_full:  db "Hitilafu: jedwali la fixup limejaa", 10, 0
+msg_global_full: db "Hitilafu: jedwali la ulimwengu limejaa", 10, 0
+msg_label_full:  db "Hitilafu: jedwali la lebo limejaa", 10, 0
+msg_chanzo_kikubwa: db "Hitilafu: chanzo ni kikubwa mno", 10, 0
+msg_ast_full:    db "Hitilafu: jedwali la AST limejaa", 10, 0
 
 ; ---------- Majina maalum kwa hali ya exe ----------
 jina_exe_flag:  db "--exe", 0
@@ -654,7 +661,14 @@ soma_chanzo_kutoka_stdin:
         cmp     rax, 0
         jl      .error
         mov     [source_len], rax
+        cmp     rax, MAX_SOURCE
+        jae     .kikubwa_mno
         ret
+.kikubwa_mno:
+        lea     rdi, [msg_chanzo_kikubwa]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 .error:
         lea     rdi, [msg_lexerr]
         call    andika_mfuatano
@@ -684,9 +698,16 @@ soma_chanzo_kutoka_faili:
         mov     rax, 0                  ; sys_read
         syscall
         mov     [source_len], rax
+        cmp     rax, MAX_SOURCE
+        jae     .kikubwa_mno
 
         pop     r12
         ret
+.kikubwa_mno:
+        lea     rdi, [msg_chanzo_kikubwa]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 .error:
         lea     rdi, [msg_lexerr]
         call    andika_mfuatano
@@ -1588,9 +1609,12 @@ ast_nodi_mpya:
         pop     rbx
         ret
 .fail:
-        mov     eax, -1
-        pop     rbx
-        ret
+        ; Kosa LAUTI — kurudisha -1 ("hakuna nodi") kimya ni uharibifu:
+        ; mchanganuzi ungeendelea na mti usio sahihi
+        lea     rdi, [msg_ast_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; hifadhi_jina: hifadhi jina kwenye bwawa la herufi
@@ -3582,8 +3606,11 @@ changanua_programu:
         jmp     .programu_loop
 
 .global_fail_pops:
-        add     rsp, 16
-        jmp     .skip_token
+        ; Kosa LAUTI — kuruka tangazo kimya ni uharibifu
+        lea     rdi, [msg_global_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 .skip_token:
         inc     qword [token_pos]
@@ -3702,8 +3729,11 @@ gen_fixup_ongeza:
         pop     rbx
         ret
 .overflow:
-        pop     rbx
-        ret
+        ; Kosa LAUTI — uharibifu wa kimya hauruhusiwi
+        lea     rdi, [msg_fixup_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; gen_weka_lebo: weka lebo kwenye nafasi ya sasa ya bafa la .text
@@ -4141,7 +4171,7 @@ uzalishaji_jina:
         ; Ongeza rekebisho la R_X86_64_PC32 kwa kigezo cha ulimwengu
         mov     rdi, [rela_count]
         cmp     rdi, MAX_RELOCS - 1
-        jae     .skip_ulimwengu_reloc
+        jae     .ulimwengu_rela_jaa
         mov     edx, [text_buf_pos]
         mov     [rela_offset + rdi*4], edx
         mov     eax, r13d
@@ -4155,6 +4185,12 @@ uzalishaji_jina:
         mov     edi, 0
         call    gen_neno4
         jmp     .load_done
+.ulimwengu_rela_jaa:
+        ; Kosa LAUTI — uharibifu wa kimya hauruhusiwi
+        lea     rdi, [msg_rela_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 .not_found_exit:
         ; Labda ni kazi ya nje — tunarudisha 0 kwa sasa
@@ -4259,7 +4295,7 @@ uzalishaji_anwani_ya:
         ; Ongeza rekebisho la R_X86_64_PC32 kwa kigezo cha ulimwengu
         mov     rdi, [rela_count]
         cmp     rdi, MAX_RELOCS - 1
-        jae     .skip_anwani_reloc
+        jae     .anwani_rela_jaa
         mov     edx, [text_buf_pos]
         mov     [rela_offset + rdi*4], edx
         mov     eax, r13d
@@ -4276,6 +4312,12 @@ uzalishaji_anwani_ya:
         pop     r13
         pop     r12
         ret
+.anwani_rela_jaa:
+        ; Kosa LAUTI — uharibifu wa kimya hauruhusiwi
+        lea     rdi, [msg_rela_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 .not_lvalue:
         xor     eax, eax
@@ -5005,7 +5047,7 @@ uzalishaji_anwani_ya_nodi:
         ; Rekodi reloketi R_X86_64_PC32
         mov     rdi, [rela_count]
         cmp     rdi, MAX_RELOCS - 1
-        jae     .uan_jina_ulimwengu_skip
+        jae     .uan_rela_jaa
         mov     edx, [text_buf_pos]
         mov     [rela_offset + rdi*4], edx
         mov     eax, r14d
@@ -5018,6 +5060,12 @@ uzalishaji_anwani_ya_nodi:
         mov     edi, 0
         call    gen_neno4
         jmp     .uan_mwisho
+.uan_rela_jaa:
+        ; Kosa LAUTI — uharibifu wa kimya hauruhusiwi
+        lea     rdi, [msg_rela_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 .uan_mwanachama:
         ; Mwanachama wa muundo: anwani ya msingi + ofseti ya uga
@@ -5894,7 +5942,7 @@ uzalishaji_kauli_ya_binary:
         ; Ongeza rekebisho la R_X86_64_PC32 kwa kigezo cha ulimwengu
         mov     rdi, [rela_count]
         cmp     rdi, MAX_RELOCS - 1
-        jae     .as_skip_global_reloc
+        jae     .as_rela_jaa
         mov     edx, [text_buf_pos]
         mov     [rela_offset + rdi*4], edx
         mov     eax, r10d
@@ -5909,6 +5957,12 @@ uzalishaji_kauli_ya_binary:
         call    gen_neno4
         mov     eax, r8d                        ; rudisha thamani iliyowekwa
         jmp     .done
+.as_rela_jaa:
+        ; Kosa LAUTI — uharibifu wa kimya hauruhusiwi
+        lea     rdi, [msg_rela_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
         ; Nodi ya KIELELEZO — hifadhi kwa [msingi + faharisi * ukubwa]
 .assign_kielelezo:
@@ -6494,7 +6548,7 @@ uzalishaji_kauli_ya_binary:
         ; Ongeza rekebisho la .data
         mov     rdi, [rela_count]
         cmp     rdi, MAX_RELOCS - 1
-        jae     .skip_string_reloc
+        jae     .string_rela_jaa
         mov     edx, [text_buf_pos]
         mov     [rela_offset + rdi*4], edx
         mov     dword [rela_sym + rdi*4], -1    ; kiashiria: tumia .data section
@@ -6505,6 +6559,14 @@ uzalishaji_kauli_ya_binary:
         ; Weka nafasi ya disp32 (baiti 4 za sifuri)
         mov     edi, 0
         call    gen_neno4
+        jmp     .string_rela_endelea
+.string_rela_jaa:
+        ; Kosa LAUTI — uharibifu wa kimya hauruhusiwi
+        lea     rdi, [msg_rela_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
+.string_rela_endelea:
 
         ; Ulinganisho wa mifuatano hauwezi kukunjwa wakati wa kukusanya
         mov     eax, -1
@@ -6789,13 +6851,20 @@ uzalishaji_wambile:
         ; Rekebisho la .data — kama .do_string
         mov     rdi, [rela_count]
         cmp     rdi, MAX_RELOCS - 1
-        jae     .cr_skip_reloc
+        jae     .cr_rela_jaa
         mov     edx, [text_buf_pos]
         mov     [rela_offset + rdi*4], edx
         mov     dword [rela_sym + rdi*4], -1
         sub     r11d, 4
         mov     [rela_addend + rdi*4], r11d
         inc     qword [rela_count]
+        jmp     .cr_skip_reloc
+.cr_rela_jaa:
+        ; Kosa LAUTI — uharibifu wa kimya hauruhusiwi
+        lea     rdi, [msg_rela_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 .cr_skip_reloc:
         mov     edi, 0
         call    gen_neno4
@@ -6822,12 +6891,16 @@ uzalishaji_wambile:
         mov     r14d, edi               ; hifadhi faharisi ya nje
         jmp     .gen_reloc
 .extern_full:
-        mov     r14d, 0
+        ; Kosa LAUTI — kurejea faharisi 0 kimya ni uharibifu
+        lea     rdi, [msg_extern_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 .gen_reloc:
         ; Ongeza rekebisho
         mov     rdi, [rela_count]
         cmp     rdi, MAX_RELOCS - 1
-        jae     .skip_reloc
+        jae     .wito_rela_jaa
         mov     edx, [text_buf_pos]
         mov     [rela_offset + rdi*4], edx
         mov     [rela_sym + rdi*4], r14d
@@ -6837,6 +6910,14 @@ uzalishaji_wambile:
         ; Weka nafasi ya rel32 (baiti 4 za sifuri)
         mov     edi, 0
         call    gen_neno4
+        jmp     .wito_rela_endelea
+.wito_rela_jaa:
+        ; Kosa LAUTI — uharibifu wa kimya hauruhusiwi
+        lea     rdi, [msg_rela_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
+.wito_rela_endelea:
 
         ; Safisha hoja za rafu zaidi ya sita baada ya wito
         ; Hoja 7+ zilibaki rafu wakati wa call — ziondoe sasa
@@ -7248,7 +7329,11 @@ uzalishaji_kazi:
         mov     r13, rdi
         jmp     .gen_code
 .skip_label:
-        mov     r13, 0
+        ; Kosa LAUTI — kurejea faharisi 0 kimya ni uharibifu
+        lea     rdi, [msg_label_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 .gen_code:
         ; push r10 — hifadhi kielekezi cha eneo la kurudia
         ; (baada ya kusajili lebo, ili lebo iwe inafunika push r10)
