@@ -40,9 +40,11 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - [x] Runtime ya syscalls: mkusanyaji hautekelezi kupitia libc tena —
       sys_open/sys_read/sys_write/sys_mmap kupitia wito_wa_mfumo;
       undefined za nje za stage2.o ni mbili tu (daraja za JIT).
-- [ ] 0% bootstrap gap — hatua ya stage1 bado inatumia gcc/muda.c
-      kuunganisha (mbegu haijui kuunganisha bado); kuanzia stage2
-      mnyororo ni safi.
+- [x] 0% bootstrap gap — mbegu inatoa ET_EXEC tuli moja kwa moja
+      (`--exe`): kichwa + phdr + stub ya `_start` + urekebishaji wa
+      RELA wa ndani. Hakuna gcc, ld, clang, muda.c, wala libc popote
+      kwenye mnyororo: kwanza → mbegu → stage1-exe → stage2-exe →
+      stage3-exe (stage2-exe == stage3-exe, sawa kwa baiti).
 
 ## Kanuni Zisizobadilika
 
@@ -67,14 +69,13 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 
 ## Kile Tunachofanya Sasa (Agosti 2026)
 
-Mnyororo wa kujikusanya umefungwa na JIT inafanya kazi. Kazi inayofuata
-kwa umuhimu:
+Lengo kuu limefikiwa: mnyororo wa kujikusanya umefungwa kikamilifu na
+**hakuna lugha nyingine** — baiti za mkono (kwanza, 393) → mbegu →
+stage1-exe → stage2-exe == stage3-exe, bila gcc/ld/clang/libc popote.
+Kazi inayofuata kwa umuhimu:
 
-1. **Hatua ya 3: baiti za mkono** — andika mkusanyaji mdogo wa kwanza
-   kwa baiti za opcodes za mkono, ukiondoa NASM kutoka kwenye mnyororo.
-2. **Kuunganisha na runtime** — kuondoa utegemezi wa ld/gcc na muda.c
-   kwenye mnyororo (kiunganishi cha kujikusanya au ELF ya kujitegemea,
-   na syscalls moja kwa moja badala ya libc).
-3. **ABI ya desimali** — hoja za float/double kupitia xmm0-xmm7.
-4. **JIT kamili** — relocations za wito wa nje na kupitisha argv.
-5. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha.
+1. **JIT ndani ya exe** — jedwali la anwani za ndani (tekeleza na
+   anwani_ya_kazi kama kazi za .swa) ili --jit ifanye kazi kwenye exe.
+2. **ABI ya desimali** — hoja za float/double kupitia xmm0-xmm7.
+3. **JIT kamili** — relocations za wito wa nje na kupitisha argv.
+4. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha.

@@ -86,7 +86,7 @@ kwenye njia ya Rust → LLVM.
 - [x] Uthibitisho: Swa inajikusanya kupitia mnyororo kamili wa Swa -> Swa -> binary
 - [!] LLVM inabaki ndani ya dereva wa Rust wa vipimo pekee
 
-## Hatua ya 5: Kuziba Pengo la Mwisho la Bootstrap [IN PROGRESS] KAZI INAENDELEA
+## Hatua ya 5: Kuziba Pengo la Mwisho la Bootstrap [IMEFANYIKA]
 
 - [x] **Baiti za mkono:** Kwanza (msingi/kwanza.bin) — baiti 393 zilizoandikwa
       kwa mkono (ELF 64 + phdr 56 + msimbo 273) hubadilisha hex hadi binary.
@@ -100,8 +100,11 @@ kwenye njia ya Rust → LLVM.
       + jedwali la lebo); `_start` inaitwa moja kwa moja na kernel.
 - [x] **Runtime ya syscalls:** mkusanyaji hautekelezi kupitia libc tena
       (PR #149) — faili, mmap, na uchapishaji kupitia syscalls.
-- [ ] 0% bootstrap gap — hatua ya stage1 pekee ndiyo iliyobaki
-      (gcc/muda.c kuunganisha mbegu); kuanzia stage2 mnyororo ni safi.
+- [x] **0% bootstrap gap:** mbegu inatoa ET_EXEC tuli moja kwa moja
+      (`--exe`) — kichwa (64) + phdr (56) + stub ya `_start` (28) +
+      urekebishaji wa RELA wa ndani (ulimwengu, tungo, na wito wa
+      mbele) — hakuna gcc/ld/clang/muda.c/libc popote kwenye mnyororo.
+      Uthibitisho: jaribio_exe_kujijenga (CI).
 
 ## Hatua ya 6: Lugha Kamili ya Mifumo [FUTURE] BAADAYE
 
@@ -123,11 +126,13 @@ Angalia [`CONTRIBUTING.md`](CONTRIBUTING.md). Masuala yenye lebo `good-first-iss
 2. ~~Kiunganishi cha kujitegemea~~ — IMESHAFANYIKA: `--exe` inatoa ET_EXEC
    tuli inayojijenga yenyewe bila ld/gcc/libc (stage2-exe == stage3-exe)
 3. ~~Runtime ya syscalls~~ — IMESHAFANYIKA (PR #149): syscalls moja kwa moja
-4. **Kuziba hatua ya stage1** — mbegu bado inahitaji gcc/muda.c kuunganishwa
-5. **ABI ya desimali kamili** — D32 na ugeuzi wa aina (D64 ndiyo pekee
+4. ~~Kuziba hatua ya stage1~~ — IMESHAFANYIKA: mbegu inatoa stage1-exe
+   moja kwa moja (`--exe`) — 0% bootstrap gap imefungwa
+5. **JIT ndani ya exe** — tekeleza/anwani_ya_kazi kama kazi za .swa
+6. **ABI ya desimali kamili** — D32 na ugeuzi wa aina (D64 ndiyo pekee
    inayofanya kazi kwa sasa)
-6. **Dereva wa Rust** — desimali katika codegen ya LLVM
-7. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha
+7. **Dereva wa Rust** — desimali katika codegen ya LLVM
+8. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha
 
 ## Historia Fupi ya Milestone (Julai-Agosti 2026)
 
