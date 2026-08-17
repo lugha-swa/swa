@@ -402,13 +402,21 @@ W0 mkaguzi_kagua_taarifa(N32 node) {
                 hoja_idadi = hoja_idadi + 1;
                 a = ijayo;
             }
-            // Angalia idadi ya hoja dhidi ya tangazo la kazi
+            // Angalia idadi ya hoja dhidi ya tangazo la kazi.
+            // andika/andika_stderr ni za kutofautiana (variadic) —
+            // idadi ya hoja inaamuliwa na muundo.
             N32 inatarajiwa = mkaguzi_tafuta_kazi(jina);
             kama (inatarajiwa >= 0) {
                 kama (hoja_idadi != inatarajiwa) {
-                    andika_stderr("kosa [%s]: idadi ya hoja kwa '%s' si sahihi (%d badala ya %d)\n",
-                        mkaguzi_kazi_sasa, jina, hoja_idadi, inatarajiwa);
-                    mkaguzi_makosa = mkaguzi_makosa + 1;
+                    N32 ni_ya_kutofautiana = 0;
+                    kama (jina_linganisha(jina, "andika") || jina_linganisha(jina, "andika_stderr")) {
+                        ni_ya_kutofautiana = 1;
+                    }
+                    kama (ni_ya_kutofautiana == 0) {
+                        andika_stderr("kosa [%s]: idadi ya hoja kwa '%s' si sahihi (%d badala ya %d)\n",
+                            mkaguzi_kazi_sasa, jina, hoja_idadi, inatarajiwa);
+                        mkaguzi_makosa = mkaguzi_makosa + 1;
+                    }
                 }
             }
         }
