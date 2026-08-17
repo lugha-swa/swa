@@ -639,10 +639,8 @@ fn jaribio_exe_kujijenga() {
         .stdout(std::fs::File::create(&exe2).expect("inapaswa kuunda stage3-exe"))
         .output()
         .expect("inapaswa kuendesha stage2-exe --exe");
-    // Kumbuka: exe inarudisha msimbo 1 badala ya 0 (hitilafu ndogo ya njia
-    // ya kurudi ya main ya exe — inayojulikana, kazi ya baadaye). Tunalithibitisha
-    // kwa pato (sawasawa kwa baiti) si kwa msimbo wa kutoka.
-    let _ = nje2.status;  // msimbo wa kutoka wa exe: hitilafu ndogo inayojulikana
+    assert!(nje2.status.success(), "stage2-exe --exe inapaswa kurudisha 0\nstderr: {}",
+        String::from_utf8_lossy(&nje2.stderr));
 
     // 7. Sawasawa kwa baiti — mnyororo wa kujijenga umefungwa bila ld
     let baiti1 = std::fs::read(&exe1).expect("inapaswa kusoma stage2-exe");
