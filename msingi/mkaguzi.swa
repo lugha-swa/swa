@@ -144,7 +144,7 @@ N32 mkaguzi_angalia(N32 mzizi) {
 
 // Fuatilia ni majina gani ya kazi yaliyopo kwa ukaguzi wa idadi ya hoja.
 N32 kazi_idadi = 0;
-N8  kazi_jina_pool[8192];
+N8  kazi_jina_pool[16384];
 N32 kazi_jina_pool_wapi = 1;
 N32 kazi_jina_off[1024];
 N32 kazi_param_count[1024];
@@ -178,9 +178,17 @@ W0 mkaguzi_sajili_kazi(N32 kazi_node) {
         pc = pc + 1;
         p = ast_kulia[p];
     }
+    // Ulinzi wa dimbwi: kufurika kulikuwa kimeandika juu ya
+    // kazi_jina_off (jedwali la ofseti) na kusababisha segfault
+    // kwenye jina_linganisha wakati wa kujikusanya.
     N32 off = kazi_jina_pool_wapi;
     N32 i = 0;
     wakati (jina[i] != 0) {
+        kama (off + i + 1 >= 16384) {
+            andika_stderr("; KOSA: dimbwi la majina ya mkaguzi limejaa\n");
+            mkaguzi_makosa = mkaguzi_makosa + 1;
+            rudisha;
+        }
         kazi_jina_pool[off + i] = jina[i];
         i = i + 1;
     }
