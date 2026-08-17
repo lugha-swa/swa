@@ -350,6 +350,12 @@ impl LlvmBackend {
             // Pia hifadhi aina zao za rudisha kwa njia mbadala ya amri ya wito.
             let mut fn_return_types: HashMap<String, LLVMTypeRef> = HashMap::new();
             for func in &ir_module.functions {
+                // andika/andika_stderr zinatekelezwa na trampoline ya C
+                // (maktabac) — ufafanuzi wa .swa ni kwa mbegu pekee; chini ya
+                // LLVM zinabaki kama nje tofauti (iliyo na hoja chache zaidi).
+                if func.name == "andika" || func.name == "andika_stderr" {
+                    continue;
+                }
                 let name_c = c_str(&func.name);
                 if LLVMGetNamedFunction(module, name_c.as_ptr()).is_null() {
                     let llvm_ret = ir_type_to_llvm(&func.return_ty, &struct_types);
@@ -385,6 +391,11 @@ impl LlvmBackend {
             // Teremsha kila kazi.
             for idx in ordered_indices {
                 let func = &ir_module.functions[idx];
+                // andika/andika_stderr zinabaki kama nje (trampoline ya C) —
+                // mwili wa .swa hauteremshwi chini ya LLVM.
+                if func.name == "andika" || func.name == "andika_stderr" {
+                    continue;
+                }
                 if let Err(diags) = lower_function(module, func, &struct_types, &fn_return_types) {
                     LLVMDisposeModule(module);
                     return Err(diags);

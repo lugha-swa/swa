@@ -6,9 +6,10 @@
 // mkusanyaji wa Swa (kande au stage1).
 //
 // Maelezo ya kazi:
-//   andika/andika_stderr -> vfprintf (kwa mbegu; codegen ya Swa ni builtin)
+//   andika/andika_stderr -> vfprintf (kwa program bila maktaba;
+//       kumbukumbu.swa ina utekelezaji wake wa ndani kwa mbegu/exe)
 //   tekeleza/anwani_ya_kazi -> daraja za JIT
-//   wito_wa_mfumo/ukubwa -> kwa mbegu; codegen ya Swa ni builtin
+//   wito_wa_mfumo -> kwa mkusanyaji wa LLVM; mbegu ina builtin yake
 
 #include <dlfcn.h>
 #include <stdarg.h>
@@ -57,15 +58,3 @@ long wito_wa_mfumo(long namba, long a1, long a2, long a3, long a4, long a5) {
     return namba;
 }
 
-/* ukubwa — rudisha ukubwa wa aina (kama sizeof) — kwa mbegu tu;
-   codegen ya Swa huikokotoa wakati wa kukusanya. */
-unsigned long ukubwa(unsigned long aina) {
-    switch (aina) {
-        case 1: return 1;   /* N8 */
-        case 2: return 2;   /* N16 */
-        case 3: return 4;   /* N32 */
-        case 4: return 8;   /* N64 */
-        case 5: return 8;   /* W0 */
-        default: return 8;
-    }
-}
