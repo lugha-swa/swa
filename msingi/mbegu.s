@@ -5991,14 +5991,27 @@ uzalishaji_kauli_ya_binary:
         jmp     .ak_size_done
 
 .ak_found_local:
-        ; Angalia star_count — ikiwa 1, tumia aina msingi
+        ; Kigeu cha ndani chenye faharisi — pointer au safu ya ndani.
+        ; Ukubwa wa elementi: safu -> pointer 8 (nyota >= 1) au aina
+        ; msingi (nyota == 0); pointer -> aina msingi (nyota == 1) au
+        ; 8 (nyota >= 2). Zamani safu tupu (nyota == 0) iliruka hadi
+        ; .ak_size_done na r15d chakavu (4) — N8/N16/N64 zilivunjika.
+        mov     r11d, [local_array_size + r10*4]
+        test    r11d, r11d
+        jnz     .ak_local_ni_safu
+        ; --- Sio safu (pointer) ---
         mov     r11d, [local_star_count + r10*4]
         cmp     r11d, 0
-        je      .ak_size_done                   ; sio pointer — hali isiyowezekana
+        je      .ak_size_done                   ; hali isiyowezekana
         cmp     r11d, 1
-        jg      .ak_set_size_8                  ; nyota >= 2 — ukubwa wa nyota ni 8 (x86-64)
-
-        ; star_count == 1 — ukubwa kutoka base_type
+        jg      .ak_set_size_8                  ; nyota >= 2
+        jmp     .ak_local_aina_msingi
+.ak_local_ni_safu:
+        ; --- Safu ya ndani ---
+        mov     r11d, [local_star_count + r10*4]
+        cmp     r11d, 0
+        jg      .ak_set_size_8                  ; safu ya pointer -> elementi 8
+.ak_local_aina_msingi:
         mov     r11d, [local_base_type + r10*4]
         cmp     r11d, 1
         je      .ak_set_size_1

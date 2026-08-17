@@ -624,6 +624,63 @@ fn jaribio_exe_kujijenga() {
     let baiti2 = std::fs::read(&exe2).expect("inapaswa kusoma stage3-exe");
     assert!(baiti1.len() > 4096, "exe inapaswa kuwa na mwili halisi ({} baiti)", baiti1.len());
     assert_eq!(baiti1, baiti2, "stage2-exe na stage3-exe zinapaswa kuwa sawa kwa baiti");
+
+    // 7. Program ya mtumiaji kama exe halisi — inafunika safu za ndani
+    // za N8/N16/N64 (mdudu wa ukubwa wa elementi), .bss (sifuri), ulimwengu
+    // unaobadilishwa na kazi mbili, wito wa mbele (RELA ya nje), kitanzi,
+    // na kujirudia kwa pande mbili.
+    let user_swa = dir.path().join("jaribio_user.swa");
+    std::fs::write(&user_swa, "\
+N32 g(N32 x) { kama (x <= 0) { rudisha 0; } rudisha 1 + f(x - 1); }
+N32 f(N32 x) { kama (x <= 0) { rudisha 0; } rudisha 1 + g(x - 1); }
+N32 glob = 0;
+N32 h1() { glob = glob + 3; rudisha glob; }
+N32 main() {
+    N8  b8[8];
+    N16 b16[4];
+    N64 b64[4];
+    N32 i = 0;
+    wakati (i < 8) { b8[i] = i; i = i + 1; }
+    kama (b8[3] != 3) rudisha 1;
+    kama (b8[7] != 7) rudisha 2;
+    i = 0;
+    wakati (i < 4) { b16[i] = i * 2 + 1; i = i + 1; }
+    kama (b16[3] != 7) rudisha 3;
+    i = 0;
+    wakati (i < 4) { b64[i] = i + 10; i = i + 1; }
+    kama (b64[3] != 13) rudisha 4;
+    kama (glob != 0) rudisha 5;
+    kama (h1() != 3) rudisha 6;
+    kama (f(5) != 5) rudisha 7;
+    N32 s = 0; i = 0;
+    wakati (i < 5) { s = s + i; i = i + 1; }
+    kama (s != 10) rudisha 8;
+    rudisha 0;
+}
+").expect("inapaswa kuandika jaribio_user.swa");
+    let user_exe = dir.path().join("jaribio_user-exe");
+    let user_out = std::process::Command::new(&stage1_exe)
+        .arg("--exe")
+        .arg(&user_swa)
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .stdout(std::fs::File::create(&user_exe).expect("inapaswa kuunda jaribio_user-exe"))
+        .output()
+        .expect("inapaswa kuendesha stage1-exe --exe kwa program ya mtumiaji");
+    assert!(user_out.status.success(), "stage1-exe --exe inapaswa kukusanya program ya mtumiaji\nstderr: {}",
+        String::from_utf8_lossy(&user_out.stderr));
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let ruhusa = std::fs::metadata(&user_exe).expect("inapaswa kusoma metadata").permissions();
+        let mut ruhusa_mpya = ruhusa.clone();
+        ruhusa_mpya.set_mode(0o755);
+        std::fs::set_permissions(&user_exe, ruhusa_mpya).expect("inapaswa kuweka ruhusa");
+    }
+    let user_run = std::process::Command::new(&user_exe)
+        .output()
+        .expect("inapaswa kuendesha jaribio_user-exe");
+    assert!(user_run.status.success(), "program ya mtumiaji inapaswa kurudisha 0, ilirudisha {:?}\nstderr: {}",
+        user_run.status.code(), String::from_utf8_lossy(&user_run.stderr));
 }
 
 /// Hali ya .o ya mbegu — urekebishaji wa RELA na symtab hautumiki
