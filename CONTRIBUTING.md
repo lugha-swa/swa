@@ -77,6 +77,34 @@ cargo run --release -- mfano.swa -o mfano.o
 
 ---
 
+## Sheria ya Mzizi wa Uaminifu
+
+`msingi/mbegu.s` na `msingi/kwanza.bin` ni MZIZI WA UAMINIFU wa
+mnyororo mzima. Sheria isiyo na mbadala:
+
+**Mabadiliko ya mzizi wa uaminifu hujengwa na Kujaribiwa KABLA ya
+kugandishwa — hakuna ubaguzi.**
+
+Kwa nini: hitilafu kwenye mzizi ni ya darasa baya zaidi — mbegu
+iliyovunjika inaweza bado kutoa fixpoint imara LAKINI mbaya
+(stage2 == stage3 == takataka), na mnyororo mzima unaweza kushindwa
+kimya kimya. Mfano halisi: uhariri mdogo wa njia ya fixup uliwahi
+kufanya kila mkusanyiko kushindwa — ulipatikana tu kwa sababu jaribio
+la wito 1,000 lilikimbizwa kabla ya kugandisha. Jaribio hilo sasa ni
+`jaribio_mbegu_mkazo_wito` (majaribio/integration.rs) — la kudumu.
+
+Mpangilio wa lazima:
+1. Badilisha `msingi/mbegu.s`.
+2. `nasm` + `ld` → mbegu ya muda → jaribu kwa chanzo KIDOGO (sio
+   mkusanyiko mzima kwanza) na kwa mkusanyiko mzima.
+3. Jaribio la mkazo la wito wa mbele (angalau 1,000) — njia za RELA
+   na nje zinazopigwa mara nyingi.
+4. Baada ya hapo tu: gandisha (`mbegu.bin` + `mbegu.hex`), thibitisha
+   kwa `bash gharama/jenga-kwanza.sh`, na endesha `cargo test` nzima.
+5. Tazama `hati/mipaka.md` kwa mipaka inayojulikana ya mbegu.
+
+---
+
 ## Falsafa ya Msimbo
 
 1. **Kiswahili kwanza.** Vigeu, kazi, na maoni yote kwa Kiswahili.

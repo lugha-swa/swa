@@ -685,6 +685,72 @@ N32 main() {
 
 /// Hali ya .o ya mbegu — urekebishaji wa RELA na symtab hautumiki
 /// katika hali ya exe, kwa hivyo jari bisha pia: mbegu < zima.swa →
+/// Mkazo wa mbegu: wito 1,000 wa mbele kwa kazi moja — kila wito
+/// unachukua ingizo jipya la nje na RELA, kisha toa_exe inazitatua
+/// zote. Huu ndio jaribio lililowahi kugundua mbegu iliyovunjika
+/// (uhariri mbaya wa njia ya fixup) kabla ya kugandishwa — sasa ni
+/// la kudumu la kurejesha (regression).
+#[test]
+fn jaribio_mbegu_mkazo_wito() {
+    let kwanza = std::process::Command::new("bash")
+        .arg("gharama/jenga-kwanza.sh")
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .expect("inapaswa kuendesha jenga-kwanza.sh");
+    assert!(kwanza.status.success(), "mnyororo wa kwanza unapaswa kufaulu");
+
+    let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
+    let mbegu = "/tmp/mbegu2.bin";
+
+    // Chanzo cha mkazo: wito 1,000 wa mbele (lengo limetangazwa MWISHO)
+    let mut chanzo = String::from("N32 main() { N32 s = 0;\n");
+    for _ in 0..1000 {
+        chanzo.push_str("s = s + lengo(1);\n");
+    }
+    chanzo.push_str("kama (s != 1000) rudisha 1; rudisha 0; }\n");
+    chanzo.push_str("N32 lengo(N32 x) { rudisha x; }\n");
+    let stress_swa = dir.path().join("mkazo.swa");
+    std::fs::write(&stress_swa, chanzo).expect("inapaswa kuandika mkazo.swa");
+
+    // 1. mbegu --exe < mkazo.swa -> exe ya mtumiaji
+    let stress_exe = dir.path().join("mkazo-exe");
+    let out1 = std::process::Command::new(mbegu)
+        .arg("--exe")
+        .stdin(std::fs::File::open(&stress_swa).expect("inapaswa kufungua mkazo.swa"))
+        .stdout(std::fs::File::create(&stress_exe).expect("inapaswa kuunda mkazo-exe"))
+        .output()
+        .expect("inapaswa kuendesha mbegu --exe");
+    assert!(out1.status.success(), "mbegu --exe inapaswa kukusanya mkazo\nstderr: {}",
+        String::from_utf8_lossy(&out1.stderr));
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let ruhusa = std::fs::metadata(&stress_exe).expect("inapaswa kusoma metadata").permissions();
+        let mut ruhusa_mpya = ruhusa.clone();
+        ruhusa_mpya.set_mode(0o755);
+        std::fs::set_permissions(&stress_exe, ruhusa_mpya).expect("inapaswa kuweka ruhusa");
+    }
+    let run1 = std::process::Command::new(&stress_exe)
+        .output()
+        .expect("inapaswa kuendesha mkazo-exe");
+    assert!(run1.status.success(), "mkazo-exe inapaswa kurudisha 0, ilirudisha {:?}",
+        run1.status.code());
+
+    // 2. Hali ya .o pia: mbegu < mkazo.swa -> .o lenye UND 1,000
+    let stress_o = dir.path().join("mkazo.o");
+    let out2 = std::process::Command::new(mbegu)
+        .stdin(std::fs::File::open(&stress_swa).expect("inapaswa kufungua mkazo.swa"))
+        .stdout(std::fs::File::create(&stress_o).expect("inapaswa kuunda mkazo.o"))
+        .output()
+        .expect("inapaswa kuendesha mbegu");
+    assert!(out2.status.success(), "mbegu inapaswa kukusanya mkazo (.o)\nstderr: {}",
+        String::from_utf8_lossy(&out2.stderr));
+    let baiti = std::fs::read(&stress_o).expect("inapaswa kusoma mkazo.o");
+    assert!(baiti.len() > 4096, "mkazo.o inapaswa kuwa na mwili halisi ({} baiti)", baiti.len());
+    assert_eq!(&baiti[..4], &[0x7F, 0x45, 0x4C, 0x46], "mkazo.o inapaswa kuwa ELF halali");
+}
+
 /// stage1.o, unganisha kwa clang na trampoline ndogo (tekeleza na
 /// anwani_ya_kazi pekee — andika, ukubwa, na wito_wa_mfumo ni za
 /// ndani sasa), endesha, na uthibitishe towe ni ELF halali.
