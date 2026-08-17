@@ -250,7 +250,11 @@ impl<'a> Parser<'a> {
     fn changanua_primary(&mut self) -> i32 {
         match &self.sasa().kind {
             TokenKind::Nambari => {
-                let v: i32 = self.sasa().lexeme.parse().unwrap_or(0);
+                // Parse kama u32 kwanza ili thamani hadi 2^32-1 zibaki kama
+                // mifumo ya biti ya N32 (mbegu hufanya hivyo) — parse ya i32
+                // moja kwa moja inazunguka kwa thamani zaidi ya 2^31-1.
+                let safi: String = self.sasa().lexeme.chars().filter(|c| *c != '_').collect();
+                let v: i32 = safi.parse::<u32>().map(|u| u as i32).unwrap_or(0);
                 self.sogeza();
                 self.ast.node_mpya(AST_NAMBARI, v, NO_NODE, NO_NODE)
             }

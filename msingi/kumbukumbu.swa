@@ -66,32 +66,26 @@ N64 sys_munmap(N8* anwani, N64 urefu) {
 // ==========================================================
 
 W0 andika_n64(N32 faili, N64 v) {
-    N8 bafa[32];
+    // Bafa ya N32, si N8 — mbegu hutoa maandishi ya safu ya N8
+    // kwa mizani ya baiti 4, hivyo tumia N32 na uchapishe tarakimu
+    // moja kwa moja kupitia andika_herufi.
+    N32 bafa[32];
     N32 n = 0;
-    N32 mwanzo = 0;
     kama (v < 0) {
-        bafa[n] = 45;  // '-'
-        n = n + 1;
+        andika_herufi(faili, 45);  // '-'
         v = 0 - v;
-        mwanzo = 1;
     }
     wakati (1 == 1) {
-        bafa[n] = 48 + (v - ((v / 10) * 10));
+        bafa[n] = v - ((v / 10) * 10);
         n = n + 1;
         v = v / 10;
         kama (v == 0) { vunja; }
     }
-    // geuza mpangilio wa tarakimu
-    N32 i = mwanzo;
-    N32 j = n - 1;
-    wakati (i < j) {
-        N8 t = bafa[i];
-        bafa[i] = bafa[j];
-        bafa[j] = t;
-        i = i + 1;
-        j = j - 1;
+    // Chapisha tarakimu kwa mpangilio wa nyuma
+    wakati (n > 0) {
+        n = n - 1;
+        andika_herufi(faili, 48 + bafa[n]);
     }
-    sys_andika(faili, bafa, n);
 }
 
 W0 andika_mfuatano(N32 faili, N8* s) {
@@ -111,6 +105,67 @@ W0 andika_herufi(N32 faili, N64 b) {
 
 W0 andika_sehemu(N32 faili, N8* s, N64 urefu) {
     sys_andika(faili, s, urefu);
+}
+
+// ==========================================================
+// andika / andika_stderr — utekelezaji wa ndani wa muundo
+// (kwa mbegu: wito za nje hujitatua hapa; codegen ya Swa ni builtin)
+// Muundo ni mfuatano PAMOJA na nukuu, viashiria: %d, %s, %c, \n.
+// ==========================================================
+
+W0 andika_ndani(N32 faili, N8* f, N64 a1, N64 a2, N64 a3, N64 a4, N64 a5, N64 a6) {
+    N32 p = 0;   // mfuatano hauna nukuu (kumbukumbu hutoa bila nukuu)
+    N32 na = 0;  // faharisi ya hoja inayofuata
+    wakati (1 == 1) {
+        kama (f[p] == 0) { vunja; }          // mwisho wa mfuatano (null terminator)
+        kama (f[p] == 37) {                   // '%'
+            N8 sp = f[p + 1];
+            p = p + 2;
+            kama (sp == 100) {                // %d
+                kama (na == 0) { andika_n64(faili, a1); } sivyo kama (na == 1) { andika_n64(faili, a2); }
+                sivyo kama (na == 2) { andika_n64(faili, a3); } sivyo kama (na == 3) { andika_n64(faili, a4); }
+                sivyo kama (na == 4) { andika_n64(faili, a5); } sivyo { andika_n64(faili, a6); }
+                na = na + 1;
+            } sivyo kama (sp == 115) {        // %s
+                kama (na == 0) { andika_mfuatano(faili, a1); } sivyo kama (na == 1) { andika_mfuatano(faili, a2); }
+                sivyo kama (na == 2) { andika_mfuatano(faili, a3); } sivyo kama (na == 3) { andika_mfuatano(faili, a4); }
+                sivyo kama (na == 4) { andika_mfuatano(faili, a5); } sivyo { andika_mfuatano(faili, a6); }
+                na = na + 1;
+            } sivyo kama (sp == 99) {         // %c
+                kama (na == 0) { andika_herufi(faili, a1); } sivyo kama (na == 1) { andika_herufi(faili, a2); }
+                sivyo kama (na == 2) { andika_herufi(faili, a3); } sivyo kama (na == 3) { andika_herufi(faili, a4); }
+                sivyo kama (na == 4) { andika_herufi(faili, a5); } sivyo { andika_herufi(faili, a6); }
+                na = na + 1;
+            }
+            endelea;
+        }
+        kama (f[p] == 92 && f[p + 1] == 110) {  // \n
+            andika_herufi(faili, 10);
+            p = p + 2;
+            endelea;
+        }
+        andika_herufi(faili, f[p]);
+        p = p + 1;
+    }
+}
+
+N32 andika(N8* f, N64 a1, N64 a2, N64 a3, N64 a4, N64 a5, N64 a6) {
+    andika_ndani(1, f, a1, a2, a3, a4, a5, a6);
+    rudisha 0;
+}
+
+N32 andika_stderr(N8* f, N64 a1, N64 a2, N64 a3, N64 a4, N64 a5, N64 a6) {
+    andika_ndani(2, f, a1, a2, a3, a4, a5, a6);
+    rudisha 0;
+}
+
+// ukubwa — kwa mbegu (codegen ya Swa huikokotoa wakati wa kukusanya)
+N64 ukubwa(N32 aina) {
+    kama (aina == 1) { rudisha 1; }
+    kama (aina == 2) { rudisha 2; }
+    kama (aina == 3) { rudisha 4; }
+    kama (aina == 4) { rudisha 8; }
+    rudisha 8;
 }
 
 // ==========================================================

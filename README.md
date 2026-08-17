@@ -132,11 +132,14 @@ N32 kitanzi(N32 n) {
 ## Vipengele
 
 - **Maneno muhimu 42** ya Kiswahili -- hakuna Kiingereza katika sintaksia
-- **Kujitegemea (~85%)** -- mkusanyaji umeandikwa kwa Swa yenyewe (bootstrap)
+- **Kujitegemea (100%)** -- mnyororo wa kujikusanya umefungwa kabisa:
+  baiti za mkono → mbegu → stage1-exe → stage2-exe == stage3-exe
+  (mnyororo wa uzalishaji; uthabiti wa makosa ni mhimili tofauti —
+  angalia hati/mipaka.md)
 - **Vizalishe viwili**: LLVM (majukwaa yote) + asilia (x86-64 ELF moja kwa moja)
 - **Aina 25 za nambari** — N8–N128, A8–A128, D16–D80, B1–B64, W0–W64 zote zinashughulikiwa
 - **Kumbukumbu ya moja kwa moja** -- tenga, achilia, hakuna ukusanyaji taka
-- **Majaribio**: 204 yanapita (146 maktaba + 57 ujumuishaji + 1 nyaraka). K6 bootstrap inafanya kazi.
+- **Majaribio**: 217 yanapita (146 maktaba + 70 ujumuishaji + 1 nyaraka). K6 bootstrap inafanya kazi.
 
 ## Muundo wa Mradi
 
@@ -161,13 +164,14 @@ N32 kitanzi(N32 n) {
 - LLVM 18+ (C API) -- imejaribiwa kwenye LLVM 22.1 (Arch Linux) na LLVM 18 (Windows)
 - Rust (toleo jipya zaidi)
 - Clang (kwa majaribio ya ujumuishaji ya wakati wa utekelezaji)
-- Hakuna kiunganishi kinachohitajika kwa mnyororo wa kujikusanya: `--exe`
-  inatoa ET_EXEC tuli inayojijenga yenyewe bila ld/gcc/libc
+- Hakuna kiunganishi kinachohitajika kwa mnyororo wa kujikusanya (0%
+  bootstrap gap): mbegu (`--exe`) inatoa ET_EXEC tuli moja kwa moja —
+  hakuna gcc/ld/clang/libc popote, kuanzia stage1-exe hadi stage3-exe
   (stage2-exe == stage3-exe, sawa kwa baiti)
 
 ```sh
 cargo build --release
-cargo test          # Majaribio 205: 146 ya maktaba + 58 ya ujumuishaji + 1 wa nyaraka
+cargo test          # Majaribio 217: 146 ya maktaba + 70 ya ujumuishaji + 1 wa nyaraka
 ```
 
 ## Matumizi
@@ -187,13 +191,14 @@ Mkusanyaji wa Swa unajikusanya yenyewe kupitia hatua mbili:
 1. **stage1.swa** -- kiendeshi kinachopakia maktaba ya `msingi/` na kuchakata faili yoyote ya `.swa`
 2. **msingi/** -- msomaji, mchanganuzi, kiteremshi, na mkaguzi zilizoandikwa kwa Swa yenyewe
 
-Lengo ni kuondoa utegemezi wa Rust na kuwa na mkusanyaji ulioandikwa kwa Swa pekee.
+Lengo limefikiwa: mnyororo wa kujikusanya unajitegemea kabisa — kutoka baiti
+za mkono hadi mkusanyaji kamili wa Swa, bila lugha nyingine popote.
 
 ## Hali ya Mradi
 
 | Kipimo | Thamani |
 |--------|---------|
-| **Majaribio** | 204/204 [PASS] |
+| **Majaribio** | 217/217 [PASS] |
 | **Kujikusanya (K6)** | Inapita [PASS] |
 | **Mchanganuzi wa Swa** | Kamili [DONE] |
 | **Mkaguzi wa Swa** | Kamili [DONE] |
@@ -204,7 +209,7 @@ Lengo ni kuondoa utegemezi wa Rust na kuwa na mkusanyaji ulioandikwa kwa Swa pek
 | **Alloca-in-loop** | Imerekebishwa [DONE] |
 | **Sret (struct return)** | Imetekelezwa [DONE] |
 | **`--opt` (LLVM passes)** | Inafanya kazi [DONE] |
-| **Uhuru wa jumla** | **~85%** |
+| **Uhuru wa jumla** | **100% (0% bootstrap gap)** |
 
 ## Ramani
 
@@ -230,6 +235,7 @@ Kiswahili duniani.
 - **[SECURITY.md](SECURITY.md)** -- Sera ya usalama
 - **[SUPPORT.md](SUPPORT.md)** -- Kupata msaada
 - **[hati/ramani.md](hati/ramani.md)** -- Ramani ya mradi
+- **[hati/mipaka.md](hati/mipaka.md)** -- Mipaka inayojulikana (kwa ukali)
 - **[GitHub Discussions](https://github.com/lugha-swa/swa/discussions)** -- Majadiliano
 - **[GitHub Issues](https://github.com/lugha-swa/swa/issues)** -- Ripoti za hitilafu na maombi ya vipengele
 

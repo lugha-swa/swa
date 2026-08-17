@@ -40,9 +40,14 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - [x] Runtime ya syscalls: mkusanyaji hautekelezi kupitia libc tena —
       sys_open/sys_read/sys_write/sys_mmap kupitia wito_wa_mfumo;
       undefined za nje za stage2.o ni mbili tu (daraja za JIT).
-- [ ] 0% bootstrap gap — hatua ya stage1 bado inatumia gcc/muda.c
-      kuunganisha (mbegu haijui kuunganisha bado); kuanzia stage2
-      mnyororo ni safi.
+- [x] 0% bootstrap gap — mbegu inatoa ET_EXEC tuli moja kwa moja
+      (`--exe`): kichwa + phdr + stub ya `_start` + urekebishaji wa
+      RELA wa ndani. Hakuna gcc, ld, clang, muda.c, wala libc popote
+      kwenye mnyororo: kwanza → mbegu → stage1-exe → stage2-exe →
+      stage3-exe (stage2-exe == stage3-exe, sawa kwa baiti).
+      Kumbuka: hili linahusu mnyororo wa uzalishaji pekee — uthabiti
+      wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti, bado
+      wazi (angalia hati/mipaka.md).
 
 ## Kanuni Zisizobadilika
 
@@ -60,6 +65,7 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - `readme.md` — ukurasa wa kwanza
 - `hati/ramani.md` — ramani ya mradi
 - `hati/malengo.md` — huu hapa (lengo letu halisi)
+- `hati/mipaka.md` — mipaka inayojulikana (kwa ukali)
 - `msingi/uzalishaji.swa` — codegen asilia (inajikusanya)
 - `msingi/mteremko.swa` — LLVM backend ya dereva wa Rust (msimbo mfu kwa kujikusanya)
 - `msingi/stage1.swa` — kiendeshi cha bootstrap
@@ -67,14 +73,17 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 
 ## Kile Tunachofanya Sasa (Agosti 2026)
 
-Mnyororo wa kujikusanya umefungwa na JIT inafanya kazi. Kazi inayofuata
-kwa umuhimu:
+Lengo kuu limefikiwa: mnyororo wa kujikusanya umefungwa kikamilifu na
+**hakuna lugha nyingine** — baiti za mkono (kwanza, 393) → mbegu →
+stage1-exe → stage2-exe == stage3-exe, bila gcc/ld/clang/libc popote.
+(0% gap ni mhimili wa mnyororo wa uzalishaji; uthabiti wa makosa ni
+mhimili tofauti — hati/mipaka.md.) Kazi inayofuata kwa umuhimu:
 
-1. **Hatua ya 3: baiti za mkono** — andika mkusanyaji mdogo wa kwanza
-   kwa baiti za opcodes za mkono, ukiondoa NASM kutoka kwenye mnyororo.
-2. **Kuunganisha na runtime** — kuondoa utegemezi wa ld/gcc na muda.c
-   kwenye mnyororo (kiunganishi cha kujikusanya au ELF ya kujitegemea,
-   na syscalls moja kwa moja badala ya libc).
+1. **Uthabiti wa makosa ya mchanganuzi** — mbegu inakubali/segfault
+   kwa ingizo baya; mchanganuzi wa .swa unaning'inia kwa ingizo
+   lililokatwa (hati/mipaka.md sehemu 1-2).
+2. **JIT ndani ya exe** — jedwali la anwani za ndani (tekeleza na
+   anwani_ya_kazi kama kazi za .swa) ili --jit ifanye kazi kwenye exe.
 3. **ABI ya desimali** — hoja za float/double kupitia xmm0-xmm7.
 4. **JIT kamili** — relocations za wito wa nje na kupitisha argv.
 5. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha.
