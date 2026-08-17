@@ -139,7 +139,7 @@ N32 kitanzi(N32 n) {
 - **Vizalishe viwili**: LLVM (majukwaa yote) + asilia (x86-64 ELF moja kwa moja)
 - **Aina 25 za nambari** — N8–N128, A8–A128, D16–D80, B1–B64, W0–W64 zote zinashughulikiwa
 - **Kumbukumbu ya moja kwa moja** -- tenga, achilia, hakuna ukusanyaji taka
-- **Majaribio**: 216 yanapita (146 maktaba + 69 ujumuishaji + 1 nyaraka). K6 bootstrap inafanya kazi.
+- **Majaribio**: 217 yanapita (146 maktaba + 70 ujumuishaji + 1 nyaraka). K6 bootstrap inafanya kazi.
 
 ## Muundo wa Mradi
 
@@ -171,7 +171,7 @@ N32 kitanzi(N32 n) {
 
 ```sh
 cargo build --release
-cargo test          # Majaribio 216: 146 ya maktaba + 69 ya ujumuishaji + 1 wa nyaraka
+cargo test          # Majaribio 217: 146 ya maktaba + 70 ya ujumuishaji + 1 wa nyaraka
 ```
 
 ## Matumizi
@@ -198,7 +198,7 @@ za mkono hadi mkusanyaji kamili wa Swa, bila lugha nyingine popote.
 
 | Kipimo | Thamani |
 |--------|---------|
-| **Majaribio** | 216/216 [PASS] |
+| **Majaribio** | 217/217 [PASS] |
 | **Kujikusanya (K6)** | Inapita [PASS] |
 | **Mchanganuzi wa Swa** | Kamili [DONE] |
 | **Mkaguzi wa Swa** | Kamili [DONE] |
