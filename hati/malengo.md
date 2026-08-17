@@ -33,12 +33,16 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
       hex hadi binary na inajijenga yenyewe (kwanza.hex -> kwanza.bin)
 - [x] mbegu.bin inazalika kutoka mbegu.hex kupitia Kwanza — NASM
       si sehemu ya mnyororo wa uzalishaji tena; mbegu.s ni rejea tu
-- [ ] Kiunganishi cha kujitegemea: ld/gcc bado zinahitajika kuunganisha
-      stage binaries
-- [ ] Runtime ya syscalls: .swa bado inatumia libc/muda.c (fopen, andika,
-      malloc) — inahitaji syscalls moja kwa moja
-- [ ] 0% bootstrap gap — muda.c (C) na zana za kuunganisha bado ziko
-      kwenye mnyororo
+- [x] Kiunganishi cha kujitegemea: bendera ya `--exe` inatoa **ET_EXEC
+      tuli** (bila kichwa cha sehemu, bila PT_INTERP) — mnyororo wa
+      kujikusanya wa exe ni safi kabisa: stage2-exe == stage3-exe
+      (sawa kwa baiti) bila ld, gcc, wala libc.
+- [x] Runtime ya syscalls: mkusanyaji hautekelezi kupitia libc tena —
+      sys_open/sys_read/sys_write/sys_mmap kupitia wito_wa_mfumo;
+      undefined za nje za stage2.o ni mbili tu (daraja za JIT).
+- [ ] 0% bootstrap gap — hatua ya stage1 bado inatumia gcc/muda.c
+      kuunganisha (mbegu haijui kuunganisha bado); kuanzia stage2
+      mnyororo ni safi.
 
 ## Kanuni Zisizobadilika
 

@@ -161,3 +161,104 @@ N8* badili(N8* p, N64 ukubwa) {
     nakili(r, p, nakili_urefu);
     rudisha r;
 }
+
+// ==========================================================
+// Usomaji wa desimali halisi — badala ya strtod (libc)
+// bits_ya_d64_swa: mfuatano [-]z.z → baiti za D64 (IEEE 754)
+// (majina ya kigeu hayawezi kuwa herufi za aina: N A B D W)
+// Kikomo cha sasa: tarakimu za kasoro <= 10 kwa thamani < 2^26,
+// <= 3 kwa thamani kubwa zaidi (vinginevyo hesabu*2^hamisha
+// inaweza kuzidi baiti 64).
+// ==========================================================
+
+N64 p2_kwa(N32 kubwa) {
+    N64 thamani = 1;
+    N32 fasi = 0;
+    wakati (fasi < kubwa) {
+        thamani = thamani * 2;
+        fasi = fasi + 1;
+    }
+    rudisha thamani;
+}
+
+N64 bits_ya_d64_swa(N8* ch, N32 u) {
+    N64 alama = 0;
+    N32 fasi = 0;
+    kama (ch[fasi] == 45) { alama = 1; fasi = fasi + 1; }
+    N64 nzima = 0;
+    wakati (fasi < u && ch[fasi] != 46) {
+        nzima = nzima * 10 + (ch[fasi] - 48);
+        fasi = fasi + 1;
+    }
+    N64 kasoro = 0;
+    N64 idadi_k = 0;
+    kama (fasi < u && ch[fasi] == 46) {
+        fasi = fasi + 1;
+        wakati (fasi < u) {
+            kasoro = kasoro * 10 + (ch[fasi] - 48);
+            idadi_k = idadi_k + 1;
+            fasi = fasi + 1;
+        }
+    }
+    // nene = 10^idadi_k
+    N64 nene = 1;
+    N32 kaunta = 0;
+    wakati (kaunta < idadi_k) { nene = nene * 10; kaunta = kaunta + 1; }
+    // hesabu = nzima * nene + kasoro  (thamani = hesabu / nene)
+    N64 hesabu = nzima * nene + kasoro;
+    kama (hesabu == 0) { rudisha 0; }
+
+    // kizio: kubwa zaidi kama 2^kizio <= hesabu/nene < 2^(kizio+1)
+    N64 urefu_juu = 0; N64 muda = hesabu;
+    wakati (muda > 0) { muda = muda / 2; urefu_juu = urefu_juu + 1; }
+    N64 urefu_chini = 0; muda = nene;
+    wakati (muda > 0) { muda = muda / 2; urefu_chini = urefu_chini + 1; }
+    N64 kizio = urefu_juu - urefu_chini;
+    kama (kizio >= 0) {
+        // kurekebisha chini: kama hesabu/nene < 2^kizio, punguza
+        N64 p2m = p2_kwa(kizio);
+        kama (hesabu < nene * p2m) { kizio = kizio - 1; }
+    } sivyo {
+        // kizio hasi (v < 1): linganisha hesabu * 2^m < nene, m = -kizio
+        N64 m = 0 - kizio;
+        N64 q = 1;
+        N32 mf = 0;
+        wakati (mf < m) { q = q * 2; mf = mf + 1; }
+        kama (hesabu * q < nene) { kizio = kizio - 1; }
+    }
+    // Kuinua hesabu hadi [nene, 2*nene) — hesabu/nene sasa ni
+    // 2^(kizio+d); kizio yenyewe inabaki kielelezo cha thamani asilia.
+    N64 d = 0;
+    wakati (hesabu < nene) {
+        hesabu = hesabu * 2;
+        d = d + 1;
+    }
+
+    // pacha = (hesabu/nene - 2^(kizio+d)) * 2^(52-kizio-d)
+    //       = hesabu * 2^(52-kizio-d) / nene - 2^52
+    N64 hamisha = 52 - (kizio + d);
+    kama (hamisha < 0) { hamisha = 0; }
+    kama (hamisha > 52) { hamisha = 52; }
+    N64 p52 = p2_kwa(52);
+    N64 pacha = 0;
+    kama (hamisha <= 26) {
+        N64 p2s = p2_kwa(hamisha);
+        pacha = (hesabu * p2s) / nene - p52;
+    } sivyo {
+        // Gawanya kuzidisha ili kuepuka kuzidi baiti 64:
+        // hesabu*2^hamisha = (hi*nene + salio) * 2^(hamisha-26)
+        N64 p2a = p2_kwa(26);
+        N64 p2b = p2_kwa(hamisha - 26);
+        N64 hi = (hesabu * p2a) / nene;
+        N64 salio = hesabu * p2a - hi * nene;
+        pacha = hi * p2b + (salio * p2b) / nene - p52;
+    }
+
+    // bits: alama << 63 | (kizio + 1023) << 52 | pacha
+    N64 p63 = p2_kwa(63);
+    N64 biti = 0;
+    kama (alama == 1) { biti = biti + p63; }
+    biti = biti + (kizio + 1023) * p52;
+    biti = biti + (pacha - (pacha / p52) * p52);
+    rudisha biti;
+}

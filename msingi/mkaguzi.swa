@@ -480,7 +480,9 @@ N32 mkaguzi_kagua_usemi(N32 node) {
     kama (aina == 44) {  // AST_TERNARY
         mkaguzi_kagua_usemi(ast_kushoto[node]);   // hali
         N32 true_enc = mkaguzi_kagua_usemi(ast_kulia[node]);    // tawi la kweli
-        N32 false_enc = mkaguzi_kagua_usemi(ast_tiga[node]);    // tawi la uwongo
+        // Tawi la uwongo liko ast_nne — ast_tiga hubeba kiungo cha hoja
+        // cha mnyororo wa wito (mchanganuzi/mkaguzi huiandika).
+        N32 false_enc = mkaguzi_kagua_usemi(ast_nne[node]);     // tawi la uwongo
         // Angalia utangamano kati ya matawi
         kama (true_enc != 0 && true_enc != -1 && false_enc != 0 && false_enc != -1) {
             kama (mkaguzi_aina_zifanane(true_enc, false_enc) == 0) {
@@ -489,20 +491,17 @@ N32 mkaguzi_kagua_usemi(N32 node) {
                 mkaguzi_makosa = mkaguzi_makosa + 1;
             }
         }
-        // Hifadhi ukubwa na encoding kwa mzalishaji
-        ast_tiga[node] = ukubwa_kutoka_enc(true_enc);
+        // Hifadhi encoding kwa mzalishaji; ukubwa hukokotolewa kutoka enc.
         ast_thamani[node] = true_enc;
         rudisha true_enc;
     }
 
     // TOFAUTI ya unari (kukanusha): -x
-    // Hushughulikiwa kabla ya oparesheni jozi — vinginevyo kijisehemu
-    // cha jozi kinaweka ast_tiga = ukubwa_kutoka_enc(-1) = 8 na
-    // mzalishaji anachukua njia ya 64-bit kwa thamani ya 32-bit.
+    // Hushughulikiwa kabla ya oparesheni jozi — vinginevyo mzalishaji
+    // angechukua njia ya 64-bit kwa thamani ya 32-bit.
     kama (aina == 7) {
         kama (ast_kushoto[node] == -1) {
             N32 op = mkaguzi_kagua_usemi(ast_kulia[node]);
-            ast_tiga[node] = ukubwa_kutoka_enc(op);
             ast_thamani[node] = op;
             rudisha op;
         }
@@ -528,8 +527,9 @@ N32 mkaguzi_kagua_usemi(N32 node) {
                 }
             }
         }
-        // Hifadhi ukubwa wa matokeo kwa mzalishaji (N32=4, N64=8, n.k.)
-        ast_tiga[node] = ukubwa_kutoka_enc(lhs);
+        // Ukubwa wa matokeo hukokotolewa na mzalishaji kutoka enc
+        // (ukubwa_kutoka_enc) — si ast_tiga, kwani mkaguzi wa wito
+        // huandika kiungo cha mnyororo wa hoja juu ya ast_tiga.
         // Hifadhi encoding kamili kwa mzalishaji (kwa kutofautisha N/D/B/W)
         ast_thamani[node] = lhs;
         rudisha lhs;
@@ -609,8 +609,9 @@ N32 mkaguzi_kagua_usemi(N32 node) {
             kama (mb == 3) { base_no_ptr = base - 2; }
             sivyo kama (mb == 1 || mb == 2) { base_no_ptr = base - 1; }
         }
-        // Hifadhi ukubwa wa elementi na enc ya matokeo kwa mzalishaji
-        ast_tiga[node] = ukubwa_kutoka_enc(base_no_ptr);
+        // Hifadhi enc ya matokeo; ukubwa wa elementi hukokotolewa na
+        // mzalishaji kutoka enc (ast_tiga ya hoja huandikwa na kiungo
+        // cha mnyororo wa wito).
         ast_thamani[node] = base_no_ptr;
         rudisha base_no_ptr;
     }

@@ -1409,6 +1409,9 @@ N32 fixup_nafasi[65536];
 N32 fixup_lebo[65536];
 N32 fixup_idadi = 0;
 
+// Hali ya exe: 1 = toa ET_EXEC ya kujitegemea badala ya .o.
+N32 hali_exe_sasa = 0;
+
 // Msaidizi wa kuongeza kuingia kwa fixup (na ulinzi wa mipaka)
 W0 weka_fixup(N32 lebo_id) {
     kama (fixup_idadi < 65536) {
@@ -1669,6 +1672,7 @@ N32 param_enc[16];
 // Kina kinatoa nafasi kwa viwango 8 vya wito vilivyopachikwa.
 N32 hoja_undani = 0;
 N32 ni_syscall_wito = 0;
+N32 ni_andika_nje = 0;
 N32 hoja_nodes_bk[256];
 N32 hoja_enc_bk[256];
 
@@ -1983,7 +1987,11 @@ W0 uzalishaji_chagua(N32 node, N32 kazi_node) {
 // Utoaji wa wito wa kazi — AST_WITO (8)
 // -------------------------------------------------------
 W0 uzalishaji_wito(N32 node, N32 kazi_node) {
+    // Safu za ndani KABLA ya taarifa zote — mbegu huzihitaji mwanzoni.
+    N8 jina_ndani[24];
+    N8 tk[16];
     ni_syscall_wito = 0;
+    ni_andika_nje = 0;
     N32 callee_node = ast_kushoto[node];
     N8* callee = ast_pool + ast_jina_off[callee_node];
 
@@ -2021,7 +2029,10 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
     // kuchapisha (andika_sehemu, andika_n64, andika_mfuatano, andika_baiti).
     kama (jina_linganisha(callee, "andika") || jina_linganisha(callee, "andika_stderr")) {
         N32 a0 = ast_kulia[node];
-        kama (a0 != -1 && ast_aina[a0] == 5) {
+        // Kama kazi za kuchapisha za ndani hazipo (program ya mtumiaji
+        // bila maktaba), angukia kwenye wito wa nje wa C (andika ya muda).
+        kama (kazi_nafasi_kwa_jina("andika_sehemu") < 0) { ni_andika_nje = 1; }
+        kama (a0 != -1 && ast_aina[a0] == 5 && ni_andika_nje == 0) {
             N8* muundo = ast_pool + ast_jina_off[a0];
             N32 fd = 1;
             kama (jina_linganisha(callee, "andika_stderr")) { fd = 2; }
@@ -2551,7 +2562,9 @@ W0 uzalishaji_jumlisha(N32 node, N32 kazi_node) {
     N32 lhs = ast_kushoto[node];
     N32 rhs = ast_kulia[node];
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
+    // Ukubwa hukokotolewa kutoka enc — ast_tiga ya hoja ya wito
+    // hubadilishwa na mkaguzi kuwa kiungo cha mnyororo.
+    N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_d = ni_desimali_enc(enc);
 
     uzalishaji_usemi(rhs, kazi_node);
@@ -2572,7 +2585,7 @@ W0 uzalishaji_jumlisha(N32 node, N32 kazi_node) {
 W0 uzalishaji_tofauti(N32 node, N32 kazi_node) {
     N32 lhs = ast_kushoto[node];
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_d = ni_desimali_enc(enc);
 
     kama (lhs == -1) {
@@ -2709,7 +2722,6 @@ W0 vuta_thamani_rcx(N32 enc) {
 // AST_SAWA (20) -- linganisha (==)
 W0 uzalishaji_sawa(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
     N32 ni_d = ni_desimali_enc(enc);
 
     uzalishaji_usemi(ast_kulia[node], kazi_node);
@@ -2856,7 +2868,7 @@ W0 uzalishaji_si(N32 node, N32 kazi_node) {
 // AST_ZIDISHA (31) -- zidisha
 W0 uzalishaji_zidisha(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_d = ni_desimali_enc(enc);
 
     uzalishaji_usemi(ast_kulia[node], kazi_node);
@@ -2876,7 +2888,7 @@ W0 uzalishaji_zidisha(N32 node, N32 kazi_node) {
 // AST_GAWANYA (32) -- gawanya
 W0 uzalishaji_gawanya(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_d = ni_desimali_enc(enc);
     N32 ni_b = ni_bila_ishara_enc(enc);
 
@@ -2906,7 +2918,7 @@ W0 uzalishaji_gawanya(N32 node, N32 kazi_node) {
 // AST_MODULO (49) -- asilimia
 W0 uzalishaji_modulo(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_b = ni_bila_ishara_enc(enc);
 
     // Hakuna modulo ya moja kwa moja kwa desimali;
@@ -2931,7 +2943,7 @@ W0 uzalishaji_modulo(N32 node, N32 kazi_node) {
 
 // AST_HAMISHA_KUSHOTO (39) -- hamisha kushoto (<<)
 W0 uzalishaji_hamisha_kushoto(N32 node, N32 kazi_node) {
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(ast_thamani[node]);
     uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
     uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
     kama (saizi >= 8) { andika_shl_rax_cl(); }
@@ -2942,7 +2954,7 @@ W0 uzalishaji_hamisha_kushoto(N32 node, N32 kazi_node) {
 // Zenye ishara → sar (arithmetic), bila ishara → shr (logical)
 W0 uzalishaji_hamisha_kulia(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_b = ni_bila_ishara_enc(enc);
     uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
     uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
@@ -2957,7 +2969,7 @@ W0 uzalishaji_hamisha_kulia(N32 node, N32 kazi_node) {
 
 // AST_BIT_AU (42) -- AU ya biti (|)
 W0 uzalishaji_bit_au(N32 node, N32 kazi_node) {
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(ast_thamani[node]);
     uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
     uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
     kama (saizi >= 8) { andika_or_rax_rcx(); }
@@ -2966,7 +2978,7 @@ W0 uzalishaji_bit_au(N32 node, N32 kazi_node) {
 
 // AST_BIT_NA (43) -- NA ya biti (&)
 W0 uzalishaji_bit_na(N32 node, N32 kazi_node) {
-    N32 saizi = ast_tiga[node];
+    N32 saizi = ukubwa_kutoka_enc(ast_thamani[node]);
     uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
     uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
     kama (saizi >= 8) { andika_and_rax_rcx(); }
@@ -2975,7 +2987,7 @@ W0 uzalishaji_bit_na(N32 node, N32 kazi_node) {
 
 // AST_TERNARY (44) -- ? :
 W0 uzalishaji_ternary(N32 node, N32 kazi_node) {
-    N32 c2=ast_kushoto[node];N32 k2=ast_kulia[node];N32 s2=ast_tiga[node];
+    N32 c2=ast_kushoto[node];N32 k2=ast_kulia[node];N32 s2=ast_nne[node];
     N32 lb=lebo_buf_mpya();N32 lm=lebo_buf_mpya();
     uzalishaji_usemi(c2, kazi_node);andika_test_eax_eax();
     toa_je_lebo(lb);uzalishaji_usemi(k2, kazi_node);
@@ -3132,7 +3144,7 @@ W0 uzalishaji_asimilia(N32 node, N32 kazi_node) {
         N32 idx_node = ast_kulia[lhs];
         kama (idx_node != -1) {
             // Uandikishaji wa safu: arr[idx] = thamani
-            N32 saizi = ast_tiga[lhs];
+            N32 saizi = ukubwa_kutoka_enc(ast_thamani[lhs]);
             kama (saizi == 0) { saizi = 4; }
         uzalishaji_usemi(idx_node, kazi_node);          // eax = idx
             kama (saizi == 8) {
@@ -3362,7 +3374,7 @@ W0 uzalishaji_anwani_ya(N32 node, N32 kazi_node) {
         N32 idx = ast_kulia[var_node];
         kama (idx != -1) {
             // &arr[idx] — anwani = msingi + idx * saizi
-            N32 saizi = ast_tiga[var_node];
+            N32 saizi = ukubwa_kutoka_enc(ast_thamani[var_node]);
             kama (saizi == 0) { saizi = 4; }
             uzalishaji_usemi(idx, kazi_node);
             kama (saizi == 8) { andika_baiti(193); andika_baiti(224); andika_baiti(3); }
@@ -3557,11 +3569,12 @@ W0 kusanya_vigeu_vya_ndani(N32 node) {
     kusanya_vigeu_vya_ndani(ast_kulia[node]);
     // ast_tiga ina maana tofauti kulingana na aina ya nodi.
     // Kwa shughuli za hesabu/linganisho/biti (6-25,31-32,39-43,49),
-    //   mkaguzi ameweka UKUBWA WA AINA (4,8,16 n.k.).
+    //   hubeba kiungo cha hoja cha mnyororo wa wito au -1.
     // Kwa SEHEMU_DOT(33)/SEHEMU_MSHALE(34),
     //   mkaguzi ameweka OFSETI YA BAITI (0,4,8 n.k.).
-    // Kwa TAJA(29)/TANGAZO_ULIMWENGU(35)/TERNARY(44),
-    //   mkaguzi ameweka UKUBWA WA AINA.
+    // Kwa TANGAZO_ULIMWENGU(35),
+    //   mchanganuzi ameweka UKUBWA WA AINA.
+    // Kwa TERNARY(44), tawi la uwongo liko ast_nne.
     // Thamani hizi si nodi za AST — kuzitembelea husababisha
     // mzunguko usio na mwisho kwenye mti.
     N32 ruka_tiga = 0;
@@ -3820,9 +3833,102 @@ N32 thamani_isiyobadilika(N32 node) {
 }
 
 // -------------------------------------------------------
+// Utoaji wa exe (ET_EXEC ya kujitegemea, bila kiunganishi cha nje).
+// Mpangilio: kichwa+phdr (vaddr 0x400000, baiti 120), .text
+// (0x400078), .data, .bss (memsz pekee — kernel hujaza sifuri).
+// -------------------------------------------------------
+W0 uzalishaji_exe(N32 text_size, N32 data_size, N32 bss_size, N32 main_off) {
+
+    N32 text_vaddr = 4194424;   // 0x400078 (0x400000 + baiti 120)
+    N32 data_vaddr = text_vaddr + text_size;
+
+    // Rekebisha marejeo yote (RELA) moja kwa moja — hakuna ld.
+    // Ulimwengu → data_vaddr (+data_size kwa bss); nje → lebo ya
+    // ndani kwa jina (wito wa mbele uliandikwa kama nje).
+    N32 ri = 0;
+    wakati (ri < rela_idadi) {
+        N32 pos = rela_text_off[ri];
+        N32 nje_idx = rela_nje_id[ri];
+        N32 tgt = 0;
+        kama (nje_idx == -1) {
+            N32 gidx = rela_ulimwengu_idx[ri];
+            tgt = data_vaddr + data_ulimwengu_off[gidx];
+            tgt = tgt + (data_ulimwengu_bss[gidx] == 1) * data_size;
+        } sivyo {
+            tgt = text_vaddr + kazi_nafasi_kwa_jina(nje_pool + nje_jina_off[nje_idx]);
+        }
+        andika_disp32_kwenye(bafa_text, pos, tgt - (text_vaddr + pos + 4));
+        ri = ri + 1;
+    }
+
+    // Rekebisha wito wa _start → main (disp32 kwenye baiti 12-15).
+    andika_disp32_kwenye(bafa_text, 12, main_off - 16);
+
+    // Kichwa cha ELF (64) + phdr (56) — baiti 120.
+    // Kichwa + phdr kama maneno ya N32 (baiti 120 = maneno 30).
+    // Mbegu hufanya faharisi za safu x4 kwenye uhifadhi — safu ya N32
+    // ndiyo njia sahihi pekee ya kujaza baiti.
+    N32 kichwa32[30];
+    N32 filesz = 120 + text_size + data_size;
+    N32 memsz = filesz + bss_size;
+    kichwa32[0] = 1179403647;
+    kichwa32[1] = 65794;
+    kichwa32[2] = 0;
+    kichwa32[3] = 0;
+    kichwa32[4] = 4063234;
+    kichwa32[5] = 1;
+    kichwa32[6] = 4194424;
+    kichwa32[7] = 0;
+    kichwa32[8] = 64;
+    kichwa32[9] = 0;
+    kichwa32[10] = 0;
+    kichwa32[11] = 0;
+    kichwa32[12] = 0;
+    kichwa32[13] = 3670080;
+    kichwa32[14] = 1;
+    kichwa32[15] = 0;
+    kichwa32[16] = 1;
+    kichwa32[17] = 7;
+    kichwa32[18] = 0;
+    kichwa32[19] = 0;
+    kichwa32[20] = 4194304;
+    kichwa32[21] = 0;
+    kichwa32[22] = 4194304;
+    kichwa32[23] = 0;
+    kichwa32[24] = filesz;
+    kichwa32[25] = 0;
+    kichwa32[26] = memsz;
+    kichwa32[27] = 0;
+    kichwa32[28] = 4096;
+    kichwa32[29] = 0;
+    N32 ki = 0;
+    wakati (ki < 30) { andika_neno4_moja_kwa_moja(kichwa32[ki]); ki = ki + 1; }
+
+
+    // .text
+    futa_bafa_text();
+
+
+    // .data
+    ki = 0;
+    wakati (ki < bafa_data_wapi) {
+        andika_baiti_moja_kwa_moja(bafa_data[ki]);
+        ki = ki + 1;
+    }
+
+
+    // .bss: hakuna baiti — p_memsz huifunika.
+}
+
+// -------------------------------------------------------
 // Kiingilio kikuu — toa ELF .o kwa AST nzima
 // -------------------------------------------------------
-W0 uzalishaji_kuu(N32 mzizi) {
+
+W0 uzalishaji_kuu(N32 mzizi, N32 hali_exe) {
+    // Bafa la muda la hali ya exe: stub ya _start (baiti 26) na
+    // kichwa+phdr (baiti 120) — tangazo la kwanza (mbegu huhitaji
+    // safu za ndani mwanzoni mwa kazi).
+    N32 kipande32[7];
     // Weka upya buffer
     bafa_text_wapi = 0;
     lebo_idadi = 0;
@@ -3832,6 +3938,7 @@ W0 uzalishaji_kuu(N32 mzizi) {
     nje_idadi = 0;
     nje_pool_wapi = 1;
     rela_idadi = 0;
+    hali_exe_sasa = hali_exe;
 
     // Weka upya hali ya herufi halisi (kwa kazi zote)
     str_idadi = 0;
@@ -3841,6 +3948,23 @@ W0 uzalishaji_kuu(N32 mzizi) {
     sehemu_buf_wapi = 1;
     N32 sj = 0;
     wakati (sj < 1024) { str_lebo_id[sj] = -1; sj = sj + 1; }
+
+    // Katika hali ya exe: _start mwanzoni mwa .text — mov rdi,[rsp]
+    // (argc); lea rsi,[rsp+8] (argv); mov al,0; call main (disp32
+    // hurekebishwa baada ya main kutolewa); mov rdi,rax; mov eax,60;
+    // syscall.
+    kama (hali_exe) {
+        // Stub ya _start kama maneno ya N32 (baiti 28).
+        kipande32[0] = 607947592;
+        kipande32[1] = 611618120;
+        kipande32[2] = 3892359176;
+        kipande32[3] = 0;
+        kipande32[4] = 3100084552;
+        kipande32[5] = 60;
+        kipande32[6] = 1295;
+        sj = 0;
+        wakati (sj < 7) { andika_neno4(kipande32[sj]); sj = sj + 1; }
+    }
 
     // 0. Futa data ya ulimwengu
     bafa_data_wapi = 0; data_ulimwengu_idadi = 0; bss_wapi = 0;
@@ -4003,6 +4127,21 @@ W0 uzalishaji_kuu(N32 mzizi) {
 
     // 4. Toa ELF kwa stdout
     //    Kichwa → bafa (.text) → symtab → strtab → rela.text → shstrtab → vichwa
+
+    // ==================================================
+    // Hali ya exe: ET_EXEC ya kujitegemea (bila kiunganishi cha nje).
+    // Mpangilio: kichwa+phdr (vaddr 0x400000, baiti 120), .text
+    // (0x400078), .data, .bss (memsz pekee — kernel hujaza sifuri).
+    // Kumbuka: inatumia vigeu vilivyopo (text_off, i, sz, n.k.) —
+    // jedwali la vigeu vya ndani lina ukomo wa 64.
+    // ==================================================
+    kama (hali_exe) {
+        // Utoaji wa exe uko kwenye kazi yake — jedwali la vigeu vya
+        // ndani la mbegu halina nafasi zaidi hapa.
+        uzalishaji_exe(text_size, data_size, bss_size, main_off);
+
+        rudisha;
+    }
 
     // Kichwa cha ELF (64 baiti, moja kwa moja)
     andika_elf_kichwa(shoff, shnum, shstrndx);
