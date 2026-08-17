@@ -105,6 +105,9 @@ kwenye njia ya Rust → LLVM.
       urekebishaji wa RELA wa ndani (ulimwengu, tungo, na wito wa
       mbele) — hakuna gcc/ld/clang/muda.c/libc popote kwenye mnyororo.
       Uthibitisho: jaribio_exe_kujijenga (CI).
+      Kumbuka: hili linahusu mnyororo wa uzalishaji pekee — uthabiti
+      wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti, bado
+      wazi (angalia hati/mipaka.md).
 
 ## Hatua ya 6: Lugha Kamili ya Mifumo [FUTURE] BAADAYE
 
@@ -128,11 +131,13 @@ Angalia [`CONTRIBUTING.md`](CONTRIBUTING.md). Masuala yenye lebo `good-first-iss
 3. ~~Runtime ya syscalls~~ — IMESHAFANYIKA (PR #149): syscalls moja kwa moja
 4. ~~Kuziba hatua ya stage1~~ — IMESHAFANYIKA: mbegu inatoa stage1-exe
    moja kwa moja (`--exe`) — 0% bootstrap gap imefungwa
-5. **JIT ndani ya exe** — tekeleza/anwani_ya_kazi kama kazi za .swa
-6. **ABI ya desimali kamili** — D32 na ugeuzi wa aina (D64 ndiyo pekee
+5. **Uthabiti wa makosa ya mchanganuzi** — mbegu na mchanganuzi wa .swa
+   dhidi ya ingizo baya (hati/mipaka.md sehemu 1-2)
+6. **JIT ndani ya exe** — tekeleza/anwani_ya_kazi kama kazi za .swa
+7. **ABI ya desimali kamili** — D32 na ugeuzi wa aina (D64 ndiyo pekee
    inayofanya kazi kwa sasa)
-7. **Dereva wa Rust** — desimali katika codegen ya LLVM
-8. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha
+8. **Dereva wa Rust** — desimali katika codegen ya LLVM
+9. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha
 
 ## Historia Fupi ya Milestone (Julai-Agosti 2026)
 

@@ -134,6 +134,8 @@ N32 kitanzi(N32 n) {
 - **Maneno muhimu 42** ya Kiswahili -- hakuna Kiingereza katika sintaksia
 - **Kujitegemea (100%)** -- mnyororo wa kujikusanya umefungwa kabisa:
   baiti za mkono → mbegu → stage1-exe → stage2-exe == stage3-exe
+  (mnyororo wa uzalishaji; uthabiti wa makosa ni mhimili tofauti —
+  angalia hati/mipaka.md)
 - **Vizalishe viwili**: LLVM (majukwaa yote) + asilia (x86-64 ELF moja kwa moja)
 - **Aina 25 za nambari** — N8–N128, A8–A128, D16–D80, B1–B64, W0–W64 zote zinashughulikiwa
 - **Kumbukumbu ya moja kwa moja** -- tenga, achilia, hakuna ukusanyaji taka
@@ -233,6 +235,7 @@ Kiswahili duniani.
 - **[SECURITY.md](SECURITY.md)** -- Sera ya usalama
 - **[SUPPORT.md](SUPPORT.md)** -- Kupata msaada
 - **[hati/ramani.md](hati/ramani.md)** -- Ramani ya mradi
+- **[hati/mipaka.md](hati/mipaka.md)** -- Mipaka inayojulikana (kwa ukali)
 - **[GitHub Discussions](https://github.com/lugha-swa/swa/discussions)** -- Majadiliano
 - **[GitHub Issues](https://github.com/lugha-swa/swa/issues)** -- Ripoti za hitilafu na maombi ya vipengele
 

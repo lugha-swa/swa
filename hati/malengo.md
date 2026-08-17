@@ -45,6 +45,9 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
       RELA wa ndani. Hakuna gcc, ld, clang, muda.c, wala libc popote
       kwenye mnyororo: kwanza → mbegu → stage1-exe → stage2-exe →
       stage3-exe (stage2-exe == stage3-exe, sawa kwa baiti).
+      Kumbuka: hili linahusu mnyororo wa uzalishaji pekee — uthabiti
+      wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti, bado
+      wazi (angalia hati/mipaka.md).
 
 ## Kanuni Zisizobadilika
 
@@ -62,6 +65,7 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - `readme.md` — ukurasa wa kwanza
 - `hati/ramani.md` — ramani ya mradi
 - `hati/malengo.md` — huu hapa (lengo letu halisi)
+- `hati/mipaka.md` — mipaka inayojulikana (kwa ukali)
 - `msingi/uzalishaji.swa` — codegen asilia (inajikusanya)
 - `msingi/mteremko.swa` — LLVM backend ya dereva wa Rust (msimbo mfu kwa kujikusanya)
 - `msingi/stage1.swa` — kiendeshi cha bootstrap
@@ -72,10 +76,14 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 Lengo kuu limefikiwa: mnyororo wa kujikusanya umefungwa kikamilifu na
 **hakuna lugha nyingine** — baiti za mkono (kwanza, 393) → mbegu →
 stage1-exe → stage2-exe == stage3-exe, bila gcc/ld/clang/libc popote.
-Kazi inayofuata kwa umuhimu:
+(0% gap ni mhimili wa mnyororo wa uzalishaji; uthabiti wa makosa ni
+mhimili tofauti — hati/mipaka.md.) Kazi inayofuata kwa umuhimu:
 
-1. **JIT ndani ya exe** — jedwali la anwani za ndani (tekeleza na
+1. **Uthabiti wa makosa ya mchanganuzi** — mbegu inakubali/segfault
+   kwa ingizo baya; mchanganuzi wa .swa unaning'inia kwa ingizo
+   lililokatwa (hati/mipaka.md sehemu 1-2).
+2. **JIT ndani ya exe** — jedwali la anwani za ndani (tekeleza na
    anwani_ya_kazi kama kazi za .swa) ili --jit ifanye kazi kwenye exe.
-2. **ABI ya desimali** — hoja za float/double kupitia xmm0-xmm7.
-3. **JIT kamili** — relocations za wito wa nje na kupitisha argv.
-4. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha.
+3. **ABI ya desimali** — hoja za float/double kupitia xmm0-xmm7.
+4. **JIT kamili** — relocations za wito wa nje na kupitisha argv.
+5. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha.
