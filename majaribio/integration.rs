@@ -466,7 +466,7 @@ fn jaribio_k6_kujikusanya_kamili() {
     // Andika kiunganishi kidogo cha C kinachoelekeza andika -> printf.
     let trampoline_c = dir.path().join("trampoline.c");
     std::fs::write(&trampoline_c,
-        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); fflush(stdout); return r; }\nint andika_stderr(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stderr,f,a); va_end(a); fflush(stderr); return r; }\nint tekeleza(void* kazi, int argc, void* argv, int ofseti) { int (*f)(int, void*) = (int (*)(int, void*))kazi; return f(argc, (void*)((char**)argv + ofseti)); }\nvoid* anwani_ya_kazi(const char* jina) { extern void* dlsym(void*, const char*); return dlsym((void*)0, jina); }\nlong wito_wa_mfumo(long n, long a1, long a2, long a3, long a4, long a5) { extern long syscall(long, long, long, long, long, long, long); return syscall(n, a1, a2, a3, a4, a5, 0); }\nunsigned long ukubwa(unsigned long aina) { switch (aina) { case 1: return 1; case 2: return 2; case 3: return 4; case 4: return 8; case 5: return 8; default: return 8; } }\n"
+        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); fflush(stdout); return r; }\nint andika_stderr(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stderr,f,a); va_end(a); fflush(stderr); return r; }\nint tekeleza(void* kazi, int argc, void* argv, int ofseti) { int (*f)(int, void*) = (int (*)(int, void*))kazi; return f(argc, (void*)((char**)argv + ofseti)); }\nvoid* anwani_ya_kazi(const char* jina) { extern void* dlsym(void*, const char*); return dlsym((void*)0, jina); }\nlong wito_wa_mfumo(long n, long a1, long a2, long a3, long a4, long a5) { extern long syscall(long, long, long, long, long, long, long); return syscall(n, a1, a2, a3, a4, a5, 0); }\n"
     ).expect("inapaswa kuandika trampoline.c");
     let trampoline_o = dir.path().join("trampoline.o");
     let compile_status = std::process::Command::new(&clang)
@@ -536,21 +536,16 @@ fn jaribio_k6_kujikusanya_kamili() {
 // Exe — Jaribio la kujijenga kwa ET_EXEC (bila kiunganishi cha nje)
 // ============================================================================
 
-/// Mnyororo kamili wa exe: mbegu (kutoka baiti za mkono kupitia kwanza)
-/// → stage1 → stage2-exe → stage3-exe. Uthibitisho: stage2-exe na
-/// stage3-exe zinafanana sawa kwa baiti — bila ld, gcc, wala libc.
+/// Mnyororo kamili wa exe — 0% bootstrap gap: mbegu (kutoka baiti za
+/// mkono kupitia kwanza) → stage1-exe → stage2-exe → stage3-exe.
+/// Hakuna ld, gcc, clang, wala libc popote kwenye mnyororo: mbegu
+/// inatoa ET_EXEC tuli moja kwa moja (--exe). Uthibitisho: stage2-exe
+/// na stage3-exe zinafanana sawa kwa baiti.
 /// Kumbuka: jaribio linatumia mbegu, si dereva wa Rust — mkusanyaji wa
 /// LLVM bado huning'inia kwenye chanzo chenye miundo (hitilafu ya nyuma
 /// ya muundo/sret, kazi ya baadaye).
 #[test]
 fn jaribio_exe_kujijenga() {
-    let clang = which_clang();
-    if clang.is_none() {
-        eprintln!("; exe: clang haipatikani — ruka jaribio la wakati wa utekelezaji");
-        return;
-    }
-    let clang = clang.unwrap();
-
     // 1. Mnyororo wa kwanza: kwanza → mbegu2.bin (baiti za mkono)
     let kwanza = std::process::Command::new("bash")
         .arg("gharama/jenga-kwanza.sh")
@@ -574,56 +569,38 @@ fn jaribio_exe_kujijenga() {
     }
     std::fs::write(&zima, chanzo).expect("inapaswa kuandika chanzo");
 
-    // 3. mbegu < zima.swa → stage1.o
-    let stage1_o = dir.path().join("stage1.o");
-    let stage1_bin = dir.path().join("stage1");
+    // 3. mbegu --exe < zima.swa → stage1-exe (bila kiunganishi chochote)
+    let stage1_exe = dir.path().join("stage1-exe");
     let mbegu = "/tmp/mbegu2.bin";  // kwanza hutoa hapa
     let seed_out = std::process::Command::new(mbegu)
+        .arg("--exe")
         .stdin(std::fs::File::open(&zima).expect("inapaswa kufungua chanzo"))
-        .stdout(std::fs::File::create(&stage1_o).expect("inapaswa kuunda stage1.o"))
+        .stdout(std::fs::File::create(&stage1_exe).expect("inapaswa kuunda stage1-exe"))
         .output()
         .expect("inapaswa kuendesha mbegu");
-    assert!(seed_out.status.success(), "mbegu inapaswa kukusanya msingi\nstderr: {}",
+    assert!(seed_out.status.success(), "mbegu --exe inapaswa kukusanya msingi\nstderr: {}",
         String::from_utf8_lossy(&seed_out.stderr));
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let ruhusa = std::fs::metadata(&stage1_exe).expect("inapaswa kusoma metadata").permissions();
+        let mut ruhusa_mpya = ruhusa.clone();
+        ruhusa_mpya.set_mode(0o755);
+        std::fs::set_permissions(&stage1_exe, ruhusa_mpya).expect("inapaswa kuweka ruhusa");
+    }
 
-    // 4. Kiunganishi kidogo cha C (kwa mbegu pekee — exe haitaji)
-    let trampoline_c = dir.path().join("trampoline.c");
-    std::fs::write(&trampoline_c,
-        "#include <stdio.h>\n#include <stdarg.h>\n#include <dlfcn.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); fflush(stdout); return r; }\nint andika_stderr(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stderr,f,a); va_end(a); fflush(stderr); return r; }\nint tekeleza(void* kazi, int argc, void* argv, int ofseti) { int (*f)(int, void*) = (int (*)(int, void*))kazi; return f(argc, (void*)((char**)argv + ofseti)); }\nvoid* anwani_ya_kazi(const char* jina) { return dlsym((void*)0, jina); }\nlong wito_wa_mfumo(long n, long a1, long a2, long a3, long a4, long a5) { extern long syscall(long, long, long, long, long, long, long); return syscall(n, a1, a2, a3, a4, a5, 0); }\nunsigned long ukubwa(unsigned long aina) { switch (aina) { case 1: return 1; case 2: return 2; case 3: return 4; case 4: return 8; case 5: return 8; default: return 8; } }\n"
-    ).expect("inapaswa kuandika trampoline.c");
-    let trampoline_o = dir.path().join("trampoline.o");
-    let compile_status = std::process::Command::new(&clang)
-        .arg("-c")
-        .arg(&trampoline_c)
-        .arg("-o")
-        .arg(&trampoline_o)
-        .status()
-        .expect("inapaswa kuendesha clang kwa trampoline");
-    assert!(compile_status.success(), "clang inapaswa kukusanya trampoline");
-
-    let link_status = std::process::Command::new(&clang)
-        .arg(&stage1_o)
-        .arg(&trampoline_o)
-        .arg("-o")
-        .arg(&stage1_bin)
-        .arg("-no-pie")
-        .arg("-ldl")
-        .status()
-        .expect("inapaswa kuendesha clang");
-    assert!(link_status.success(), "clang inapaswa kuunganisha kwa mafanikio");
-
-    // 5. stage1 --exe → stage2-exe (CWD = mzizi wa repo — stage1 inasoma msingi/)
+    // 4. stage1-exe --exe → stage2-exe (CWD = mzizi wa repo — inasoma msingi/)
     let exe1 = dir.path().join("stage2-exe");
-    let nje1 = std::process::Command::new(&stage1_bin)
+    let nje1 = std::process::Command::new(&stage1_exe)
         .arg("--exe")
         .current_dir(env!("CARGO_MANIFEST_DIR"))
         .stdout(std::fs::File::create(&exe1).expect("inapaswa kuunda stage2-exe"))
         .output()
-        .expect("inapaswa kuendesha stage1 --exe");
-    assert!(nje1.status.success(), "stage1 --exe inapaswa kurudisha 0\nstderr: {}",
+        .expect("inapaswa kuendesha stage1-exe --exe");
+    assert!(nje1.status.success(), "stage1-exe --exe inapaswa kurudisha 0\nstderr: {}",
         String::from_utf8_lossy(&nje1.stderr));
 
-    // 6. exe yenyewe: stage2-exe --exe → stage3-exe
+    // 5. exe yenyewe: stage2-exe --exe → stage3-exe
     let exe2 = dir.path().join("stage3-exe");
     #[cfg(unix)]
     {
@@ -642,11 +619,97 @@ fn jaribio_exe_kujijenga() {
     assert!(nje2.status.success(), "stage2-exe --exe inapaswa kurudisha 0\nstderr: {}",
         String::from_utf8_lossy(&nje2.stderr));
 
-    // 7. Sawasawa kwa baiti — mnyororo wa kujijenga umefungwa bila ld
+    // 6. Sawasawa kwa baiti — mnyororo wa kujijenga umefungwa bila ld
     let baiti1 = std::fs::read(&exe1).expect("inapaswa kusoma stage2-exe");
     let baiti2 = std::fs::read(&exe2).expect("inapaswa kusoma stage3-exe");
     assert!(baiti1.len() > 4096, "exe inapaswa kuwa na mwili halisi ({} baiti)", baiti1.len());
     assert_eq!(baiti1, baiti2, "stage2-exe na stage3-exe zinapaswa kuwa sawa kwa baiti");
+}
+
+/// Hali ya .o ya mbegu — urekebishaji wa RELA na symtab hautumiki
+/// katika hali ya exe, kwa hivyo jari bisha pia: mbegu < zima.swa →
+/// stage1.o, unganisha kwa clang na trampoline ndogo (tekeleza na
+/// anwani_ya_kazi pekee — andika, ukubwa, na wito_wa_mfumo ni za
+/// ndani sasa), endesha, na uthibitishe towe ni ELF halali.
+#[test]
+fn jaribio_o_kujijenga() {
+    let clang = which_clang();
+    if clang.is_none() {
+        eprintln!("; o: clang haipatikani — ruka jaribio la hali ya .o");
+        return;
+    }
+    let clang = clang.unwrap();
+
+    let kwanza = std::process::Command::new("bash")
+        .arg("gharama/jenga-kwanza.sh")
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .expect("inapaswa kuendesha jenga-kwanza.sh");
+    assert!(kwanza.status.success(), "mnyororo wa kwanza unapaswa kufaulu");
+
+    let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
+    let zima = dir.path().join("zima.swa");
+    let faili_za_msingi = [
+        "msingi/kumbukumbu.swa", "msingi/mfuatano.swa", "msingi/msomaji.swa",
+        "msingi/msambazaji.swa", "msingi/mteremko.swa", "msingi/mkaguzi.swa",
+        "msingi/uzalishaji.swa", "msingi/orodha.swa", "msingi/ramani.swa",
+        "msingi/stage1.swa",
+    ];
+    let mut chanzo = String::new();
+    for f in faili_za_msingi {
+        chanzo.push_str(&std::fs::read_to_string(f).expect("inapaswa kusoma faili la msingi"));
+    }
+    std::fs::write(&zima, chanzo).expect("inapaswa kuandika chanzo");
+
+    // mbegu < zima.swa → stage1.o
+    let stage1_o = dir.path().join("stage1.o");
+    let mbegu = "/tmp/mbegu2.bin";
+    let seed_out = std::process::Command::new(mbegu)
+        .stdin(std::fs::File::open(&zima).expect("inapaswa kufungua chanzo"))
+        .stdout(std::fs::File::create(&stage1_o).expect("inapaswa kuunda stage1.o"))
+        .output()
+        .expect("inapaswa kuendesha mbegu");
+    assert!(seed_out.status.success(), "mbegu inapaswa kukusanya msingi\nstderr: {}",
+        String::from_utf8_lossy(&seed_out.stderr));
+
+    // Unganisha kwa clang na trampoline ndogo (madaraja ya JIT pekee).
+    let trampoline_c = dir.path().join("trampoline.c");
+    std::fs::write(&trampoline_c,
+        "int tekeleza(void* kazi, int argc, void* argv, int ofseti) { int (*f)(int, void*) = (int (*)(int, void*))kazi; return f(argc, (void*)((char**)argv + ofseti)); }\nvoid* anwani_ya_kazi(const char* jina) { return (void*)0; }\n"
+    ).expect("inapaswa kuandika trampoline.c");
+    let trampoline_o = dir.path().join("trampoline.o");
+    let compile_status = std::process::Command::new(&clang)
+        .arg("-c")
+        .arg(&trampoline_c)
+        .arg("-o")
+        .arg(&trampoline_o)
+        .status()
+        .expect("inapaswa kuendesha clang kwa trampoline");
+    assert!(compile_status.success(), "clang inapaswa kukusanya trampoline");
+
+    let stage1_bin = dir.path().join("stage1");
+    let link_status = std::process::Command::new(&clang)
+        .arg(&stage1_o)
+        .arg(&trampoline_o)
+        .arg("-o")
+        .arg(&stage1_bin)
+        .arg("-no-pie")
+        .status()
+        .expect("inapaswa kuendesha clang");
+    assert!(link_status.success(), "clang inapaswa kuunganisha kwa mafanikio");
+
+    // Endesha na uthibitishe towe ni ELF halali (0x7F 'E' 'L' 'F').
+    let out_o = dir.path().join("out.o");
+    let nje = std::process::Command::new(&stage1_bin)
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .stdout(std::fs::File::create(&out_o).expect("inapaswa kuunda out.o"))
+        .output()
+        .expect("inapaswa kuendesha stage1");
+    assert!(nje.status.success(), "stage1 inapaswa kurudisha 0\nstderr: {}",
+        String::from_utf8_lossy(&nje.stderr));
+    let baiti = std::fs::read(&out_o).expect("inapaswa kusoma out.o");
+    assert!(baiti.len() > 64, "out.o inapaswa kuwa na mwili halisi ({} baiti)", baiti.len());
+    assert_eq!(&baiti[..4], &[0x7F, 0x45, 0x4C, 0x46], "out.o inapaswa kuwa ELF halali");
 }
 
 /// Msaidizi wa kuendesha jaribio la K6: kusanya stage1.swa, endesha dhidi ya
@@ -679,7 +742,7 @@ fn run_k6_test(test_chanzo: &str, matarajio_ya_kutoka: i32) {
     // Andika kiunganishi kidogo cha C.
     let trampoline_c = dir.path().join("trampoline.c");
     std::fs::write(&trampoline_c,
-        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); fflush(stdout); return r; }\nint andika_stderr(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stderr,f,a); va_end(a); fflush(stderr); return r; }\nint tekeleza(void* kazi, int argc, void* argv, int ofseti) { int (*f)(int, void*) = (int (*)(int, void*))kazi; return f(argc, (void*)((char**)argv + ofseti)); }\nvoid* anwani_ya_kazi(const char* jina) { extern void* dlsym(void*, const char*); return dlsym((void*)0, jina); }\nlong wito_wa_mfumo(long n, long a1, long a2, long a3, long a4, long a5) { extern long syscall(long, long, long, long, long, long, long); return syscall(n, a1, a2, a3, a4, a5, 0); }\nunsigned long ukubwa(unsigned long aina) { switch (aina) { case 1: return 1; case 2: return 2; case 3: return 4; case 4: return 8; case 5: return 8; default: return 8; } }\n"
+        "#include <stdio.h>\n#include <stdarg.h>\nint andika(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stdout,f,a); va_end(a); fflush(stdout); return r; }\nint andika_stderr(const char* f, ...) { va_list a; va_start(a,f); int r=vfprintf(stderr,f,a); va_end(a); fflush(stderr); return r; }\nint tekeleza(void* kazi, int argc, void* argv, int ofseti) { int (*f)(int, void*) = (int (*)(int, void*))kazi; return f(argc, (void*)((char**)argv + ofseti)); }\nvoid* anwani_ya_kazi(const char* jina) { extern void* dlsym(void*, const char*); return dlsym((void*)0, jina); }\nlong wito_wa_mfumo(long n, long a1, long a2, long a3, long a4, long a5) { extern long syscall(long, long, long, long, long, long, long); return syscall(n, a1, a2, a3, a4, a5, 0); }\n"
     ).expect("inapaswa kuandika trampoline.c");
     let trampoline_o = dir.path().join("trampoline.o");
     let compile_status = std::process::Command::new(&clang)
