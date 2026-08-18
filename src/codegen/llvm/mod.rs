@@ -809,16 +809,31 @@ fn lower_function(
         // za back-edge kutoka kwenye vizuizi vya baadaye zinasuluhisha kwa
         // usahihi).
         let mut pending_phis: Vec<(LLVMValueRef, Vec<(ValueId, BlockId)>)> = Vec::new();
+        // Vitambulisho vya amri vimehifadhiwa NDANI ya IR (inst_ids) —
+        // utaratibu wa utoaji wa kiteremshi hautafanani na mpangilio wa
+        // vizuizi. IR ghafi (iliyojengwa kwa mkono, k.m. kwenye majaribio)
+        // haina inst_ids — tumia kukokotoa kwa nafasi kama njia mbadala.
+        let ina_ids = func.blocks.iter().any(|b| !b.inst_ids.is_empty());
         let mut global_inst_idx = 0usize;
         for (block_idx, block) in func.blocks.iter().enumerate() {
             let bb = llvm_blocks[&block_idx];
 
+            let ids: Vec<ValueId> = if ina_ids {
+                assert_eq!(block.inst_ids.len(), block.instructions.len(),
+                    "inst_ids lazima iwe sambamba na amri kwenye kizuizi {}", block.label);
+                block.inst_ids.clone()
+            } else {
+                let ids = (0..block.instructions.len())
+                    .map(|i| ValueId(param_count + func.values.len() + global_inst_idx + i))
+                    .collect();
+                global_inst_idx += block.instructions.len();
+                ids
+            };
+
             // -- Kupita 1: unda thamani za phi za LLVM (hakuna kingo zinazoingia bado) ---
             LLVMPositionBuilderAtEnd(builder, bb);
-            for inst in &block.instructions {
+            for (inst, &val_id) in block.instructions.iter().zip(ids.iter()) {
                 if let crate::ir::Instruction::Phi(result_ty, incoming) = inst {
-                    let val_id = ValueId(param_count + func.values.len() + global_inst_idx);
-                    global_inst_idx += 1;
                     let llvm_ty = ir_type_to_llvm(result_ty, struct_types);
                     let phi = LLVMBuildPhi(builder, llvm_ty, c_str("phi").as_ptr());
                     // Ahirisha kujaza kingo zinazoingia hadi kupita 3, ili
@@ -830,12 +845,10 @@ fn lower_function(
 
             // -- Kupita 2: teremsha amri zote zisizo za phi ----------------------
             LLVMPositionBuilderAtEnd(builder, bb);
-            for inst in &block.instructions {
+            for (inst, &val_id) in block.instructions.iter().zip(ids.iter()) {
                 if matches!(inst, crate::ir::Instruction::Phi(_, _)) {
                     continue; // tayari imeteremshwa kwenye kupita 1
                 }
-                let val_id = ValueId(param_count + func.values.len() + global_inst_idx);
-                global_inst_idx += 1;
                 let llvm_val =
                     lower_instruction(inst, builder, &value_map, module, struct_types, &fn_return_types);
                 if !llvm_val.is_null() {
