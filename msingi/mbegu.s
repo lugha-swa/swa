@@ -649,8 +649,42 @@ sys_write_buf:
 ;   rax = idadi ya baiti zilizosomwa
 ; -------------------------------------------------------
 sys_read_all:
+        ; Soma hadi EOF au bafa lijae. Kusoma mara moja tu hakutoshi
+        ; kwa stdin (bomba): sys_read inarudisha tu kile kilichopo
+        ; wakati huo — chanzo kinakatwa bila mpangilio. Huu ulikuwa
+        ; chanzo cha kutokubalika kwa mbegu: matokeo tofauti kwa
+        ; pembejeo moja (kazi za mwisho wa faili zikipotea).
+        push    rbx
+        push    r12
+        push    r13
+        mov     rbx, rsi                ; nafasi ya sasa kwenye bafa
+        mov     r13, rdx                ; upeo wa ukubwa
+        xor     r12, r12                ; jumla ya baiti zilizosomwa
+.loop:
+        cmp     r12, r13
+        jae     .done                   ; bafa limejaa — acha (mlio utafuata)
+        mov     rsi, rbx
+        mov     rdx, r13
+        sub     rdx, r12
         mov     rax, 0                  ; sys_read
         syscall
+        cmp     rax, 0
+        je      .done                   ; EOF
+        jl      .error                  ; kosa la syscall — rudisha -1
+        add     r12, rax
+        add     rbx, rax
+        jmp     .loop
+.done:
+        mov     rax, r12
+        pop     r13
+        pop     r12
+        pop     rbx
+        ret
+.error:
+        mov     rax, -1
+        pop     r13
+        pop     r12
+        pop     rbx
         ret
 
 ; -------------------------------------------------------
@@ -707,13 +741,14 @@ soma_chanzo_kutoka_faili:
         cmp     rax, 0
         jl      .error
 
-        ; Soma faili
+        ; Soma faili lote (hadi EOF) — si kusoma mara moja tu
         mov     rdi, rax
         lea     rsi, [source_buf]
         mov     rdx, MAX_SOURCE
-        mov     rax, 0                  ; sys_read
-        syscall
+        call    sys_read_all
         mov     [source_len], rax
+        cmp     rax, 0
+        jl      .error
         cmp     rax, MAX_SOURCE
         jae     .kikubwa_mno
 
@@ -5515,6 +5550,16 @@ uzalishaji_kauli_ya_binary:
         cmp     r15d, OP_HUU
         je      .do_huu
 
+        ; && na || zinahitaji mzunguko mfupi (short-circuit), sawa na
+        ; uzalishaji_na/uzalishaji_au kwenye msingi/uzalishaji.swa.
+        ; Bila hii, upande wa kulia unatathminiwa hata wakati kushoto
+        ; tayari umeamua matokeo — dereferensi kama `j >= 0 && a[j]`
+        ; zinavunjika kwa a[j] nje ya mipaka.
+        cmp     r15d, OP_NA
+        je      .do_and_sc
+        cmp     r15d, OP_AU
+        je      .do_or_sc
+
         ; Zalisha upande wa kulia kwanza
         push    r12
         push    r15
@@ -6755,6 +6800,222 @@ uzalishaji_kauli_ya_binary:
 .string_rela_endelea:
 
         ; Ulinganisho wa mifuatano hauwezi kukunjwa wakati wa kukusanya
+        mov     eax, -1
+        jmp     .done
+.do_and_sc:
+        ; && kwa mzunguko mfupi:
+        ;   kushoto; test; je si_kweli; kulia; test; je si_kweli;
+        ;   mov eax,1; jmp mwisho; si_kweli: mov eax,0; mwisho:
+        push    r12
+        mov     r12d, r13d              ; kushoto
+        call    uzalishaji_ast
+        pop     r12
+        mov     r8d, eax                ; CT ya kushoto
+
+        ; test eax, eax -> 85 c0
+        mov     al, 0x85
+        call    gen_baiti
+        mov     al, 0xc0
+        call    gen_baiti
+        ; je -> 0f 84 + kishikilia
+        mov     al, 0x0f
+        call    gen_baiti
+        mov     al, 0x84
+        call    gen_baiti
+        mov     r9d, [text_buf_pos]     ; fixup 1: baada ya kushoto
+        xor     edi, edi
+        call    gen_neno4
+
+        push    r8                      ; CT ya kushoto
+        push    r9                      ; fixup 1
+        push    r12
+        mov     r12d, r14d              ; kulia
+        call    uzalishaji_ast
+        pop     r12
+        pop     r9
+        pop     r8
+        mov     r10d, eax               ; CT ya kulia
+
+        ; test eax, eax
+        mov     al, 0x85
+        call    gen_baiti
+        mov     al, 0xc0
+        call    gen_baiti
+        ; je -> 0f 84 + kishikilia
+        mov     al, 0x0f
+        call    gen_baiti
+        mov     al, 0x84
+        call    gen_baiti
+        mov     r11d, [text_buf_pos]    ; fixup 2: baada ya kulia
+        xor     edi, edi
+        call    gen_neno4
+
+        ; mov eax, 1 -> b8 01 00 00 00
+        mov     al, 0xb8
+        call    gen_baiti
+        mov     edi, 1
+        call    gen_neno4
+        ; jmp -> e9 + kishikilia
+        mov     al, 0xe9
+        call    gen_baiti
+        mov     r15d, [text_buf_pos]    ; fixup 3: jmp ya mwisho
+        xor     edi, edi
+        call    gen_neno4
+
+        ; Rekebisha fixup 1 na 2: elekeza kwenye si_kweli (hapa)
+        mov     edi, [text_buf_pos]
+        sub     edi, r9d
+        sub     edi, 4
+        mov     eax, [text_buf_pos]     ; hifadhi nafasi ya sasa
+        mov     [text_buf_pos], r9d
+        call    gen_neno4
+        mov     [text_buf_pos], eax
+        mov     edi, [text_buf_pos]
+        sub     edi, r11d
+        sub     edi, 4
+        mov     eax, [text_buf_pos]
+        mov     [text_buf_pos], r11d
+        call    gen_neno4
+        mov     [text_buf_pos], eax
+
+        ; si_kweli: mov eax, 0 -> b8 00 00 00 00
+        mov     al, 0xb8
+        call    gen_baiti
+        xor     edi, edi
+        call    gen_neno4
+
+        ; Rekebisha fixup 3: jmp ya mwisho -> hapa (mwisho)
+        mov     edi, [text_buf_pos]
+        sub     edi, r15d
+        sub     edi, 4
+        mov     eax, [text_buf_pos]
+        mov     [text_buf_pos], r15d
+        call    gen_neno4
+        mov     [text_buf_pos], eax
+
+        ; CT: kushoto ni 0 -> 0; kushoto si 0 -> (kulia si 0 -> 1, sivyo 0)
+        cmp     r8d, -1
+        je      .and_ct_isiyojulikana
+        test    r8d, r8d
+        jz      .and_ct_sifuri
+        cmp     r10d, -1
+        je      .and_ct_isiyojulikana
+        test    r10d, r10d
+        jz      .and_ct_sifuri
+        mov     eax, 1
+        jmp     .done
+.and_ct_sifuri:
+        xor     eax, eax
+        jmp     .done
+.and_ct_isiyojulikana:
+        mov     eax, -1
+        jmp     .done
+.do_or_sc:
+        ; || kwa mzunguko mfupi:
+        ;   kushoto; test; jne kweli; kulia; test; jne kweli;
+        ;   mov eax,0; jmp mwisho; kweli: mov eax,1; mwisho:
+        push    r12
+        mov     r12d, r13d              ; kushoto
+        call    uzalishaji_ast
+        pop     r12
+        mov     r8d, eax                ; CT ya kushoto
+
+        ; test eax, eax -> 85 c0
+        mov     al, 0x85
+        call    gen_baiti
+        mov     al, 0xc0
+        call    gen_baiti
+        ; jne -> 0f 85 + kishikilia
+        mov     al, 0x0f
+        call    gen_baiti
+        mov     al, 0x85
+        call    gen_baiti
+        mov     r9d, [text_buf_pos]     ; fixup 1: baada ya kushoto
+        xor     edi, edi
+        call    gen_neno4
+
+        push    r8                      ; CT ya kushoto
+        push    r9                      ; fixup 1
+        push    r12
+        mov     r12d, r14d              ; kulia
+        call    uzalishaji_ast
+        pop     r12
+        pop     r9
+        pop     r8
+        mov     r10d, eax               ; CT ya kulia
+
+        ; test eax, eax
+        mov     al, 0x85
+        call    gen_baiti
+        mov     al, 0xc0
+        call    gen_baiti
+        ; jne -> 0f 85 + kishikilia
+        mov     al, 0x0f
+        call    gen_baiti
+        mov     al, 0x85
+        call    gen_baiti
+        mov     r11d, [text_buf_pos]    ; fixup 2: baada ya kulia
+        xor     edi, edi
+        call    gen_neno4
+
+        ; mov eax, 0 -> b8 00 00 00 00
+        mov     al, 0xb8
+        call    gen_baiti
+        xor     edi, edi
+        call    gen_neno4
+        ; jmp -> e9 + kishikilia
+        mov     al, 0xe9
+        call    gen_baiti
+        mov     r15d, [text_buf_pos]    ; fixup 3: jmp ya mwisho
+        xor     edi, edi
+        call    gen_neno4
+
+        ; Rekebisha fixup 1 na 2: elekeza kwenye kweli (hapa)
+        mov     edi, [text_buf_pos]
+        sub     edi, r9d
+        sub     edi, 4
+        mov     eax, [text_buf_pos]     ; hifadhi nafasi ya sasa
+        mov     [text_buf_pos], r9d
+        call    gen_neno4
+        mov     [text_buf_pos], eax
+        mov     edi, [text_buf_pos]
+        sub     edi, r11d
+        sub     edi, 4
+        mov     eax, [text_buf_pos]
+        mov     [text_buf_pos], r11d
+        call    gen_neno4
+        mov     [text_buf_pos], eax
+
+        ; kweli: mov eax, 1 -> b8 01 00 00 00
+        mov     al, 0xb8
+        call    gen_baiti
+        mov     edi, 1
+        call    gen_neno4
+
+        ; Rekebisha fixup 3: jmp ya mwisho -> hapa (mwisho)
+        mov     edi, [text_buf_pos]
+        sub     edi, r15d
+        sub     edi, 4
+        mov     eax, [text_buf_pos]
+        mov     [text_buf_pos], r15d
+        call    gen_neno4
+        mov     [text_buf_pos], eax
+
+        ; CT: kushoto si 0 -> 1; kushoto ni 0 -> (kulia si 0 -> 1, sivyo 0)
+        cmp     r8d, -1
+        je      .or_ct_isiyojulikana
+        test    r8d, r8d
+        jnz     .or_ct_moja
+        cmp     r10d, -1
+        je      .or_ct_isiyojulikana
+        test    r10d, r10d
+        jnz     .or_ct_moja
+        xor     eax, eax
+        jmp     .done
+.or_ct_moja:
+        mov     eax, 1
+        jmp     .done
+.or_ct_isiyojulikana:
         mov     eax, -1
         jmp     .done
 .done:
