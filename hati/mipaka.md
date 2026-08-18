@@ -31,17 +31,15 @@ yote yanarudisha 1 kwa sauti (`; KOSA: 1`). Kumbuka: kazi hizi sasa
 zinakaribia kikomo cha vizuizi vya FastISel cha LLVM — mwisho wa LLVM
 unabaki tete (kikomo kilichojulikana, kipengee 6).
 
-## 3. Upeo wa tokeni: 65,536 — ukataji kimya [UKALI: JUU]
+## 3. Upeo wa tokeni: 65,536 [IMEREKEBISHWA — SASA INALIA]
 
-Mbegu ina MAX_TOKENS 65,536. Chanzo kikubwa kuliko hicho kinakatwa
-**kimya kimya** — hakuna ujumbe wa kosa, mkusanyaji unarudisha 0 na
-program iliyokatwa (ambayo inakosea wakati wa utekelezaji). Hii ni
-darasa lilelile la kushindwa kama kukubali ingizo baya (sehemu ya 1):
-kuendelea kimya hadi ELF halali lakini program mbaya. Ukubwa halisi:
-wito ~7,280 wa kazi kwa mistari ya tokeni 9, na ~5,957 kwa tokeni 11
-— bajeti ya tokeni ni ileile (~65,52x) katika kesi zote mbili, na
-imepimwa kwa majaribio (si makadirio). Upeo wa AST ni 65,536 sawa —
-kukizidi, mbegu sasa INALIA kwa sauti (sehemu ya 4).
+Ilikuwa: chanzo kikubwa kuliko kikomo kinakatwa KIMYA — ELF halali
+lakini program mbaya (JUU). Ilipimwa: wito ~7,280 kwa mistari ya
+tokeni 9, ~5,957 kwa tokeni 11.
+
+Sasa: lexer inalia `Hitilafu: chanzo kina tokeni nyingi mno` + exit 1
+— hakuna ukataji wa kimya tena. Uthibitisho: chanzo cha wito 7,500
+(juu ya kikomo) kinarudisha 1 kwa sauti; wito 7,000 (chini) inapita.
 
 ## 4. Mipaka ya majedwali — KOSA LAUTI, si uharibifu wa kimya [UKALI: CHINI]
 
