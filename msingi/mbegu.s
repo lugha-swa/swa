@@ -315,6 +315,8 @@ local_count:    resq 1
 loop_depth:     resq 1
 loop_break_label: resq 16               ; lebo za vunja (ufungwaji wa mipaka ya rafu)
 break_fixup_pos: resd 65536              ; nafasi za marekebisho ya vunja
+cl_hatua:        resq 1                  ; nafasi ya hatua ya kwa (semantiki ya C ya endelea)
+cl_lengo:        resq 1                  ; lengo la sasa la endelea
 break_fixup_count: resq 1               ; idadi ya marekebisho ya vunja
 
 ; ---------- Hali ya mkusanyaji ----------
@@ -2621,8 +2623,7 @@ changanua_taarifa:
         call    changanua_block
         mov     r9d, eax                ; mwili asili (au -1)
 
-        ; Funga kwenye AST_BLOCK na ambatisha hatua MWISHONI mwa
-        ; mnyororo wa mwili (desugaring sawa na msambazaji wa .swa).
+        ; Funga mwili kwenye AST_BLOCK (mnyororo uko kwenye ast_kushoto)
         mov     r10d, -1
         mov     r11d, -1
         mov     r8d, AST_BLOCK
@@ -2631,6 +2632,24 @@ changanua_taarifa:
         mov     [ast_kushoto + r8*4], r9d
         cmp     r15d, -1
         je      .kwa_hakuna_hatua_p
+
+        ; Funga hatua kwenye block-mini yenye alama -777777 kwenye
+        ; ast_kulia (kulia ya block huwa -1 kamwe — hakuna mgongano).
+        ; Uzalishaji_block hurekodi nafasi yake kwa ajili ya endelea
+        ; (semantiki ya C: endelea inaruka kwenye hatua).
+        push    r8                      ; hifadhi wrapper
+        mov     r9d, r15d               ; hatua
+        mov     r10d, -1
+        mov     r11d, -1
+        mov     r8d, AST_BLOCK
+        call    ast_nodi_mpya
+        mov     r15d, eax               ; r15 = block-mini
+        mov     [ast_kushoto + r15*4], r9d
+        mov     dword [ast_kulia + r15*4], -777777
+        pop     r8                      ; r8 = wrapper
+        mov     dword [ast_kulia + r8*4], -777777  ; alama ya has_step
+
+        ; Ambatisha block-mini mwishoni mwa mnyororo
         mov     r9d, [ast_kushoto + r8*4]
         cmp     r9d, -1
         jne     .kwa_mwisho_mnyororo
@@ -7393,8 +7412,13 @@ uzalishaji_wakati:
         ; Kama hapo juu: hesabu inakuwa base, hairejeshwi kwenye 0
         mov     rax, [continue_fixup_count]
         push    rax
-
-        ; Hakuna nafasi za kwa — hatua iko ndani ya mwili (desugaring)
+        ; Alama ya has_step ya kwa (kulia ya block ya mwili)
+        mov     r9d, 0
+        cmp     dword [ast_kulia + r14*4], -777777
+        jne     .sio_hatua_loop
+        mov     r9d, 1
+.sio_hatua_loop:
+        push    r9
 
         ; Zalisha hali (kitanzi kipofu: ruka hali na jz)
         cmp     r13d, -1
@@ -7463,6 +7487,15 @@ uzalishaji_wakati:
         mov     [text_buf_pos], r10d
 .kitanzi_kipofu_jz_done:
 
+        ; Lengo la endelea: start_pos au nafasi ya hatua (semantiki ya C)
+        pop     r9                         ; has_step
+        mov     [cl_lengo], r15d           ; chaguo-msingi: start_pos
+        test    r9d, r9d
+        je      .sio_hatua_lengo
+        mov     rax, [cl_hatua]
+        mov     [cl_lengo], rax
+.sio_hatua_lengo:
+
         ; Toa mipaka ya awali kutoka rafu
         pop     r14                        ; base ya endelea
         pop     r13                        ; base ya vunja
@@ -7497,7 +7530,7 @@ uzalishaji_wakati:
         jae     .fix_continues_done
         mov     edi, [continue_fixup_pos + rcx*4] ; nafasi ya fixup ya endelea hii
         push    rcx
-        mov     r10d, r15d                       ; lengo = mwanzo wa kitanzi
+        mov     r10d, [cl_lengo]                ; lengo = hatua au mwanzo
         sub     r10d, edi                        ; target - fixup_pos
         sub     r10d, 4                          ; target - fixup_pos - 4
         mov     r11d, [text_buf_pos]
@@ -7533,6 +7566,13 @@ uzalishaji_block:
 .loop:
         cmp     r13d, -1
         je      .done
+
+        ; Alama ya hatua ya kwa: rekodi nafasi yake kwa endelea
+        cmp     dword [ast_kulia + r13*4], -777777
+        jne     .sio_hatua_kw
+        mov     rax, [text_buf_pos]
+        mov     [cl_hatua], rax
+.sio_hatua_kw:
 
         push    r12
         push    r13

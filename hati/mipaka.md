@@ -61,13 +61,16 @@ Uthibitisho: toleo la jaribio lenye MAX_TOKENS/MAX_AST_NODES
 lililoinuliwa hufikia kikomo cha nje kwa wito 16,500 na inalia
 `Hitilafu: jedwali la nje limejaa` — si uharibifu tena.
 
-## 4b. `endelea` ndani ya `kwa` inaruka mwanzo, si hatua [UKALI: CHINI]
+## 4b. `endelea` ndani ya `kwa` [IMEREKEBISHWA]
 
-Desugaring ya `kwa` kwenye mbegu (sawa na msambazaji wa .swa)
-inaambatisha hatua mwishoni mwa mwili; `endelea` inaruka mwanzo wa
-kitanzi — kama hatua ndiyo njia pekee ya kuendeleza kitanzi, kitanzi
-kitazunguka milele (mfano: kwa (i=0; i<6; i=i+1) { kama (i==2)
-endelea; }). Semantiki ya C (endelea → hatua) ni kazi ya kufuatilia.
+Ilikuwa: endelea inaruka mwanzo wa kitanzi, si hatua — kitanzi
+kilizunguka milele kama hatua ndiyo njia pekee ya kuendelea.
+
+Sasa: semantiki ya C — hatua imefungwa kwenye block-mini yenye
+alama, uzalishaji_block hurekodi nafasi yake, na endelea inaruka
+hapo. Uthibitisho: kwa (i=0; i<6; i=i+1) { kama (i==2) endelea; s++ }
+→ s=5, na kesi ya endelea-pekee inapita. (Msambazaji wa .swa bado
+una semantiki ya zamani — uthabiti ni kazi ya kufuatilia.)
 
 ## 5. Maneno halisi ni 32-bit signed [UKALI: CHINI]
 
