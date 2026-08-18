@@ -324,6 +324,20 @@ N32 kazi_nafasi_kwa_jina(N8* jina) {
     rudisha -1;
 }
 
+// anwani_ya_kazi — jedwali la anwani za ndani kwa JIT (badala ya dlsym).
+// Kwenye exe ya kujitegemea (.text wenye msingi 0x400078), kazi za
+// ndani zinapatikana kupitia lebo_nafasi; kwenye .o iliyounganishwa
+// na ld, anwani ni za ld — haziwezi kukokotolewa hapa (0 → JIT-RELA
+// itaonya). Utambuzi wa modi: exe ina .bss mara baada ya .text
+// (< 0x500000); .o ya -no-pie ina .bss kwenye 0x608000+.
+N8* anwani_ya_kazi(N8* jina) {
+    N32 off = kazi_nafasi_kwa_jina(jina);
+    kama (off < 0) { rudisha 0; }
+    N8* kikomo = 0x500000;
+    kama (&bafa_text < kikomo) { rudisha 0x400078 + off; }
+    rudisha 0;
+}
+
 // Sehemu ya tungo: nakili kwenye bafa ya sehemu (kwa utorokaji wa \n na \\)
 // na urudishe lebo ya ndani ya bafa ya .text.
 N32 sehemu_tungo_hifadhi(N8* mwanzo, N32 urefu) {
@@ -1672,6 +1686,7 @@ N32 param_enc[16];
 // Kina kinatoa nafasi kwa viwango 8 vya wito vilivyopachikwa.
 N32 hoja_undani = 0;
 N32 ni_syscall_wito = 0;
+N32 ni_tekeleza_wito = 0;
 N32 ni_andika_nje = 0;
 N32 hoja_nodes_bk[256];
 N32 hoja_enc_bk[256];
@@ -1988,6 +2003,7 @@ W0 uzalishaji_chagua(N32 node, N32 kazi_node) {
 // -------------------------------------------------------
 W0 uzalishaji_wito(N32 node, N32 kazi_node) {
     ni_syscall_wito = 0;
+    ni_tekeleza_wito = 0;
     ni_andika_nje = 0;
     N32 callee_node = ast_kushoto[node];
     N8* callee = ast_pool + ast_jina_off[callee_node];
@@ -2019,6 +2035,14 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
     // kwa ABI ya syscall: rax=namba, rdi=a1, rsi=a2, rdx=a3, r10=a4, r8=a5, r9=0.
     kama (jina_linganisha(callee, "wito_wa_mfumo")) {
         ni_syscall_wito = 1;
+    }
+
+    // tekeleza — builtin ya JIT: ita bafa ya kumbukumbu kama kazi
+    // N32(N32, N8**). Hoja (kazi, argc, argv, ofseti) zinafika kwenye
+    // rdi/rsi/rdx/rcx kwa mpangilio wa kawaida; builtin inazipanga:
+    // rdi=argc, rsi=argv+ofseti*8, al=0, call r11 (kazi).
+    kama (jina_linganisha(callee, "tekeleza")) {
+        ni_tekeleza_wito = 1;
     }
 
     // Wito maalum wa andika/andika_stderr — uchapishaji wakati wa kukusanya.
@@ -2232,6 +2256,19 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
         andika_baiti(72); andika_baiti(137); andika_baiti(202);  // mov rdx, rcx (48 89 CA)
         andika_baiti(65); andika_baiti(89);                      // pop r9 (41 59) — hoja ya 7 (ofseti)
         andika_baiti(15); andika_baiti(5);                        // syscall (0F 05)
+    } sivyo kama (ni_tekeleza_wito) {
+        // tekeleza(kazi, argc, argv, ofseti): rdi=kazi, rsi=argc,
+        // rdx=argv, rcx=ofseti → r11=kazi, rdi=argc, rsi=argv+ofseti*8,
+        // al=0, call r11.
+        andika_baiti(73); andika_baiti(137); andika_baiti(251);  // mov r11, rdi (49 89 FB)
+        andika_baiti(72); andika_baiti(137); andika_baiti(247);  // mov rdi, rsi (48 89 F7)
+        andika_baiti(72); andika_baiti(137); andika_baiti(214);  // mov rsi, rdx (48 89 D6)
+        andika_baiti(72); andika_baiti(137); andika_baiti(202);  // mov rdx, rcx (48 89 CA)
+        andika_baiti(72); andika_baiti(193); andika_baiti(226);  // shl rdx, 3 (48 C1 E2 03)
+        andika_baiti(3);
+        andika_baiti(72); andika_baiti(1); andika_baiti(214);    // add rsi, rdx (48 01 D6)
+        andika_baiti(176); andika_baiti(0);                      // mov al, 0 (B0 00)
+        andika_baiti(65); andika_baiti(255); andika_baiti(211);  // call r11 (41 FF D3)
     } sivyo kama (ni_kielekezi) {
         andika_call_r11();  // call r11
     } sivyo {

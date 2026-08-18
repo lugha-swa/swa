@@ -23,8 +23,9 @@ Hakuna faili. Hakuna binary. Hakuna OS kati.
 - [x] `mmap()` -> andika opcodes -> rukia (PR #143)
 - [x] Stub ya `jmp main` na tungo mwishoni mwa bafa
 - [x] Thamani ya kurudi inarudi kwa usahihi (vipimo 5/5 vya JIT)
-- [ ] Mipaka iliyobaki: wito wa kazi za nje ndani ya msimbo wa JIT
-      (relocations hazijarekebishwa bado) na kupitisha argv
+- [x] Wito wa kazi za ndani ndani ya msimbo wa JIT (jedwali la anwani
+      la exe — anwani_ya_kazi ya ndani + tekeleza kama builtin) na
+      kupitisha argv; exe haina alama za nje kabisa
 
 ### Hatua ya 3: Kuziba pengo la bootstrap [IMEFANYIKA KWA MBEGU]
 Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
@@ -82,8 +83,5 @@ mhimili tofauti — hati/mipaka.md.) Kazi inayofuata kwa umuhimu:
 1. **Uthabiti wa makosa ya mchanganuzi** — mbegu inakubali/segfault
    kwa ingizo baya; mchanganuzi wa .swa unaning'inia kwa ingizo
    lililokatwa (hati/mipaka.md sehemu 1-2).
-2. **JIT ndani ya exe** — jedwali la anwani za ndani (tekeleza na
-   anwani_ya_kazi kama kazi za .swa) ili --jit ifanye kazi kwenye exe.
-3. **ABI ya desimali** — hoja za float/double kupitia xmm0-xmm7.
-4. **JIT kamili** — relocations za wito wa nje na kupitisha argv.
-5. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha.
+2. **ABI ya desimali** — hoja za float/double kupitia xmm0-xmm7.
+3. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha.

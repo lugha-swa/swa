@@ -160,6 +160,7 @@ msg_breakfix_full: db "Hitilafu: jedwali la fixup-za-vunja limejaa", 10, 0
 ; ---------- Majina maalum kwa hali ya exe ----------
 jina_exe_flag:  db "--exe", 0
 jina_wito_mfumo: db "wito_wa_mfumo", 0
+jina_tekeleza:  db "tekeleza", 0
 jina_main:      db "main", 0
 
 ; ---------- Vifunguo vya maneno muhimu ----------
@@ -6962,6 +6963,73 @@ uzalishaji_wambile:
         call    gen_baiti
         jmp     .baada_ya_wito
 .sio_builtin_syscall:
+        ; Builtin ya tekeleza — ita bafa ya JIT kama kazi N32(N32, N8**).
+        ; Hoja (kazi, argc, argv, ofseti) ziko rdi/rsi/rdx/rcx kwa
+        ; mpangilio wa kawaida → r11=kazi, rdi=argc, rsi=argv+ofseti*8,
+        ; al=0, call r11. Sawa na builtin ya uzalishaji.swa.
+        mov     rdi, r13
+        lea     rsi, [jina_tekeleza]
+        call    linganisha_mfuatano
+        cmp     eax, 0
+        jne     .sio_builtin_tekeleza
+        ; mov r11, rdi — 49 89 FB
+        mov     al, 0x49
+        call    gen_baiti
+        mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0xFB
+        call    gen_baiti
+        ; mov rdi, rsi — 48 89 F7
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0xF7
+        call    gen_baiti
+        ; mov rsi, rdx — 48 89 D6
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0xD6
+        call    gen_baiti
+        ; mov rdx, rcx — 48 89 CA
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0xCA
+        call    gen_baiti
+        ; shl rdx, 3 — 48 C1 E2 03
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0xC1
+        call    gen_baiti
+        mov     al, 0xE2
+        call    gen_baiti
+        mov     al, 3
+        call    gen_baiti
+        ; add rsi, rdx — 48 01 D6
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x01
+        call    gen_baiti
+        mov     al, 0xD6
+        call    gen_baiti
+        ; mov al, 0 — B0 00
+        mov     al, 0xB0
+        call    gen_baiti
+        mov     al, 0
+        call    gen_baiti
+        ; call r11 — 41 FF D3
+        mov     al, 0x41
+        call    gen_baiti
+        mov     al, 0xFF
+        call    gen_baiti
+        mov     al, 0xD3
+        call    gen_baiti
+        jmp     .baada_ya_wito
+.sio_builtin_tekeleza:
         ; Kwa wito wa kazi inayorudisha muundo, weka r10 = eneo la muda la .data
         push    r12
         push    r8
