@@ -19,6 +19,11 @@ kikomo kimeandikwa na kikomo chake.
 | Kujikusanya (0% bootstrap gap) | stage2 == stage3 sawa kwa baiti; kwanza → mbegu → stage1-exe |
 | Uthibitisho wa nje wa RELA | GNU ld inakubaliana na toa_exe sawa kwa baiti |
 | Ukaguzi wa bafa (mbegu) | hati/ukaguzi-bafa.md — kila mpaka unalia kwa sauti |
+| Mzunguko mfupi wa && na || KATIKA MBEGU (sawa na uzalishaji.swa) | jaribio_mbegu_mzunguko_mfupi (SEGV ya zamani) |
+| Usomaji wa stdin hadi EOF (bomba) — matokeo yana uhakika | jaribio_mbegu_stdin_bomba_kubwa (mkato wa zamani) |
+| Kazi isiyofafanuliwa inalia kwa sauti (si SEGV) | jaribio_mbegu_kazi_kukosa |
+| Maktaba ya kawaida kamili (hesabu, mifuatano, I/O, sort) | jaribio_maktaba_mbegu_exe |
+| Vipimo rasmi vya lugha | hati/vipimo-vya-lugha.md |
 
 ## Kilicho na kikomo (kilichoandikwa kwa ukali)
 
@@ -33,15 +38,17 @@ kikomo kimeandikwa na kikomo chake.
 
 ## Kinachokosekana kabla ya 1.0
 
-- Maktaba ya kawaida kamili (hesabu, I/O ya juu, mifuatano kamili) —
-  sasa: kumbukumbu, mfuatano (msingi), orodha, ramani
 - Majukwaa ya asilia zaidi ya x86-64 Linux
-- Vipimo rasmi vya lugha (spec/reference manual)
 - Zana (LSP, debugger, formatter, package manager)
-- Mwisho wa LLVM ulio imara au uamuzi wa kuuondoa
+- Bomba la desimali (JUU — hati/mipaka.md 4c; si kizuizi cha 1.0
+  kwa sababu limetengwa na kuandikwa wazi)
+
+Kinachokamilika kwa 1.0 (2026-08): maktaba ya kawaida kamili,
+vipimo rasmi vya lugha, na uamuzi wa mwisho wa LLVM (MAJARIBIO —
+mnyororo wa uzalishaji ni mbegu/exe pekee).
 
 ## Uthibitisho wa jumla
 
-Majaribio 217/217 (146 maktaba + 70 ujumuishaji + 1 nyaraka).
+Majaribio 219/219 (146 maktaba + 72 ujumuishaji + 1 nyaraka).
 Fixpoint: stage2-exe == stage3-exe sawa kwa baiti baada ya kila
 mchanganyiko. Alama za nje za exe: SIFURI.

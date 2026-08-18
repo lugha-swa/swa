@@ -126,3 +126,20 @@ inayoganda mbegu.
 - RELA za mbegu zinakubaliana na GNU ld (rejea huru) sawa kwa baiti.
 - Utekelezaji wa makosa: exit 0/1 inafanya kazi kwa makosa
   YANAYOTAMBULIWA.
+
+## 8. Mbegu haiwi viungo vya ndani vya `husisha { faili.swa }` [UKALI: CHINI — SASA INALIA]
+
+Mbegu HAICHAMBUZI faili lililotajwa na `husisha { faili.swa }` —
+linarukwa na mchanganuzi. Hii ni kwa makusudi: mkusanyaji wa .swa
+unajijenga kwa chanzo KILICHOUNGANISHWA (cat msingi/*.swa), na
+husisha C::xxx bado inachakatwa kwa usahihi.
+
+Hatari ya zamani: wito wa kazi kutoka faili "lililoingizwa" bila
+kuunganisha ulikuwa ukitulia kimya kwa anwani 0 — mchakato
+ulivunjika SEGV wakati wa utekelezaji. Sasa toa_exe inachapisha
+`Hitilafu: kazi haijafafanuliwa: <jina>` na kutoka kwa msimbo 1
+(jaribio la kurejesha: jaribio_mbegu_kazi_kukosa).
+
+Kanuni kwa watumiaji wa mbegu: faili lazima ziunganishwe kwanza
+(`cat msingi/mfuatano.swa msingi/hesabu.swa program.swa`), au
+tumia mkusanyaji wa .swa (stage1+) ambao unawiwa viungo vya ndani.
