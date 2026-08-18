@@ -78,12 +78,16 @@ zinahifadhiwa, ishara inaenea) — na mkusanyaji wa mbegu NA dereva wa
 Rust KWA USAWA (uthabiti, si mgawanyiko). Thamani kubwa zaidi ya
 32-bit lazima zijengwe wakati wa utekelezaji.
 
-## 6. Dereva wa Rust/LLVM: FastISel inaacha vizuizi zaidi ya ~50 [UKALI: KATI]
+## 6. Dereva wa Rust/LLVM: NJIA YA MSIMBO ISIYOTHIBITISHWA KATIKA MATUMIZI [UKALI: JUU]
 
-Kazi zenye vizuizi vingi (k.m. `ni_neno_muhimu` — 247) hukatwa na
-FastISel ya LLVM: mkusanyaji wa LLVM hauwezi kujithibitisha (inatoa
-.o bila alama). Uthibitisho wa nje wa mnyororo (GNU ld dhidi ya toa_exe
-ya mbegu) unafunika njia ya mbegu/exe/RELA pekee — SI mwisho wa LLVM.
+FastISel ya LLVM inaacha kimyakimya vizuizi zaidi ya ~50 (k.m.
+`ni_neno_muhimu` — 247): mkusanyaji wa LLVM unatoa .o BILA alama na
+usio na uthibitisho. Hili SI "kipengele kinachokosekana" — ni njia
+ya msimbo isiyothibitishwa inayotumika kwa mkusanyaji wa pili (K6 na
+majaribio ya maktaba). Ukali wake unalingana na mende za bafa za
+ukubwa wa kukisia: matokeo yanaweza kuwa mabaya KIMYA bila kosa.
+Uthibitisho wa nje wa mnyororo (GNU ld dhidi ya toa_exe ya mbegu)
+unafunika njia ya mbegu/exe/RELA pekee — SI mwisho wa LLVM.
 
 ## 7. Kwanza haina chanzo chenye maelezo [UKALI: TAARIFA]
 
