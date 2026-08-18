@@ -147,6 +147,14 @@ msg_global_full: db "Hitilafu: jedwali la ulimwengu limejaa", 10, 0
 msg_label_full:  db "Hitilafu: jedwali la lebo limejaa", 10, 0
 msg_chanzo_kikubwa: db "Hitilafu: chanzo ni kikubwa mno", 10, 0
 msg_ast_full:    db "Hitilafu: jedwali la AST limejaa", 10, 0
+msg_local_full:  db "Hitilafu: jedwali la vigezo vya ndani limejaa", 10, 0
+msg_muundo_full: db "Hitilafu: jedwali la miundo limejaa", 10, 0
+msg_nyuga_full:  db "Hitilafu: jedwali la nyuga limejaa", 10, 0
+msg_kaziret_full: db "Hitilafu: jedwali la kazi-sret limejaa", 10, 0
+msg_genlabel_full: db "Hitilafu: jedwali la lebo-za-gen limejaa", 10, 0
+msg_strpool_full: db "Hitilafu: bwawa la herufi limejaa", 10, 0
+msg_textbuf_full: db "Hitilafu: bafa la .text limejaa", 10, 0
+msg_breakfix_full: db "Hitilafu: jedwali la fixup-za-vunja limejaa", 10, 0
 
 ; ---------- Majina maalum kwa hali ya exe ----------
 jina_exe_flag:  db "--exe", 0
@@ -303,7 +311,7 @@ local_count:    resq 1
 ; ---------- Kina cha mzunguko ----------
 loop_depth:     resq 1
 loop_break_label: resq 16               ; lebo za vunja (ufungwaji wa mipaka ya rafu)
-break_fixup_pos: resd 256                ; nafasi za marekebisho ya vunja
+break_fixup_pos: resd 65536              ; nafasi za marekebisho ya vunja
 break_fixup_count: resq 1               ; idadi ya marekebisho ya vunja
 
 ; ---------- Hali ya mkusanyaji ----------
@@ -343,7 +351,7 @@ kazi_ret_muundo_jina: resd 256          ; ofseti ya jina la muundo unaorudishwa
 kazi_ret_idadi:  resq 1                 ; idadi ya kazi zinazorudisha muundo
 
 ; ---------- Marekebisho ya endelea ----------
-continue_fixup_pos: resd 256            ; nafasi za marekebisho ya endelea
+continue_fixup_pos: resd 65536          ; nafasi za marekebisho ya endelea
 continue_fixup_count: resq 1            ; idadi ya marekebisho ya endelea
 
 ; ---------- Bafa la matokeo ya ELF ----------
@@ -478,9 +486,10 @@ andika_baiti:
         pop     rdi
         ret
 .overflow:
-        ; TODO: ripoti kosa
-        pop     rdi
-        ret
+        lea     rdi, [msg_textbuf_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; andika_neno4: andika neno la baiti 4 kwa bafa la .text
@@ -499,9 +508,10 @@ andika_neno4:
         pop     rdi
         ret
 .overflow:
-        pop     rcx
-        pop     rdi
-        ret
+        lea     rdi, [msg_textbuf_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; andika_neno8: andika neno la baiti 8 kwa bafa la .text
@@ -520,9 +530,10 @@ andika_neno8:
         pop     rdi
         ret
 .overflow:
-        pop     rcx
-        pop     rdi
-        ret
+        lea     rdi, [msg_textbuf_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; andika_neno8_moja_kwa_moja: andika neno8 moja kwa moja kwa stdout
@@ -1429,9 +1440,11 @@ changanua_chanzo:
 
 .str_eof:
 .str_overflow:
-        ; Kosa kimya — endelea
-        inc     r12
-        jmp     .changanua_loop
+        ; Kosa LAUTI — kuruka kimya ni uharibifu
+        lea     rdi, [msg_strpool_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 .hifadhi_tokeni_kwa_ishara:
         mov     r15, [token_count]
@@ -3028,11 +3041,18 @@ changanua_kazi:
         ; Rekodi kazi inayorudisha muundo (kwa uzalishaji wa sret)
         ; Tahadhari: eax bado ina index ya nodi — usiiharibu!
         mov     r10, [kazi_ret_idadi]
+        cmp     r10, 256
+        jae     .kaziret_jaa
         mov     [kazi_ret_jina + r10*4], r15d
         mov     [kazi_ret_muundo_jina + r10*4], edx
         inc     qword [kazi_ret_idadi]
 .kazi_hakuna_ret_muundo:
         jmp     .done
+.kaziret_jaa:
+        lea     rdi, [msg_kaziret_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 .tangazo_mbele:
         inc     qword [token_pos]       ; tumia ;
@@ -3051,6 +3071,8 @@ changanua_kazi:
         je      .kazi_hakuna_ret_muundo_mbele
         ; Tahadhari: eax bado ina index ya nodi — usiiharibu!
         mov     r10, [kazi_ret_idadi]
+        cmp     r10, 256
+        jae     .kaziret_jaa
         mov     [kazi_ret_jina + r10*4], r15d
         mov     [kazi_ret_muundo_jina + r10*4], edx
         inc     qword [kazi_ret_idadi]
@@ -3106,7 +3128,7 @@ changanua_muundo:
         ; Rekodi muundo kwenye jedwali (upeo: 64)
         mov     rax, [muundo_count]
         cmp     rax, 64
-        jae     .fail
+        jae     .muundo_jaa
         mov     [muundo_jina_off + rax*4], r12d
         mov     dword [muundo_ukubwa + rax*4], 0
         mov     dword [muundo_pangilio + rax*4], 0
@@ -3227,7 +3249,7 @@ changanua_muundo:
         ; Rekodi nyuga kwenye jedwali (upeo: 512)
         mov     rax, [nyuga_count]
         cmp     rax, 512
-        jae     .fail_pop
+        jae     .nyuga_jaa
         mov     rcx, [muundo_count]
         dec     rcx
         mov     [nyuga_muundo + rax*4], ecx
@@ -3291,6 +3313,12 @@ changanua_muundo:
         pop     r12
         ret
 
+.nyuga_jaa:
+        lea     rdi, [msg_nyuga_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
+
 .fail_pop:
         add     rsp, 8                  ; toa nafasi ya muundo ndani
 .fail:
@@ -3300,6 +3328,11 @@ changanua_muundo:
         pop     r13
         pop     r12
         ret
+.muundo_jaa:
+        lea     rdi, [msg_muundo_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; changanua_programu: changanua programu nzima
@@ -3650,8 +3683,16 @@ gen_label_pos:          resd 1024
 ; -------------------------------------------------------
 gen_label_mpya:
         mov     rax, [gen_label_count]
+        cmp     rax, 1024
+        jae     .genlabel_jaa
         inc     qword [gen_label_count]
         ret
+.genlabel_jaa:
+        ; Kosa LAUTI — uharibifu wa kimya hauruhusiwi
+        lea     rdi, [msg_genlabel_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; gen_andika_baiti_text: ongeza baiti kwenye bafa la .text
@@ -3668,8 +3709,10 @@ gen_baiti:
         pop     rdi
         ret
 .overflow:
-        pop     rdi
-        ret
+        lea     rdi, [msg_textbuf_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; gen_neno4: ongeza baiti 4 kwenye bafa la .text
@@ -3688,9 +3731,10 @@ gen_neno4:
         pop     rdi
         ret
 .overflow:
-        pop     rcx
-        pop     rdi
-        ret
+        lea     rdi, [msg_textbuf_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; gen_neno8: ongeza baiti 8 kwenye bafa la .text
@@ -3709,9 +3753,10 @@ gen_neno8:
         pop     rdi
         ret
 .overflow:
-        pop     rcx
-        pop     rdi
-        ret
+        lea     rdi, [msg_textbuf_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; gen_fixup_ongeza: ongeza fixup kwa kuruka mbele
@@ -3741,11 +3786,15 @@ gen_fixup_ongeza:
 ; -------------------------------------------------------
 gen_weka_lebo:
         ; Hifadhi nafasi ya lebo: edi = nafasi ya text_buf, esi = nambari ya lebo
-        cmp     esi, 128
+        cmp     esi, 1024
         jae     .overflow
         mov     [gen_label_pos + rsi*4], edi
-.overflow:
         ret
+.overflow:
+        lea     rdi, [msg_genlabel_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; uzalishaji_tangazo: zalisha msimbo kwa nodi ya tangazo la kigezo
@@ -3763,6 +3812,8 @@ uzalishaji_tangazo:
 
         ; Sajili kigezo cha ndani
         mov     rcx, [local_count]
+        cmp     rcx, MAX_LOCALS
+        jae     .local_jaa
         ; Hifadhi jina
         lea     rdi, [str_pool + r14]
         mov     [local_name + rcx*8], rdi
@@ -3794,6 +3845,14 @@ uzalishaji_tangazo:
 .muundo_hifadhiwa:
         mov     [local_muundo_id + rcx*4], r10d
         inc     qword [local_count]
+        jmp     .local_sajiliwa
+.local_jaa:
+        ; Kosa LAUTI — uharibifu wa kimya hauruhusiwi
+        lea     rdi, [msg_local_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
+.local_sajiliwa:
 
         ; Safu ya ndani: sehemu ya rafu = N x ukubwa wa elementi,
         ; imepangiliwa kwa 8; ofseti ni msingi wa eneo (kama muundo)
@@ -6962,14 +7021,19 @@ uzalishaji_vunja:
 
         ; Ongeza nafasi ya fixup kwenye orodha
         mov     rax, [break_fixup_count]
-        cmp     rax, 256
-        jae     .overflow
+        cmp     rax, 65536
+        jae     .breakfix_jaa
         mov     [break_fixup_pos + rax*4], r12d
         inc     qword [break_fixup_count]
 .overflow:
         pop     rdi
         pop     r12
         ret
+.breakfix_jaa:
+        lea     rdi, [msg_breakfix_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; uzalishaji_endelea: zalisha endelea (jump hadi mwanzo wa kitanzi)
@@ -6989,14 +7053,19 @@ uzalishaji_endelea:
 
         ; Ongeza nafasi ya fixup kwenye orodha
         mov     rax, [continue_fixup_count]
-        cmp     rax, 256
-        jae     .overflow
+        cmp     rax, 65536
+        jae     .continuefix_jaa
         mov     [continue_fixup_pos + rax*4], r12d
         inc     qword [continue_fixup_count]
 .overflow:
         pop     rdi
         pop     r12
         ret
+.continuefix_jaa:
+        lea     rdi, [msg_breakfix_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; uzalishaji_kama: zalisha msimbo kwa taarifa ya kama/sivyo

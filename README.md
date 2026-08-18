@@ -236,6 +236,7 @@ Kiswahili duniani.
 - **[SUPPORT.md](SUPPORT.md)** -- Kupata msaada
 - **[hati/ramani.md](hati/ramani.md)** -- Ramani ya mradi
 - **[hati/mipaka.md](hati/mipaka.md)** -- Mipaka inayojulikana (kwa ukali)
+- **[hati/ukaguzi-bafa.md](hati/ukaguzi-bafa.md)** -- Ukaguzi wa bafa za ukubwa thabiti
 - **[GitHub Discussions](https://github.com/lugha-swa/swa/discussions)** -- Majadiliano
 - **[GitHub Issues](https://github.com/lugha-swa/swa/issues)** -- Ripoti za hitilafu na maombi ya vipengele
 
