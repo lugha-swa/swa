@@ -142,6 +142,8 @@ msg_hoja9:      db "Hitilafu: wito wenye hoja zaidi ya 9", 10, 0
 msg_main_kukosa: db "Hitilafu: main haipo", 10, 0
 msg_rela_full:   db "Hitilafu: jedwali la RELA limejaa", 10, 0
 msg_extern_full: db "Hitilafu: jedwali la nje limejaa", 10, 0
+msg_kazi_kukosa: db "Hitilafu: kazi haijafafanuliwa: ", 0
+msg_mstari_mpya: db 10, 0
 msg_fixup_full:  db "Hitilafu: jedwali la fixup limejaa", 10, 0
 msg_global_full: db "Hitilafu: jedwali la ulimwengu limejaa", 10, 0
 msg_label_full:  db "Hitilafu: jedwali la lebo limejaa", 10, 0
@@ -9212,9 +9214,6 @@ toa_exe:
 
 .rela_nje:
         ; Tafuta lebo ya ndani kwa jina extern_name[sym].
-        ; tekeleza/anwani_ya_kazi hazipo kwenye lebo -> 0 (haziitwi
-        ; katika hali ya exe; JIT inahitaji kazi ya baadaye).
-        xor     edx, edx                ; chaguo-msingi: 0
         push    r13
         push    r14
         mov     rbx, [extern_name + rax*8]
@@ -9233,7 +9232,23 @@ toa_exe:
         jmp     .rela_nje_scan
 .rela_nje_iko:
         mov     edx, [label_offset + rcx*4]
+        jmp     .rela_nje_safu
 .rela_nje_sio:
+        ; Kazi iliyoitwa haijafafanuliwa popote. Zamani hii ilikuwa
+        ; ikitulia kimya kwa anwani 0 na kuleta SEGV wakati wa
+        ; utekelezaji — k.m. `husisha { faili.swa }` hailiwii mbegu
+        ; (chanzo kinapaswa kuunganishwa) na makosa ya tahajia ya
+        ; majina ya kazi yalipita hadi kwenye mchakato. Sasa inalia
+        ; kwa sauti wakati wa kukusanya.
+        lea     rdi, [msg_kazi_kukosa]
+        call    andika_mfuatano
+        mov     rdi, rbx                ; jina la kazi
+        call    andika_mfuatano
+        lea     rdi, [msg_mstari_mpya]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
+.rela_nje_safu:
         pop     r14
         pop     r13
 

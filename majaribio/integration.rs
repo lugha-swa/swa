@@ -1927,3 +1927,39 @@ fn jaribio_mbegu_stdin_bomba_kubwa() {
         "kazi ya MWISHO wa chanzo inapaswa kutolewa na kuendesha (kutoka 7), ilipata {:?}",
         kuendesha.status.code());
 }
+
+/// K14c: Wito wa kazi isiyofafanuliwa kwenye hali ya exe unalia kwa
+/// sauti wakati wa kukusanya, badala ya kutulia kimya kwa anwani 0 na
+/// kuleta SEGV wakati wa utekelezaji. Hii inafanya `husisha { faili.swa }`
+/// kwa mbegu (ambayo haiwii viungo vya ndani — chanzo kinapaswa
+/// kuunganishwa kwanza) kuwa hitilafu wazi, na makosa ya tahajia ya
+/// majina ya kazi yanakamatwa kabla ya kuendesha.
+#[test]
+fn jaribio_mbegu_kazi_kukosa() {
+    let kwanza = std::process::Command::new("bash")
+        .arg("gharama/jenga-kwanza.sh")
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .expect("inapaswa kuendesha jenga-kwanza.sh");
+    assert!(kwanza.status.success(), "mnyororo wa kwanza unapaswa kufaulu");
+
+    let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
+    let mbegu = "/tmp/mbegu2.bin";
+
+    let chanzo = "N32 main() { rudisha kazi_haipo(); }\n";
+    let kn_swa = dir.path().join("kazi-haipo.swa");
+    std::fs::write(&kn_swa, chanzo).expect("inapaswa kuandika kazi-haipo.swa");
+    let kn_out = std::process::Command::new(mbegu)
+        .arg("--exe")
+        .stdin(std::fs::File::open(&kn_swa).expect("inapaswa kufungua kazi-haipo.swa"))
+        .output()
+        .expect("inapaswa kuendesha mbegu --exe kwa kazi-haipo");
+    assert!(!kn_out.status.success(),
+        "mbegu --exe inapaswa kushindwa kwa kazi isiyofafanuliwa");
+    let stdout = String::from_utf8_lossy(&kn_out.stdout);
+    assert!(stdout.contains("haijafafanuliwa"),
+        "ujumbe wa hitilafu unapaswa kutaja kazi isiyofafanuliwa, ilipata: {}",
+        stdout);
+    assert!(stdout.contains("kazi_haipo"),
+        "ujumbe wa hitilafu unapaswa kutaja JINA la kazi, ilipata: {}", stdout);
+}
