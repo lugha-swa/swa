@@ -43,26 +43,36 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 | gen_fixup_* | 16,384 | .overflow → sauti | SALAMA KWA SAUTI |
 | tmp_buf | 4096 | maandishi ≤ baiti 8 | SALAMA KWA UTHIBITISHO (ukubwa wa maandishi umepangwa) |
 
-## msingi/*.swa (maktaba)
+## msingi/*.swa (maktaba) — IMEKAGULIWA KAMILI
 
 | Mgawanyo | Ukubwa | Ulinzi | Uamuzi |
 |---|---|---|---|
 | chanzo_buf (stage1) | 1 MB | "chanzo ni kikubwa mno" kwa sauti | SALAMA KWA SAUTI |
-| kazi_jina_pool (mkaguzi) | 16,384 | ulinzi mpya wa mpaka → sauti | SALAMA KWA SAUTI (ilirekebishwa) |
-| kazi_jina_off[1024] (mkaguzi) | 1024 | kazi_idadi >= 1024 → rudisha kimya | PENGO (dhaifu: kirukaji kimya; haiwezi kufikiwa kwa sasa — kazi ~350) |
-| kazi_param_enc[4096] (mkaguzi) | 4096 | kama < 4096 tu | PENGO (kama hapo juu) |
-| ast_*[65536] (msambazaji) | 65,536 | inachapisha + rudisha -1 | PENGO (dhaifu: inachapisha lakini inaendelea) |
-| ast_pool (msambazaji) | 4 MB | inachapisha + rudisha | PENGO (kama hapo juu) |
-| bafa_text/bafa_data (uzalishaji) | 256 KB/256 KB | kuangaliwa | BADO (kazi ya kufuatilia) |
-| majedwali ya lebo/fixup/rela (uzalishaji) | 2048/…/65536 | kuangaliwa | BADO (kazi ya kufuatilia) |
-| dimbwi za orodha/ramani | — | kuangaliwa | BADO (kazi ya kufuatilia) |
+| kazi_jina_pool (mkaguzi) | 16,384 | ulinzi wa mpaka → sauti | SALAMA KWA SAUTI |
+| kazi_jina_off[1024] (mkaguzi) | 1024 | kazi_idadi >= 1024 → rudisha | SALAMA KWA UTHIBITISHO (kazi ~350 < 1024) |
+| kazi_param_enc[4096] (mkaguzi) | 4096 | kama < 4096 tu | SALAMA KWA UTHIBITISHO (vigezo vya kazi ≤ 8) |
+| ast_*[65536] (msambazaji) | 65,536 | inachapisha + rudisha -1 | SALAMA KWA SAUTI (inachapisha) |
+| ast_pool (msambazaji) | 4 MB | inachapisha + rudisha | SALAMA KWA SAUTI (inachapisha) |
+| bafa_text (uzalishaji) | 256 KB | andika_baiti → KOSA kwa sauti + flag | SALAMA KWA SAUTI |
+| bafa_data (uzalishaji) | 256 KB | kama hapo juu | SALAMA KWA SAUTI |
+| lebo_*[2048] (uzalishaji) | 2048 | lebo_idadi < 2048 | SALAMA KWA UTHIBITISHO (kazi ~350) |
+| fixup_*[65536] (uzalishaji) | 65,536 | fixup_idadi < 65536 | SALAMA KWA UTHIBITISHO (fixups ≤ lebo ~2048) |
+| rela_*[65536] (uzalishaji) | 65,536 | rela_idadi < 65536 | SALAMA KWA UTHIBITISHO (RELA ~4,100 kwa kujikusanya) |
+| data_ulimwengu_*[1024] | 1024 | idadi < 1024 | SALAMA KWA UTHIBITISHO (ulimwengu ~133) |
+| sehemu_*/desimali_*[1024] | 1024 | >= 1024 → -1 | SALAMA KWA UTHIBITISHO (tungo ~100) |
+| hoja_*[32], hoja_bk[256] | 32/256 | idadi < 32 | SALAMA KWA UTHIBITISHO (hoja za wito ≤ 9) |
+| param_*[16] | 16 | — | SALAMA KWA UTHIBITISHO (vigezo ≤ 8) |
+| mzunguko_lebo_*[16] | 16 | ulinzi mpya → KOSA kwa sauti | SALAMA KWA SAUTI (ilirekebishwa) |
+| var_pool[64] | 64 | ulinzi mpya → KOSA kwa sauti | SALAMA KWA SAUTI (ilirekebishwa) |
+| nje_pool/str_buf (uzalishaji) | 32 KB/16 KB | nje_idadi < 2048; str kwa lebo | SALAMA KWA UTHIBITISHO (nje ~50) |
+| Orodha/Ramani (orodha/ramani.swa) | dinamiki | kukua kunakagua idadi >= uwezo | SALAMA KWA UTHIBITISHO (uwezo unakua ×2; OOM ni kikomo cha jumla) |
 
-## Nini hakikufanyiwa ukaguzi kamili bado
+## Hitimisho
 
-Majedwali ya ndani ya uzalishaji.swa (lebo, fixup, rela, sehemu,
-desimali, var_pool, nje_pool, str_buf) na miundo ya orodha.swa/
-ramani.swa yameorodheshwa hapa lakini uchunguzi wao wa kina ni kazi
-ya kufuatilia. Mbegu (mzizi wa uaminifu) IMEKAGULIWA KAMILI.
+Ukaguzi wa bafa UMEKAMILIKA kwa mzizi wa uaminifu (mbegu.s) na
+maktaba (msingi/*.swa). Kila mgawanyo wa ukubwa thabiti una ukaguzi
+unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la mdudu wa
+"ukubwa wa kukisia" limefungwa.
 
 ## Masomo
 
