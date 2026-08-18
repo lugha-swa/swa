@@ -464,7 +464,7 @@ N32 changanua_taarifa_chagua(Msambazaji* p) {
                 kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
                     kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
                 }
-                kama (p->sasa.urefu == 0) { vunja; }
+                kama (p->sasa.urefu == 0) { p->kosa = 1; vunja; }
 
                 kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
                     kama (neno_ni(&p->sasa, "hali")) {
@@ -485,9 +485,9 @@ N32 changanua_taarifa_chagua(Msambazaji* p) {
                             kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
                                 kama (neno_ni(&p->sasa, "hali")) { vunja; }
                             }
-                            kama (p->sasa.urefu == 0) { vunja; }
+                            kama (p->sasa.urefu == 0) { p->kosa = 1; vunja; }
                             N32 stmt = changanua_taarifa(p);
-                            kama (stmt == -1) { vunja; }
+                            kama (stmt == -1) { p->kosa = 1; vunja; }
                             kama (case_prev == -1) { case_kwanza = stmt; }
                             sivyo { ast_nne[case_prev] = stmt; }
                             case_prev = stmt;
@@ -760,24 +760,25 @@ N32 changanua_kazi_vigezo(Msambazaji* p) {
         kama (c0 == 41) { sogeza(p); vunja; }
         kama (c0 == 44) { sogeza(p); endelea; }
         kama (p->sasa.urefu == 0) { p->kosa = 1; rudisha -1; }
+        // Tokeni isiyo aina kwenye orodha ya vigezo ('{' n.k.) ni kosa —
+        // bila ulinzi huu kitanzi hakina mwendo wala toka (hang).
+        kama (ni_aina_tokeni(&p->sasa) == 0) { p->kosa = 1; rudisha -1; }
 
-        kama (ni_aina_tokeni(&p->sasa)) {
-            N32 param_aina = changanua_aina_tokeni(p);
-                        N32 pnode = -1;
-            N8 nc0 = p->sasa.mwanzo[0];
-            kama ((nc0 >= 65 && nc0 != 123 && nc0 != 125)) {
-                pnode = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
-                hifadhi_jina(pnode, p->sasa.mwanzo, p->sasa.urefu);
-                ast_thamani[pnode] = param_aina;
-                sogeza(p);
-            }
-            kama (vigezo_kwanza_global == -1) { vigezo_kwanza_global = pnode; }
-            sivyo { ast_kulia[vigezo_prev_global] = pnode; }
-            vigezo_prev_global = pnode;
-
-            N8 cc0 = p->sasa.mwanzo[0];
-            kama (cc0 == 44) { sogeza(p); endelea; }
+        N32 param_aina = changanua_aina_tokeni(p);
+        N32 pnode = -1;
+        N8 nc0 = p->sasa.mwanzo[0];
+        kama ((nc0 >= 65 && nc0 != 123 && nc0 != 125)) {
+            pnode = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
+            hifadhi_jina(pnode, p->sasa.mwanzo, p->sasa.urefu);
+            ast_thamani[pnode] = param_aina;
+            sogeza(p);
         }
+        kama (vigezo_kwanza_global == -1) { vigezo_kwanza_global = pnode; }
+        sivyo { ast_kulia[vigezo_prev_global] = pnode; }
+        vigezo_prev_global = pnode;
+
+        N8 cc0 = p->sasa.mwanzo[0];
+        kama (cc0 == 44) { sogeza(p); endelea; }
     }
 
     // Usitume '{' hapa: tangazo la mbele halina mwili,
@@ -799,7 +800,8 @@ N32 changanua_kazi_mwili(Msambazaji* p) {
         kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
             kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
         }
-        kama (p->sasa.urefu == 0) { vunja; }
+        // EOF kabla ya '}' — mwili usiofungwa ni kosa, si kukubalika
+        kama (p->sasa.urefu == 0) { p->kosa = 1; vunja; }
 
         N32 stmt = changanua_taarifa(p);
         kama (stmt == -1) {
@@ -831,9 +833,9 @@ N32 changanua_primary_orodha(Msambazaji* p) {
                 kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
                     kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
                 }
-                kama (p->sasa.urefu == 0) { vunja; }
+                kama (p->sasa.urefu == 0) { p->kosa = 1; vunja; }
                 N32 elem = changanua_usemi(p);
-                kama (elem == -1) { vunja; }
+                kama (elem == -1) { p->kosa = 1; vunja; }
                 kama (prev == -1) { kwanza = elem; }
                 sivyo { ast_kulia[prev] = elem; }
                 prev = elem;
@@ -976,9 +978,9 @@ N32 changanua_usemi_upande(Msambazaji* p) {
                     kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
                         kama (neno_ni(&p->sasa, ")")) { sogeza(p); vunja; }
                     }
-                    kama (p->sasa.urefu == 0) { vunja; }
+                    kama (p->sasa.urefu == 0) { p->kosa = 1; vunja; }
                     N32 arg = changanua_usemi(p);
-                    kama (arg == -1) { vunja; }
+                    kama (arg == -1) { p->kosa = 1; vunja; }
                     kama (prev == -1) { args = arg; }
                     sivyo { ast_tiga[prev] = arg; }
                     prev = arg;
@@ -1314,7 +1316,7 @@ N32 changanua_bloku(Msambazaji* p) {
     N32 kwanza = -1;
     N32 prev = -1;
     wakati (1 == 1) {
-        kama (p->sasa.urefu == 0) { vunja; }  // EOF — acha mara moja
+        kama (p->sasa.urefu == 0) { p->kosa = 1; vunja; }  // EOF katika bloku — kosa
         kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
             kama (neno_ni(&p->sasa, "}")) { sogeza(p); vunja; }
         }

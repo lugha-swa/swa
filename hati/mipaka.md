@@ -5,24 +5,31 @@ Hati hii inaorodhesha mipaka inayojulikana ya mkusanyaji, kwa ukali.
 popote) — si uthabiti wa mchanganuzi dhidi ya ingizo baya. Uthabiti wa
 makosa ni mhimili tofauti, bado wazi.
 
-## 1. Mbegu: ingizo baya linakubaliwa au linasegfault [UKALI: JUU]
+## 1. Mbegu: ingizo baya linakubaliwa au linasegfault [IMEREKEBISHWA]
 
-Mchanganuzi wa mbegu (msingi/mbegu.s) hauchunguzi ingizo kwa uthabiti:
+Ilikuwa: `@#!` inakubaliwa kimya, `garba`/`kweli kweli kweli`
+zinasegfault, chanzo lililokatwa linakubaliwa.
 
-- `@#!` — inakubaliwa kimya kimya (rc=0, ELF halali ya program tupu)
-- `garba`, `kweli kweli kweli` — **SEGFAULT** (rc=139)
-- `N32 main( {`, `N32 main() { rudisha 1; ` — chanzo lililokatwa
-  linakubaliwa kimya kimya (rc=0)
+Sasa: herufi isiyojulikana inalia (`Hitilafu: herufi isiyojulikana`),
+tokeni isiyojulikana kwenye kiwango cha juu inalia (`Hitilafu:
+uliichanganuzi`), mabano yasiyofungwa (block/muundo/husisha) yanalia,
+na kitanzi cha programu kina kinga ya mipaka ya mkondo wa tokeni.
+Pia rekebisho la upande: maneno ya lexer sasa huandika token_line
+(zamani: maneno yote yalikuwa na mstari 0 — husisha C:: ilivunjika).
 
-Njia za makosa za mbegu (msg_parseerr/msg_lexerr, exit 1) hazifikiwi
-kwa visa hivi. Hakuna ahadi ya kugundua makosa yote ya ulichanganuzi.
+Uthibitisho: majaribio ya kudumu kwenye jaribio_exe_kujijenga.
 
-## 2. Mchanganuzi wa .swa: ingizo lililokatwa linaning'inia [UKALI: KATI]
+## 2. Mchanganuzi wa .swa: ingizo lililokatwa linaning'inia [IMEREKEBISHWA]
 
-`stage1 --exe` (mchanganuzi wa msomaji.swa/msambazaji.swa) unaning'inia
-bila kikomo kwa ingizo kama `N32 main( {` (hakuna mwisho wa mabano).
-Makosa YANAYOTAMBULIWA yanarudisha 1 kwa usahihi (`; KOSA: 1`), lakini
-upotevu wa kurejesha kwa visa vya kukatwa haujashughulikiwa.
+Ilikuwa: kitanzi cha changanua_kazi_vigezo hakikuwa na mwendo wala toka
+kwa tokeni isiyotarajiwa (`{` baada ya `(`) — hang bila kikomo. Mabano
+yasiyofungwa yalikubaliwa kimya (rc=0).
+
+Sasa: tokeni isiyo aina kwenye vigezo inaweka kosa na kurudi; EOF ndani
+ya mwili/bloku/hoja/orodha-ya-vianzisha/hali za chagua inaweka kosa —
+yote yanarudisha 1 kwa sauti (`; KOSA: 1`). Kumbuka: kazi hizi sasa
+zinakaribia kikomo cha vizuizi vya FastISel cha LLVM — mwisho wa LLVM
+unabaki tete (kikomo kilichojulikana, kipengee 6).
 
 ## 3. Upeo wa tokeni: 65,536 — ukataji kimya [UKALI: JUU]
 

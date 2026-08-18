@@ -146,6 +146,7 @@ msg_fixup_full:  db "Hitilafu: jedwali la fixup limejaa", 10, 0
 msg_global_full: db "Hitilafu: jedwali la ulimwengu limejaa", 10, 0
 msg_label_full:  db "Hitilafu: jedwali la lebo limejaa", 10, 0
 msg_chanzo_kikubwa: db "Hitilafu: chanzo ni kikubwa mno", 10, 0
+msg_herufi_baya: db "Hitilafu: herufi isiyojulikana", 10, 0
 msg_ast_full:    db "Hitilafu: jedwali la AST limejaa", 10, 0
 msg_local_full:  db "Hitilafu: jedwali la vigezo vya ndani limejaa", 10, 0
 msg_muundo_full: db "Hitilafu: jedwali la miundo limejaa", 10, 0
@@ -1215,6 +1216,8 @@ changanua_chanzo:
         mov     [token_val + r15*8], rbx
         movzx   ecx, cx                 ; hakikisha urefu uko safi kwa kuhifadhi
         mov     [token_len + r15*2], cx
+        mov     edx, [line_sasa]        ; maneno pia lazima yawe na mstari
+        mov     [token_line + r15*4], edx
 
         mov     [token_text + r15*8], rbx ; hifadhi anwani halisi ya neno
         inc     qword [token_count]
@@ -1257,9 +1260,11 @@ changanua_chanzo:
         cmp     al, '?'
         je      .tok_question
 
-        ; Herufi isiyojulikana — ruka
-        inc     r12
-        jmp     .changanua_loop
+        ; Herufi isiyojulikana — kosa LAUTI, si ruka kimya
+        lea     rdi, [msg_herufi_baya]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 .tok_brace_open:
         mov     eax, TOK_FUNGO
@@ -2801,8 +2806,12 @@ changanua_block:
         mov     rdi, [token_pos]
         cmp     dword [token_ty + rdi*4], TOK_FUNGA
         je      .block_done
+        ; EOF kabla ya } — mabano yasiyofungwa ni kosa, si kukubalika
         cmp     dword [token_ty + rdi*4], TOK_MWISHO
-        je      .block_done
+        je      .block_eof_kosa
+        ; Kinga ya mipaka ya mkondo wa tokeni
+        cmp     rdi, [token_count]
+        jae     .block_eof_kosa
 
         call    changanua_taarifa
 
@@ -2824,6 +2833,13 @@ changanua_block:
         call    tarajia_ishara
         mov     eax, r12d
         jmp     .done
+
+.block_eof_kosa:
+        ; Mwisho wa faili ndani ya block isiyofungwa
+        lea     rdi, [msg_parseerr]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 .single_statement:
         call    changanua_taarifa
@@ -3151,6 +3167,11 @@ changanua_muundo:
         mov     rdi, [token_pos]
         cmp     dword [token_ty + rdi*4], TOK_FUNGA
         je      .mwisho
+        ; EOF kabla ya } — muundo usiofungwa ni kosa
+        cmp     dword [token_ty + rdi*4], TOK_MWISHO
+        je      .nyuga_eof_kosa
+        cmp     rdi, [token_count]
+        jae     .nyuga_eof_kosa
 
         ; Changanua aina ya nyuga
         call    changanua_aina
@@ -3275,6 +3296,13 @@ changanua_muundo:
         jne     .fail
         jmp     .nyuga_loop
 
+.nyuga_eof_kosa:
+        ; Mwisho wa faili ndani ya muundo usiofungwa
+        lea     rdi, [msg_parseerr]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
+
 .mwisho:
         ; Tumia }
         inc     qword [token_pos]
@@ -3353,12 +3381,15 @@ changanua_programu:
 
 .programu_loop:
         mov     rdi, [token_pos]
+        ; Kinga ya mipaka: usisome zaidi ya mwisho wa mkondo wa tokeni
+        cmp     rdi, [token_count]
+        jae     .done
         cmp     dword [token_ty + rdi*4], TOK_MWISHO
         je      .done
 
         ; Jaribu changanua kazi au tangazo la nje
         ; Angalia ikiwa ni aina
-        ; Kwanza, ikiwa sio neno, ruka
+        ; Kwanza, ikiwa sio neno, kosa LAUTI (si ruka kimya)
         cmp     dword [token_ty + rdi*4], TOK_NENO
         jne     .skip_token
 
@@ -3402,8 +3433,13 @@ changanua_programu:
         cmp     dword [token_ty + rdi*4], TOK_FUNGA
         je      .husisha_close
         cmp     dword [token_ty + rdi*4], TOK_MWISHO
-        je      .programu_loop           ; mwisho wa faili, acha
+        je      .husisha_eof_kosa        ; husisha isiyofungwa ni kosa
         jmp     .husisha_skip
+.husisha_eof_kosa:
+        lea     rdi, [msg_parseerr]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 .husisha_open:
         inc     ecx
         jmp     .husisha_skip
@@ -3474,7 +3510,7 @@ changanua_programu:
         ; Jina la kigeu lazima liwe TOK_NENO
         mov     rdi, [token_pos]
         cmp     dword [token_ty + rdi*4], TOK_NENO
-        jne     .global_fail_pops
+        jne     .global_parse_fail
         mov     rsi, [token_text + rdi*8]
         movzx   ecx, word [token_len + rdi*2]
         call    hifadhi_jina
@@ -3502,24 +3538,24 @@ changanua_programu:
         je      .global_init
         cmp     dword [token_ty + rdi*4], TOK_NUKTA_MKATO
         je      .global_bare
-        jmp     .global_fail_pops
+        jmp     .global_parse_fail
 
 .global_array:
         inc     qword [token_pos]        ; ruka [
         mov     rdi, [token_pos]
         cmp     dword [token_ty + rdi*4], TOK_NAMBARI
-        jne     .global_fail_pops
+        jne     .global_parse_fail
         mov     rcx, [token_val + rdi*8] ; idadi ya elementi
         imul    rcx, r15
         mov     r15, rcx                 ; ukubwa wa jumla wa safu
         inc     qword [token_pos]
         mov     rdi, [token_pos]
         cmp     dword [token_ty + rdi*4], TOK_MABANO_MKOA_FUNGA
-        jne     .global_fail_pops
+        jne     .global_parse_fail
         inc     qword [token_pos]
         mov     rdi, [token_pos]
         cmp     dword [token_ty + rdi*4], TOK_NUKTA_MKATO
-        jne     .global_fail_pops
+        jne     .global_parse_fail
         inc     qword [token_pos]
         mov     r8d, 1                   ; .bss
         xor     r9d, r9d
@@ -3533,24 +3569,24 @@ changanua_programu:
         cmp     dword [token_ty + rdi*4], TOK_ISHARA
         jne     .global_init_num
         cmp     qword [token_val + rdi*8], OP_TOA
-        jne     .global_fail_pops
+        jne     .global_parse_fail
         inc     qword [token_pos]        ; ruka -
         mov     rdi, [token_pos]
         cmp     dword [token_ty + rdi*4], TOK_NAMBARI
-        jne     .global_fail_pops
+        jne     .global_parse_fail
         mov     r9, [token_val + rdi*8]
         neg     r9                       ; hasi
         inc     qword [token_pos]
         jmp     .global_init_end
 .global_init_num:
         cmp     dword [token_ty + rdi*4], TOK_NAMBARI
-        jne     .global_fail_pops
+        jne     .global_parse_fail
         mov     r9, [token_val + rdi*8]
         inc     qword [token_pos]
 .global_init_end:
         mov     rdi, [token_pos]
         cmp     dword [token_ty + rdi*4], TOK_NUKTA_MKATO
-        jne     .global_fail_pops
+        jne     .global_parse_fail
         inc     qword [token_pos]
         mov     r8d, 0                   ; .data
         mov     r10d, 0                  ; si safu
@@ -3638,16 +3674,26 @@ changanua_programu:
         mov     qword [compiler_state], 15
         jmp     .programu_loop
 
+.global_parse_fail:
+        ; Hitilafu ya ulichanganuzi wa tangazo la ulimwengu
+        lea     rdi, [msg_parseerr]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
+
 .global_fail_pops:
-        ; Kosa LAUTI — kuruka tangazo kimya ni uharibifu
+        ; Kosa LAUTI — jedwali la ulimwengu limejaa (si ruka kimya)
         lea     rdi, [msg_global_full]
         call    andika_mfuatano
         mov     edi, 1
         call    sys_exit
 
 .skip_token:
-        inc     qword [token_pos]
-        jmp     .programu_loop
+        ; Tokeni isiyojulikana kwenye kiwango cha juu — kosa LAUTI
+        lea     rdi, [msg_parseerr]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 .done:
         mov     eax, r12d
