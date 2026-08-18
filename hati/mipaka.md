@@ -72,6 +72,20 @@ hapo. Uthibitisho: kwa (i=0; i<6; i=i+1) { kama (i==2) endelea; s++ }
 → s=5, na kesi ya endelea-pekee inapita. (Msambazaji wa .swa bado
 una semantiki ya zamani — uthabiti ni kazi ya kufuatilia.)
 
+## 4c. Desimali (D32/D64) — bomba HALIFANYI KAZI bado [UKALI: JUU]
+
+Hali halisi (iliyothibitishwa leo, kwa ushahidi wa kila mnyororo):
+- Mnyororo wa mbegu: mchanganuzi wa mbegu HAUNA vitambulisho vya
+  desimali — `21.5` inasegfault (rc=139).
+- Mnyororo wa .swa (kujikusanya): bits_ya_d64_swa imekusanywa vibaya
+  na mbegu — FPE (rc=136, `call *0x48(%rax)` — msimbo takataka).
+- Mnyororo wa LLVM: uthibitishaji wa moduli unashindwa.
+
+Ingawa mashine ya ABI (xmm0-xmm7) IKO kwenye uzalishaji.swa (wito na
+utangulizi), bomba la desimali kwa jumla halifanyi kazi popote.
+Hii ni kazi KUBWA (vitambulisho + hesabu + ABI + codegen ya mbegu) —
+si kazi ndogo.
+
 ## 5. Maneno halisi ni 32-bit signed [UKALI: CHINI]
 
 Neno halisi `2147483648` linatafsiriwa kama `-2147483648` (biti
