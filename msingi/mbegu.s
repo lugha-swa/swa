@@ -2612,18 +2612,30 @@ changanua_taarifa:
         call    changanua_block
         mov     r9d, eax                ; mwili asili (au -1)
 
-        ; Funga kwenye AST_BLOCK: mnyororo wa taarifa uko kwenye
-        ; ast_kushoto — hatua inawekwa kwenye ast_tiga ya block hili,
-        ; kwa alama -777777 kwenye ast_kulia (kielezi cha nodi huwa
-        ; >= -1 kamwe, hivyo hakuna mgongano).
+        ; Funga kwenye AST_BLOCK na ambatisha hatua MWISHONI mwa
+        ; mnyororo wa mwili (desugaring sawa na msambazaji wa .swa).
         mov     r10d, -1
         mov     r11d, -1
         mov     r8d, AST_BLOCK
         call    ast_nodi_mpya
         mov     r8d, eax
         mov     [ast_kushoto + r8*4], r9d
-        mov     [ast_tiga + r8*4], r15d
-        mov     dword [ast_kulia + r8*4], -777777
+        cmp     r15d, -1
+        je      .kwa_hakuna_hatua_p
+        mov     r9d, [ast_kushoto + r8*4]
+        cmp     r9d, -1
+        jne     .kwa_mwisho_mnyororo
+        mov     [ast_kushoto + r8*4], r15d
+        jmp     .kwa_hakuna_hatua_p
+.kwa_mwisho_mnyororo:
+        mov     r10d, [ast_nne + r9*4]
+        cmp     r10d, -1
+        je      .kwa_ambatisha_sasa
+        mov     r9d, r10d
+        jmp     .kwa_mwisho_mnyororo
+.kwa_ambatisha_sasa:
+        mov     [ast_nne + r9*4], r15d
+.kwa_hakuna_hatua_p:
 
         ; AST_WAKATI: kushoto=hali, kulia=mwili, tiga=anzisha
         mov     r9d, r14d
@@ -7274,7 +7286,6 @@ uzalishaji_wakati:
         push    r13
         push    r14
         push    r15
-        push    rbx
 
         mov     r13d, [ast_kushoto + r12*4]  ; hali ya kitanzi
         mov     r14d, [ast_kulia + r12*4]    ; mwili wa kitanzi
@@ -7307,16 +7318,7 @@ uzalishaji_wakati:
         mov     rax, [continue_fixup_count]
         push    rax
 
-        ; Nafasi za kwa: [rsp+8]=hatua (faharisi, isomwe SASA kwa sababu
-        ; r14 haihifadhiwi na uzalishaji_ast), [rsp]=lengo la endelea
-        mov     r9d, -1
-        cmp     dword [ast_kulia + r14*4], -777777
-        jne     .hakuna_hatua_ya_kwa
-        mov     r9d, [ast_tiga + r14*4]
-.hakuna_hatua_ya_kwa:
-        push    r9
-        push    r9
-        mov     [rsp], r15d             ; lengo = start_pos (chaguo-msingi)
+        ; Hakuna nafasi za kwa — hatua iko ndani ya mwili (desugaring)
 
         ; Zalisha hali (kitanzi kipofu: ruka hali na jz)
         cmp     r13d, -1
@@ -7355,21 +7357,6 @@ uzalishaji_wakati:
         pop     r12
         pop     qword [local_count]     ; rejesha upeo wa nje
 
-        ; Hatua ya kwa: ikiwa ipo, lengo la endelea = nafasi ya hatua,
-        ; kisha toa hatua (semantiki ya C ya endelea kwenye kwa).
-        mov     rax, [rsp + 8]          ; slot ya hatua
-        cmp     rax, -1
-        je      .hakuna_hatua_kodijeni
-        mov     rcx, [text_buf_pos]
-        mov     [rsp], rcx              ; slot ya lengo = nafasi ya hatua
-        push    r12
-        push    r8
-        mov     r12d, eax
-        call    uzalishaji_ast
-        pop     r8
-        pop     r12
-.hakuna_hatua_kodijeni:
-
         ; jmp rel32 kurudi mwanzo wa kitanzi
         mov     al, 0xe9
         call    gen_baiti
@@ -7400,10 +7387,7 @@ uzalishaji_wakati:
         mov     [text_buf_pos], r10d
 .kitanzi_kipofu_jz_done:
 
-        ; Toa nafasi za kwa na mipaka kutoka rafu
-        pop     r9                         ; slot ya lengo
-        mov     ebx, r9d                   ; lengo la endelea
-        pop     r10                        ; slot ya hatua (tupa)
+        ; Toa mipaka ya awali kutoka rafu
         pop     r14                        ; base ya endelea
         pop     r13                        ; base ya vunja
 
@@ -7437,7 +7421,7 @@ uzalishaji_wakati:
         jae     .fix_continues_done
         mov     edi, [continue_fixup_pos + rcx*4] ; nafasi ya fixup ya endelea hii
         push    rcx
-        mov     r10d, ebx                        ; lengo = hatua au mwanzo
+        mov     r10d, r15d                       ; lengo = mwanzo wa kitanzi
         sub     r10d, edi                        ; target - fixup_pos
         sub     r10d, 4                          ; target - fixup_pos - 4
         mov     r11d, [text_buf_pos]
@@ -7456,7 +7440,6 @@ uzalishaji_wakati:
         pop     r14
         pop     r13
         pop     r12
-        pop     rbx
         ret
 
 ; -------------------------------------------------------

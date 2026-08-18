@@ -655,6 +655,9 @@ N32 main() {
     N32 s = 0; i = 0;
     wakati (i < 5) { s = s + i; i = i + 1; }
     kama (s != 10) rudisha 8;
+    N32 t = 0;
+    kwa (N32 j = 0; j < 6; j = j + 1) { t = t + j; }
+    kama (t != 15) rudisha 9;
     rudisha 0;
 }
 ").expect("inapaswa kuandika jaribio_user.swa");

@@ -63,6 +63,14 @@ Uthibitisho: toleo la jaribio lenye MAX_TOKENS/MAX_AST_NODES
 lililoinuliwa hufikia kikomo cha nje kwa wito 16,500 na inalia
 `Hitilafu: jedwali la nje limejaa` — si uharibifu tena.
 
+## 4b. `endelea` ndani ya `kwa` inaruka mwanzo, si hatua [UKALI: CHINI]
+
+Desugaring ya `kwa` kwenye mbegu (sawa na msambazaji wa .swa)
+inaambatisha hatua mwishoni mwa mwili; `endelea` inaruka mwanzo wa
+kitanzi — kama hatua ndiyo njia pekee ya kuendeleza kitanzi, kitanzi
+kitazunguka milele (mfano: kwa (i=0; i<6; i=i+1) { kama (i==2)
+endelea; }). Semantiki ya C (endelea → hatua) ni kazi ya kufuatilia.
+
 ## 5. Maneno halisi ni 32-bit signed [UKALI: CHINI]
 
 Neno halisi `2147483648` linatafsiriwa kama `-2147483648` (biti
