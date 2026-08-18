@@ -754,6 +754,36 @@ N32 main() {
         ruhusa_mpya.set_mode(0o755);
         std::fs::set_permissions(&mkazo_exe, ruhusa_mpya).expect("inapaswa kuweka ruhusa");
     }
+    // 11. C-semantiki ya endelea kwenye kwa — jaribiwa KUPITIA MBEGU
+    // moja kwa moja (msambazaji wa .swa bado una semantiki ya zamani;
+    // uthabiti wake ni kazi ya kufuatilia — mipaka.md 4b).
+    let kwac_swa = dir.path().join("kwa_endelea.swa");
+    std::fs::write(&kwac_swa, "N32 main() { N32 i = 0; N32 s = 0; kwa (; i < 6; i = i + 1) { kama (i == 2) { endelea; } s = s + 1; } rudisha s; }\n").expect("inapaswa kuandika kwa_endelea.swa");
+    let kwac_exe = dir.path().join("kwa-endelea-exe");
+    let kwac_out = std::process::Command::new(mbegu)
+        .arg("--exe")
+        .stdin(std::fs::File::open(&kwac_swa).expect("inapaswa kufungua kwa_endelea.swa"))
+        .stdout(std::fs::File::create(&kwac_exe).expect("inapaswa kuunda kwa-endelea-exe"))
+        .output()
+        .expect("inapaswa kuendesha mbegu --exe kwa kwa_endelea");
+    assert!(kwac_out.status.success(), "mbegu --exe inapaswa kukusanya kwa_endelea\nstderr: {}",
+        String::from_utf8_lossy(&kwac_out.stderr));
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let ruhusa = std::fs::metadata(&kwac_exe).expect("inapaswa kusoma metadata").permissions();
+        let mut ruhusa_mpya = ruhusa.clone();
+        ruhusa_mpya.set_mode(0o755);
+        std::fs::set_permissions(&kwac_exe, ruhusa_mpya).expect("inapaswa kuweka ruhusa");
+    }
+    let kwac_run = std::process::Command::new(&kwac_exe)
+        .output()
+        .expect("inapaswa kuendesha kwa-endelea-exe");
+    // main inarudisha s=5 — msimbo wa kutoka 5 ndio ushahidi kwamba
+    // endelea iliruka kwenye HATUA (i iliendelea kuongezeka hadi 6).
+    assert_eq!(kwac_run.status.code(), Some(5),
+        "endelea kwenye kwa inapaswa kuruka kwenye hatua (C-semantiki): s=5, ilipata {:?}", kwac_run.status.code());
+
     let mkazo_run = std::process::Command::new(&mkazo_exe)
         .output()
         .expect("inapaswa kuendesha mkazo-exe");
