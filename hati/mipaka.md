@@ -104,6 +104,14 @@ ukubwa wa kukisia: matokeo yanaweza kuwa mabaya KIMYA bila kosa.
 Uthibitisho wa nje wa mnyororo (GNU ld dhidi ya toa_exe ya mbegu)
 unafunika njia ya mbegu/exe/RELA pekee — SI mwisho wa LLVM.
 
+**UAMUZI (uliojaribiwa 2026-08-19):** mwisho wa LLVM umeSHUSHWA hadhi
+kuwa wa MAJARIBIO (experimental). Ushahidi: O0 inakata vizuizi >~50
+kimya; O1/O2 zinakusanya mkusanyaji mzima (alama zipo) lakini
+mfumo wa faili unashindwa kwenye mnyororo kamili; uthibitishaji wa
+moduli unashindwa kwa desimali. Wigo uliojaribiwa na unaofanya kazi
+ni majaribio ya maktaba ya K-series (program ndogo). Mnyororo wa
+uzalishaji ni mbegu/exe PEKEE.
+
 ## 7. Kwanza haina chanzo chenye maelezo [UKALI: TAARIFA]
 
 Kwanza (msingi/kwanza.bin, baiti 393) ni mzizi usioweza kupunguzwa wa
