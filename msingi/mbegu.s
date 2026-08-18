@@ -147,6 +147,7 @@ msg_global_full: db "Hitilafu: jedwali la ulimwengu limejaa", 10, 0
 msg_label_full:  db "Hitilafu: jedwali la lebo limejaa", 10, 0
 msg_chanzo_kikubwa: db "Hitilafu: chanzo ni kikubwa mno", 10, 0
 msg_herufi_baya: db "Hitilafu: herufi isiyojulikana", 10, 0
+msg_tokeni_jaa: db "Hitilafu: chanzo kina tokeni nyingi mno", 10, 0
 msg_ast_full:    db "Hitilafu: jedwali la AST limejaa", 10, 0
 msg_local_full:  db "Hitilafu: jedwali la vigezo vya ndani limejaa", 10, 0
 msg_muundo_full: db "Hitilafu: jedwali la miundo limejaa", 10, 0
@@ -1186,7 +1187,7 @@ changanua_chanzo:
 
         mov     r15, [token_count]
         cmp     r15, MAX_TOKENS - 1
-        jae     .changanua_done
+        jae     .tokeni_jaa
 
         ; Anwani ya mwanzo ya tokeni
         mov     [token_text + r15*8], r12  ; hifadhi faharisi ya mwanzo
@@ -1435,7 +1436,7 @@ changanua_chanzo:
         ; Andika tokeni moja kwa moja (token_len != 1)
         mov     r15, [token_count]
         cmp     r15, MAX_TOKENS - 1
-        jae     .changanua_done
+        jae     .tokeni_jaa
         mov     dword [token_ty + r15*4], TOK_HERUFI
         mov     [token_val + r15*8], r9         ; ofseti ya str_pool
         mov     edx, [line_sasa]
@@ -1455,7 +1456,7 @@ changanua_chanzo:
 .hifadhi_tokeni_kwa_ishara:
         mov     r15, [token_count]
         cmp     r15, MAX_TOKENS - 1
-        jae     .changanua_done
+        jae     .tokeni_jaa
         mov     [token_ty + r15*4], eax
         mov     [token_val + r15*8], rbx
         mov     edx, [line_sasa]
@@ -1467,7 +1468,7 @@ changanua_chanzo:
 .hifadhi_tokeni:
         mov     r15, [token_count]
         cmp     r15, MAX_TOKENS - 1
-        jae     .changanua_done
+        jae     .tokeni_jaa
         mov     [token_ty + r15*4], eax
         mov     [token_val + r15*8], rbx
         mov     edx, [line_sasa]
@@ -1475,6 +1476,13 @@ changanua_chanzo:
         mov     word [token_len + r15*2], 1
         inc     qword [token_count]
         jmp     .changanua_loop
+
+.tokeni_jaa:
+        ; Kosa LAUTI — kukata chanzo kimya ni uharibifu
+        lea     rdi, [msg_tokeni_jaa]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 .changanua_done:
         ; Ongeza tokeni ya mwisho
