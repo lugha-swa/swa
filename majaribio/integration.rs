@@ -730,6 +730,35 @@ N32 main() {
     assert!(stderr_jit.contains("; JIT: matokeo=42"),
         "JIT inapaswa kurudisha matokeo=42\nstderr: {}", stderr_jit);
 
+    // 10. Mkazo wa RELA/codegen: program moja yenye kwa+vunja+endelea,
+    // urejeshaji halisi, ulimwengu unaobadilishwa na kazi mbili, wito
+    // wa mbele, na vitanzi vilivyopandikizwa. Tarajio la mkono: exit 0
+    // (s=125, fibonacci(10)=55, jumla_yote=7, pata_baadaye(5)=25, t=30).
+    let mkazo_swa = dir.path().join("mkazo_rela.swa");
+    std::fs::write(&mkazo_swa, "N32 fibonacci(N32 n) { kama (n <= 1) { rudisha n; } rudisha fibonacci(n - 1) + fibonacci(n - 2); }\nN32 jumla_yote = 0;\nN32 ongeza_jumla(N32 v) { jumla_yote = jumla_yote + v; rudisha jumla_yote; }\nN32 toa_jumla(N32 v) { jumla_yote = jumla_yote - v; rudisha jumla_yote; }\nN32 main() { N32 s = 0; kwa (N32 i = 0; i < 10; i = i + 1) { kama (i == 3) { i = i + 1; s = s + 100; endelea; } kama (i == 8) { vunja; } s = s + i; } kama (s != 125) rudisha 1; kama (fibonacci(10) != 55) rudisha 2; ongeza_jumla(10); toa_jumla(3); kama (jumla_yote != 7) rudisha 3; kama (pata_baadaye(5) != 25) rudisha 4; N32 t = 0; kwa (N32 j = 0; j < 3; j = j + 1) { N32 k = 0; wakati (k < 4) { t = t + j + k; k = k + 1; } } kama (t != 30) rudisha 5; rudisha 0; }\nN32 pata_baadaye(N32 x) { rudisha x * x; }\n").expect("inapaswa kuandika mkazo_rela.swa");
+    let mkazo_exe = dir.path().join("mkazo-rela-exe");
+    let mkazo_out = std::process::Command::new(&stage1_exe)
+        .arg("--exe")
+        .arg(&mkazo_swa)
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .stdout(std::fs::File::create(&mkazo_exe).expect("inapaswa kuunda mkazo-exe"))
+        .output()
+        .expect("inapaswa kuendesha stage1-exe --exe kwa mkazo");
+    assert!(mkazo_out.status.success(), "stage1-exe --exe inapaswa kukusanya mkazo\nstderr: {}",
+        String::from_utf8_lossy(&mkazo_out.stderr));
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let ruhusa = std::fs::metadata(&mkazo_exe).expect("inapaswa kusoma metadata").permissions();
+        let mut ruhusa_mpya = ruhusa.clone();
+        ruhusa_mpya.set_mode(0o755);
+        std::fs::set_permissions(&mkazo_exe, ruhusa_mpya).expect("inapaswa kuweka ruhusa");
+    }
+    let mkazo_run = std::process::Command::new(&mkazo_exe)
+        .output()
+        .expect("inapaswa kuendesha mkazo-exe");
+    assert!(mkazo_run.status.success(),
+        "mkazo wa RELA/codegen unapaswa kurudisha 0, ilirudisha {:?}", mkazo_run.status.code());
 }
 
 /// Hali ya .o ya mbegu — urekebishaji wa RELA na symtab hautumiki
