@@ -1756,7 +1756,12 @@ N32 pata_au_unda_kigeu_ukubwa(N8* jina, N32 saizi, N32 enc) {
         kama (jina_linganisha(vjina, jina)) { rudisha i; }
         i = i + 1;
     }
-    kama (var_idadi < 64) {
+    kama (var_idadi >= 64) {
+        andika_stderr("; KOSA: vigezo vya ndani vimezidi 64\n");
+        text_imefurika = 1;
+        rudisha 0;
+    }
+    kama (1 == 1) {
         N32 off = var_pool_wapi;
         jina_hifadhi(var_pool, &var_pool_wapi, jina);
         var_jina_off[var_idadi] = off;
@@ -1916,9 +1921,14 @@ W0 uzalishaji_wakati(N32 node, N32 kazi_node) {
     N32 lebo_cond = lebo_buf_mpya();
     N32 lebo_exit = lebo_buf_mpya();
 
-    mzunguko_lebo_endelea[mzunguko_undani] = lebo_cond;
-    mzunguko_lebo_toka[mzunguko_undani] = lebo_exit;
-    mzunguko_undani = mzunguko_undani + 1;
+    kama (mzunguko_undani >= 16) {
+        andika_stderr("; KOSA: upeo wa kupandikiza kitanzi (16)\n");
+        text_imefurika = 1;
+    } sivyo {
+        mzunguko_lebo_endelea[mzunguko_undani] = lebo_cond;
+        mzunguko_lebo_toka[mzunguko_undani] = lebo_exit;
+        mzunguko_undani = mzunguko_undani + 1;
+    }
 
     toa_jmp_lebo(lebo_cond);
 
