@@ -21,6 +21,7 @@ const AST_MUUNDO: u32 = 12;
 const AST_SEHEMU: u32 = 13;
 const AST_CHAGUA: u32 = 14;
 const AST_HALI: u32 = 47;
+const AST_HALISI_D: u32 = 49;  // desimali halisi (D64)
 const AST_KIPINDI: u32 = 15;
 const AST_VUNJA: u32 = 16;
 const AST_ENDELEA: u32 = 17;
@@ -190,6 +191,49 @@ impl<'a> Parser<'a> {
         }
     }
 
+    /// Changanua mnyororo wa matawi yanayofuata taarifa ya kama:
+    /// `sivyo { ... }`, `sivyo kama (...) { ... }`, au
+    /// `kamasivyo (...) { ... }` — pamoja na minyororo mingi
+    /// (`kamasivyo` baada ya `kamasivyo`). Inarudisha nodi ya tawi
+    /// (AST_KAMA kwa kamasivyo, au nodi ya kwanza ya msururu kwa
+    /// sivyo), au NO_NODE ikiwa hakuna tawi linalofuata.
+    fn changanua_mnyororo_wa_sivyo(&mut self) -> i32 {
+        if self.tokeni_ni("sivyo") {
+            self.sogeza();
+            if self.tokeni_ni("kama") {
+                return self.changanua_taarifa();
+            }
+            // sivyo { ... }
+            if self.tokeni_ni("{") { self.sogeza(); }
+            let mut first: i32 = NO_NODE; let mut prev: i32 = NO_NODE;
+            while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
+                let s = self.changanua_taarifa(); if s == NO_NODE { if !self.recover_ya_mwili() { break; } continue; }
+                if prev == NO_NODE { first = s; } else { self.ast.nne[prev as usize] = s; } prev = s;
+                while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
+            }
+            if self.tokeni_ni("}") { self.sogeza(); }
+            return first;
+        }
+        if self.tokeni_ni("kamasivyo") {
+            self.sogeza();
+            if self.tokeni_ni("(") { self.sogeza(); }
+            let cond = self.changanua_usemi();
+            self.tarajia(")", "')' inatarajiwa baada ya sharti la kamasivyo");
+            if self.tokeni_ni("{") { self.sogeza(); }
+            let mut first: i32 = NO_NODE; let mut prev: i32 = NO_NODE;
+            while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
+                let s = self.changanua_taarifa(); if s == NO_NODE { if !self.recover_ya_mwili() { break; } continue; }
+                if prev == NO_NODE { first = s; } else { self.ast.nne[prev as usize] = s; } prev = s;
+                while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
+            }
+            if self.tokeni_ni("}") { self.sogeza(); }
+            let n = self.ast.node_mpya(AST_KAMA, 0, cond, first);
+            self.ast.tiga[n as usize] = self.changanua_mnyororo_wa_sivyo();
+            return n;
+        }
+        NO_NODE
+    }
+
     fn tokeni_ni(&self, s: &str) -> bool {
         let t = self.sasa();
         match &t.kind {
@@ -202,7 +246,10 @@ impl<'a> Parser<'a> {
 
     fn ni_aina(&self) -> bool {
         match &self.sasa().kind {
-            TokenKind::NenoMuhimu(s) => s.as_bytes().first().map_or(false, |c| c.is_ascii_uppercase()),
+            // "tupu" ni neno muhimu la aina ya bila-thamani (sawa na W0)
+            // lakini huanza na herufi ndogo — kikubali kwa uwazi.
+            TokenKind::NenoMuhimu(s) => s == "tupu"
+                || s.as_bytes().first().map_or(false, |c| c.is_ascii_uppercase()),
             TokenKind::Kitambulisho(s) => s.as_bytes().first().map_or(false, |c| c.is_ascii_uppercase()),
             _ => false,
         }
@@ -213,7 +260,9 @@ impl<'a> Parser<'a> {
         if !self.ni_aina() { return 0; }
         let txt = self.sasa().lexeme.clone();
         let n = txt.len();
-        let (familia, upana): (u32, u32) = if n >= 2 && txt[1..].chars().all(|c| c.is_ascii_digit()) {
+        let (familia, upana): (u32, u32) = if txt == "tupu" {
+            (5, 0) // tupu == W0 (bila thamani)
+        } else if n >= 2 && txt[1..].chars().all(|c| c.is_ascii_digit()) {
             let c0 = txt.as_bytes()[0];
             let fam = match c0 { b'N' => 1, b'A' => 2, b'D' => 3, b'B' => 4, b'W' => 5, _ => 6 };
             let w = txt[1..].parse().unwrap_or(32);
@@ -250,10 +299,17 @@ impl<'a> Parser<'a> {
     fn changanua_primary(&mut self) -> i32 {
         match &self.sasa().kind {
             TokenKind::Nambari => {
-                // Parse kama u32 kwanza ili thamani hadi 2^32-1 zibaki kama
-                // mifumo ya biti ya N32 (mbegu hufanya hivyo) — parse ya i32
-                // moja kwa moja inazunguka kwa thamani zaidi ya 2^31-1.
+                // Namba kamili kama mifumo ya biti ya N32 (mbegu hufanya
+                // hivyo) — parse ya i32 moja kwa moja inazunguka kwa
+                // thamani zaidi ya 2^31-1. Desimali (zenye '.') zinakuwa
+                // AST_HALISI_D — suala #135: zamani ziligeuka 0 kimya.
                 let safi: String = self.sasa().lexeme.chars().filter(|c| *c != '_').collect();
+                if safi.contains('.') {
+                    let n = self.ast.node_mpya(AST_HALISI_D, 0, NO_NODE, NO_NODE);
+                    self.ast.hifadhi_jina(n, &safi);
+                    self.sogeza();
+                    return n;
+                }
                 let v: i32 = safi.parse::<u32>().map(|u| u as i32).unwrap_or(0);
                 self.sogeza();
                 self.ast.node_mpya(AST_NAMBARI, v, NO_NODE, NO_NODE)
@@ -437,22 +493,13 @@ impl<'a> Parser<'a> {
                 while self.ast.nne[prev as usize] != NO_NODE && self.ast.nne[prev as usize] >= 0 { prev = self.ast.nne[prev as usize]; }
             }
             if self.tokeni_ni("}") { self.sogeza(); }
-            let mut else_b: i32 = NO_NODE;
-            if self.tokeni_ni("sivyo") { self.sogeza();
-                if self.tokeni_ni("kama") { else_b = self.changanua_taarifa(); }
-                else {
-                    if self.tokeni_ni("{") { self.sogeza(); }
-                    let mut pe: i32 = NO_NODE;
-                    while !self.tokeni_ni("}") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
-                        let s = self.changanua_taarifa(); if s == NO_NODE { if !self.recover_ya_mwili() { break; } continue; }
-                        if pe == NO_NODE { else_b = s; } else { self.ast.nne[pe as usize] = s; } pe = s;
-                        while self.ast.nne[pe as usize] != NO_NODE && self.ast.nne[pe as usize] >= 0 { pe = self.ast.nne[pe as usize]; }
-                    }
-                    if self.tokeni_ni("}") { self.sogeza(); }
-                }
-            }
             let n = self.ast.node_mpya(AST_KAMA, 0, cond, body);
-            self.ast.tiga[n as usize] = else_b;
+            // Mnyororo wa matawi yanayofuata (sivyo, sivyo kama,
+            // kamasivyo) unachanganuliwa kwa kujirudia — suala #134:
+            // "kamasivyo" halikuwa neno muhimu kwenye msomaji wa Rust
+            // na lilichanganuliwa kama WITO WA KAZI (undefined
+            // reference wakati wa kuunganisha).
+            self.ast.tiga[n as usize] = self.changanua_mnyororo_wa_sivyo();
             return n;
         }
 
@@ -595,9 +642,19 @@ impl<'a> Parser<'a> {
         let mut first_p: i32 = NO_NODE; let mut prev_p: i32 = NO_NODE;
         while !self.tokeni_ni(")") && !matches!(self.sasa().kind, TokenKind::Mwisho) {
             if self.ni_aina() {
-                let pa = self.changanua_aina();
+                let mut pa = self.changanua_aina();
                 if matches!(self.sasa().kind, TokenKind::Kitambulisho(_) | TokenKind::NenoMuhimu(_)) {
                     let pn = self.sasa().lexeme.clone(); self.sogeza();
+                    // Kigezo cha safu: N32 a[4] — hubadilika kuwa kielekezi
+                    // (semantiki ya C): N32 a[4] == N32* a.
+                    if self.tokeni_ni("[") {
+                        self.sogeza();
+                        let _saizi = self.changanua_usemi(); // ukubwa hauhifadhiwi kwa kigezo
+                        if !self.tarajia("]", "']' inatarajiwa baada ya ukubwa wa safu ya kigezo") {
+                            return NO_NODE;
+                        }
+                        pa = (pa & !7) | ((pa & 7) + 1); // ongeza ngazi moja ya kielekezi
+                    }
                     let pnode = self.ast.node_mpya(AST_KITAMBULISHO, 0, NO_NODE, NO_NODE);
                     self.ast.hifadhi_jina(pnode, &pn);
                     self.ast.thamani[pnode as usize] = pa;
@@ -608,7 +665,11 @@ impl<'a> Parser<'a> {
             }
             break;
         }
-        self.tarajia(")", "')' inatarajiwa baada ya vigezo vya kazi");
+        // Kukosa ')' hapa kuna maana tangazo la kigezo limevunjika —
+        // usijenge nodi ya kazi yenye muundo taka (ilikuwa chanzo cha
+        // OOM kwenye suala #136: nodi ya uwongo ilirudishwa na mzunguko
+        // wa kiwango cha juu ulizunguka bila mwisho kwa '}' isiyotumiwa).
+        if !self.tarajia(")", "')' inatarajiwa baada ya vigezo vya kazi") { return NO_NODE; }
 
         // Tangazo la mbele (forward declaration): hakuna mwili wa { }
         if !self.tokeni_ni("{") {
@@ -716,6 +777,16 @@ impl<'a> Parser<'a> {
             if self.tokeni_ni("muundo") { node = self.changanua_muundo(); }
             if node == NO_NODE { node = self.changanua_kazi(); }
             if node == NO_NODE {
+                // Mabano ya wima yasiyotarajiwa katika kiwango cha juu:
+                // recover_ya_mwili HUYACHI kwa makusudi (hali ya kitanzi),
+                // lakini katika kiwango cha juu hakuna kitanzi
+                // kitakachoyatumia — bila kinga hii mzunguko unazunguka
+                // milele ukilimbikiza makosa (OOM, suala #136).
+                if self.tokeni_ni("}") {
+                    self.kosa("mabano ya wima yasiyotarajiwa katika kiwango cha juu");
+                    self.sogeza();
+                    continue;
+                }
                 self.kosa("kipengele cha ngazi ya juu hakutambulika");
                 if !self.recover_ya_mwili() { break; }
                 continue;

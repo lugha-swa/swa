@@ -407,13 +407,17 @@ impl LlvmBackend {
             // -- 6. Ukaguzi wa FastISel wa kudondosha vizuizi -------------------
             // FastISel ya LLVM hutupa kimya kimya vizuizi vya msingi zaidi ya ~50
             // kwa kila kazi kwenye O0. Onya ikiwa kazi yoyote inazidi kwa kiasi
-            // kikomo cha usalama.
+            // kikomo cha usalama. Hili ni kikomo KILICHOANDIKWA (hati/mipaka.md
+            // sehemu ya 6, ukali JUU) — mwisho wa LLVM ni wa MAJARIBIO; mnyororo
+            // wa uzalishaji ni mbegu/exe pekee. Njia kamili ya ISel inapatikana
+            // kwa kiwango cha uboreshaji cha O1 (with_opt_level) na kupita.
             const FASTISEL_BLOCK_LIMIT: usize = 40;
             for func in &ir_module.functions {
                 if func.blocks.len() > FASTISEL_BLOCK_LIMIT {
                     eprintln!(
-                        "onyo: kazi '{}' ina vizuizi {} — FastISel inaweza kuacha baadhi \
-                         (kiwango cha juu ni ~50, inapendekezwa chini ya {})",
+                        "onyo: kazi '{}' ina vizuizi {} — FastISel (O0) inaweza kuacha \
+                         baadhi (kiwango cha juu ni ~50, inapendekezwa chini ya {}); \
+                         angalia hati/mipaka.md sehemu ya 6",
                         func.name,
                         func.blocks.len(),
                         FASTISEL_BLOCK_LIMIT,

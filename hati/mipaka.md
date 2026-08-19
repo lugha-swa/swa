@@ -74,17 +74,22 @@ una semantiki ya zamani — uthabiti ni kazi ya kufuatilia.)
 
 ## 4c. Desimali (D32/D64) — bomba HALIFANYI KAZI bado [UKALI: JUU]
 
-Hali halisi (iliyothibitishwa leo, kwa ushahidi wa kila mnyororo):
+Hali halisi (iliyothibitishwa, kwa ushahidi wa kila mnyororo):
 - Mnyororo wa mbegu: mchanganuzi wa mbegu HAUNA vitambulisho vya
-  desimali — `21.5` inasegfault (rc=139).
+  desimali — `21.5` inasegfault (rc=139). BADO WAZI.
 - Mnyororo wa .swa (kujikusanya): bits_ya_d64_swa imekusanywa vibaya
   na mbegu — FPE (rc=136, `call *0x48(%rax)` — msimbo takataka).
-- Mnyororo wa LLVM: uthibitishaji wa moduli unashindwa.
+  BADO WAZI.
+- Mnyororo wa LLVM (dereva wa Rust): IMEREKEBISHWA 2026-08 (suala
+  #135) — vitambulisho vya desimali (AST_HALISI_D), ukusanyaji wa
+  thabiti za kuelea kabla ya kuteremsha, amri za kuelea
+  (fadd/fmul/fdiv/fneg) na ulinganisho wa kuelea (fcmp) zote
+  zinafanya kazi; jaribio: jaribio_mende_135_desimali.
 
 Ingawa mashine ya ABI (xmm0-xmm7) IKO kwenye uzalishaji.swa (wito na
-utangulizi), bomba la desimali kwa jumla halifanyi kazi popote.
-Hii ni kazi KUBWA (vitambulisho + hesabu + ABI + codegen ya mbegu) —
-si kazi ndogo.
+utangulizi), bomba la desimali kwa minyororo ya mbegu na .swa
+halifanyi kazi bado. Hii ni kazi KUBWA (vitambulisho + hesabu + ABI
++ codegen ya mbegu) — si kazi ndogo.
 
 ## 5. Maneno halisi ni 32-bit signed [UKALI: CHINI]
 
