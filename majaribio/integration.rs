@@ -1781,3 +1781,185 @@ N32 main() {
 ";
     run_k6_test(test_chanzo, 42);
 }
+
+/// K14a: Mzunguko mfupi (short-circuit) wa && na || kwenye mbegu.
+/// Kabla ya rekebisho, mbegu ilitathmini pande ZOTE MBILI za && na || —
+/// kinyume na uzalishaji.swa (mnyororo uliokusanywa na .swa ulikuwa na
+/// semantiki tofauti na mbegu). `bwete && a[99999999] == 1` ilikuwa
+/// inavunja mchakato kwa SEGV. Sasa dereferensi ya kulia hairukiki
+/// kabisa ikiwa kushoto tayari umeamua matokeo.
+#[test]
+fn jaribio_mbegu_mzunguko_mfupi() {
+    let kwanza = std::process::Command::new("bash")
+        .arg("gharama/jenga-kwanza.sh")
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .expect("inapaswa kuendesha jenga-kwanza.sh");
+    assert!(kwanza.status.success(), "mnyororo wa kwanza unapaswa kufaulu");
+
+    let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
+    let mbegu = "/tmp/mbegu2.bin";
+
+    let chanzo = "\
+N32 main() {
+    N32 bwete = 0;
+    N32 kweli = 1;
+    N32 a[4];
+    kama (bwete && a[99999999] == 1) rudisha 1;
+    kama (kweli || a[99999999] == 1) { } sivyo { rudisha 2; }
+    N32 x = 2 && 4;
+    kama (x != 1) rudisha 3;
+    N32 y = 2 || 0;
+    kama (y != 1) rudisha 4;
+    N32 z = 0 && a[99999999];
+    kama (z != 0) rudisha 5;
+    rudisha 0;
+}
+";
+    let mz_swa = dir.path().join("mzunguko.swa");
+    std::fs::write(&mz_swa, chanzo).expect("inapaswa kuandika mzunguko.swa");
+    let mz_exe = dir.path().join("mzunguko-exe");
+    let mz_out = std::process::Command::new(mbegu)
+        .arg("--exe")
+        .stdin(std::fs::File::open(&mz_swa).expect("inapaswa kufungua mzunguko.swa"))
+        .stdout(std::fs::File::create(&mz_exe).expect("inapaswa kuunda mzunguko-exe"))
+        .output()
+        .expect("inapaswa kuendesha mbegu --exe kwa mzunguko");
+    assert!(mz_out.status.success(), "mbegu --exe inapaswa kukusanya mzunguko\nstderr: {}",
+        String::from_utf8_lossy(&mz_out.stderr));
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let ruhusa = std::fs::metadata(&mz_exe).expect("inapaswa kusoma metadata").permissions();
+        let mut ruhusa_mpya = ruhusa.clone();
+        ruhusa_mpya.set_mode(0o755);
+        std::fs::set_permissions(&mz_exe, ruhusa_mpya).expect("inapaswa kuweka ruhusa");
+    }
+    let mz_run = std::process::Command::new(&mz_exe)
+        .output()
+        .expect("inapaswa kuendesha mzunguko-exe");
+    assert!(mz_run.status.success(),
+        "mzunguko mfupi unapaswa kurudisha 0 (dereferensi za nje za mipaka zinarukwa), ilipata {:?}",
+        mz_run.status.code());
+}
+
+/// K14b: Kusoma stdin kwa bomba (pipe) hakukati chanzo kwa kusoma
+/// mara moja tu. Kabla ya rekebisho, mbegu ilifanya sys_read MOJA —
+/// bomba linarudisha tu kile kilichopo wakati huo, hivyo chanzo
+/// kikubwa (zaidi ya ukubwa wa bafa la bomba, 64 KB) kilikatwa kwa
+/// nasibu na kazi za mwisho wa faili zilipotea. Jaribio hili linalisha
+/// chanzo cha zaidi ya 64 KB kupitia bomba na kuthibitisha kwamba
+/// kazi ya MWISHO inatolewa na inaendesha, na kwamba matokeo mawili
+/// ya kusoma sawa ni baiti-kwa-baiti sawa (uhakika, si bahati).
+#[test]
+fn jaribio_mbegu_stdin_bomba_kubwa() {
+    let kwanza = std::process::Command::new("bash")
+        .arg("gharama/jenga-kwanza.sh")
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .expect("inapaswa kuendesha jenga-kwanza.sh");
+    assert!(kwanza.status.success(), "mnyororo wa kwanza unapaswa kufaulu");
+
+    let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
+    let mbegu = "/tmp/mbegu2.bin";
+
+    // ~135 KB ya maoni + kazi ya MWISHO — chanzo lazima kizidi 64 KB
+    // (ukubwa wa kawaida wa bafa la bomba) kwa kiasi kikubwa.
+    let mut chanzo = String::new();
+    for i in 0..3000 {
+        chanzo.push_str(&format!("// mstari wa kujaza bafa {i} — chanzo kikubwa kupitia bomba\n"));
+    }
+    chanzo.push_str("N32 main() { rudisha kazi_ya_mwisho(); }\n");
+    chanzo.push_str("N32 kazi_ya_mwisho() { rudisha 7; }\n");
+    assert!(chanzo.len() > 65536, "chanzo lazima kizidi 64 KB (kilikuwa {})", chanzo.len());
+
+    let kukusanya_bomba = |dir: &tempfile::TempDir, namba: u32| -> Vec<u8> {
+        let exe = dir.path().join(format!("bomba{namba}-exe"));
+        let mut mtoto = std::process::Command::new(mbegu)
+            .arg("--exe")
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::fs::File::create(&exe).expect("inapaswa kuunda exe ya bomba"))
+            .spawn()
+            .expect("inapaswa kuanzisha mbegu --exe kwa bomba");
+        {
+            // Andika kwa vipande vidogo na pause fupi: hii inalazimisha
+            // bomba kukua polepole. Mkusanyaji mwenye kusoma MOJA tu
+            // (mdudu wa zamani) atapata kipande cha kwanza tu na
+            // kukosa kazi ya mwisho — kwa uhakika, si kwa bahati.
+            let stdin = mtoto.stdin.as_mut().expect("inapaswa kupata stdin ya bomba");
+            use std::io::Write;
+            let baiti = chanzo.as_bytes();
+            let mut nafasi = 0;
+            while nafasi < baiti.len() {
+                let mwisho = (nafasi + 4096).min(baiti.len());
+                stdin.write_all(&baiti[nafasi..mwisho])
+                    .expect("inapaswa kuandika kipande kwenye bomba");
+                nafasi = mwisho;
+                std::thread::sleep(std::time::Duration::from_millis(1));
+            }
+            stdin.flush().expect("inapaswa kusukuma bomba");
+        }
+        let matokeo = mtoto.wait_with_output().expect("inapaswa kusubiri mbegu");
+        assert!(matokeo.status.success(),
+            "mbegu inapaswa kukusanya chanzo kamili kupitia bomba\nstderr: {}",
+            String::from_utf8_lossy(&matokeo.stderr));
+        std::fs::read(&exe).expect("inapaswa kusoma exe ya bomba")
+    };
+
+    let kwanza_pato = kukusanya_bomba(&dir, 1);
+    let pili_pato = kukusanya_bomba(&dir, 2);
+    assert_eq!(kwanza_pato, pili_pato,
+        "kusoma bomba mara mbili kunapaswa kutoa pato linalofanana baiti-kwa-baiti");
+
+    let exe = dir.path().join("bomba1-exe");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let ruhusa = std::fs::metadata(&exe).expect("inapaswa kusoma metadata").permissions();
+        let mut ruhusa_mpya = ruhusa.clone();
+        ruhusa_mpya.set_mode(0o755);
+        std::fs::set_permissions(&exe, ruhusa_mpya).expect("inapaswa kuweka ruhusa");
+    }
+    let kuendesha = std::process::Command::new(&exe)
+        .output()
+        .expect("inapaswa kuendesha exe ya bomba");
+    assert_eq!(kuendesha.status.code(), Some(7),
+        "kazi ya MWISHO wa chanzo inapaswa kutolewa na kuendesha (kutoka 7), ilipata {:?}",
+        kuendesha.status.code());
+}
+
+/// K14c: Wito wa kazi isiyofafanuliwa kwenye hali ya exe unalia kwa
+/// sauti wakati wa kukusanya, badala ya kutulia kimya kwa anwani 0 na
+/// kuleta SEGV wakati wa utekelezaji. Hii inafanya `husisha { faili.swa }`
+/// kwa mbegu (ambayo haiwii viungo vya ndani — chanzo kinapaswa
+/// kuunganishwa kwanza) kuwa hitilafu wazi, na makosa ya tahajia ya
+/// majina ya kazi yanakamatwa kabla ya kuendesha.
+#[test]
+fn jaribio_mbegu_kazi_kukosa() {
+    let kwanza = std::process::Command::new("bash")
+        .arg("gharama/jenga-kwanza.sh")
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .expect("inapaswa kuendesha jenga-kwanza.sh");
+    assert!(kwanza.status.success(), "mnyororo wa kwanza unapaswa kufaulu");
+
+    let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
+    let mbegu = "/tmp/mbegu2.bin";
+
+    let chanzo = "N32 main() { rudisha kazi_haipo(); }\n";
+    let kn_swa = dir.path().join("kazi-haipo.swa");
+    std::fs::write(&kn_swa, chanzo).expect("inapaswa kuandika kazi-haipo.swa");
+    let kn_out = std::process::Command::new(mbegu)
+        .arg("--exe")
+        .stdin(std::fs::File::open(&kn_swa).expect("inapaswa kufungua kazi-haipo.swa"))
+        .output()
+        .expect("inapaswa kuendesha mbegu --exe kwa kazi-haipo");
+    assert!(!kn_out.status.success(),
+        "mbegu --exe inapaswa kushindwa kwa kazi isiyofafanuliwa");
+    let stdout = String::from_utf8_lossy(&kn_out.stdout);
+    assert!(stdout.contains("haijafafanuliwa"),
+        "ujumbe wa hitilafu unapaswa kutaja kazi isiyofafanuliwa, ilipata: {}",
+        stdout);
+    assert!(stdout.contains("kazi_haipo"),
+        "ujumbe wa hitilafu unapaswa kutaja JINA la kazi, ilipata: {}", stdout);
+}
