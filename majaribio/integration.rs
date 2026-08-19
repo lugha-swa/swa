@@ -1963,3 +1963,93 @@ fn jaribio_mbegu_kazi_kukosa() {
     assert!(stdout.contains("kazi_haipo"),
         "ujumbe wa hitilafu unapaswa kutaja JINA la kazi, ilipata: {}", stdout);
 }
+
+/// K15: Maktaba ya kawaida kupitia mbegu — hesabu (gcd, pow, isqrt,
+/// fibonacci), mifuatano (tafuta_mfuatano, kata_nafasi), mpangilio
+/// (pangilia_n32), na I/O (sys_fungua + soma_mstari hadi EOF).
+/// Faili za maktaba zinaunganishwa kwanza (kama jinsi mkusanyaji wa
+/// .swa unavyojijenga) kwa sababu mbegu haiwii husisha { }.
+#[test]
+fn jaribio_maktaba_mbegu_exe() {
+    let kwanza = std::process::Command::new("bash")
+        .arg("gharama/jenga-kwanza.sh")
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .expect("inapaswa kuendesha jenga-kwanza.sh");
+    assert!(kwanza.status.success(), "mnyororo wa kwanza unapaswa kufaulu");
+
+    let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
+    let mbegu = "/tmp/mbegu2.bin";
+
+    let main_chanzo = "\
+N32 main() {
+    kama (gcd_hesabu(48, 18) != 6) rudisha 1;
+    kama (pow_kamili(2, 10) != 1024) rudisha 2;
+    kama (isqrt_hesabu(100) != 10) rudisha 3;
+    kama (fibonacci_hesabu(10) != 55) rudisha 4;
+    N8* s1 = \"habari za dunia\";
+    kama (tafuta_mfuatano(s1, \"dunia\") != 10) rudisha 5;
+    kama (tafuta_mfuatano(s1, \"hapana\") != -1) rudisha 6;
+    N8* s2 = \"   swa   \";
+    N64 mw = 0;
+    N32 anza = kata_nafasi(s2, &mw);
+    kama (anza != 3) rudisha 7;
+    kama (mw != 6) rudisha 8;
+    N32 data[5];
+    data[0] = 5; data[1] = 2; data[2] = 4; data[3] = 1; data[4] = 3;
+    pangilia_n32(data, 5);
+    kama (data[0] != 1) rudisha 9;
+    kama (data[4] != 5) rudisha 10;
+    N64 fd = sys_fungua(\"mstari-jaribio.txt\", 0);
+    kama (fd < 0) rudisha 11;
+    N8 bafa[64];
+    N64 n = soma_mstari(fd, bafa, 64);
+    kama (n != 5) rudisha 12;
+    kama (bafa[0] != 115 || bafa[4] != 49) rudisha 13;
+    N64 n2 = soma_mstari(fd, bafa, 64);
+    kama (n2 != 5) rudisha 14;
+    N64 n3 = soma_mstari(fd, bafa, 64);
+    kama (n3 != -1) rudisha 15;
+    sys_funga(fd);
+    rudisha 0;
+}
+";
+    // Unganisha faili za maktaba (mbegu haiwii husisha)
+    let mut chanzo = String::new();
+    for f in ["msingi/hesabu.swa", "msingi/mfuatano.swa", "msingi/kumbukumbu.swa", "msingi/mpangilio.swa"] {
+        chanzo.push_str(&std::fs::read_to_string(f).expect("inapaswa kusoma faili la maktaba"));
+    }
+    chanzo.push_str(main_chanzo);
+
+    // Faili la jaribio la I/O — exe itaendesha kutoka saraka hii
+    std::fs::write(dir.path().join("mstari-jaribio.txt"), "swa 1\nswa 2\n")
+        .expect("inapaswa kuandika mstari-jaribio.txt");
+
+    let zima = dir.path().join("maktaba-zima.swa");
+    std::fs::write(&zima, chanzo).expect("inapaswa kuandika maktaba-zima.swa");
+    let exe = dir.path().join("maktaba-exe");
+    let out = std::process::Command::new(mbegu)
+        .arg("--exe")
+        .stdin(std::fs::File::open(&zima).expect("inapaswa kufungua maktaba-zima.swa"))
+        .stdout(std::fs::File::create(&exe).expect("inapaswa kuunda maktaba-exe"))
+        .output()
+        .expect("inapaswa kuendesha mbegu --exe kwa maktaba");
+    assert!(out.status.success(), "mbegu --exe inapaswa kukusanya maktaba\nstderr: {}",
+        String::from_utf8_lossy(&out.stderr));
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let ruhusa = std::fs::metadata(&exe).expect("inapaswa kusoma metadata").permissions();
+        let mut ruhusa_mpya = ruhusa.clone();
+        ruhusa_mpya.set_mode(0o755);
+        std::fs::set_permissions(&exe, ruhusa_mpya).expect("inapaswa kuweka ruhusa");
+    }
+    let kuendesha = std::process::Command::new(&exe)
+        .current_dir(dir.path())
+        .output()
+        .expect("inapaswa kuendesha maktaba-exe");
+    assert!(kuendesha.status.success(),
+        "maktaba ya kawaida inapaswa kurudisha 0 kupitia mbegu, ilipata {:?}",
+        kuendesha.status.code());
+}

@@ -215,3 +215,45 @@ N32 nambari_kwa_mfuatano_n64(N64 n, N8* buf) {
     }
     rudisha hasi + len;
 }
+
+// tafuta_mfuatano — pata nafasi ya kwanza ya mfuatano mdogo ndani
+// ya mfuatano mkubwa. Rudisha -1 ikiwa haupo.
+N32 tafuta_mfuatano(N8* s, N8* ndogo) {
+    N64 n = urefu_wa_mfuatano(ndogo);
+    kama (n == 0) {
+        rudisha 0;
+    }
+    N64 i = 0;
+    wakati (s[i] != 0) {
+        N64 j = 0;
+        wakati (j < n && s[i + j] == ndogo[j]) {
+            j = j + 1;
+        }
+        kama (j == n) {
+            rudisha i;
+        }
+        i = i + 1;
+    }
+    rudisha -1;
+}
+
+// kata_nafasi — rudisha faharisi ya herufi ya kwanza isiyo nafasi,
+// na urefu wa mwisho usio na nafasi (kupitia kielekezi). Inarudisha
+// mwanzo mpya; *mwisho hupokea faharisi moja baada ya herufi ya
+// mwisho isiyo nafasi (tayari kwa kunakili hadi hapo).
+N32 kata_nafasi(N8* s, N64* mwisho) {
+    N64 i = 0;
+    wakati (s[i] == 32 || s[i] == 9 || s[i] == 10 || s[i] == 13) {
+        i = i + 1;
+    }
+    N64 mw = i;
+    N64 j = i;
+    wakati (s[j] != 0) {
+        j = j + 1;
+    }
+    wakati (j > mw && (s[j - 1] == 32 || s[j - 1] == 9 || s[j - 1] == 10 || s[j - 1] == 13)) {
+        j = j - 1;
+    }
+    *mwisho = j;
+    rudisha i;
+}

@@ -317,3 +317,26 @@ N64 bits_ya_d64_swa(N8* ch, N32 u) {
     biti = biti + (pacha - (pacha / p52) * p52);
     rudisha biti;
 }
+
+// soma_mstari — soma mstari mmoja kutoka faili hadi bafa.
+// Inasimama kwa '\n' (isiyojumuishwa) au EOF. Rudisha idadi ya
+// baiti zilizosomwa, au -1 ikiwa EOF mara moja bila baiti.
+N64 soma_mstari(N32 faili, N8* bafa, N64 upeo) {
+    N64 n = 0;
+    wakati (n + 1 < upeo) {
+        N8 ch = 0;
+        N64 r = sys_soma(faili, &ch, 1);
+        kama (r <= 0) {
+            kama (n == 0) {
+                rudisha -1;
+            }
+            rudisha n;
+        }
+        kama (ch == 10) {
+            rudisha n;
+        }
+        bafa[n] = ch;
+        n = n + 1;
+    }
+    rudisha n;
+}

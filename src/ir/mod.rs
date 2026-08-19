@@ -244,6 +244,13 @@ pub struct IrBlock {
     pub label: String,
     /// Amri zisizo za mwishishaji kwa mpangilio.
     pub instructions: Vec<Instruction>,
+    /// Vitambulisho vya amri (ValueId) sambamba na `instructions`.
+    /// Vitambulisho vimehifadhiwa NDANI ya IR badala ya kukokotwa kwa
+    /// nafasi — utaratibu wa utoaji wa kiteremshi (mpangilio wa kutembea
+    /// kwa AST) hautafanani na mpangilio wa vizuizi wakati upande wa
+    /// kulia wa && au || unaunda vizuizi vipya, na kukokotoa kwa nafasi
+    /// kunasababisha marejeleo yote kusuluhisha kwa amri zisizo sahihi.
+    pub inst_ids: Vec<ValueId>,
     /// Mwishishaji wa mwisho wa bloku.
     pub terminator: Terminator,
 }
@@ -253,6 +260,7 @@ impl IrBlock {
         Self {
             label: label.into(),
             instructions: Vec::new(),
+            inst_ids: Vec::new(),
             terminator,
         }
     }

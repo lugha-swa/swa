@@ -555,6 +555,7 @@ impl<'a> Lowerer<'a> {
         let block = &mut self.func.blocks[block_id.0];
         let vid = ValueId(self.func.params.len() + self.func.values.len() + self.inst_counter);
         block.push(inst);
+        block.inst_ids.push(vid);
         self.inst_counter += 1;
         vid
     }
@@ -2184,6 +2185,8 @@ impl<'a> Lowerer<'a> {
         self.set_terminator(rhs_end, Terminator::Br(merge_blk));
 
         // Muunganiko: nodi ya Phi inachagua kati ya si kweli fupi-hali na matokeo ya rhs.
+        // Kumbuka: ValueId ya phi imehifadhiwa kwenye inst_ids ya kizuizi —
+        // si kukokotwa kwa nafasi (tazama IrBlock).
         let false_val = self.const_val(Const::Bool(false));
         let result = self.emit(merge_blk, Instruction::Phi(IrType::B1, vec![
             (false_val, lhs_end),
@@ -2245,6 +2248,8 @@ impl<'a> Lowerer<'a> {
         self.set_terminator(rhs_end, Terminator::Br(merge_blk));
 
         // Muunganiko: nodi ya Phi inachagua kati ya kweli fupi-hali na matokeo ya rhs.
+        // Kumbuka: ValueId ya phi imehifadhiwa kwenye inst_ids ya kizuizi —
+        // si kukokotwa kwa nafasi (tazama IrBlock).
         let true_val = self.const_val(Const::Bool(true));
         let result = self.emit(merge_blk, Instruction::Phi(IrType::B1, vec![
             (true_val, lhs_end),
