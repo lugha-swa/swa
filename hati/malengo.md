@@ -78,10 +78,17 @@ Lengo kuu limefikiwa: mnyororo wa kujikusanya umefungwa kikamilifu na
 **hakuna lugha nyingine** — baiti za mkono (kwanza, 393) → mbegu →
 stage1-exe → stage2-exe == stage3-exe, bila gcc/ld/clang/libc popote.
 (0% gap ni mhimili wa mnyororo wa uzalishaji; uthabiti wa makosa ni
-mhimili tofauti — hati/mipaka.md.) Kazi inayofuata kwa umuhimu:
+mhimili tofauti — hati/mipaka.md.)
 
-1. **Uthabiti wa makosa ya mchanganuzi** — mbegu inakubali/segfault
-   kwa ingizo baya; mchanganuzi wa .swa unaning'inia kwa ingizo
-   lililokatwa (hati/mipaka.md sehemu 1-2).
-2. **ABI ya desimali** — hoja za float/double kupitia xmm0-xmm7.
-3. **Uamuzi wa mteremko.swa** — kuifuta au kuikamilisha.
+Hali ya Agosti 2026 (kuelekea 1.0):
+
+1. **Uthabiti wa makosa ya mchanganuzi — IMEKAMILIKA** — ingizo baya
+   linalia kwa sauti (mipaka.md 1-3, 8), kusoma bomba hadi EOF,
+   mzunguko mfupi wa && na ||, na kazi isiyofafanuliwa inalia.
+2. **Maktaba ya kawaida — IMEKAMILIKA** — hesabu (gcd, pow, isqrt,
+   fibonacci), mifuatano kamili (tafuta, kata), I/O (soma_mstari),
+   sort — jaribio_maktaba_mbegu_exe.
+3. **Vipimo rasmi vya lugha — IMEKAMILIKA** — hati/vipimo-vya-lugha.md.
+4. **Uamuzi wa mteremko.swa/LLVM — IMEFANYIKA** — mwisho wa LLVM ni
+   wa MAJARIBIO; mnyororo wa uzalishaji ni mbegu/exe pekee (mipaka.md 6).
+5. **ABI ya desimali** — bado wazi (mipaka.md 4c, JUU).
