@@ -57,6 +57,7 @@ N32 AST_TERNARY         = 44;  // ? :
 N32 AST_HALISI_D        = 45;  // desimali halisi (D64)
 N32 AST_BADILI          = 48;  // badili(ptr, size) -> realloc
 N32 AST_MODULO          = 49;  // asilimia (%)
+N32 AST_BLOCK          = 50;  // kifungio cha ndani (hatua ya kwa)
 
 // -------------------------------------------------------
 // Safu bapa za AST
@@ -566,18 +567,26 @@ N32 changanua_taarifa_kwa(Msambazaji* p) {
 
             // Ondoa sukari ya kitanzi-cha-kwa kuwa taarifa ya anzisha ikifuatiwa na kitanzi cha wakati.
             // Kitanzi cha wakati hufunga hali + (mwili + hatua iliyoambatishwa mwishoni mwa mwili).
+            // Hatua imefungwa kwenye block-mini yenye alama -777777 kwenye
+            // ast_kulia (kulia ya block huwa -1 kamwe — hakuna mgongano).
+            // Uzalishaji_block hurekodi nafasi yake kwa ajili ya endelea
+            // (semantiki ya C: endelea inaruka kwenye hatua, si kwenye hali).
+            N32 ina_hatua = 0;
             kama (step != -1) {
+                ina_hatua = 1;
+                N32 step_block = node_mpya(AST_BLOCK, 0, step, -1);
+                ast_kulia[step_block] = -777777;
                 kama (body != -1) {
                     // Tafuta taarifa ya mwisho kwenye mnyororo wa mwili.
                     N32 last = body;
                     wakati (ast_nne[last] != -1) { last = ast_nne[last]; }
-                    ast_nne[last] = step;
+                    ast_nne[last] = step_block;
                 } sivyo {
-                    body = step;
+                    body = step_block;
                 }
             }
 
-            N32 wakati_node = node_mpya(AST_WAKATI, 0, cond, body);
+            N32 wakati_node = node_mpya(AST_WAKATI, ina_hatua ? -777777 : 0, cond, body);
 
             // Hifadhi anzisha kwenye ast_tiga (huepuka kufutwa na msururu wa taarifa za ngazi-ya-juu)
             kama (init != -1) {
