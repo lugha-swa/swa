@@ -82,6 +82,7 @@ const AST_TERNARY: u32 = 43;
 const AST_KWELI: u32 = 44;
 const AST_UONGO: u32 = 45;
 const AST_TUPU: u32 = 46;
+const AST_HALISI_D: u32 = 49;  // desimali halisi (D64)
 
 /// Kialamisho kinachotumiwa katika `ast_kushoto`, `ast_kulia`, `ast_tiga`, na `ast_nne`
 /// kuashiria "hakuna mtoto / hakuna ndugu".
@@ -873,6 +874,16 @@ impl<'a> Lowerer<'a> {
                 // Pia tembelea nne: misururu ya hoja za wito hutumia nne, kwa hivyo halisi
                 // inaweza kufuatwa na hoja nyingine (mf. fread(..., 1, 262144)).
                 self.collect_constants(self.ast_nne[idx]);
+                return;
+            }
+            AST_HALISI_D => {
+                // Desimali halisi LAZIMA ikusanywe kabla ya kuteremsha:
+                // intern ya katikati inabadilisha func.values.len() na
+                // kusababisha mgongano wa ValueId na amri zilizotolewa
+                // tayari (mf. FNeg yenye operanda ya alloca — suala #135).
+                let text = self.read_pool_name(self.ast_jina_off[idx]);
+                let val: f64 = text.parse().unwrap_or(0.0);
+                self.func.intern_const(Const::Float(crate::ir::FloatWrapper(val)));
                 return;
             }
             AST_KWELI => {
@@ -1694,6 +1705,7 @@ impl<'a> Lowerer<'a> {
         let kind = self.node_aina(node);
         match kind {
             AST_NAMBARI => self.lower_int_literal(node, current_block),
+            AST_HALISI_D => self.lower_float_literal(node, current_block),
             AST_MFUATANO => self.lower_string_literal(node, current_block),
             AST_KITAMBULISHO => self.lower_identifier(node, current_block),
             AST_WITO => self.lower_call(node, current_block),
@@ -1720,7 +1732,8 @@ impl<'a> Lowerer<'a> {
                     // Jumlisha la kwanza — tathmini tu operanda ya kulia.
                     self.lower_expr_into(self.ast_kulia[node as usize], current_block)
                 } else {
-                    self.lower_binary_op(node, current_block, |l, r| Instruction::Add(l, r))
+                    self.lower_binary_op_fl(node, current_block,
+                        |l, r| Instruction::Add(l, r), |l, r| Instruction::FAdd(l, r))
                 }
             }
             AST_TOFAUTI => {
@@ -1729,15 +1742,24 @@ impl<'a> Lowerer<'a> {
                 if self.ast_kushoto[node as usize] == NO_NODE {
                     let operand_node = self.ast_kulia[node as usize];
                     let (operand, end_blk) = self.lower_expr_into(operand_node, current_block);
-                    let zero = self.const_val(Const::Int(0));
-                    let result = self.emit(end_blk, Instruction::Sub(zero, operand));
+                    let result = if self.ni_operandi_ya_kuelea(operand_node) {
+                        self.emit(end_blk, Instruction::FNeg(operand))
+                    } else {
+                        let zero = self.const_val(Const::Int(0));
+                        self.emit(end_blk, Instruction::Sub(zero, operand))
+                    };
                     (result, end_blk)
                 } else {
-                    self.lower_binary_op(node, current_block, |l, r| Instruction::Sub(l, r))
+                    self.lower_binary_op_fl(node, current_block,
+                        |l, r| Instruction::Sub(l, r), |l, r| Instruction::FSub(l, r))
                 }
             }
-            AST_ZIDISHA => self.lower_binary_op(node, current_block, |l, r| Instruction::Mul(l, r)),
-            AST_GAWANYA => self.lower_binary_op(node, current_block, |l, r| Instruction::DivS(l, r)),
+            AST_ZIDISHA => self.lower_binary_op_fl(node, current_block,
+                |l, r| Instruction::Mul(l, r), |l, r| Instruction::FMul(l, r)),
+            AST_GAWANYA => self.lower_binary_op_fl(node, current_block,
+                |l, r| Instruction::DivS(l, r), |l, r| Instruction::FDiv(l, r)),
+            // MODULO ya desimali haisaidiwi — inabaki RemS na LLVM itakataa
+            // kwa sauti (si kukubalika kimya).
             AST_MODULO => self.lower_binary_op(node, current_block, |l, r| Instruction::RemS(l, r)),
 
             // -- shughuli za biti ----------------------------------------------
@@ -1750,12 +1772,18 @@ impl<'a> Lowerer<'a> {
             AST_AU => self.lower_short_circuit_or(node, current_block),
 
             // -- ulinganisho ----------------------------------------------------
-            AST_SAWA => self.lower_binary_op(node, current_block, |l, r| Instruction::Eq(l, r)),
-            AST_TOFAUTI_SI => self.lower_binary_op(node, current_block, |l, r| Instruction::Ne(l, r)),
-            AST_CHINI => self.lower_binary_op(node, current_block, |l, r| Instruction::LtS(l, r)),
-            AST_JUU => self.lower_binary_op(node, current_block, |l, r| Instruction::GtS(l, r)),
-            AST_CHINI_SAWA => self.lower_binary_op(node, current_block, |l, r| Instruction::LeS(l, r)),
-            AST_JUU_SAWA => self.lower_binary_op(node, current_block, |l, r| Instruction::GeS(l, r)),
+            AST_SAWA => self.lower_binary_op_fl(node, current_block,
+                |l, r| Instruction::Eq(l, r), |l, r| Instruction::Feq(l, r)),
+            AST_TOFAUTI_SI => self.lower_binary_op_fl(node, current_block,
+                |l, r| Instruction::Ne(l, r), |l, r| Instruction::Fne(l, r)),
+            AST_CHINI => self.lower_binary_op_fl(node, current_block,
+                |l, r| Instruction::LtS(l, r), |l, r| Instruction::Flt(l, r)),
+            AST_JUU => self.lower_binary_op_fl(node, current_block,
+                |l, r| Instruction::GtS(l, r), |l, r| Instruction::Fgt(l, r)),
+            AST_CHINI_SAWA => self.lower_binary_op_fl(node, current_block,
+                |l, r| Instruction::LeS(l, r), |l, r| Instruction::Fle(l, r)),
+            AST_JUU_SAWA => self.lower_binary_op_fl(node, current_block,
+                |l, r| Instruction::GeS(l, r), |l, r| Instruction::Fge(l, r)),
 
             // -- kwanza --------------------------------------------------------
             AST_SI => self.lower_logical_not(node, current_block),
@@ -1812,6 +1840,49 @@ impl<'a> Lowerer<'a> {
             self.values_initial_len = self.func.values.len();
         }
         (vid, blk)
+    }
+
+    fn lower_float_literal(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
+        // Desimali halisi imehifadhiwa kama maandishi kwenye dimbwi
+        // (sawa na mfuatano halisi) — suala #135: zamani mchanganuzi
+        // aligeuza "3.14" kuwa 0 kimya.
+        let text = self.read_pool_name(self.ast_jina_off[node as usize]);
+        let val: f64 = text.parse().unwrap_or(0.0);
+        let c = Const::Float(crate::ir::FloatWrapper(val));
+        let prev_len = self.func.values.len();
+        let vid = self.func.intern_const(c);
+        if self.func.values.len() > prev_len {
+            self.values_initial_len = self.func.values.len();
+        }
+        (vid, blk)
+    }
+
+    /// Je, usemi huu una aina ya namba sehemu-desimali (F32/F64)?
+    fn ni_operandi_ya_kuelea(&self, node: i32) -> bool {
+        matches!(self.resolve_expr_type(node), Some(IrType::F32 | IrType::F64))
+    }
+
+    /// Oparesheni ya binary inayochagua amri ya kuelea (fadd, fmul,
+    /// n.k.) wakati operanda ya kushoto ni ya kuelea, na amri kamili
+    /// vinginevyo. Suala #135: zamani hesabu za D32/D64 zilikuwa
+    /// zikiteremshwa na amri kamili na LLVM ilikataa.
+    fn lower_binary_op_fl<FI, FF>(
+        &mut self,
+        node: i32,
+        blk: BlockId,
+        int_op: FI,
+        fl_op: FF,
+    ) -> (ValueId, BlockId)
+    where
+        FI: FnOnce(ValueId, ValueId) -> Instruction,
+        FF: FnOnce(ValueId, ValueId) -> Instruction,
+    {
+        let lhs_node = self.ast_kushoto[node as usize];
+        if self.ni_operandi_ya_kuelea(lhs_node) {
+            self.lower_binary_op(node, blk, fl_op)
+        } else {
+            self.lower_binary_op(node, blk, int_op)
+        }
     }
 
     fn lower_string_literal(&mut self, node: i32, blk: BlockId) -> (ValueId, BlockId) {
@@ -2459,6 +2530,23 @@ impl<'a> Lowerer<'a> {
                         fields.iter().find(|(n, _)| n == &field).map(|(_, t)| t.clone())
                     } else { None }
                 })
+            }
+            AST_NAMBARI => Some(IrType::I32),
+            AST_HALISI_D => Some(IrType::F64),
+            // Hesabu hueneza aina ya operanda yao ya kushoto — hii
+            // inaruhusu minyororo kama (pi * r) * r kukaa kwenye
+            // nukta elekezi (suala #135).
+            AST_JUMLISHA | AST_ZIDISHA | AST_GAWANYA | AST_MODULO
+            | AST_HAMISHA_KUSHOTO | AST_HAMISHA_KULIA | AST_BIT_NA | AST_BIT_AU => {
+                self.resolve_expr_type(self.ast_kushoto[node as usize])
+            }
+            AST_TOFAUTI => {
+                // Tofauti la kwanza lina operanda kwenye kulia.
+                if self.ast_kushoto[node as usize] == NO_NODE {
+                    self.resolve_expr_type(self.ast_kulia[node as usize])
+                } else {
+                    self.resolve_expr_type(self.ast_kushoto[node as usize])
+                }
             }
             AST_SAFU => {
                 let array_node = self.ast_kushoto[node as usize];

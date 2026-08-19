@@ -60,22 +60,26 @@ pub enum LLVMIntPredicate {
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LLVMRealPredicate {
-    OEQ    = 0,
-    OGT    = 1,
-    OGE    = 2,
-    OLT    = 3,
-    OLE    = 4,
-    ONE    = 5,
-    ORD    = 6,
-    UNO    = 7,
-    UEQ    = 8,
-    UGT    = 9,
-    UGE    = 10,
-    ULT    = 11,
-    ULE    = 12,
-    UNE    = 13,
-    /// Kweli ikiwa operanda yoyote ni NaN (tumia kwa "iliyopangwa na sawa").
-    FALSE  = 14,   // daima si kweli
+    // UTAKASO WA LLVM-C: PredicateFalse = 0, OEQ = 1, ... — maadili haya
+    // LAZIMA yafanane na enum ya C ya LLVM. Kabla ya rekebisho hili
+    // orodha ilianza na OEQ = 0 — kila kihusishi kilikuwa kimesogea
+    // kimoja (OGT ikawa OEQ, OLT ikawa OGE) — ulinganisho wa kuelea
+    // ulikuwa unatoa matokeo yasiyo sahihi kimya (suala #135).
+    FALSE  = 0,   // daima si kweli
+    OEQ    = 1,
+    OGT    = 2,
+    OGE    = 3,
+    OLT    = 4,
+    OLE    = 5,
+    ONE    = 6,
+    ORD    = 7,
+    UNO    = 8,
+    UEQ    = 9,
+    UGT    = 10,
+    UGE    = 11,
+    ULT    = 12,
+    ULE    = 13,
+    UNE    = 14,
     TRUE   = 15,   // daima kweli
 }
 
