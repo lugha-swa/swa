@@ -72,6 +72,20 @@ hapo. Uthibitisho: kwa (i=0; i<6; i=i+1) { kama (i==2) endelea; s++ }
 → s=5, na kesi ya endelea-pekee inapita. (Msambazaji wa .swa bado
 una semantiki ya zamani — uthabiti ni kazi ya kufuatilia.)
 
+## 4c. Desimali (D32/D64) — bomba HALIFANYI KAZI bado [UKALI: JUU]
+
+Hali halisi (iliyothibitishwa leo, kwa ushahidi wa kila mnyororo):
+- Mnyororo wa mbegu: mchanganuzi wa mbegu HAUNA vitambulisho vya
+  desimali — `21.5` inasegfault (rc=139).
+- Mnyororo wa .swa (kujikusanya): bits_ya_d64_swa imekusanywa vibaya
+  na mbegu — FPE (rc=136, `call *0x48(%rax)` — msimbo takataka).
+- Mnyororo wa LLVM: uthibitishaji wa moduli unashindwa.
+
+Ingawa mashine ya ABI (xmm0-xmm7) IKO kwenye uzalishaji.swa (wito na
+utangulizi), bomba la desimali kwa jumla halifanyi kazi popote.
+Hii ni kazi KUBWA (vitambulisho + hesabu + ABI + codegen ya mbegu) —
+si kazi ndogo.
+
 ## 5. Maneno halisi ni 32-bit signed [UKALI: CHINI]
 
 Neno halisi `2147483648` linatafsiriwa kama `-2147483648` (biti
@@ -89,6 +103,14 @@ majaribio ya maktaba). Ukali wake unalingana na mende za bafa za
 ukubwa wa kukisia: matokeo yanaweza kuwa mabaya KIMYA bila kosa.
 Uthibitisho wa nje wa mnyororo (GNU ld dhidi ya toa_exe ya mbegu)
 unafunika njia ya mbegu/exe/RELA pekee — SI mwisho wa LLVM.
+
+**UAMUZI (uliojaribiwa 2026-08-19):** mwisho wa LLVM umeSHUSHWA hadhi
+kuwa wa MAJARIBIO (experimental). Ushahidi: O0 inakata vizuizi >~50
+kimya; O1/O2 zinakusanya mkusanyaji mzima (alama zipo) lakini
+mfumo wa faili unashindwa kwenye mnyororo kamili; uthibitishaji wa
+moduli unashindwa kwa desimali. Wigo uliojaribiwa na unaofanya kazi
+ni majaribio ya maktaba ya K-series (program ndogo). Mnyororo wa
+uzalishaji ni mbegu/exe PEKEE.
 
 ## 7. Kwanza haina chanzo chenye maelezo [UKALI: TAARIFA]
 
