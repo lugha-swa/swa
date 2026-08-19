@@ -2053,3 +2053,96 @@ N32 main() {
         "maktaba ya kawaida inapaswa kurudisha 0 kupitia mbegu, ilipata {:?}",
         kuendesha.status.code());
 }
+
+// ============================================================================
+// Mende za dereva wa Rust/LLVM — majaribio ya kurejesha ya kudumu
+// ============================================================================
+
+/// #136: Kigezo cha safu kilileta OOM (exit 137) — mchanganuzi ulikuwa
+/// unazunguka milele ukilimbikiza makosa kwa '}' isiyotumiwa, na
+/// kigezo cha safu (N32 a[4]) hakikuchanganuliwa. Sasa: kigezo cha
+/// safu hubadilika kuwa kielekezi (semantiki ya C) na mzunguko wa
+/// kiwango cha juu una kinga ya '}'.
+#[test]
+fn jaribio_mende_136_kigezo_cha_safu() {
+    let chanzo = "\
+N32 jumla(N32 a[4]) { rudisha a[0] + a[1]; }
+N32 main() {
+    N32 arr[4];
+    arr[0] = 1; arr[1] = 2; arr[2] = 3; arr[3] = 4;
+    rudisha jumla(arr);
+}
+";
+    run_msingi_test(chanzo, 3);
+}
+
+/// #134: kamasivyo lilichanganuliwa kama WITO WA KAZI (undefined
+/// reference wakati wa kuunganisha). Sasa ni neno muhimu na mnyororo
+/// wa matawi unachanganuliwa kwa kujirudia.
+#[test]
+fn jaribio_mende_134_kamasivyo_mnyororo() {
+    let chanzo = "\
+N32 kadiria(N32 x) {
+    kama (x == 1) { rudisha 10; }
+    kamasivyo (x == 2) { rudisha 20; }
+    kamasivyo (x == 3) { rudisha 30; }
+    sivyo { rudisha 40; }
+}
+N32 main() {
+    kama (kadiria(1) != 10) rudisha 1;
+    kama (kadiria(2) != 20) rudisha 2;
+    kama (kadiria(3) != 30) rudisha 3;
+    kama (kadiria(4) != 40) rudisha 4;
+    N32 x = 5;
+    kama (x == 9) { x = 1; }
+    sivyo kama (x == 5) { x = 2; }
+    sivyo { x = 3; }
+    kama (x != 2) rudisha 5;
+    rudisha 0;
+}
+";
+    run_msingi_test(chanzo, 0);
+}
+
+/// #135: hesabu za D32/D64 zilikuwa zikiteremshwa na amri kamili
+/// (add/mul) na LLVM ilikataa; halisi za desimali ziligeuka 0 kimya;
+/// intern ya katikati ya thabiti za kuelea ilisababisha mgongano wa
+/// ValueId; na jedwali la vihusishi vya FCmp la FFI lilikuwa
+/// limesogea kimoja (OGT ikawa OEQ). Sasa: AST_HALISI_D, ukusanyaji
+/// wa thabiti kabla ya kuteremsha, amri za kuelea zinazochaguliwa
+/// kwa aina, na vihusishi sahihi.
+#[test]
+fn jaribio_mende_135_desimali() {
+    let chanzo = "\
+N32 main() {
+    D64 pi = 3.14;
+    D64 r = 2.0;
+    D64 eneo = pi * r * r;
+    kama (eneo > 12.55 && eneo < 12.57) { } sivyo { rudisha 1; }
+    D64 a = 1.5 + 0.5;
+    kama (a > 1.99 && a < 2.01) { } sivyo { rudisha 2; }
+    D64 b = 6.0 / 2.0;
+    kama (b > 2.99 && b < 3.01) { } sivyo { rudisha 3; }
+    D64 c = -2.5;
+    kama (c > -2.51 && c < -2.49) { } sivyo { rudisha 4; }
+    D64 d = 10.0 - 3.25;
+    kama (d > 6.74 && d < 6.76) { } sivyo { rudisha 5; }
+    rudisha 0;
+}
+";
+    run_msingi_test(chanzo, 0);
+}
+
+/// #138: "Tupu salamu()" ilileta hitilafu ya sret ya LLVM. Uchunguzi
+/// wa 2026-08: kuvunjika huko tayari kumebadilishwa kuwa diagnostiki
+/// ya sauti; kilichobaki ni kwamba neno muhimu "tupu" (aina ya
+/// bila-thamani) halikuweza kuchanganuliwa kama aina. Sasa W0 NA
+/// tupu zote zinafanya kazi.
+#[test]
+fn jaribio_mende_138_tupu_aina() {
+    let chanzo = "\
+tupu salamu() { rudisha; }
+N32 main() { salamu(); rudisha 0; }
+";
+    run_msingi_test(chanzo, 0);
+}

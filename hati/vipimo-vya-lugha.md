@@ -68,6 +68,7 @@ kijiuzi hayaruhusiwi.
 | `N32` | Nambari kamili yenye ishara, baiti 4 |
 | `N64` | Nambari kamili yenye ishara, baiti 8 |
 | `W0` | Bila thamani (void) — kwa kazi tu |
+| `tupu` | Kisawe cha `W0` (dereva wa Rust) |
 | `D64` | Desimali, baiti 8 — **kikomo, angalia 2.3** |
 | `B1` | Boolean — ya ndani; matokeo ya ulinganisho na mantiki |
 | `T*` | Kielekezi kwa aina T |
