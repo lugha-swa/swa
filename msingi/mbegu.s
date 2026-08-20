@@ -4505,6 +4505,7 @@ uzalishaji_jina:
         mov     al, 0x85                    ; ModRM: [rbp+disp32], reg=rax
         call    gen_baiti
         call    gen_neno4
+        jmp     .load_done
 
 .load_d64:
         ; D64 — paki baiti 8 kwenye xmm0: f2 0f 10 85 d32
