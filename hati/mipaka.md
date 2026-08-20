@@ -104,19 +104,30 @@ zinahifadhiwa, ishara inaenea) — na mkusanyaji wa mbegu NA dereva wa
 Rust KWA USAWA (uthabiti, si mgawanyiko). Thamani kubwa zaidi ya
 32-bit lazima zijengwe wakati wa utekelezaji.
 
-## 6. Dereva wa Rust/LLVM: NJIA YA MSIMBO ISIYOTHIBITISHWA KATIKA MATUMIZI [UKALI: JUU]
+## 6. Dereva wa Rust/LLVM: njia ya MAJARIBIO yenye ulinzi wa sauti [IMEREKEBISHWA — JUU imefungwa 2026-08-20]
 
-FastISel ya LLVM inaacha kimyakimya vizuizi zaidi ya ~50 (k.m.
-`ni_neno_muhimu` — 247): mkusanyaji wa LLVM unatoa .o BILA alama na
-usio na uthibitisho. Hili SI "kipengele kinachokosekana" — ni njia
-ya msimbo isiyothibitishwa inayotumika kwa mkusanyaji wa pili (K6 na
-majaribio ya maktaba). Ukali wake unalingana na mende za bafa za
-ukubwa wa kukisia: matokeo yanaweza kuwa mabaya KIMYA bila kosa.
+Zamani: FastISel ya LLVM (O0) iliacha kimyakimya vizuizi zaidi ya
+~50 (k.m. `ni_neno_muhimu` — 247) — mkusanyaji wa LLVM ulitoa .o
+BILA alama na usio na uthibitisho. Ukali wake ulilingana na mende za
+bafa za ukubwa wa kukisia: matokeo mabaya KIMYA bila kosa.
+
+Sasa:
+- O0 (FastISel) inakataa kwa KOSA LAUTI kazi yenye vizuizi zaidi ya
+  40 — hakuna ukataji wa kimya tena. Ujumbe unaonyesha njia ya
+  kupita (with_opt_level(O1) au mnyororo wa mbegu/exe).
+- O1 (Less) inatumia ISel kamili — majaribio YOTE ya dereva wa Rust
+  (compile_and_verify, compile_file, run_msingi_test) sasa
+  yanaendeshwa kwa O1 na kupita 227/227, pamoja na I/O ya faili.
+- Mwisho wa LLVM unabaki MAJARIBIO (mnyororo wa uzalishaji ni
+  mbegu/exe pekee) — lakini hakuna njia ya msimbo isiyothibitishwa
+  inayotumika kimya tena.
+
 Uthibitisho wa nje wa mnyororo (GNU ld dhidi ya toa_exe ya mbegu)
-unafunika njia ya mbegu/exe/RELA pekee — SI mwisho wa LLVM.
+unafunika njia ya mbegu/exe/RELA — SI mwisho wa LLVM; ndiyo maana
+mwisho wa LLVM unabaki MAJARIBIO, si kitu cha uzalishaji.
 
 **UAMUZI (uliojaribiwa 2026-08-19):** mwisho wa LLVM umeSHUSHWA hadhi
-kuwa wa MAJARIBIO (experimental). Ushahidi: O0 inakata vizuizi >~50
+kuwa wa MAJARIBIO (experimental). Ushahidi wa zamani: O0 inakata vizuizi >~50
 kimya; O1/O2 zinakusanya mkusanyaji mzima (alama zipo) lakini
 mfumo wa faili unashindwa kwenye mnyororo kamili; uthibitishaji wa
 moduli unashindwa kwa desimali. Wigo uliojaribiwa na unaofanya kazi
