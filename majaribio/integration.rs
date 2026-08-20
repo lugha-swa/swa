@@ -15,7 +15,10 @@ fn compile_and_verify(source: &str) -> Result<String, Vec<String>> {
         .compile_to_ir(source, PathBuf::from("jaribio.swa"))
         .map_err(|diags| diags.iter().map(|d| d.message.clone()).collect::<Vec<_>>())?;
 
-    let backend = LlvmBackend::new();
+    // O1 (Less) — ISel kamili; O0/FastISel inakata vizuizi zaidi ya
+    // ~50 (sasa kosa lauti — mipaka.md 6).
+    let backend = LlvmBackend::new()
+        .with_opt_level(kande_lib::codegen::llvm::ffi::LLVMCodeGenOptLevel::Less);
     let llvm_module = backend
         .compile(&ir_module)
         .map_err(|diags| diags.iter().map(|d| d.message.clone()).collect::<Vec<_>>())?;
@@ -312,7 +315,10 @@ fn compile_file(path: &str) -> Result<String, Vec<String>> {
     let ir_module = driver
         .compile_to_ir(&src, PathBuf::from(path))
         .map_err(|diags| diags.iter().map(|d| d.message.clone()).collect::<Vec<_>>())?;
-    let backend = LlvmBackend::new();
+    // O1 (Less) — ISel kamili; O0/FastISel inakata vizuizi zaidi ya
+    // ~50 (sasa kosa lauti — mipaka.md 6).
+    let backend = LlvmBackend::new()
+        .with_opt_level(kande_lib::codegen::llvm::ffi::LLVMCodeGenOptLevel::Less);
     let llvm_module = backend
         .compile(&ir_module)
         .map_err(|diags| diags.iter().map(|d| d.message.clone()).collect::<Vec<_>>())?;
@@ -1189,7 +1195,10 @@ fn run_msingi_test(test_source: &str, expected_exit: i32) {
     let obj_path = dir.path().join("jaribio.o");
     let exe_path = dir.path().join("jaribio_exe");
 
-    let backend = LlvmBackend::new();
+    // O1 (Less) hutumia ISel kamili ya LLVM — O0/FastISel inaacha
+    // vizuizi zaidi ya ~50 kimya (sasa KOSA LAUTI — mipaka.md 6).
+    let backend = LlvmBackend::new()
+        .with_opt_level(kande_lib::codegen::llvm::ffi::LLVMCodeGenOptLevel::Less);
     backend
         .compile_to_file(&ir_module, &obj_path)
         .expect("inapaswa kutoa faili la kitu");

@@ -30,8 +30,8 @@ kikomo kimeandikwa na kikomo chake.
 | Kikomo | Ukali | Hali |
 |---|---|---|
 | `endelea` ndani ya `kwa` inaruka mwanzo, si hatua (sio semantiki ya C; sawa na msambazaji wa .swa) | CHINI (kikomo cha semantiki) | Issue #156, pre-1.0 |
-| Dereva wa Rust/LLVM: FastISel inaacha vizuizi >~50 kimya — **njia ya msimbo isiyothibitishwa katika matumizi** (inatoa .o bila alama; mkusanyaji wa LLVM hauwezi kujithibitisha) | **JUU** (si kipengele kinachokosekana — ni msimbo usiothibitishwa unaotumika) | hati/mipaka.md #6 |
-| Upeo wa tokeni 65,536 — ukataji kimya | JUU | hati/mipaka.md #3 |
+| Dereva wa Rust/LLVM: MAJARIBIO; O0 inakataa kwa kosa lauti kazi >40 ya vizuizi; majaribio yote kwa O1 (ISel kamili) | CHINI (njia ya kupita ipo; mnyororo wa uzalishaji ni mbegu/exe) | hati/mipaka.md #6 |
+| Upeo wa tokeni 65,536 — inalia kwa sauti | CHINI | hati/mipaka.md #3 |
 | Maneno halisi 32-bit signed (2147483648 → -2147483648 kwa uthabiti) | CHINI | hati/mipaka.md #5 |
 | ABI ya desimali (xmm0-xmm7) — D64 inafanya kazi, ABI kamili haijafanyika | KATI | ramani |
 | Majedwali ya ndani ya uzalishaji.swa na orodha/ramani — ukaguzi wa bafa bado haujakamilika | KATI | hati/ukaguzi-bafa.md |
@@ -40,8 +40,8 @@ kikomo kimeandikwa na kikomo chake.
 
 - Majukwaa ya asilia zaidi ya x86-64 Linux
 - Zana (LSP, debugger, formatter, package manager)
-- Bomba la desimali (JUU — hati/mipaka.md 4c; si kizuizi cha 1.0
-  kwa sababu limetengwa na kuandikwa wazi)
+- Bomba la desimali — LIMEFUNGWA 2026-08-20 (mipaka.md 4c; kikomo
+  cha CHINI cha mbegu kwenye wito wa D64 kinaelekeza kwa .swa)
 
 Kinachokamilika kwa 1.0 (2026-08): maktaba ya kawaida kamili,
 vipimo rasmi vya lugha, na uamuzi wa mwisho wa LLVM (MAJARIBIO —

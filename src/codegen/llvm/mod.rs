@@ -406,22 +406,26 @@ impl LlvmBackend {
 
             // -- 6. Ukaguzi wa FastISel wa kudondosha vizuizi -------------------
             // FastISel ya LLVM hutupa kimya kimya vizuizi vya msingi zaidi ya ~50
-            // kwa kila kazi kwenye O0. Onya ikiwa kazi yoyote inazidi kwa kiasi
-            // kikomo cha usalama. Hili ni kikomo KILICHOANDIKWA (hati/mipaka.md
-            // sehemu ya 6, ukali JUU) — mwisho wa LLVM ni wa MAJARIBIO; mnyororo
-            // wa uzalishaji ni mbegu/exe pekee. Njia kamili ya ISel inapatikana
-            // kwa kiwango cha uboreshaji cha O1 (with_opt_level) na kupita.
+            // kwa kila kazi kwenye O0. Badala ya kuacha kimya (JUU ya zamani),
+            // KOSA LAUTI: mkusanyaji unakataa kuendelea kwa kiwango cha O0 ikiwa
+            // kazi inazidi kikomo — njia ya kupita ni with_opt_level(O1) ambayo
+            // hutumia ISel kamili. Mwisho wa LLVM unabaki MAJARIBIO; mnyororo wa
+            // uzalishaji ni mbegu/exe pekee.
             const FASTISEL_BLOCK_LIMIT: usize = 40;
+            let ni_o0 = self.opt_level == LLVMCodeGenOptLevel::None;
             for func in &ir_module.functions {
-                if func.blocks.len() > FASTISEL_BLOCK_LIMIT {
-                    eprintln!(
-                        "onyo: kazi '{}' ina vizuizi {} — FastISel (O0) inaweza kuacha \
-                         baadhi (kiwango cha juu ni ~50, inapendekezwa chini ya {}); \
-                         angalia hati/mipaka.md sehemu ya 6",
-                        func.name,
-                        func.blocks.len(),
-                        FASTISEL_BLOCK_LIMIT,
-                    );
+                if ni_o0 && func.blocks.len() > FASTISEL_BLOCK_LIMIT {
+                    LLVMDisposeModule(module);
+                    return Err(vec![Diagnostic::error(
+                        format!(
+                            "kosa: kazi '{}' ina vizuizi {} — FastISel ya O0 inaweza \
+                             kuacha baadhi kimya (kiwango cha juu ni ~50). Tumia \
+                             with_opt_level(O1) au mnyororo wa mbegu/exe. \
+                             Angalia hati/mipaka.md sehemu ya 6.",
+                            func.name, func.blocks.len()
+                        ),
+                        SourceSpan::point(0, 0),
+                    )]);
                 }
             }
 
