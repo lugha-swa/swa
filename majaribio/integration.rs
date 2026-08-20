@@ -2242,3 +2242,57 @@ N32 main() {
     assert!(run.status.success(),
         "desimali zinapaswa kufanya kazi kupitia mbegu (0), ilipata {:?}", run.status.code());
 }
+
+/// #61: Formatter (umbizaji) ya Swa iliyoandikwa kwa Swa yenyewe.
+/// Inajijenga kupitia mbegu (faili za maktaba zinaunganishwa kwanza)
+/// na LAZIMA iwe thabiti chini ya yenyewe: kuumbiza chanzo chake
+/// kunatokeza baiti zinazofanana kabisa (fixpoint ya formatter).
+#[test]
+fn jaribio_zana_umbizaji_kujijenga() {
+    let kwanza = std::process::Command::new("bash")
+        .arg("gharama/jenga-kwanza.sh")
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .expect("inapaswa kuendesha jenga-kwanza.sh");
+    assert!(kwanza.status.success(), "mnyororo wa kwanza unapaswa kufaulu");
+
+    let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
+    let mbegu = "/tmp/mbegu2.bin";
+
+    // Unganisha maktaba + umbizaji (mbegu haiwi husisha { })
+    let mut chanzo = String::new();
+    for f in ["msingi/kumbukumbu.swa", "msingi/mfuatano.swa", "zana/umbizaji.swa"] {
+        chanzo.push_str(&std::fs::read_to_string(f).expect("inapaswa kusoma faili"));
+    }
+    let zima = dir.path().join("umbizaji-zima.swa");
+    std::fs::write(&zima, chanzo).expect("inapaswa kuandika umbizaji-zima.swa");
+    let exe = dir.path().join("umbizaji-exe");
+    let out = std::process::Command::new(mbegu)
+        .arg("--exe")
+        .stdin(std::fs::File::open(&zima).expect("inapaswa kufungua umbizaji-zima.swa"))
+        .stdout(std::fs::File::create(&exe).expect("inapaswa kuunda umbizaji-exe"))
+        .output()
+        .expect("inapaswa kuendesha mbegu --exe kwa umbizaji");
+    assert!(out.status.success(), "mbegu --exe inapaswa kukusanya umbizaji\nstderr: {}",
+        String::from_utf8_lossy(&out.stderr));
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let ruhusa = std::fs::metadata(&exe).expect("inapaswa kusoma metadata").permissions();
+        let mut ruhusa_mpya = ruhusa.clone();
+        ruhusa_mpya.set_mode(0o755);
+        std::fs::set_permissions(&exe, ruhusa_mpya).expect("inapaswa kuweka ruhusa");
+    }
+
+    // Fixpoint ya formatter: kuumbiza yenyewe = baiti sawa
+    let towe = std::process::Command::new(&exe)
+        .arg("zana/umbizaji.swa")
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .expect("inapaswa kuendesha umbizaji-exe kwa yenyewe");
+    assert!(towe.status.success(), "umbizaji unapaswa kuumbiza yenyewe\nstderr: {}",
+        String::from_utf8_lossy(&towe.stderr));
+    let chanzo_awali = std::fs::read("zana/umbizaji.swa").expect("inapaswa kusoma chanzo");
+    assert_eq!(towe.stdout, chanzo_awali,
+        "formatter inapaswa kuwa fixpoint: kuumbiza yenyewe = baiti sawa");
+}
