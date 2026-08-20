@@ -733,9 +733,13 @@ N32 main() {
     // 10. Mkazo wa RELA/codegen: program moja yenye kwa+vunja+endelea,
     // urejeshaji halisi, ulimwengu unaobadilishwa na kazi mbili, wito
     // wa mbele, na vitanzi vilivyopandikizwa. Tarajio la mkono: exit 0
-    // (s=125, fibonacci(10)=55, jumla_yote=7, pata_baadaye(5)=25, t=30).
+    // (s=121, fibonacci(10)=55, jumla_yote=7, pata_baadaye(5)=25, t=30).
+    // Hesabu ya s kwa semantiki ya C ya endelea (inaruka kwenye HATUA):
+    // i=3 → i=4, s=103, hatua → i=5; kisha i=5:108, i=6:114, i=7:121,
+    // i=8 → vunja. (Semantiki ya zamani ilitoa s=125 — imerekebishwa
+    // pamoja na mnyororo wa .swa mnamo 2026-08.)
     let mkazo_swa = dir.path().join("mkazo_rela.swa");
-    std::fs::write(&mkazo_swa, "N32 fibonacci(N32 n) { kama (n <= 1) { rudisha n; } rudisha fibonacci(n - 1) + fibonacci(n - 2); }\nN32 jumla_yote = 0;\nN32 ongeza_jumla(N32 v) { jumla_yote = jumla_yote + v; rudisha jumla_yote; }\nN32 toa_jumla(N32 v) { jumla_yote = jumla_yote - v; rudisha jumla_yote; }\nN32 main() { N32 s = 0; kwa (N32 i = 0; i < 10; i = i + 1) { kama (i == 3) { i = i + 1; s = s + 100; endelea; } kama (i == 8) { vunja; } s = s + i; } kama (s != 125) rudisha 1; kama (fibonacci(10) != 55) rudisha 2; ongeza_jumla(10); toa_jumla(3); kama (jumla_yote != 7) rudisha 3; kama (pata_baadaye(5) != 25) rudisha 4; N32 t = 0; kwa (N32 j = 0; j < 3; j = j + 1) { N32 k = 0; wakati (k < 4) { t = t + j + k; k = k + 1; } } kama (t != 30) rudisha 5; rudisha 0; }\nN32 pata_baadaye(N32 x) { rudisha x * x; }\n").expect("inapaswa kuandika mkazo_rela.swa");
+    std::fs::write(&mkazo_swa, "N32 fibonacci(N32 n) { kama (n <= 1) { rudisha n; } rudisha fibonacci(n - 1) + fibonacci(n - 2); }\nN32 jumla_yote = 0;\nN32 ongeza_jumla(N32 v) { jumla_yote = jumla_yote + v; rudisha jumla_yote; }\nN32 toa_jumla(N32 v) { jumla_yote = jumla_yote - v; rudisha jumla_yote; }\nN32 main() { N32 s = 0; kwa (N32 i = 0; i < 10; i = i + 1) { kama (i == 3) { i = i + 1; s = s + 100; endelea; } kama (i == 8) { vunja; } s = s + i; } kama (s != 121) rudisha 1; kama (fibonacci(10) != 55) rudisha 2; ongeza_jumla(10); toa_jumla(3); kama (jumla_yote != 7) rudisha 3; kama (pata_baadaye(5) != 25) rudisha 4; N32 t = 0; kwa (N32 j = 0; j < 3; j = j + 1) { N32 k = 0; wakati (k < 4) { t = t + j + k; k = k + 1; } } kama (t != 30) rudisha 5; rudisha 0; }\nN32 pata_baadaye(N32 x) { rudisha x * x; }\n").expect("inapaswa kuandika mkazo_rela.swa");
     let mkazo_exe = dir.path().join("mkazo-rela-exe");
     let mkazo_out = std::process::Command::new(&stage1_exe)
         .arg("--exe")
@@ -754,9 +758,11 @@ N32 main() {
         ruhusa_mpya.set_mode(0o755);
         std::fs::set_permissions(&mkazo_exe, ruhusa_mpya).expect("inapaswa kuweka ruhusa");
     }
-    // 11. C-semantiki ya endelea kwenye kwa — jaribiwa KUPITIA MBEGU
-    // moja kwa moja (msambazaji wa .swa bado una semantiki ya zamani;
-    // uthabiti wake ni kazi ya kufuatilia — mipaka.md 4b).
+    // 11. C-semantiki ya endelea kwenye kwa — sasa mbegu NA mnyororo
+    // wa .swa zote zina semantiki ya C. Jaribio linaendesha chanzo hiki
+    // kupitia MBEGU moja kwa moja na pia kupitia stage1 (mnyororo wa
+    // .swa); ujumuishaji wa minyororo yote miwili unathibitisha
+    // uthabiti wao.
     let kwac_swa = dir.path().join("kwa_endelea.swa");
     std::fs::write(&kwac_swa, "N32 main() { N32 i = 0; N32 s = 0; kwa (; i < 6; i = i + 1) { kama (i == 2) { endelea; } s = s + 1; } rudisha s; }\n").expect("inapaswa kuandika kwa_endelea.swa");
     let kwac_exe = dir.path().join("kwa-endelea-exe");
@@ -783,6 +789,34 @@ N32 main() {
     // endelea iliruka kwenye HATUA (i iliendelea kuongezeka hadi 6).
     assert_eq!(kwac_run.status.code(), Some(5),
         "endelea kwenye kwa inapaswa kuruka kwenye hatua (C-semantiki): s=5, ilipata {:?}", kwac_run.status.code());
+
+    // Mnyororo wa .swa: stage1-exe --exe kwa_endelea.swa →
+    // kwa-endelea-stage1-exe. (Mnyororo wa .swa unasoma chanzo kwa
+    // hoja ya faili, si stdin kama mbegu — kwa hivyo chanzo kinapita
+    // kwa argv kama katika sehemu ya 7 na 10.)
+    let kwac2_exe = dir.path().join("kwa-endelea-stage1-exe");
+    let kwac2_out = std::process::Command::new(&stage1_exe)
+        .arg("--exe")
+        .arg(&kwac_swa)
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .stdout(std::fs::File::create(&kwac2_exe).expect("inapaswa kuunda kwa-endelea-stage1-exe"))
+        .output()
+        .expect("inapaswa kuendesha stage1-exe --exe kwa kwa_endelea");
+    assert!(kwac2_out.status.success(), "stage1-exe --exe inapaswa kukusanya kwa_endelea\nstderr: {}",
+        String::from_utf8_lossy(&kwac2_out.stderr));
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let ruhusa = std::fs::metadata(&kwac2_exe).expect("inapaswa kusoma metadata").permissions();
+        let mut ruhusa_mpya = ruhusa.clone();
+        ruhusa_mpya.set_mode(0o755);
+        std::fs::set_permissions(&kwac2_exe, ruhusa_mpya).expect("inapaswa kuweka ruhusa");
+    }
+    let kwac2_run = std::process::Command::new(&kwac2_exe)
+        .output()
+        .expect("inapaswa kuendesha kwa-endelea-stage1-exe");
+    assert_eq!(kwac2_run.status.code(), Some(5),
+        "endelea kwenye kwa (mnyororo wa .swa) inapaswa kuruka kwenye hatua (C-semantiki): s=5, ilipata {:?}", kwac2_run.status.code());
 
     let mkazo_run = std::process::Command::new(&mkazo_exe)
         .output()
