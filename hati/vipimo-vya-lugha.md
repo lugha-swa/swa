@@ -163,10 +163,8 @@ kwa (kianzilishi; sharti; hatua) { ... }
 ```
 
 Sehemu zote tatu ni za hiari. **Semantiki ya `endelea`:** inaruka
-kwenye HATUA (ya tatu), si kwenye sharti — semantiki ya C. Hii
-inatekelezwa kwenye mbegu; mkusanyaji wa .swa bado una semantiki ya
-zamani (inaruka kwenye sharti) — kikomo kilichoandikwa
-(`hati/mipaka.md` 4b, inafuatiliwa).
+kwenye HATUA (ya tatu), si kwenye sharti — semantiki ya C, katika
+mbegu NA mnyororo wa .swa (uliowiana 2026-08; angalia mipaka.md 4b).
 
 ### 6.6 Chagua (switch)
 

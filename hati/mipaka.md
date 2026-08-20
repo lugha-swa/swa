@@ -69,8 +69,11 @@ kilizunguka milele kama hatua ndiyo njia pekee ya kuendelea.
 Sasa: semantiki ya C — hatua imefungwa kwenye block-mini yenye
 alama, uzalishaji_block hurekodi nafasi yake, na endelea inaruka
 hapo. Uthibitisho: kwa (i=0; i<6; i=i+1) { kama (i==2) endelea; s++ }
-→ s=5, na kesi ya endelea-pekee inapita. (Msambazaji wa .swa bado
-una semantiki ya zamani — uthabiti ni kazi ya kufuatilia.)
+→ s=5, na kesi ya endelea-pekee inapita. Mnyororo wa .swa UMEWIWA
+tarehe 2026-08 (AST_BLOCK yenye alama -777777, lebo ya hatua
+iliyotengwa mapema) — minyororo yote miwili sasa ina semantiki ya C
+(uthibitisho: jaribio_exe_kujijenga sehemu ya 11 inaendesha kupitia
+mbegu NA stage1).
 
 ## 4c. Desimali (D32/D64) — bomba HALIFANYI KAZI bado [UKALI: JUU]
 

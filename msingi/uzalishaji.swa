@@ -1445,6 +1445,7 @@ W0 toa_lea_rax_kwa_lebo(N32 lebo_id) {
 }
 
 N32 mzunguko_lebo_endelea[16];
+N32 mzunguko_lebo_hatua[16];   // lebo ya hatua ya kwa (semantiki ya C ya endelea)
 N32 mzunguko_lebo_toka[16];
 N32 mzunguko_undani = 0;
 
@@ -1925,7 +1926,18 @@ W0 uzalishaji_wakati(N32 node, N32 kazi_node) {
         andika_stderr("; KOSA: upeo wa kupandikiza kitanzi (16)\n");
         text_imefurika = 1;
     } sivyo {
-        mzunguko_lebo_endelea[mzunguko_undani] = lebo_cond;
+        // Kitanzi cha kwa chenye hatua: endelea inaruka kwenye HATUA
+        // (semantiki ya C), si kwenye hali. Alama ya -777777 kwenye
+        // ast_thamani ya wakati ina maana hatua ipo (imewekwa na
+        // msambazaji). Lebo ya hatua imetengwa MAPEMA — kifungio cha
+        // hatua kitaweka weka_lebo hapo wakati kinakusanywa.
+        N32 ina_hatua = (ast_thamani[node] == -777777);
+        mzunguko_lebo_hatua[mzunguko_undani] = lebo_buf_mpya();
+        kama (ina_hatua) {
+            mzunguko_lebo_endelea[mzunguko_undani] = mzunguko_lebo_hatua[mzunguko_undani];
+        } sivyo {
+            mzunguko_lebo_endelea[mzunguko_undani] = lebo_cond;
+        }
         mzunguko_lebo_toka[mzunguko_undani] = lebo_exit;
         mzunguko_undani = mzunguko_undani + 1;
     }
@@ -2521,6 +2533,18 @@ W0 uzalishaji_taarifa(N32 node, N32 kazi_node) {
 
     sivyo kama (aina == 14) {  // AST_CHAGUA
         uzalishaji_chagua(node, kazi_node);
+    }
+
+    sivyo kama (aina == 50) {  // AST_BLOCK — kifungio cha hatua ya kwa
+        // Kama kifungio hiki ni hatua ya kitanzi cha kwa (alama -777777
+        // kwenye ast_kulia), weka lebo ya hatua HAPA — endelea inaruka
+        // kwenye lebo hii (semantiki ya C).
+        kama (ast_kulia[node] == -777777) {
+            kama (mzunguko_undani > 0) {
+                weka_lebo(mzunguko_lebo_hatua[mzunguko_undani - 1]);
+            }
+        }
+        uzalishaji_taarifa(ast_kushoto[node], kazi_node);
     }
 
     // Endelea na ndugu (kwa taarifa zisizomaliza)
@@ -3584,11 +3608,17 @@ N32 kvn_idadi = 0;
 W0 kusanya_vigeu_vya_ndani(N32 node) {
     kvn_idadi = kvn_idadi + 1;
     kama (kvn_idadi > 50000) { rudisha; }
-    kama (node == -1) { rudisha; }
+    kama (node < 0) { rudisha; }  // -1 na alama (mf. -777777) si nodi
     kama (node >= 65536) { rudisha; }  // kinga ya ziada
     kama (kvn_visited[node] == kvn_gen) { rudisha; }
     kvn_visited[node] = kvn_gen;
     N32 aina = ast_aina[node];
+
+    kama (aina == 50) {  // AST_BLOCK — kulia ni alama (-777777), si nodi
+        kusanya_vigeu_vya_ndani(ast_kushoto[node]);
+        kusanya_vigeu_vya_ndani(ast_nne[node]);
+        rudisha;
+    }
 
     kama (aina == 11) {  // AST_TANGAZO
         N32 var_node = ast_kushoto[node];
