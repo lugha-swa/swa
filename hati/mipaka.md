@@ -75,24 +75,27 @@ iliyotengwa mapema) — minyororo yote miwili sasa ina semantiki ya C
 (uthibitisho: jaribio_exe_kujijenga sehemu ya 11 inaendesha kupitia
 mbegu NA stage1).
 
-## 4c. Desimali (D32/D64) — bomba HALIFANYI KAZI bado [UKALI: JUU]
+## 4c. Desimali (D32/D64) — minyororo ya uzalishaji IMEREKEBISHWA [kilichobaki: CHINI]
 
-Hali halisi (iliyothibitishwa, kwa ushahidi wa kila mnyororo):
-- Mnyororo wa mbegu: mchanganuzi wa mbegu HAUNA vitambulisho vya
-  desimali — `21.5` inasegfault (rc=139). BADO WAZI.
-- Mnyororo wa .swa (kujikusanya): bits_ya_d64_swa imekusanywa vibaya
-  na mbegu — FPE (rc=136, `call *0x48(%rax)` — msimbo takataka).
-  BADO WAZI.
+Hali halisi (iliyothibitishwa 2026-08-20, kwa ushahidi wa kila mnyororo):
+- Mnyororo wa mbegu: IMEREKEBISHWA — vitambulisho vya desimali
+  (kigeuzi cha desimali→double kwenye lexer), AST_HALISI_D, hesabu
+  za kuelea (addsd/subsd/mulsd/divsd), ulinganisho (ucomisd+setcc),
+  na ukanushaji (mulsd kwa -1.0 — xorpd ya kumbukumbu ilionekana
+  kuvunjika kwenye VM ya mtumiaji). Jaribio:
+  jaribio_mende_60_desimali_mbegu.
+- Mnyororo wa .swa (kujikusanya): IMEREKEBISHWA — bits_ya_d64_swa
+  inakusanywa kwa usahihi na mbegu mpya (FPE ya zamani imetoweka);
+  ABI kamili ya xmm0-xmm7 (hoja na kurejesha) inafanya kazi.
 - Mnyororo wa LLVM (dereva wa Rust): IMEREKEBISHWA 2026-08 (suala
-  #135) — vitambulisho vya desimali (AST_HALISI_D), ukusanyaji wa
-  thabiti za kuelea kabla ya kuteremsha, amri za kuelea
-  (fadd/fmul/fdiv/fneg) na ulinganisho wa kuelea (fcmp) zote
-  zinafanya kazi; jaribio: jaribio_mende_135_desimali.
+  #135) — jaribio_mende_135_desimali.
 
-Ingawa mashine ya ABI (xmm0-xmm7) IKO kwenye uzalishaji.swa (wito na
-utangulizi), bomba la desimali kwa minyororo ya mbegu na .swa
-halifanyi kazi bado. Hii ni kazi KUBWA (vitambulisho + hesabu + ABI
-+ codegen ya mbegu) — si kazi ndogo.
+Kikomo kilichobaki (CHINI): mbegu bado HAIJATEKELEZA ABI ya xmm
+kwenye wito wa kazi — program za mbegu zenye kazi za D64 (hoja au
+kurejesha kwa desimali) zinalia kwa sauti (`Hitilafu: D64 kwenye
+wito wa kazi haisaidiwi bado na mbegu`). Mnyororo wa .swa unashughulikia
+hali hiyo kikamilifu — tumia mkusanyaji wa .swa kwa program zenye
+kazi za D64.
 
 ## 5. Maneno halisi ni 32-bit signed [UKALI: CHINI]
 

@@ -97,6 +97,7 @@
 %define AST_ELEKEZA_MFANO  41
 %define AST_KAULI          42
 %define AST_MAKOSA         43
+%define AST_HALISI_D       46          ; desimali halisi (D64)
 %define AST_ENDELEA        44
 %define AST_HASILI         45
 
@@ -141,8 +142,30 @@ msg_databuf:    db "Hitilafu: data_buf imejaa (sret)", 10, 0
 msg_hoja9:      db "Hitilafu: wito wenye hoja zaidi ya 9", 10, 0
 msg_main_kukosa: db "Hitilafu: main haipo", 10, 0
 msg_rela_full:   db "Hitilafu: jedwali la RELA limejaa", 10, 0
+; Nguvu za kumi (10^0 .. 10^17) — kigeuzi cha desimali → double
+nguvu_za_kumi:
+        dq 1.0
+        dq 10.0
+        dq 100.0
+        dq 1000.0
+        dq 10000.0
+        dq 100000.0
+        dq 1000000.0
+        dq 10000000.0
+        dq 100000000.0
+        dq 1000000000.0
+        dq 10000000000.0
+        dq 100000000000.0
+        dq 1000000000000.0
+        dq 10000000000000.0
+        dq 100000000000000.0
+        dq 1000000000000000.0
+        dq 10000000000000000.0
+        dq 100000000000000000.0
+
 msg_extern_full: db "Hitilafu: jedwali la nje limejaa", 10, 0
 msg_kazi_kukosa: db "Hitilafu: kazi haijafafanuliwa: ", 0
+msg_d64_wito:    db "Hitilafu: D64 kwenye wito wa kazi haisaidiwi bado na mbegu — tumia mkusanyaji wa .swa", 10, 0
 msg_mstari_mpya: db 10, 0
 msg_fixup_full:  db "Hitilafu: jedwali la fixup limejaa", 10, 0
 msg_global_full: db "Hitilafu: jedwali la ulimwengu limejaa", 10, 0
@@ -190,6 +213,7 @@ tn_n16:         db "N16", 0
 tn_n32:         db "N32", 0
 tn_n64:         db "N64", 0
 tn_w0:          db "W0", 0
+tn_d64:         db "D64", 0
 tn_muundo:      db "muundo", 0
 
 ; ---------- Herufi halisi ya .shstrtab ----------
@@ -246,6 +270,7 @@ source_len:     resq 1
 ; Kila tokeni: baiti 20 (aina:4, thamani:8, mstari:4, safu:2, urefu:2)
 token_ty:       resd MAX_TOKENS
 token_val:      resq MAX_TOKENS
+token_desimali:  resb MAX_TOKENS         ; 1 = tokeni ni desimali (D64)
 token_line:     resd MAX_TOKENS
 token_col:      resw MAX_TOKENS
 token_len:      resw MAX_TOKENS
@@ -982,23 +1007,72 @@ soma_nambari:
         xor     ebx, ebx
 .loop:
         cmp     r12, r14
-        jae     .done
+        jae     .angalia_desimali
         mov     al, [r13 + r12]
         call    ni_tarakimu
         cmp     eax, 1
-        jne     .done
+        jne     .angalia_desimali
         movzx   ecx, byte [r13 + r12]   ; soma tena baada ya ni_tarakimu kuharibu al
         sub     ecx, '0'
         imul    rbx, rbx, 10
         add     rbx, rcx
         inc     r12
         jmp     .loop
+.angalia_desimali:
+        ; Angalia desimali: '.' ikifuatiwa na tarakimu
+        cmp     r12, r14
+        jae     .done
+        mov     al, [r13 + r12]
+        cmp     al, '.'
+        jne     .done
+        mov     r10, r12
+        inc     r10
+        cmp     r10, r14
+        jae     .done
+        mov     al, [r13 + r10]
+        call    ni_tarakimu
+        cmp     eax, 1
+        jne     .done
+
+        ; Desimali: changanua sehemu ndogo na ubadilishe hadi double
+        inc     r12                     ; ruka '.'
+        xor     ecx, ecx                ; idadi ya tarakimu ndogo
+        xor     edx, edx                ; thamani ya sehemu ndogo
+.frac_loop:
+        cmp     r12, r14
+        jae     .frac_badilisha
+        mov     al, [r13 + r12]
+        call    ni_tarakimu
+        cmp     eax, 1
+        jne     .frac_badilisha
+        movzx   eax, byte [r13 + r12]
+        sub     eax, '0'
+        imul    rdx, rdx, 10
+        add     rdx, rax
+        inc     rcx
+        inc     r12
+        cmp     ecx, 17                 ; usahihi wa juu wa double
+        jb      .frac_loop
+.frac_badilisha:
+        ; double = (double)rbx + (double)rdx / 10^rcx  (SSE2 ya mbegu)
+        cvtsi2sd xmm0, rbx
+        cvtsi2sd xmm1, rdx
+        mov     rax, rcx
+        lea     r10, [nguvu_za_kumi]
+        divsd   xmm1, [r10 + rax*8]
+        addsd   xmm0, xmm1
+        movq    rbx, xmm0
+        mov     eax, TOK_NAMBARI
+        mov     edx, 1                  ; alama: hii ni desimali
+        jmp     .ret
 .done:
         mov     eax, TOK_NAMBARI
+        xor     edx, edx                ; si desimali
         jmp     .ret
 .fail:
         mov     eax, 0
         xor     ebx, ebx
+        xor     edx, edx
 .ret:
         pop     rcx                     ; tupa r12 ya awali
         ret
@@ -1242,6 +1316,8 @@ changanua_chanzo:
         call    soma_nambari
         cmp     eax, 0
         je      .try_word
+        mov     r15, [token_count]
+        mov     [token_desimali + r15], dl   ; alama ya desimali
         jmp     .hifadhi_tokeni
 
 .try_word:
@@ -1762,6 +1838,11 @@ changanua_aina:
         cmp     eax, 1
         je      .is_n64
 
+        lea     rdi, [tn_d64]
+        call    tarajia_neno
+        cmp     eax, 1
+        je      .is_d64
+
         ; Jaribu aina ya muundo (jina la mtumiaji)
         mov     rdi, [token_pos]
         cmp     dword [token_ty + rdi*4], TOK_NENO
@@ -1802,6 +1883,10 @@ changanua_aina:
         mov     eax, 4
         xor     ebx, ebx
         jmp     .check_star
+.is_d64:
+        mov     eax, 7                  ; D64 — desimali (double)
+        xor     ebx, ebx
+        jmp     .check_star
 
 .check_star:
         ; Angalia ikiwa inafuatiwa na * (moja au zaidi)
@@ -1829,7 +1914,7 @@ changanua_aina:
 
 ; -------------------------------------------------------
 ; ukubwa_kutoka_aina: rudisha ukubwa wa aina kwa baiti
-;   edi = nambari ya aina (1=N8, 2=N16, 3=N32, 4=N64, 5=W0, 6=muundo)
+;   edi = nambari ya aina (1=N8, 2=N16, 3=N32, 4=N64, 5=W0, 6=muundo, 7=D64)
 ;   rax = ukubwa kwa baiti
 ; -------------------------------------------------------
 ukubwa_kutoka_aina:
@@ -1843,6 +1928,8 @@ ukubwa_kutoka_aina:
         je      .size8
         cmp     edi, 5                  ; W0
         je      .size0
+        cmp     edi, 7                  ; D64
+        je      .size8
         ; Muundo au nyota — tumia 8 (ukubwa wa anwani)
         mov     eax, 8
         ret
@@ -1910,8 +1997,11 @@ changanua_kipengele_msingi:
         cmp     dword [token_ty + rdi*4], TOK_NAMBARI
         jne     .try_name
 
-        ; Nambari halisi
+        ; Nambari halisi (kamili au desimali)
         mov     rdi, [token_pos]
+        cmp     byte [token_desimali + rdi], 0
+        jne     .nambari_desimali
+
         mov     r8d, AST_NAMBA
         mov     r9d, -1
         mov     r10d, -1
@@ -1924,6 +2014,28 @@ changanua_kipengele_msingi:
         mov     rdi, [token_val + rdi*8]
         mov     rcx, [ast_count]
         mov     [ast_thamani + rcx*4 - 4], edi  ; nodi iliyoundwa hivi punde
+        inc     qword [token_pos]
+        pop     rax
+        jmp     .done
+
+.nambari_desimali:
+        ; D64: biti 64 hugawanywa — lo32 kwenye ast_thamani, hi32 kwenye ast_tiga
+        ; (mkongwe ule ule wa mnyororo wa .swa kwa AST_HALISI_D).
+        mov     rdi, [token_pos]
+        mov     r8d, AST_HALISI_D
+        mov     r9d, -1
+        mov     r10d, -1
+        mov     r11d, -1
+        call    ast_nodi_mpya
+        cmp     eax, -1
+        je      .fail
+        push    rax
+        mov     rdi, [token_pos]
+        mov     rdi, [token_val + rdi*8]
+        mov     rcx, [ast_count]
+        mov     [ast_thamani + rcx*4 - 4], edi          ; lo32
+        shr     rdi, 32
+        mov     [ast_tiga + rcx*4 - 4], edi             ; hi32
         inc     qword [token_pos]
         pop     rax
         jmp     .done
@@ -4154,6 +4266,8 @@ uzalishaji_tangazo:
         je      .store_64
         cmp     r10d, 5                      ; W0
         je      .store_64
+        cmp     r10d, 7                      ; D64
+        je      .store_d64
 
         ; 32-bit store: mov [rbp + disp32], eax  ->  89 85 d32
         mov     al, 0x89
@@ -4170,6 +4284,21 @@ uzalishaji_tangazo:
         mov     al, 0x48                     ; REX.W
         call    gen_baiti
         mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0x85
+        call    gen_baiti
+        mov     edi, r8d
+        neg     edi
+        call    gen_neno4
+        jmp     .tangazo_mwisho
+
+.store_d64:
+        ; movsd [rbp + disp32], xmm0  ->  f2 0f 11 85 d32
+        mov     al, 0xF2
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x11
         call    gen_baiti
         mov     al, 0x85
         call    gen_baiti
@@ -4199,6 +4328,73 @@ uzalishaji_nambari:
         mov     eax, edi                ; rudisha thamani
         pop     r12
         ret
+
+; -------------------------------------------------------
+; uzalishaji_halisi_d: zalisha msimbo kwa halisi ya D64
+;   Biti 64 zimegawanywa: ast_thamani = lo32, ast_tiga = hi32.
+;   Hutoa thabiti ya baiti 8 kwenye .data (iliyopangiliwa kwa 8) na
+;   inapakia kwenye xmm0: movsd xmm0, [disp32].
+;   CT: -1 (haijulikani — hesabu ya kuelea haikunjwi na mbegu).
+; -------------------------------------------------------
+uzalishaji_halisi_d:
+        push    r12
+        push    r13
+        mov     r12d, r12d
+        mov     r13d, [ast_thamani + r12*4]   ; lo32
+
+        ; Pangilia data_buf_pos kwa 8 NA usonge mbele kwa baiti 8
+        mov     rax, [data_buf_pos]
+        add     rax, 7
+        and     rax, ~7
+        mov     rcx, rax                ; mwanzo wa thabiti
+        add     rax, 8                  ; nafasi inayofuata
+        cmp     rax, DATA_BUF_SIZE
+        ja      .data_jaa
+        mov     [data_buf_pos], rax
+
+        ; Andika baiti 8 (little-endian: lo32 kwanza, kisha hi32)
+        mov     [data_buf + rcx], r13d
+        mov     r13d, [ast_tiga + r12*4]      ; hi32
+        mov     [data_buf + rcx + 4], r13d
+
+        ; movsd xmm0, [disp32]  ->  f2 0f 10 05 d32
+        mov     al, 0xF2
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x10
+        call    gen_baiti
+        mov     al, 0x05
+        call    gen_baiti
+
+        ; Rekebisho la .data (sawa na mfuatano): addend = data_offset - 4
+        mov     rdi, [rela_count]
+        cmp     rdi, MAX_RELOCS - 1
+        jae     .rela_jaa
+        mov     edx, [text_buf_pos]
+        mov     [rela_offset + rdi*4], edx
+        mov     dword [rela_sym + rdi*4], -1    ; .data section
+        sub     ecx, 4                          ; data_offset - 4
+        mov     [rela_addend + rdi*4], ecx
+        inc     qword [rela_count]
+        ; Weka nafasi ya disp32
+        mov     edi, 0
+        call    gen_neno4
+
+        mov     eax, -1                 ; CT: haijulikani
+        pop     r13
+        pop     r12
+        ret
+.rela_jaa:
+        lea     rdi, [msg_rela_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
+.data_jaa:
+        lea     rdi, [msg_databuf]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
 
 ; -------------------------------------------------------
 ; uzalishaji_jina: zalisha msimbo kwa nodi ya jina (rejeleo ya kigezo)
@@ -4269,6 +4465,8 @@ uzalishaji_jina:
         je      .load_n16
         cmp     r8d, 4                      ; N64
         je      .load_n64
+        cmp     r8d, 7                      ; D64
+        je      .load_d64
         ; N32 (3) au chaguo-msingi
         mov     al, 0x8B                    ; mov eax, [rbp+disp32]
         call    gen_baiti
@@ -4307,6 +4505,23 @@ uzalishaji_jina:
         mov     al, 0x85                    ; ModRM: [rbp+disp32], reg=rax
         call    gen_baiti
         call    gen_neno4
+
+.load_d64:
+        ; D64 — paki baiti 8 kwenye xmm0: f2 0f 10 85 d32
+        mov     al, 0xF2
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x10
+        call    gen_baiti
+        mov     al, 0x85
+        call    gen_baiti
+        call    gen_neno4
+        mov     eax, -1                 ; CT haijulikani kwa D64
+        pop     r14
+        pop     r13
+        pop     r12
+        ret
 
 .load_done:
         ; Thamani itasomwa wakati wa utekelezaji; rudisha 0 kwa sasa
@@ -5007,7 +5222,7 @@ fumbua_aina:
         push    r13
         push    r14
         push    r15
-
+.fa_anza_tena:
         cmp     r12d, -1
         je      .fa_sio
         mov     r13d, [ast_aina + r12*4]
@@ -5030,11 +5245,19 @@ fumbua_aina:
         je      .fa_alama
         cmp     r13d, AST_NAMBA
         je      .fa_namba
+        cmp     r13d, AST_HALISI_D
+        je      .fa_halisi_d
         cmp     r13d, AST_KAULI
         je      .fa_kauli
         cmp     r13d, AST_WAMBILE
         je      .fa_wambile
         jmp     .fa_sio
+
+.fa_halisi_d:
+        mov     eax, 7                  ; D64
+        xor     ebx, ebx
+        mov     edx, -1
+        jmp     .fa_mwisho
 
 .fa_jina:
         ; Tafuta kati ya vigezo vya ndani
@@ -5169,11 +5392,13 @@ fumbua_aina:
         jmp     .fa_mwisho
 
 .fa_kauli:
-        ; Mfuatano wa herufi ni safu ya baiti (N8*)
-        mov     eax, 1
-        mov     ebx, 1
-        mov     edx, -1
-        jmp     .fa_mwisho
+        ; Kauli ya binary: aina ya operanda ya KUSHOTO huenea —
+        ; hii inaruhusu minyororo kama (pi * r) * r kubaki D64
+        ; (suala #135 lilikuwa na hitilafu sawa kwenye dereva wa Rust).
+        ; Rudi kwenye kichwa cha fumbua_aina BAADA ya pushes —
+        ; .fa_anza_tena iko mara moja baada ya kuzihifadhi.
+        mov     r12d, [ast_kushoto + r12*4]
+        jmp     .fa_anza_tena
 
 .fa_wambile:
         mov     r15d, [ast_kushoto + r12*4]
@@ -5449,6 +5674,16 @@ uzalishaji_rudisha:
         push    r12
         push    r13
 
+        ; Kazi inayorudisha D64: ABI ya xmm0 bado haijatekelezwa
+        ; kwenye mbegu — kosa LAUTI badala ya thamani isiyo sahihi.
+        cmp     dword [kazi_ret_aina], 7
+        jne     .rudisha_sio_d64
+        lea     rdi, [msg_d64_wito]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
+.rudisha_sio_d64:
+
         mov     r12d, r12d
         mov     r13d, [ast_kushoto + r12*4]  ; usemi wa kurudisha
 
@@ -5561,6 +5796,39 @@ uzalishaji_kauli_ya_binary:
         je      .do_and_sc
         cmp     r15d, OP_AU
         je      .do_or_sc
+
+        ; Hesabu za kuelea (D64): kama operanda ya kushoto ni ya
+        ; kuelea, chukua njia ya SSE — thamani husafiri kupitia rafu
+        ; kama baiti 8 (movq) na oparesheni hutumia xmm0/xmm1.
+        push    r12
+        mov     r12d, r13d
+        call    fumbua_aina
+        pop     r12
+        cmp     eax, 7
+        jne     .sio_kuelea
+        cmp     r15d, OP_JUMLISHA
+        je      .fl_add
+        cmp     r15d, OP_TOA
+        je      .fl_sub
+        cmp     r15d, OP_ZIDISHA
+        je      .fl_mul
+        cmp     r15d, OP_GAWANYA
+        je      .fl_div
+        cmp     r15d, OP_SAWA_SAWA
+        je      .fl_eq
+        cmp     r15d, OP_SIO_SAWA
+        je      .fl_ne
+        cmp     r15d, OP_KIDOGO
+        je      .fl_lt
+        cmp     r15d, OP_KIDOGO_SAWA
+        je      .fl_le
+        cmp     r15d, OP_KUBWA
+        je      .fl_gt
+        cmp     r15d, OP_KUBWA_SAWA
+        je      .fl_ge
+        ; Kuelea na ishara isiyojulikana — njia kamili itaanguka kwa
+        ; sauti (k.m. % ya desimali haisaidiwi).
+.sio_kuelea:
 
         ; Zalisha upande wa kulia kwanza
         push    r12
@@ -6649,6 +6917,8 @@ uzalishaji_kauli_ya_binary:
         ; Hifadhi [rax], rcx kulingana na ukubwa wa aina
         cmp     r10d, 0
         jg      .am_store_64            ; pointer — baiti 8
+        cmp     r9d, 7
+        je      .am_store_d64
         cmp     r9d, 1
         je      .am_store_8
         cmp     r9d, 2
@@ -6692,6 +6962,19 @@ uzalishaji_kauli_ya_binary:
         mov     al, 0x89
         call    gen_baiti
         mov     al, 0x08
+        call    gen_baiti
+        mov     eax, r8d
+        jmp     .done
+
+.am_store_d64:
+        ; movsd [rax], xmm0 -> f2 0f 11 00
+        mov     al, 0xF2
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x11
+        call    gen_baiti
+        mov     al, 0x00
         call    gen_baiti
         mov     eax, r8d
         jmp     .done
@@ -7020,6 +7303,250 @@ uzalishaji_kauli_ya_binary:
 .or_ct_isiyojulikana:
         mov     eax, -1
         jmp     .done
+
+; -----------------------------------------------------------
+; Njia za hesabu za kuelea (D64) — xmm0/xmm1
+; -----------------------------------------------------------
+.fl_rhs:
+        ; Tathmini kulia → xmm0; hifadhi kwenye rafu kama baiti 8.
+        push    r12
+        push    r15
+        mov     r12d, r14d
+        call    uzalishaji_ast
+        pop     r15
+        pop     r12
+        ; movq rax, xmm0 -> 66 48 0F 7E C0 ; push rax -> 50
+        mov     al, 0x66
+        call    gen_baiti
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x7E
+        call    gen_baiti
+        mov     al, 0xC0
+        call    gen_baiti
+        mov     al, 0x50
+        call    gen_baiti
+        ; Tathmini kushoto → xmm0.
+        push    r12
+        push    r15
+        mov     r12d, r13d
+        call    uzalishaji_ast
+        pop     r15
+        pop     r12
+        ; pop rcx -> 59 ; movq xmm1, rcx -> 66 48 0F 6E C9
+        mov     al, 0x59
+        call    gen_baiti
+        mov     al, 0x66
+        call    gen_baiti
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x6E
+        call    gen_baiti
+        mov     al, 0xC9
+        call    gen_baiti
+        ret
+
+.fl_add:
+        call    .fl_rhs
+        ; addsd xmm0, xmm1 -> f2 0f 58 c1
+        mov     al, 0xF2
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x58
+        call    gen_baiti
+        mov     al, 0xC1
+        call    gen_baiti
+        mov     eax, -1
+        jmp     .done
+.fl_sub:
+        call    .fl_rhs
+        ; subsd xmm0, xmm1 -> f2 0f 5c c1
+        mov     al, 0xF2
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x5C
+        call    gen_baiti
+        mov     al, 0xC1
+        call    gen_baiti
+        mov     eax, -1
+        jmp     .done
+.fl_mul:
+        call    .fl_rhs
+        ; mulsd xmm0, xmm1 -> f2 0f 59 c1
+        mov     al, 0xF2
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x59
+        call    gen_baiti
+        mov     al, 0xC1
+        call    gen_baiti
+        mov     eax, -1
+        jmp     .done
+.fl_div:
+        call    .fl_rhs
+        ; divsd xmm0, xmm1 -> f2 0f 5e c1
+        mov     al, 0xF2
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x5E
+        call    gen_baiti
+        mov     al, 0xC1
+        call    gen_baiti
+        mov     eax, -1
+        jmp     .done
+.fl_eq:
+        call    .fl_rhs
+        ; ucomisd xmm0, xmm1 -> 66 0f 2e c1
+        mov     al, 0x66
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x2E
+        call    gen_baiti
+        mov     al, 0xC1
+        call    gen_baiti
+        ; sete al -> 0f 94 c0 ; movzx eax, al -> 0f b6 c0
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x94
+        call    gen_baiti
+        mov     al, 0xC0
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0xB6
+        call    gen_baiti
+        mov     al, 0xC0
+        call    gen_baiti
+        jmp     .done
+.fl_ne:
+        call    .fl_rhs
+        mov     al, 0x66
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x2E
+        call    gen_baiti
+        mov     al, 0xC1
+        call    gen_baiti
+        ; setne al -> 0f 95 c0
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x95
+        call    gen_baiti
+        mov     al, 0xC0
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0xB6
+        call    gen_baiti
+        mov     al, 0xC0
+        call    gen_baiti
+        jmp     .done
+.fl_lt:
+        call    .fl_rhs
+        mov     al, 0x66
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x2E
+        call    gen_baiti
+        mov     al, 0xC1
+        call    gen_baiti
+        ; setb al -> 0f 92 c0 (xmm0 < xmm1)
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x92
+        call    gen_baiti
+        mov     al, 0xC0
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0xB6
+        call    gen_baiti
+        mov     al, 0xC0
+        call    gen_baiti
+        jmp     .done
+.fl_le:
+        call    .fl_rhs
+        mov     al, 0x66
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x2E
+        call    gen_baiti
+        mov     al, 0xC1
+        call    gen_baiti
+        ; setbe al -> 0f 96 c0
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x96
+        call    gen_baiti
+        mov     al, 0xC0
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0xB6
+        call    gen_baiti
+        mov     al, 0xC0
+        call    gen_baiti
+        jmp     .done
+.fl_gt:
+        call    .fl_rhs
+        mov     al, 0x66
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x2E
+        call    gen_baiti
+        mov     al, 0xC1
+        call    gen_baiti
+        ; seta al -> 0f 97 c0 (xmm0 > xmm1)
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x97
+        call    gen_baiti
+        mov     al, 0xC0
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0xB6
+        call    gen_baiti
+        mov     al, 0xC0
+        call    gen_baiti
+        jmp     .done
+.fl_ge:
+        call    .fl_rhs
+        mov     al, 0x66
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x2E
+        call    gen_baiti
+        mov     al, 0xC1
+        call    gen_baiti
+        ; setae al -> 0f 93 c0
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x93
+        call    gen_baiti
+        mov     al, 0xC0
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0xB6
+        call    gen_baiti
+        mov     al, 0xC0
+        call    gen_baiti
+        jmp     .done
 .done:
         pop     r15
         pop     r14
@@ -7074,6 +7601,19 @@ uzalishaji_wambile:
 
         mov     r12d, r8d
         call    uzalishaji_ast         ; matokeo kwenye eax
+
+        ; D64 kwenye wito: ABI ya xmm0-xmm7 bado haijatekelezwa
+        ; kwenye mbegu (mnyororo wa .swa unayo). Kosa LAUTI badala ya
+        ; thamani isiyo sahihi kimya.
+        mov     r12d, r8d
+        call    fumbua_aina
+        cmp     eax, 7
+        jne     .hoja_sio_d64
+        lea     rdi, [msg_d64_wito]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
+.hoja_sio_d64:
 
         ; Sukuma matokeo kwenye rafu ya utekelezaji (push rax = 0x50)
         mov     al, 0x50
@@ -8461,8 +9001,15 @@ uzalishaji_ast:
         cmp     ebx, AST_MAKOSA
         je      .call_makosa
 
+        cmp     ebx, AST_HALISI_D
+        je      .call_halisi_d
+
         ; Chaguo-msingi: rudisha 0
         xor     eax, eax
+        jmp     .done
+
+.call_halisi_d:
+        call    uzalishaji_halisi_d
         jmp     .done
 
 .call_nambari:
@@ -8524,6 +9071,66 @@ uzalishaji_ast:
 
 .call_hasili:
         mov     r12d, [ast_kushoto + r12*4]
+        ; Kuelea? (operanda ni D64) — zidisha kwa -1.0
+        ; (xorpd yenye operanda ya kumbukumbu imeonekana kuvunjika
+        ; kwenye VM ya mtumiaji — SI_KERNEL — wakati movsd/mulsd m64
+        ; zinafanya kazi; mulsd kwa -1.0 ni sawa na inayobebeka.)
+        push    r12
+        call    fumbua_aina
+        pop     r12
+        cmp     eax, 7
+        jne     .hasili_kamili
+
+        call    uzalishaji_ast          ; operanda → xmm0
+
+        ; Thabiti ya -1.0 (0xBFF0000000000000) kwenye .data
+        mov     rax, [data_buf_pos]
+        add     rax, 7
+        and     rax, ~7
+        mov     rcx, rax                ; mwanzo wa thabiti
+        add     rax, 8
+        cmp     rax, DATA_BUF_SIZE
+        ja      .hasili_data_jaa
+        mov     [data_buf_pos], rax
+        mov     dword [data_buf + rcx], 0
+        mov     dword [data_buf + rcx + 4], 0xBFF00000
+
+        ; mulsd xmm0, [disp32] -> f2 0f 59 05 d32
+        mov     al, 0xF2
+        call    gen_baiti
+        mov     al, 0x0F
+        call    gen_baiti
+        mov     al, 0x59
+        call    gen_baiti
+        mov     al, 0x05
+        call    gen_baiti
+        ; RELA ya .data (addend = data_offset - 4)
+        mov     rdi, [rela_count]
+        cmp     rdi, MAX_RELOCS - 1
+        jae     .hasili_rela_jaa
+        mov     edx, [text_buf_pos]
+        mov     [rela_offset + rdi*4], edx
+        mov     dword [rela_sym + rdi*4], -1
+        sub     ecx, 4
+        mov     [rela_addend + rdi*4], ecx
+        inc     qword [rela_count]
+        mov     edi, 0
+        call    gen_neno4
+
+        mov     eax, -1                 ; CT haijulikani
+        jmp     .done
+.hasili_rela_jaa:
+        lea     rdi, [msg_rela_full]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
+.hasili_data_jaa:
+        lea     rdi, [msg_databuf]
+        call    andika_mfuatano
+        mov     edi, 1
+        call    sys_exit
+
+.hasili_kamili:
         call    uzalishaji_ast
         ; neg eax → f7 d8
         mov     al, 0xf7

@@ -45,9 +45,11 @@ Maneno muhimu hayawezi kutumika kama majina ya vitambulisho.
   `hati/mipaka.md` sehemu ya 5).
 - Mfuatano: `"habari"` — baiti za N8 zikifuatiwa na 0. Utorokaji
   (`\n`, `\t`, `\\`, `\"`) unasaidiwa.
-- Desimali: `21.5` — D64. **Kikomo:** bomba la desimali bado
-  limevunjika kwenye minyororo yote (`hati/mipaka.md` 4c — ukali
-  JUU); D64 haijafanyiwa kazi kama sehemu ya 1.0.
+- Desimali: `21.5` — D64. Inafanya kazi kwenye minyororo YOTE
+  (mbegu, .swa, na dereva wa Rust) tangu 2026-08-20 — hesabu za
+  kuelea, ulinganisho, na ukanushaji. Kikomo cha CHINI: mbegu haina
+  ABI ya xmm kwenye wito wa kazi (inalia kwa sauti) — mnyororo wa
+  .swa una ABI kamili (`hati/mipaka.md` 4c).
 
 ### 2.4 Maoni
 
