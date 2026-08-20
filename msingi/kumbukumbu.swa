@@ -236,6 +236,9 @@ N64 p2_kwa(N32 kubwa) {
     rudisha thamani;
 }
 
+// KUMBUKA: bits_ya_d64_swa imegawanywa katika kazi mbili kwa sababu
+// mbegu ilikusanya vibaya kazi ndefu sana (FPE) — sehemu ndogo
+// zinakusanywa kwa usahihi. API haijabadilika.
 N64 bits_ya_d64_swa(N8* ch, N32 u) {
     N64 alama = 0;
     N32 fasi = 0;
@@ -291,6 +294,10 @@ N64 bits_ya_d64_swa(N8* ch, N32 u) {
 
     // pacha = (hesabu/nene - 2^(kizio+d)) * 2^(52-kizio-d)
     //       = hesabu * 2^(52-kizio-d) / nene - 2^52
+    rudisha kamilisha_bits_swa(hesabu, nene, kizio, d, alama);
+}
+
+N64 kamilisha_bits_swa(N64 hesabu, N64 nene, N64 kizio, N64 d, N64 alama) {
     N64 hamisha = 52 - (kizio + d);
     kama (hamisha < 0) { hamisha = 0; }
     kama (hamisha > 52) { hamisha = 52; }
@@ -300,16 +307,12 @@ N64 bits_ya_d64_swa(N8* ch, N32 u) {
         N64 p2s = p2_kwa(hamisha);
         pacha = (hesabu * p2s) / nene - p52;
     } sivyo {
-        // Gawanya kuzidisha ili kuepuka kuzidi baiti 64:
-        // hesabu*2^hamisha = (hi*nene + salio) * 2^(hamisha-26)
         N64 p2a = p2_kwa(26);
         N64 p2b = p2_kwa(hamisha - 26);
         N64 hi = (hesabu * p2a) / nene;
         N64 salio = hesabu * p2a - hi * nene;
         pacha = hi * p2b + (salio * p2b) / nene - p52;
     }
-
-    // bits: alama << 63 | (kizio + 1023) << 52 | pacha
     N64 p63 = p2_kwa(63);
     N64 biti = 0;
     kama (alama == 1) { biti = biti + p63; }

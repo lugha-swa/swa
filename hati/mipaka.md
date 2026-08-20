@@ -97,6 +97,22 @@ wito wa kazi haisaidiwi bado na mbegu`). Mnyororo wa .swa unashughulikia
 hali hiyo kikamilifu — tumia mkusanyaji wa .swa kwa program zenye
 kazi za D64.
 
+## 4d. Mbegu ina mende ya ukusanyaji kwa kazi ndefu zenye mchanganyiko wa N64 na vitanzi [UKALI: CHINI — kazi imegawanywa]
+
+Iligunduliwa 2026-08-20: bits_ya_d64_swa ya zamani (kazi moja ndefu,
+~60 taarifa, N64 nyingi na vitanzi vingi) ilikusanywa vibaya na mbegu
+— FPE wakati wa kukusanya desimali (mgawanyiko uliokuwa ukisukuma
+kigawanyo mara mbili). Taarifa zake zote zikijaribiwa PEKEE zilipita
+— mzizi ni mchanganyiko wa ukubwa na umbo, bado haujachimbuliwa.
+
+Njia ya kukwepa (iliyotumika): gawanya kazi kama hiyo katika kazi
+mbili ndogo — bits_ya_d64_swa sasa inaita kamilisha_bits_swa.
+Mnyororo mzima unafanya kazi: fixpoint + desimali kupitia stage1.
+
+Kazi ya kufuatilia: kutafuta mzizi wa mende hiyo kwenye mbegu
+(inashukiwa kuwa ukosefu wa usawa wa rafu ya CT wakati wa ukusanyaji
+wa misemo ya N64 ndani ya vitanzi).
+
 ## 5. Maneno halisi ni 32-bit signed [UKALI: CHINI]
 
 Neno halisi `2147483648` linatafsiriwa kama `-2147483648` (biti
