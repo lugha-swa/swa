@@ -1,0 +1,701 @@
+// ==========================================================
+// umbizaji.swa :: Kipanga umbaji cha chanzo cha Swa
+//
+// Hupanga umbaji wa faili ya .swa kwa mtindo wa mradi:
+//  - ujongezaji wa nafasi 4 kwa kila kiwango cha mabano { }
+//  - nafasi moja kuzunguka ishara za baina (+ - * / % na nyingine)
+//  - nafasi moja baada ya koma na nusu-koloni
+//  - hakuna nafasi za kufuata mwishoni mwa mstari
+//  - mstari mmoja kwa taarifa; taarifa ndefu hazivunjwi
+//  - { inabaki mwishoni mwa mstari; } peke yake kwenye mstari
+//  - maoni na mifuatano huhifadhiwa kama yalivyo
+//
+// Matumizi: umbizaji <faili.swa>
+// Towe la umbaji linaandikwa kwenye stdout.
+// ==========================================================
+
+N8 chanzo[1048576];
+N8 towe[2097152];
+N32 chanzo_urefu = 0;
+N32 towe_urefu = 0;
+N32 towe_imejaa = 0;
+N32 ambatisha = 0;
+N32 mwanzo_mstari = 0;
+
+N8 miundo_jina[2048];
+N32 miundo_idadi = 0;
+
+N32 HALI_MSIMBO = 0;
+N32 HALI_MFUATANO = 1;
+N32 HALI_HERUFI = 2;
+N32 HALI_MAONI_K = 3;
+N32 HALI_MAONI_M = 4;
+
+// -------------------------------------------------------
+// Visaidizi vya herufi na maneno
+// -------------------------------------------------------
+
+N32 ni_herufi_ya_neno(N8 c) {
+    kama (c >= 48 && c <= 57) { rudisha 1; }
+    kama (c >= 65 && c <= 90) { rudisha 1; }
+    kama (c >= 97 && c <= 122) { rudisha 1; }
+    kama (c == 95) { rudisha 1; }
+    rudisha 0;
+}
+
+// Neno la chanzo (la herufi za neno) linaloishia kabla ya nafasi i.
+N32 neno_la_kabla(N32 i, N32* mwanzo, N32* urefu) {
+    N32 j = i - 1;
+    wakati (j >= 0 && (chanzo[j] == 32 || chanzo[j] == 9 || chanzo[j] == 13)) {
+        j = j - 1;
+    }
+    N32 mwisho = j;
+    wakati (j >= 0 && ni_herufi_ya_neno(chanzo[j]) != 0) {
+        j = j - 1;
+    }
+    *mwanzo = j + 1;
+    *urefu = mwisho - j;
+    kama (mwisho < 0) { *urefu = 0; }
+    rudisha *urefu;
+}
+
+N32 neno_linalingana(N32 mwanzo, N32 urefu, N8* neno) {
+    N32 k = 0;
+    wakati (neno[k] != 0) {
+        kama (k >= urefu) { rudisha 0; }
+        kama (chanzo[mwanzo + k] != neno[k]) { rudisha 0; }
+        k = k + 1;
+    }
+    kama (k != urefu) { rudisha 0; }
+    rudisha 1;
+}
+
+N32 neno_la_kabla_ni(N32 i, N8* neno) {
+    N32 mwanzo = 0;
+    N32 urefu = 0;
+    neno_la_kabla(i, &mwanzo, &urefu);
+    kama (urefu == 0) { rudisha 0; }
+    rudisha neno_linalingana(mwanzo, urefu, neno);
+}
+
+N32 neno_la_kabla_ni_muhimu(N32 i) {
+    kama (neno_la_kabla_ni(i, "kama") != 0) { rudisha 1; }
+    kama (neno_la_kabla_ni(i, "wakati") != 0) { rudisha 1; }
+    kama (neno_la_kabla_ni(i, "sivyo") != 0) { rudisha 1; }
+    kama (neno_la_kabla_ni(i, "kwa") != 0) { rudisha 1; }
+    kama (neno_la_kabla_ni(i, "chagua") != 0) { rudisha 1; }
+    kama (neno_la_kabla_ni(i, "rudisha") != 0) { rudisha 1; }
+    kama (neno_la_kabla_ni(i, "hali") != 0) { rudisha 1; }
+    rudisha 0;
+}
+
+// Neno la kabla ni aina (N8, N32, ... au muundo)? Ruka nyota za mfululizo.
+N32 neno_la_kabla_ni_aina(N32 i) {
+    N32 j = i - 1;
+    wakati (j >= 0 && chanzo[j] == 42) {
+        j = j - 1;
+    }
+    N32 mwanzo = 0;
+    N32 urefu = 0;
+    neno_la_kabla(j + 1, &mwanzo, &urefu);
+    kama (urefu == 0) { rudisha 0; }
+    kama (neno_linalingana(mwanzo, urefu, "N8") != 0) { rudisha 1; }
+    kama (neno_linalingana(mwanzo, urefu, "N16") != 0) { rudisha 1; }
+    kama (neno_linalingana(mwanzo, urefu, "N32") != 0) { rudisha 1; }
+    kama (neno_linalingana(mwanzo, urefu, "N64") != 0) { rudisha 1; }
+    kama (neno_linalingana(mwanzo, urefu, "W0") != 0) { rudisha 1; }
+    kama (neno_linalingana(mwanzo, urefu, "D64") != 0) { rudisha 1; }
+    kama (neno_linalingana(mwanzo, urefu, "F64") != 0) { rudisha 1; }
+    N32 m = 0;
+    wakati (m < miundo_idadi) {
+        N32 ms = m * 32;
+        kama (neno_linalingana(mwanzo, urefu, miundo_jina + ms) != 0) {
+            rudisha 1;
+        }
+        m = m + 1;
+    }
+    rudisha 0;
+}
+
+// Je, ishara kwenye nafasi i ni ya baina (binary)? Sivyo ni awali (unary).
+// Hutumika kwa - + * na & . Operandi ni nambari, jina, ) au ].
+N32 ni_baina(N32 i) {
+    N32 j = i - 1;
+    wakati (j >= 0 && (chanzo[j] == 32 || chanzo[j] == 9 || chanzo[j] == 13)) {
+        j = j - 1;
+    }
+    kama (j < 0) { rudisha 0; }
+    N8 c = chanzo[j];
+    kama (c == 41 || c == 93 || c == 34 || c == 39) { rudisha 1; }
+    kama (ni_herufi_ya_neno(c) != 0) {
+        N32 mwanzo = 0;
+        N32 urefu = 0;
+        neno_la_kabla(i, &mwanzo, &urefu);
+        kama (neno_linalingana(mwanzo, urefu, "rudisha") != 0) { rudisha 0; }
+        kama (neno_linalingana(mwanzo, urefu, "hali") != 0) { rudisha 0; }
+        rudisha 1;
+    }
+    rudisha 0;
+}
+
+// -------------------------------------------------------
+// Usomaji wa majina ya miundo (kwa nyota za kielekezi)
+// -------------------------------------------------------
+
+W0 kusanya_miundo() {
+    N32 i = 0;
+    wakati (i < chanzo_urefu) {
+        kama (i + 5 < chanzo_urefu) {
+            kama (chanzo[i] == 109 && chanzo[i + 1] == 117 && chanzo[i + 2] == 117 && chanzo[i + 3] == 110 && chanzo[i + 4] == 100 && chanzo[i + 5] == 111) {
+                N32 kabla = 1;
+                kama (i > 0 && ni_herufi_ya_neno(chanzo[i - 1]) != 0) { kabla = 0; }
+                N32 baada = 1;
+                kama (i + 6 < chanzo_urefu && ni_herufi_ya_neno(chanzo[i + 6]) != 0) { baada = 0; }
+                kama (kabla != 0 && baada != 0) {
+                    N32 j = i + 6;
+                    wakati (j < chanzo_urefu && (chanzo[j] == 32 || chanzo[j] == 9)) {
+                        j = j + 1;
+                    }
+                    N32 mwanzo = j;
+                    wakati (j < chanzo_urefu && ni_herufi_ya_neno(chanzo[j]) != 0) {
+                        j = j + 1;
+                    }
+                    kama (j > mwanzo && miundo_idadi < 64) {
+                        N32 ms = miundo_idadi * 32;
+                        N32 k = mwanzo;
+                        wakati (k < j) {
+                            miundo_jina[ms] = chanzo[k];
+                            ms = ms + 1;
+                            k = k + 1;
+                        }
+                        miundo_jina[ms] = 0;
+                        miundo_idadi = miundo_idadi + 1;
+                    }
+                    i = j;
+                    endelea;
+                }
+            }
+        }
+        i = i + 1;
+    }
+}
+
+// -------------------------------------------------------
+// Uandishi kwenye bafa ya towe
+// -------------------------------------------------------
+
+W0 towe_herufi(N8 c) {
+    kama (towe_urefu >= 2097152) {
+        towe_imejaa = 1;
+        rudisha;
+    }
+    towe[towe_urefu] = c;
+    towe_urefu = towe_urefu + 1;
+}
+
+// Nafasi moja kabla ya tokeni inayofuata (kama inahitajika).
+W0 towe_nafasi_kabla() {
+    kama (ambatisha != 0) {
+        ambatisha = 0;
+        rudisha;
+    }
+    kama (towe_urefu > mwanzo_mstari) {
+        kama (towe[towe_urefu - 1] != 32) {
+            towe_herufi(32);
+        }
+    }
+}
+
+// Nafasi mbili kabla ya maoni ya mstari kwenye mstari wenye msimbo
+// (mkongwe wa repo: `msimbo;  // maoni`). Maoni ya pekee mwanzoni
+// mwa mstari yanabaki kwenye ujongezaji wake — bila nafasi ya ziada.
+W0 towe_nafasi_maoni() {
+    kama (towe_urefu > mwanzo_mstari) {
+        // Angalia kama kuna msimbo tangu mwanzo wa mstari — ikiwa
+        // ni nafasi tu (maoni ya pekee), usiongeze chochote.
+        N32 p = mwanzo_mstari;
+        N32 kuna_msimbo = 0;
+        wakati (p < towe_urefu) {
+            kama (towe[p] != 32 && towe[p] != 9) {
+                kuna_msimbo = 1;
+                vunja;
+            }
+            p = p + 1;
+        }
+        kama (kuna_msimbo == 0) { rudisha; }
+        kama (towe[towe_urefu - 1] != 32) {
+            towe_herufi(32);
+        }
+        towe_herufi(32);
+    }
+}
+
+// Ondoa nafasi ya mwisho kwenye mstari (kabla ya ) ] , ; na .).
+W0 towe_ondo_nafasi() {
+    kama (towe_urefu > mwanzo_mstari) {
+        kama (towe[towe_urefu - 1] == 32) {
+            towe_urefu = towe_urefu - 1;
+        }
+    }
+}
+
+// Kiendeshi cha baina: nafasi kabla, ishara, nafasi baada.
+W0 towe_kiendeshi_baina(N8 a, N8 b) {
+    towe_nafasi_kabla();
+    towe_herufi(a);
+    kama (b != 0) {
+        towe_herufi(b);
+    }
+    towe_herufi(32);
+}
+
+// -------------------------------------------------------
+// Mchanganuzi mkuu: chanzo hadi towe
+// -------------------------------------------------------
+
+N32 panga_chanzo() {
+    N32 i = 0;
+    N32 hali = HALI_MSIMBO;
+    N32 kina = 0;
+    N32 kiwango = 0;
+    N32 kiwango_mstari = 0;
+    N32 imeanza = 0;
+    N32 funguka = 0;
+    N32 funga = 0;
+    wakati (i < chanzo_urefu) {
+        N8 c = chanzo[i];
+        kama (c == 10) {
+            kama (hali != HALI_MFUATANO && hali != HALI_HERUFI) {
+                wakati (towe_urefu > mwanzo_mstari && (towe[towe_urefu - 1] == 32 || towe[towe_urefu - 1] == 9)) {
+                    towe_urefu = towe_urefu - 1;
+                }
+            }
+            towe_herufi(10);
+            mwanzo_mstari = towe_urefu;
+            imeanza = 0;
+            kiwango = kiwango + funguka - funga;
+            funguka = 0;
+            funga = 0;
+            kama (hali == HALI_MAONI_M) {
+                hali = HALI_MSIMBO;
+            }
+            i = i + 1;
+            endelea;
+        }
+        kama (towe_imejaa != 0) {
+            vunja;
+        }
+        kama (imeanza == 0) {
+            kama (hali == HALI_MSIMBO) {
+                N32 j = i;
+                wakati (j < chanzo_urefu && (chanzo[j] == 32 || chanzo[j] == 9)) {
+                    j = j + 1;
+                }
+                kiwango_mstari = kiwango;
+                kama (j < chanzo_urefu && chanzo[j] == 125) {
+                    kiwango_mstari = kiwango - 1;
+                }
+                kama (kiwango_mstari < 0) {
+                    kiwango_mstari = 0;
+                }
+                N32 k2 = 0;
+                wakati (k2 < kiwango_mstari * 4) {
+                    towe_herufi(32);
+                    k2 = k2 + 1;
+                }
+            }
+            imeanza = 1;
+        }
+        kama (hali == HALI_MFUATANO) {
+            towe_herufi(c);
+            kama (c == 92) {
+                i = i + 1;
+                kama (i < chanzo_urefu) {
+                    towe_herufi(chanzo[i]);
+                }
+                i = i + 1;
+                endelea;
+            }
+            kama (c == 34) {
+                hali = HALI_MSIMBO;
+            }
+            i = i + 1;
+            endelea;
+        }
+        kama (hali == HALI_HERUFI) {
+            towe_herufi(c);
+            kama (c == 92) {
+                i = i + 1;
+                kama (i < chanzo_urefu) {
+                    towe_herufi(chanzo[i]);
+                }
+                i = i + 1;
+                endelea;
+            }
+            kama (c == 39) {
+                hali = HALI_MSIMBO;
+            }
+            i = i + 1;
+            endelea;
+        }
+        kama (hali == HALI_MAONI_K) {
+            towe_herufi(c);
+            kama (c == 47 && i + 1 < chanzo_urefu && chanzo[i + 1] == 42) {
+                kina = kina + 1;
+                i = i + 1;
+                towe_herufi(chanzo[i]);
+                i = i + 1;
+                endelea;
+            }
+            kama (c == 42 && i + 1 < chanzo_urefu && chanzo[i + 1] == 47) {
+                kina = kina - 1;
+                i = i + 1;
+                towe_herufi(chanzo[i]);
+                i = i + 1;
+                kama (kina == 0) {
+                    hali = HALI_MSIMBO;
+                }
+                endelea;
+            }
+            i = i + 1;
+            endelea;
+        }
+        kama (hali == HALI_MAONI_M) {
+            towe_herufi(c);
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 32 || c == 9 || c == 13) {
+            i = i + 1;
+            endelea;
+        }
+        kama (ni_herufi_ya_neno(c) != 0) {
+            towe_nafasi_kabla();
+            wakati (i < chanzo_urefu && ni_herufi_ya_neno(chanzo[i]) != 0) {
+                towe_herufi(chanzo[i]);
+                i = i + 1;
+            }
+            endelea;
+        }
+        kama (c == 34) {
+            towe_nafasi_kabla();
+            towe_herufi(34);
+            hali = HALI_MFUATANO;
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 39) {
+            towe_nafasi_kabla();
+            towe_herufi(39);
+            hali = HALI_HERUFI;
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 47 && i + 1 < chanzo_urefu && chanzo[i + 1] == 47) {
+            towe_nafasi_maoni();
+            towe_herufi(47);
+            towe_herufi(47);
+            hali = HALI_MAONI_M;
+            i = i + 2;
+            endelea;
+        }
+        kama (c == 47 && i + 1 < chanzo_urefu && chanzo[i + 1] == 42) {
+            towe_nafasi_kabla();
+            towe_herufi(47);
+            towe_herufi(42);
+            kina = 1;
+            hali = HALI_MAONI_K;
+            i = i + 2;
+            endelea;
+        }
+        kama (c == 123) {
+            towe_nafasi_kabla();
+            towe_herufi(123);
+            funguka = funguka + 1;
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 125) {
+            towe_nafasi_kabla();
+            towe_herufi(125);
+            funga = funga + 1;
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 40) {
+            kama (ambatisha == 0) {
+                kama (neno_la_kabla_ni_muhimu(i) != 0) {
+                    kama (towe_urefu > mwanzo_mstari && towe[towe_urefu - 1] != 32) {
+                        towe_herufi(32);
+                    }
+                }
+            }
+            towe_herufi(40);
+            ambatisha = 1;
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 41) {
+            towe_ondo_nafasi();
+            towe_herufi(41);
+            ambatisha = 0;
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 91) {
+            towe_ondo_nafasi();
+            towe_herufi(91);
+            ambatisha = 1;
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 93) {
+            towe_ondo_nafasi();
+            towe_herufi(93);
+            ambatisha = 0;
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 44) {
+            towe_ondo_nafasi();
+            towe_herufi(44);
+            towe_herufi(32);
+            ambatisha = 0;
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 59) {
+            towe_ondo_nafasi();
+            towe_herufi(59);
+            towe_herufi(32);
+            ambatisha = 0;
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 46) {
+            towe_ondo_nafasi();
+            towe_herufi(46);
+            ambatisha = 1;
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 58 || c == 63) {
+            kama (c == 58 && i + 1 < chanzo_urefu && chanzo[i + 1] == 58) {
+                towe_ondo_nafasi();
+                towe_herufi(58);
+                towe_herufi(58);
+                ambatisha = 1;
+                i = i + 2;
+                endelea;
+            }
+            towe_nafasi_kabla();
+            towe_herufi(c);
+            towe_herufi(32);
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 33) {
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 61) {
+                towe_kiendeshi_baina(33, 61);
+                i = i + 2;
+                endelea;
+            }
+            towe_nafasi_kabla();
+            towe_herufi(33);
+            ambatisha = 1;
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 38) {
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 38) {
+                towe_kiendeshi_baina(38, 38);
+                i = i + 2;
+                endelea;
+            }
+            kama (ni_baina(i) != 0) {
+                towe_kiendeshi_baina(38, 0);
+            } sivyo {
+                towe_nafasi_kabla();
+                towe_herufi(38);
+                ambatisha = 1;
+            }
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 124) {
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 124) {
+                towe_kiendeshi_baina(124, 124);
+                i = i + 2;
+                endelea;
+            }
+            towe_kiendeshi_baina(124, 0);
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 60) {
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 60) {
+                towe_kiendeshi_baina(60, 60);
+                i = i + 2;
+                endelea;
+            }
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 61) {
+                towe_kiendeshi_baina(60, 61);
+                i = i + 2;
+                endelea;
+            }
+            towe_kiendeshi_baina(60, 0);
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 62) {
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 62) {
+                towe_kiendeshi_baina(62, 62);
+                i = i + 2;
+                endelea;
+            }
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 61) {
+                towe_kiendeshi_baina(62, 61);
+                i = i + 2;
+                endelea;
+            }
+            towe_kiendeshi_baina(62, 0);
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 61) {
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 61) {
+                towe_kiendeshi_baina(61, 61);
+                i = i + 2;
+                endelea;
+            }
+            towe_kiendeshi_baina(61, 0);
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 43) {
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 61) {
+                towe_kiendeshi_baina(43, 61);
+                i = i + 2;
+                endelea;
+            }
+            kama (ni_baina(i) != 0) {
+                towe_kiendeshi_baina(43, 0);
+            } sivyo {
+                towe_nafasi_kabla();
+                towe_herufi(43);
+                ambatisha = 1;
+            }
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 45) {
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 61) {
+                towe_kiendeshi_baina(45, 61);
+                i = i + 2;
+                endelea;
+            }
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 62) {
+                towe_ondo_nafasi();
+                towe_herufi(45);
+                towe_herufi(62);
+                ambatisha = 1;
+                i = i + 2;
+                endelea;
+            }
+            kama (ni_baina(i) != 0) {
+                towe_kiendeshi_baina(45, 0);
+            } sivyo {
+                towe_nafasi_kabla();
+                towe_herufi(45);
+                ambatisha = 1;
+            }
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 42) {
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 61) {
+                towe_kiendeshi_baina(42, 61);
+                i = i + 2;
+                endelea;
+            }
+            kama (neno_la_kabla_ni_aina(i) != 0) {
+                towe_ondo_nafasi();
+                towe_herufi(42);
+            } sivyo kama (ni_baina(i) != 0) {
+                towe_kiendeshi_baina(42, 0);
+            } sivyo {
+                towe_nafasi_kabla();
+                towe_herufi(42);
+                ambatisha = 1;
+            }
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 47) {
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 61) {
+                towe_kiendeshi_baina(47, 61);
+                i = i + 2;
+                endelea;
+            }
+            towe_kiendeshi_baina(47, 0);
+            i = i + 1;
+            endelea;
+        }
+        kama (c == 37) {
+            kama (i + 1 < chanzo_urefu && chanzo[i + 1] == 61) {
+                towe_kiendeshi_baina(37, 61);
+                i = i + 2;
+                endelea;
+            }
+            towe_kiendeshi_baina(37, 0);
+            i = i + 1;
+            endelea;
+        }
+        towe_herufi(c);
+        i = i + 1;
+    }
+    kama (hali != HALI_MFUATANO && hali != HALI_HERUFI) {
+        wakati (towe_urefu > mwanzo_mstari && (towe[towe_urefu - 1] == 32 || towe[towe_urefu - 1] == 9)) {
+            towe_urefu = towe_urefu - 1;
+        }
+    }
+    rudisha 0;
+}
+
+// -------------------------------------------------------
+// Kazi kuu
+// -------------------------------------------------------
+
+N32 main(N32 argc, N8** argv) {
+    kama (argc < 2) {
+        andika_stderr("Matumizi: umbizaji <faili.swa>\n");
+        rudisha 1;
+    }
+    N64 f = sys_fungua(argv[1], 0);
+    kama (f < 0) {
+        andika_stderr("Hitilafu: faili halifunguki: %s\n", argv[1]);
+        rudisha 1;
+    }
+    N64 n = 0;
+    wakati (1 == 1) {
+        N64 r = sys_soma(f, chanzo + n, 1048576 - n);
+        kama (r <= 0) {
+            vunja;
+        }
+        n = n + r;
+        kama (n >= 1048576) {
+            andika_stderr("Hitilafu: chanzo ni kikubwa mno\n");
+            rudisha 1;
+        }
+    }
+    sys_funga(f);
+    chanzo_urefu = n;
+    kusanya_miundo();
+    panga_chanzo();
+    kama (towe_imejaa != 0) {
+        andika_stderr("Hitilafu: towe ni kubwa mno\n");
+        rudisha 1;
+    }
+    sys_andika(1, towe, towe_urefu);
+    rudisha 0;
+}
