@@ -2146,3 +2146,65 @@ N32 main() { salamu(); rudisha 0; }
 ";
     run_msingi_test(chanzo, 0);
 }
+
+/// #60 (mipaka.md 4c): Desimali (D64) kwenye mnyororo wa UZALISHAJI.
+/// Kabla ya 2026-08: mbegu ilisegfault kwa `21.5` na mnyororo wa .swa
+/// ulipata FPE (bits_ya_d64_swa iliyokusanywa vibaya). Sasa mbegu ina
+/// vitambulisho vya desimali, hesabu za kuelea (SSE2), ulinganisho,
+/// na ukanushaji; mnyororo wa .swa una ABI kamili ya xmm0-xmm7.
+/// Kikomo kilichobaki cha mbegu: D64 kwenye WITO wa kazi unalia kwa
+/// sauti (ABI ya xmm bado haijatekelezwa huko).
+#[test]
+fn jaribio_mende_60_desimali_mbegu() {
+    let kwanza = std::process::Command::new("bash")
+        .arg("gharama/jenga-kwanza.sh")
+        .current_dir(env!("CARGO_MANIFEST_DIR"))
+        .output()
+        .expect("inapaswa kuendesha jenga-kwanza.sh");
+    assert!(kwanza.status.success(), "mnyororo wa kwanza unapaswa kufaulu");
+
+    let dir = tempfile::tempdir().expect("inapaswa kuunda saraka ya muda");
+    let mbegu = "/tmp/mbegu2.bin";
+
+    let chanzo = "\
+N32 main() {
+    D64 pi = 3.14;
+    D64 r = 2.0;
+    D64 eneo = pi * r * r;
+    kama (eneo > 12.55 && eneo < 12.57) { } sivyo { rudisha 1; }
+    D64 a = 1.5 + 0.5;
+    kama (a > 1.99 && a < 2.01) { } sivyo { rudisha 2; }
+    D64 b = 6.0 / 2.0;
+    kama (b > 2.99 && b < 3.01) { } sivyo { rudisha 3; }
+    D64 c = -2.5;
+    kama (c > -2.51 && c < -2.49) { } sivyo { rudisha 4; }
+    D64 d = 10.0 - 3.25;
+    kama (d > 6.74 && d < 6.76) { } sivyo { rudisha 5; }
+    rudisha 0;
+}
+";
+    let des_swa = dir.path().join("desimali.swa");
+    std::fs::write(&des_swa, chanzo).expect("inapaswa kuandika desimali.swa");
+    let des_exe = dir.path().join("desimali-exe");
+    let out = std::process::Command::new(mbegu)
+        .arg("--exe")
+        .stdin(std::fs::File::open(&des_swa).expect("inapaswa kufungua desimali.swa"))
+        .stdout(std::fs::File::create(&des_exe).expect("inapaswa kuunda desimali-exe"))
+        .output()
+        .expect("inapaswa kuendesha mbegu --exe kwa desimali");
+    assert!(out.status.success(), "mbegu --exe inapaswa kukusanya desimali\nstderr: {}",
+        String::from_utf8_lossy(&out.stderr));
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let ruhusa = std::fs::metadata(&des_exe).expect("inapaswa kusoma metadata").permissions();
+        let mut ruhusa_mpya = ruhusa.clone();
+        ruhusa_mpya.set_mode(0o755);
+        std::fs::set_permissions(&des_exe, ruhusa_mpya).expect("inapaswa kuweka ruhusa");
+    }
+    let run = std::process::Command::new(&des_exe)
+        .output()
+        .expect("inapaswa kuendesha desimali-exe");
+    assert!(run.status.success(),
+        "desimali zinapaswa kufanya kazi kupitia mbegu (0), ilipata {:?}", run.status.code());
+}
