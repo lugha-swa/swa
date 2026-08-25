@@ -352,6 +352,7 @@ compiler_error_msg: resq 1              ; ujumbe wa kosa
 muundo_jina:     resd 1                 ; ofseti ya jina la muundo (kwa aina za mtumiaji)
 exe_mode:        resb 1                 ; 1 = toa ET_EXEC badala ya .o
 tmp_argc:        resq 1                 ; hifadhi ya argc wakati wa kuchanganua hoja
+gen_op_64bit:    resd 1                 ; 1 = operesheni binary ya baiti 8 (N64/kielekezi)
 
 ; ---------- Jedwali la miundo ----------
 muundo_count:    resq 1                 ; idadi ya miundo
@@ -4505,6 +4506,7 @@ uzalishaji_jina:
         mov     al, 0x85                    ; ModRM: [rbp+disp32], reg=rax
         call    gen_baiti
         call    gen_neno4
+        jmp     .load_done
 
 .load_d64:
         ; D64 — paki baiti 8 kwenye xmm0: f2 0f 10 85 d32
@@ -5804,6 +5806,17 @@ uzalishaji_kauli_ya_binary:
         mov     r12d, r13d
         call    fumbua_aina
         pop     r12
+        ; Hesabu ikiwa operesheni ni ya baiti 8 (N64 au kielekezi)
+        ; ili ugawanyo utumie cqo/idiv rcx badala ya cdq/idiv ecx.
+        mov     dword [gen_op_64bit], 0
+        cmp     eax, 4
+        je      .op64_ndiyo
+        test    ebx, ebx
+        jg      .op64_ndiyo
+        jmp     .op64_mwisho
+.op64_ndiyo:
+        mov     dword [gen_op_64bit], 1
+.op64_mwisho:
         cmp     eax, 7
         jne     .sio_kuelea
         cmp     r15d, OP_JUMLISHA
@@ -5901,26 +5914,63 @@ uzalishaji_kauli_ya_binary:
 .do_add:
         add     eax, ecx                ; wakati wa kukusanya
         push    rax                     ; hifadhi CT kabla ya kutoa
+        cmp     dword [gen_op_64bit], 0
+        je      .add_emit32
+        ; add rax, rcx → 48 01 c8
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x01
+        call    gen_baiti
+        mov     al, 0xc8
+        call    gen_baiti
+        jmp     .add_emit_mwisho
+.add_emit32:
         ; add eax, ecx → 01 c8
         mov     al, 0x01
         call    gen_baiti
         mov     al, 0xc8
         call    gen_baiti
+.add_emit_mwisho:
         pop     rax
         jmp     .done
 .do_sub:
         sub     eax, ecx                ; wakati wa kukusanya
         push    rax                     ; hifadhi CT kabla ya kutoa
+        cmp     dword [gen_op_64bit], 0
+        je      .sub_emit32
+        ; sub rax, rcx → 48 29 c8
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x29
+        call    gen_baiti
+        mov     al, 0xc8
+        call    gen_baiti
+        jmp     .sub_emit_mwisho
+.sub_emit32:
         ; sub eax, ecx → 29 c8
         mov     al, 0x29
         call    gen_baiti
         mov     al, 0xc8
         call    gen_baiti
+.sub_emit_mwisho:
         pop     rax
         jmp     .done
 .do_mul:
         imul    eax, ecx                ; wakati wa kukusanya
         push    rax                     ; hifadhi CT kabla ya kutoa
+        cmp     dword [gen_op_64bit], 0
+        je      .mul_emit32
+        ; imul rax, rcx → 48 0f af c1
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x0f
+        call    gen_baiti
+        mov     al, 0xaf
+        call    gen_baiti
+        mov     al, 0xc1
+        call    gen_baiti
+        jmp     .mul_emit_mwisho
+.mul_emit32:
         ; imul eax, ecx → 0f af c1
         mov     al, 0x0f
         call    gen_baiti
@@ -5928,6 +5978,7 @@ uzalishaji_kauli_ya_binary:
         call    gen_baiti
         mov     al, 0xc1
         call    gen_baiti
+.mul_emit_mwisho:
         pop     rax
         jmp     .done
 .do_div:
@@ -5938,6 +5989,22 @@ uzalishaji_kauli_ya_binary:
         idiv    ecx
 .div_skip_ct:
         push    rax                     ; hifadhi CT kabla ya kutoa
+        cmp     dword [gen_op_64bit], 0
+        je      .div_emit32
+        ; cqo → 48 99 (baiti 8)
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x99
+        call    gen_baiti
+        ; idiv rcx → 48 f7 f9
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0xf7
+        call    gen_baiti
+        mov     al, 0xf9
+        call    gen_baiti
+        jmp     .div_emit_mwisho
+.div_emit32:
         ; cdq → 99
         mov     al, 0x99
         call    gen_baiti
@@ -5946,6 +6013,7 @@ uzalishaji_kauli_ya_binary:
         call    gen_baiti
         mov     al, 0xf9
         call    gen_baiti
+.div_emit_mwisho:
         pop     rax
         jmp     .done
 .do_mod:
@@ -5957,6 +6025,29 @@ uzalishaji_kauli_ya_binary:
         mov     eax, edx
 .mod_skip_ct:
         push    rax                     ; hifadhi CT kabla ya kutoa
+        cmp     dword [gen_op_64bit], 0
+        je      .mod_emit32
+        ; cqo → 48 99 (baiti 8)
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x99
+        call    gen_baiti
+        ; idiv rcx → 48 f7 f9
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0xf7
+        call    gen_baiti
+        mov     al, 0xf9
+        call    gen_baiti
+        ; mov rax, rdx → 48 89 d0
+        mov     al, 0x48
+        call    gen_baiti
+        mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0xd0
+        call    gen_baiti
+        jmp     .mod_emit_mwisho
+.mod_emit32:
         ; cdq → 99
         mov     al, 0x99
         call    gen_baiti
@@ -5970,6 +6061,7 @@ uzalishaji_kauli_ya_binary:
         call    gen_baiti
         mov     al, 0xd0
         call    gen_baiti
+.mod_emit_mwisho:
         pop     rax
         jmp     .done
 .do_eq:
@@ -6351,14 +6443,53 @@ uzalishaji_kauli_ya_binary:
         jmp     .as_search
 
 .as_found:
-        ; Toa maelekezo: mov [rbp - ofseti], eax  ->  89 85 XX XX XX XX
         mov     edi, [local_offset + r10*4]
         neg     edi
-        mov     al, 0x89                ; MOV r/m32, r32
+        ; Amua ukubwa wa hifadhi kulingana na aina ya kigezo
+        mov     r11d, [local_star_count + r10*4]
+        cmp     r11d, 0
+        jg      .as_local_store_64
+        mov     r11d, [local_base_type + r10*4]
+        cmp     r11d, 1
+        je      .as_local_store_8
+        cmp     r11d, 2
+        je      .as_local_store_16
+        cmp     r11d, 4
+        je      .as_local_store_64
+        cmp     r11d, 5
+        je      .as_local_store_64
+        ; N32 (3) au chaguo-msingi — baiti 4
+        mov     al, 0x89                ; mov [rbp+disp32], eax
         call    gen_baiti
-        mov     al, 0x85                ; ModRM: mod=10, reg=000(eax), r/m=101(rbp+disp32)
+        mov     al, 0x85
         call    gen_baiti
-        call    gen_neno4               ; disp32 (hasi) — edi tayari imewekwa
+        call    gen_neno4
+        jmp     .as_local_store_done
+.as_local_store_8:
+        mov     al, 0x88                ; mov [rbp+disp32], al
+        call    gen_baiti
+        mov     al, 0x85
+        call    gen_baiti
+        call    gen_neno4
+        jmp     .as_local_store_done
+.as_local_store_16:
+        mov     al, 0x66                ; mov [rbp+disp32], ax
+        call    gen_baiti
+        mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0x85
+        call    gen_baiti
+        call    gen_neno4
+        jmp     .as_local_store_done
+.as_local_store_64:
+        mov     al, 0x48                ; mov [rbp+disp32], rax
+        call    gen_baiti
+        mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0x85
+        call    gen_baiti
+        call    gen_neno4
+.as_local_store_done:
         mov     eax, r8d                ; rudisha thamani iliyowekwa
         jmp     .done
 
@@ -8420,7 +8551,7 @@ uzalishaji_kazi:
         mov     [kazi_ret_muundo_id], eax
         jmp     .sret_imewekwa
 .sio_sret:
-        mov     dword [kazi_ret_aina], 0
+        mov     dword [kazi_ret_aina], r13d ; aina halisi ya kurudi (N32/N64/D64 n.k.)
         mov     dword [kazi_ret_muundo_id], -1
 .sret_imewekwa:
 
