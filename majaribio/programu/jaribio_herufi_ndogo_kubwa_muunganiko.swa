@@ -1,0 +1,48 @@
+// Herufi kubwa (N32) na herufi ndogo (n32) za aina moja ya msingi
+// LAZIMA ziwe aina MOJA HASA -- si aina mbili tofauti zisizoendana.
+// Jaribio hili linathibitisha muunganiko wa kweli: kigezo, ugawaji,
+// hoja ya kazi, na aina ya kurudi -- kila mmoja akichanganya herufi
+// kubwa na ndogo kwa aina moja.
+husisha { maktaba/kumbukumbu.swa }
+
+// Kazi inayochukua N32 (kubwa), inarudisha n32 (ndogo) -- lazima
+// zifanane kwenye ukaguzi wa aina.
+n32 pokea_kubwa_rudisha_ndogo(N32 x) {
+    rudisha x * 2;
+}
+
+// Kinyume chake: hoja ndogo, kurudi kubwa.
+N32 pokea_ndogo_rudisha_kubwa(n32 x) {
+    rudisha x * 3;
+}
+
+N32 main() {
+    N32 kubwa = 10;
+    n32 ndogo = kubwa;  // ugawaji: N32 -> n32, lazima ifanye kazi
+    kama (ndogo != 10) { rudisha 1; }
+
+    n32 ndogo2 = 20;
+    N32 kubwa2 = ndogo2;  // ugawaji: n32 -> N32
+    kama (kubwa2 != 20) { rudisha 2; }
+
+    kama (pokea_kubwa_rudisha_ndogo(ndogo2) != 40) { rudisha 3; }
+    kama (pokea_ndogo_rudisha_kubwa(kubwa) != 30) { rudisha 4; }
+
+    // ukubwa() lazima itoe thamani SAWA kabisa kwa herufi zote mbili.
+    kama (ukubwa(N32) != ukubwa(n32)) { rudisha 5; }
+    kama (ukubwa(D64) != ukubwa(d64)) { rudisha 6; }
+    kama (ukubwa(N64) != ukubwa(n64)) { rudisha 7; }
+    kama (ukubwa(N8) != ukubwa(n8)) { rudisha 8; }
+
+    // Kielekezi: N32* na n32* zinaelekeza kwenye eneo moja bila
+    // tofauti -- kupitisha kielekezi kimoja kupitia vigezo vya
+    // aina mbili tofauti za kuandika (spelling) lazima kufanye kazi.
+    N32* pk = tenga(ukubwa(N32));
+    *pk = 99;
+    n32* pn = pk;
+    kama (*pn != 99) { rudisha 9; }
+    *pn = 42;
+    kama (*pk != 42) { rudisha 10; }
+
+    rudisha 0;
+}

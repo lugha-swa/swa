@@ -2615,12 +2615,14 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
         kama (a0 != -1 && ast_aina[a0] == 5) {  // KITAMBULISHO — jina la aina
             N8* jina_a = ast_pool + ast_jina_off[a0];
             N32 sz = 0;
-            kama (jina_linganisha(jina_a, "N8")) { sz = 1; }
-            sivyo { kama (jina_linganisha(jina_a, "N16")) { sz = 2; }
-                sivyo { kama (jina_linganisha(jina_a, "N32")) { sz = 4; }
-                    sivyo { kama (jina_linganisha(jina_a, "N64")) { sz = 8; }
-                        sivyo { kama (jina_linganisha(jina_a, "D32")) { sz = 4; }
-                            sivyo { kama (jina_linganisha(jina_a, "D64")) { sz = 8; }
+            // MUHIMU: herufi ndogo (n8/n16/n32/n64/d32/d64) zinakubalika
+            // hapa PIA -- jina moja, ukubwa mmoja, sawa na herufi kubwa.
+            kama (jina_linganisha(jina_a, "N8") || jina_linganisha(jina_a, "n8")) { sz = 1; }
+            sivyo { kama (jina_linganisha(jina_a, "N16") || jina_linganisha(jina_a, "n16")) { sz = 2; }
+                sivyo { kama (jina_linganisha(jina_a, "N32") || jina_linganisha(jina_a, "n32")) { sz = 4; }
+                    sivyo { kama (jina_linganisha(jina_a, "N64") || jina_linganisha(jina_a, "n64")) { sz = 8; }
+                        sivyo { kama (jina_linganisha(jina_a, "D32") || jina_linganisha(jina_a, "d32")) { sz = 4; }
+                            sivyo { kama (jina_linganisha(jina_a, "D64") || jina_linganisha(jina_a, "d64")) { sz = 8; }
                                 sivyo {
                                     // Muundo au kielekezi
                                     sz = ukubwa_wa_muundo_kwa_jina(jina_a);

@@ -1,0 +1,65 @@
+// lugha-swa/swa (uhamiaji wa herufi ndogo, awamu ya 1) -- jaribio la
+// kudumu la KUZUIA URUDIAJI wa mdudu mbili HALISI zilizogunduliwa
+// wakati wa kuongeza utambuzi wa herufi ndogo za aina za msingi
+// (n32/d64/n.k.):
+//
+// (1) Kitambulisho cha KAWAIDA cha herufi ndogo ("mfano", "jumla",
+//     "piga_kelele") HAKIPASWI kamwe kutambuliwa kama jaribio la
+//     aina -- upanuzi wa herufi ndogo ni MFUATANO KAMILI wa herufi
+//     TANO za familia (n/a/d/b/w) + tarakimu TU.
+//
+// (2) Kitambulisho kinacholingana KIMUUNDO na aina ya msingi (mfano
+//     "a1", "b1", "n1", "d1") lakini kinachotumika kama JINA LA
+//     KIGEZO la KAWAIDA (si aina) LAZIMA kiendelee kufanya kazi
+//     kikamilifu -- kwenye tangazo, usemi, na kama safu iliyofahirishwa.
+//     Hii iligunduliwa HALISI wakati mkusanyaji ulishindwa kujikusanya
+//     mwenyewe (vitambulisho vya ndani vya uzalishaji.swa kama "h2")
+//     na wakati jaribio_k14_maktaba_zaidi.swa (a1[0]/b1[0]) lilivunjika.
+husisha { maktaba/kumbukumbu.swa }
+
+n32 piga_kelele(n32 mfano) {
+    n32 jumla = mfano + 1;
+    rudisha jumla;
+}
+
+n32 main() {
+    // (1) Kitambulisho cha kawaida cha herufi ndogo -- taarifa ya
+    // kwanza ya mwili wa kazi, muktadha uleule ulioshindwa kwa "h2"
+    // kwenye uzalishaji.swa halisi.
+    n32 mfano = 5;
+    n32 jumla = mfano + 10;
+    kama (jumla != 15) { rudisha 1; }
+    kama (piga_kelele(4) != 5) { rudisha 2; }
+
+    // (2a) Kitambulisho kinacholingana muundo wa aina (a1/b1/n1/d1)
+    // kama JINA LA KIGEU cha kawaida, kikitumika kama usemi.
+    n32 a1 = 100;
+    n32 b1 = 200;
+    n32 n1 = 300;
+    n32 d1 = 400;
+    kama (a1 + b1 + n1 + d1 != 1000) { rudisha 3; }
+
+    // (2b) Ugawaji upya wa moja kwa moja (bila aina mbele) -- taarifa
+    // INAYOANZA na kitambulisho hiki -- muktadha ambao ULIVUNJIKA
+    // kabla ya rekebisho la lookahead ya '['/']'/'{'/'}'
+    a1 = a1 + 1;
+    b1 = b1 + 1;
+    kama (a1 != 101 || b1 != 201) { rudisha 4; }
+
+    // (2c) Kama SAFU iliyofahirishwa -- hasa muundo uliovunjika kwenye
+    // jaribio_k14_maktaba_zaidi.swa (a1[0] = 65; b1[0] = 97;)
+    n8 arr_a1[4];
+    arr_a1[0] = 65;
+    arr_a1[1] = 66;
+    kama (arr_a1[0] != 65 || arr_a1[1] != 66) { rudisha 5; }
+
+    n8 arr_b1[4];
+    arr_b1[0] = 97;
+    kama (arr_b1[0] != 97) { rudisha 6; }
+
+    // (2d) Kitambulisho kinachofanana na familia W (w1, si w0)
+    n32 w1 = 7;
+    kama (w1 != 7) { rudisha 7; }
+
+    rudisha 0;
+}

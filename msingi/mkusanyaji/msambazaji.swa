@@ -344,6 +344,23 @@ N32 ni_aina_tokeni(Tokeni * t) {
     kama (c0 >= 65) {
         kama (c0 <= 90) { rudisha 1; }
     }
+    // MUHIMU: kiambishi cha herufi ndogo cha aina ya msingi (n32, d64,
+    // n.k.) LAZIMA kikubaliwe hapa PIA -- lakini kwa UANGALIFU: si kila
+    // kitambulisho cha herufi ndogo, ni MFUATANO KAMILI unaolingana na
+    // muundo wa aina ya msingi (herufi moja ya [n|a|d|b|w] ikifuatiwa
+    // na tarakimu TU). ni_aina_msingi_pia_ndogo (chini) inafanya
+    // ukaguzi huu HASA -- tumia moja kwa moja badala ya kurudia mantiki
+    // hapa. Kitambulisho cha kawaida cha herufi ndogo (mfano "mfano",
+    // "jumla", "piga_kelele") halilingani muundo huu na HALIINGII
+    // njia hii. TUMIA HAPA TU (nafasi ya kutangaza aina) -- SI kwenye
+    // ukaguzi wa "jina la aina halitumiki kama usemi" (ni_jina_la_aina,
+    // chini), kwa sababu hazina hii YENYEWE ina vitambulisho vingi vya
+    // ndani vya herufi ndogo vinavyolingana muundo huu bila kukusudia
+    // kuwa aina (a1..a6 -- hoja za kazi za printf-kama; b1/b2/b3 --
+    // baiti zilizogawanywa kwenye hesabu) -- kuvikataza kama "usemi"
+    // kunavunja kujikusanya kwa hazina hii YENYEWE. Angalia maelezo
+    // kamili kwenye ni_aina_msingi_pia_ndogo.
+    kama (ni_aina_msingi_pia_ndogo(t->mwanzo, t->urefu)) { rudisha 1; }
     rudisha 0;
 }
 
@@ -351,6 +368,39 @@ N32 ni_aina_msingi(N8* txt, N64 n) {
     kama (n < 2) { rudisha 0; }
     N8 c0 = txt[0];
     kama (c0 < 65 || c0 > 90) { rudisha 0; }
+    N64 j = 1;
+    wakati (j < n) {
+        N8 c = txt[j];
+        kama (c < 48 || c > 57) { rudisha 0; }
+        j = j + 1;
+    }
+    rudisha 1;
+}
+
+// Jina la aina ya msingi, herufi KUBWA (yoyote A-Z, tabia ya asili
+// iliyopo tayari) NA HERUFI NDOGO (n/a/d/b/w PEKEE -- angalia hapa
+// chini kwa nini hii ni tofauti kimakusudi) zote mbili zinakubalika.
+// N32 na n32 zinatoa familia/upana SAWA (angalia changanua_aina_tokeni
+// chini), hivyo ni aina MOJA HASA, si mbili tofauti.
+//
+// MUHIMU: upande wa herufi NDOGO umezuiliwa KIMAKUSUDI kwa herufi
+// TANO za familia halisi (n, a, d, b, w) TU -- SI herufi yoyote ya
+// alfabeti kama upande wa herufi kubwa (ule ni tabia ya asili
+// iliyopo tayari, salama kwa vitendo kwa sababu vitambulisho vya
+// ndani vya hazina hii huwa herufi ndogo, si kubwa). Kwa herufi
+// ndogo, kuruhusu HERUFI YOYOTE (si tano hizi tu) kungegonga
+// vitambulisho vingi HALISI vya ndani ya hazina hii yenyewe
+// (iligunduliwa kwa majaribio HALISI, si dhana: "h2" -- kigezo cha
+// kawaida cha ndani cha uzalishaji.swa -- kililingana kimakosa na
+// muundo huu kabla ya kuzuiliwa kwa herufi tano, likivunja
+// kujikusanya kwa hazina hii yenyewe kwa hitilafu ya uwongo "jina
+// la aina halifuatwi na jina la kigeu").
+N32 ni_aina_msingi_pia_ndogo(N8* txt, N64 n) {
+    kama (n < 2) { rudisha 0; }
+    N8 c0 = txt[0];
+    N32 ni_kubwa = (c0 >= 65 && c0 <= 90);
+    N32 ni_ndogo = (c0 == 110 || c0 == 97 || c0 == 100 || c0 == 98 || c0 == 119);  // n a d b w
+    kama (ni_kubwa == 0 && ni_ndogo == 0) { rudisha 0; }
     N64 j = 1;
     wakati (j < n) {
         N8 c = txt[j];
@@ -370,11 +420,21 @@ N32 encode_aina(N32 familia, N32 upana, N32 mshale) {
 N32 ukubwa_hoja = 0;
 
 // Jina la aina? Aina za nambari hufuata muundo [N|A|D|B|W]+tarakimu
-// (mf. N32, D64, W0), na miundo ya mtumiaji inajulikana kupitia
-// akiba ya miundo iliyokamilika. Jina la aina HALITUMIKI kama usemi —
-// kukubali kunatoa msimbo unaoanguka kimya.
+// (mf. N32, D64, W0, n32, d64, w0), na miundo ya mtumiaji
+// inajulikana kupitia akiba ya miundo iliyokamilika.
+//
+// MUHIMU: kazi hii ina MATUMIZI MOJA TU -- kuamua kama taarifa
+// inayoanza na tokeni hii YAWEZEKANA ni TANGAZO LA KIGEU (mfano
+// "n32 x = 5;"), SI ukaguzi wa "jina la aina halitumiki kama usemi"
+// (ukaguzi huo upo KANDA, moja kwa moja ndani ya mchanganuzi wa
+// usemi wa msingi, ukiwa umekusudia kubaki herufi KUBWA TU -- angalia
+// maelezo kwenye ni_aina_msingi_pia_ndogo hapo juu kwa sababu kamili).
+// Hapa, kwa upande mwingine, tunahitaji herufi ndogo ZITAMBULIWE
+// kikamilifu, la sivyo "n32 x = 5;" haiwahi kutambuliwa kama tangazo
+// kabisa -- kazi hii inaitwa TU kwenye nafasi ya mwanzo wa taarifa
+// (statement dispatch), si kila mahali kitambulisho kinapoonekana.
 N32 ni_jina_la_aina(Tokeni* t) {
-    kama (ni_aina_msingi(t->mwanzo, t->urefu)) { rudisha 1; }
+    kama (ni_aina_msingi_pia_ndogo(t->mwanzo, t->urefu)) { rudisha 1; }
     N32 mi = 0;
     wakati (mi < muundo_ukubwa_idadi) {
         N8* mj = muundo_ukubwa_jina[mi];
@@ -399,13 +459,14 @@ N32 changanua_aina_tokeni(Msambazaji* p) {
     N32 familia = 0;
     N32 upana = 0;
     N32 mshale = 0;
-    kama (ni_aina_msingi(txt, n)) {
+    kama (ni_aina_msingi_pia_ndogo(txt, n)) {
         N8 c0 = txt[0];
-        kama (c0 == 78) { familia = 1; }  // N
-        kama (c0 == 65) { familia = 2; }  // A
-        kama (c0 == 68) { familia = 3; }  // D
-        kama (c0 == 66) { familia = 4; }  // B
-        kama (c0 == 87) { familia = 5; }  // W
+        // Herufi kubwa NA ndogo zinatoa familia SAWA (N32 == n32).
+        kama (c0 == 78 || c0 == 110) { familia = 1; }  // N / n
+        kama (c0 == 65 || c0 == 97) { familia = 2; }  // A / a
+        kama (c0 == 68 || c0 == 100) { familia = 3; }  // D / d
+        kama (c0 == 66 || c0 == 98) { familia = 4; }  // B / b
+        kama (c0 == 87 || c0 == 119) { familia = 5; }  // W / w
     }
     kama (familia == 0) { familia = 6; }  // muundo wa mtumiaji
     kama (familia != 6) {
@@ -885,7 +946,18 @@ N32 changanua_taarifa_tangazo(Msambazaji* p) {
         sogeza(p);  // tumia jina la aina kwa jaribio
         // Ruka viashiria vya herufi moja: Jina* j;  /  Jina** j;
         wakati (p->sasa.urefu == 1 && p->sasa.mwanzo[0] == 42) { sogeza(p); }
-        kama (p->sasa.urefu >= 1 && p->sasa.mwanzo[0] >= 65) { ni_tangazo = 1; }
+        // MUHIMU: >=65 peke yake HAITOSHI -- baadhi ya alama za ishara
+        // (mfano '[' = 91, ']' = 93, '{' = 123, '}' = 125) ziko juu ya
+        // 65 kimahesabu lakini SI mwanzo wa jina la kigeu kamwe.
+        // Bila kuzitenga, taarifa kama "a1[0] = 65;" (kigezo cha safu
+        // KILICHOSHATANGAZWA kikifahirishwa, si tangazo jipya) ilikuwa
+        // ikikisiwa VIBAYA kama tangazo (kwa sababu upanuzi wa herufi
+        // ndogo za aina za msingi sasa unatambua "a1" kama jina la
+        // aina linalowezekana) -- iligunduliwa kwa majaribio HALISI
+        // (jaribio_k14_maktaba_zaidi.swa, a1[0]/b1[0]).
+        N8 ch_baada = p->sasa.mwanzo[0];
+        N32 ni_ishara_maalum = (ch_baada == 91 || ch_baada == 93 || ch_baada == 123 || ch_baada == 125);
+        kama (p->sasa.urefu >= 1 && ch_baada >= 65 && ni_ishara_maalum == 0) { ni_tangazo = 1; }
         p->msomaji.nafasi = nafasi_iliyohifadhiwa;
         p->msomaji.mstari = mstari_uliohifadhiwa;
         p->msomaji.safu = safu_iliyohifadhiwa;
