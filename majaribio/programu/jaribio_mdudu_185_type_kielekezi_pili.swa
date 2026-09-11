@@ -1,0 +1,32 @@
+// lugha-swa/swa#185 -- safu ya TYPE** (kielekezi-cha-kielekezi kwenda
+// muundo) ilihesabu hatua (stride) ISIYO SAHIHI, na pia haikupakia
+// (load) thamani halisi ya kielekezi kilichohifadhiwa -- ilirudisha
+// anwani ya nafasi (slot) yenyewe badala ya kielekezi kilichomo.
+// Chanzo cha mzizi (mbili): (1) ukubwa_wa_kipengele haikutofautisha
+// TYPE* (mshale=1, kipengele ni thamani iliyopachikwa) na TYPE**
+// (mshale=3, kipengele ni kielekezi cha baiti 8); (2)
+// andika_pakia_anwani_kwa_enc iliruka upakiaji kwa ENC HASI ZOTE
+// (ikidhani ni muundo uliopachikwa), bila kuangalia kama ni kweli
+// TYPE** inayohitaji upakiaji wa kielekezi cha baiti 8.
+husisha { maktaba/kumbukumbu.swa }
+muundo Sehemu {
+    N32 x;
+};
+N32 main() {
+    Sehemu** vitu = tenga(ukubwa(N64) * 30);
+    N32 i = 0;
+    wakati (i < 30) {
+        Sehemu* s = tenga(ukubwa(Sehemu));
+        s->x = i;
+        vitu[i] = s;
+        i = i + 1;
+    }
+    N32 makosa = 0;
+    i = 0;
+    wakati (i < 30) {
+        Sehemu* s = vitu[i];
+        kama (s->x != i) { makosa = makosa + 1; }
+        i = i + 1;
+    }
+    rudisha makosa;
+}
