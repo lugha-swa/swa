@@ -2911,6 +2911,23 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
     // Hoja za kawaida (int/ptr) huenda kwa rdi, rsi, rdx, rcx, r8, r9
     N32 gp_reg = 0; N32 xmm_reg = 0;
     kama (callee_ni_sret) { gp_reg = 1; }  // rdi imetengwa kwa kielekezi cha sret
+    // MUHIMU (lugha-swa/swa#184): gp_reg/xmm_reg hapo juu VIMEKOMEA
+    // (6 na 8 mtawalia) -- havifai kuhesabu JUMLA HALISI ya hoja za
+    // kila aina, kwa sababu usafishaji wa rafu (chini, "Safisha hoja
+    // za rafu zilizobaki") unahitaji kujua ni hoja NGAPI HALISI
+    // zilibaki kwenye rafu bila kupakiwa kwenye rejesta -- si idadi
+    // ya jumla ya hoja (hoja_n) tu. Kabla ya rekebisho hili, hesabu
+    // ya usafishaji ilikuwa `hoja_n - 6` bila kujali kama hoja
+    // zilizozidi 6 zilikuwa za GP au za XMM -- kazi yenye jumla ya
+    // vigezo 7 (kielekezi 1 + D64 6) ilipakiwa KAMILI kwenye rejesta
+    // (GP 1/6, XMM 6/8, hakuna kilichobaki rafuni), lakini
+    // usafishaji ulifanya `add rsp, 8` HALISI YA UONGO kila wito --
+    // ikisogeza rsp juu bila sababu kwa kila wito ndani ya kitanzi,
+    // hadi kuharibu sehemu za kumbukumbu za mwitaji (rekodi ya
+    // 2026-09: kaunta ya kitanzi cha mwitaji ilibadilika baada ya
+    // wito 1-2 tu).
+    N32 n_gp_jumla = 0; N32 n_xmm_jumla = 0;
+    kama (callee_ni_sret) { n_gp_jumla = 1; }
 
     N32 j = 0;
     wakati (j < hoja_n) {
@@ -2920,6 +2937,7 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
         N32 enc_p = mkaguzi_tafuta_param_enc(callee, j);
         kama (enc_p > 0) { enc = enc_p; }
         kama (ni_desimali_enc(enc)) {
+            n_xmm_jumla = n_xmm_jumla + 1;
             kama (xmm_reg < 8) {
                 // Vuta thamani ya desimali moja kwa moja kwenye rejesta
                 // sahihi ya XMM: movsd/movss xmmN, [rsp]; add rsp, 8
@@ -2946,6 +2964,7 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
             // Hili lilikuwepo hata kabla ya mabadiliko ya XMM. Linahitaji kurekebishwa
             // kwa hoja za GP na XMM zote — angalia pia mstari wa 1483.
         } sivyo {
+            n_gp_jumla = n_gp_jumla + 1;
             kama (gp_reg < 6) {
                 kama (gp_reg == 0) { andika_pop_rdi(); }
                 sivyo { kama (gp_reg == 1) { andika_pop_rsi(); }
@@ -3041,13 +3060,30 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
                 }
             } } }
 
-    // Safisha hoja za rafu zilizobaki (hoja 7+ za GP, baiti 8 kila moja)
-    kama (hoja_n > 6) {
-        // Kwa syscall, pop r9 tayari iliondoa a7 (ofseti) — zilizobaki
-        // ni a8..aN (hoja_n - 7). Kwa wito wa kawaida, a7..aN zote
-        // zilibaki kwenye rafu (hoja_n - 6).
-        N32 idadi_rafu = hoja_n - 6;
-        kama (ni_syscall_wito) { idadi_rafu = hoja_n - 7; }
+    // Safisha hoja za rafu zilizobaki. MUHIMU (lugha-swa/swa#184):
+    // idadi ya hoja zilizobaki HALISI kwenye rafu HAIWEZI kukokotolewa
+    // kutoka hoja_n (jumla ya hoja, bila kujali aina) -- lazima
+    // ikokotolewe kwa KILA aina ya rejesta kando, kwa sababu GP
+    // (rejesta 6) na XMM (rejesta 8) zina kikomo TOFAUTI. Kazi yenye
+    // jumla ya hoja 7+ ambazo zote zinapakia KAMILI kwenye rejesta
+    // (mfano GP 1 + D64 6, jumla 7) haziachi CHOCHOTE rafuni --
+    // `hoja_n - 6` ya zamani ingedai kimakosa hoja 1 imebaki, na
+    // `add rsp, 8` ya uongo hiyo ingesogeza rsp bila sababu kwa kila
+    // wito, ikijikusanya hadi kuharibu kumbukumbu ya mwitaji.
+    kama (ni_syscall_wito) {
+        // Syscall ina ABI yake tofauti kabisa (tazama hapo juu) -- si
+        // mgawanyo wa GP/XMM wa SysV, formula ya zamani inabaki sahihi.
+        kama (hoja_n > 6) {
+            N32 idadi_rafu = hoja_n - 7;
+            kama (idadi_rafu > 0) {
+                andika_baiti(72); andika_baiti(131); andika_baiti(196);
+                andika_baiti(idadi_rafu * 8);
+            }
+        }
+    } sivyo {
+        N32 idadi_rafu = 0;
+        kama (n_gp_jumla > 6) { idadi_rafu = idadi_rafu + (n_gp_jumla - 6); }
+        kama (n_xmm_jumla > 8) { idadi_rafu = idadi_rafu + (n_xmm_jumla - 8); }
         kama (idadi_rafu > 0) {
             // add rsp, imm8 (48 83 C4 xx)
             andika_baiti(72); andika_baiti(131); andika_baiti(196);
