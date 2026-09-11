@@ -1,0 +1,34 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+N32 IDADI = 2000000;
+
+N32 urefu_wa(N8* s) {
+    N32 n = 0;
+    wakati (s[n] != 0) { n = n + 1; }
+    rudisha n;
+}
+
+N32 heshi_fnv(N8* s, N32 urefu) {
+    N32 h = -2128831035;
+    N32 i = 0;
+    wakati (i < urefu) {
+        h = h ^ s[i];
+        h = h * 16777619;
+        i = i + 1;
+    }
+    rudisha h;
+}
+
+N32 main() {
+    N8* neno = "kompyuta_ya_mfano_kwa_uzito_wa_kati_12345";
+    N32 urefu = urefu_wa(neno);
+    N64 jumla = 0;
+    N32 i = 0;
+    wakati (i < IDADI) {
+        N32 h = heshi_fnv(neno, urefu);
+        jumla = jumla + h + i;
+        i = i + 1;
+    }
+    andika("jumla=%d urefu=%d\n", jumla, urefu, 0, 0, 0, 0);
+    rudisha 0;
+}

@@ -1,0 +1,96 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+// Muundo mdogo unaowakilisha "mfumo mdogo" mmoja wa mchezo (kama
+// uchumi/utawala/jeshi n.k. kwenye mchezo.swa halisi). Field ni N32
+// ya moja kwa moja (si kielekezi-kwenda-muundo, kuepuka #186).
+muundo Mfumo {
+    N32 thamani;
+    N32 kiwango;
+}
+
+Mfumo* mfumo_unda(N32 mwanzo) {
+    Mfumo* m = tenga(ukubwa(Mfumo));
+    m->thamani = mwanzo;
+    m->kiwango = 1;
+    rudisha m;
+}
+
+N32 mfumo_pata_thamani(Mfumo* m) { rudisha m->thamani; }
+N32 mfumo_pata_kiwango(Mfumo* m) { rudisha m->kiwango; }
+
+W0 mfumo_sasisha(Mfumo* m, N32 pembejeo) {
+    N32 sasa = mfumo_pata_thamani(m);
+    N32 kw = mfumo_pata_kiwango(m);
+    N32 mpya = sasa + (pembejeo % 7) - (kw % 3);
+    kama (mpya < 0) { mpya = 0 - mpya; }
+    m->thamani = mpya;
+    kama (mpya % 500 == 0) { m->kiwango = kw + 1; }
+}
+
+// "Mchezo" mkuu una anwani (N64) za mifumo 12 -- muundo wa #186
+// unaotumika kila mahali kwenye Dominion.
+muundo Mchezo {
+    N64 m1; N64 m2; N64 m3; N64 m4; N64 m5; N64 m6;
+    N64 m7; N64 m8; N64 m9; N64 m10; N64 m11; N64 m12;
+}
+
+Mfumo* mchezo_pata1(Mchezo* g) { rudisha g->m1; }
+Mfumo* mchezo_pata2(Mchezo* g) { rudisha g->m2; }
+Mfumo* mchezo_pata3(Mchezo* g) { rudisha g->m3; }
+Mfumo* mchezo_pata4(Mchezo* g) { rudisha g->m4; }
+Mfumo* mchezo_pata5(Mchezo* g) { rudisha g->m5; }
+Mfumo* mchezo_pata6(Mchezo* g) { rudisha g->m6; }
+Mfumo* mchezo_pata7(Mchezo* g) { rudisha g->m7; }
+Mfumo* mchezo_pata8(Mchezo* g) { rudisha g->m8; }
+Mfumo* mchezo_pata9(Mchezo* g) { rudisha g->m9; }
+Mfumo* mchezo_pata10(Mchezo* g) { rudisha g->m10; }
+Mfumo* mchezo_pata11(Mchezo* g) { rudisha g->m11; }
+Mfumo* mchezo_pata12(Mchezo* g) { rudisha g->m12; }
+
+Mchezo* mchezo_unda() {
+    Mchezo* g = tenga(ukubwa(Mchezo));
+    g->m1 = mfumo_unda(10);
+    g->m2 = mfumo_unda(20);
+    g->m3 = mfumo_unda(30);
+    g->m4 = mfumo_unda(40);
+    g->m5 = mfumo_unda(50);
+    g->m6 = mfumo_unda(60);
+    g->m7 = mfumo_unda(70);
+    g->m8 = mfumo_unda(80);
+    g->m9 = mfumo_unda(90);
+    g->m10 = mfumo_unda(100);
+    g->m11 = mfumo_unda(110);
+    g->m12 = mfumo_unda(120);
+    rudisha g;
+}
+
+W0 mchezo_sasisha(Mchezo* g, N32 zamu) {
+    mfumo_sasisha(mchezo_pata1(g), zamu + 1);
+    mfumo_sasisha(mchezo_pata2(g), zamu + 2);
+    mfumo_sasisha(mchezo_pata3(g), zamu + 3);
+    mfumo_sasisha(mchezo_pata4(g), zamu + 4);
+    mfumo_sasisha(mchezo_pata5(g), zamu + 5);
+    mfumo_sasisha(mchezo_pata6(g), zamu + 6);
+    mfumo_sasisha(mchezo_pata7(g), zamu + 7);
+    mfumo_sasisha(mchezo_pata8(g), zamu + 8);
+    mfumo_sasisha(mchezo_pata9(g), zamu + 9);
+    mfumo_sasisha(mchezo_pata10(g), zamu + 10);
+    mfumo_sasisha(mchezo_pata11(g), zamu + 11);
+    mfumo_sasisha(mchezo_pata12(g), zamu + 12);
+}
+
+N32 ZAMU_IDADI = 200000;
+
+N32 main() {
+    Mchezo* g = mchezo_unda();
+    N32 z = 0;
+    wakati (z < ZAMU_IDADI) {
+        mchezo_sasisha(g, z);
+        z = z + 1;
+    }
+    N32 jumla = mfumo_pata_thamani(mchezo_pata1(g))
+        + mfumo_pata_thamani(mchezo_pata6(g))
+        + mfumo_pata_thamani(mchezo_pata12(g));
+    andika("jumla=%d z=%d\n", jumla, z, 0, 0, 0, 0);
+    rudisha 0;
+}

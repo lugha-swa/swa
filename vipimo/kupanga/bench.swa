@@ -1,0 +1,65 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+N32 KIASI = 1000000;
+N64 rand_hali = 4101842887655102017;
+
+N32 nasibu_ijayo() {
+    rand_hali = rand_hali ^ (rand_hali / 4294967296);
+    rand_hali = rand_hali * 2685821657736338717;
+    rand_hali = rand_hali ^ (rand_hali / 4294967296);
+    N32 r = rand_hali % 1000000000;
+    kama (r < 0) { rudisha 0 - r; }
+    rudisha r;
+}
+
+W0 badilisha(N32* arr, N32 i, N32 j) {
+    N32 tmp = arr[i];
+    arr[i] = arr[j];
+    arr[j] = tmp;
+}
+
+N32 gawanya(N32* arr, N32 chini, N32 juu) {
+    N32 kati = chini + (juu - chini) / 2;
+    kama (arr[kati] < arr[chini]) { badilisha(arr, kati, chini); }
+    kama (arr[juu] < arr[chini]) { badilisha(arr, juu, chini); }
+    kama (arr[juu] < arr[kati]) { badilisha(arr, juu, kati); }
+    badilisha(arr, kati, juu);
+    N32 pivot = arr[juu];
+    N32 i = chini - 1;
+    N32 j = chini;
+    wakati (j < juu) {
+        kama (arr[j] < pivot) {
+            i = i + 1;
+            badilisha(arr, i, j);
+        }
+        j = j + 1;
+    }
+    badilisha(arr, i + 1, juu);
+    rudisha i + 1;
+}
+
+W0 panga(N32* arr, N32 chini, N32 juu) {
+    kama (chini < juu) {
+        N32 p = gawanya(arr, chini, juu);
+        panga(arr, chini, p - 1);
+        panga(arr, p + 1, juu);
+    }
+}
+
+N32 main() {
+    N32* arr = tenga(KIASI * 4);
+    N32 i = 0;
+    wakati (i < KIASI) {
+        arr[i] = nasibu_ijayo() % 10000000;
+        i = i + 1;
+    }
+    panga(arr, 0, KIASI - 1);
+    N32 sahihi = 1;
+    i = 0;
+    wakati (i < KIASI - 1) {
+        kama (arr[i] > arr[i + 1]) { sahihi = 0; }
+        i = i + 1;
+    }
+    andika("sahihi=%d kwanza=%d mwisho=%d\n", sahihi, arr[0], arr[KIASI - 1], 0, 0, 0);
+    rudisha 0;
+}
