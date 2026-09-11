@@ -1,0 +1,20 @@
+// lugha-swa/swa#184 -- kazi yenye jumla ya vigezo 7+ ambapo angalau
+// kimoja ni D64, ikiitwa kwenye kitanzi, iliharibu hifadhi ya
+// mwitaji. Chanzo cha mzizi: usafishaji wa rafu baada ya wito
+// ulikokotoa "hoja zilizobaki" kama hoja_n - 6 bila kujali kama
+// hoja zilizozidi 6 zilikuwa za GP au za XMM -- kazi hii (GP 1 +
+// D64 6, jumla 7) inapakia KAMILI kwenye rejesta (GP 1/6, XMM 6/8),
+// haiachi CHOCHOTE rafuni, lakini usafishaji wa zamani ulifanya
+// `add rsp, 8` ya uongo kila wito, ikijikusanya hadi kuharibu kaunta
+// ya kitanzi cha mwitaji baada ya wito 1-2 tu.
+W0 sasisha_sehemu(N32 a, D64 b, D64 c, D64 d, D64 e, D64 f, D64 g) {
+    D64 jumla = b + c + d + e + f + g;
+}
+N32 main() {
+    N32 i = 0;
+    wakati (i < 200) {
+        sasisha_sehemu(i, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
+        i = i + 1;
+    }
+    rudisha i;
+}
