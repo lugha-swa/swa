@@ -1,0 +1,29 @@
+// lugha-swa/swa#188 -- neno la D64 lenye tarakimu za kasoro zaidi ya
+// 10 lilichanganuliwa VIBAYA KIMYA KIMYA (bila hitilafu ya kukusanya)
+// -- thamani halisi iliyohifadhiwa ilikuwa TOFAUTI KABISA na neno
+// lililoandikwa (si kosa dogo la mzunguko wa mwisho). Chanzo cha
+// mzizi: bits_ya_d64_swa (kumbukumbu.swa) hukokotoa hesabu * 2^26
+// kama hatua ya kwanza ya kuzidisha-kwa-kugawanywa -- kwa tarakimu
+// za kasoro 11+, hesabu (baada ya kuinuliwa hadi [nene, 2*nene))
+// huzidi N64, ikitoa thamani isiyohusiana kabisa. Sasa tarakimu za
+// ziada zinaachwa (kutwaliwa) badala ya kusababisha kufurika kimya.
+N32 main() {
+    D64 a = 0.6931471805;       // tarakimu 10 za kasoro -- ilikuwa sahihi tayari
+    N32 a1000 = a * 1000.0;
+    kama (a1000 != 693) { rudisha 1; }
+
+    D64 b = 0.69314718055;      // tarakimu 11 -- ilikuwa ikivunjika
+    N32 b1000 = b * 1000.0;
+    kama (b1000 != 693) { rudisha 2; }
+
+    D64 pi = 3.14159265358979;  // pi, tarakimu 14
+    D64 e = 2.71828182845905;   // e, tarakimu 14
+    N32 pi_i = pi * 1000000.0;
+    N32 e_i = e * 1000000.0;
+    // MUHIMU: hii ndiyo dalili ya awali ya mdudu -- pi na e (thamani
+    // TOFAUTI KABISA kihisabati) zilirudisha THAMANI MOJA HASA.
+    kama (pi_i == e_i) { rudisha 3; }
+    kama (pi_i < 3141590 || pi_i > 3141600) { rudisha 4; }
+    kama (e_i < 2718280 || e_i > 2718290) { rudisha 5; }
+    rudisha 0;
+}
