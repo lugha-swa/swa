@@ -380,10 +380,23 @@ N8* badili(N8* p, N64 ukubwa) {
 // Usomaji wa desimali halisi — badala ya strtod (libc)
 // bits_ya_d64_swa: mfuatano [-]z.z → baiti za D64 (IEEE 754)
 // (majina ya kigeu hayawezi kuwa herufi za aina: N A B D W)
-// Kikomo cha sasa: tarakimu za kasoro <= 10 kwa thamani < 2^26,
-// <= 3 kwa thamani kubwa zaidi (vinginevyo hesabu*2^hamisha
-// inaweza kuzidi baiti 64).
+//
+// lugha-swa/swa#188: tarakimu za kasoro (baada ya nukta) zaidi ya 10
+// zilisababisha `hesabu * 2^hamisha` kuzidi N64 (baiti 64) KIMYA --
+// neno la tarakimu 11+ za kasoro lilitoa THAMANI ISIYOHUSIANA KABISA,
+// si kosa dogo la mzunguko wa mwisho. Uthibitisho wa hesabu: baada ya
+// "Kuinua hesabu" (hapo chini) hesabu iko [nene, 2*nene); hatua ya
+// kwanza ya kuzidisha kwa kugawanywa (2^26) inahitaji
+// `2*nene*2^26 < 2^63` (N64 ni ya ishara) => `nene < 2^36` =>
+// idadi_k <= 10 (10^10 < 2^36 < 10^11). Zaidi ya tarakimu 10,
+// tarakimu za ziada sasa zinaachwa (zimekatwa) badala ya kusababisha
+// kufurika kimya -- D64 yenyewe ina usahihi wa takriban tarakimu
+// 15-17 tu kwa vyovyote vile, kwa hiyo tarakimu 10 za kwanza
+// zilizohifadhiwa kwa uangalifu ni bora zaidi ya thamani isiyohusiana
+// kabisa iliyotolewa hapo awali.
 // ==========================================================
+
+N32 BITS_D64_KASORO_KIKOMO = 10;
 
 N64 p2_kwa(N32 kubwa) {
     N64 thamani = 1;
@@ -409,8 +422,15 @@ N64 bits_ya_d64_swa(N8* ch, N32 u) {
     kama (fasi < u && ch[fasi] == 46) {
         fasi = fasi + 1;
         wakati (fasi < u) {
-            kasoro = kasoro * 10 + (ch[fasi] - 48);
-            idadi_k = idadi_k + 1;
+            // lugha-swa/swa#188: tarakimu za ziada zaidi ya kikomo
+            // (baada ya idadi_k kufika BITS_D64_KASORO_KIKOMO)
+            // huachwa (kutwaliwa/kusomwa kutoka kwenye neno, lakini
+            // hazihesabiwi) badala ya kuruhusu kasoro/nene kuzidi
+            // N64 kimya -- angalia maelezo kamili juu ya faili hili.
+            kama (idadi_k < BITS_D64_KASORO_KIKOMO) {
+                kasoro = kasoro * 10 + (ch[fasi] - 48);
+                idadi_k = idadi_k + 1;
+            }
             fasi = fasi + 1;
         }
     }
