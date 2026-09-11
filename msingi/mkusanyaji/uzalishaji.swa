@@ -1518,7 +1518,19 @@ W0 andika_mov_rax_anwani_eax() { andika_baiti(72); andika_baiti(139); andika_bai
 // rax tayari ina anwani, hakuna upakiaji unaofanyika.
 W0 andika_pakia_anwani_kwa_enc(N32 enc) {
     kama (enc < 0) {
-        // anwani tayari iko rax — hakuna opcode
+        // MUHIMU (lugha-swa/swa#185): kwa TYPE* (mshale=1, mfano "P
+        // s[3]") au muundo uliopachikwa moja kwa moja (mshale=0),
+        // anwani tayari iko rax -- hakuna opcode (kipengele ni
+        // thamani ya muundo, inashughulikiwa kwa rejeleo kila mahali).
+        // LAKINI kwa TYPE** (mshale=3, mfano "P** vitu"), kipengele
+        // ni KIELEKEZI HALISI (baiti 8) kilichohifadhiwa KATIKA
+        // anwani hiyo -- lazima kipakiwe (mov rax, [rax]), si
+        // kuachwa kama anwani ya safu yenyewe.
+        kama ((enc / 2) * 2 != enc) {
+            kama (enc_hasi_ni_mshale_wa_pili(enc)) {
+                andika_mov_rax_anwani_eax();
+            }
+        }
     } sivyo {
         kama (ni_desimali_enc(enc)) {
             // Desimali: movsd/movss xmm0, [rax] — si mov rax
@@ -2196,7 +2208,18 @@ N32 ukubwa_wa_kipengele(N32 enc) {
     N32 saizi = ukubwa_kutoka_enc(enc);
     kama (enc < 0) {
         kama ((enc / 2) * 2 != enc) {
-            saizi = ukubwa_kutoka_enc(enc - 1);
+            // lugha-swa/swa#185: enc hasi isiyo sawa inaweza kuwa
+            // TYPE* (mshale=1, safu ya miundo iliyopachikwa
+            // iliyoporomoka kuwa kielekezi -- "P s[3]", kipengele ni
+            // thamani iliyopachikwa) AU TYPE** (mshale=3, safu HALISI
+            // ya vielekezi -- "P** vitu", kipengele ni kielekezi cha
+            // baiti 8). Tofautisha kwa enc_hasi_ni_mshale_wa_pili.
+            kama (enc_hasi_ni_mshale_wa_pili(enc)) {
+                saizi = 8;
+            } sivyo {
+                N32 name_off_1 = ((0 - (enc - 1)) / 2) - 1;
+                saizi = ukubwa_wa_muundo_kwa_jina(ast_pool + name_off_1);
+            }
         }
     }
     rudisha saizi;
@@ -4982,6 +5005,40 @@ N32 ni_muundo_enc(N32 enc) {
 }
 
 // Tafuta ukubwa wa muundo kwa kutembea nodi za AST_MUUNDO
+// Je, jina hili ni la muundo uliofafanuliwa KWELI (si chaguo-msingi
+// kimya)? Tofauti na ukubwa_wa_muundo_kwa_jina (ambayo hurudi 4 kwa
+// jina lisilojulikana -- lisiloweza kutofautishwa na muundo halisi
+// wa baiti 4), hii inarudisha 0/1 wazi -- lugha-swa/swa#185 inahitaji
+// kujua KWA UHAKIKA kama jina fulani lililokisiwa lipo kabisa.
+N32 muundo_jina_ipo(N8* jina) {
+    N32 si = 0;
+    wakati (si < ast_idadi) {
+        kama (ast_aina[si] == 12) {  // AST_MUUNDO
+            N32 name_node = ast_kushoto[si];
+            kama (name_node != -1) {
+                N8* sn = ast_pool + ast_jina_off[name_node];
+                kama (jina_linganisha(sn, jina)) { rudisha 1; }
+            }
+        }
+        si = si + 1;
+    }
+    rudisha 0;
+}
+
+// lugha-swa/swa#185: enc hasi isiyo sawa (kielekezi kwenda muundo)
+// inaweza kuwa TYPE* (mshale=1, mfano safu ya miundo iliyopachikwa
+// iliyoporomoka kuwa kielekezi) AU TYPE** (mshale=3, kielekezi cha
+// pili halisi). Zote mbili zinaonekana sawa (hasi, isiyo sawa) kwa
+// uchunguzi wa moja kwa moja -- tofautisha kwa kujaribu kudhani
+// mshale=1 (enc-1 -> jina la muundo); jina likikosekana kwenye
+// dimbwi la miundo, ni mshale=3 (kielekezi cha pili).
+N32 enc_hasi_ni_mshale_wa_pili(N32 enc) {
+    N32 name_off_1 = ((0 - (enc - 1)) / 2) - 1;
+    N8* jina_1 = ast_pool + name_off_1;
+    kama (muundo_jina_ipo(jina_1)) { rudisha 0; }
+    rudisha 1;
+}
+
 N32 ukubwa_wa_muundo_kwa_jina(N8* jina) {
     N32 si = 0;
     wakati (si < ast_idadi) {
