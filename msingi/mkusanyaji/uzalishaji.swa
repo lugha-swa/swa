@@ -2009,6 +2009,376 @@ N32 sret_hoja_haja = 0;  // juu ya haja ya nakala za sret-hoja (wakati wa kipiti
 N32 uzalishaji_mzizi = 0;  // mzizi wa AST (kwa utafutaji wa kazi za ndani)
 
 // -------------------------------------------------------
+// Ugawaji wa rejesta (register allocation), awamu ya 1
+//
+// rbx, r12, r13, r14, r15 (callee-saved kwenye System V ABI) hazitumiwi
+// KABISA na uzalishaji wa msimbo hapo awali -- kila thamani, hata ile
+// inayotumika mara kadhaa mfululizo, huandikwa kwenye rafu ([rbp-off])
+// kisha kupakiwa tena, hata kama hakuna wito wa kazi kati ya matumizi
+// mawili. Hii ni sababu kuu ya Swa kuwa 3.7x-17.6x polepole kuliko C
+// kwenye vipimo vya haraka vilivyofanywa kikao hiki.
+//
+// Wigo wa awamu hii (KWA MAKUSUDI mdogo, kuepuka hatari ya kuharibu
+// msimbo sahihi): VIGEZO VYA NDANI (tangazo la ndani ya mwili wa kazi)
+// PEKEE -- si vigezo vya paramu -- vinavyokidhi YOTE yafuatayo
+// vinaweza kuishi kwenye rejesta badala ya rafu:
+//   1. Aina kamili ya nambari isiyo kielekezi (n8/n16/n32/n64) --
+//      SI d32/d64 (rejesta za xmm ni suala tofauti kabisa), SI
+//      kielekezi cha aina yoyote (kuepuka utata wa vigezo
+//      vinavyotumika kama msingi wa .sehemu/->sehemu -- angalia
+//      maelezo kwenye eligibility check), SI muundo, SI safu.
+//   2. Anwani yake haichukuliwi KAMWE ndani ya kazi (&kigezo) --
+//      rejesta haina anwani, hivyo &kigezo cha rejesta haiwezekani
+//      kuwakilishwa kwa usahihi. Kigezo chochote chenye &kigezo
+//      popote ndani ya kazi KINABAKI KWENYE RAFU (kama ilivyokuwa).
+//
+// Rejesta 5 zinapatikana; kigezo cha 6+ kinachokidhi masharti
+// kinabaki kwenye rafu (hakuna spilling -- ni kigezo cha 1-5 cha
+// KWANZA kilichotangazwa (kwa mpangilio wa AST) TU kinachopewa
+// rejesta).
+//
+// TANBIHI MUHIMU: uteuzi wa mgombea (tambua_tangazo_pass) na
+// ugunduzi wa &kigezo (tambua_anwani_pass) ni PITIO MBILI KAMILI
+// ZA PEKEE (SI ndani ya kusanya_vigeu_vya_ndani iliyopo) -- kwa
+// makusudi, ili kuepuka kugusa kabisa mantiki nyeti iliyopo tayari
+// ya kusanya_vigeu_vya_ndani (ukubwa wa rafu, sret, bafa za wito).
+// Pia: kwa kufanya PITIO MBILI kamili (kwanza kusanya majina yote ya
+// mgombea, KISHA kutafuta & kwa majina hayo), tunaepuka hitilafu ya
+// mpangilio -- &x inayotokea KABLA ya x kutangazwa kwenye mpangilio
+// wa AST (usiowezekana kwa lugha hii, lakini si lazima ufanane na
+// mpangilio wa maandishi ya chanzo) bado inagunduliwa kwa usahihi.
+N32 REGISTA_HALISI_0 = 3;   // rbx
+N32 REGISTA_HALISI_1 = 12;  // r12
+N32 REGISTA_HALISI_2 = 13;  // r13
+N32 REGISTA_HALISI_3 = 14;  // r14
+N32 REGISTA_HALISI_4 = 15;  // r15
+
+N32 regista_halisi_kwa_id(N32 id) {
+    kama (id == 0) { rudisha REGISTA_HALISI_0; }
+    kama (id == 1) { rudisha REGISTA_HALISI_1; }
+    kama (id == 2) { rudisha REGISTA_HALISI_2; }
+    kama (id == 3) { rudisha REGISTA_HALISI_3; }
+    rudisha REGISTA_HALISI_4;
+}
+
+// -1 = kigezo hiki kiko kwenye rafu (tabia ya asili); 0-4 = faharisi
+// ya rejesta (angalia regista_halisi_kwa_id).
+N32 var_reg[64];
+
+// Majina ya wagombea (kutoka tambua_tangazo_pass), na alama ya
+// "haramu" (anwani imechukuliwa mahali fulani -- tambua_anwani_pass).
+N8* rega_kandida_jina[16];
+N32 rega_kandida_haramu[16];
+N32 rega_kandida_idadi = 0;
+
+// Rejesta ngapi zinatumika kwenye KAZI YA SASA (0-5) -- huamua ni
+// ngapi zinasukumwa (push) kwenye utangulizi na kutolewa (pop) kwenye
+// kila mahali pa kutoka (rudisha na mwisho wa kazi).
+N32 rega_tumika_idadi = 0;
+
+// push/pop reg64 kwa nambari HALISI ya rejesta ya x86-64 (0-15).
+// push reg: [REX.B kama reg>=8] + (0x50 + (reg & 7))
+// pop reg:  [REX.B kama reg>=8] + (0x58 + (reg & 7))
+W0 andika_push_reg64(N32 reg) {
+    kama (reg >= 8) { andika_baiti(65); }
+    andika_baiti(80 + (reg - ((reg / 8) * 8)));
+}
+W0 andika_pop_reg64(N32 reg) {
+    kama (reg >= 8) { andika_baiti(65); }
+    andika_baiti(88 + (reg - ((reg / 8) * 8)));
+}
+
+// mov rax, <reg-halisi> -- pakia thamani NZIMA ya rejesta ya kudumu
+// hadi rax (baiti 8 zote, kwa sababu andishi la kigezo kwenye
+// rejesta huhifadhiwa KIKAMILIFU kilichopanuliwa tayari -- angalia
+// sawazisha_eax_kwa_enc).
+// REX = 0x48 | (0x04 kama reg>=8, REX.R kwa uwanja wa reg) | 0
+// ModRM = 0xC0 | ((reg&7)<<3) | 0(rax kama rm)
+W0 andika_mov_rax_reg64(N32 reg) {
+    N32 rexr = 0;
+    kama (reg >= 8) { rexr = 4; }
+    andika_baiti(72 + rexr);
+    andika_baiti(137);
+    N32 reg7 = reg - ((reg / 8) * 8);
+    andika_baiti(192 + (reg7 * 8));
+}
+
+// mov <reg-halisi>, rax -- hifadhi rax NZIMA (baiti 8) kwenye rejesta
+// ya kudumu. Piga sawazisha_eax_kwa_enc KWANZA kama upana wa aina ni
+// mdogo kuliko baiti 8, la sivyo baiti za juu za rejesta zitabaki na
+// takataka kutoka hesabu iliyopita.
+// REX = 0x48 | 0 | (0x01 kama reg>=8, REX.B kwa uwanja wa rm)
+// ModRM = 0xC0 | (0<<3, rax kama reg) | (reg&7)
+W0 andika_mov_reg64_rax(N32 reg) {
+    N32 rexb = 0;
+    kama (reg >= 8) { rexb = 1; }
+    andika_baiti(72 + rexb);
+    andika_baiti(137);
+    N32 reg7 = reg - ((reg / 8) * 8);
+    andika_baiti(192 + reg7);
+}
+
+// Kabla ya kuandika thamani (eax/rax) ndani ya rejesta ya kudumu,
+// LAZIMA ipanuliwe kwa usahihi (movzx/movsx) kwa upana wa aina yake
+// -- vinginevyo usomaji baadaye (unaonakili REJESTA NZIMA hadi rax
+// moja kwa moja, angalia andika_mov_rax_reg64) ungerudisha baiti za
+// juu zisizo sahihi kwa aina ndogo (n8/n16). Hii ni sawa kabisa na
+// kanuni inayotumika kwenye upakiaji wa kumbukumbu (angalia
+// andika_mov_ax_na_rbp_off) -- ila hapa tunaipanua REJESTA-KWA-REJESTA
+// badala ya KUMBUKUMBU-KWA-REJESTA.
+W0 sawazisha_eax_kwa_enc(N32 enc) {
+    N32 uk = ukubwa_kutoka_enc(enc);
+    kama (uk == 1) {
+        kama (ni_bila_ishara_enc(enc)) { andika_movzx_eax_al(); }
+        sivyo { andika_movsx_eax_al(); }
+    } sivyo { kama (uk == 2) {
+            kama (ni_bila_ishara_enc(enc)) { andika_movzx_eax_ax16(); }
+            sivyo { andika_movsx_eax_ax16(); }
+        } }
+    // uk>=4: eax tayari ni sahihi -- "mov eax,..." hupanua kwa sifuri
+    // hadi rax kiotomatiki (ABI ya x86-64), na uk==8 hutumia rax yote
+    // moja kwa moja tayari.
+}
+
+// Je, enc hii ni mgombea salama wa kudumu kwenye rejesta? PEKEE
+// n8/n16/n32/n64 ISIYO KIELEKEZI -- angalia maelezo kamili hapo juu
+// kwa sababu ya kuzuia vielekezi (hata vya aina za msingi): enc chanya
+// ina upana%4==0 kwa n8/n16/n32/n64 zote (8,16,32,64 -- zote ni
+// tarakimu za 4), hivyo enc%4 inatoa BITI ZA MSHALE KWA USAHIHI bila
+// utata -- enc%4 != 0 inamaanisha ni kielekezi (mfano n32* ina
+// enc=289, 289%4=1). Hii inaepuka kabisa haja ya kufuatilia matumizi
+// ya kigezo kama msingi wa .sehemu/->sehemu (ambayo hutumia njia
+// TOFAUTI KABISA za var_rbp_off[i] -- angalia uzalishaji_sehemu_dot
+// na wenzake -- ambazo hazijafikiwa na rekebisho hili KWA MAKUSUDI).
+N32 ni_mgombea_rejista(N32 enc) {
+    kama (enc <= 0) { rudisha 0; }
+    kama (ni_desimali_enc(enc)) { rudisha 0; }
+    kama (ni_muundo_enc(enc)) { rudisha 0; }
+    kama ((enc - ((enc / 4) * 4)) != 0) { rudisha 0; }  // enc % 4 != 0 -> kielekezi
+    rudisha 1;
+}
+
+// PITIO 1/2: kusanya majina ya WAGOMBEA WOTE (tangazo la ndani,
+// scalar, isiyo kielekezi/desimali/muundo/safu) kwenye mwili wa kazi.
+// Muundo wa utembeaji ni NAKALA HALISI ya kusanya_vigeu_vya_ndani
+// (angalia maelezo yake kwa sababu ya kila ubaguzi wa ruka_tiga/
+// ruka_nne) -- LAZIMA ifanane kabisa, la sivyo tungeweza kufikia
+// thamani isiyo nodi ya AST (mfano ofseti ya sehemu iliyohifadhiwa
+// kwenye ast_tiga/ast_nne kwa aina fulani za nodi) kama node_id,
+// tukisababisha usomaji nje ya mipaka.
+W0 tambua_tangazo_pass(N32 node) {
+    kama (node < 0) { rudisha; }
+    kama (node >= 1048576) { rudisha; }
+    kama (kvn_visited[node] == kvn_gen) { rudisha; }
+    kvn_visited[node] = kvn_gen;
+    N32 aina = ast_aina[node];
+
+    kama (aina == 50) {  // AST_BLOCK
+        tambua_tangazo_pass(ast_kushoto[node]);
+        tambua_tangazo_pass(ast_nne[node]);
+        rudisha;
+    }
+
+    kama (aina == 11) {  // AST_TANGAZO
+        N32 var_node = ast_kushoto[node];
+        N32 enc = ast_thamani[var_node];
+        kama (enc == 0) { enc = ast_thamani[node]; }
+        N32 ni_safu = 0;
+        kama (ast_tiga[node] > 0) { ni_safu = 1; }
+        kama (ni_safu == 0 && ni_mgombea_rejista(enc)) {
+            kama (rega_kandida_idadi < 16) {
+                N8* jina = ast_pool + ast_jina_off[var_node];
+                rega_kandida_jina[rega_kandida_idadi] = jina;
+                rega_kandida_haramu[rega_kandida_idadi] = 0;
+                rega_kandida_idadi = rega_kandida_idadi + 1;
+            }
+        }
+        tambua_tangazo_pass(ast_kulia[node]);
+        tambua_tangazo_pass(ast_nne[node]);
+        rudisha;
+    }
+
+    kama (aina == 4) { rudisha; }  // NAMBARI -- si nodi halisi kwenye tiga/nne
+
+    tambua_tangazo_pass(ast_kushoto[node]);
+    tambua_tangazo_pass(ast_kulia[node]);
+    N32 ruka_tiga = 0;
+    kama (aina >= 6) { kama (aina <= 25) { ruka_tiga = 1; } }
+    kama (aina >= 31) { kama (aina <= 32) { ruka_tiga = 1; } }
+    kama (aina >= 39) { kama (aina <= 43) { ruka_tiga = 1; } }
+    kama (aina == 49) { ruka_tiga = 1; }
+    kama (aina == 29) { ruka_tiga = 1; }
+    kama (aina == 5) { ruka_tiga = 1; }
+    kama (aina == 33 || aina == 34 || aina == 35 || aina == 44) { ruka_tiga = 1; }
+    kama (ruka_tiga == 0) { tambua_tangazo_pass(ast_tiga[node]); }
+    N32 ruka_nne = 0;
+    kama (aina == 33 || aina == 34) { ruka_nne = 1; }
+    kama (aina == 45) { ruka_nne = 1; }
+    kama (aina == 4) { ruka_nne = 1; }
+    kama (ruka_nne == 0) { tambua_tangazo_pass(ast_nne[node]); }
+    kama (aina == 15) {
+        N32 tv = ast_thamani[node];
+        kama (tv != -1) { kama (tv != 0) { tambua_tangazo_pass(tv); } }
+    }
+}
+
+// PITIO 2/2: tafuta &kigezo (AST_KUMBUKA, aina==30) kwa jina lolote
+// lililo kwenye orodha ya wagombea, na uweke alama ya "haramu" --
+// muundo wa utembeaji NI SAWA na tambua_tangazo_pass (na
+// kusanya_vigeu_vya_ndani).
+W0 tambua_anwani_pass(N32 node) {
+    kama (node < 0) { rudisha; }
+    kama (node >= 1048576) { rudisha; }
+    kama (kvn_visited[node] == kvn_gen) { rudisha; }
+    kvn_visited[node] = kvn_gen;
+    N32 aina = ast_aina[node];
+
+    kama (aina == 30) {  // AST_KUMBUKA -- &usemi
+        N32 operand = ast_kushoto[node];
+        kama (operand != -1 && ast_aina[operand] == 5) {
+            N8* opjina = ast_pool + ast_jina_off[operand];
+            N32 ci = 0;
+            wakati (ci < rega_kandida_idadi) {
+                kama (jina_linganisha(rega_kandida_jina[ci], opjina)) {
+                    rega_kandida_haramu[ci] = 1;
+                }
+                ci = ci + 1;
+            }
+        }
+    }
+
+    kama (aina == 50) {
+        tambua_anwani_pass(ast_kushoto[node]);
+        tambua_anwani_pass(ast_nne[node]);
+        rudisha;
+    }
+    kama (aina == 11) {
+        tambua_anwani_pass(ast_kulia[node]);
+        tambua_anwani_pass(ast_nne[node]);
+        rudisha;
+    }
+    kama (aina == 4) { rudisha; }
+
+    // MUHIMU (mdudu HALISI uliogunduliwa kwa jaribio, si dhana):
+    // AST_WITO (8) hutumia ast_tiga KWENYE KILA NODI YA HOJA kama
+    // KIUNGO CHA HOJA INAYOFUATA -- SI maana ya kawaida ya aina ya
+    // hiyo nodi (mfano kwa KITAMBULISHO/aina==5, ast_tiga kawaida ni
+    // "ofseti za sehemu au -1", lakini nafasi ya hoja inaipa maana
+    // TOFAUTI KABISA). Ukaguzi wa ruka_tiga hapa chini ni SAHIHI kwa
+    // nodi katika muktadha wa KAWAIDA (SI nafasi ya hoja) -- ukitumika
+    // moja kwa moja kwenye nodi ya kwanza ya hoja (kupitia ast_kulia
+    // hapo chini), ungezuia (ruka_tiga) mnyororo wa hoja zilizosalia
+    // kila wakati hoja ya kwanza ikiwa ni aina iliyo kwenye orodha ya
+    // ruka_tiga (KITAMBULISHO, hesabu, n.k. -- karibu KILA hoja halisi)
+    // -- hivyo &kigezo kilichopitishwa kama hoja ya PILI (au zaidi)
+    // KAMWE kisingegunduliwa, na kigezo hicho kingekuwa mgombea WA
+    // UONGO wa rejesta, kikisababisha uharibifu wa kimya wa data
+    // (iligunduliwa: andika_herufi(faili, b) -- &bb ni hoja ya PILI
+    // ya sys_andika, bb ilipewa rejesta kimakosa, ikaandika baiti za
+    // takataka badala ya herufi halisi).
+    kama (aina == 8) {
+        tambua_anwani_pass(ast_kushoto[node]);  // callee (kwa wito usio wa moja kwa moja, nadra)
+        N32 a_w = ast_kulia[node];
+        wakati (a_w != -1) {
+            N32 a_w_ijayo = ast_tiga[a_w];  // hifadhi kiungo KABLA ya kujirudia
+            kama (a_w >= 0 && a_w < 1048576 && ast_aina[a_w] == 30) {
+                // &hoja moja kwa moja: shughulikia HAPA moja kwa moja
+                // (SI kwa kuiita tambua_anwani_pass(a_w) upya -- aina==30
+                // haiko kwenye orodha ya ruka_tiga, hivyo ingejaribu
+                // kufuata ast_tiga[a_w] kama mtoto wa kawaida badala ya
+                // kiungo cha hoja inayofuata, ikichanganya mnyororo).
+                kama (kvn_visited[a_w] != kvn_gen) {
+                    kvn_visited[a_w] = kvn_gen;
+                    N32 operand = ast_kushoto[a_w];
+                    kama (operand != -1 && ast_aina[operand] == 5) {
+                        N8* opjina2 = ast_pool + ast_jina_off[operand];
+                        N32 ci2 = 0;
+                        wakati (ci2 < rega_kandida_idadi) {
+                            kama (jina_linganisha(rega_kandida_jina[ci2], opjina2)) {
+                                rega_kandida_haramu[ci2] = 1;
+                            }
+                            ci2 = ci2 + 1;
+                        }
+                    }
+                }
+            } sivyo {
+                // Aina nyingine yoyote (KITAMBULISHO, hesabu, wito
+                // uliopachikwa, ternary, n.k.) -- ZOTE tayari ziko
+                // kwenye orodha ya ruka_tiga/ruka_nne (isipokuwa 30),
+                // kwa hiyo kuita tambua_anwani_pass(a_w) moja kwa moja
+                // ni SALAMA: itaruka ast_tiga[a_w] chake yenyewe (kiungo
+                // cha hoja, kinachoshughulikiwa na kitanzi hiki), lakini
+                // itatembelea watoto wake halisi (kushoto/kulia/nne
+                // inavyofaa) kwa usahihi -- ikiwemo wito uliopachikwa
+                // (utaingia tena tawi hili la aina==8 kwa mnyororo wake
+                // mwenyewe wa hoja).
+                tambua_anwani_pass(a_w);
+            }
+            a_w = a_w_ijayo;
+        }
+        // MUHIMU (mdudu WA PILI HALISI uliogunduliwa, si dhana): AST_WITO
+        // haiko kwenye orodha ya ruka_nne, hivyo ast_nne[node] (taarifa
+        // INAYOFUATA kwenye mnyororo wa block, WAKATI wito huu ni taarifa
+        // yenyewe -- si ndani ya usemi mkubwa zaidi) LAZIMA itembelewe --
+        // `rudisha;` ya moja kwa moja hapa (bila hii) ilikatiza kabisa
+        // utembeaji WOTE baada ya TAARIFA YOYOTE ya wito wa peke yake
+        // (mfano "piga_kazi(x, y);" pekee, si sehemu ya kama/ugawaji),
+        // ikisababisha vigezo vyote vilivyotangazwa BAADAYE kwenye block
+        // hiyo hiyo kuachwa bila kuchunguzwa kabisa na tambua_anwani_pass
+        // (ingawa VYAKUCHUNGUZWA na tambua_tangazo_pass, ambayo haina
+        // dosari hii -- ikizalisha wagombea "halali" wa uongo ambao &wao
+        // haukuwahi kupimwa). Kama node ni ndani ya usemi mkubwa zaidi
+        // (si taarifa ya block moja kwa moja), ast_nne[node] ni -1 hapa,
+        // na tambua_anwani_pass(-1) ni kitendo tulivu (rudisha ya papo
+        // hapo) -- salama bila masharti.
+        tambua_anwani_pass(ast_nne[node]);
+        rudisha;
+    }
+
+    tambua_anwani_pass(ast_kushoto[node]);
+    tambua_anwani_pass(ast_kulia[node]);
+    N32 ruka_tiga = 0;
+    kama (aina >= 6) { kama (aina <= 25) { ruka_tiga = 1; } }
+    kama (aina >= 31) { kama (aina <= 32) { ruka_tiga = 1; } }
+    kama (aina >= 39) { kama (aina <= 43) { ruka_tiga = 1; } }
+    kama (aina == 49) { ruka_tiga = 1; }
+    kama (aina == 29) { ruka_tiga = 1; }
+    kama (aina == 5) { ruka_tiga = 1; }
+    kama (aina == 33 || aina == 34 || aina == 35 || aina == 44) { ruka_tiga = 1; }
+    kama (ruka_tiga == 0) { tambua_anwani_pass(ast_tiga[node]); }
+    N32 ruka_nne = 0;
+    kama (aina == 33 || aina == 34) { ruka_nne = 1; }
+    kama (aina == 45) { ruka_nne = 1; }
+    kama (aina == 4) { ruka_nne = 1; }
+    kama (ruka_nne == 0) { tambua_anwani_pass(ast_nne[node]); }
+    kama (aina == 15) {
+        N32 tv = ast_thamani[node];
+        kama (tv != -1) { kama (tv != 0) { tambua_anwani_pass(tv); } }
+    }
+}
+
+// Baada ya pitio zote mbili kukamilika: gawa rejesta 0-4 kwa
+// wagombea 5 wa KWANZA (mpangilio wa AST) wasio na alama ya haramu.
+W0 finalisha_ugawaji_rejista() {
+    rega_tumika_idadi = 0;
+    N32 ci = 0;
+    wakati (ci < rega_kandida_idadi) {
+        kama (rega_kandida_haramu[ci] == 0 && rega_tumika_idadi < 5) {
+            N32 vi = 0;
+            wakati (vi < var_idadi) {
+                kama (jina_linganisha(var_pool + var_jina_off[vi], rega_kandida_jina[ci])) {
+                    var_reg[vi] = rega_tumika_idadi;
+                    rega_tumika_idadi = rega_tumika_idadi + 1;
+                    vunja;
+                }
+                vi = vi + 1;
+            }
+        }
+        ci = ci + 1;
+    }
+}
+
+// -------------------------------------------------------
 // Usimamizi wa alama za nje (kazi za maktaba kama printf)
 // -------------------------------------------------------
 
@@ -2415,10 +2785,29 @@ W0 uzalishaji_wakati(N32 node, N32 kazi_node) {
                     var_ni_safu[vidx] = 1;
                 } sivyo { kama (init_val != -1) {
                         uzalishaji_usemi(init_val, kazi_node);
-                        andika_mov_rbp_off_ax(var_enc_val, off);
+                        // MUHIMU: tangazo la ndani ya kichwa cha kwa-loop
+                        // haliingii kwenye pitio la tambua_tangazo_pass
+                        // (aina==10 iko kwenye ruka_tiga huko), hivyo
+                        // HALIWEZI kamwe kuwa var_reg[vidx]>=0 kwa jina
+                        // JIPYA -- LAKINI ikiwa jina hili linafanana na
+                        // kigezo kilichoshatangazwa mahali pengine
+                        // kwenye kazi hii (mfano "i" ikitumika mara
+                        // mbili), pata_au_unda_kigeu_ukubwa hapo juu
+                        // ingerudisha kiashiria KILE KILE -- angalia
+                        // var_reg kwa usalama badala ya kudhania -1.
+                        kama (var_reg[vidx] >= 0) {
+                            sawazisha_eax_kwa_enc(var_enc_val);
+                            andika_mov_reg64_rax(regista_halisi_kwa_id(var_reg[vidx]));
+                        } sivyo {
+                            andika_mov_rbp_off_ax(var_enc_val, off);
+                        }
                     } sivyo {
                         andika_xor_eax_eax();
-                        andika_mov_rbp_off_ax(var_enc_val, off);
+                        kama (var_reg[vidx] >= 0) {
+                            andika_mov_reg64_rax(regista_halisi_kwa_id(var_reg[vidx]));
+                        } sivyo {
+                            andika_mov_rbp_off_ax(var_enc_val, off);
+                        }
                     } }
             }
         }
@@ -3241,6 +3630,17 @@ W0 uzalishaji_taarifa(N32 node, N32 kazi_node) {
                 badili_mpaka_wa_desimali(expr, ast_thamani[kazi_node]);
             }
         }
+        // Rudisha (pop) rejesta za kudumu KABLA ya leave -- kinyume
+        // cha mpangilio wa push (angalia utangulizi wa uzalishaji_kazi).
+        // rax (thamani ya kurudi, iliyokokotolewa hapo juu) haiguswi na
+        // pop za rbx/r12-r15.
+        kama (frame_imeshinda) {
+            N32 rp_pop = rega_tumika_idadi;
+            wakati (rp_pop > 0) {
+                rp_pop = rp_pop - 1;
+                andika_pop_reg64(regista_halisi_kwa_id(rp_pop));
+            }
+        }
         kama (frame_imeshinda) { andika_leave(); }
         andika_ret();
         // Hatua ya kwa inayofuata taarifa ya kumaliza ni msimbo wa
@@ -3306,7 +3706,12 @@ W0 uzalishaji_taarifa(N32 node, N32 kazi_node) {
                         uzalishaji_usemi(init_node, kazi_node);
                         // Mpaka wa kamili/desimali kwenye kianzio
                         badili_mpaka_wa_desimali(init_node, var_enc_val);
-                        andika_mov_rbp_off_ax(var_enc_val, off);
+                        kama (var_reg[vidx] >= 0) {
+                            sawazisha_eax_kwa_enc(var_enc_val);
+                            andika_mov_reg64_rax(regista_halisi_kwa_id(var_reg[vidx]));
+                        } sivyo {
+                            andika_mov_rbp_off_ax(var_enc_val, off);
+                        }
                     }
                 } sivyo {
                     kama (ni_muundo_enc(var_enc_val)) {
@@ -3321,7 +3726,13 @@ W0 uzalishaji_taarifa(N32 node, N32 kazi_node) {
                         andika_baiti(243); andika_baiti(170);
                     } sivyo {
                         andika_xor_eax_eax();
-                        andika_mov_rbp_off_ax(var_enc_val, off);
+                        kama (var_reg[vidx] >= 0) {
+                            // sifuri haihitaji sawazisha (0 ni sahihi
+                            // kwa upana wowote tayari).
+                            andika_mov_reg64_rax(regista_halisi_kwa_id(var_reg[vidx]));
+                        } sivyo {
+                            andika_mov_rbp_off_ax(var_enc_val, off);
+                        }
                     }
                 } }
         }
@@ -3423,9 +3834,13 @@ W0 uzalishaji_kitambulisho(N32 node, N32 kazi_node) {
             kama (var_ni_safu[i] == 1) {
                 // Safu ya ndani: usemi wa jina unahitaji anwani ya msingi (LEA)
                 andika_lea_rax_rbp_off(var_rbp_off[i]);
-            } sivyo {
-                andika_pakia_kigeu_kwa_enc(var_enc[i], var_rbp_off[i]);
-            }
+            } sivyo { kama (var_reg[i] >= 0) {
+                    // Kigezo cha kudumu kwenye rejesta -- nakili moja
+                    // kwa moja hadi rax (tayari kimepanuliwa kwa usahihi).
+                    andika_mov_rax_reg64(regista_halisi_kwa_id(var_reg[i]));
+                } sivyo {
+                    andika_pakia_kigeu_kwa_enc(var_enc[i], var_rbp_off[i]);
+                } }
             rudisha;
         }
         i = i + 1;
@@ -4204,7 +4619,12 @@ W0 uzalishaji_asimilia(N32 node, N32 kazi_node) {
                 } sivyo {
                     uzalishaji_usemi(rhs, kazi_node);
                     badili_mpaka_wa_desimali(rhs, lhs_enc);
-                    andika_mov_rbp_off_ax(lhs_enc, var_rbp_off[i]);
+                    kama (var_reg[i] >= 0) {
+                        sawazisha_eax_kwa_enc(lhs_enc);
+                        andika_mov_reg64_rax(regista_halisi_kwa_id(var_reg[i]));
+                    } sivyo {
+                        andika_mov_rbp_off_ax(lhs_enc, var_rbp_off[i]);
+                    }
                 }
                 rudisha;
             }
@@ -5118,6 +5538,13 @@ W0 uzalishaji_kazi(N32 kazi_node) {
     // uzalishaji_kuu — la sivyo lea za tungo za kazi zote za awali
     // zinasalia na displacement 0.
 
+    // Ugawaji wa rejesta: weka upya kwa kazi hii (angalia maelezo
+    // kamili juu ya faili hili, karibu na tangazo la var_reg[64]).
+    N32 vr_reset = 0;
+    wakati (vr_reset < 64) { var_reg[vr_reset] = -1; vr_reset = vr_reset + 1; }
+    rega_kandida_idadi = 0;
+    rega_tumika_idadi = 0;
+
     // Tambua ikiwa kazi inarudisha muundo (sret)
     sret_inafanya = ni_muundo_enc(ret_enc);
     sret_ofseti = 0;
@@ -5165,6 +5592,19 @@ W0 uzalishaji_kazi(N32 kazi_node) {
     sret_hoja_haja = 0;
     N32 body = ast_tiga[kazi_node];
     kama (body != -1) { kusanya_vigeu_vya_ndani(body); }
+    // Ugawaji wa rejesta: pitio mbili za pekee (angalia maelezo kamili
+    // karibu na tangazo la var_reg[64]) -- LAZIMA zifanyike BAADA ya
+    // kusanya_vigeu_vya_ndani (ambayo tayari imesajili vigezo vyote
+    // kwenye var_idadi/var_rbp_off), na KABLA ya kutoa utangulizi wa
+    // kazi (ili idadi sahihi ya rejesta zinazotumika ijulikane kabla
+    // ya kuandika push).
+    kama (body != -1) {
+        kvn_gen = kvn_gen + 1;
+        tambua_tangazo_pass(body);
+        kvn_gen = kvn_gen + 1;
+        tambua_anwani_pass(body);
+    }
+    finalisha_ugawaji_rejista();
     // Tenga bafa ya muda ya sret MWISHONI mwa fremu (baada ya vigeu vyote).
     // Inahitajika tu kama kazi hii inarudisha muundo (wenyewe) au inaita
     // kazi inayorudisha muundo — vinginevyo fremu yote ya 256B ni taka na
@@ -5187,6 +5627,16 @@ W0 uzalishaji_kazi(N32 kazi_node) {
     var_stack_idadi = var_stack_idadi + sret_hoja_buf_max;
     // Toa utangulizi na ukubwa kamili wa rafu
     andika_push_rbp(); andika_mov_rbp_rsp(); andika_baiti(72); andika_baiti(129); andika_baiti(236); sub_rsp_nafasi = bafa_text_wapi; andika_neno4(0); frame_imeshinda = 1;
+    // Sukuma (push) rejesta za kudumu zinazotumika na kazi hii --
+    // BAADA ya sub rsp (angalia maelezo hapo juu) ili zisiingiliane na
+    // eneo la vigezo vya rafu (ambavyo offsets zake ni kutoka rbp, si
+    // rsp). Kila kimoja lazima kirudishwe (pop) KABLA ya kila `leave`
+    // ya kazi hii -- angalia AST_RUDISHA na mwisho wa kazi hii.
+    N32 rp_push = 0;
+    wakati (rp_push < rega_tumika_idadi) {
+        andika_push_reg64(regista_halisi_kwa_id(rp_push));
+        rp_push = rp_push + 1;
+    }
     // Sret: hifadhi rdi (kielekezi cha sret) kwenye rafu
     kama (sret_inafanya) {
         andika_mov_rax_rdi();  // mov rax, rdi
@@ -5252,6 +5702,14 @@ W0 uzalishaji_kazi(N32 kazi_node) {
     }
     kama (body != -1) { uzalishaji_taarifa(body, kazi_node); }
     N32 rsp = var_stack_idadi; kama ((rsp & 15) != 0) { rsp = rsp + (16 - (rsp & 15)); } bafa_text[sub_rsp_nafasi] = rsp & 255; bafa_text[sub_rsp_nafasi + 1] = (rsp >> 8) & 255; bafa_text[sub_rsp_nafasi + 2] = (rsp >> 16) & 255; bafa_text[sub_rsp_nafasi + 3] = (rsp >> 24) & 255;
+    // Rudisha (pop) rejesta za kudumu KABLA ya leave -- angalia
+    // maelezo kwenye AST_RUDISHA hapo juu (mahali pale pale pana pop
+    // sawa kwa kutoka kwa mapema).
+    N32 rp_pop_mwisho = rega_tumika_idadi;
+    wakati (rp_pop_mwisho > 0) {
+        rp_pop_mwisho = rp_pop_mwisho - 1;
+        andika_pop_reg64(regista_halisi_kwa_id(rp_pop_mwisho));
+    }
     andika_leave(); andika_ret();
 }
 
