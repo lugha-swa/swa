@@ -840,6 +840,33 @@ W0 andika_mov_ax_reg_na_rbp_off(N32 enc, N32 reg, N32 off) {
     }
 }
 
+// Pakia thamani ya paramu kutoka rejesta ya ABI (reg: 0=rdi..5=r9)
+// hadi eax/rax kwa upana sahihi -- NUSU YA KWANZA TU ya
+// andika_mov_ax_reg_na_rbp_off hapo juu (bila kuihifadhi popote).
+// Inatumika kwa paramu ambazo ni mgombea wa rejesta ya kudumu
+// (var_reg[pi] >= 0, angalia ugawaji wa rejesta hapo juu kwenye
+// faili hili): baada ya kuita hii, piga sawazisha_eax_kwa_enc(enc)
+// kisha andika_mov_reg64_rax(...) kuhifadhi kwenye rejesta ya kudumu
+// -- SI kwenye rafu.
+W0 andika_pakia_gp_reg_kwa_enc(N32 enc, N32 reg) {
+    N32 uk = ukubwa_kutoka_enc(enc);
+    kama (uk >= 8) {
+        kama (reg == 0) { andika_mov_rax_rdi(); }
+        sivyo { kama (reg == 1) { andika_mov_rax_rsi(); }
+            sivyo { kama (reg == 2) { andika_mov_rax_rdx(); }
+                sivyo { kama (reg == 3) { andika_mov_rax_rcx(); }
+                    sivyo { kama (reg == 4) { andika_mov_rax_r8(); }
+                        sivyo { andika_mov_rax_r9(); } } } } }
+    } sivyo {
+        kama (reg == 0) { andika_mov_eax_edi(); }
+        sivyo { kama (reg == 1) { andika_mov_eax_esi(); }
+            sivyo { kama (reg == 2) { andika_mov_eax_edx(); }
+                sivyo { kama (reg == 3) { andika_mov_eax_ecx(); }
+                    sivyo { kama (reg == 4) { andika_mov_eax_r8d(); }
+                        sivyo { andika_mov_eax_r9d(); } } } } }
+    }
+}
+
 // mov rdi, rax (48 89 C7)
 W0 andika_mov_rdi_rax() {
     andika_baiti(72); andika_baiti(137); andika_baiti(199);
@@ -5574,6 +5601,24 @@ W0 uzalishaji_kazi(N32 kazi_node) {
         kama (vidx_param >= 0 && sz > 8 && ni_muundo_enc(enc)) {
             var_kwa_rejea[vidx_param] = 1;
         }
+        // Ugawaji wa rejesta (awamu ya 2): paramu ZINAZOKIDHI masharti
+        // sawa na vigezo vya ndani (angalia ni_mgombea_rejista --
+        // tayari inazuia kielekezi/desimali/muundo, hivyo paramu ya
+        // rejea ya juu haiwezi kamwe kufika hapa ikiwa "ndiyo") ni
+        // wagombea PIA. Hii LAZIMA ifanyike KABLA ya tambua_anwani_pass
+        // kuitwa chini (baada ya kitanzi hiki) ili &paramu itambuliwe
+        // sahihi -- tambua_anwani_pass yenyewe HAIHITAJI mabadiliko
+        // (inatafuta &jina kwa JINA lolote lililo kwenye
+        // rega_kandida_jina, bila kujali kama jina hilo ni la paramu au
+        // kigezo cha ndani).
+        kama (ni_mgombea_rejista(enc)) {
+            kama (rega_kandida_idadi < 16) {
+                N8* jina_p = ast_pool + ast_jina_off[pn];
+                rega_kandida_jina[rega_kandida_idadi] = jina_p;
+                rega_kandida_haramu[rega_kandida_idadi] = 0;
+                rega_kandida_idadi = rega_kandida_idadi + 1;
+            }
+        }
         param_stack = param_stack + sz;
         n = n + 1;
         pn = ast_kulia[pn];
@@ -5672,28 +5717,62 @@ W0 uzalishaji_kazi(N32 kazi_node) {
                 N32 sz_param = ukubwa_kutoka_enc(enc);
                 kama (ni_muundo_enc(enc) && sz_param > 4) {
                     andika_mov_ax_reg_na_rbp_off(320, gp_idx, off);
-                } sivyo {
-                    andika_mov_ax_reg_na_rbp_off(enc, gp_idx, off);
-                }
+                } sivyo { kama (var_reg[pi] >= 0) {
+                        // Paramu ni mgombea wa rejesta ya kudumu (angalia
+                        // ugawaji wa rejesta, awamu ya 2) -- pakia
+                        // moja kwa moja hadi rejesta ya kudumu, SI rafu.
+                        andika_pakia_gp_reg_kwa_enc(enc, gp_idx);
+                        sawazisha_eax_kwa_enc(enc);
+                        andika_mov_reg64_rax(regista_halisi_kwa_id(var_reg[pi]));
+                    } sivyo {
+                        andika_mov_ax_reg_na_rbp_off(enc, gp_idx, off);
+                    } }
                 gp_idx = gp_idx + 1;
             } sivyo {
                 // Hoja za rafu (ABI: hoja 7+ ziko [rbp+16], [rbp+24], ...)
                 // Nakili kutoka eneo la rafu ya mpigaji hadi kwenye fremu.
                 N32 src = 16 + (gp_idx - 6) * 8;
                 N32 sz = ukubwa_kutoka_enc(enc);
+                // Paramu ya rafu ambayo ni mgombea wa rejesta ya kudumu
+                // (nadra -- inahitaji kigezo cha 7+ cha jumla NA kuwa
+                // miongoni mwa wagombea 5 wa kwanza): thamani inapakiwa
+                // hapa chini (rax/eax) kama kawaida, lakini badala ya
+                // kuhifadhiwa kwenye [rbp-off], inapanuliwa kwa usahihi
+                // (sawazisha_eax_kwa_enc, ambayo huangalia AL/AX ya chini
+                // pekee, bila kujali takataka iliyobaki juu ya rax baada
+                // ya kupakia baiti 8 nzima kutoka [rbp+src]) na kuhifadhiwa
+                // kwenye rejesta ya kudumu.
                 kama (sz == 1) {
                     andika_mov_rax_rbp_juu(src);
-                    andika_mov_rbp_off_al(off);
+                    kama (var_reg[pi] >= 0) {
+                        sawazisha_eax_kwa_enc(enc);
+                        andika_mov_reg64_rax(regista_halisi_kwa_id(var_reg[pi]));
+                    } sivyo {
+                        andika_mov_rbp_off_al(off);
+                    }
                 } sivyo { kama (sz == 2) {
                         andika_mov_rax_rbp_juu(src);
-                        andika_mov_rbp_off_ax16(off);
+                        kama (var_reg[pi] >= 0) {
+                            sawazisha_eax_kwa_enc(enc);
+                            andika_mov_reg64_rax(regista_halisi_kwa_id(var_reg[pi]));
+                        } sivyo {
+                            andika_mov_rbp_off_ax16(off);
+                        }
                     } sivyo { kama (sz > 4) {
                             andika_mov_rax_rbp_juu(src);
-                            andika_mov_rbp_off_rax(off);
+                            kama (var_reg[pi] >= 0) {
+                                andika_mov_reg64_rax(regista_halisi_kwa_id(var_reg[pi]));
+                            } sivyo {
+                                andika_mov_rbp_off_rax(off);
+                            }
                         } sivyo {
                             // mov eax, [rbp+src] (8B 45 xx) kisha hifadhi
                             andika_baiti(139); andika_baiti(69); andika_baiti(src & 255);
+                            kama (var_reg[pi] >= 0) {
+                                andika_mov_reg64_rax(regista_halisi_kwa_id(var_reg[pi]));
+                            } sivyo {
                             andika_mov_rbp_off_eax(off);
+                            }
                         } } }
                 gp_idx = gp_idx + 1;
             }
