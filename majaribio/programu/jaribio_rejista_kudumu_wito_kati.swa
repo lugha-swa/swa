@@ -1,0 +1,34 @@
+// lugha-swa/swa: jaribio la kudumu la ugawaji wa rejesta (awamu ya 1)
+// -- kigezo cha ndani cha rejesta ya kudumu kikitumika KABLA na BAADA
+// ya wito wa kazi nyingine (ambayo yenyewe hutumia rejesta zake za
+// kudumu) -- lazima kibaki sahihi baada ya wito, kwa sababu rejesta
+// za kudumu (rbx/r12-r15) ni "callee-saved" -- lengo lenyewe la
+// ugawaji huu.
+N32 kazi_inayotumia_rejista_yake_mwenyewe(N32 x) {
+    N32 y = x * 2;
+    N32 z = y + 1;
+    rudisha y + z;
+}
+
+N32 main() {
+    N32 a = 10;
+    N32 b = kazi_inayotumia_rejista_yake_mwenyewe(3);  // (3*2)+(3*2+1) = 6+7 = 13
+    N32 c = a + b;
+    kama (a != 10) { rudisha 1; }  // 'a' lazima ibaki sahihi baada ya wito
+    kama (b != 13) { rudisha 2; }
+    kama (c != 23) { rudisha 3; }
+
+    // Marudio kadhaa ya wito ndani ya kitanzi, kigezo cha nje
+    // kikiendelea kubadilika kati ya wito -- lazima kibaki sahihi.
+    N32 jumla = 0;
+    N32 i = 0;
+    wakati (i < 5) {
+        jumla = jumla + kazi_inayotumia_rejista_yake_mwenyewe(i);
+        i = i + 1;
+    }
+    // i=0: 0+1=1; i=1: 2+3=5; i=2: 4+5=9; i=3: 6+7=13; i=4: 8+9=17
+    // jumla = 1+5+9+13+17 = 45
+    kama (jumla != 45) { rudisha 4; }
+    kama (i != 5) { rudisha 5; }
+    rudisha 0;
+}
