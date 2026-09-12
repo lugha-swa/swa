@@ -1,0 +1,45 @@
+// lugha-swa/swa: jaribio la kudumu la ugawaji wa rejesta (awamu ya 1)
+// -- kigezo chenye anwani iliyochukuliwa (&kigezo) KAMWE hakipaswi
+// kupewa rejesta ya kudumu -- lazima kibaki kwenye rafu, la sivyo
+// &kigezo ingerudisha anwani isiyo sahihi (mfano wa awali: anwani ya
+// rafu ambayo haisasishwi tena, kwa sababu uandishi ungeenda kwenye
+// rejesta badala yake).
+W0 weka(N8* p, N64 v) {
+    N8 bb = v;
+    N32 bi = 0;
+    wakati (bi < 8) {
+        p[bi] = bb;
+        bi = bi + 1;
+    }
+}
+
+N32 main() {
+    N64 x = 42;
+    N8* px = &x;
+    kama (px[0] != 42) { rudisha 1; }
+
+    // Kigezo kinachopitishwa kwa &kigezo kama hoja ya PILI (au zaidi)
+    // ya wito -- hii NDIYO hasa mdudu halisi uliogunduliwa: &bb
+    // (hoja ya pili ya sys_andika ndani ya andika_herufi) haikuwa
+    // ikigunduliwa kama "anwani imechukuliwa" kwa sababu ilikuwa
+    // imezikwa kwenye mnyororo wa hoja, ikisababisha bb kupewa
+    // rejesta kimakosa na kuandika takataka.
+    N64 zamani = 99;
+    N8 bafa8[8];
+    weka(bafa8, 1);  // hoja ya kwanza ni bafa8 (safu), ya pili si &kigezo hapa
+    kama (bafa8[0] != 1) { rudisha 2; }
+
+    N32 h = 7;
+    kama (badilisha_kupitia_anwani(3, &h, 5) != 15) { rudisha 3; }
+    kama (h != 15) { rudisha 4; }  // h imebadilishwa KUPITIA anwani yake
+
+    rudisha 0;
+}
+
+// Hoja ya PILI ni &kigezo (kilichotangazwa na anayeita) -- muundo
+// HALISI wa mdudu uliogunduliwa (andika_herufi(faili, b) -> hoja ya
+// PILI ya sys_andika ni &bb).
+N32 badilisha_kupitia_anwani(N32 a, N32* p, N32 b) {
+    *p = a * b;
+    rudisha *p;
+}
