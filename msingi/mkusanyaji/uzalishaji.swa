@@ -4666,6 +4666,65 @@ W0 andika_hifadhi_hoja(N32 rhs, N32 fenc) {
     }
 }
 
+// Njia ya haraka kwa ugawaji wa kiwanja kwenye kipengele cha safu/
+// nyoosha (arr[idx] += x, arr[idx] -= x, na *p += x/*p -= x sawa)
+// -- inatumika TU wakati mwitaji (uzalishaji_asimilia) ameshathibitisha
+// kuwa RHS ni usemi wa AST_JUMLISHA/AST_TOFAUTI ambao upande wake wa
+// KUSHOTO ni NODI ILE ILE (kwa faharisi, si tu muundo unaofanana) ya
+// LHS ya ugawaji -- muundo huu HUTOKANA MOJA KWA MOJA na jinsi
+// changanua_usemi_asimilia (msambazaji.swa) inavyofungua sukari ya
+// x += y kuwa "x = x + y" ikitumia TENA nodi ile ile ya x kwenye pande
+// zote mbili (si nakala), hivyo hakuna haja ya kulinganisha miundo ya
+// AST kwa undani -- kulinganisha faharisi ya nodi kunatosha na ni
+// salama.
+//
+// SABABU (imethibitishwa kwa objdump halisi, si dhana): kabla ya
+// rekebisho hili, taarifa kama "c[i*n+j] += x;" ilikokotoa anwani ya
+// c[i*n+j] (i*n, +j, *saizi) MARA TATU tofauti -- mara moja kwa
+// lengo la uandishi, mara ya pili kusoma thamani ya sasa (sehemu ya
+// kutathmini upande wa RHS "c[i*n+j] + x"), na mara ya tatu kama
+// kipengele hicho hicho kikisomwa tena baadaye. Kazi hii inatumia
+// anwani iliyokokotolewa MARA MOJA TU na mwitaji (tayari iko eax
+// wakati kazi hii inaitwa) kusoma na kuandika, ikiondoa hesabu mbili
+// za ziada za anwani kabisa.
+//
+// UTATA WA MPANGILIO WA REJESTA (umefikiriwa kwa makini): baada ya
+// kusoma thamani ya sasa na kutathmini upande wa kulia, EAX na ECX
+// zinahitaji kuwa kwenye mpangilio MAALUM kabla ya jumlisha/toa --
+// EAX = thamani ya SASA (upande wa kushoto wa op), ECX = thamani ya
+// KULIA -- kwa sababu kutoa (sub eax,ecx) si sawia (curval-kulia SI
+// sawa na kulia-curval). Msururu wa push/pop hapa chini umeundwa
+// KIMAKUSUDI kuhakikisha mpangilio huo bila kujali mpangilio wa
+// kutathmini.
+//
+// WIGO (kwa makusudi mdogo, kuepuka hatari): NAMBA KAMILI TU (si
+// desimali -- xmm hazishughulikiwi hapa), SI kielekezi (mshale bit
+// lazima iwe sifuri -- hesabu ya kielekezi ina njia tofauti kabisa
+// yenye kuzidisha kwa ukubwa wa kipengele), SI muundo (enc hasi
+// haiwezi kufika hapa kabisa, angalia ukaguzi wa mwitaji), + na - TU
+// (*, /, % HAZIJASHUGHULIKIWA kwa makusudi -- hatari kubwa zaidi ya
+// usahihi kwa mgawanyo/kizio, faida ndogo zaidi kwa kuzidisha).
+W0 uzalishaji_asimilia_kiwanja_tail(N32 op, N32 kulia_node, N32 lhs_enc, N32 rhs_enc, N32 kazi_node) {
+    andika_push_rax();  // nakala A ya anwani (kwa uhifadhi wa mwisho)
+    andika_push_rax();  // nakala B (eax bado ni anwani -- push haibadilishi eax)
+    andika_pop_rax();   // eax = anwani (nakala B imetolewa)
+    andika_pakia_anwani_kwa_enc(lhs_enc);  // eax = thamani ya sasa (aina ya elementi)
+    andika_push_rax();  // hifadhi thamani ya sasa
+    uzalishaji_usemi(kulia_node, kazi_node);  // eax = thamani ya kulia
+    badili_mpaka_wa_desimali(kulia_node, rhs_enc);
+    andika_push_rax();
+    andika_pop_rcx();   // ecx = thamani ya kulia
+    andika_pop_rax();   // eax = thamani ya sasa
+    N32 saizi_op = ukubwa_kutoka_enc(rhs_enc);
+    kama (op == AST_JUMLISHA) {
+        kama (saizi_op >= 8) { andika_add_rax_rcx(); } sivyo { andika_add_eax_ecx(); }
+    } sivyo {
+        kama (saizi_op >= 8) { andika_sub_rax_rcx(); } sivyo { andika_sub_eax_ecx(); }
+    }
+    andika_pop_rcx();   // ecx = anwani (nakala A)
+    andika_hifadhi_anwani_kwa_enc(lhs_enc);  // [ecx] = thamani mpya kwa aina ya elementi
+}
+
 W0 uzalishaji_asimilia(N32 node, N32 kazi_node) {
     N32 lhs = ast_kushoto[node];
     N32 rhs = ast_kulia[node];
@@ -4843,6 +4902,34 @@ W0 uzalishaji_asimilia(N32 node, N32 kazi_node) {
     kama (aina_lhs == 29) {
         N32 ptr_node = ast_kushoto[lhs];
         N32 idx_node = ast_kulia[lhs];
+
+        // Ugunduzi wa njia ya haraka ya ugawaji wa kiwanja (angalia
+        // maelezo kamili juu ya uzalishaji_asimilia_kiwanja_tail) --
+        // kuchunguzwa MARA MOJA hapa, kutumika kwenye matawi yote
+        // mawili (safu na nyoosha-tu) hapa chini.
+        N32 kiwanja_salama = 0;
+        N32 kiwanja_op = -1;
+        N32 kiwanja_kulia = -1;
+        N32 kiwanja_rhs_enc = 0;
+        kama (ast_thamani[lhs] >= 0) {
+            kama (ni_desimali_enc(ast_thamani[lhs]) == 0) {
+                kama ((ast_thamani[lhs] / 2) * 2 == ast_thamani[lhs]) {
+                    N32 rhs_aina_kw = ast_aina[rhs];
+                    kama (rhs_aina_kw == AST_JUMLISHA || rhs_aina_kw == AST_TOFAUTI) {
+                        kama (ast_kushoto[rhs] == lhs) {
+                            N32 rhs_enc_kw = ast_thamani[rhs];
+                            kama (ni_desimali_enc(rhs_enc_kw) == 0) {
+                                kiwanja_salama = 1;
+                                kiwanja_op = rhs_aina_kw;
+                                kiwanja_kulia = ast_kulia[rhs];
+                                kiwanja_rhs_enc = rhs_enc_kw;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         kama (idx_node != -1) {
             // Uandikishaji wa safu: arr[idx] = thamani
             N32 saizi = ukubwa_wa_kipengele(ast_thamani[lhs]);
@@ -4853,6 +4940,10 @@ W0 uzalishaji_asimilia(N32 node, N32 kazi_node) {
             uzalishaji_usemi(ptr_node, kazi_node);  // eax = msingi
             andika_pop_rcx();  // ecx = ofseti
             andika_add_rax_rcx();  // eax = msingi + ofseti
+            kama (kiwanja_salama) {
+                uzalishaji_asimilia_kiwanja_tail(kiwanja_op, kiwanja_kulia, ast_thamani[lhs], kiwanja_rhs_enc, kazi_node);
+                rudisha;
+            }
             andika_push_rax();  // hifadhi anwani
             kama (ast_thamani[lhs] < 0) {
                 // Kipengele cha muundo: nakili muundo mzima — RHS lazima
@@ -4874,6 +4965,10 @@ W0 uzalishaji_asimilia(N32 node, N32 kazi_node) {
             N32 sz_elem = ukubwa_kutoka_enc(ast_thamani[lhs]);
             kama (sz_elem == 0) { sz_elem = 4; }
             uzalishaji_usemi(ptr_node, kazi_node);  // eax = kielekezi
+            kama (kiwanja_salama) {
+                uzalishaji_asimilia_kiwanja_tail(kiwanja_op, kiwanja_kulia, ast_thamani[lhs], kiwanja_rhs_enc, kazi_node);
+                rudisha;
+            }
             andika_push_rax();  // hifadhi anwani
             kama (ast_thamani[lhs] < 0) {
                 // *ptr = muundo: nakili muundo mzima

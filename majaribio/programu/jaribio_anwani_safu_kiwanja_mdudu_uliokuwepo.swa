@@ -1,0 +1,49 @@
+// Rekebisho hili LIMEBADILISHA (kwa makusudi, kwa uboreshaji) tabia
+// ya kesi finyu ifuatayo, na jaribio hili linarekodi uamuzi huo kwa
+// makusudi -- SI kuzuia urudiaji la hitilafu, bali uthibitisho wa
+// tabia MPYA sahihi zaidi.
+//
+// Kesi: "g_c[g_i] += f();" ambapo f() inabadilisha g_i YENYEWE.
+// Kabla ya rekebisho hili, g_c[g_i] += f() ilitoa matokeo YASIYO
+// SAHIHI kwa sababu ya jinsi "x = x + y" (sukari ya kiwanja)
+// inavyofunguliwa pamoja na mpangilio wa utathmini wa usemi wa
+// jumlisha (kulia KABLA ya kushoto): f() ilikimbia KWANZA (ikibadilisha
+// g_i), KISHA usomaji wa g_c[g_i] uliotathminiwa upya ulitumia g_i
+// MPYA (baada ya mabadiliko), WAKATI anwani ya UANDISHI ilikuwa
+// tayari imehesabiwa MWANZONI kabisa kwa kutumia g_i YA ZAMANI --
+// hitilafu ya kimantiki: usomaji na uandishi wa "kipengele kile kile"
+// vilitumia FAHIRISI TOFAUTI, na kipengele kilichosomwa hakikuandikwa
+// kamwe.
+//
+// Baada ya rekebisho: anwani inahesabiwa MARA MOJA (kwa g_i ya
+// ZAMANI), thamani inasomwa kupitia anwani hiyo hiyo (kabla ya f()
+// kuendeshwa), f() kisha inaendeshwa, na matokeo yanaandikwa kupitia
+// ANWANI ILE ILE -- tabia hii ni sahihi na inayotarajiwa ya
+// ugawaji wa kiwanja (sawa na lugha nyingine za C-kama), tofauti na
+// tabia ya zamani iliyokuwa bidhaa ya bahati mbaya ya mpangilio wa
+// utathmini, si uamuzi wa makusudi wa usanifu.
+//
+// Thamani halisi ya sasa (SAHIHI): g_c[3] awali=1, f() inarudisha 100
+// na kubadilisha g_i kutoka 3 kwenda 4 -- lakini anwani ya g_c[3]
+// (iliyohesabiwa KABLA ya f()) inatumika kwa usomaji NA uandishi
+// vyote viwili: 1 + 100 = 101. g_c[4] (50) HAIGUSWI kabisa.
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+n32* g_c;
+n32 g_i;
+
+n32 badilisha_i() {
+    g_i = g_i + 1;
+    rudisha 100;
+}
+
+n32 main() {
+    g_c = tenga(ukubwa(n32) * 100);
+    g_i = 3;
+    g_c[3] = 1;
+    g_c[4] = 50;
+    g_c[g_i] += badilisha_i();
+    kama (g_c[3] != 101) { rudisha 1; }
+    kama (g_c[4] != 50) { rudisha 2; }
+    rudisha 0;
+}
