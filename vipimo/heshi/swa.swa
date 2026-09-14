@@ -1,0 +1,27 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+husisha { msingi/maktaba/mfuatano.swa }
+
+n64 N_JUMLA = 2000000;
+
+n64 djb2(n8* s) {
+    n64 h = 5381;
+    n32 i = 0;
+    wakati (s[i] != 0) {
+        h = ((h << 5) + h) + s[i];
+        i = i + 1;
+    }
+    rudisha h;
+}
+
+n32 main() {
+    n8 bafa[32];
+    n64 jumla_hash = 0;
+    n64 i = 0;
+    wakati (i < N_JUMLA) {
+        mfuatano_umbiza(bafa, 32, "mfuatano_%d_jaribio", i, 0, 0, 0, 0, 0);
+        jumla_hash = jumla_hash + djb2(bafa);
+        i = i + 1;
+    }
+    andika("jumla_hash=%d\n", jumla_hash, 0, 0, 0, 0, 0);
+    rudisha 0;
+}
