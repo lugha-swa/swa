@@ -1,0 +1,185 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+// Kielelezo cha mchezo_sasisha halisi (Dominion): kontena kimoja
+// chenye anwani za N64 kwa kila mfumo mdogo (badala ya vielekezi
+// vya moja kwa moja -- lugha-swa/swa#186 bado ni hai: field ya
+// muundo yenye aina ya kielekezi-kwenda-muundo-mwingine haihifadhi
+// sahihi), kila mfumo unafikiwa kwa kazi ya "pata" (getter), kila
+// sasisha hutumia matokeo ya mfumo uliotangulia (mnyororo wa thamani
+// halisi, si namba za bandia) -- sawa kabisa na mpangilio halisi wa
+// mchezo_sasisha (wakati -> idadi ya watu -> uchumi mkuu ->
+// nguvukazi -> sera -> ...).
+
+muundo Uchumi { d64 pato; d64 mfumuko; };
+muundo Idadi { n32 watu; d64 ukuaji; };
+muundo Utawala { d64 ufanisi; d64 rushwa; };
+muundo Makazi { d64 kiwango_cha_makazi; d64 msongamano; };
+muundo Akili { d64 kiwango_cha_kitisho; d64 uwezekano_wa_vita; };
+muundo Diplomasia { d64 amani; d64 muungano_wa_nguvu; };
+muundo Jeshi { d64 nguvu_ya_jeshi; d64 morali; };
+muundo Utamaduni { d64 kiwango_cha_furaha; d64 utambulisho; };
+
+muundo Mchezo {
+    n64 uchumi_addr;
+    n64 idadi_addr;
+    n64 utawala_addr;
+    n64 makazi_addr;
+    n64 akili_addr;
+    n64 diplomasia_addr;
+    n64 jeshi_addr;
+    n64 utamaduni_addr;
+};
+
+Uchumi* mchezo_pata_uchumi(Mchezo* g) { rudisha g->uchumi_addr; }
+Idadi* mchezo_pata_idadi(Mchezo* g) { rudisha g->idadi_addr; }
+Utawala* mchezo_pata_utawala(Mchezo* g) { rudisha g->utawala_addr; }
+Makazi* mchezo_pata_makazi(Mchezo* g) { rudisha g->makazi_addr; }
+Akili* mchezo_pata_akili(Mchezo* g) { rudisha g->akili_addr; }
+Diplomasia* mchezo_pata_diplomasia(Mchezo* g) { rudisha g->diplomasia_addr; }
+Jeshi* mchezo_pata_jeshi(Mchezo* g) { rudisha g->jeshi_addr; }
+Utamaduni* mchezo_pata_utamaduni(Mchezo* g) { rudisha g->utamaduni_addr; }
+
+w0 uchumi_sasisha(Uchumi* u, d64 dt, n32 watu) {
+    d64 watu_d = watu;
+    u->pato = u->pato + (watu_d * 0.01 * dt);
+    u->mfumuko = 0.02 + (u->pato * 0.0000001);
+}
+
+w0 idadi_sasisha(Idadi* p, d64 pato) {
+    p->ukuaji = 0.01 + (pato * 0.00000005);
+    d64 nyongeza = p->ukuaji * p->watu;
+    n32 nyongeza_n = nyongeza;
+    p->watu = p->watu + nyongeza_n;
+    // Kikomo cha uwezo wa kubeba (carrying capacity) -- bila hii,
+    // ukuaji unaozidisha (compounding ~1-2%/tick) unazidi masafa ya
+    // d64 karibu na mzunguko 70,000 (1.01^t inazidi 10^308 karibu
+    // t=71,300), ukiharibu kila thamani inayotegemea watu baadaye.
+    kama (p->watu > 1000000) { p->watu = 1000000; }
+}
+
+w0 utawala_sasisha(Utawala* t, d64 mfumuko) {
+    t->rushwa = t->rushwa + (mfumuko * 0.1);
+    kama (t->rushwa > 1.0) { t->rushwa = 1.0; }
+    t->ufanisi = 1.0 - t->rushwa;
+}
+
+w0 makazi_sasisha(Makazi* m, n32 watu, d64 ufanisi) {
+    d64 watu_d = watu;
+    m->msongamano = watu_d * 0.00001 * (2.0 - ufanisi);
+    m->kiwango_cha_makazi = m->kiwango_cha_makazi + (ufanisi * 0.01);
+}
+
+w0 akili_sasisha(Akili* a, d64 msongamano, d64 rushwa) {
+    a->kiwango_cha_kitisho = (msongamano * 0.1) + (rushwa * 0.2);
+    a->uwezekano_wa_vita = a->kiwango_cha_kitisho * 0.05;
+}
+
+w0 diplomasia_sasisha(Diplomasia* d, d64 uwezekano_wa_vita) {
+    d->amani = d->amani - (uwezekano_wa_vita * 0.02);
+    kama (d->amani < 0.0) { d->amani = 0.0; }
+    d->muungano_wa_nguvu = d->amani * 0.5;
+}
+
+w0 jeshi_sasisha(Jeshi* j, d64 pato, d64 uwezekano_wa_vita) {
+    j->nguvu_ya_jeshi = j->nguvu_ya_jeshi + (pato * 0.001);
+    j->morali = 1.0 - (uwezekano_wa_vita * 0.1);
+}
+
+w0 utamaduni_sasisha(Utamaduni* c, d64 ufanisi, d64 amani) {
+    c->kiwango_cha_furaha = (ufanisi * 0.5) + (amani * 0.5);
+    c->utambulisho = c->utambulisho + 0.0001;
+}
+
+w0 mchezo_sasisha(Mchezo* g) {
+    d64 dt = 1.0;
+
+    Idadi* idadi = mchezo_pata_idadi(g);
+    n32 watu = idadi->watu;
+
+    Uchumi* uchumi = mchezo_pata_uchumi(g);
+    uchumi_sasisha(uchumi, dt, watu);
+    d64 pato = uchumi->pato;
+    d64 mfumuko = uchumi->mfumuko;
+
+    idadi_sasisha(idadi, pato);
+
+    Utawala* utawala = mchezo_pata_utawala(g);
+    utawala_sasisha(utawala, mfumuko);
+    d64 ufanisi = utawala->ufanisi;
+    d64 rushwa = utawala->rushwa;
+
+    Makazi* makazi = mchezo_pata_makazi(g);
+    makazi_sasisha(makazi, watu, ufanisi);
+    d64 msongamano = makazi->msongamano;
+
+    Akili* akili = mchezo_pata_akili(g);
+    akili_sasisha(akili, msongamano, rushwa);
+    d64 uwezekano_wa_vita = akili->uwezekano_wa_vita;
+
+    Diplomasia* diplomasia = mchezo_pata_diplomasia(g);
+    diplomasia_sasisha(diplomasia, uwezekano_wa_vita);
+    d64 amani = diplomasia->amani;
+
+    Jeshi* jeshi = mchezo_pata_jeshi(g);
+    jeshi_sasisha(jeshi, pato, uwezekano_wa_vita);
+
+    Utamaduni* utamaduni = mchezo_pata_utamaduni(g);
+    utamaduni_sasisha(utamaduni, ufanisi, amani);
+}
+
+n32 main() {
+    Mchezo* g = tenga(ukubwa(Mchezo));
+
+    Uchumi* uchumi = tenga(ukubwa(Uchumi));
+    uchumi->pato = 1000.0;
+    uchumi->mfumuko = 0.02;
+    g->uchumi_addr = uchumi;
+
+    Idadi* idadi = tenga(ukubwa(Idadi));
+    idadi->watu = 100;
+    idadi->ukuaji = 0.01;
+    g->idadi_addr = idadi;
+
+    Utawala* utawala = tenga(ukubwa(Utawala));
+    utawala->ufanisi = 0.5;
+    utawala->rushwa = 0.1;
+    g->utawala_addr = utawala;
+
+    Makazi* makazi = tenga(ukubwa(Makazi));
+    makazi->kiwango_cha_makazi = 0.5;
+    makazi->msongamano = 0.1;
+    g->makazi_addr = makazi;
+
+    Akili* akili = tenga(ukubwa(Akili));
+    akili->kiwango_cha_kitisho = 0.1;
+    akili->uwezekano_wa_vita = 0.01;
+    g->akili_addr = akili;
+
+    Diplomasia* diplomasia = tenga(ukubwa(Diplomasia));
+    diplomasia->amani = 0.8;
+    diplomasia->muungano_wa_nguvu = 0.4;
+    g->diplomasia_addr = diplomasia;
+
+    Jeshi* jeshi = tenga(ukubwa(Jeshi));
+    jeshi->nguvu_ya_jeshi = 100.0;
+    jeshi->morali = 0.9;
+    g->jeshi_addr = jeshi;
+
+    Utamaduni* utamaduni = tenga(ukubwa(Utamaduni));
+    utamaduni->kiwango_cha_furaha = 0.6;
+    utamaduni->utambulisho = 0.5;
+    g->utamaduni_addr = utamaduni;
+
+    n32 MZUNGUKO_JUMLA = 200000;
+    n32 t = 0;
+    wakati (t < MZUNGUKO_JUMLA) {
+        mchezo_sasisha(g);
+        t = t + 1;
+    }
+
+    n32 watu_mwisho = idadi->watu;
+    n32 pato_mwisho = uchumi->pato;
+    n32 furaha_mwisho = utamaduni->kiwango_cha_furaha * 1000.0;
+    andika("watu=%d pato=%d furaha_x1000=%d\n", watu_mwisho, pato_mwisho, furaha_mwisho, 0, 0, 0);
+    rudisha 0;
+}

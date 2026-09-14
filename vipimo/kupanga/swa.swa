@@ -1,0 +1,60 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+n32 N_JUMLA = 1000000;
+
+n64 lcg_hali = 12345;
+
+n32 nasibu_ijayo() {
+    lcg_hali = (lcg_hali * 1103515245 + 12345) % 2147483648;
+    rudisha lcg_hali;
+}
+
+w0 badilishana(n32* arr, n32 i, n32 j) {
+    n32 t = arr[i];
+    arr[i] = arr[j];
+    arr[j] = t;
+}
+
+n32 gawanya(n32* arr, n32 chini, n32 juu) {
+    n32 mhimili = arr[juu];
+    n32 i = chini - 1;
+    n32 j = chini;
+    wakati (j < juu) {
+        kama (arr[j] <= mhimili) {
+            i = i + 1;
+            badilishana(arr, i, j);
+        }
+        j = j + 1;
+    }
+    badilishana(arr, i + 1, juu);
+    rudisha i + 1;
+}
+
+w0 pangaharaka(n32* arr, n32 chini, n32 juu) {
+    kama (chini < juu) {
+        n32 p = gawanya(arr, chini, juu);
+        pangaharaka(arr, chini, p - 1);
+        pangaharaka(arr, p + 1, juu);
+    }
+}
+
+n32 main() {
+    n32* arr = tenga(ukubwa(n32) * N_JUMLA);
+    n32 i = 0;
+    wakati (i < N_JUMLA) {
+        arr[i] = nasibu_ijayo();
+        i = i + 1;
+    }
+
+    pangaharaka(arr, 0, N_JUMLA - 1);
+
+    n32 sahihi = 1;
+    i = 0;
+    wakati (i < N_JUMLA - 1) {
+        kama (arr[i] > arr[i + 1]) { sahihi = 0; }
+        i = i + 1;
+    }
+
+    andika("sahihi=%d kwanza=%d katikati=%d mwisho=%d\n", sahihi, arr[0], arr[N_JUMLA / 2], arr[N_JUMLA - 1], 0, 0);
+    rudisha 0;
+}
