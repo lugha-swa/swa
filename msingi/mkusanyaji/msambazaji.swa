@@ -143,6 +143,73 @@ N32 node_mpya(N32 aina, N32 thamani, N32 kushoto, N32 kulia) {
     rudisha idx;
 }
 
+// Kukunja hakutumiki wakati kianzilishi cha kigezo cha ULIMWENGU
+// kinachanganuliwa (weka 1 kabla, 0 baada -- angalia mahali
+// inapowekwa kwenye tangazo la ulimwengu). Sababu: mwandishi wa data
+// ya .data (uzalishaji.swa) HUKATAA KWA MAKUSUDI kianzilishi
+// chochote ambacho SI tokeni ya nambari ya moja kwa moja (usemi wa
+// hesabu kama "1 + 2" haujategemewa KABISA na utaratibu huo -- ni
+// uamuzi wa usanifu, umeandikwa wazi kwenye maoni ya ukaguzi huo, SI
+// kizuizi cha muda kilichosahaulika). Kukunja kwa uwazi kungeficha
+// usemi kama huo ndani ya tokeni ya nambari KABLA ukaguzi huo
+// haujaufikia, kikivunja jaribio la kudumu
+// jaribio_mende_kianzio_usemi.swa (lililoandikwa MAKUSUDI kuzuia
+// urudiaji wa mdudu wa kihistoria: "1 + 2" kama kianzilishi cha
+// ulimwengu ilikuwa ikikubaliwa KIMYA na kuhifadhi 0 -- rekebisho la
+// zamani lilifanya ikatae kwa sauti KWA MAKUSUDI, si kwa bahati).
+N32 kunja_imezuiwa = 0;
+
+// -------------------------------------------------------
+// Kukunja mara kwa mara (constant folding): +, -, *, /, %
+//
+// Inatumika TU wakati PANDE ZOTE MBILI za operesheni ni tokeni za
+// nambari HALISI za moja kwa moja (AST_NAMBARI, ast_kulia != 1 --
+// SI usimbaji wa dimbwi la N64 kubwa, angalia changanua_nambari
+// mahali linaloitangaza) -- hii inaepuka KABISA hitaji la
+// kusimbua/kusimba upya baiti za dimbwi hilo, ambalo lingeongeza
+// hatari isiyo ya lazima.
+//
+// Hesabu ya kukunja inafanyika kwa N64 (upana mpana wa kutosha
+// kuepuka kufurika kwa KATI ya hesabu), lakini matokeo YANAHIFADHIWA
+// TU kama yamo ndani ya WIGO KAMILI wa N32 (-2147483648 hadi
+// 2147483647). Nje ya wigo huo (kufurika kwa kweli, kunakohitaji
+// tabia ya "wraparound" ya x86 32-bit), HAIKUNJWI KABISA -- usemi
+// unabaki bila kubadilika, ukikokotolewa wakati wa kukimbia (ambapo
+// eax ya x86 hufanya wraparound sahihi kiotomatiki kwa vyovyote) --
+// hii inaepuka hatari ya kuiga tabia ya wraparound VIBAYA ndani ya
+// mkusanyaji mwenyewe. Ni upotezaji mdogo wa fursa ya uboreshaji
+// (thamani kubwa sana hazikunjwi), si hatari ya usahihi.
+//
+// Mgawanyo/modulo kwa SIFURI HAIKUNJWI KAMWE -- inabaki hitilafu ya
+// WAKATI WA KUKIMBIA (kama ilivyokuwa kabla), si kuanguka kimya au
+// kusababisha hitilafu ya mkusanyaji wenyewe.
+N32 jaribu_kunja_namba(N32 op, N32 kushoto, N32 kulia) {
+    kama (kunja_imezuiwa == 1) { rudisha -1; }
+    kama (kushoto == -1 || kulia == -1) { rudisha -1; }
+    kama (ast_aina[kushoto] != AST_NAMBARI) { rudisha -1; }
+    kama (ast_aina[kulia] != AST_NAMBARI) { rudisha -1; }
+    kama (ast_kulia[kushoto] == 1) { rudisha -1; }
+    kama (ast_kulia[kulia] == 1) { rudisha -1; }
+    N64 a = ast_thamani[kushoto];
+    N64 b = ast_thamani[kulia];
+    N64 matokeo = 0;
+    kama (op == AST_JUMLISHA) { matokeo = a + b; }
+    sivyo { kama (op == AST_TOFAUTI) { matokeo = a - b; }
+        sivyo { kama (op == AST_ZIDISHA) { matokeo = a * b; }
+            sivyo { kama (op == AST_GAWANYA) {
+                    kama (b == 0) { rudisha -1; }
+                    matokeo = a / b;
+                } sivyo { kama (op == AST_MODULO) {
+                        kama (b == 0) { rudisha -1; }
+                        matokeo = a % b;
+                    } sivyo { rudisha -1; } } } } }
+    kama (matokeo > 2147483647) { rudisha -1; }
+    N64 kikomo_chini = 0 - 2147483648;
+    kama (matokeo < kikomo_chini) { rudisha -1; }
+    N32 m32 = matokeo;
+    rudisha node_mpya(AST_NAMBARI, m32, -1, -1);
+}
+
 // -------------------------------------------------------
 // Nakili jina/kamba ndani ya ast_pool na rekodi kukabilia kwake
 // -------------------------------------------------------
@@ -1595,7 +1662,9 @@ N32 changanua_usemi_zidisha(Msambazaji* p) {
             p->kosa = 1;
             rudisha -1;
         }
-        kushoto = node_mpya(op, 0, kushoto, kulia);
+        N32 kilichokunjwa = jaribu_kunja_namba(op, kushoto, kulia);
+        kama (kilichokunjwa != -1) { kushoto = kilichokunjwa; }
+        sivyo { kushoto = node_mpya(op, 0, kushoto, kulia); }
     }
 
     rudisha kushoto;
@@ -1642,7 +1711,9 @@ N32 changanua_usemi_jumlisha(Msambazaji* p) {
             p->kosa = 1;
             rudisha -1;
         }
-        kushoto = node_mpya(op, 0, kushoto, kulia);
+        N32 kilichokunjwa = jaribu_kunja_namba(op, kushoto, kulia);
+        kama (kilichokunjwa != -1) { kushoto = kilichokunjwa; }
+        sivyo { kushoto = node_mpya(op, 0, kushoto, kulia); }
     }
 
     rudisha kushoto;
@@ -2113,7 +2184,7 @@ N32 changanua_kazi(Msambazaji* p) {
                         p->kosa = 1;
                         rudisha -1;
                     }
-                    sogeza(p); init = changanua_usemi(p);
+                    sogeza(p); kunja_imezuiwa = 1; init = changanua_usemi(p); kunja_imezuiwa = 0;
                 }
             }
             kama (p->sasa.urefu == 1) {
@@ -2125,7 +2196,7 @@ N32 changanua_kazi(Msambazaji* p) {
                         p->kosa = 1;
                         rudisha -1;
                     }
-                    sogeza(p); init = changanua_usemi(p);
+                    sogeza(p); kunja_imezuiwa = 1; init = changanua_usemi(p); kunja_imezuiwa = 0;
                 }
             }
             kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {

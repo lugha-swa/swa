@@ -4376,11 +4376,63 @@ W0 uzalishaji_si(N32 node, N32 kazi_node) {
     andika_movzx_eax_al();
 }
 
+// Je, nodi hii ni nambari halisi (tokeni ya moja kwa moja) yenye
+// thamani sawa NA nguvu KAMILI ya 2 (2,4,8,16,...)? Kama ndiyo,
+// rudisha kipeo (log2) chake (mfano 8 -> 3); vinginevyo rudisha -1.
+// Haitumiki kwa thamani za N64 kubwa (dimbwi, ast_kulia==1) -- SI
+// muhimu kwa uboreshaji huu (upana wa vitendo vya kudumu vidogo
+// pekee ndio vinafaidika kiutendaji hapa).
+N32 nguvu_kamili_ya_pili(N32 node) {
+    kama (ast_aina[node] != 4) { rudisha -1; }  // si AST_NAMBARI
+    kama (ast_kulia[node] == 1) { rudisha -1; }  // N64 kubwa (dimbwi)
+    N32 v = ast_thamani[node];
+    kama (v <= 1) { rudisha -1; }  // 0/1/hasi -- si nguvu ya manufaa
+    N32 kipeo = 0;
+    N32 x = v;
+    wakati (x > 1) {
+        kama ((x - ((x / 2) * 2)) != 0) { rudisha -1; }  // isiyo sawa -- si nguvu kamili
+        x = x / 2;
+        kipeo = kipeo + 1;
+    }
+    rudisha kipeo;
+}
+
 // AST_ZIDISHA (31) -- zidisha
+//
+// Kupunguza nguvu (strength reduction): zidisho kwa nambari halisi
+// iliyo NGUVU KAMILI ya 2 (upande wowote -- zidisho ni la ushirika)
+// linatolewa kama SHL (shift-left) badala ya imul -- shl ni sawa
+// kabisa na zidisho kwa upande wowote wa ishara (bila utata wa
+// mzunguko wa kuzungusha kama vile ingekuwa kwa GAWANYO kwa nguvu ya
+// 2 -- hiyo SI salama kwa nambari hasi na HAIJUMUISHWI hapa kwa
+// makusudi, kupungua na kizio kunahitaji hatua ya urekebishaji wa
+// mzunguko usiyofanana na shr rahisi). Zidisho kwa desimali (D64/D32)
+// haliguswi -- shl haina maana kwa desimali kabisa.
 W0 uzalishaji_zidisha(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
     N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_d = ni_desimali_enc(enc);
+
+    kama (ni_d == 0) {
+        N32 kipeo_kulia = nguvu_kamili_ya_pili(ast_kulia[node]);
+        kama (kipeo_kulia != -1) {
+            uzalishaji_usemi(ast_kushoto[node], kazi_node);
+            badili_mpaka_wa_desimali(ast_kushoto[node], enc);
+            andika_mov_ecx_imm32(kipeo_kulia);
+            kama (saizi >= 8) { andika_shl_rax_cl(); }
+            sivyo { andika_shl_eax_cl(); }
+            rudisha;
+        }
+        N32 kipeo_kushoto = nguvu_kamili_ya_pili(ast_kushoto[node]);
+        kama (kipeo_kushoto != -1) {
+            uzalishaji_usemi(ast_kulia[node], kazi_node);
+            badili_mpaka_wa_desimali(ast_kulia[node], enc);
+            andika_mov_ecx_imm32(kipeo_kushoto);
+            kama (saizi >= 8) { andika_shl_rax_cl(); }
+            sivyo { andika_shl_eax_cl(); }
+            rudisha;
+        }
+    }
 
     uzalishaji_usemi(ast_kulia[node], kazi_node);
     badili_mpaka_wa_desimali(ast_kulia[node], enc);
