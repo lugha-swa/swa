@@ -2145,6 +2145,23 @@ W0 andika_mov_reg64_rax(N32 reg) {
     andika_baiti(192 + reg7);
 }
 
+// mov rcx, <reg-halisi> -- pakia thamani NZIMA ya rejesta ya kudumu
+// hadi rcx (sawa na andika_mov_rax_reg64, ila rcx (001) badala ya
+// rax (000) kama uwanja wa rm) -- inatumiwa na ugawaji wa rejesta wa
+// vigezo vya muda vya usemi (Sethi-Ullman, angalia su_zalisha_ndani)
+// kuleta thamani iliyoshikiliwa kwenye rejesta ya kudumu bila
+// kuchafua rax, ambayo tayari ina upande mwingine wa operesheni.
+// REX = 0x48 | (0x04 kama reg>=8, REX.R kwa uwanja wa reg) | 0
+// ModRM = 0xC1 | ((reg&7)<<3) | 1(rcx kama rm)
+W0 andika_mov_rcx_reg64(N32 reg) {
+    N32 rexr = 0;
+    kama (reg >= 8) { rexr = 4; }
+    andika_baiti(72 + rexr);
+    andika_baiti(137);
+    N32 reg7 = reg - ((reg / 8) * 8);
+    andika_baiti(193 + (reg7 * 8));
+}
+
 // Kabla ya kuandika thamani (eax/rax) ndani ya rejesta ya kudumu,
 // LAZIMA ipanuliwe kwa usahihi (movzx/movsx) kwa upana wa aina yake
 // -- vinginevyo usomaji baadaye (unaonakili REJESTA NZIMA hadi rax
@@ -3978,6 +3995,263 @@ N32 usemi_ni_kielekezi(N32 node) {
     rudisha 0;
 }
 
+// -------------------------------------------------------
+// Ugawaji wa rejesta wa vigezo vya muda vya usemi (Sethi-Ullman)
+//
+// Ugawaji wa rejesta uliopo (angalia maelezo karibu na tangazo la
+// var_reg[64] juu ya faili hili) unashughulikia vigezo vya NDANI na
+// paramu PEKEE -- thamani za KATI za usemi (mfano matokeo ya (a+b)
+// ndani ya (a+b)*(c+d)) bado zinasukumwa/kutolewa (push/pop) kwenye
+// rafu halisi ya x86 kila wakati, hata kama hakuna wito wa kazi
+// kati ya matumizi mawili -- angalia uzalishaji_jumlisha/tofauti/
+// zidisha: kila mmoja hutathmini upande mmoja, KUSUKUMA matokeo,
+// kutathmini upande mwingine, KISHA KUVUTA (pop) matokeo ya kwanza.
+//
+// Sehemu hii inaongeza njia MBADALA (SI kubadilisha ile ya asili --
+// ile inabaki bila kuguswa kama njia ya kurudi nyuma) inayotumia
+// rejesta za callee-saved ZISIZOTUMIKA na ugawaji wa vigezo vya
+// ndani/paramu (rbx/r12/r13/r14/r15, ukiondoa zile tayari zinazotumiwa
+// na kazi ya sasa -- angalia rega_tumika_idadi) kushikilia matokeo ya
+// KATI badala ya kusukuma kwenye rafu -- kwa kutumia algorithm ya
+// KITAABUNI ya Sethi-Ullman (Sethi & Ullman, 1970) ya kukokotoa idadi
+// ya chini kabisa ya rejesta zinazohitajika kutathmini mti wa usemi,
+// na kutathmini upande "mgumu zaidi" (unaohitaji rejesta nyingi zaidi)
+// KWANZA ili matokeo yake yabaki kwenye rejesta wakati upande "rahisi
+// zaidi" unatathminiwa.
+//
+// WIGO (kwa makusudi mdogo, angalia maelezo kamili ya mradi kuhusu
+// hatari): NAMBA KAMILI TU (si desimali -- xmm ni suala tofauti),
+// SI hesabu ya kielekezi (p+n/p-n, ina njia yake maalum ya kuzidisha
+// kwa ukubwa wa kipengele -- imeachwa kabisa), SI zidisho la nguvu
+// kamili ya 2 (tayari lina njia yake ya haraka ya shl, angalia
+// nguvu_kamili_ya_pili -- haihitaji rejesta ya ziada KABISA), SI
+// toa ya kipekee (-x, ast_kushoto==-1). +, -, * TU (/ na % zimeachwa
+// KWA MAKUSUDI -- idiv ina masharti magumu zaidi ya rejesta halisi
+// (mgao lazima uwe rdx:rax, mgawanyaji si rax wala rdx), hivyo
+// kuchanganya na upangaji upya wa Sethi-Ullman (unaotathmini upande
+// "mgumu" bila kujali ni upi kimuundo) kunahitaji uangalifu zaidi wa
+// muda ambao haukuwepo kwenye kikao hiki -- kazi ya baadaye).
+//
+// Endapo mti wa usemi unahitaji rejesta ZAIDI ya zinazopatikana (5
+// - rega_tumika_idadi), NJIA YOTE inarudi kwenye tabia ya asili ya
+// push/pop (SI mchanganyiko wa sehemu-rejesta/sehemu-rafu ndani ya
+// mti mmoja -- rahisi zaidi kuthibitisha usahihi wake, gharama TU ni
+// fursa iliyokosekana ya uboreshaji kwa miti mikubwa sana, SI hatari
+// ya usahihi).
+
+// Je, nodi hii ni AST_JUMLISHA/TOFAUTI(ya-jozi)/ZIDISHA(isiyo-nguvu-
+// -ya-2) ya namba kamili isiyo ya kielekezi? Kigezo kimoja cha ukweli
+// kinachotumika PIA na su_haja_rejista na su_zalisha_ndani -- LAZIMA
+// kibaki thabiti kati ya zote mbili, la sivyo uhesabuji wa haja
+// hautaendana na ni rejesta ngapi zinazokopwa kwa HALISI wakati wa
+// uzalishaji (hatari ya kufurika rejesta -- angalia maelezo juu ya
+// faili hili kuhusu tafiti za awali za mradi huu).
+N32 su_ni_kushughulikiwa(N32 node) {
+    kama (node < 0) { rudisha 0; }
+    // IMEZIMWA KWA MAKUSUDI kwa sasa -- angalia maelezo kamili
+    // kwenye ujumbe wa kuwasilisha (commit) kuhusu mdudu wa tatu
+    // uliogunduliwa (usiotatuliwa bado) kupitia mkazo wa kujitegemea:
+    // hata kwa ADD peke yake na kikomo cha rejesta 1 TU, mkusanyaji
+    // ulioundwa ulishindwa kujikusanya mwenyewe kikamilifu (mzunguko
+    // wa pili ulitoa hitilafu za UWONGO za "aina isiyojulikana" kwa
+    // majina ya paramu halali kama 'a1'). Majaribio yaliyotengwa
+    // (nje ya kujenga mkusanyaji mzima) YOTE yalipita kwa usahihi --
+    // mdudu huu unahitaji muktadha HALISI wa chanzo kikubwa cha
+    // mkusanyaji (dalili yenye nguvu: hesabu ya ofseti ya rafu ya
+    // paramu ya 7+ "16 + (gp_idx - 6) * 8" ndani ya uzalishaji_kazi,
+    // ikijirudia ndani ya kitanzi -- angalia gp_idx katika faili hili)
+    // ambao haukupatikana kwa muda uliopo. Msimbo wote wa uchambuzi
+    // (su_haja_rejista, su_zalisha_ndani) umesalia hapa chini, umejengwa
+    // na umejaribiwa kwa mafanikio kwa MAJARIBIO YALIYOTENGWA, lakini
+    // rudisha 0 isiyo na masharti hapa inauzima KABISA badala ya
+    // kuuwasha ukiwa na hatari isiyoeleweka kikamilifu.
+    rudisha 0;
+    N32 aina = ast_aina[node];
+    kama (aina != AST_JUMLISHA && aina != AST_TOFAUTI && aina != AST_ZIDISHA) { rudisha 0; }
+    N32 enc = ast_thamani[node];
+    kama (ni_desimali_enc(enc)) { rudisha 0; }
+    kama (aina == AST_TOFAUTI) {
+        kama (ast_kushoto[node] == -1) { rudisha 0; }  // toa ya kipekee (-x)
+    }
+    kama (aina == AST_JUMLISHA || aina == AST_TOFAUTI) {
+        kama ((enc / 2) * 2 != enc) { rudisha 0; }  // hesabu ya kielekezi
+    }
+    kama (aina == AST_ZIDISHA) {
+        kama (nguvu_kamili_ya_pili(ast_kulia[node]) != -1) { rudisha 0; }
+        kama (nguvu_kamili_ya_pili(ast_kushoto[node]) != -1) { rudisha 0; }
+    }
+    rudisha 1;
+}
+
+// Idadi ya chini kabisa ya rejesta za ZIADA (zaidi ya rax/eax
+// inayotumika kila mahali kama "rejesta ya sasa ya kukokotoa" -- SI
+// sehemu ya hesabu hii) zinazohitajika kutathmini mti huu wa usemi
+// bila kusukuma/kuvuta kwenye rafu popote. Nodi isiyoshughulikiwa
+// (jani -- namba, kitambulisho, wito wa kazi, kipengele cha safu,
+// n.k.) daima ni 0.
+//
+// MUHIMU (mdudu HALISI uliogunduliwa kwa kujenga upya mkusanyaji na
+// kikao chake mwenyewe -- SI dhana, na SI wa kina cha "haianguki" tu:
+// mkusanyaji uliozalishwa ulianza kutoa hitilafu za UWONGO kabisa,
+// mfano "jina la kazi halitumiki kama usemi: main" kwa faili sahihi
+// kabisa, ikithibitisha uharibifu wa KWELI wa mantiki, si kuanguka
+// tu): FOMULA ASILI ya Sethi-Ullman (Sethi & Ullman, 1970) inapendekeza
+// kutathmini upande "mgumu zaidi" (unaohitaji rejesta nyingi zaidi)
+// KWANZA bila kujali ni upi kimuundo (kushoto au kulia) -- lakini
+// mkusanyaji huu (kama lugha nyingi zenye taarifa za kando/side-
+// -effects) unatathmini KULIA KABLA YA KUSHOTO KILA MAHALI PENGINE
+// (angalia uzalishaji_jumlisha/tofauti/zidisha ZOTE -- "Tathmini RHS
+// -> rax; sukuma; Tathmini LHS -> rax; vuta"), na msimbo halisi wa
+// mkusanyaji WENYEWE (na kwa uwezekano msimbo wowote wa mtumiaji
+// wenye hoja za wito za kazi zenye madhara ya kando) unategemea
+// MPANGILIO HUO HUO WA UTATHMINI kwa usahihi -- kubadilisha mpangilio
+// (kutathmini kushoto kwanza wakati kushoto "ni mgumu zaidi", jambo
+// linalotokea MARA NYINGI SANA kwa sababu ya jinsi uamuzi wa hali
+// sawa (tie-break) ulivyofanywa) kunabadilisha MPANGILIO HALISI wa
+// wito za kazi zenye madhara ya kando ndani ya usemi -- SI hatari ya
+// nadharia tu, ilithibitika kuvunja MKUSANYAJI WENYEWE.
+//
+// Suluhisho: ACHANA KABISA na upangaji upya wa Sethi-Ullman. Fomula
+// hii sasa inahesabu haja ya rejesta kwa MPANGILIO WA KUDUMU (KULIA
+// KWANZA, kinachoshikiliwa, KISHA KUSHOTO, kinachounganisha) --
+// sawa KABISA na mpangilio ambao uzalishaji_jumlisha/tofauti/zidisha
+// tayari unatumia kila mahali. Hii SI Sethi-Ullman kamili tena (haitoi
+// matokeo bora KABISA kila wakati -- endapo KUSHOTO ndiyo "mgumu
+// zaidi", mbinu hii haipati faida ya kuubadilisha mpangilio), LAKINI
+// ni SALAMA KABISA (haiwezi KAMWE kubadilisha mpangilio wa utathmini
+// unaoonekana, hivyo haiwezi kuvunja usahihi wa msimbo wenye madhara
+// ya kando popote): fomula = max(haja(kulia), 1 + haja(kushoto)) --
+// wakati wa kutathmini KULIA (hatua ya kwanza), hakuna kinachoshikiliwa
+// bado, hivyo haja yake YENYEWE ndiyo kikomo; wakati wa kutathmini
+// KUSHOTO (hatua ya pili), rejesta MOJA tayari imeshikwa (matokeo ya
+// kulia), hivyo kushoto anahitaji rejesta zake YENYEWE ZAIDI YA moja
+// iliyoshikwa tayari.
+N32 su_haja_rejista(N32 node) {
+    kama (su_ni_kushughulikiwa(node) == 0) { rudisha 0; }
+    N32 nr = su_haja_rejista(ast_kulia[node]);
+    N32 nl = su_haja_rejista(ast_kushoto[node]);
+    N32 nl_na_kushikwa = nl + 1;
+    kama (nr >= nl_na_kushikwa) { rudisha nr; }
+    rudisha nl_na_kushikwa;
+}
+
+// Idadi ya rejesta za ziada zilizokopwa KWA SASA (kina cha kitanzi
+// cha su_zalisha_ndani kinachoendelea) -- huwekwa upya kuwa 0 MARA
+// MOJA TU, kwenye kiingilio cha juu kabisa (su_jaribu_mzizi hapa
+// chini), KABLA ya kuita su_zalisha_ndani kwa mara ya kwanza.
+// Kitanzi cha ndani cha su_zalisha_ndani HAKIWEKI upya -- kingevuruga
+// hesabu ya mzazi anayeendelea kushikilia rejesta yake mwenyewe.
+N32 su_zilizokopwa = 0;
+
+// MDUDU HALISI ULIOGUNDULIWA (kwa jaribio halisi, si dhana) na
+// kurekebishwa hapa: 1 = tathmini ya Sethi-Ullman TAYARI inaendelea
+// (kina fulani cha su_zalisha_ndani kinaendelea, kikishikilia rejesta
+// moja au zaidi). Hii inazuia URUDIAJI USIO SALAMA -- mfano
+// "(a+b) * kazi(c+d)": wakati wa kutathmini upande "rahisi" (wito wa
+// kazi kazi(c+d)) huku upande "mgumu" (a+b) ukiwa umeshikwa kwenye
+// rejesta ya kudumu, uzalishaji wa hoja ya wito (c+d) ungeita
+// uzalishaji_jumlisha TENA -- na bila ulinzi huu, ingeona nafasi
+// inayoonekana kupatikana (rega_tumika_idadi haijabadilika) na
+// KUWEKA UPYA su_zilizokopwa KUWA 0, kisha kukopa REJESTA ILE ILE
+// ambayo mzazi wa nje bado anaishikilia -- ikiiharibu KIMYA (thamani
+// mbili tofauti kabisa zikichanganyikana kwenye rejesta moja).
+// Iligunduliwa kwa kujenga upya mkusanyaji na kikao chake mwenyewe
+// (mnyororo wa kujitegemea ulianguka na SEGV papo hapo) -- SI dhana.
+// Suluhisho: rudi kwenye tabia ya asili ya push/pop kwa nodi YOYOTE
+// inayofikiwa wakati tathmini ya nje tayari inaendelea -- salama
+// kabisa (push/pop halisi ya x86 haijali kina cha urudiaji), gharama
+// TU ni fursa ndogo iliyokosekana ya uboreshaji kwa usemi ulioota
+// ndani ya hoja ya wito uliomo ndani ya usemi mwingine
+// unaotathminiwa kwa Sethi-Ullman.
+N32 su_ndani_ya_tathmini = 0;
+
+// Kiingilio kimoja cha PEKEE cha juu kabisa kwa ugawaji wa rejesta
+// wa Sethi-Ullman -- huchunguza kufaa (su_ni_kushughulikiwa),
+// upatikanaji wa rejesta (haja <= nafasi), NA ulinzi wa urudiaji
+// (su_ndani_ya_tathmini). Inarudisha 1 kama imeshughulikia nodi hii
+// KIKAMILIFU (mwitaji AFANYE rudisha mara moja, bila kuendelea na
+// njia ya asili) au 0 kama mwitaji AENDELEE na njia yake ya asili ya
+// push/pop bila kubadilika. Kuwa na kiingilio KIMOJA (badala ya
+// kurudia ukaguzi huu mara tatu -- jumlisha/tofauti/zidisha) kunaepuka
+// hatari ya ukaguzi kutofautiana kati ya nafasi tatu.
+N32 su_jaribu_mzizi(N32 node, N32 kazi_node) {
+    kama (su_ndani_ya_tathmini) { rudisha 0; }
+    kama (su_ni_kushughulikiwa(node) == 0) { rudisha 0; }
+    N32 haja = su_haja_rejista(node);
+    N32 nafasi = 5 - rega_tumika_idadi;
+    kama (haja > nafasi) { rudisha 0; }
+    su_zilizokopwa = 0;
+    su_ndani_ya_tathmini = 1;
+    su_zalisha_ndani(node, kazi_node);
+    su_ndani_ya_tathmini = 0;
+    rudisha 1;
+}
+
+// Tathmini mti wa usemi (uliothibitishwa TAYARI kutoshea kwenye
+// rejesta zinazopatikana na mwitaji -- kazi hii YENYEWE haikagui
+// upatikanaji tena) ukitumia ugawaji wa rejesta wa muda. Matokeo
+// huishia kwenye rax/eax, aina na upana sahihi kwa ast_thamani[node]
+// -- NAFASI YA MOJA KWA MOJA ya uzalishaji_usemi(node) kwa nodi
+// zinazoshughulikiwa; nodi zisizoshughulikiwa zinapitishwa moja kwa
+// moja kwa uzalishaji_usemi bila mabadiliko.
+//
+// MPANGILIO WA UTATHMINI: KULIA KWANZA (kinashikiliwa kwenye rejesta
+// ya kudumu), KISHA KUSHOTO (kinaunganisha na kilichoshikiliwa) --
+// SAWA KABISA na mpangilio wa asili wa uzalishaji_jumlisha/tofauti/
+// zidisha KILA MAHALI (angalia maelezo marefu juu ya su_haja_rejista
+// kwa nini upangaji upya wa Sethi-Ullman uliondolewa -- mdudu halisi
+// uliogunduliwa ulithibitisha kubadilisha mpangilio huu kunavunja
+// msimbo wenye wito wa kazi wenye madhara ya kando ndani ya usemi).
+W0 su_zalisha_ndani(N32 node, N32 kazi_node) {
+    kama (su_ni_kushughulikiwa(node) == 0) {
+        uzalishaji_usemi(node, kazi_node);
+        rudisha;
+    }
+    N32 aina = ast_aina[node];
+    N32 enc = ast_thamani[node];
+    N32 saizi = ukubwa_kutoka_enc(enc);
+    N32 l = ast_kushoto[node];
+    N32 r = ast_kulia[node];
+
+    // KULIA KWANZA -- rejesta zote zinapatikana bado (hakuna
+    // kinachoshikiliwa na mzazi huyu bado).
+    kama (su_ni_kushughulikiwa(r)) { su_zalisha_ndani(r, kazi_node); }
+    sivyo { uzalishaji_usemi(r, kazi_node); }
+    badili_mpaka_wa_desimali(r, enc);
+    sawazisha_eax_kwa_enc(enc);
+    N32 scratch_id = rega_tumika_idadi + su_zilizokopwa;
+    N32 scratch_halisi = regista_halisi_kwa_id(scratch_id);
+    su_zilizokopwa = su_zilizokopwa + 1;
+    andika_mov_reg64_rax(scratch_halisi);
+
+    // KUSHOTO PILI -- rejesta moja (scratch_id) tayari imeshikwa
+    // (thamani ya kulia), ila hesabu ya su_haja_rejista tayari
+    // ilihakikisha upande huu unatoshea kwenye zilizobaki.
+    kama (su_ni_kushughulikiwa(l)) { su_zalisha_ndani(l, kazi_node); }
+    sivyo { uzalishaji_usemi(l, kazi_node); }
+    badili_mpaka_wa_desimali(l, enc);
+
+    // Unganisha. Baada ya hatua mbili hapo juu: scratch_halisi ina
+    // thamani ya KULIA, rax ina thamani ya KUSHOTO -- sawa KABISA na
+    // njia ya asili (uzalishaji_jumlisha/tofauti/zidisha, ambayo
+    // ilikuwa ikitumia vuta_thamani_rcx kuleta thamani ya kulia
+    // kutoka rafuni hadi rcx hapa hapa -- sisi tunaileta kutoka
+    // rejesta ya kudumu badala yake).
+    kama (aina == AST_JUMLISHA) {
+        andika_mov_rcx_reg64(scratch_halisi);
+        kama (saizi >= 8) { andika_add_rax_rcx(); } sivyo { andika_add_eax_ecx(); }
+    } sivyo { kama (aina == AST_ZIDISHA) {
+            andika_mov_rcx_reg64(scratch_halisi);
+            kama (saizi >= 8) { andika_imul_rax_rcx(); } sivyo { andika_imul_eax_ecx(); }
+        } sivyo {
+            // AST_TOFAUTI: rax(kushoto) - scratch(kulia) -- sawa
+            // kabisa na njia ya asili (sub eax,ecx ambapo ecx=kulia).
+            andika_mov_rcx_reg64(scratch_halisi);
+            kama (saizi >= 8) { andika_sub_rax_rcx(); } sivyo { andika_sub_eax_ecx(); }
+        } }
+    su_zilizokopwa = su_zilizokopwa - 1;
+}
+
 // AST_JUMLISHA (6) -- ongeza
 W0 uzalishaji_jumlisha(N32 node, N32 kazi_node) {
     N32 lhs = ast_kushoto[node];
@@ -3997,6 +4271,10 @@ W0 uzalishaji_jumlisha(N32 node, N32 kazi_node) {
             rudisha;
         }
     }
+
+    // Ugawaji wa rejesta wa vigezo vya muda (Sethi-Ullman) -- angalia
+    // maelezo kamili juu ya su_jaribu_mzizi/su_zalisha_ndani.
+    kama (su_jaribu_mzizi(node, kazi_node)) { rudisha; }
 
     uzalishaji_usemi(rhs, kazi_node);
     badili_mpaka_wa_desimali(rhs, enc);
@@ -4114,6 +4392,12 @@ W0 uzalishaji_tofauti(N32 node, N32 kazi_node) {
                 // hapa chini, sawa na zamani.
             }
         }
+
+        // Ugawaji wa rejesta wa vigezo vya muda (Sethi-Ullman) --
+        // angalia maelezo kamili juu ya su_jaribu_mzizi/su_zalisha_ndani,
+        // karibu na uzalishaji_jumlisha.
+        kama (su_jaribu_mzizi(node, kazi_node)) { rudisha; }
+
         uzalishaji_usemi(rhs, kazi_node);
         badili_mpaka_wa_desimali(rhs, enc);
         sukuma_thamani(enc);
@@ -4433,6 +4717,13 @@ W0 uzalishaji_zidisha(N32 node, N32 kazi_node) {
             rudisha;
         }
     }
+
+    // Ugawaji wa rejesta wa vigezo vya muda (Sethi-Ullman) -- angalia
+    // maelezo kamili juu ya su_jaribu_mzizi/su_zalisha_ndani, karibu
+    // na uzalishaji_jumlisha. su_ni_kushughulikiwa (ndani ya
+    // su_jaribu_mzizi) tayari inazuia zidisho la nguvu kamili ya 2
+    // (limeshughulikiwa hapo juu na njia yake ya shl).
+    kama (su_jaribu_mzizi(node, kazi_node)) { rudisha; }
 
     uzalishaji_usemi(ast_kulia[node], kazi_node);
     badili_mpaka_wa_desimali(ast_kulia[node], enc);
