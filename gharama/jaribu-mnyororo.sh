@@ -275,6 +275,28 @@ H2=$(cat msingi/maktaba/hesabu.swa msingi/maktaba/mfuatano.swa | "$MBEGU" --exe 
 H3=$(cat msingi/maktaba/hesabu.swa msingi/maktaba/mfuatano.swa | "$MBEGU" --exe 2>/dev/null | md5sum | cut -c1-16)
 kagua "$H1$H2$H3" "$H1$H1$H1" "uhakika wa bomba (mara 3)"
 
+# ============ 14. Jenerali-2 haipotezi maandishi ya andika_stderr ============
+# lugha-swa/swa#232: stage1 (jenerali-1, iliyojengwa na mbegu) ikitumika
+# KUJIKUSANYA YENYEWE (kuzalisha jenerali-2) ilipoteza maandishi HALISI
+# yanayozunguka %s kwenye ujumbe wa makosa uliochapishwa na andika_stderr
+# -- jina la faili pekee lilibaki, si "; KOSA: faili la chanzo
+# halifunguki: <jina>". Fixpoint (sehemu ya 3 hapo juu) HAIGUNDUI hili
+# kwa sababu jenerali-2 na jenerali-3 zote mbili zilipoteza maandishi
+# KWA NAMNA ILE ILE (thabiti lakini SI SAHIHI) -- usawa wa baiti si
+# usawa na usahihi. Kikomo cha kweli kilikuwa jedwali la sehemu za
+# andika (sehemu_buf/sehemu_off/sehemu_len ndani ya uzalishaji.swa)
+# lililokuwa dogo mno kwa ukusanyaji mkubwa (mkusanyaji mzima
+# unajikusanya una wito zaidi ya 140 wa andika_stderr) -- lilipofurika
+# lilirudisha -1 kimya, likidondosha sehemu za maandishi. Jaribio hili
+# huthibitisha kwa KUSOMA MAANDISHI HALISI ya toleo la jenerali-2,
+# si tu kwamba linatoka bila kuanguka.
+JENERALI2="$TMP/jenerali2"
+"$TMP/stage1" --exe "$ZIMA" > "$JENERALI2" 2> /dev/null
+chmod +x "$JENERALI2"
+"$JENERALI2" --exe /tmp/hii-faili-halipo-kabisa-232.swa > "$TMP/j2out" 2> "$TMP/j2err"
+grep -qF "; KOSA: faili la chanzo halifunguki: /tmp/hii-faili-halipo-kabisa-232.swa" "$TMP/j2err"
+kagua "$?" "0" "jenerali-2 haipotezi maandishi ya andika_stderr (#232)"
+
 # ============ Matokeo ============
 echo ""
 echo "===== Matokeo ya mnyororo: $PASS yamefaulu, $FAIL yameshindwa ====="
