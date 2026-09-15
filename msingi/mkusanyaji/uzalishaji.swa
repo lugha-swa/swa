@@ -463,8 +463,14 @@ N8* anwani_ya_kazi(N8* jina) {
 // Sehemu ya tungo: nakili kwenye bafa ya sehemu (kwa utorokaji wa \n na \\)
 // na urudishe lebo ya ndani ya bafa ya .text.
 N32 sehemu_tungo_hifadhi(N8* mwanzo, N32 urefu) {
-    kama (sehemu_idadi >= 1024) { rudisha -1; }
-    kama (sehemu_buf_wapi + urefu + 1 >= 4096) { rudisha -1; }
+    kama (sehemu_idadi >= 8192) {
+        andika_stderr("; ONYO: jedwali la sehemu za andika (sehemu_*) limejaa (kikomo cha idadi 8192) -- sehemu ya maandishi imedondoshwa\n");
+        rudisha -1;
+    }
+    kama (sehemu_buf_wapi + urefu + 1 >= 65536) {
+        andika_stderr("; ONYO: bafa ya sehemu za andika (sehemu_buf) imejaa (kikomo cha baiti 65536) -- sehemu ya maandishi imedondoshwa\n");
+        rudisha -1;
+    }
     N32 off = sehemu_buf_wapi;
     N32 i = 0;
     wakati (i < urefu) {
@@ -2475,10 +2481,33 @@ N32 desimali_idadi = 0;
 
 // Sehemu za tungo za builtin ya andika — zinaandikwa mwishoni mwa .text
 // kama tungo, ili JIT iweze kuzifikia kwa rip-relative.
-N8 sehemu_buf[4096];
-N32 sehemu_off[1024];
-N32 sehemu_len[1024];
-N32 sehemu_lebo_id[1024];
+//
+// UKUBWA (lugha-swa/swa#232): bafa hii inahifadhi sehemu za maandishi
+// halisi za KILA wito wa andika/andika_stderr katika UKUSANYAJI MZIMA
+// (imewekwa upya mara MOJA tu, kwenye uzalishaji_kuu/uzalishaji_jit —
+// angalia chini ya faili hili). Ilikuwa 4096 baiti / sehemu 1024, na
+// sehemu_tungo_hifadhi() ilipofurika ilirudisha -1 KIMYA (tovuti za
+// wito zinaziruka sehemu bila onyo lolote wakati lebo < 0). Kwa
+// programu ndogo hii haikuwahi kufikiwa, lakini kukusanya mkusanyaji
+// huu MWENYEWE (zima.swa, mamia ya wito wa andika_stderr wenye
+// maandishi ya makosa marefu katika msambazaji.swa, mkaguzi.swa,
+// uzalishaji.swa, stage1.swa n.k.) hufikia na kupita kikomo hicho
+// kwa urahisi. Matokeo: sehemu za maandishi (hasa zile zinazotokea
+// BAADAYE katika mpangilio wa ukusanyaji, kama ujumbe wa makosa wa
+// stage1.swa mwenyewe) hupotea kimya, na kubaki tu ubadilishaji wa
+// %s -- dalili halisi ya #232 (jenerali-2 ya kujiendeleza hupoteza
+// maandishi yanayozunguka %s). Kumbuka mbegu.bin (mzalishaji wa
+// jenerali-1) ni mkusanyaji wa kwanza tofauti kabisa, ulioandikwa kwa
+// mkono, hautumii bafa hii -- ndiyo maana jenerali-1 daima ni sahihi
+// na mdudu huu haugundulikani hadi jenerali-2 (mkusanyaji
+// aliyekusanywa NA mkusanyaji huu huu) atakapojaribiwa. Kikomo
+// kimeongezwa mara nyingi (16x baiti, 8x idadi ya sehemu) ili kubaki
+// salama hata mkusanyaji ukikua zaidi; kufurika sasa pia kunaandika
+// onyo kwenye stderr badala ya kunyamaza.
+N8 sehemu_buf[65536];
+N32 sehemu_off[8192];
+N32 sehemu_len[8192];
+N32 sehemu_lebo_id[8192];
 N32 sehemu_idadi = 0;
 N32 sehemu_buf_wapi = 1;
 
@@ -4050,66 +4079,60 @@ N32 su_ni_kushughulikiwa(N32 node) {
     kama (node < 0) { rudisha 0; }
     // IMEZIMWA KWA MAKUSUDI kwa sasa.
     //
-    // SASISHO LA UCHUNGUZI (uchunguzi wa pili, baada ya kikao
-    // kilichoandika kipengele hiki): "mdudu wa tatu" uliotajwa hapo
-    // awali (hitilafu za UWONGO za "aina isiyojulikana" kwenye
-    // mzunguko wa pili wa kujitegemea) UMETHIBITISHWA KWA UWAZI
-    // KUTOKUWA NA UHUSIANO WOWOTE NA SETHI-ULLMAN. Uthibitisho wa
-    // moja kwa moja: kujenga stage1 KUTOKA `main` YA SASA (kipengele
-    // hiki KIMEZIMWA kabisa hapo) na kuitumia KUJIJENGA TENA (yaani
-    // stage1_main --exe zima.swa, bila SU KUGUSWA popote) HUZALISHA
-    // MDUDU HUO HUO HASA -- andika_stderr/andika_ndani hupoteza
-    // maandishi ya moja kwa moja (literal text) YANAYOZUNGUKA %s,
-    // ikibaki na hoja iliyobadilishwa TU (mfano "/nonexistent/file.swa"
-    // badala ya "; KOSA: faili la chanzo halifunguki: /nonexistent/file.swa\n").
+    // SASISHO LA UCHUNGUZI (uchunguzi wa tatu -- lugha-swa/swa#232
+    // sasa IMEREKEBISHWA KABISA, angalia sehemu_buf/sehemu_off/
+    // sehemu_len hapo juu ya faili hili): maelezo yaliyokuwa hapa
+    // awali (yaliyodai chanzo ni "hoja pungufu kwa andika_stderr
+    // ikiungana na ugawaji wa rejesta ulioshughulikiwa") YALIKUWA
+    // NADHARIA ISIYOTHIBITIKA, iliyoachwa bila kuhitimishwa. Uchunguzi
+    // huu wa tatu ulithibitisha kwa majaribio ya moja kwa moja (a)
+    // andika/andika_stderr ZIMEKUSUDIWA KWA MAKUSUDI kutofautiana
+    // (variadic) -- angalia mkaguzi_kagua_wito katika mkaguzi.swa,
+    // ambayo inaziondoa WAZI kwenye ukaguzi wa idadi ya hoja -- kwa
+    // hiyo "hoja pungufu" si hitilafu kamwe, ni tabia ya kukusudia;
+    // na (b) mdudu huzalika HATA bila kigezo chochote cha ndani
+    // kinachostahili ugawaji wa rejesta (jaribio la kudhibiti: kazi
+    // 80 za kujaza zenye herufi halisi TU, bila vigezo vya ndani KABISA,
+    // bado zilizalisha mdudu huo huo; kazi zenye vigezo lakini BILA
+    // herufi halisi HAZIKUuzalisha) -- hivyo ugawaji wa rejesta
+    // (var_reg[], PR #226/#227) HAUNA UHUSIANO WOWOTE.
     //
-    // CHANZO HALISI (kimebainika, SI dhana): tovuti ya wito HALISI
-    // kwenye stage1.swa:488 --
-    //   andika_stderr("; KOSA: faili la chanzo halifunguki: %s\n", argv[faili_idx]);
-    // -- INAPITISHA HOJA 2 TU wakati andika_stderr imetangazwa na
-    // paramu 7 (f, a1..a6) -- a2 hadi a6 HAZITOLEWI KABISA. Hii
-    // imethibitishwa kwa jaribio la moja kwa moja: wito ULE ULE
-    // ukiandikwa na HOJA ZOTE SABA zikitolewa wazi (ikiwemo sifuri
-    // kwa zile zisizotumika, kama mkataba unavyoagiza kila mahali
-    // pengine) HAUONGEZI mdudu HATA KIDOGO kwenye mkusanyaji uleule
-    // wa "mzunguko wa pili" -- kazi sahihi kabisa. Kwa hiyo hitilafu
-    // hutokea TU pale wito unapotolewa na HOJA PUNGUFU kuliko
-    // zilizotangazwa, IKIUNGANA na kazi inayoitwa kuwa na ugawaji wa
-    // rejesta ulioshughulikiwa (var_reg[], PR #226/#227) ukiwa
-    // umewashwa kwa paramu zake -- jambo linaloonekana KATIKA
-    // MKUSANYAJI ULIOJENGWA NA COMPILER YA KIZAZI CHA PILI (yaani,
-    // stage1 iliyojengwa NA stage1 mwenyewe -- wa kwanza, aliyejengwa
-    // na mbegu.bin, HAAWEZI kutumia ugawaji wa rejesta kabisa kwa
-    // sababu mbegu.bin mwenyewe hana mantiki hiyo iliyojengwa ndani
-    // yake, ANAKOMPAILI TU msimbo wa chanzo bila kuutumia -- kwa hiyo
-    // stage1 ya kizazi cha kwanza HUFANYA KAZI kwa bahati, si kwa
-    // sababu mdudu haupo).
+    // CHANZO HALISI (kimebainika kwa uhakika kamili): jedwali la
+    // sehemu za maandishi za andika/andika_stderr (sehemu_buf/
+    // sehemu_off/sehemu_len, tazama juu ya faili hili) lilikuwa dogo
+    // mno (baiti 4096, sehemu 1024) kwa ajili ya ukusanyaji MMOJA
+    // (haiwekwi upya isipokuwa mara moja kwa kila --exe, kwenye
+    // uzalishaji_kuu) -- mkusanyaji huu una zaidi ya wito 140 wa
+    // andika/andika_stderr katika chanzo chake chote (mkaguzi.swa,
+    // msambazaji.swa, uzalishaji.swa, stage1.swa n.k.), na
+    // ukikusanywa PAMOJA (kama zima.swa, ambayo ndiyo hutokea
+    // kujiendeleza) jumla ya maandishi/sehemu hupita kikomo hicho
+    // kwa urahisi. sehemu_tungo_hifadhi() ilipofurika ilirudisha -1
+    // KIMYA, na tovuti za wito (uzalishaji_wito) zilikuwa zikiruka
+    // sehemu bila onyo lolote lilipokuwa lebo < 0 -- hivyo maandishi
+    // yanayozunguka %s yalipotea kimya, ikibaki na hoja iliyobadilishwa
+    // TU. Kwa nini kizazi cha kwanza (stage1 iliyojengwa NA mbegu.bin)
+    // hakiathiriki: mbegu.bin ni mkusanyaji tofauti kabisa, ulioandikwa
+    // kwa mkono, HAUTUMII uzalishaji.swa wala jedwali hili KABISA --
+    // ndiyo maana mdudu haugundulikani hadi kizazi cha pili (stage1
+    // iliyojengwa NA stage1 mwenyewe, ambapo jedwali hili la kizazi
+    // cha kwanza LENYEWE ndilo linalotumika kukusanya chanzo kikubwa).
+    // Rekebisho: jedwali limeongezwa (16x baiti, 8x idadi ya sehemu)
+    // na kufurika sasa huandika onyo kwenye stderr badala ya kunyamaza;
+    // jaribio la kudumu la kuzuia urudiaji limeongezwa
+    // (majaribio/programu/jaribio_sehemu_tungo_ujazo_mkubwa.swa) na
+    // sehemu mpya #14 ya gharama/jaribu-mnyororo.sh inayothibitisha
+    // kwa KUSOMA MAANDISHI HALISI ya toleo la kizazi cha pili, si tu
+    // kwamba linatoka bila kuanguka.
     //
-    // KILICHOBAKI KISICHOJULIKANA: utaratibu HALISI wa jinsi hoja
-    // pungufu + ugawaji wa rejesta unaosababisha upotevu wa maandishi
-    // ya moja kwa moja. Uchunguzi wa moja kwa moja wa msimbo wa
-    // uzalishaji wa andika_ndani (objdump) haukubaini hitilafu yoyote
-    // ndani ya mwili wa andika_ndani mwenyewe (mzunguko wake wa
-    // uchanganuzi wa muundo/%d/%u/%x/%s/%c/\n na tawi la herufi za
-    // moja kwa moja zote zilithibitika kuwa SAHIHI kwa ukaguzi wa
-    // moja kwa moja) -- hivyo chanzo cha hitilafu KIKO KWINGINE:
-    // labda kwenye jinsi tovuti ya wito (uzalishaji_wito) inavyoshughulikia
-    // hoja zisizotolewa kwa paramu za rejesta, au kwenye jinsi
-    // uzalishaji_kazi inavyopakia paramu za rafu ya mpigaji ([rbp+16]
-    // n.k.) wakati hoja hizo hazikuwahi kutolewa/kusukumwa na mpigaji
-    // kabisa. Hii NI MDUDU HALISI, ALIYEPO SASA KWENYE `main`
-    // (PR #226/#227, sio kipengele hiki kilichozimwa) -- imeripotiwa
-    // kama suala jipya, angalia CONTRIBUTING/issue tracker.
-    //
-    // KWA HIYO: hakuna sababu ya kuwasha kipengele hiki tena hadi
-    // mdudu ULIOELEZWA HAPO JUU (usiohusiana na SU) urekebishwe NA
-    // kuthibitishwa -- hata bila SU, mdudu huo huo bado ungezuia
-    // kujitegemea kwa kizazi cha pili. Msimbo wote wa uchambuzi
-    // (su_haja_rejista, su_zalisha_ndani) umesalia hapa chini,
-    // umejengwa na umejaribiwa kwa mafanikio kwa MAJARIBIO
-    // YALIYOTENGWA, lakini rudisha 0 isiyo na masharti hapa
-    // inauzima KABISA badala ya kuuwasha ukiwa na hatari isiyoeleweka
-    // kikamilifu.
+    // Hii inathibitisha rasmi kile ambacho uchunguzi wa pili
+    // ulikuwa tayari umegundua kwa sehemu -- mdudu HAUNA UHUSIANO
+    // WOWOTE na Sethi-Ullman (kipengele hiki, kimezimwa kabisa hapa
+    // chini) WALA na ugawaji wa rejesta (PR #226/#227). Sababu ya
+    // KWELI ya Sethi-Ullman kubaki imezimwa ni TOFAUTI KABISA na
+    // #232 -- angalia maelezo chini ya su_haja_rejista (hatari ya
+    // kubadilisha mpangilio wa utathmini wa madhara ya kando) -- na
+    // #232 kurekebishwa HAKUBADILISHI hatari hiyo hata kidogo.
     rudisha 0;
     N32 aina = ast_aina[node];
     kama (aina != AST_JUMLISHA && aina != AST_TOFAUTI && aina != AST_ZIDISHA) { rudisha 0; }
