@@ -2917,3 +2917,489 @@ N32 kujumuisha_kazi_ndogo(N32 mzizi) {
     }
     rudisha mzizi;
 }
+
+// =========================================================
+// LICM -- kuhamisha hesabu isiyobadilika nje ya kitanzi
+// (loop-invariant code motion)
+// =========================================================
+//
+// Lengo: kama usemi fulani ndani ya mwili wa "wakati" hutoa MATOKEO
+// SAWA kila mzunguko (hakuna kigezo kinachokitegemea kinachobadilika
+// popote ndani ya mwili), kihesabu MARA MOJA kabla ya kitanzi badala
+// ya kukihesabu kila mzunguko.
+//
+// MUHIMU KUHUSU MAHALI PA AWAMU HII KWENYE MRADI (TOFAUTI NA
+// kujumuisha_kazi_ndogo juu): awamu hii inaendeshwa BAADA ya
+// mkaguzi_angalia (ukaguzi wa kisemantiki), SI kabla -- tofauti na
+// kuunganisha kazi ndogo. Sababu: kila nodi ya usemi baada ya
+// mkaguzi_angalia tayari ina ast_thamani[node] = usimbaji wa aina
+// (enc) uliothibitishwa (angalia mkaguzi_kagua_usemi, mkaguzi.swa) --
+// hivyo tunapotengeneza tamko jipya la kigezo cha muda kwa usemi
+// uliogunduliwa kuwa hauwadiliki, tunaweza KUNAKILI enc hiyo moja kwa
+// moja kutoka kwenye nodi ya mzizi ya usemi uliopatikana, bila
+// kuhitaji kujenga jedwali letu wenyewe la aina za vigezo (ambalo
+// lingekuwa chanzo kingine cha mdudu). Bei ya uamuzi huu: hatupati
+// tena ukaguzi wa mkaguzi_angalia kama "wavu wa usalama wa bure" kwa
+// mti tuliousuka (kama kuunganisha kazi ndogo kunavyofanya) -- lakini
+// teremsha (ukaguzi wa muundo) bado unatembea baada yetu, na zaidi ya
+// yote, mnyororo mzima wa majaribio (gharama/jaribu-mnyororo.sh) ndio
+// wavu wa usalama halisi kwa mabadiliko haya yote.
+//
+// HATARI SITA ZILIZOZINGATIWA KWA MAKUSUDI (kila moja ina jaribio la
+// kudumu linaloambatana, angalia majaribio/programu/jaribio_licm_*):
+//
+// 1. HAKUNA OPERESHENI INAYOWEZA KUSHINDWA. Mgombea wa kuhamishwa
+//    huruhusiwa TU kama mizizi/matawi yake yote ni miongoni mwa: +,
+//    -, *, ulinganisho (<,>,<=,>=,==,!=), na biti (&,|,^,<<,>>).
+//    Mgawanyo (/) na modulo (%) HAZIRUHUSIWI KAMWE -- kuhamisha
+//    mgawanyo unaoweza kushindwa (kigawanyaji sifuri) juu ya kitanzi
+//    ambacho huenda kisitekelezwe kamwe kungegeuza programu
+//    isiyoanguka kuwa moja inayoanguka kabla kitanzi hakijaanza.
+//    (angalia jaribio_licm_mgawanyiko_hauhamishwi.swa)
+//
+// 2. HAKUNA OPERAND INAYOGUSA KUMBUKUMBU. Mgombea lazima ujengwe TU
+//    kutoka kwa vigezo vya moja kwa moja (vya ndani, vya ulimwengu,
+//    au paramu -- kwa JINA, si kupitia kielekezi/safu/muundo) na
+//    namba za moja kwa moja. Nodi yoyote ya AST_TAJA (ambayo hutumika
+//    KWA MOJA KWA MOJA kwa DEREFERENSI *p NA fahirisi ya safu
+//    arr[idx] -- angalia changanua_usemi_upande), AST_KUMBUKA
+//    (anwani-ya &x), au AST_SEHEMU_DOT/MSHALE (s.f / s->f) popote
+//    ndani ya mti mdogo hufanya mti huo mdogo usistahili KABISA --
+//    hakuna uchambuzi wa uwiano (alias analysis) unaohitajika kwa
+//    sababu hatuwezi kamwe kufikia hatua ambapo swali hilo lingekuwa
+//    muhimu. (angalia jaribio_licm_kumbukumbu_haihamishwi.swa)
+//
+// 3. KITANZI CHENYE WITO WOWOTE (AST_WITO) POPOTE NDANI YA MWILI WAKE
+//    (au sharti lake) HAKIGOMBEI LICM KABISA -- kizuizi kikali lakini
+//    salama dhidi ya uwiano kupitia wito (kazi iliyoitwa inaweza
+//    kubadilisha kigezo cha ulimwengu ambacho usemi "usiobadilika"
+//    unakitegemea). (angalia jaribio_licm_wito_huzuia_kitanzi.swa)
+//
+// 4. TABIA YA "KITANZI KINACHOENDESHWA MARA SIFURI" HAIBADILIKI KAMWE.
+//    Njia salama iliyotumika: HATUONDOI, KUFUTA, WALA KUPANGA UPYA
+//    taarifa yoyote iliyopo ya mtumiaji. Badala yake, tunatengeneza
+//    KIGEZO KIPYA CHA MUDA, tunakihesabu MARA MOJA kabla ya kitanzi,
+//    kisha tunaandika UPYA MAHALI HASA pa tukio la usemi huo ndani ya
+//    mwili (uwanja mmoja wa mzazi -- kushoto AU kulia) kuelekeza kwa
+//    hicho kigezo kipya. Hii ni "usukaji wa ngazi-ya-mti-mdogo"
+//    (subexpression-level splicing), SI uhamishaji wa taarifa nzima.
+//    (angalia jaribio_licm_mzunguko_sifuri.swa)
+//
+// 5. UCHUNGUZI KAMILI WA MWILI MZIMA WA UBADILISHAJI, SI TAARIFA ZA
+//    NGAZI YA JUU TU -- usemi ni "usiobadilika" TU kama kila kigezo
+//    unachokitaja hakiandikwi POPOTE ndani ya mwili, ikiwa ni pamoja
+//    na ndani ya matawi ya "kama" yaliyowekwa ndani (nested). Njia hii
+//    inaiga kwa makusudi mfano wa inl_scan (kuunganisha kazi ndogo)
+//    na kusanya_vigeu_vya_ndani (uzalishaji.swa) -- utembeaji kamili
+//    wa AST bila kudhania thamani zilizosimbwa (mf. -777777) kuwa
+//    nodi. (angalia jaribio_licm_ubadilishaji_ndani_ya_kama.swa)
+//
+// 6. WIGO WA KITANZI: "wakati" TU kwa awamu hii. Tumethibitisha
+//    kuwa "kwa" hufunguliwa (desugared) kuwa NODI ILE ILE ya
+//    AST_WAKATI (angalia changanua_taarifa_kwa) -- kwa hiyo mnyororo
+//    huu wa LICM UNAFANYA KAZI kwa kitanzi cha "kwa" pia MRADI TU
+//    hakina kifungu cha "anzisha" (init, kilichohifadhiwa kwenye
+//    ast_tiga[wakati_node] kwa "kwa"). Kifungu cha "anzisha"
+//    hutekelezwa NDANI YA nodi hiyo hiyo ya AST_WAKATI, KABLA ya
+//    sharti kuangaliwa mara ya kwanza -- kama tungehamisha kigezo cha
+//    muda KABLA ya nodi nzima ya kitanzi (ambako lazima kiende kwa
+//    sababu ndipo tunapoandika upya mnyororo wa taarifa unaozunguka),
+//    kigezo hicho kingesoma thamani ya KABLA ya "anzisha" kutekelezwa
+//    -- mdudu hasa unaofanana na ule "kwa (n=10; i<n; ...)" ambapo n
+//    ingesomwa KABLA haijawekwa. Badala ya kuongeza usanifu wa ziada
+//    kushughulikia mpangilio huu maalum, tunapunguza wigo kwa
+//    makusudi: kitanzi kinastahili LICM TU kama ast_tiga[node] == -1
+//    (hakuna "anzisha" cha kwa). "fanya" (do-while, ast_thamani ==
+//    -777778 kwenye nodi hiyo hiyo) hakizuiliwi wazi na sharti hili,
+//    lakini pia hakijalengwa kwa makusudi na hakijajaribiwa -- kama
+//    kitanzi cha aina hiyo kikitokea na ast_tiga[node]==-1, kitachukuliwa
+//    kwa asili (bila kuzingatiwa maalum), kwa sababu usukaji wetu
+//    hautegemei kabisa ni lini sharti linaangaliwa -- lakini hii SI
+//    dai la kuthibitishwa kwa jaribio maalum, ni matokeo ya asili tu
+//    ya jinsi AST inavyofanana.
+//
+// KIZUIZI CHA WIGO CHA ZIADA (kilichochaguliwa kwa makusudi wakati wa
+// utekelezaji, si kwa uzembe): tunatafuta mgombea WA KUHAMISHWA TU
+// ndani ya taarifa za NGAZI YA JUU za mwili wa kitanzi (mnyororo wa
+// moja kwa moja wa ast_nne) ambazo ni AST_ASIMILIA (x = ...) au
+// AST_TANGAZO na kianzio (N32 t = ...) -- SI ndani ya matawi ya
+// "kama" yaliyowekwa ndani ya mwili huo huo (hata kama kinadharia
+// itakuwa salama, kwa sababu shughuli zote zinazoruhusiwa
+// hazishindwi kamwe -- lakini tumeamua kutoipanua zaidi ili kuepuka
+// utata usiohitajika wa usanifu kwa awamu hii). Vitanzi vilivyowekwa
+// ndani (nested wakati) hushughulikiwa KWANZA (mwili wa ndani
+// kabisa kwanza), kisha matokeo yao (ikiwa ni pamoja na matamko
+// mapya ya muda yaliyoongezwa) huwa sehemu ya mnyororo wa ngazi ya
+// juu wa kitanzi cha nje kwa madhumuni ya uchunguzi unaofuata --
+// hivyo hesabu inayobadilika mara mbili (invariant kwa vitanzi vyote
+// viwili) INAWEZA kuhamishwa ngazi MOJA zaidi kwa asili, lakini SI
+// mbili kwa pito moja (kikomo kinachojulikana, kimeandikwa wazi).
+
+N32 licm_visited[1048576];
+N32 licm_gen = 1;
+N32 licm_idadi = 0;
+
+N32 licm_bail = 0;
+N8* licm_badiliko_jina[64];
+N32 licm_badiliko_idadi = 0;
+
+N32 licm_ni_jina_badilishwa(N8* jina) {
+    N32 i = 0;
+    wakati (i < licm_badiliko_idadi) {
+        kama (inl_jina_sawa(jina, licm_badiliko_jina[i])) { rudisha 1; }
+        i = i + 1;
+    }
+    rudisha 0;
+}
+
+W0 licm_ongeza_badiliko(N8* jina) {
+    kama (licm_ni_jina_badilishwa(jina)) { rudisha; }
+    kama (licm_badiliko_idadi >= 64) {
+        // Kikomo kimefikiwa -- USIONDOE jina kimya kimya (hilo
+        // lingekuwa hatari, si ulinzi): kata tamaa kwa kitanzi hiki
+        // CHOTE badala yake, ni salama zaidi kutokuhamisha kuliko
+        // kuhamisha kimakosa.
+        licm_bail = 1;
+        rudisha;
+    }
+    licm_badiliko_jina[licm_badiliko_idadi] = jina;
+    licm_badiliko_idadi = licm_badiliko_idadi + 1;
+}
+
+// Utembeaji kamili wa mwili wa kitanzi (na sharti lake): hukusanya
+// majina yote ya vigezo vinavyoandikwa POPOTE (ikiwa ni pamoja na
+// ndani ya matawi ya kama na vitanzi vilivyowekwa ndani), na huweka
+// licm_bail=1 kama wito wowote (AST_WITO) au muundo usiotambuliwa
+// kikamilifu (AST_CHAGUA/AST_MUUNDO/AST_SEHEMU/AST_HALI) unapatikana
+// popote. Inaiga makusudi ruka_tiga/ruka_nne ya kusanya_vigeu_vya_ndani
+// (uzalishaji.swa) kwa nodi za jumla, ikiwa na visa maalum vya ziada
+// kwa AST_KAMA/AST_SIVYO/AST_WAKATI (kuingia ndani ya matawi yote,
+// tofauti na inl_scan ambayo huvikataa moja kwa moja).
+W0 licm_changanua_mwili(N32 node) {
+    licm_idadi = licm_idadi + 1;
+    kama (licm_idadi > 50000) { licm_bail = 1; rudisha; }
+    kama (node < 0) { rudisha; }
+    kama (node >= 1048576) { rudisha; }
+    kama (licm_visited[node] == licm_gen) { rudisha; }
+    licm_visited[node] = licm_gen;
+    N32 aina = ast_aina[node];
+
+    kama (aina == AST_NAMBARI || aina == AST_HALISI_D) { rudisha; }
+
+    kama (aina == AST_WITO) { licm_bail = 1; rudisha; }
+    kama (aina == AST_CHAGUA || aina == AST_MUUNDO || aina == AST_SEHEMU || aina == AST_HALI) {
+        // Miundo isiyotambuliwa kikamilifu na uchunguzi huu -- kata
+        // tamaa kwa uangalifu badala ya kudhania mpangilio wa nyanja.
+        licm_bail = 1;
+        rudisha;
+    }
+
+    kama (aina == AST_BLOCK) {
+        licm_changanua_mwili(ast_kushoto[node]);
+        licm_changanua_mwili(ast_nne[node]);
+        rudisha;
+    }
+    kama (aina == AST_TANGAZO) {
+        // Jina lililotangazwa NDANI ya mwili wa kitanzi lazima litibiwe
+        // kama "limebadilishwa" -- hata kama lina kianzio kimoja tu kwa
+        // kila mzunguko, kianzio hicho MARA NYINGI hutegemea kigezo
+        // kinachobadilika (mf. "D64 n_d = n;" ndani ya "wakati (n<=20)")
+        // hivyo thamani ya jina hili SIYO sawa kila mzunguko. Bila hii,
+        // usemi unaotumia jina hili ungeonekana (kimakosa) usiobadilika.
+        N32 var_node = ast_kushoto[node];
+        kama (var_node != -1 && ast_aina[var_node] == AST_KITAMBULISHO) {
+            licm_ongeza_badiliko(ast_pool + ast_jina_off[var_node]);
+        }
+        licm_changanua_mwili(ast_kulia[node]);  // kianzio
+        licm_changanua_mwili(ast_nne[node]);
+        rudisha;
+    }
+    kama (aina == AST_KAMA) {
+        licm_changanua_mwili(ast_kushoto[node]);  // sharti
+        licm_changanua_mwili(ast_kulia[node]);    // mwili-ndio
+        kama (ast_tiga[node] != -1) { licm_changanua_mwili(ast_tiga[node]); }  // AST_SIVYO
+        licm_changanua_mwili(ast_nne[node]);
+        rudisha;
+    }
+    kama (aina == AST_SIVYO) {
+        licm_changanua_mwili(ast_kushoto[node]);  // mwili-sivyo
+        licm_changanua_mwili(ast_nne[node]);
+        rudisha;
+    }
+    kama (aina == AST_WAKATI) {
+        licm_changanua_mwili(ast_kushoto[node]);  // sharti
+        licm_changanua_mwili(ast_kulia[node]);    // mwili
+        kama (ast_tiga[node] != -1) { licm_changanua_mwili(ast_tiga[node]); }  // anzisha (kwa)
+        licm_changanua_mwili(ast_nne[node]);
+        rudisha;
+    }
+    kama (aina == AST_ASIMILIA) {
+        N32 lengo = ast_kushoto[node];
+        kama (lengo != -1 && ast_aina[lengo] == AST_KITAMBULISHO) {
+            licm_ongeza_badiliko(ast_pool + ast_jina_off[lengo]);
+        } sivyo {
+            // Lengo si jina safi (mf. *p = .., arr[i] = .., s.f = ..) --
+            // bado tembelea ndani yake (fahirisi n.k. inaweza kutaja
+            // vigezo, ingawa haibadilishi jina lenyewe).
+            licm_changanua_mwili(lengo);
+        }
+        licm_changanua_mwili(ast_kulia[node]);  // upande wa kulia
+        licm_changanua_mwili(ast_nne[node]);
+        rudisha;
+    }
+    kama (aina == AST_KUMBUKA) {
+        // &jina -- anwani ya kigezo imechukuliwa. Hakuna wito wowote
+        // unaowezekana ndani ya kitanzi hiki (tayari umezuiliwa juu),
+        // hivyo hakuna njia ya kuandika kupitia anwani hii -- lakini
+        // tibu kigezo kama kimebadilishwa kwa tahadhari ya ziada,
+        // isiyogharimu chochote.
+        N32 operand = ast_kushoto[node];
+        kama (operand != -1 && ast_aina[operand] == AST_KITAMBULISHO) {
+            licm_ongeza_badiliko(ast_pool + ast_jina_off[operand]);
+        }
+        licm_changanua_mwili(ast_nne[node]);
+        rudisha;
+    }
+
+    // Njia ya jumla (usemi wa hesabu/linganisho/biti, AST_TAJA,
+    // AST_SEHEMU_DOT/MSHALE, n.k.) -- ast_tiga KAMWE si nodi halisi
+    // hapa (kiungo cha mnyororo wa hoja za wito, au usimbaji), hivyo
+    // haitembelewi kamwe kwenye njia hii.
+    licm_changanua_mwili(ast_kushoto[node]);
+    licm_changanua_mwili(ast_kulia[node]);
+    N32 ruka_nne = 0;
+    kama (aina == 33 || aina == 34) { ruka_nne = 1; }  // SEHEMU_DOT/MSHALE: ofseti ya baiti
+    kama (ruka_nne == 0) { licm_changanua_mwili(ast_nne[node]); }
+}
+
+// Uchunguzi wa ustahiki (bila madhara ya kando) -- hurudisha 1 KAMA
+// NA KAMA TU nodi na mti wake mdogo mzima umejengwa peke yake kutoka
+// kwa: (a) namba za moja kwa moja (AST_NAMBARI/AST_HALISI_D), (b)
+// vigezo vya moja kwa moja visivyobadilishwa mahali popote ndani ya
+// kitanzi hiki (angalia licm_ni_jina_badilishwa), (c) +, -, *,
+// ulinganisho, na biti -- KAMWE si /, %, TAJA (deref/safu), KUMBUKA
+// (anwani), SEHEMU_DOT/MSHALE, WITO, ASIMILIA, TERNARY, n.k.
+N32 licm_ni_operesheni(N32 node) {
+    N32 aina = ast_aina[node];
+    kama (aina == AST_JUMLISHA || aina == AST_TOFAUTI || aina == AST_ZIDISHA) { rudisha 1; }
+    kama (aina == AST_SAWA || aina == AST_TOFAUTI_SI || aina == AST_CHINI || aina == AST_JUU || aina == AST_CHINI_SAWA || aina == AST_JUU_SAWA) { rudisha 1; }
+    kama (aina == AST_HAMISHA_KUSHOTO || aina == AST_HAMISHA_KULIA || aina == AST_BIT_AU || aina == AST_BIT_NA || aina == AST_XOR) { rudisha 1; }
+    rudisha 0;
+}
+
+N32 licm_naingiliana(N32 node) {
+    kama (node == -1) { rudisha 0; }
+    N32 aina = ast_aina[node];
+    kama (aina == AST_NAMBARI || aina == AST_HALISI_D) { rudisha 1; }
+    kama (aina == AST_KITAMBULISHO) {
+        N8* jina = ast_pool + ast_jina_off[node];
+        kama (licm_ni_jina_badilishwa(jina)) { rudisha 0; }
+        rudisha 1;
+    }
+    kama (licm_ni_operesheni(node) == 0) { rudisha 0; }
+    kama (licm_naingiliana(ast_kushoto[node]) == 0) { rudisha 0; }
+    kama (licm_naingiliana(ast_kulia[node]) == 0) { rudisha 0; }
+    rudisha 1;
+}
+
+// -------- Usanisi wa jina jipya la kigezo cha muda --------
+N8 licm_jina_buf[1536];  // 64 * 24
+N32 licm_jina_idadi = 0;
+
+N8* licm_jina_mpya() {
+    kama (licm_jina_idadi >= 64) { rudisha 0; }
+    N32 slot = licm_jina_idadi;
+    licm_jina_idadi = licm_jina_idadi + 1;
+    N8* buf = licm_jina_buf + (slot * 24);
+    buf[0] = 95;   // _
+    buf[1] = 95;   // _
+    buf[2] = 108;  // l
+    buf[3] = 105;  // i
+    buf[4] = 99;   // c
+    buf[5] = 109;  // m
+    buf[6] = 95;   // _
+    buf[7] = 116;  // t
+    N32 n = slot;
+    N32 pos = 8;
+    kama (n == 0) {
+        buf[pos] = 48;
+        pos = pos + 1;
+    } sivyo {
+        N8 tmp[8];
+        N32 tn = 0;
+        wakati (n > 0) {
+            tmp[tn] = 48 + (n % 10);
+            n = n / 10;
+            tn = tn + 1;
+        }
+        wakati (tn > 0) {
+            tn = tn - 1;
+            buf[pos] = tmp[tn];
+            pos = pos + 1;
+        }
+    }
+    buf[pos] = 0;
+    rudisha buf;
+}
+
+// -------- Mnyororo wa matamko mapya ya muda kwa kitanzi cha SASA --------
+N32 licm_kabla_kichwa = -1;
+N32 licm_kabla_mwisho = -1;
+
+// Tafuta na uandike upya mti mdogo wa kiwango cha juu zaidi (maximal)
+// usiobadilika ndani ya uwanja mmoja (kushoto au kulia, kulingana na
+// ni_kushoto) wa nodi ya mzazi iliyotolewa. Kama uwanja mzima wenyewe
+// hauhitilafiani (invariant) na si jani tupu (jina/namba moja bila
+// operesheni -- kuhamisha hilo halingefaidisha chochote), unasukwa:
+// kigezo kipya cha muda kinatengenezwa, kinahesabiwa mara moja kabla
+// ya kitanzi, na uwanja huo unaelekezwa upya kwenye kigezo hicho.
+// Vinginevyo, tunatafuta ndani ya watoto wa mti huo mdogo kwa fursa
+// ndogo zaidi -- lakini TU kupitia aina za nodi ambazo tumezielewa
+// kikamilifu (angalia maoni ya wigo hapo juu ya kila tawi).
+W0 licm_badilisha_kama_inavyowezekana(N32 mzazi, N32 ni_kushoto) {
+    N32 mtoto = -1;
+    kama (ni_kushoto) { mtoto = ast_kushoto[mzazi]; } sivyo { mtoto = ast_kulia[mzazi]; }
+    kama (mtoto == -1) { rudisha; }
+
+    kama (licm_ni_operesheni(mtoto) && licm_naingiliana(mtoto)) {
+        N32 enc = ast_thamani[mtoto];
+        N8* jina_mpya = licm_jina_mpya();
+        kama (jina_mpya == 0) { rudisha; }  // kikomo cha majina kimefikiwa -- acha bila kuhamisha
+
+        N32 var_node = node_mpya(AST_KITAMBULISHO, enc, -1, -1);
+        kama (var_node == -1) { rudisha; }
+        hifadhi_jina(var_node, jina_mpya, inl_urefu_jina(jina_mpya));
+
+        N32 tangazo = node_mpya(AST_TANGAZO, enc, var_node, mtoto);
+        kama (tangazo == -1) { rudisha; }
+        ast_nne[tangazo] = -1;
+
+        kama (licm_kabla_kichwa == -1) { licm_kabla_kichwa = tangazo; } sivyo { ast_nne[licm_kabla_mwisho] = tangazo; }
+        licm_kabla_mwisho = tangazo;
+
+        N32 marejeo = node_mpya(AST_KITAMBULISHO, enc, -1, -1);
+        kama (marejeo == -1) { rudisha; }
+        hifadhi_jina(marejeo, jina_mpya, inl_urefu_jina(jina_mpya));
+
+        kama (ni_kushoto) { ast_kushoto[mzazi] = marejeo; } sivyo { ast_kulia[mzazi] = marejeo; }
+        rudisha;
+    }
+
+    N32 aina = ast_aina[mtoto];
+    kama (licm_ni_operesheni(mtoto)) {
+        licm_badilisha_kama_inavyowezekana(mtoto, 1);
+        licm_badilisha_kama_inavyowezekana(mtoto, 0);
+        rudisha;
+    }
+    kama (aina == AST_TAJA) {  // *ptr AU arr[idx] -- angalia kushoto (msingi), kulia (fahirisi, kama ipo)
+        licm_badilisha_kama_inavyowezekana(mtoto, 1);
+        kama (ast_kulia[mtoto] != -1) { licm_badilisha_kama_inavyowezekana(mtoto, 0); }
+        rudisha;
+    }
+    kama (aina == AST_GAWANYA || aina == AST_MODULO) {
+        // Operesheni yenyewe KAMWE haiwezi kuhamishwa (hatari #1), lakini
+        // watoto wake (mf. namba ya juu ya mgawanyo) bado wanaweza kuwa
+        // na fursa ndogo ya LICM salama.
+        licm_badilisha_kama_inavyowezekana(mtoto, 1);
+        licm_badilisha_kama_inavyowezekana(mtoto, 0);
+        rudisha;
+    }
+    kama (aina == AST_SEHEMU_DOT || aina == AST_SEHEMU_MSHALE) {
+        licm_badilisha_kama_inavyowezekana(mtoto, 1);
+        rudisha;
+    }
+    // Aina nyingine (AST_KUMBUKA, AST_TERNARY, AST_WITO, AST_ASIMILIA,
+    // AST_NA/AU/SI, AST_KINYUME, n.k.) -- simama kwa makusudi, si
+    // kudhania mpangilio wa nyanja usiothibitishwa (angalia wigo).
+}
+
+// Jaribu LICM kwa nodi MOJA ya AST_WAKATI -- hurudisha kichwa cha
+// mnyororo mpya wa matamko ya muda ya kuweka KABLA ya kitanzi hiki
+// (au -1 kama hakuna kilichohamishwa/kinachostahili).
+N32 licm_jaribu_kitanzi(N32 node) {
+    licm_gen = licm_gen + 1;
+    licm_idadi = 0;
+    licm_bail = 0;
+    licm_badiliko_idadi = 0;
+    licm_kabla_kichwa = -1;
+    licm_kabla_mwisho = -1;
+
+    licm_changanua_mwili(ast_kushoto[node]);  // sharti
+    licm_changanua_mwili(ast_kulia[node]);    // mwili
+
+    kama (licm_bail) { rudisha -1; }
+
+    N32 stmt = ast_kulia[node];
+    wakati (stmt != -1) {
+        kama (ast_aina[stmt] == AST_ASIMILIA) {
+            licm_badilisha_kama_inavyowezekana(stmt, 1);
+            licm_badilisha_kama_inavyowezekana(stmt, 0);
+        } sivyo { kama (ast_aina[stmt] == AST_TANGAZO) {
+            licm_badilisha_kama_inavyowezekana(stmt, 0);  // kianzio pekee, si jina la kigezo
+        } }
+        stmt = ast_nne[stmt];
+    }
+
+    rudisha licm_kabla_kichwa;
+}
+
+// Tembea mnyororo wa taarifa (kichwa cha block), ukichakata vitanzi
+// vilivyowekwa ndani KWANZA (mwili wa ndani kabisa kwanza), kisha
+// ukijaribu LICM kwenye kila AST_WAKATI (isipokuwa "kwa" yenye
+// anzisho, angalia maoni ya wigo juu), ukisuka matamko mapya ya muda
+// KABLA ya nodi ya kitanzi kwenye mnyororo huu huu. Inaiga muundo wa
+// inl_pitisha_mwili (kuunganisha kazi ndogo) kwa makusudi.
+N32 licm_pitisha_mwili(N32 kichwa) {
+    N32 mpya_kichwa = -1;
+    N32 mpya_mwisho = -1;
+    N32 node = kichwa;
+    wakati (node != -1) {
+        N32 ijayo = ast_nne[node];
+        N32 aina = ast_aina[node];
+
+        kama (aina == AST_WAKATI) {
+            ast_kulia[node] = licm_pitisha_mwili(ast_kulia[node]);
+
+            N32 ni_mgombea = 1;
+            kama (ast_tiga[node] != -1) { ni_mgombea = 0; }  // "kwa" yenye anzisho -- nje ya wigo (angalia hatari #6)
+            kama (ni_mgombea) {
+                N32 kabla = licm_jaribu_kitanzi(node);
+                kama (kabla != -1) {
+                    kama (mpya_kichwa == -1) { mpya_kichwa = kabla; } sivyo { ast_nne[mpya_mwisho] = kabla; }
+                    N32 mwisho_kabla = kabla;
+                    wakati (ast_nne[mwisho_kabla] != -1) { mwisho_kabla = ast_nne[mwisho_kabla]; }
+                    ast_nne[mwisho_kabla] = node;
+                    mpya_mwisho = node;
+                    node = ijayo;
+                    endelea;
+                }
+            }
+        } sivyo { kama (aina == AST_KAMA) {
+            ast_kulia[node] = licm_pitisha_mwili(ast_kulia[node]);
+            kama (ast_tiga[node] != -1) {
+                N32 sivyo_node = ast_tiga[node];
+                ast_kushoto[sivyo_node] = licm_pitisha_mwili(ast_kushoto[sivyo_node]);
+            }
+        } }
+
+        kama (mpya_kichwa == -1) { mpya_kichwa = node; } sivyo { ast_nne[mpya_mwisho] = node; }
+        mpya_mwisho = node;
+        node = ijayo;
+    }
+    kama (mpya_mwisho != -1) { ast_nne[mpya_mwisho] = -1; }
+    rudisha mpya_kichwa;
+}
+
+N32 licm_boresha(N32 mzizi) {
+    N32 node = ast_kushoto[mzizi];
+    wakati (node != -1) {
+        kama (ast_aina[node] == AST_KAZI) {
+            kama (ast_tiga[node] != -1) {
+                N32 mpya = licm_pitisha_mwili(ast_tiga[node]);
+                ast_tiga[node] = mpya;
+            }
+        }
+        node = ast_nne[node];
+    }
+    rudisha mzizi;
+}

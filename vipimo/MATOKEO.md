@@ -68,6 +68,55 @@ wa rejesta wa jumla (register allocation ya sasa inashughulikia
 vigezo vya ndani na paramu PEKEE, si matokeo ya kati ya usemi --
 angalia majadiliano ya awamu inayofuata).
 
+## LICM (loop-invariant code motion) -- kipimo halisi cha kabla/baada
+
+Awamu hii inahamisha usemi wa hesabu/linganisho/biti usiobadilika
+(mf. `i * n` ndani ya fahirisi ya safu `a[i*n+j]`) nje ya kitanzi cha
+"wakati", ukiuhesabu mara moja badala ya kila mzunguko. Wigo
+umepunguzwa kwa makusudi (angalia maoni kamili juu ya `licm_boresha`,
+`msambazaji.swa`): mgawanyo/modulo hazihamishwi kamwe, usemi wowote
+unaogusa kumbukumbu (safu/nyoosha/muundo) haustahili kamwe, kitanzi
+chenye wito wowote hakigombei kabisa, na uhamishaji unafanyika TU
+kwa taarifa za ngazi ya juu za mwili wa kitanzi (ugawaji au tamko
+lenye kianzio) -- si ndani ya matawi ya "kama".
+
+Mbinu: mkusanyaji wa KABLA na wa BAADA ya mabadiliko haya ulijengwa
+KWENYE KIKAO KIMOJA HASA (angalia tahadhari ya kelele hapa chini),
+kila mmoja akikusanya `vipimo/matriki/swa.swa` na
+`vipimo/mzunguko_mchezo/swa.swa`. Matokeo ya programu yalithibitishwa
+SAWA KABISA (baiti kwa baiti ya `stdout`) kati ya toleo la kabla na
+la baada KABLA ya kuamini muda wowote. Mara 7 kila moja, wastani wa
+kati umeripotiwa.
+
+| Kipimo | Kabla (wastani wa kati) | Baada (wastani wa kati) | Mabadiliko |
+|---|---|---|---|
+| matriki (300x300, D64) | 188ms | 164ms | ~13% haraka zaidi |
+| mzunguko_mchezo (mifumo 8, mizunguko 200,000) | 20ms | 19ms | hakuna mabadiliko ya maana (ndani ya kelele) |
+
+**matriki inafaidika kwa kweli** -- kitanzi cha ndani kabisa cha
+pande zote mbili za kuzidisha (uanzishaji wa `a`/`b`/`c` na mzunguko
+halisi wa kuzidisha) una fahirisi za safu kama `i*n+j` na `k*n+j`
+ambapo `i*n` (au `k*n`) ni sawa kwa kila mzunguko wa kitanzi cha
+ndani kabisa (`j`) -- LICM inaihamisha nje, ikipunguza `imul` moja
+kwa kila tukio la fahirisi hiyo kwa kila mzunguko wa `j` kuwa `imul`
+MOJA TU kwa kila mzunguko wa `i` (au `k`). (Kumbuka: kila tukio la
+`i*n` linahamishwa KIVYAKE -- angalia mstari 4 wa maoni ya wigo juu
+ya `licm_boresha` -- LICM hii HAIFANYI CSE ya kuunganisha matukio
+yanayofanana kuwa kigezo kimoja cha muda, hivyo `a[i*n+j]`,
+`b[i*n+j]`, na `c[i*n+j]` kila moja hupata kigezo chake CHA PEKEE
+badala ya kushiriki kimoja -- fursa iliyoachwa kwa makusudi kwa
+awamu ijayo, si mdudu).
+
+**mzunguko_mchezo HAIFAIDIKI KABISA (kama ilivyotarajiwa, si
+kushangaza)** -- kitanzi chake pekee (`wakati (t < MZUNGUKO_JUMLA)`)
+kina wito mmoja tu wa `mchezo_sasisha(g)` ndani ya mwili wake wote --
+hatari #3 (kizuizi kikali dhidi ya wito wowote ndani ya kitanzi)
+inazuia kitanzi hicho kabisa kuwa mgombea wa LICM, bila kujali usemi
+mwingine wowote ndani yake. Hii ni matokeo ya moja kwa moja ya wigo
+uliochaguliwa kwa makusudi (salama zaidi kuliko kufaidika), sio
+upungufu wa bahati mbaya -- sawa na jinsi kuunganisha kazi ndogo
+(#235) kulivyoripoti faida ndogo halisi badala ya kubuni moja.
+
 ## Tahadhari ya kelele
 
 Kikao kilichotangulia kiliona TOFAUTI YA MARA 2 (2x) kwenye binary
