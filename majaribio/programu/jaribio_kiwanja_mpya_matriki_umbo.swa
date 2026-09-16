@@ -1,0 +1,47 @@
+// Jaribio: muundo halisi wa matriki -- c[i*n+j] = c[i*n+j] + aik*b[k*n+j]
+// kwa D64, ndani ya kitanzi cha k (mara nyingi), ili kuthibitisha
+// jumla halisi zinazopatikana kwa mkono. n=4, matrix ndogo lakini
+// yenye maadili yasiyo sifuri kila mahali kuepuka kupitisha mdudu wa
+// kutoandika kimya.
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+N32 main() {
+    N32 n = 4;
+    D64* a = tenga(ukubwa(D64) * n * n);
+    D64* b = tenga(ukubwa(D64) * n * n);
+    D64* c = tenga(ukubwa(D64) * n * n);
+    N32 p = 0;
+    wakati (p < n * n) {
+        a[p] = p + 1;
+        b[p] = (p + 1) * 2;
+        c[p] = 0.0;
+        p = p + 1;
+    }
+    N32 i = 0;
+    wakati (i < n) {
+        N32 k = 0;
+        wakati (k < n) {
+            D64 aik = a[i * n + k];
+            N32 j = 0;
+            wakati (j < n) {
+                c[i * n + j] = c[i * n + j] + aik * b[k * n + j];
+                j = j + 1;
+            }
+            k = k + 1;
+        }
+        i = i + 1;
+    }
+    // Hesabu kwa mkono (Python-equivalent, n=4, a[p]=p+1, b[p]=(p+1)*2):
+    // c[0][0] = sum_k a[0][k]*b[k][0] = 1*2 + 2*10 + 3*18 + 4*26 = 2+20+54+104=180
+    N32 c00 = c[0];
+    kama (c00 != 180) { rudisha 1; }
+    // c[3][3] (mwisho): a[3]={13,14,15,16}, b col3={8,16,24,32}
+    // = 13*8+14*16+15*24+16*32 = 104+224+360+512=1200
+    N32 c33_i = c[3 * n + 3];
+    kama (c33_i != 1200) { rudisha 2; }
+    // c[1][2]: a[1]={5,6,7,8}, b col2={6,14,22,30}
+    // = 5*6+6*14+7*22+8*30 = 30+84+154+240=508
+    N32 c12_i = c[1 * n + 2];
+    kama (c12_i != 508) { rudisha 3; }
+    rudisha 0;
+}
