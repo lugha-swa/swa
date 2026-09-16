@@ -1,0 +1,23 @@
+// Muundo sawa na matriki lakini fahirisi ni "i" TU (kigezo cha
+// kitanzi moja kwa moja, si "i*n+j") -- hakuna kinachobadilika kwa
+// LICM kuhamisha (fahirisi TAYARI ni rahisi kabisa), hivyo hii
+// inathibitisha kama kashe mpya ya anwani INAWEZA kufanya kazi kabisa
+// pale LICM haijaingilia kati.
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+N32 main() {
+    N32 n = 50;
+    D64* a = tenga(ukubwa(D64) * n);
+    D64* b = tenga(ukubwa(D64) * n);
+    D64* c = tenga(ukubwa(D64) * n);
+    N32 i = 0;
+    wakati (i < n) { a[i] = i + 1; b[i] = 2; c[i] = 100; i = i + 1; }
+    i = 0;
+    wakati (i < n) {
+        c[i] = c[i] + a[i] * b[i];
+        i = i + 1;
+    }
+    N32 c0 = c[0]; kama (c0 != 102) { rudisha 1; }
+    N32 clast = c[49]; kama (clast != 200) { rudisha 2; }
+    rudisha 0;
+}
