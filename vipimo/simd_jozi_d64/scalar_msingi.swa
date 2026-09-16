@@ -1,0 +1,40 @@
+// Kipimo cha msingi (scalar, KIMAKUSUDI hakistahili SSE2): hesabu ile
+// ile kabisa na vectorized.swa (c[i]=a[i]+b[i], N na REPS sawa), lakini
+// mwili wa kitanzi una TAARIFA TATU (tmp ya ziada) badala ya mbili
+// hasa, ikikataliwa na simd_jaribu_kitanzi kimakusudi. Hii ndiyo
+// linganisho la "kabla" la haki zaidi ndani ya mkusanyaji uleule --
+// tofauti na kulinganisha na msimbo wa toleo la zamani la mkusanyaji.
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+n32 N = 2000000;
+n32 REPS = 60;
+
+n32 main() {
+    d64* a = tenga(ukubwa(d64) * N);
+    d64* b = tenga(ukubwa(d64) * N);
+    d64* c = tenga(ukubwa(d64) * N);
+    n32 i = 0;
+    wakati (i < N) {
+        a[i] = i;
+        b[i] = i * 2;
+        i = i + 1;
+    }
+    n32 r = 0;
+    wakati (r < REPS) {
+        i = 0;
+        wakati (i < N) {
+            d64 tmp = a[i];
+            c[i] = tmp + b[i];
+            i = i + 1;
+        }
+        r = r + 1;
+    }
+    d64 sum = 0;
+    i = 0;
+    wakati (i < N) {
+        sum = sum + c[i];
+        i = i + 1;
+    }
+    n32 y = sum / 1000000000;
+    rudisha y;
+}
