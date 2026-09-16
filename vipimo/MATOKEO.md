@@ -225,3 +225,56 @@ maalum (`vipimo/su_rejesta_muda/`) kinathibitisha faida HALISI
 inapotokea kwenye hali inayolengwa. Matokeo ya programu (jumla)
 yalithibitishwa SAWA KABISA kati ya matoleo mawili kabla ya kuamini
 muda wowote.
+
+## Kashe mpya ya anwani kwa ugawaji wa kawaida (arr[e] = arr[e] OP x)
+
+Kupanua `uzalishaji_asimilia_kiwanja_tail` (kashe ya anwani, awali kwa
+`+=`/`-=` tu, D64/D32 zikizuiwa kwa makusudi) kwa njia ya PILI ya
+ugunduzi: ugawaji wa KAWAIDA ulioandikwa kwa mkono ambapo mwandishi
+amerudia `arr[e]` yenyewe kwenye RHS (mfano `c[i]=c[i]+a[i]*b[i]`),
+pamoja na desimali (D32/D64) na ZIDISHA (*) sasa zikiungwa mkono.
+Ugunduzi wa kwanza (kiwanja halisi, `+=`/`-=`) haujabadilika hata
+kidogo -- njia mpya inajaribiwa TU pale ya kwanza haikupata kitu.
+
+**Uthibitisho wa mfumo (disassembly, si dhana)**: kwa muundo rahisi
+(`c[i]=c[i]+a[i]*b[i]`, fahirisi "i" moja kwa moja), anwani ya `c[i]`
+sasa inakokotolewa MARA MOJA kwa kila mzunguko (shl mara 3: a, b, c)
+badala ya MBILI (shl mara 4: a, b, c-kwa-uandishi, c-kwa-usomaji tena)
+-- kupungua kwa maagizo 48->46 kwa kila mzunguko, kulikothibitishwa
+kwa kulinganisha baiti za utoaji sawia kati ya mkusanyaji wa zamani
+na mpya (majaribio 372 sawa kabisa kwa pande zote mbili kabla ya
+mabadiliko haya).
+
+**UGUNDUZI MUHIMU (la kweli, si dhana): LICM huzuia kashe hii kwa
+`matriki` yenyewe.** Kitanzi cha ndani cha matriki
+(`c[i*n+j]=c[i*n+j]+aik*b[k*n+j]`) kina "i*n" inayojitokeza MARA MBILI
+(fahirisi ya LHS na ile ya tokeo la kwanza la c kwenye RHS) -- LICM
+(iliyoungana KABLA ya kazi hii, PR #236) huhamisha KILA tokeo
+kivyake nje ya kitanzi, ikitengeneza VIGEZO VYA MUDA VIWILI TOFAUTI
+vinavyoshikilia thamani MOJA (imethibitishwa kwa disassembly: maagizo
+YALE YALE ya kuzidisha `rbx*r13` yanaonekana MARA MBILI mfululizo,
+yakihifadhiwa kwenye nafasi mbili tofauti za rafu). Kwa kuwa vigezo
+hivyo vina MAJINA tofauti, ulinganisho wa muundo (`keq_taja_sawa`)
+kwa usahihi HAUKUBALI ulinganifu -- si mdudu, ni tabia salama
+inayozuia matokeo yasiyo sahihi. Matokeo: binary ya matriki
+iliyotolewa na mkusanyaji mpya ni SAWA KABISA kwa baiti na ile ya
+zamani (`cmp` imethibitisha usawa kamili) -- kashe hii HAIBADILISHI
+`matriki` hata kidogo kwa sasa. Hii ni fursa halisi ya baadaye
+(LICM ingehitaji kutambua vielelezo viwili vinavyofanana kimuundo
+kwenye taarifa moja na kuvitumia tena, badala ya kuvihamisha kivyake
+-- kazi tofauti kabisa, nje ya wigo wa kazi hii).
+
+**Muda halisi (kipimo kipya `vipimo/kiwanja_mpya_d64/`, safu 2,000,000
+D64, marudio 20 ya kitanzi kizima, matokeo YALIYOTHIBITISHWA sawa kati
+ya matoleo mawili kabla ya kuamini muda wowote)**: hakuna tofauti ya
+wazi ya muda halisi (256-288ms zote mbili, ndani ya kelele kamili ya
+mashine hii) licha ya kupungua kwa maagizo kulikothibitishwa -- kipimo
+hiki ni MEMORY-BANDWIDTH BOUND (safu tatu za D64 zinazosomwa/
+kuandikwa kila mzunguko, baiti 24 za trafiki ya kumbukumbu kwa kila
+elementi), si ALU-bound, hivyo kuondoa hesabu chache za integer
+(zinazoungana vizuri na ucheleweshaji wa kumbukumbu) hakuonekani
+kwenye muda wa ukuta. Sawa na SIMD (`matriki` yenyewe) na SU
+(`kupanga`), faida ya kweli ya uboreshaji huu ni ya kukokotoa
+(maagizo machache, imethibitishwa), si lazima iwe ya muda wa ukuta
+kwa kila mzigo wa kazi -- inategemea kama mzigo huo ni ALU-bound au
+memory-bound.
