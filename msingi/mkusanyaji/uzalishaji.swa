@@ -1050,6 +1050,33 @@ W0 andika_mulsd_xmm0_xmm1() { andika_baiti(242); andika_baiti(15); andika_baiti(
 // divsd xmm0, xmm1  (F2 0F 5E C1)
 W0 andika_divsd_xmm0_xmm1() { andika_baiti(242); andika_baiti(15); andika_baiti(94); andika_baiti(193); }
 
+// === SSE2 — jozi za D64 (128-bit, elementi mbili kwa wakati mmoja) ===
+// Kutumika PEKEE na uvektishaji wa kitanzi (simd_*, karibu na
+// uzalishaji_wakati). SSE2 ni sehemu ya msingi ya x86-64 -- CPU YOYOTE
+// ya 64-bit inaiunga mkono bila masharti, hivyo hakuna haja ya kuchunguza
+// uwezo wa CPU wakati wa kuendesha (kinyume na AVX/upana mpana zaidi).
+//
+// movupd (isiyo-patanishwa) inatumika kila mahali -- SI movapd. Bafa za
+// tenga() (kumbukumbu.swa) hazithibitishi upatanifu wa baiti-16, hivyo
+// movapd ingeweza kuanguka (#GP) kwa nasibu kutegemea anwani ya ugawaji
+// -- hitilafu ya vipindi visivyoweza kutabirika. Gharama ndogo ya ziada
+// ya movupd dhidi ya movapd ni sahihi zaidi kuliko hatari hiyo.
+//
+// movupd xmm0, [rax]  (66 0F 10 00) -- pakia jozi ya D64 kutoka [rax]
+W0 andika_movupd_xmm0_mem_rax() { andika_baiti(102); andika_baiti(15); andika_baiti(16); andika_baiti(0); }
+// movupd xmm1, [rax]  (66 0F 10 08)
+W0 andika_movupd_xmm1_mem_rax() { andika_baiti(102); andika_baiti(15); andika_baiti(16); andika_baiti(8); }
+// movupd [rax], xmm0  (66 0F 11 00) -- hifadhi jozi ya D64 hadi [rax]
+W0 andika_movupd_mem_rax_xmm0() { andika_baiti(102); andika_baiti(15); andika_baiti(17); andika_baiti(0); }
+// addpd xmm0, xmm1  (66 0F 58 C1)
+W0 andika_addpd_xmm0_xmm1() { andika_baiti(102); andika_baiti(15); andika_baiti(88); andika_baiti(193); }
+// subpd xmm0, xmm1  (66 0F 5C C1)
+W0 andika_subpd_xmm0_xmm1() { andika_baiti(102); andika_baiti(15); andika_baiti(92); andika_baiti(193); }
+// mulpd xmm0, xmm1  (66 0F 59 C1) -- HAKUNA divpd kwa uangalifu ule ule
+// unaotumika kwa uwiano wa scalar (/) na (%): hakuna operesheni ya
+// mgawanyo inayovektishwa mahali popote kwenye awamu hii.
+W0 andika_mulpd_xmm0_xmm1() { andika_baiti(102); andika_baiti(15); andika_baiti(89); andika_baiti(193); }
+
 // === SSE — ulinganishi ===
 // comiss xmm0, xmm1  (0F 2F C1)
 W0 andika_comiss_xmm0_xmm1() { andika_baiti(15); andika_baiti(47); andika_baiti(193); }
@@ -2833,11 +2860,295 @@ W0 uzalishaji_kama(N32 node, N32 kazi_node) {
     }
 }
 
+// -------------------------------------------------------
+// Uvektishaji wa kitanzi (auto-vectorization), awamu ya kwanza —
+// SSE2 packed-double kwa vitanzi vya elementi rahisi vya safu.
+//
+// Huu ni ugunduzi wa muundo MAALUM sana, si ubadilishaji wa AST kama
+// LICM/kuunganisha kazi ndogo -- unatoa MAAGIZO TOFAUTI KABISA
+// (addpd/mulpd/subpd + movupd) badala ya kuandika upya mti kisha
+// kutumia uzalishaji uliopo. Kwa sababu hiyo, muundo unaokubalika ni
+// mwembamba zaidi kuliko LICM au kuunganisha kazi ndogo kimakusudi:
+//
+//   wakati (i < bound) {
+//       c[i] = a[i] OP b[i];   // OP ni +, -, au *  (D64 pekee)
+//       i = i + 1;
+//   }
+//
+// Masharti (yote lazima yatimizwe, la sivyo njia ya kawaida ya scalar
+// inatumika bila mabadiliko -- HAKUNA njia ya kati ya "nusu-vektishwa"):
+//   1. Hakuna kianzio cha kwa (ast_tiga[node] == -1), na si kitanzi cha
+//      hatua/fanya (ast_thamani[node] si -777777 wala -777778) -- LICM
+//      ilikataa kianzio cha kwa kwa sababu ile ile (kianzio hutekelezwa
+//      NDANI ya nodi ile ile kabla ya sharti la kwanza).
+//   2. Sharti ni AST_CHINI (i < bound) hasa -- si <=, >, wala !=.
+//   3. i ni kitambulisho, bound ni kitambulisho AU namba halisi (si
+//      wito wa kazi wala usemi tata -- lazima iwe salama kusoma MARA
+//      MOJA tu na kuhifadhiwa, kwa kuwa mwili haugusi kamwe kigezo cha
+//      bound: masharti #6-7 chini yanahakikisha hilo).
+//   4. i ni N32 hasa (enc == 288) -- si N64, si kielekezi, si desimali.
+//      Hii inaruhusu kutumia maagizo ya 32-bit moja kwa moja bila
+//      matawi ya upana, na inalingana na jinsi vihesabu vya kitanzi
+//      vinavyoandikwa kwa kawaida kwenye msimbo huu.
+//   5. Mwili ni AST_BLOCK yenye TAARIFA MBILI HASA, kwa mpangilio huu:
+//      (a) c[i] = a[i] OP b[i]  (b) i = i + 1. Mpangilio mwingine
+//      (ongezeko kabla ya ugawaji) HAUKUBALIWI -- ni nadra na
+//      haujajaribiwa, mwembamba zaidi ni salama zaidi.
+//   6. c, a, b ni vitambulisho VITATU (vinaweza kufanana, mfano
+//      c[i]=c[i]+a[i]), kila kimoja D64* halisi (ni_desimali_enc na
+//      ukubwa_kutoka_enc==8) -- si D32*, si muundo, si N64*.
+//   7. Fahirisi ya safu ZOTE TATU ni KITAMBULISHO SAWA na i HASA --
+//      HAKUNA ongezeko (a[i+1] HAIKUBALIWI) na HAKUNA fahirisi tata
+//      (a[i*n+j] HAIKUBALIWI, ndiyo maana matriki HAIENDANI na awamu
+//      hii -- kitanzi chake cha ndani kina fahirisi tata NA
+//      operesheni MBILI zilizounganishwa, angalia MATOKEO.md).
+//   8. Ongezeko ni "i = i + 1" hasa -- si "i += 1" (angalia jinsi hiyo
+//      inavyosambazwa -- kama ni AST_ASIMILIA ile ile ya i=i+1 baada
+//      ya usambazaji, sharti hili litapita vilevile), si "i++", wala
+//      hatua nyingine yoyote.
+//
+// Bila alama zozote za kuaminika za muundo huu (kwa mfano fahirisi
+// tata au OP zaidi ya moja), kitanzi kizima kinaachwa BILA KUGUSWA --
+// hakuna majaribio ya "kuvektisha kwa sehemu".
+// -------------------------------------------------------
+
+// Jina la kipekee la kigezo cha muda kinachohifadhi thamani ya bound
+// (kikomo cha juu cha kitanzi) mara moja tu -- angalia maelezo kwenye
+// simd_zalisha kuhusu kwa nini ni salama kusoma bound mara moja pekee.
+N8 simd_jina_buf[768];  // 32 * 24
+N32 simd_jina_idadi = 0;
+
+N8* simd_jina_mpya() {
+    kama (simd_jina_idadi >= 32) { rudisha 0; }
+    N32 slot = simd_jina_idadi;
+    simd_jina_idadi = simd_jina_idadi + 1;
+    N8* buf = simd_jina_buf + (slot * 24);
+    buf[0] = 95;   // _
+    buf[1] = 95;   // _
+    buf[2] = 115;  // s
+    buf[3] = 105;  // i
+    buf[4] = 109;  // m
+    buf[5] = 100;  // d
+    buf[6] = 95;   // _
+    buf[7] = 98;   // b
+    N32 n = slot;
+    N32 pos = 8;
+    kama (n == 0) {
+        buf[pos] = 48;  // '0'
+        pos = pos + 1;
+    } sivyo {
+        N32 tmp = n;
+        N32 ndj = 0;
+        wakati (tmp > 0) { ndj = ndj + 1; tmp = tmp / 10; }
+        N32 mwisho = pos + ndj;
+        tmp = n;
+        N32 p2 = mwisho - 1;
+        wakati (tmp > 0) {
+            buf[p2] = 48 + (tmp % 10);
+            tmp = tmp / 10;
+            p2 = p2 - 1;
+        }
+        pos = mwisho;
+    }
+    buf[pos] = 0;
+    rudisha buf;
+}
+
+// Rudisha 1 ikiwa nodi ni kitambulisho chenye jina sawa na `jina`.
+N32 simd_ni_kitambulisho_jina(N32 node, N8* jina) {
+    kama (node == -1) { rudisha 0; }
+    kama (ast_aina[node] != 5) { rudisha 0; }  // AST_KITAMBULISHO
+    rudisha jina_linganisha(ast_pool + ast_jina_off[node], jina);
+}
+
+// Toa msimbo wa kitanzi kilichovektishwa. Inaitwa TU baada ya
+// simd_jaribu_kitanzi kuthibitisha muundo kikamilifu.
+W0 simd_zalisha(N32 node, N32 bound_node, N32 ctr_node, N32 lv, N32 a_node,
+                N32 b_node, N32 op_aina, N32 stmt1, N32 stmt2, N32 kazi_node) {
+    // Hifadhi thamani ya bound MARA MOJA TU kwenye kigezo cha muda cha
+    // ndani. Hii ni salama kwa sababu masharti #5-#8 hapo juu
+    // yanahakikisha mwili wa kitanzi hauandiki KAMWE kigezo cha bound
+    // (unagusa tu i na kumbukumbu ya safu kupitia c/a/b) -- kwa hiyo
+    // thamani yake haiwezi kubadilika wakati wa kitanzi, tofauti na
+    // msimbo wa kawaida unaosoma upya sharti kila zunguko.
+    N8* bjina = simd_jina_mpya();
+    N32 bvidx = pata_au_unda_kigeu_ukubwa(bjina, 4, 288);
+    uzalishaji_usemi(bound_node, kazi_node);
+    andika_mov_rbp_off_ax(288, var_rbp_off[bvidx]);
+
+    N32 lebo_vec_check = lebo_buf_mpya();
+    N32 lebo_vec_body = lebo_buf_mpya();
+    N32 lebo_tail_check = lebo_buf_mpya();
+    N32 lebo_tail_body = lebo_buf_mpya();
+    N32 lebo_exit = lebo_buf_mpya();
+
+    toa_jmp_lebo(lebo_vec_check);
+
+    // --- Awamu ya jozi: inashughulikia i na i+1 kwa maagizo ya SSE2 ---
+    weka_lebo(lebo_vec_body);
+    // Anwani za c[i], b[i], a[i] -- zinasukumwa kwa mpangilio wa
+    // NYUMA ili kuvuta kwa mpangilio a, b, c (LIFO).
+    uzalishaji_anwani_ya_usemi(lv, kazi_node);       // rax = &c[i]
+    andika_push_rax();
+    uzalishaji_anwani_ya_usemi(b_node, kazi_node);   // rax = &b[i]
+    andika_push_rax();
+    uzalishaji_anwani_ya_usemi(a_node, kazi_node);   // rax = &a[i]
+    andika_push_rax();
+    andika_pop_rax();                                // rax = &a[i]
+    andika_movupd_xmm0_mem_rax();                    // xmm0 = a[i], a[i+1]
+    andika_pop_rax();                                // rax = &b[i]
+    andika_movupd_xmm1_mem_rax();                    // xmm1 = b[i], b[i+1]
+    kama (op_aina == 6) { andika_addpd_xmm0_xmm1(); }        // AST_JUMLISHA
+    sivyo { kama (op_aina == 7) { andika_subpd_xmm0_xmm1(); } // AST_TOFAUTI
+        sivyo { andika_mulpd_xmm0_xmm1(); } }                 // AST_ZIDISHA
+    andika_pop_rax();                                // rax = &c[i]
+    andika_movupd_mem_rax_xmm0();                    // c[i], c[i+1] = matokeo
+    // i += 2 -- tekeleza ongezeko lililopo MARA MBILI badala ya
+    // kuandika upya "i = i + 2" wenyewe: hutumia tena msimbo wa
+    // ongezeko ULIOTHIBITISHWA tayari na usambazaji/ukaguzi badala ya
+    // kuunda njia mpya inayoweza kuwa na kasoro.
+    uzalishaji_asimilia(stmt2, kazi_node);
+    uzalishaji_asimilia(stmt2, kazi_node);
+    toa_jmp_lebo(lebo_vec_check);
+
+    // --- Sharti la awamu ya jozi: (i + 1) < bound ---
+    weka_lebo(lebo_vec_check);
+    andika_pakia_kigeu_kwa_enc(288, var_rbp_off[bvidx]);  // eax = bound
+    sukuma_thamani(288);
+    uzalishaji_usemi(ctr_node, kazi_node);                 // eax = i
+    andika_add_eax_imm32(1);                               // eax = i + 1
+    vuta_thamani_rcx(288);                                 // ecx = bound
+    uzalishaji_cmp_kwa_enc(288);
+    weka_setcc_kwa_enc(288, 0);  // (i+1) < bound
+    andika_movzx_eax_al();
+    andika_test_eax_eax();
+    toa_jne_lebo(lebo_vec_body);
+
+    // --- Sharti la awamu ya mabaki: i < bound (elementi moja iliyobaki
+    // kama idadi ya jumla ni isiyo sawa -- kamwe si zaidi ya moja) ---
+    weka_lebo(lebo_tail_check);
+    andika_pakia_kigeu_kwa_enc(288, var_rbp_off[bvidx]);  // eax = bound
+    sukuma_thamani(288);
+    uzalishaji_usemi(ctr_node, kazi_node);                 // eax = i
+    vuta_thamani_rcx(288);                                 // ecx = bound
+    uzalishaji_cmp_kwa_enc(288);
+    weka_setcc_kwa_enc(288, 0);  // i < bound
+    andika_movzx_eax_al();
+    andika_test_eax_eax();
+    toa_jne_lebo(lebo_tail_body);
+    toa_jmp_lebo(lebo_exit);
+
+    // Elementi ya mwisho (scalar, njia ya kawaida iliyothibitishwa
+    // tayari) -- kamwe haitatekelezwa zaidi ya mara moja.
+    weka_lebo(lebo_tail_body);
+    uzalishaji_asimilia(stmt1, kazi_node);
+    uzalishaji_asimilia(stmt2, kazi_node);
+    toa_jmp_lebo(lebo_tail_check);
+
+    weka_lebo(lebo_exit);
+}
+
+// Jaribu kutambua muundo wa uvektishaji. Kama unafanana kikamilifu,
+// hutoa msimbo wa SSE2 na kurudisha 1 (uzalishaji_wakati huacha hapo
+// hapo). Vinginevyo hurudisha 0 bila kutoa BAITI YOYOTE -- njia ya
+// kawaida ya scalar inaendelea bila kubadilika kabisa.
+N32 simd_jaribu_kitanzi(N32 node, N32 kazi_node) {
+    kama (ast_tiga[node] != -1) { rudisha 0; }        // kianzio cha kwa
+    kama (ast_thamani[node] == -777777) { rudisha 0; }  // hatua ya kwa
+    kama (ast_thamani[node] == -777778) { rudisha 0; }  // fanya (do-while)
+
+    N32 cond = ast_kushoto[node];
+    N32 body = ast_kulia[node];
+    kama (cond == -1 || body == -1) { rudisha 0; }
+    kama (ast_aina[cond] != 22) { rudisha 0; }  // AST_CHINI (<) pekee
+
+    N32 ctr_node = ast_kushoto[cond];
+    N32 bound_node = ast_kulia[cond];
+    kama (ctr_node == -1 || bound_node == -1) { rudisha 0; }
+    kama (ast_aina[ctr_node] != 5) { rudisha 0; }  // i ni kitambulisho
+    N32 aina_bound = ast_aina[bound_node];
+    kama (aina_bound != 5 && aina_bound != 4) { rudisha 0; }  // kigezo au namba halisi
+
+    N32 cmp_enc = ast_thamani[cond];
+    kama (cmp_enc != 288) { rudisha 0; }  // i (na hivyo aina ya ulinganishi) ni N32 hasa
+
+    N8* ctr_jina = ast_pool + ast_jina_off[ctr_node];
+
+    // MUHIMU: mwili wa kitanzi HAUFUNGWI kwenye AST_BLOCK -- kama
+    // changanua_bloku (msambazaji.swa) inavyoonyesha, taarifa za {}
+    // zinaunganishwa MOJA KWA MOJA kupitia ast_nne, bila kifuniko
+    // chochote (AST_BLOCK ni alama ya "mwili tupu" TU). Kwa hiyo
+    // "taarifa mbili hasa" ni: stmt1 = body, stmt2 = ast_nne[stmt1],
+    // na ast_nne[stmt2] == -1 (hakuna ya tatu).
+    N32 stmt1 = body;
+    kama (ast_aina[stmt1] == 50) { rudisha 0; }  // AST_BLOCK == mwili tupu
+    N32 stmt2 = ast_nne[stmt1];
+    kama (stmt2 == -1) { rudisha 0; }
+    kama (ast_nne[stmt2] != -1) { rudisha 0; }   // TAARIFA MBILI hasa, si zaidi
+
+    // stmt2 lazima iwe "i = i + 1" hasa
+    kama (ast_aina[stmt2] != 37) { rudisha 0; }  // AST_ASIMILIA
+    N32 s2l = ast_kushoto[stmt2];
+    N32 s2r = ast_kulia[stmt2];
+    kama (simd_ni_kitambulisho_jina(s2l, ctr_jina) == 0) { rudisha 0; }
+    kama (s2r == -1 || ast_aina[s2r] != 6) { rudisha 0; }  // AST_JUMLISHA
+    N32 incl = ast_kushoto[s2r];
+    N32 incr = ast_kulia[s2r];
+    kama (simd_ni_kitambulisho_jina(incl, ctr_jina) == 0) { rudisha 0; }
+    kama (incr == -1 || ast_aina[incr] != 4) { rudisha 0; }  // namba halisi
+    kama (ast_kulia[incr] == 1) { rudisha 0; }  // namba ya N64 kwenye dimbwi -- kataa
+    kama (ast_thamani[incr] != 1) { rudisha 0; }  // lazima iwe hasa 1
+
+    // stmt1 lazima iwe "c[i] = a[i] OP b[i]"
+    kama (ast_aina[stmt1] != 37) { rudisha 0; }  // AST_ASIMILIA
+    N32 lv = ast_kushoto[stmt1];
+    N32 rv = ast_kulia[stmt1];
+    kama (lv == -1 || rv == -1) { rudisha 0; }
+    kama (ast_aina[lv] != 29) { rudisha 0; }  // AST_TAJA
+    N32 c_idx = ast_kulia[lv];
+    kama (simd_ni_kitambulisho_jina(c_idx, ctr_jina) == 0) { rudisha 0; }
+    N32 c_base = ast_kushoto[lv];
+    kama (c_base == -1 || ast_aina[c_base] != 5) { rudisha 0; }
+    N32 lv_enc = ast_thamani[lv];
+    kama (ni_desimali_enc(lv_enc) == 0) { rudisha 0; }
+    kama (ukubwa_kutoka_enc(lv_enc) != 8) { rudisha 0; }  // D64 pekee, si D32
+
+    N32 op_aina = ast_aina[rv];
+    kama (op_aina != 6 && op_aina != 7 && op_aina != 31) { rudisha 0; }  // +, -, *
+    N32 a_node = ast_kushoto[rv];
+    N32 b_node = ast_kulia[rv];
+    kama (a_node == -1 || b_node == -1) { rudisha 0; }
+    kama (ast_aina[a_node] != 29 || ast_aina[b_node] != 29) { rudisha 0; }  // AST_TAJA zote mbili
+    N32 a_idx = ast_kulia[a_node];
+    N32 b_idx = ast_kulia[b_node];
+    kama (simd_ni_kitambulisho_jina(a_idx, ctr_jina) == 0) { rudisha 0; }
+    kama (simd_ni_kitambulisho_jina(b_idx, ctr_jina) == 0) { rudisha 0; }
+    N32 a_base = ast_kushoto[a_node];
+    N32 b_base = ast_kushoto[b_node];
+    kama (a_base == -1 || ast_aina[a_base] != 5) { rudisha 0; }
+    kama (b_base == -1 || ast_aina[b_base] != 5) { rudisha 0; }
+    N32 a_enc = ast_thamani[a_node];
+    N32 b_enc = ast_thamani[b_node];
+    kama (ni_desimali_enc(a_enc) == 0 || ukubwa_kutoka_enc(a_enc) != 8) { rudisha 0; }
+    kama (ni_desimali_enc(b_enc) == 0 || ukubwa_kutoka_enc(b_enc) != 8) { rudisha 0; }
+
+    // Muundo umethibitishwa kikamilifu -- toa msimbo wa SSE2. stmt1 na
+    // stmt2 hapa hazina tena ast_nne kwa madhumuni ya
+    // uzalishaji_asimilia (haitumiki), lakini ZINGATIA: simd_zalisha
+    // huita uzalishaji_asimilia moja kwa moja (si uzalishaji_taarifa),
+    // hivyo mnyororo wao wa ast_nne (unaoelekeza kwa taarifa
+    // inayofuata NJE ya kitanzi) HAUGUSWI kamwe -- salama.
+    simd_zalisha(node, bound_node, ctr_node, lv, a_node, b_node, op_aina, stmt1, stmt2, kazi_node);
+    rudisha 1;
+}
+
 // Uzalishaji wa wakati (while) — AST_WAKATI (10)
 W0 uzalishaji_wakati(N32 node, N32 kazi_node) {
     N32 cond = ast_kushoto[node];
     N32 body = ast_kulia[node];
     N32 init = ast_tiga[node];  // kwa (for) loop init, ikiwa ipo
+
+    kama (simd_jaribu_kitanzi(node, kazi_node)) { rudisha; }
 
     // Toa msimbo wa anzisha (kwa ajili ya kwa loop)
     // Init inatekelezwa mara moja kabla ya kitanzi

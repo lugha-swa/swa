@@ -1,0 +1,31 @@
+// Uvektishaji (SIMD): kesi chanya ya msingi -- c[i] = a[i] + b[i] kwa
+// D64, urefu 37 (SIO SAWA kimakusudi -- hulazimisha awamu ya mabaki
+// baada ya jozi 18 kushughulikiwa na SSE2, elementi moja iliyobaki
+// kupitia njia ya scalar). a[i]=i, b[i]=i*2, matokeo yanayotarajiwa
+// c[i]=3*i kwa kila i. Inakagua ELEMENTI ZOTE 37, si sampuli chache,
+// ili kuhakikisha mpangilio wa jozi haujavurugika popote.
+husisha { maktaba/kumbukumbu.swa }
+N32 main() {
+    N32 n = 37;
+    D64* a = tenga(ukubwa(D64) * n);
+    D64* b = tenga(ukubwa(D64) * n);
+    D64* c = tenga(ukubwa(D64) * n);
+    N32 i = 0;
+    wakati (i < n) {
+        a[i] = i;
+        b[i] = i * 2;
+        i = i + 1;
+    }
+    i = 0;
+    wakati (i < n) {
+        c[i] = a[i] + b[i];
+        i = i + 1;
+    }
+    i = 0;
+    wakati (i < n) {
+        D64 tarajiwa = i * 3;
+        kama (c[i] != tarajiwa) { rudisha i + 1; }
+        i = i + 1;
+    }
+    rudisha 0;
+}

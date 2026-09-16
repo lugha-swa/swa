@@ -117,6 +117,55 @@ uliochaguliwa kwa makusudi (salama zaidi kuliko kufaidika), sio
 upungufu wa bahati mbaya -- sawa na jinsi kuunganisha kazi ndogo
 (#235) kulivyoripoti faida ndogo halisi badala ya kubuni moja.
 
+## Uvektishaji (SIMD/SSE2), awamu ya kwanza -- kipimo halisi
+
+Awamu hii inatambua muundo mwembamba SANA wa kitanzi cha "wakati":
+`c[i] = a[i] OP b[i]; i = i + 1;` (taarifa MBILI hasa, `OP` ni `+`,
+`-`, au `*`, safu zote tatu D64, fahirisi ZOTE ni kitambulisho sawa
+na kihesabu cha kitanzi bila ongezeko). Ikilingana, hutoa maagizo ya
+SSE2 packed-double (`movupd`/`addpd`/`subpd`/`mulpd`) yanayoshughulikia
+elementi MBILI kwa wakati mmoja badala ya moja, na awamu ya pili ya
+"mabaki" (scalar, njia ya kawaida) kwa elementi ya mwisho iliyobaki
+ikiwa idadi ni isiyo sawa. Angalia maoni kamili juu ya
+`simd_jaribu_kitanzi` (`uzalishaji.swa`) kwa masharti yote manane.
+
+**`matriki` HAIFAIDIKI kabisa kwa awamu hii -- kimakusudi, si
+upungufu.** Kitanzi cha ndani kabisa cha `matriki` ni
+`c[i*n+j] = c[i*n+j] + aik*b[k*n+j];` -- fahirisi zake ni tata
+(`i*n+j`, si kitambulisho kimoja `j`), na upande wa kulia wa `+` ni
+UZIDISHO (`aik*b[k*n+j]`), si fahirisi ya safu ya moja kwa moja.
+Vigezo vyote viwili vinakataliwa na muundo mwembamba uliochaguliwa
+kwa makusudi kwa awamu hii ya kwanza (angalia #7 kwenye orodha ya
+masharti). Kukuza muundo huu kushughulikia usemi ulioungwa (kuzidisha
+NDANI ya kujumlisha) na fahirisi tata ni kazi halisi ya awamu ijayo,
+si urekebishaji mdogo -- imeachwa kimakusudi kwa awamu hii nyembamba.
+
+Kwa sababu `matriki` haiendani na muundo, kipimo cha kabla/baada cha
+`matriki` chenyewe hakina maana hapa (hakuna njia mpya ya msimbo
+inayotekelezwa kabisa) -- kipimo cha chini kinaonyesha badala yake
+kipimo kipya cha lengo (`vipimo/simd_jozi_d64/`), kilichoundwa MAALUM
+kuendana na muundo unaokubalika, kikilinganisha toleo linaloustahili
+uvektishaji dhidi ya toleo la scalar lenye hesabu ile ile HASA
+(N=2,000,000 elementi, marudio 60) lakini mwili wa kitanzi wenye
+taarifa TATU (kigezo cha muda `tmp` cha ziada) badala ya mbili
+kimakusudi, ili kukikwepa. Matokeo ya programu (jumla ya `c` yote)
+yalithibitishwa SAWA KABISA kati ya matoleo mawili kabla ya kuamini
+muda wowote.
+
+| Kipimo | Scalar (msingi) | SSE2 (uvektishaji) | Mabadiliko |
+|---|---|---|---|
+| c[i]=a[i]+b[i], N=2,000,000, marudio 60 | ~950ms (wastani wa marudio 3) | ~560ms (wastani wa marudio 3) | ~40% haraka zaidi |
+
+Faida haifikii mara 2 (2x) ya kinadharia ya SSE2 (elementi mbili kwa
+agizo moja) -- inayotarajiwa: mzigo huu umefungwa na kipimo cha
+kumbukumbu (arrays tatu za D64 za MB 16 kila moja, mara nyingi zaidi
+ya akiba ya L2/L3), sio hesabu safi ya ALU, hivyo kupunguza maagizo
+ya ALU pekee hakuondoi kizuizi cha bandwidth ya kumbukumbu kabisa.
+Toleo la scalar pia lina mzigo mdogo wa ziada (kigezo `tmp` cha ziada
+kwenye rafu kwa kila mzunguko) ambao si sehemu safi ya uvektishaji
+wenyewe -- tofauti halisi ya "SIMD dhidi ya scalar safi" pengine ni
+kidogo zaidi ya 40% iliyoripotiwa hapa, si kidogo.
+
 ## Tahadhari ya kelele
 
 Kikao kilichotangulia kiliona TOFAUTI YA MARA 2 (2x) kwenye binary
