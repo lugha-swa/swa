@@ -5393,60 +5393,145 @@ W0 andika_hifadhi_hoja(N32 rhs, N32 fenc) {
     }
 }
 
+// Kulinganisha miundo miwili ya AST ya USEMI WA FAHARISI kwa undani
+// (SI kwa faharisi ya nodi -- angalia keq_taja_sawa hapa chini kwa
+// sababu). Wigo umezuiliwa KIMAKUSUDI kwa: kitambulisho (jina
+// linganifu), namba halisi (thamani na bendera ya dimbwi la N64
+// linganifu), na AST_JUMLISHA/TOFAUTI/ZIDISHA (kurudia pande zote
+// mbili). CHOCHOTE kingine (wito wa kazi, *kielekezi, usomaji wa safu
+// nyingine, n.k.) HAKIKUBALIWI -- kinarudisha 0 moja kwa moja, bila
+// ubaguzi -- kwa sababu hatuna uchambuzi wa alias kuthibitisha kuwa
+// usemi kama huo ungetoa thamani MOJA kila unapotathminiwa (wito wa
+// kazi unaweza kuwa na madhara ya kando au kurudisha thamani
+// tofauti kila mara; *kielekezi kingine kinaweza kubadilika kati ya
+// pande mbili). Kikomo hiki kinatosha kwa faharisi za safu za
+// kawaida (mfano i*n+j) bila kuhitaji uchambuzi wa alias wowote.
+N32 keq_expr(N32 a, N32 b) {
+    kama (a == -1 || b == -1) { rudisha (a == b); }
+    kama (ast_aina[a] != ast_aina[b]) { rudisha 0; }
+    N32 t = ast_aina[a];
+    kama (t == 5) {  // AST_KITAMBULISHO
+        rudisha jina_linganisha(ast_pool + ast_jina_off[a], ast_pool + ast_jina_off[b]);
+    }
+    kama (t == 4) {  // namba halisi
+        kama (ast_thamani[a] != ast_thamani[b]) { rudisha 0; }
+        rudisha (ast_kulia[a] == ast_kulia[b]);  // bendera ya dimbwi la N64
+    }
+    kama (t == AST_JUMLISHA || t == AST_TOFAUTI || t == AST_ZIDISHA) {
+        kama (keq_expr(ast_kushoto[a], ast_kushoto[b]) == 0) { rudisha 0; }
+        rudisha keq_expr(ast_kulia[a], ast_kulia[b]);
+    }
+    rudisha 0;
+}
+
+// Kulinganisha nodi mbili za AST_TAJA (arr[idx] au *ptr) kwa undani
+// KAMILI: msingi (lazima uwe kitambulisho -- jina moja kwa moja, SI
+// usemi mgumu zaidi) na faharisi (keq_expr, au -1 zote mbili kwa
+// *ptr bila faharisi). Hii ndiyo inayowezesha ugunduzi mpya (chini
+// ya uzalishaji_asimilia_kiwanja_tail) kutambua "arr[e] = arr[e] +
+// x" pale ambapo pande mbili za "arr[e]" ni nodi MBILI TOFAUTI za
+// AST (uchanganuzi wa maandishi mawili tofauti ya kifungu kimoja),
+// tofauti na njia ya asili ya kiwanja (x += y) ambayo hutumia TENA
+// nodi ile ile.
+N32 keq_taja_sawa(N32 a, N32 b) {
+    kama (ast_aina[a] != 29 || ast_aina[b] != 29) { rudisha 0; }
+    N32 abase = ast_kushoto[a]; N32 bbase = ast_kushoto[b];
+    kama (abase == -1 || bbase == -1) { rudisha 0; }
+    kama (ast_aina[abase] != 5 || ast_aina[bbase] != 5) { rudisha 0; }
+    kama (jina_linganisha(ast_pool + ast_jina_off[abase], ast_pool + ast_jina_off[bbase]) == 0) { rudisha 0; }
+    N32 aidx = ast_kulia[a]; N32 bidx = ast_kulia[b];
+    kama (aidx == -1 && bidx == -1) { rudisha 1; }
+    kama (aidx == -1 || bidx == -1) { rudisha 0; }
+    rudisha keq_expr(aidx, bidx);
+}
+
 // Njia ya haraka kwa ugawaji wa kiwanja kwenye kipengele cha safu/
-// nyoosha (arr[idx] += x, arr[idx] -= x, na *p += x/*p -= x sawa)
-// -- inatumika TU wakati mwitaji (uzalishaji_asimilia) ameshathibitisha
-// kuwa RHS ni usemi wa AST_JUMLISHA/AST_TOFAUTI ambao upande wake wa
-// KUSHOTO ni NODI ILE ILE (kwa faharisi, si tu muundo unaofanana) ya
-// LHS ya ugawaji -- muundo huu HUTOKANA MOJA KWA MOJA na jinsi
-// changanua_usemi_asimilia (msambazaji.swa) inavyofungua sukari ya
-// x += y kuwa "x = x + y" ikitumia TENA nodi ile ile ya x kwenye pande
-// zote mbili (si nakala), hivyo hakuna haja ya kulinganisha miundo ya
-// AST kwa undani -- kulinganisha faharisi ya nodi kunatosha na ni
-// salama.
+// nyoosha. Njia MBILI tofauti za mwitaji (uzalishaji_asimilia)
+// zinaweza kuthibitisha kufaa kwa kazi hii:
 //
-// SABABU (imethibitishwa kwa objdump halisi, si dhana): kabla ya
-// rekebisho hili, taarifa kama "c[i*n+j] += x;" ilikokotoa anwani ya
-// c[i*n+j] (i*n, +j, *saizi) MARA TATU tofauti -- mara moja kwa
-// lengo la uandishi, mara ya pili kusoma thamani ya sasa (sehemu ya
-// kutathmini upande wa RHS "c[i*n+j] + x"), na mara ya tatu kama
-// kipengele hicho hicho kikisomwa tena baadaye. Kazi hii inatumia
-// anwani iliyokokotolewa MARA MOJA TU na mwitaji (tayari iko eax
-// wakati kazi hii inaitwa) kusoma na kuandika, ikiondoa hesabu mbili
-// za ziada za anwani kabisa.
+//   (1) KIWANJA HALISI (arr[idx] += x, arr[idx] -= x) -- RHS ni
+//       AST_JUMLISHA/TOFAUTI ambao upande wa KUSHOTO ni NODI ILE ILE
+//       (kwa faharisi) ya LHS -- hutokana moja kwa moja na jinsi
+//       changanua_usemi_asimilia (msambazaji.swa) inavyofungua sukari
+//       ya x += y kuwa "x = x + y" ikitumia TENA nodi ile ile ya x,
+//       hivyo kulinganisha faharisi ya nodi kunatosha.
+//   (2) UGAWAJI WA KAWAIDA ULIOANDIKWA KWA MKONO (arr[e] = arr[e] OP
+//       x, +/-/*) -- maandishi ya "arr[e]" YAMEANDIKWA MARA MBILI na
+//       mwandishi (mfano matriki: c[i*n+j] = c[i*n+j] + aik*b[k*n+j]),
+//       hivyo ni NODI MBILI TOFAUTI za AST -- keq_taja_sawa (juu)
+//       inathibitisha kwa undani kuwa ni sawa kimuundo KABISA (msingi
+//       na faharisi) kabla ya kukubali.
 //
-// UTATA WA MPANGILIO WA REJESTA (umefikiriwa kwa makini): baada ya
-// kusoma thamani ya sasa na kutathmini upande wa kulia, EAX na ECX
-// zinahitaji kuwa kwenye mpangilio MAALUM kabla ya jumlisha/toa --
-// EAX = thamani ya SASA (upande wa kushoto wa op), ECX = thamani ya
-// KULIA -- kwa sababu kutoa (sub eax,ecx) si sawia (curval-kulia SI
-// sawa na kulia-curval). Msururu wa push/pop hapa chini umeundwa
-// KIMAKUSUDI kuhakikisha mpangilio huo bila kujali mpangilio wa
-// kutathmini.
+// SABABU (imethibitishwa kwa objdump halisi, si dhana, kwa njia (1)):
+// kabla ya rekebisho la awali, taarifa kama "c[i*n+j] += x;"
+// ilikokotoa anwani ya c[i*n+j] (i*n, +j, *saizi) MARA TATU tofauti.
+// Kazi hii inatumia anwani iliyokokotolewa MARA MOJA TU na mwitaji
+// (tayari iko rax wakati kazi hii inaitwa) kusoma na kuandika.
 //
-// WIGO (kwa makusudi mdogo, kuepuka hatari): NAMBA KAMILI TU (si
-// desimali -- xmm hazishughulikiwi hapa), SI kielekezi (mshale bit
-// lazima iwe sifuri -- hesabu ya kielekezi ina njia tofauti kabisa
-// yenye kuzidisha kwa ukubwa wa kipengele), SI muundo (enc hasi
-// haiwezi kufika hapa kabisa, angalia ukaguzi wa mwitaji), + na - TU
-// (*, /, % HAZIJASHUGHULIKIWA kwa makusudi -- hatari kubwa zaidi ya
-// usahihi kwa mgawanyo/kizio, faida ndogo zaidi kwa kuzidisha).
+// DESIMALI (D32/D64) SASA INASHUGHULIKIWA (haikuwa awali): haikuwa
+// hatari ya usahihi bali WIGO TU uliokuwa mdogo -- andika_pakia_
+// anwani_kwa_enc/andika_hifadhi_anwani_kwa_enc TAYARI walikuwa
+// wakishughulikia desimali (movsd/movss kupitia xmm0), na sukuma_
+// thamani/vuta_thamani_rcx TAYARI ni jumla (wanashughulikia xmm0/
+// xmm1 kupitia andika_push_xmm0_d64/andika_pop_xmm1_d64 n.k.) --
+// kilichokosekana ni hatua ya "unganisha" ya xmm (addsd/subsd/
+// mulsd), iliyoongezwa hapa chini kama tawi sambamba na tawi la eax/
+// ecx la namba kamili, bila kubadilisha tawi hilo hata kidogo.
+//
+// UTATA WA MPANGILIO WA REJESTA (umefikiriwa kwa makini, kwa aina
+// zote mbili): baada ya kusoma thamani ya sasa na kutathmini upande
+// wa kulia, rejesta kuu (eax/rax AU xmm0) na ya pili (ecx/rcx AU
+// xmm1) zinahitaji kuwa kwenye mpangilio MAALUM kabla ya jumlisha/
+// toa/zidisha -- KUU = thamani ya SASA (upande wa kushoto wa op),
+// YA PILI = thamani ya KULIA -- kwa sababu kutoa (curval-kulia) SI
+// sawia na (kulia-curval). Kwa desimali, thamani ya kulia inaishia
+// xmm0 (mkataba wa kawaida wa usemi) baada ya kutathminiwa, hivyo
+// LAZIMA isukumwe/kutolewa kwenye rafu KABLA ya thamani ya sasa
+// kuvutwa tena hadi xmm0 -- msururu hapa chini (sukuma/vuta kwa
+// mpangilio sahihi) umeundwa KIMAKUSUDI kuhakikisha hilo bila
+// kujali mpangilio wa kutathmini.
+//
+// WIGO (kwa makusudi mdogo bado, kuepuka hatari): SI kielekezi
+// (mshale bit lazima iwe sifuri -- hesabu ya kielekezi ina njia
+// tofauti kabisa yenye kuzidisha kwa ukubwa wa kipengele), SI
+// muundo (enc hasi haiwezi kufika hapa kabisa, angalia ukaguzi wa
+// mwitaji), + na - na * TU (/, % HAZIJASHUGHULIKIWA kwa makusudi --
+// hatari kubwa zaidi ya usahihi kwa mgawanyo/kizio, hasa kwa namba
+// hasi -- angalia maelezo sawa kwenye kunja_namba/nguvu_ya_pili).
 W0 uzalishaji_asimilia_kiwanja_tail(N32 op, N32 kulia_node, N32 lhs_enc, N32 rhs_enc, N32 kazi_node) {
+    N32 lhs_d = ni_desimali_enc(lhs_enc);
     andika_push_rax();  // nakala A ya anwani (kwa uhifadhi wa mwisho)
     andika_push_rax();  // nakala B (eax bado ni anwani -- push haibadilishi eax)
-    andika_pop_rax();   // eax = anwani (nakala B imetolewa)
-    andika_pakia_anwani_kwa_enc(lhs_enc);  // eax = thamani ya sasa (aina ya elementi)
-    andika_push_rax();  // hifadhi thamani ya sasa
-    uzalishaji_usemi(kulia_node, kazi_node);  // eax = thamani ya kulia
+    andika_pop_rax();   // eax/rax = anwani (nakala B imetolewa)
+    andika_pakia_anwani_kwa_enc(lhs_enc);  // eax/rax AU xmm0 = thamani ya sasa
+    sukuma_thamani(lhs_enc);  // hifadhi thamani ya sasa (jumla -- inashughulikia xmm)
+    uzalishaji_usemi(kulia_node, kazi_node);  // eax/rax AU xmm0 = thamani ya kulia
     badili_mpaka_wa_desimali(kulia_node, rhs_enc);
-    andika_push_rax();
-    andika_pop_rcx();   // ecx = thamani ya kulia
-    andika_pop_rax();   // eax = thamani ya sasa
-    N32 saizi_op = ukubwa_kutoka_enc(rhs_enc);
-    kama (op == AST_JUMLISHA) {
-        kama (saizi_op >= 8) { andika_add_rax_rcx(); } sivyo { andika_add_eax_ecx(); }
+    sukuma_thamani(rhs_enc);   // hifadhi thamani ya kulia kwenye rafu pia
+    vuta_thamani_rcx(rhs_enc); // ecx/rcx AU xmm1 = thamani ya kulia
+    kama (lhs_d) {
+        N32 saizi_l = ukubwa_kutoka_enc(lhs_enc);
+        kama (saizi_l >= 8) { andika_pop_xmm0_d64(); } sivyo { andika_pop_xmm0_d32(); }
     } sivyo {
-        kama (saizi_op >= 8) { andika_sub_rax_rcx(); } sivyo { andika_sub_eax_ecx(); }
+        andika_pop_rax();  // eax/rax = thamani ya sasa
+    }
+    N32 saizi_op = ukubwa_kutoka_enc(rhs_enc);
+    kama (lhs_d) {
+        kama (op == AST_JUMLISHA) {
+            kama (saizi_op >= 8) { andika_addsd_xmm0_xmm1(); } sivyo { andika_addss_xmm0_xmm1(); }
+        } sivyo { kama (op == AST_TOFAUTI) {
+            kama (saizi_op >= 8) { andika_subsd_xmm0_xmm1(); } sivyo { andika_subss_xmm0_xmm1(); }
+        } sivyo {
+            kama (saizi_op >= 8) { andika_mulsd_xmm0_xmm1(); } sivyo { andika_mulss_xmm0_xmm1(); }
+        } }
+    } sivyo {
+        kama (op == AST_JUMLISHA) {
+            kama (saizi_op >= 8) { andika_add_rax_rcx(); } sivyo { andika_add_eax_ecx(); }
+        } sivyo { kama (op == AST_TOFAUTI) {
+            kama (saizi_op >= 8) { andika_sub_rax_rcx(); } sivyo { andika_sub_eax_ecx(); }
+        } sivyo {
+            kama (saizi_op >= 8) { andika_imul_rax_rcx(); } sivyo { andika_imul_eax_ecx(); }
+        } }
     }
     andika_pop_rcx();   // ecx = anwani (nakala A)
     andika_hifadhi_anwani_kwa_enc(lhs_enc);  // [ecx] = thamani mpya kwa aina ya elementi
@@ -5650,6 +5735,42 @@ W0 uzalishaji_asimilia(N32 node, N32 kazi_node) {
                                 kiwanja_op = rhs_aina_kw;
                                 kiwanja_kulia = ast_kulia[rhs];
                                 kiwanja_rhs_enc = rhs_enc_kw;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Ugunduzi wa PILI (mpya): ugawaji wa KAWAIDA (si sukari ya
+        // kiwanja) ambapo mwandishi ameandika LHS TENA kwa mkono kama
+        // sehemu ya RHS -- "arr[e] = arr[e] OP x" (mfano matriki:
+        // c[i*n+j] = c[i*n+j] + aik*b[k*n+j]). Hii ni nodi MBILI
+        // TOFAUTI za AST (angalia keq_taja_sawa juu), hivyo lazima
+        // tulinganishe MUUNDO kwa undani, si faharisi ya nodi -- na
+        // TOFAUTI na ugunduzi wa kwanza, hapa TUNARUHUSU desimali
+        // (D32/D64) na ZIDISHA (*) pia, kwa sababu uzalishaji_asimilia_
+        // kiwanja_tail sasa inashughulikia zote (angalia maelezo
+        // kamili juu ya kazi hiyo). Inajaribiwa TU kama ugunduzi wa
+        // kwanza haukupata kitu -- haugusi tabia ya awali hata kidogo.
+        kama (kiwanja_salama == 0) {
+            kama (ast_thamani[lhs] >= 0) {
+                kama ((ast_thamani[lhs] / 2) * 2 == ast_thamani[lhs]) {
+                    N32 rhs_aina_kw2 = ast_aina[rhs];
+                    kama (rhs_aina_kw2 == AST_JUMLISHA || rhs_aina_kw2 == AST_TOFAUTI || rhs_aina_kw2 == AST_ZIDISHA) {
+                        N32 rhs_l2 = ast_kushoto[rhs];
+                        kama (rhs_l2 != -1 && ast_aina[rhs_l2] == 29) {
+                            kama (keq_taja_sawa(lhs, rhs_l2)) {
+                                N32 rhs_enc_kw2 = ast_thamani[rhs];
+                                // Aina lazima zifanane HASA (upana na
+                                // desimali/namba-kamili) -- kuepuka
+                                // mchanganyiko wa aina usio salama.
+                                kama (rhs_enc_kw2 == ast_thamani[lhs]) {
+                                    kiwanja_salama = 1;
+                                    kiwanja_op = rhs_aina_kw2;
+                                    kiwanja_kulia = ast_kulia[rhs];
+                                    kiwanja_rhs_enc = rhs_enc_kw2;
+                                }
                             }
                         }
                     }
