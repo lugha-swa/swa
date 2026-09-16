@@ -177,3 +177,51 @@ ya vikao viwili tofauti bila kuzingatia hili. Kwa kulinganisha halisi
 kwa kazi ijayo, pima toleo la ZAMANI na JIPYA la mkusanyaji KWENYE
 KIKAO KIMOJA HASA, karibu wakati mmoja, ili mizani ya masafa iwe
 sawa kwa pande zote mbili.
+
+## Sethi-Ullman: ugawaji wa rejesta wa vigezo vya muda vya usemi
+
+Ugawaji wa rejesta uliopo (PR #226/#227) unashughulikia vigezo vya
+NDANI na paramu PEKEE -- matokeo ya KATI ya usemi (mfano (a+b) ndani
+ya (a+b)*(c+d)) yaliendelea kusukumwa/kutolewa (push/pop) kwenye rafu
+kila wakati. Sehemu hii inaongeza njia mbadala inayotumia rejesta za
+callee-saved ZISIZOTUMIKA (baada ya vigezo vya ndani/paramu) kushikilia
+matokeo ya kati, ikitumia fomula ya Sethi-Ullman kukokotoa haja ya
+chini kabisa ya rejesta -- LAKINI SI upangaji upya wake wa mpangilio
+wa utathmini (mpangilio unabaki KULIA-KWENDA-KUSHOTO ulio WA KUDUMU
+kila mahali, sawa na njia ya asili -- angalia maelezo kamili karibu na
+su_ni_kushughulikiwa/su_haja_rejista, uzalishaji.swa).
+
+Uchunguzi mkubwa mbili za gharama zilizogunduliwa kwa KUPIMA HALISI
+(si dhana) wakati wa maendeleo:
+
+1. **Hitilafu ya ABI iliyorekebishwa**: rejesta za "ziada" zilizokopwa
+   lazima zihifadhiwe/kurudishwe na utangulizi/mwisho wa kazi
+   INAYOZITUMIA (si kuachwa bila kuguswa) -- vinginevyo thamani ya
+   mpigaji kwenye rejesta hiyo hiyo huharibika kimya. Suluhisho: pitio
+   la awali (kwa kila kazi) hukokotoa idadi kubwa zaidi ya rejesta za
+   SU zinazohitajika, na utangulizi/mwisho hutenga RASMI idadi hiyo
+   (kama vigezo vya ndani).
+2. **Gharama isiyo na faida kwa usemi wa haja=1 au usemi unaotokea
+   mara moja tu kwa kila wito**: kipimo halisi cha fibonacci
+   kilionyesha upungufu wa kasi wa ~35% (fib(n-1)+fib(n-2), haja=1,
+   kuitwa milioni 30 za mara) kabla ya masharti mawili kuongezwa: SU
+   inatengwa TU kwa (a) haja>=2, NA (b) usemi ulio NDANI ya kitanzi
+   (angalia su_kina_kitanzi, uzalishaji.swa) -- gharama ya kutenga
+   rejesta (mara moja kwenye utangulizi/mwisho) inalipwa tena
+   (amortized) TU pale usemi unaporudiwa mara nyingi ndani ya wito
+   mmoja.
+
+| Kipimo | Kabla (push/pop) | Baada (SU) | Mabadiliko |
+|---|---|---|---|
+| fibonacci (fib(35), haja=1, milioni 30 za wito) | ~150ms | ~155ms | sawa (ndani ya kelele -- ilikuwa ~35% pungufu KABLA ya masharti #2 kuongezwa) |
+| heshi (djb2, haja=2, ndani ya kitanzi) | ~1800ms | ~1800ms | sawa (ndani ya kelele -- SU inatumika kwa kweli, lakini faida ndogo mno ikilinganishwa na gharama kubwa ya uumbizaji wa mfuatano inayotawala kipimo hiki) |
+| kupanga (nasibu_ijayo, haja=2, LAKINI HAINA kitanzi chake chenyewe) | ~490ms | ~495ms | sawa (SU imekataliwa kikamilifu kwa usahihi -- disassembly inathibitisha msimbo sawa KABISA na kabla) |
+| su_rejesta_muda (kipimo kipya, haja=3, safu ndani ya kitanzi, marudio milioni 20) | ~188ms (wastani wa marudio 5) | ~154ms (wastani wa marudio 5) | ~18% haraka zaidi, THABITI kwenye marudio YOTE 5 yaliyopishana |
+
+Kama `matriki` kwa uvektishaji wa SIMD, benchmark za kawaida
+hazikuwa na muundo unaoendana vizuri na hali BORA ya SU (usemi wa haja
+kubwa, unaorudiwa mara nyingi ndani ya kitanzi kimoja) -- kipimo kipya
+maalum (`vipimo/su_rejesta_muda/`) kinathibitisha faida HALISI
+inapotokea kwenye hali inayolengwa. Matokeo ya programu (jumla)
+yalithibitishwa SAWA KABISA kati ya matoleo mawili kabla ya kuamini
+muda wowote.

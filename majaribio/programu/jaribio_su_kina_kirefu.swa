@@ -1,0 +1,50 @@
+// Sethi-Ullman (rejesta za vigezo vya muda) -- mnyororo mrefu wa
+// vijumlisho vilivyowiana KUSHOTO (mzizi una haja=6, zaidi ya rejesta
+// 5 zinazopatikana KABISA -- su_jaribu_mzizi UNAKATAA kwa mzizi
+// hasa, kwa usahihi). LAKINI: kwa sababu njia ya asili ya mzizi
+// inaita uzalishaji_usemi kwenye mtoto wake wa KUSHOTO (mnyororo wa
+// ngazi 5, haja=5 -- unatoshea SASA), mtoto huyo unapata nafasi YAKE
+// MWENYEWE ya su_jaribu_mzizi na KUKUBALIWA -- hii ni tabia SAHIHI ya
+// "kuunganishwa kwa sehemu" (SI mdudu): kila nodi inajaribu SU
+// KIVYAKE, si mzizi mmoja tu kwa mti mzima.
+//
+// MUHIMU: chanzo cha data ni SAFU (garr[i]), SI vigezo vya ULIMWENGU
+// vya moja kwa moja -- majaribio ya awali ya usemi huu yalishindwa
+// kimya kabisa na LICM (PR #236, iliyoungana KABLA ya sehemu hii):
+// LICM inaweza kuhamisha SEHEMU TU ya mti (mti mdogo wa juu zaidi
+// usiobadilika), ikiacha kilichobaki na haja ndogo mno (<2) kwa SU
+// kukataa kabla hata kufika kwenye jaribio lililokusudiwa. Kusoma
+// kutoka SAFU (AST_TAJA) HAKUWEZI KAMWE kuchukuliwa kuwa usiobadilika
+// na LICM (hakuna uchambuzi wa alias) HATA kama maudhui ya garr
+// hayabadiliki kamwe -- hivyo mti mzima unabaki NDANI ya kitanzi
+// kikamilifu.
+//
+// Usemi umewekwa NDANI ya kitanzi (mara 4) -- SU inatenga rejesta TU
+// kwa kazi zenye usemi unaorudiwa ndani ya kitanzi (angalia
+// su_kina_kitanzi, uzalishaji.swa). garr ni safu ya ULIMWENGU (SI
+// mgombea wa rejesta), na jumla_kuu/m pia ni za ULIMWENGU kwa
+// makusudi, ili rega_tumika_idadi ibaki 0 kwa kazi hii (kinyume chake
+// kingepunguza nafasi iliyobaki kwa SU, kikibadilisha ni ngazi gani
+// hasa ya mnyororo inayokubaliwa). Thamani ya garr: {1,2,3,4,5,6,7},
+// jumla ya kipengele = 28 kwa kila mzunguko, mara 4 = 112.
+N32 garr[7];
+N32 jumla_kuu = 0;
+N32 m = 0;
+
+N32 jaribu_kina_kirefu() {
+    // HAKUNA kigezo cha ndani hapa kwa makusudi (angalia maelezo juu)
+    // -- jumla_kuu inaongezwa MOJA KWA MOJA, si kwa kigezo cha muda.
+    wakati (m < 4) {
+        jumla_kuu = jumla_kuu + (((((garr[0] + garr[1]) + garr[2]) + garr[3]) + garr[4]) + garr[5]) + garr[6];
+        m = m + 1;
+    }
+    rudisha jumla_kuu;
+}
+
+N32 main() {
+    garr[0] = 1; garr[1] = 2; garr[2] = 3; garr[3] = 4;
+    garr[4] = 5; garr[5] = 6; garr[6] = 7;
+    N32 r = jaribu_kina_kirefu();
+    kama (r != 112) { rudisha 1; }
+    rudisha 0;
+}

@@ -4019,7 +4019,10 @@ W0 uzalishaji_taarifa(N32 node, N32 kazi_node) {
         // rax (thamani ya kurudi, iliyokokotolewa hapo juu) haiguswi na
         // pop za rbx/r12-r15.
         kama (frame_imeshinda) {
-            N32 rp_pop = rega_tumika_idadi;
+            // Kikomo kinajumuisha su_rejestwa_idadi (rejesta za SU
+            // zilizotengwa rasmi) -- angalia maelezo karibu na tangazo
+            // la su_rejestwa_idadi juu ya faili hili.
+            N32 rp_pop = rega_tumika_idadi + su_rejestwa_idadi;
             wakati (rp_pop > 0) {
                 rp_pop = rp_pop - 1;
                 andika_pop_reg64(regista_halisi_kwa_id(rp_pop));
@@ -4352,12 +4355,15 @@ N32 usemi_ni_kielekezi(N32 node) {
 // rejesta za callee-saved ZISIZOTUMIKA na ugawaji wa vigezo vya
 // ndani/paramu (rbx/r12/r13/r14/r15, ukiondoa zile tayari zinazotumiwa
 // na kazi ya sasa -- angalia rega_tumika_idadi) kushikilia matokeo ya
-// KATI badala ya kusukuma kwenye rafu -- kwa kutumia algorithm ya
-// KITAABUNI ya Sethi-Ullman (Sethi & Ullman, 1970) ya kukokotoa idadi
-// ya chini kabisa ya rejesta zinazohitajika kutathmini mti wa usemi,
-// na kutathmini upande "mgumu zaidi" (unaohitaji rejesta nyingi zaidi)
-// KWANZA ili matokeo yake yabaki kwenye rejesta wakati upande "rahisi
-// zaidi" unatathminiwa.
+// KATI badala ya kusukuma kwenye rafu -- ikitumia FOMULA ya
+// Sethi-Ullman (Sethi & Ullman, 1970) YA KUKOKOTOA idadi ya chini
+// kabisa ya rejesta zinazohitajika kutathmini mti wa usemi, LAKINI SI
+// upangaji upya wake wa mpangilio wa utathmini (angalia maelezo
+// kamili chini ya su_haja_rejista: mpangilio unabaki KULIA-KISHA-
+// KUSHOTO ulio WA KUDUMU, sawa kabisa na mpangilio wa asili wa
+// uzalishaji_jumlisha/tofauti/zidisha -- SI upande "mgumu zaidi"
+// kwanza, kwa sababu kubadilisha mpangilio huo kungebadilisha
+// mpangilio unaoonekana wa madhara ya kando ya wito za kazi).
 //
 // WIGO (kwa makusudi mdogo, angalia maelezo kamili ya mradi kuhusu
 // hatari): NAMBA KAMILI TU (si desimali -- xmm ni suala tofauti),
@@ -4372,11 +4378,13 @@ N32 usemi_ni_kielekezi(N32 node) {
 // "mgumu" bila kujali ni upi kimuundo) kunahitaji uangalifu zaidi wa
 // muda ambao haukuwepo kwenye kikao hiki -- kazi ya baadaye).
 //
-// Endapo mti wa usemi unahitaji rejesta ZAIDI ya zinazopatikana (5
-// - rega_tumika_idadi), NJIA YOTE inarudi kwenye tabia ya asili ya
-// push/pop (SI mchanganyiko wa sehemu-rejesta/sehemu-rafu ndani ya
-// mti mmoja -- rahisi zaidi kuthibitisha usahihi wake, gharama TU ni
-// fursa iliyokosekana ya uboreshaji kwa miti mikubwa sana, SI hatari
+// Endapo mti wa usemi unahitaji rejesta ZAIDI ya zinazopatikana
+// (su_rejestwa_idadi -- rejesta za SU ZILIZOTENGWA RASMI kwa kazi hii,
+// angalia maelezo karibu na tangazo lake), NJIA YOTE inarudi kwenye
+// tabia ya asili ya push/pop (SI mchanganyiko wa sehemu-rejesta/
+// sehemu-rafu ndani ya mti mmoja -- rahisi zaidi kuthibitisha usahihi
+// wake, gharama TU ni fursa iliyokosekana ya uboreshaji kwa miti
+// mikubwa sana, SI hatari
 // ya usahihi).
 
 // Je, nodi hii ni AST_JUMLISHA/TOFAUTI(ya-jozi)/ZIDISHA(isiyo-nguvu-
@@ -4388,63 +4396,51 @@ N32 usemi_ni_kielekezi(N32 node) {
 // faili hili kuhusu tafiti za awali za mradi huu).
 N32 su_ni_kushughulikiwa(N32 node) {
     kama (node < 0) { rudisha 0; }
-    // IMEZIMWA KWA MAKUSUDI kwa sasa.
+    // HISTORIA FUPI (maelezo kamili ya awali yapo kwenye historia ya
+    // git ya faili hili, kwa yeyote anayehitaji muktadha kamili wa
+    // uchunguzi #232): mdudu wa awali (unaohusu andika_stderr) ULIKUWA
+    // hitilafu tofauti kabisa (jedwali la sehemu za maandishi
+    // lililofurika kimya -- limerekebishwa PR #234) -- HAUNA UHUSIANO
+    // na kipengele hiki. Sababu ya KWELI ya Sethi-Ullman kubaki
+    // imezimwa hadi sasa ilikuwa hatari ya kubadilisha MPANGILIO WA
+    // UTATHMINI wa madhara ya kando -- imetatuliwa kwa kuachana KABISA
+    // na upangaji upya wa Sethi-Ullman (angalia maelezo kwenye
+    // su_haja_rejista/su_zalisha_ndani hapa chini: mpangilio sasa ni
+    // KULIA-KISHA-KUSHOTO ulio WA KUDUMU, sawa kabisa na mpangilio wa
+    // asili wa uzalishaji_jumlisha/tofauti/zidisha kila mahali).
     //
-    // SASISHO LA UCHUNGUZI (uchunguzi wa tatu -- lugha-swa/swa#232
-    // sasa IMEREKEBISHWA KABISA, angalia sehemu_buf/sehemu_off/
-    // sehemu_len hapo juu ya faili hili): maelezo yaliyokuwa hapa
-    // awali (yaliyodai chanzo ni "hoja pungufu kwa andika_stderr
-    // ikiungana na ugawaji wa rejesta ulioshughulikiwa") YALIKUWA
-    // NADHARIA ISIYOTHIBITIKA, iliyoachwa bila kuhitimishwa. Uchunguzi
-    // huu wa tatu ulithibitisha kwa majaribio ya moja kwa moja (a)
-    // andika/andika_stderr ZIMEKUSUDIWA KWA MAKUSUDI kutofautiana
-    // (variadic) -- angalia mkaguzi_kagua_wito katika mkaguzi.swa,
-    // ambayo inaziondoa WAZI kwenye ukaguzi wa idadi ya hoja -- kwa
-    // hiyo "hoja pungufu" si hitilafu kamwe, ni tabia ya kukusudia;
-    // na (b) mdudu huzalika HATA bila kigezo chochote cha ndani
-    // kinachostahili ugawaji wa rejesta (jaribio la kudhibiti: kazi
-    // 80 za kujaza zenye herufi halisi TU, bila vigezo vya ndani KABISA,
-    // bado zilizalisha mdudu huo huo; kazi zenye vigezo lakini BILA
-    // herufi halisi HAZIKUuzalisha) -- hivyo ugawaji wa rejesta
-    // (var_reg[], PR #226/#227) HAUNA UHUSIANO WOWOTE.
+    // MDUDU WA PILI ULIOGUNDULIWA (ukaguzi huru, kabla ya kuwasha
+    // kipengele hiki -- SI dhana, umethibitishwa kwa kusoma utangulizi/
+    // mwisho wa uzalishaji_kazi moja kwa moja): usanifu wa awali wa
+    // sehemu hii ulikopa rejesta za "ziada" (id = rega_tumika_idadi +
+    // su_zilizokopwa, tazama su_zalisha_ndani) BILA kuzihifadhi
+    // popote. Utangulizi/mwisho wa kazi (uzalishaji_kazi, karibu na
+    // rp_push/rp_pop_mwisho) husukuma/kutoa (push/pop) TU rejesta
+    // zinazotumika na VIGEZO VYA NDANI vya kazi hiyo (rega_tumika_idadi)
+    // -- rejesta za "ziada" zilizokopwa kwa muda wa usemi mmoja
+    // HAZIKUWA sehemu ya hesabu hiyo KABISA. Kwa kuwa rbx/r12-r15 ni
+    // callee-saved kwa ABI, hii ni HITILAFU YA ABI HALISI: kazi
+    // inayotumia rejesta ya "ziada" kama hii kwa usemi wake wa ndani
+    // ingeharibu KIMYA thamani ya mpigaji (au ya babu yeyote wa mnyororo
+    // wa wito) iliyoko kwenye rejesta hiyo hiyo, mara tu kazi inaporudi
+    // -- hatari ya kina cha wito, si ya kina cha usemi mmoja, kwa hiyo
+    // haiwezi kugunduliwa na majaribio yanayoita kazi moja tu bila
+    // babu yeyote mwenye kigezo cha rejesta kwenye nafasi ile ile.
     //
-    // CHANZO HALISI (kimebainika kwa uhakika kamili): jedwali la
-    // sehemu za maandishi za andika/andika_stderr (sehemu_buf/
-    // sehemu_off/sehemu_len, tazama juu ya faili hili) lilikuwa dogo
-    // mno (baiti 4096, sehemu 1024) kwa ajili ya ukusanyaji MMOJA
-    // (haiwekwi upya isipokuwa mara moja kwa kila --exe, kwenye
-    // uzalishaji_kuu) -- mkusanyaji huu una zaidi ya wito 140 wa
-    // andika/andika_stderr katika chanzo chake chote (mkaguzi.swa,
-    // msambazaji.swa, uzalishaji.swa, stage1.swa n.k.), na
-    // ukikusanywa PAMOJA (kama zima.swa, ambayo ndiyo hutokea
-    // kujiendeleza) jumla ya maandishi/sehemu hupita kikomo hicho
-    // kwa urahisi. sehemu_tungo_hifadhi() ilipofurika ilirudisha -1
-    // KIMYA, na tovuti za wito (uzalishaji_wito) zilikuwa zikiruka
-    // sehemu bila onyo lolote lilipokuwa lebo < 0 -- hivyo maandishi
-    // yanayozunguka %s yalipotea kimya, ikibaki na hoja iliyobadilishwa
-    // TU. Kwa nini kizazi cha kwanza (stage1 iliyojengwa NA mbegu.bin)
-    // hakiathiriki: mbegu.bin ni mkusanyaji tofauti kabisa, ulioandikwa
-    // kwa mkono, HAUTUMII uzalishaji.swa wala jedwali hili KABISA --
-    // ndiyo maana mdudu haugundulikani hadi kizazi cha pili (stage1
-    // iliyojengwa NA stage1 mwenyewe, ambapo jedwali hili la kizazi
-    // cha kwanza LENYEWE ndilo linalotumika kukusanya chanzo kikubwa).
-    // Rekebisho: jedwali limeongezwa (16x baiti, 8x idadi ya sehemu)
-    // na kufurika sasa huandika onyo kwenye stderr badala ya kunyamaza;
-    // jaribio la kudumu la kuzuia urudiaji limeongezwa
-    // (majaribio/programu/jaribio_sehemu_tungo_ujazo_mkubwa.swa) na
-    // sehemu mpya #14 ya gharama/jaribu-mnyororo.sh inayothibitisha
-    // kwa KUSOMA MAANDISHI HALISI ya toleo la kizazi cha pili, si tu
-    // kwamba linatoka bila kuanguka.
-    //
-    // Hii inathibitisha rasmi kile ambacho uchunguzi wa pili
-    // ulikuwa tayari umegundua kwa sehemu -- mdudu HAUNA UHUSIANO
-    // WOWOTE na Sethi-Ullman (kipengele hiki, kimezimwa kabisa hapa
-    // chini) WALA na ugawaji wa rejesta (PR #226/#227). Sababu ya
-    // KWELI ya Sethi-Ullman kubaki imezimwa ni TOFAUTI KABISA na
-    // #232 -- angalia maelezo chini ya su_haja_rejista (hatari ya
-    // kubadilisha mpangilio wa utathmini wa madhara ya kando) -- na
-    // #232 kurekebishwa HAKUBADILISHI hatari hiyo hata kidogo.
-    rudisha 0;
+    // SULUHISHO: ACHANA na "kukopa kwa muda" bila kuhifadhi. Badala
+    // yake, kila kazi sasa ina PITIO LA AWALI (angalia hook ndani ya
+    // kusanya_vigeu_vya_ndani, na su_max_haja_kazi/su_rejestwa_idadi
+    // karibu na tangazo la su_zilizokopwa) linalokokotoa idadi kubwa
+    // zaidi ya rejesta za SU zinazohitajika WAKATI MMOJA na usemi
+    // WOWOTE ndani ya kazi hiyo -- idadi hii (iliyopunguzwa kama
+    // inavyohitajika kwa nafasi iliyobaki baada ya vigezo vya ndani)
+    // inakuwa sehemu ya RASMI ya "rejesta zinazotumika na kazi hii",
+    // ikihifadhiwa (push) na kurudishwa (pop) na utangulizi/mwisho wa
+    // kazi MARA MOJA TU (kama vigezo vya ndani), SI kwa kila usemi.
+    // Hii inaondoa kabisa hitilafu ya ABI (rejesta zote zinazoguswa
+    // sasa zinahifadhiwa rasmi), NA inaepuka gharama ya kuhifadhi/
+    // kurudisha kwa kila usemi mmoja mmoja (ambayo ingekuwa sawa kabisa
+    // na gharama ya push/pop ya asili -- bila faida yoyote ya kweli).
     N32 aina = ast_aina[node];
     kama (aina != AST_JUMLISHA && aina != AST_TOFAUTI && aina != AST_ZIDISHA) { rudisha 0; }
     N32 enc = ast_thamani[node];
@@ -4522,6 +4518,51 @@ N32 su_haja_rejista(N32 node) {
 // hesabu ya mzazi anayeendelea kushikilia rejesta yake mwenyewe.
 N32 su_zilizokopwa = 0;
 
+// Idadi kubwa zaidi ya rejesta za SU zinazohitajika WAKATI MMOJA na
+// usemi WOWOTE ndani ya kazi INAYOSHUGHULIKIWA SASA -- huwekwa upya
+// kuwa 0 mwanzoni mwa kila kazi (uzalishaji_kazi, karibu na
+// rega_tumika_idadi = 0), na kukokotolewa na pitio la awali (hook
+// ndani ya kusanya_vigeu_vya_ndani, ikiita su_haja_rejista kwa kila
+// nodi ya AST_JUMLISHA/TOFAUTI/ZIDISHA inayofikiwa). Kupungukiwa
+// (nodi fulani kukosekana kwenye pitio hilo, mfano kwa sababu ya
+// kikomo cha kvn_idadi > 50000 kwa kazi kubwa mno) ni SALAMA KABISA --
+// su_jaribu_mzizi bado utathibitisha upatikanaji WAKATI WA UZALISHAJI
+// HALISI (haja <= su_rejestwa_idadi) na kurudi kwenye push/pop kwa
+// usemi wowote usiotoshea, hakuna hatari ya usahihi, ni fursa
+// iliyokosekana TU. Usemi WOWOTE nje ya kitanzi (su_kina_kitanzi==0
+// wakati wa pitio) HAUCHANGII kiasi hiki KABISA -- angalia maelezo
+// karibu na tangazo la su_kina_kitanzi hapa chini kwa sababu (kipimo
+// halisi cha kupanga/nasibu_ijayo).
+N32 su_max_haja_kazi = 0;
+
+// Kina cha sasa cha kitanzi (wakati/kwa, kina zaidi ya 0 = ndani ya
+// angalau kitanzi kimoja) WAKATI wa pitio la awali (hook ndani ya
+// kusanya_vigeu_vya_ndani) -- huwekwa upya kuwa 0 mwanzoni mwa kila
+// kazi, kisha kuongezwa/kupunguzwa na tawi la AST_WAKATI ndani ya
+// kusanya_vigeu_vya_ndani kuzunguka sharti+mwili wa kitanzi (SI
+// kianzio cha kwa wala taarifa inayofuata -- hizo hazirudiwi). Sababu:
+// gharama ya kutenga rejesta za SU (push/pop MOJA kwenye utangulizi/
+// mwisho wa kazi) inalipwa tena (amortized) TU pale usemi
+// unaporudiwa mara nyingi ndani ya wito MMOJA wa kazi hiyo (mfano
+// kitanzi cha djb2() kinachotekeleza usemi wa SU mara moja kwa kila
+// herufi) -- usemi unaotokea MARA MOJA TU kwa kila wito (nje ya
+// kitanzi chochote, mfano nasibu_ijayo() kwenye kupanga) haupati
+// nafasi ya kulipa gharama hiyo tena, na kipimo halisi kilionyesha
+// hilo kama upungufu wa kasi wa ~7-10% kabla ya ukaguzi huu kuongezwa.
+N32 su_kina_kitanzi = 0;
+
+// Idadi HALISI ya rejesta za SU zilizotengwa (RASMI, sehemu ya
+// "rejesta zinazotumika na kazi hii") kwa kazi INAYOSHUGHULIKIWA SASA
+// -- min(su_max_haja_kazi, 5 - rega_tumika_idadi), kukokotolewa MARA
+// MOJA TU baada ya finalisha_ugawaji_rejista() (angalia
+// uzalishaji_kazi). Rejesta zenye id [rega_tumika_idadi,
+// rega_tumika_idadi + su_rejestwa_idadi) sasa ni sehemu RASMI ya
+// utangulizi/mwisho wa kazi hii (rp_push/rp_pop_mwisho/rp_pop ya
+// AST_RUDISHA hutumia rega_tumika_idadi + su_rejestwa_idadi kama
+// kikomo, SI rega_tumika_idadi peke yake) -- hii ndiyo inayozuia
+// hitilafu ya ABI iliyoelezwa juu ya su_ni_kushughulikiwa.
+N32 su_rejestwa_idadi = 0;
+
 // MDUDU HALISI ULIOGUNDULIWA (kwa jaribio halisi, si dhana) na
 // kurekebishwa hapa: 1 = tathmini ya Sethi-Ullman TAYARI inaendelea
 // (kina fulani cha su_zalisha_ndani kinaendelea, kikishikilia rejesta
@@ -4557,7 +4598,23 @@ N32 su_jaribu_mzizi(N32 node, N32 kazi_node) {
     kama (su_ndani_ya_tathmini) { rudisha 0; }
     kama (su_ni_kushughulikiwa(node) == 0) { rudisha 0; }
     N32 haja = su_haja_rejista(node);
-    N32 nafasi = 5 - rega_tumika_idadi;
+    // haja=1 haipati faida ya kweli (angalia maelezo karibu na hook
+    // ndani ya kusanya_vigeu_vya_ndani, kipimo halisi cha fibonacci) --
+    // kinga hii ni ya PILI (usalama wa ziada tu): pitio la awali
+    // tayari halijumuishi nodi za haja=1 kwenye su_max_haja_kazi, lakini
+    // ukaguzi huu hapa unahakikisha HATA kama su_rejestwa_idadi>0 kwa
+    // sababu nyingine (usemi mwingine wa haja>=2 kwenye kazi hii hii),
+    // usemi wa haja=1 bado haukubaliwi SU -- gharama TU ni fursa
+    // iliyokosekana, si hatari ya usahihi.
+    kama (haja < 2) { rudisha 0; }
+    // Nafasi ni su_rejestwa_idadi (rejesta ZILIZOTENGWA RASMI na
+    // utangulizi/mwisho wa kazi hii kwa ajili ya SU) -- SI "5 -
+    // rega_tumika_idadi" moja kwa moja. Tofauti hii ndiyo suluhisho la
+    // hitilafu ya ABI iliyoelezwa juu ya su_ni_kushughulikiwa: rejesta
+    // yoyote ile hii inayogusa lazima iwe TAYARI imetengwa rasmi (na
+    // hivyo kuhifadhiwa/kurudishwa na utangulizi/mwisho), la sivyo
+    // haja hii inakataliwa na njia ya asili ya push/pop inatumika.
+    N32 nafasi = su_rejestwa_idadi;
     kama (haja > nafasi) { rudisha 0; }
     su_zilizokopwa = 0;
     su_ndani_ya_tathmini = 1;
@@ -6186,6 +6243,76 @@ W0 kusanya_vigeu_vya_ndani(N32 node) {
     kvn_visited[node] = kvn_gen;
     N32 aina = ast_aina[node];
 
+    // Pitio la awali la ugawaji wa rejesta za SU (angalia maelezo
+    // kamili karibu na tangazo la su_max_haja_kazi, karibu na
+    // su_ni_kushughulikiwa juu ya faili hili): tumia usafiri huu
+    // uliopo tayari (unaofikia kila nodi ya kazi hii kikamilifu) kama
+    // "gari" la kukokotoa haja kubwa zaidi ya rejesta za SU, badala ya
+    // kuandika usafiri mpya kabisa (hatari ya kukosa aina fulani ya
+    // nodi). su_haja_rejista(node) inarudisha 0 mara moja kwa nodi
+    // yoyote isiyo AST_JUMLISHA/TOFAUTI/ZIDISHA, hivyo ni salama
+    // kuiita bila sharti hapa -- ukaguzi wa aina ni wa HIARI (uboreshaji
+    // mdogo wa kasi ya ukusanyaji TU, si wa usahihi).
+    // MUHIMU (uboreshaji wa gharama, uliogunduliwa kwa kupima HALISI --
+    // SI dhana): usemi wa haja=1 (mfano fib(n-1)+fib(n-2), majani
+    // yote mawili si nodi za SU) haupati FAIDA yoyote ya kweli kutoka
+    // SU (mov+mov+add ni gharama SAWA na push+pop+add), LAKINI kazi
+    // inayotumia hata usemi MMOJA WA namna hiyo bado ingebeba gharama
+    // YA ZIADA ya kuhifadhi/kurudisha rejesta moja ya ziada kwenye
+    // KILA WITO wa kazi hiyo (utangulizi/mwisho). Kwa kazi inayoitwa
+    // mara nyingi SANA (fib(35) ≈ milioni 30 za wito), gharama hiyo ya
+    // ziada ISIYO NA FAIDA inashinda faida yoyote ndogo -- kipimo
+    // halisi kilionyesha fibonacci ikipungua kasi kwa ~35% kabla ya
+    // sharti hili kuongezwa. Suluhisho: SU inatengwa TU kwa haja>=2
+    // (mahali ambapo angalau rejesta MOJA inashikiliwa WAKATI mwingine
+    // inatathminiwa -- ndipo tofauti ya kweli kati ya mov na push/pop
+    // inapoanza kuonekana kwenye maunganisho ya ndani ya mti).
+    //
+    // SASISHO LA PILI (pia kwa kipimo halisi): hata kwa haja>=2, usemi
+    // unaotokea MARA MOJA TU kwa kila wito wa kazi (nje ya kitanzi
+    // chochote -- mfano nasibu_ijayo() kwenye kupanga: lcg_hali =
+    // lcg_hali*1103515245+12345, haja=2, LAKINI inatokea mara moja kwa
+    // kila wito) HAUFAIDIKI -- gharama ya kuhifadhi/kurudisha rejesta
+    // za ziada (utangulizi/mwisho, MARA MOJA kwa kila wito) haipati
+    // NAFASI ya kulipwa tena (amortized) kwa sababu haitumiki zaidi ya
+    // mara moja ndani ya wito huo huo. Kipimo halisi: kupanga
+    // ilipungua kasi kwa ~7-10% na sharti la haja>=2 pekee. Rejesta
+    // hufaidika TU pale usemi unaporudiwa MARA NYINGI ndani ya wito
+    // MMOJA (kwa mfano djb2() kwenye heshi: usemi wa SU unatekelezwa
+    // MARA MOJA KWA KILA HERUFI ya mfuatano, ndani ya kitanzi kimoja
+    // cha wakati) -- gharama ya kuhifadhi MARA MOJA kwenye utangulizi
+    // inasambazwa (amortized) juu ya matumizi mengi. Kwa hiyo:
+    // su_kina_kitanzi (chini) inahesabu KINA cha sasa cha kitanzi
+    // (wakati/kwa) kinachozunguka nodi hii -- usemi wa SU nje ya
+    // kitanzi chochote (su_kina_kitanzi==0) HAUCHANGII su_max_haja_kazi
+    // KABISA, hata kama haja yake ni kubwa.
+    kama (aina == AST_JUMLISHA || aina == AST_TOFAUTI || aina == AST_ZIDISHA) {
+        kama (su_kina_kitanzi > 0) {
+            N32 su_h = su_haja_rejista(node);
+            kama (su_h >= 2) {
+                kama (su_h > su_max_haja_kazi) { su_max_haja_kazi = su_h; }
+            }
+        }
+    }
+
+    kama (aina == AST_WAKATI) {  // 10 -- wakati/kwa (kianzio kiko ast_tiga)
+        // Kina cha kitanzi kinaongezwa TU kuzunguka sharti (kushoto)
+        // na mwili (kulia) -- HIVI ndivyo vinavyorudiwa kwa kila
+        // mzunguko. ast_tiga (kianzio cha kwa, kama kipo) na ast_nne
+        // (taarifa inayofuata kwenye block hiyo hiyo) hazipo NDANI ya
+        // kitanzi, hivyo zinatembelewa NJE ya ongezeko -- sawa na
+        // usafiri wa asili wa jumla (angalia ruka_tiga: aina 10 iko
+        // ndani ya masafa 6-25, hivyo ast_tiga TAYARI ilikuwa
+        // ikirukwa na usafiri wa jumla kabla ya tawi hili -- tabia hii
+        // haijabadilika hapa, ni sawa kabisa).
+        su_kina_kitanzi = su_kina_kitanzi + 1;
+        kusanya_vigeu_vya_ndani(ast_kushoto[node]);
+        kusanya_vigeu_vya_ndani(ast_kulia[node]);
+        su_kina_kitanzi = su_kina_kitanzi - 1;
+        kusanya_vigeu_vya_ndani(ast_nne[node]);
+        rudisha;
+    }
+
     kama (aina == 50) {  // AST_BLOCK — kulia ni alama (-777777), si nodi
         kusanya_vigeu_vya_ndani(ast_kushoto[node]);
         kusanya_vigeu_vya_ndani(ast_nne[node]);
@@ -6388,6 +6515,11 @@ W0 uzalishaji_kazi(N32 kazi_node) {
     wakati (vr_reset < 64) { var_reg[vr_reset] = -1; vr_reset = vr_reset + 1; }
     rega_kandida_idadi = 0;
     rega_tumika_idadi = 0;
+    // Ugawaji wa rejesta za SU: weka upya kwa kazi hii (angalia
+    // maelezo karibu na tangazo la su_max_haja_kazi juu ya faili hili).
+    su_max_haja_kazi = 0;
+    su_rejestwa_idadi = 0;
+    su_kina_kitanzi = 0;
 
     // Tambua ikiwa kazi inarudisha muundo (sret)
     sret_inafanya = ni_muundo_enc(ret_enc);
@@ -6467,6 +6599,15 @@ W0 uzalishaji_kazi(N32 kazi_node) {
         tambua_anwani_pass(body);
     }
     finalisha_ugawaji_rejista();
+    // Tenga rasmi rejesta za SU (angalia maelezo karibu na tangazo la
+    // su_rejestwa_idadi juu ya faili hili) -- LAZIMA baada ya
+    // finalisha_ugawaji_rejista (inayohitaji rega_tumika_idadi ya
+    // MWISHO), na KABLA ya utangulizi wa kazi (rp_push chini hutumia
+    // su_rejestwa_idadi). su_max_haja_kazi tayari imekokotolewa na
+    // hook ndani ya kusanya_vigeu_vya_ndani hapo juu.
+    su_rejestwa_idadi = su_max_haja_kazi;
+    kama (su_rejestwa_idadi > 5 - rega_tumika_idadi) { su_rejestwa_idadi = 5 - rega_tumika_idadi; }
+    kama (su_rejestwa_idadi < 0) { su_rejestwa_idadi = 0; }
     // Tenga bafa ya muda ya sret MWISHONI mwa fremu (baada ya vigeu vyote).
     // Inahitajika tu kama kazi hii inarudisha muundo (wenyewe) au inaita
     // kazi inayorudisha muundo — vinginevyo fremu yote ya 256B ni taka na
@@ -6494,8 +6635,11 @@ W0 uzalishaji_kazi(N32 kazi_node) {
     // eneo la vigezo vya rafu (ambavyo offsets zake ni kutoka rbp, si
     // rsp). Kila kimoja lazima kirudishwe (pop) KABLA ya kila `leave`
     // ya kazi hii -- angalia AST_RUDISHA na mwisho wa kazi hii.
+    // Kikomo kinajumuisha su_rejestwa_idadi (rejesta za SU zilizotengwa
+    // rasmi kwa kazi hii) -- angalia maelezo karibu na tangazo la
+    // su_rejestwa_idadi juu ya faili hili.
     N32 rp_push = 0;
-    wakati (rp_push < rega_tumika_idadi) {
+    wakati (rp_push < rega_tumika_idadi + su_rejestwa_idadi) {
         andika_push_reg64(regista_halisi_kwa_id(rp_push));
         rp_push = rp_push + 1;
     }
@@ -6600,8 +6744,9 @@ W0 uzalishaji_kazi(N32 kazi_node) {
     N32 rsp = var_stack_idadi; kama ((rsp & 15) != 0) { rsp = rsp + (16 - (rsp & 15)); } bafa_text[sub_rsp_nafasi] = rsp & 255; bafa_text[sub_rsp_nafasi + 1] = (rsp >> 8) & 255; bafa_text[sub_rsp_nafasi + 2] = (rsp >> 16) & 255; bafa_text[sub_rsp_nafasi + 3] = (rsp >> 24) & 255;
     // Rudisha (pop) rejesta za kudumu KABLA ya leave -- angalia
     // maelezo kwenye AST_RUDISHA hapo juu (mahali pale pale pana pop
-    // sawa kwa kutoka kwa mapema).
-    N32 rp_pop_mwisho = rega_tumika_idadi;
+    // sawa kwa kutoka kwa mapema). Kikomo kinajumuisha su_rejestwa_idadi
+    // (angalia maelezo karibu na tangazo lake juu ya faili hili).
+    N32 rp_pop_mwisho = rega_tumika_idadi + su_rejestwa_idadi;
     wakati (rp_pop_mwisho > 0) {
         rp_pop_mwisho = rp_pop_mwisho - 1;
         andika_pop_reg64(regista_halisi_kwa_id(rp_pop_mwisho));
