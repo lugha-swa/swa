@@ -35,7 +35,52 @@ N32 data_ulimwengu_idadi_ya_kipengele[1024];
 N32 data_ulimwengu_idadi = 0;
 N32 bss_wapi = 0;
 
+// -------------------------------------------------------
+// PEEPHOLE: unganisha push/pop ya rax/rcx inayofuatana moja kwa
+// moja. Tangazo la kigezo na png_safisha lazima viwe KABLA ya
+// andika_baiti (ambayo huita png_safisha), ili kuepuka kutegemea
+// urejeleaji wa mbele wa kigezo cha ulimwengu.
+// -------------------------------------------------------
+
+// -1 = hakuna push inayosubiri kutolewa. 0 = rax inasubiri, 1 = rcx
+// inasubiri (push imeahirishwa, HAIJAANDIKWA bafa_text bado).
+N32 png_akiba_reg = -1;
+
+// Toa push HALISI ya rax/rcx (baiti za asili, bila kupitia png
+// kabisa -- kwa matumizi ya ndani ya png_safisha/andika_push_* TU,
+// kuepuka urudiaji usio na mwisho).
+W0 andika_push_rax_halisi() { andika_baiti(80); }
+W0 andika_push_rcx_halisi() { andika_baiti(81); }
+
+// Toa push YOYOTE inayosubiri kama baiti halisi, kisha futa hali.
+// LAZIMA iitwe kabla ya JAMBO LOLOTE linalosoma bafa_text_wapi kwa
+// madhumuni ya kuhifadhi nafasi (lebo, fixup, rela, anwani ya kazi/
+// data) au kabla ya kutoa bafa_text nje -- vinginevyo push
+// iliyoahirishwa ingepotea kimya (haijaandikwa kamwe) au nafasi
+// iliyohifadhiwa ingekuwa MBAYA kwa baiti moja. Ni salama kuita hata
+// kama hakuna kinachosubiri (haifanyi kitu). andika_baiti YENYEWE
+// (chini) pia huita hii kabla ya kuandika baiti YOYOTE mpya -- hii
+// inashughulikia KILA agizo lingine linaloandikwa kati ya push na
+// pop inayotarajiwa (jumlisha, wito, kuruka, lebo, chochote), bila
+// kuhitaji kila kazi ya andika_* nyingine (kuna mamia) kujua kuhusu
+// kipengele hiki -- andika_baiti ndiyo KIZUIA-NJIA cha PEKEE
+// kinachopitiwa na kila agizo, hivyo ni mahali salama pa KUFUNGA
+// ukaguzi huu kwa uhakika kamili.
+W0 png_safisha() {
+    // MUHIMU: futa hali KABLA ya kutoa push halisi, SI baadaye --
+    // andika_push_rax_halisi/rcx_halisi huita andika_baiti, ambayo
+    // NAYO huita png_safisha kama kitu kinasubiri. Kama tungefuta
+    // BAADAYE, andika_baiti ingeona png_akiba_reg bado ikiwa na
+    // thamani ile ile na kujaribu kusafisha TENA -- urudiaji usio na
+    // mwisho.
+    N32 r = png_akiba_reg;
+    png_akiba_reg = -1;
+    kama (r == 0) { andika_push_rax_halisi(); }
+    sivyo { kama (r == 1) { andika_push_rcx_halisi(); } }
+}
+
 W0 andika_baiti(N32 b) {
+    kama (png_akiba_reg != -1) { png_safisha(); }
     kama (bafa_text_wapi < 524288) {
         bafa_text[bafa_text_wapi] = b & 255;
         bafa_text_wapi = bafa_text_wapi + 1;
@@ -64,6 +109,10 @@ W0 andika_neno8_kama_neno4(N32 lo, N32 hi) {
 // Futa bafa ya .text hadi stdout
 // -------------------------------------------------------
 W0 futa_bafa_text() {
+    // Safisha push inayosubiri (kama ipo) KWANZA -- vinginevyo
+    // ingepotea kimya kabisa (haingeandikwa kamwe kwenye bafa
+    // inayotolewa nje).
+    png_safisha();
     // Andika bafa nzima ya .text kwa syscall moja (sio baiti kwa baiti)
     sys_andika(1, bafa_text, bafa_text_wapi);
 }
@@ -105,28 +154,65 @@ W0 andika_ret() {
     andika_baiti(195);
 }
 
-// push rax (50)
-W0 andika_push_rax() {
-    andika_baiti(80);
-}
-
 // push rdi (57) — kwa kuhifadhi anwani ya lengwa la nakala
 W0 andika_push_rdi() {
     andika_baiti(87);
 }
 
-// push rcx (51)
-W0 andika_push_rcx() {
-    andika_baiti(81);
+// push rax (50) -- HUAHIRISHWA (haiandiki baiti mara moja). Sababu
+// (imefikiriwa kwa makini, hii ndiyo hatari kuu ya kazi hii yote):
+// mkusanyaji huu hutoa ELF moja kwa moja BILA kusanisi/kiungo
+// tofauti -- lebo/fixup/rela HUREKODI nafasi HALISI ya baiti
+// (bafa_text_wapi) moja kwa moja. Kuahirisha push (badala ya
+// kuiandika mara moja) kungebadilisha nafasi hizo ISIPOKUWA kila
+// kazi inayosoma bafa_text_wapi kwa madhumuni ya "hii ndiyo nafasi
+// ya sasa" IPIGE png_safisha() KWANZA. Kwa hiyo: KILA kazi ya
+// uzalishaji.swa inayosoma bafa_text_wapi nje ya andika_baiti
+// yenyewe (weka_lebo, weka_fixup, lebo_hifadhi,
+// andika_rela_ulimwengu, na nafasi za mwisho za uzalishaji_kuu/
+// uzalishaji_jit) sasa huanza kwa png_safisha() -- imethibitishwa
+// kwa kusoma kila mstari unaosoma bafa_text_wapi kwenye faili hili
+// (angalia PR inayoongeza kipengele hiki kwa orodha kamili). andika_baiti
+// YENYEWE pia husafisha kabla ya kuandika baiti YOYOTE mpya (angalia
+// hapo chini) -- hii inashughulikia KILA agizo lingine linaloandikwa
+// kati ya push na pop inayotarajiwa (jumlisha, wito, kuruka, chochote).
+W0 andika_push_rax() {
+    png_safisha();  // kama push nyingine tayari inasubiri, itoe kwanza
+    png_akiba_reg = 0;
 }
 
-// pop rcx (59)
+// push rcx (51) -- HUAHIRISHWA, angalia maelezo juu ya andika_push_rax.
+W0 andika_push_rcx() {
+    png_safisha();
+    png_akiba_reg = 1;
+}
+
+// pop rcx (59) -- kama push ya rcx inasubiri, hii ni push+pop ya
+// rejesta MOJA -- hauna athari, hakuna baiti zinazotolewa. Kama push
+// ya rax inasubiri, "push rax; pop rcx" == "mov rcx, rax" (rejesta
+// MOJA, agizo MOJA badala ya mawili, HAKUNA rsp inayoguswa). Vinginevyo
+// (hakuna push inayosubiri -- ilishatolewa na andika_baiti nyingine
+// kati ya push na pop hii) toa pop halisi ya kawaida.
 W0 andika_pop_rcx() {
+    kama (png_akiba_reg == 1) { png_akiba_reg = -1; rudisha; }
+    // MUHIMU: futa png_akiba_reg KABLA ya kuita andika_mov_rcx_rax
+    // (mdudu halisi uliogunduliwa hapa awali) -- kazi hiyo huita
+    // andika_baiti, ambayo NAYO huangalia png_akiba_reg na kusafisha
+    // kama bado ina thamani ya zamani -- kama tungefuta BAADAYE,
+    // andika_baiti ingeona png_akiba_reg==0 bado ikiwa hai na
+    // kutoa PUSH YA PILI ISIYOHITAJIKA (na isiyo sahihi) kabla ya
+    // kuandika mov, ikivuruga rafu kabisa.
+    kama (png_akiba_reg == 0) { png_akiba_reg = -1; andika_mov_rcx_rax(); rudisha; }
     andika_baiti(89);
 }
 
-// pop rax (58)
+// pop rax (58) -- angalia maelezo juu ya andika_pop_rcx (kioo chake).
 W0 andika_pop_rax() {
+    kama (png_akiba_reg == 0) { png_akiba_reg = -1; rudisha; }
+    // Futa png_akiba_reg KABLA ya andika_mov_rax_rcx -- angalia
+    // maelezo kamili kwenye andika_pop_rcx (kioo chake, mdudu halisi
+    // uliogunduliwa pale).
+    kama (png_akiba_reg == 1) { png_akiba_reg = -1; andika_mov_rax_rcx(); rudisha; }
     andika_baiti(88);
 }
 
@@ -1227,6 +1313,11 @@ W0 kataa_operesheni_ya_desimali(N32 node) {
 // Huhifadhi nafasi katika bafa_text inayohitaji kurekebishwa
 // na faharisi ya kigeu cha ulimwengu.
 W0 andika_rela_ulimwengu(N32 urekebishaji_idx) {
+    // Safisha push inayosubiri KWANZA -- kazi hii inarekodi
+    // bafa_text_wapi kama nafasi ya kurekebisha baadaye, hivyo
+    // LAZIMA ionekane nafasi HALISI (angalia maelezo kamili juu ya
+    // png_safisha, mwanzo wa faili hili).
+    png_safisha();
     kama (rela_idadi < 65536) {
         rela_text_off[rela_idadi] = bafa_text_wapi;
         rela_nje_id[rela_idadi] = -1;  // alama: sio nje
@@ -1823,6 +1914,9 @@ N32 lebo_ret_enc[2048];  // encoding ya aina ya kurudi ya kazi
 N32 lebo_idadi = 0;
 
 W0 lebo_hifadhi(N8* jina, N32 ret_enc) {
+    // Safisha push inayosubiri KWANZA -- angalia maelezo kamili juu
+    // ya png_safisha, mwanzo wa faili hili.
+    png_safisha();
     kama (lebo_idadi < 2048) {
         lebo_jina[lebo_idadi] = jina;
         lebo_nafasi[lebo_idadi] = bafa_text_wapi;
@@ -1850,6 +1944,9 @@ N32 hali_exe_sasa = 0;
 
 // Msaidizi wa kuongeza kuingia kwa fixup (na ulinzi wa mipaka)
 W0 weka_fixup(N32 lebo_id) {
+    // Safisha push inayosubiri KWANZA -- angalia maelezo kamili juu
+    // ya png_safisha, mwanzo wa faili hili.
+    png_safisha();
     kama (fixup_idadi < 65536) {
         fixup_nafasi[fixup_idadi] = bafa_text_wapi;
         fixup_lebo[fixup_idadi] = lebo_id;
@@ -1881,6 +1978,15 @@ N32 lebo_buf_mpya() {
 
 // Weka lebo mahali pa sasa na rekebisha marekebisho yanayoiendea
 W0 weka_lebo(N32 lebo_id) {
+    // MUHIMU ZAIDI ya nafasi zote za png_safisha (angalia maelezo
+    // kamili mwanzo wa faili hili): hii ndiyo hasa mahali ambapo
+    // lengo la kuruka linarekodiwa. Kama push ingesubiri bila
+    // kusafishwa hapa, mtiririko wa udhibiti ungeweza kuruka MOJA KWA
+    // MOJA kati ya push (isiyotolewa) na pop inayotarajiwa --
+    // ikisoma thamani isiyokusudiwa kutoka rafuni. png_safisha
+    // kabla ya kurekodi bafa_text_wapi inahakikisha lebo HAIWEZI
+    // KAMWE kuangukia katikati ya push/pop iliyoahirishwa.
+    png_safisha();
     lebo_buf_nafasi[lebo_id] = bafa_text_wapi;
     lebo_buf_imewekwa[lebo_id] = 1;
     N32 i = 0;
@@ -7206,6 +7312,7 @@ W0 uzalishaji_kuu(N32 mzizi, N32 hali_exe) {
     N32 kipande32[7];
     // Weka upya buffer
     bafa_text_wapi = 0;
+    png_akiba_reg = -1;  // usalama tu -- push isiyosafishwa haipaswi kamwe kuvuka mwanzo wa uzalishaji
     lebo_idadi = 0;
     lebo_buf_idadi = 0;
     fixup_idadi = 0;
@@ -7454,6 +7561,11 @@ W0 uzalishaji_kuu(N32 mzizi, N32 hali_exe) {
     rekebisha_anwani_za_kazi();
     rekebisha_anwani_za_data();
 
+    // Safisha push inayosubiri KWANZA (usalama tu -- kila kazi
+    // huishia kwa ret, ambayo tayari husafisha kupitia andika_baiti,
+    // lakini hii inaondoa shaka yoyote kabla ya kuhesabu ukubwa wa
+    // mwisho).
+    png_safisha();
     N32 text_size = bafa_text_wapi;
 
     // 3. Hesabu ofseti za sehemu
@@ -7702,6 +7814,7 @@ W0 uzalishaji_kuu(N32 mzizi, N32 hali_exe) {
 
 W0 uzalishaji_jit(N32 mzizi, N32 argc_jit, N8** argv_jit, N32 ofseti_jit) {
     bafa_text_wapi = 0;
+    png_akiba_reg = -1;  // usalama tu -- angalia maelezo kwenye uzalishaji_kuu
     lebo_idadi = 0;
     lebo_buf_idadi = 0;
     fixup_idadi = 0;
@@ -7749,6 +7862,7 @@ W0 uzalishaji_jit(N32 mzizi, N32 argc_jit, N8** argv_jit, N32 ofseti_jit) {
     rekebisha_anwani_za_kazi();
     rekebisha_anwani_za_data();
 
+    png_safisha();  // usalama tu -- angalia maelezo kwenye uzalishaji_kuu
     N32 ukubwa = bafa_text_wapi;
     kama (ukubwa <= 5) { rudisha; }
 
