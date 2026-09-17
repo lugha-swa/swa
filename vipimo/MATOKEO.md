@@ -562,6 +562,67 @@ kwenye kipimo hicho. kupanga/mzunguko_mchezo hazionyeshi tofauti ya
 wazi -- ndani ya kelele ya mzunguko wa CPU wa mashine hii, hazina
 sehemu kubwa ya wakati inayotumika kwenye matawi rahisi kiasi hicho.
 
+## cmp+jcc ya moja kwa moja ndani ya legs za && / ||
+
+Kazi iliyotangulia (cmp+jcc kwa sharti la moja kwa moja) iliacha && na
+|| nje ya wigo kimakusudi -- zina mzunguko mfupi wao wenyewe tayari.
+Lakini kila leg moja moja ya && / || (mfano "a<b" ndani ya "kama (a<b
+&& c<d)") ilikuwa ikitathminiwa kwa NJIA YA JUMLA (cmp;setcc;movzx)
+kabla ya kujaribiwa TENA na test+jcc na uzalishaji_na/uzalishaji_au --
+muundo ULE ULE uliopotea kwenye sharti rahisi, sasa umeondolewa kwa
+legs mbili zilizo moja kwa moja (bapa -- si && / || iliyowekwa ndani
+ya nyingine, ambayo inaendelea kwenye njia ya jumla iliyo sahihi
+kabisa, polepole zaidi tu).
+
+Hakuna kipimo kilichopo kinachotumia && au || (imethibitishwa kwa
+grep kabla ya kuandika chochote), hivyo kipimo kipya `naau_haraka`
+kimeundwa: kitanzi cha ndani chenye sharti "j<m && i<n" (muundo wa
+"clamped nested bound" wa kawaida kwenye misimbo halisi), 4000x4000
+mizunguko.
+
+### Uthibitisho
+
+Majaribio matatu mapya: mzunguko mfupi (leg ya pili haitathminiwi
+KABISA pale leg ya kwanza tayari inaamua matokeo -- imethibitishwa
+kwa kihesabu cha wito halisi, si kudhania -- kwa && na || zote mbili,
+kama na wakati zote mbili); mchanganyiko (leg moja ni ulinganishi wa
+moja kwa moja, nyingine ni kigezo cha kawaida, ndani ya && / || moja
+-- kuthibitisha njia mbili zinaweza kuchanganyika kwa usahihi ndani
+ya usemi mmoja); vinodi sita vya ulinganishi kama legs (==,!=,<,>,<=,
+>=) ndani ya && na ||. 397/397 (394 zilizopo + 3 mpya). Fixpoint na
+gen1-dhidi-ya-gen2 vinapita, imethibitishwa mara TATU kutoka kwa
+ujenzi safi.
+
+Disassembly ya jaribio_naau_vinodi_sita imefuatiliwa KIPOFU (baiti
+kwanza, chanzo baadaye): leg za && (== na !=) zinatumia jcc ya
+KINYUME sahihi (jne kwa ==, je kwa !=), zote mbili zikiruka kwenda
+lebo ya pamoja ya "sivyo kweli" ya kama isiyo na else (inayolingana
+na mwisho wa mwili wa then -- muunganiko sahihi wa udhibiti). Leg za
+|| (!= na >) zinatumia mchanganyiko sahihi wa jcc ya MOJA KWA MOJA
+(leg ya kwanza, kuruka kwenda lebo_kweli_mapema mbele ya mwili wa
+then) na jcc ya KINYUME (leg ya pili, kuruka kwenda lebo ya "sivyo
+kweli" ya jumla). SIFURI setcc/movzbl popote kwenye binary hiyo.
+
+### Utendaji
+
+Matokeo (jumla=16000000) ni sawa kati ya compiler ya zamani na mpya;
+binary NI tofauti (uboreshaji unajihusisha). Uthibitisho tuli
+(disassembly): setcc/movzbl 16 zimeondolewa kabisa, maagizo 72
+machache jumla (3247->3175), binary ndogo kwa baiti 244 (8622->8378).
+
+Muda halisi (interleaved): baada ya mzunguko wa kwanza wa joto
+kutupwa, mizunguko 8 iliyofuata haikuonyesha tofauti ya wazi kati ya
+zamani na mpya (zote karibu 47ms) -- HAINA UHAKIKA (inconclusive),
+si tofauti hasi wala chanya thabiti. Sababu inayowezekana (kama
+ilivyoonekana kwenye peephole ya push/pop, PR ya awali): CPU za
+kisasa zenye utekelezaji usiofuata mpangilio (out-of-order) zinaweza
+kuficha maagizo machache ya ziada ya bei nafuu (setcc/movzx) nyuma ya
+gharama nyingine ya kitanzi (ongezeko, tawi lenyewe) bila kuongeza
+njia muhimu (critical path) kwa kiasi kinachopimika kwa kitanzi hiki
+maalum. Uboreshaji wa kweli, uliothibitishwa (uondoaji wa maagizo),
+si wa kubuni -- lakini si kila uboreshaji wa maagizo unaonekana kwenye
+muda wa ukuta, hasa pale kazi nyingine ya kitanzi (tawi lenyewe,
+ongezeko) tayari inashinda njia muhimu.
 ## Zidisho-na-uchawi (magic-number multiplication) kwa mgawanyo/modulo ya kigawanyaji chochote cha kudumu
 
 PR #243 ilishughulikia mgawanyo/modulo kwa nguvu-ya-2 tu (bias-kisha-

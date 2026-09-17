@@ -3101,6 +3101,68 @@ W0 toa_jcc_kinyume_lebo(N32 node, N32 lebo_id) {
     toa_jl_lebo(lebo_id);  // AST_JUU_SAWA
 }
 
+// -------------------------------------------------------
+// Ulinganishi wa moja kwa moja ndani ya && / || (AST_NA/AST_AU) kwenye
+// sharti la kama/wakati/kwa
+// -------------------------------------------------------
+// PR iliyotangulia (angalia maelezo marefu juu ya
+// ni_ulinganisho_moja_kwa_moja) ILIACHA && na || nje ya wigo kimakusudi
+// kwa sababu tayari zina mzunguko mfupi (short-circuit) wa kujitegemea
+// -- LAKINI kila "leg" moja moja ya && / || bado ilikuwa ikitathminiwa
+// kwa njia ya JUMLA (cmp;setcc;movzx) kabla ya kujaribiwa na test+jcc
+// tena na uzalishaji_na/uzalishaji_au -- muundo ULE ULE uliopotea
+// kwenye sharti rahisi. Kazi hizi mbili zinatumika kama "kizuizi
+// kimoja" kwa kila leg: ikiwa leg YENYEWE ni ulinganishi wa moja kwa
+// moja, ruka moja kwa moja kwa cmp/comisd+jcc; vinginevyo (leg ni
+// kigezo, wito wa kazi, AU && / || NYINGINE iliyowekwa ndani -- yaani
+// ISIYO mojawapo ya vinodi sita vya ulinganishi), rudi kwenye njia ya
+// JUMLA (uzalishaji_usemi + test + jcc) -- hii ndiyo inayoshughulikia
+// UPANDE WOWOTE wa NA/AU ulioota ndani (mfano "(a<b && c<d) || e<f")
+// KWA USAHIHI KILA WAKATI bila kazi hizi kuhitaji kujua chochote
+// kuhusu kina cha ndani: uzalishaji_usemi(leg,...) huita
+// uzalishaji_na/uzalishaji_au (isiyobadilishwa, bado sahihi kabisa)
+// kwa leg yoyote ambayo SI ulinganishi wa moja kwa moja -- fursa
+// iliyokosekana TU (kizazi cha polepole zaidi), si hatari ya usahihi.
+//
+// toa_leg_na_shindwa: "ruka kwenda lebo_shindwa ikiwa leg hii ni
+// SIVYO" -- semantiki ya && (kila leg lazima iwe kweli, la sivyo
+// jumla ni sivyo mara moja, ikifunga mzunguko mfupi). Kutumika kwa
+// (1) kila leg ya kama (A && B) [lebo_shindwa = lebo_sivyo_kweli], (2)
+// leg ya KWANZA ya wakati/kwa (A && B) [lebo_shindwa = lebo_exit], na
+// (3) leg ya PILI ya kama/wakati (A || B) [lebo_shindwa = lebo
+// inayowakilisha "jumla ni sivyo" ya muktadha huo -- angalia matumizi
+// kwenye uzalishaji_kama/uzalishaji_wakati chini].
+W0 toa_leg_na_shindwa(N32 leg, N32 lebo_shindwa, N32 kazi_node) {
+    kama (ni_ulinganisho_moja_kwa_moja(leg)) {
+        toa_ulinganisho_cmp(leg, kazi_node);
+        toa_jcc_kinyume_lebo(leg, lebo_shindwa);
+    } sivyo {
+        uzalishaji_usemi(leg, kazi_node);
+        andika_test_eax_eax();
+        toa_je_lebo(lebo_shindwa);
+    }
+}
+
+// toa_leg_au_kweli: "ruka kwenda lebo_kweli ikiwa leg hii ni KWELI" --
+// semantiki ya || (leg YOYOTE ikiwa kweli, jumla ni kweli mara moja,
+// ikifunga mzunguko mfupi). Kioo cha toa_leg_na_shindwa hapo juu.
+// Kutumika kwa (1) kila leg ya wakati/kwa (A || B) [lebo_kweli =
+// lebo_body moja kwa moja], (2) leg ya KWANZA ya kama (A || B)
+// [lebo_kweli = lebo mpya "lebo_kweli_mapema" iliyowekwa mbele ya
+// mwili wa then -- angalia uzalishaji_kama], na (3) leg ya PILI ya
+// wakati/kwa (A && B) [lebo_kweli = lebo_body, ikiwa leg ya kwanza
+// tayari imethibitika kweli].
+W0 toa_leg_au_kweli(N32 leg, N32 lebo_kweli, N32 kazi_node) {
+    kama (ni_ulinganisho_moja_kwa_moja(leg)) {
+        toa_ulinganisho_cmp(leg, kazi_node);
+        toa_jcc_moja_kwa_moja_lebo(leg, lebo_kweli);
+    } sivyo {
+        uzalishaji_usemi(leg, kazi_node);
+        andika_test_eax_eax();
+        toa_jne_lebo(lebo_kweli);
+    }
+}
+
 W0 uzalishaji_kama(N32 node, N32 kazi_node) {
     N32 cond = ast_kushoto[node];
     N32 then_body = ast_kulia[node];
@@ -3115,14 +3177,40 @@ W0 uzalishaji_kama(N32 node, N32 kazi_node) {
     N32 lebo_sivyo_kweli = lebo_mwisho;
     kama (else_body != -1) { lebo_sivyo_kweli = lebo_else; }
 
+    N32 cond_aina = -1;
+    kama (cond != -1) { cond_aina = ast_aina[cond]; }
+
     kama (ni_ulinganisho_moja_kwa_moja(cond)) {
         toa_ulinganisho_cmp(cond, kazi_node);
         toa_jcc_kinyume_lebo(cond, lebo_sivyo_kweli);
-    } sivyo {
-        uzalishaji_usemi(cond, kazi_node);
-        andika_test_eax_eax();
-        toa_je_lebo(lebo_sivyo_kweli);
-    }
+    } sivyo { kama (cond_aina == AST_NA) {
+            // A && B (angalia maelezo kamili juu ya toa_leg_na_shindwa):
+            // kila leg ikiruka kwenda lebo_sivyo_kweli ikiwa ni SIVYO --
+            // B haitathminiwi kabisa ikiwa A tayari ni sivyo (mzunguko
+            // mfupi). Zote mbili zikiwa kweli, tunaanguka moja kwa
+            // moja kwenye mwili wa then (sawa kabisa na muundo wa
+            // asili wa kama).
+            toa_leg_na_shindwa(ast_kushoto[cond], lebo_sivyo_kweli, kazi_node);
+            toa_leg_na_shindwa(ast_kulia[cond], lebo_sivyo_kweli, kazi_node);
+        } sivyo { kama (cond_aina == AST_AU) {
+            // A || B (angalia maelezo kamili juu ya toa_leg_au_kweli):
+            // A ikiwa kweli inaruka moja kwa moja kwenda
+            // lebo_kweli_mapema (lebo MPYA, iliyowekwa mbele kabisa ya
+            // mwili wa then hapa chini) -- B HAITATHMINIWI kabisa
+            // (mzunguko mfupi). B (ikiwa A ni sivyo) ndiyo inayoamua
+            // matokeo ya mwisho kikamilifu -- ikiwa B pia ni sivyo,
+            // ruka kwenda lebo_sivyo_kweli; ikiwa B ni kweli, anguka
+            // moja kwa moja kwenye lebo_kweli_mapema (iko mstari
+            // mmoja tu chini).
+            N32 lebo_kweli_mapema = lebo_buf_mpya();
+            toa_leg_au_kweli(ast_kushoto[cond], lebo_kweli_mapema, kazi_node);
+            toa_leg_na_shindwa(ast_kulia[cond], lebo_sivyo_kweli, kazi_node);
+            weka_lebo(lebo_kweli_mapema);
+        } sivyo {
+            uzalishaji_usemi(cond, kazi_node);
+            andika_test_eax_eax();
+            toa_je_lebo(lebo_sivyo_kweli);
+        } } }
 
     kama (else_body != -1) {
         uzalishaji_taarifa(then_body, kazi_node);
@@ -3526,18 +3614,40 @@ W0 uzalishaji_wakati(N32 node, N32 kazi_node) {
         andika_mov_eax(1);
         andika_test_eax_eax();
         toa_jne_lebo(lebo_body);
-    } sivyo { kama (ni_ulinganisho_moja_kwa_moja(cond)) {
+    } sivyo {
+        N32 cond_aina2 = ast_aina[cond];
+        kama (ni_ulinganisho_moja_kwa_moja(cond)) {
             // Sharti la wakati/kwa/fanya LENYEWE ni ulinganishi moja
             // kwa moja -- ruka moja kwa moja kwa cmp/comisd+jcc badala
             // ya cmp;setcc;movzx;test;jcc (angalia maelezo kamili juu
             // ya ni_ulinganisho_moja_kwa_moja, kabla ya uzalishaji_kama).
             toa_ulinganisho_cmp(cond, kazi_node);
             toa_jcc_moja_kwa_moja_lebo(cond, lebo_body);
-        } sivyo {
-            uzalishaji_usemi(cond, kazi_node);
-            andika_test_eax_eax();
-            toa_jne_lebo(lebo_body);
-        } }
+        } sivyo { kama (cond_aina2 == AST_NA) {
+                // A && B (angalia maelezo juu ya toa_leg_na_shindwa/
+                // toa_leg_au_kweli, kabla ya uzalishaji_kama): A ikiwa
+                // sivyo, jumla ni sivyo mara moja -- ruka moja kwa
+                // moja kwenda lebo_exit (mzunguko mfupi, B
+                // HAITATHMINIWI kabisa). B (ikiwa A tayari ni kweli)
+                // ndiyo inayoamua -- ikiwa B ni kweli, ruka kwenda
+                // lebo_body; ikiwa B ni sivyo, anguka moja kwa moja
+                // kwenye lebo_exit (weka_lebo yake iko mara moja chini
+                // ya kizuizi hiki).
+                toa_leg_na_shindwa(ast_kushoto[cond], lebo_exit, kazi_node);
+                toa_leg_au_kweli(ast_kulia[cond], lebo_body, kazi_node);
+            } sivyo { kama (cond_aina2 == AST_AU) {
+                // A || B: leg YOYOTE ikiwa kweli inaruka moja kwa moja
+                // kwenda lebo_body (mzunguko mfupi -- B haitathminiwi
+                // ikiwa A tayari ni kweli). Zote mbili zikiwa sivyo,
+                // tunaanguka moja kwa moja kwenye lebo_exit.
+                toa_leg_au_kweli(ast_kushoto[cond], lebo_body, kazi_node);
+                toa_leg_au_kweli(ast_kulia[cond], lebo_body, kazi_node);
+            } sivyo {
+                uzalishaji_usemi(cond, kazi_node);
+                andika_test_eax_eax();
+                toa_jne_lebo(lebo_body);
+            } } }
+    }
 
     weka_lebo(lebo_exit);
 
