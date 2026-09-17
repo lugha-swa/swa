@@ -1,0 +1,44 @@
+// LICM CSE: "i*n" inatokea mara mbili KWENYE NGAZI YA JUU (LHS na RHS
+// za "c[i*n+j] = c[i*n+j] + x", kama muundo wa matriki) NA mara moja
+// zaidi NDANI ya tawi la "kama" lililowekwa ndani ya mwili wa kitanzi
+// hicho hicho. Wigo wa awali wa LICM (KABLA ya CSE hii) TAYARI
+// haugusi mambo ndani ya "kama" (angalia maoni ya "KIZUIZI CHA WIGO
+// CHA ZIADA" juu ya licm_jaribu_kitanzi) -- jaribio hili linathibitisha
+// CSE mpya HAIBADILISHI tabia hiyo: tokeo la ndani ya kama halipaswi
+// kushiriki kigezo cha muda na yale ya ngazi ya juu, na matokeo ya
+// mwisho lazima yabaki sahihi kabisa.
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+N32 main() {
+    N32 n = 5;
+    N32* c = tenga(ukubwa(N32) * n * n);
+    N32* d = tenga(ukubwa(N32) * n * n);
+    N32 x = 3;
+    N32 z = 0;
+    wakati (z < n * n) { c[z] = 0; d[z] = 0; z = z + 1; }
+
+    N32 i = 0;
+    wakati (i < n) {
+        N32 j = 0;
+        wakati (j < n) {
+            c[i * n + j] = c[i * n + j] + x;
+            kama (j == 2) {
+                d[i * n + j] = 99;
+            }
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+
+    N32 k = 0;
+    wakati (k < n * n) {
+        kama (c[k] != x) { rudisha 100 + k; }
+        k = k + 1;
+    }
+    i = 0;
+    wakati (i < n) {
+        kama (d[i * n + 2] != 99) { rudisha 200 + i; }
+        i = i + 1;
+    }
+    rudisha 0;
+}

@@ -3202,6 +3202,95 @@ N32 licm_naingiliana(N32 node) {
     rudisha 1;
 }
 
+// -------- CSE ya vielelezo vilivyohamishwa (cross-occurrence) --------
+// Kabla ya hii, kila TOKEO la usemi usiobadilika lilipata kigezo chake
+// CHA PEKEE cha muda -- hata kama tokeo mbili (au zaidi) zilikuwa
+// zikikokotoa THAMANI ILE ILE kwa MUUNDO SAWA KABISA (mfano halisi wa
+// matriki: "c[i*n+j] = c[i*n+j] + x" -- "i*n" hutokea MARA MBILI, moja
+// kwenye fahirisi ya LHS na moja kwenye fahirisi ya kwanza ya RHS,
+// zikijitegemea kikamilifu kupitia licm_badilisha_kama_inavyowezekana).
+// Hii ilizuia kashe ya anwani ya ugawaji wa kawaida (keq_taja_sawa,
+// uzalishaji.swa, PR #239) kutambua fahirisi mbili za c[...] kuwa SAWA
+// KIMUUNDO, kwa sababu baada ya LICM zilikuwa zikirejelea VIGEZO VYA
+// MUDA VYENYE MAJINA TOFAUTI (thibitishwa kwa disassembly -- maagizo
+// yale yale ya kuzidisha yalionekana MARA MBILI mfululizo kabla ya
+// kitanzi). licm_keq (chini) ni ulinganisho wa muundo wa AST -- SI wa
+// jina la kigezo cha muda -- unaotumika KUGUNDUA hali hiyo KABLA ya
+// kutengeneza kigezo kipya, ili tokeo la PILI (na lolote linalofuata)
+// litumie TENA kigezo kilichotengenezwa na tokeo la KWANZA badala ya
+// kutengeneza lake lenyewe.
+//
+// USALAMA: kila mgombea anayefikia ulinganisho huu tayari amepitisha
+// licm_ni_operesheni(node) && licm_naingiliana(node) KIVYAKE (yaani
+// tayari amethibitishwa kuwa hauguswi na chochote kilichoandikwa ndani
+// ya kitanzi hiki -- angalia licm_badilisha_kama_inavyowezekana) --
+// licm_keq HAIONGEZI uthibitisho wowote mpya wa "hauguswi", inaongeza
+// TU uthibitisho wa ziada kuwa MBILI ya vitu tayari-vilivyothibitishwa
+// ni SAWA KIMUUNDO. Kwa hiyo, kuzishiriki kigezo kimoja badala ya
+// viwili ni salama KWA UJENZI: kigezo kimoja kinachokokotolewa MARA
+// MOJA kabla ya kitanzi bado kina thamani SAHIHI kwa matumizi YOTE
+// mawili (au zaidi), kwa sababu thamani hiyo tayari imethibitishwa
+// kutobadilika popote ndani ya kitanzi.
+//
+// WIGO: SAWA KABISA na uwanja wa licm_naingiliana/licm_ni_operesheni
+// (kitambulisho, namba halisi -- N32 NA D64, +, -, *, ulinganisho, na
+// biti) -- HAKUNA upanuzi wowote wa wigo wa awali wa LICM, ni
+// ulinganisho TU juu ya vitu ambavyo tayari vingekuwa vimehamishwa
+// hata bila CSE hii.
+//
+// MPANGILIO/WIGO WA MATAWI: licm_badilisha_kama_inavyowezekana
+// HAIINGII KABISA ndani ya matawi ya "kama" (angalia "KIZUIZI CHA WIGO
+// CHA ZIADA" juu ya faili hili) -- tokeo lolote lililo ndani ya "kama"
+// halifiki hata kwenye ulinganisho huu, hivyo swali la "je, tokeo la
+// tawi linaweza kushiriki kigezo na tokeo la nje ya tawi" HALIWEZI
+// KUTOKEA KABISA: haihitaji ulinzi wa ziada, ni matokeo ya moja kwa
+// moja ya wigo uliopo tayari.
+N32 licm_cse_node[64];
+N8* licm_cse_jina[64];
+N32 licm_cse_idadi = 0;
+
+N32 licm_keq(N32 a, N32 b) {
+    kama (a == -1 || b == -1) { rudisha (a == b); }
+    kama (ast_aina[a] != ast_aina[b]) { rudisha 0; }
+    N32 t = ast_aina[a];
+    kama (t == AST_KITAMBULISHO) {
+        rudisha inl_jina_sawa(ast_pool + ast_jina_off[a], ast_pool + ast_jina_off[b]);
+    }
+    kama (t == AST_NAMBARI) {
+        // ast_kulia ni alama ya "dimbwi la N64" (angalia mahali
+        // AST_NAMBARI inavyotengenezwa hapo juu ya faili hili) --
+        // namba kubwa mno kwa N32 huhifadhiwa kwenye dimbwi kwa
+        // OFSETI tofauti kila mara hata kama thamani halisi ni sawa,
+        // hivyo ulinganisho huu hauwezi kutambua ULINGANO wa namba
+        // hizo -- salama (fursa iliyokosekana TU, si hatari), kwa
+        // sababu ast_thamani (ofseti) haitafanana isipokuwa ni NODI
+        // ILE ILE ilivyorejelewa mara mbili (jambo lisilowezekana
+        // hapa, kwa kuwa kila tokeo ni uchanganuzi tofauti).
+        kama (ast_thamani[a] != ast_thamani[b]) { rudisha 0; }
+        rudisha (ast_kulia[a] == ast_kulia[b]);
+    }
+    kama (t == AST_HALISI_D) {
+        // ast_thamani ni ofseti kwenye dimbwi la desimali -- sababu
+        // ile ile kama AST_NAMBARI hapo juu.
+        rudisha (ast_thamani[a] == ast_thamani[b]);
+    }
+    kama (licm_ni_operesheni(a) == 0) { rudisha 0; }
+    kama (licm_keq(ast_kushoto[a], ast_kushoto[b]) == 0) { rudisha 0; }
+    rudisha licm_keq(ast_kulia[a], ast_kulia[b]);
+}
+
+// Tafuta jina la kigezo cha muda kilichotengenezwa TAYARI kwa usemi
+// unaofanana kimuundo na `node` (ndani ya kitanzi hiki hiki) -- 0 kama
+// hakuna.
+N8* licm_cse_tafuta(N32 node) {
+    N32 i = 0;
+    wakati (i < licm_cse_idadi) {
+        kama (licm_keq(node, licm_cse_node[i])) { rudisha licm_cse_jina[i]; }
+        i = i + 1;
+    }
+    rudisha 0;
+}
+
 // -------- Usanisi wa jina jipya la kigezo cha muda --------
 N8 licm_jina_buf[1536];  // 64 * 24
 N32 licm_jina_idadi = 0;
@@ -3263,6 +3352,22 @@ W0 licm_badilisha_kama_inavyowezekana(N32 mzazi, N32 ni_kushoto) {
 
     kama (licm_ni_operesheni(mtoto) && licm_naingiliana(mtoto)) {
         N32 enc = ast_thamani[mtoto];
+
+        // CSE (angalia maelezo kamili juu ya licm_keq/licm_cse_tafuta):
+        // kama usemi unaofanana KIMUUNDO KABISA na huu tayari
+        // umehamishwa kwa kigezo cha muda kwenye kitanzi hiki hiki,
+        // tumia TENA jina hilo hilo badala ya kutengeneza kigezo kipya
+        // -- hakuna tangazo jipya linalohitajika, tokeo hili linapata
+        // TU marejeo mapya kwenye kigezo kilichopo tayari.
+        N8* jina_uliopo = licm_cse_tafuta(mtoto);
+        kama (jina_uliopo != 0) {
+            N32 marejeo_cse = node_mpya(AST_KITAMBULISHO, enc, -1, -1);
+            kama (marejeo_cse == -1) { rudisha; }
+            hifadhi_jina(marejeo_cse, jina_uliopo, inl_urefu_jina(jina_uliopo));
+            kama (ni_kushoto) { ast_kushoto[mzazi] = marejeo_cse; } sivyo { ast_kulia[mzazi] = marejeo_cse; }
+            rudisha;
+        }
+
         N8* jina_mpya = licm_jina_mpya();
         kama (jina_mpya == 0) { rudisha; }  // kikomo cha majina kimefikiwa -- acha bila kuhamisha
 
@@ -3282,6 +3387,16 @@ W0 licm_badilisha_kama_inavyowezekana(N32 mzazi, N32 ni_kushoto) {
         hifadhi_jina(marejeo, jina_mpya, inl_urefu_jina(jina_mpya));
 
         kama (ni_kushoto) { ast_kushoto[mzazi] = marejeo; } sivyo { ast_kulia[mzazi] = marejeo; }
+
+        // Sajili mgombea huyu kwa CSE ya baadaye -- mtoto (mti wa AST
+        // kabla ya kuandikwa upya) bado ni halali kwa ulinganisho wa
+        // muundo (umehifadhiwa kama kulia[tangazo], haujafutwa), na
+        // ndio unaowakilisha THAMANI HALISI iliyohamishwa.
+        kama (licm_cse_idadi < 64) {
+            licm_cse_node[licm_cse_idadi] = mtoto;
+            licm_cse_jina[licm_cse_idadi] = jina_mpya;
+            licm_cse_idadi = licm_cse_idadi + 1;
+        }
         rudisha;
     }
 
@@ -3323,6 +3438,7 @@ N32 licm_jaribu_kitanzi(N32 node) {
     licm_badiliko_idadi = 0;
     licm_kabla_kichwa = -1;
     licm_kabla_mwisho = -1;
+    licm_cse_idadi = 0;
 
     licm_changanua_mwili(ast_kushoto[node]);  // sharti
     licm_changanua_mwili(ast_kulia[node]);    // mwili
