@@ -1,0 +1,59 @@
+// Zidisho-na-uchawi (magic-number multiplication) -- mgawanyo/modulo
+// YENYE ISHARA (N32) kwa kigawanyaji cha kudumu chochote (si nguvu ya
+// 2, ile tayari ilishughulikiwa na PR #243). Thamani zote hapa
+// zimekokotolewa kwa mkono dhidi ya mgawanyo wa KUKATA (truncating):
+//
+// d=10 (HAIHITAJI "ongeza" -- M=1717986919 < 2^31):
+//   -37/10 = -3 kukata (SI -4), -37%10 = -7
+//   37/10 = 3, 37%10 = 7
+//   -100000/10 = -10000, -100000%10 = 0 (mgawanyo hasa)
+//
+// d=7 (HUHITAJI "ongeza" -- M=2454267027 >= 2^31, hasi kama N32 --
+// hii ndiyo kesi HASA fomula ya "magic" inashughulikia kwa hatua ya
+// q=q+n, SI hali ya "kushindwa"):
+//   -100/7 = -14 kukata (SI -15), -100%7 = -2
+//   100/7 = 14, 100%7 = 2
+//   -1/7 = 0 (SI -1), -1%7 = -1
+//   -7/7 = -1 hasa, -7%7 = 0
+//   -2000000000/7 = -285714285, -2000000000%7 = -5 (mpaka wa karibu
+//   na N32_CHINI, kuthibitisha hakuna kufurika kwenye q*d)
+
+N32 main() {
+    N32 a = 0 - 37;
+    kama (a / 10 != (0 - 3)) { rudisha 1; }
+    kama (a % 10 != (0 - 7)) { rudisha 2; }
+
+    N32 b = 37;
+    kama (b / 10 != 3) { rudisha 3; }
+    kama (b % 10 != 7) { rudisha 4; }
+
+    N32 c = 0 - 100000;
+    kama (c / 10 != (0 - 10000)) { rudisha 5; }
+    kama (c % 10 != 0) { rudisha 6; }
+
+    N32 e = 0 - 100;
+    kama (e / 7 != (0 - 14)) { rudisha 7; }
+    kama (e % 7 != (0 - 2)) { rudisha 8; }
+
+    N32 f = 100;
+    kama (f / 7 != 14) { rudisha 9; }
+    kama (f % 7 != 2) { rudisha 10; }
+
+    N32 g = 0 - 1;
+    kama (g / 7 != 0) { rudisha 11; }
+    kama (g % 7 != (0 - 1)) { rudisha 12; }
+
+    N32 h = 0 - 7;
+    kama (h / 7 != (0 - 1)) { rudisha 13; }
+    kama (h % 7 != 0) { rudisha 14; }
+
+    N32 i = 0 - 2000000000;
+    kama (i / 7 != (0 - 285714285)) { rudisha 15; }
+    kama (i % 7 != (0 - 5)) { rudisha 16; }
+
+    // Utambulisho wa msingi wa mgawanyo: (x/d)*d + (x%d) == x
+    kama ((i / 7) * 7 + (i % 7) != i) { rudisha 17; }
+    kama ((e / 7) * 7 + (e % 7) != e) { rudisha 18; }
+
+    rudisha 0;
+}
