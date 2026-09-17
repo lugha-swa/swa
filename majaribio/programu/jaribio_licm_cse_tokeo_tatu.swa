@@ -1,0 +1,32 @@
+// LICM CSE: "i*n" inatokea MARA TATU ndani ya taarifa tatu tofauti za
+// ngazi ya juu za mwili wa kitanzi (si moja) -- zote tatu zinapaswa
+// kushiriki KIGEZO KIMOJA cha muda, si vitatu tofauti.
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+N32 main() {
+    N32 n = 6;
+    N32* a = tenga(ukubwa(N32) * n * n);
+    N32* b = tenga(ukubwa(N32) * n * n);
+    N32* c = tenga(ukubwa(N32) * n * n);
+    N32 z = 0;
+    wakati (z < n * n) { a[z] = 0; b[z] = 0; c[z] = 0; z = z + 1; }
+
+    N32 i = 0;
+    wakati (i < n) {
+        N32 j = 0;
+        wakati (j < n) {
+            a[i * n + j] = 10;
+            b[i * n + j] = 20;
+            c[i * n + j] = a[i * n + j] + b[i * n + j];
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+
+    N32 k = 0;
+    wakati (k < n * n) {
+        kama (c[k] != 30) { rudisha k + 1; }
+        k = k + 1;
+    }
+    rudisha 0;
+}
