@@ -414,3 +414,82 @@ inayotarajiwa, kwa kuwa `matriki` bado ina uzidishaji wa D64
 za anwani zinazoondolewa ni sehemu ndogo tu ya kazi ya jumla ya
 kitanzi cha ndani -- lakini ni HALISI, thabiti, na ya kwanza kutoka
 kwenye mnyororo wa kashe-ya-anwani/LICM-CSE tangu PR #239.
+
+## Kupunguza nguvu kwa mgawanyo/modulo ya nguvu-ya-2 (signed)
+
+Hadi sasa `/` na `%` zilikuwa zikiepukwa na KILA uboreshaji mwingine
+kikao hiki (kunja-namba, kashe-ya-anwani, LICM, uvektishaji) kwa
+sababu SAR (mabadiliko ya biti ya x86) huzunguka KUELEKEA -INFINITY
+(floor) kwa nambari hasi, wakati mgawanyo wa nambari kamili wenye
+ishara wa lugha hii (kama C) HUKATA KUELEKEA SIFURI (truncate) --
+`-7/4` lazima iwe `-1`, LAKINI `-7>>2` ni `-2`. PR hii inashughulikia
+hilo kwa mbinu ya KAWAIDA ya wakusanyaji halisi (GCC/LLVM/MSVC):
+upendeleo (bias) wa `(d-1)` unaoongezwa kwa x TU pale x ni hasi
+(kwa kutumia kinyago cha ishara `x >> (upana-1)`, branchless), kisha
+SAR. Modulo hutumia tena hesabu ya mgawanyo: `r = x - (q << kipeo)`.
+Bila ishara (A32/A64): hakuna upendeleo unaohitajika kabisa -- SHR/AND
+rahisi ni sahihi moja kwa moja.
+
+**Usahihi**: mzunguko kamili wa x kutoka -20 hadi 20 (na -200 hadi 200
+kwa N64) dhidi ya kila kigawanyaji halisi (2,4,8,16 kwa N32; 2,8,64
+kwa N64), ukilinganishwa dhidi ya mgawanyo wa D64 (njia tofauti kabisa,
+isiyoathiriwa na uboreshaji huu) uliobadilishwa kuwa nambari kamili --
+rejeleo huru la kweli, si kurudia fomula ile ile. Pia imethibitishwa:
+`(x/d)*d + (x%d) == x` (utambulisho wa msingi) kwa kila jozi, thamani
+ndogo kabisa ya N32 (-2147483648/2), na bila ishara na thamani kubwa
+(4000000000) yenye biti ya juu iliyowekwa (kuthibitisha SHR, si SAR).
+
+**UGUNDUZI WA PEKEE (nje ya wigo wa kazi hii, umeripotiwa hapa kwa
+uwazi)**: wakati wa kuandaa majaribio haya, iligundulika kuwa
+`jaribu_kunja_namba` (kukunja namba za kudumu, msambazaji.swa --
+KIPENGELE TOFAUTI KABISA na kazi hii, kinachofanya kazi wakati wa
+UCHANGANUZI si UZALISHAJI) kina mdudu WAKE MWENYEWE kwa mgawanyo wa
+namba HASI ya kudumu (mfano `(0-17)/3` -- si nguvu ya 2, hivyo nje ya
+wigo wa PR hii kabisa) -- imefuatiliwa kwa uhakika kamili hadi
+`mbegu.bin` (mkusanyaji wa awali uliogandishwa): mbegu.bin YENYEWE
+inakosea kuzalisha msimbo kwa muundo maalum wa "N64 = safu ya N32
+[fahirisi]; ...; mgawanyo" (imethibitishwa kwa kuunda upya muundo huo
+kama programu huru na kuikusanya MOJA KWA MOJA na mbegu.bin). Kwa
+kuwa `jaribu_kunja_namba` ipo ndani ya stage1.swa (chanzo cha
+mkusanyaji mwenyewe), hitilafu hii inaingia kwenye kizazi cha KWANZA
+(gen1/stage1, kilichojengwa NA mbegu.bin moja kwa moja) -- LAKINI
+INAJIPONYA (self-heals) KABISA kwenye kizazi cha PILI (gen2/stage2,
+kilichojengwa na gen1, ambaye msimbo wake WENYEWE wa uzalishaji
+(uzalishaji.swa) HAUNA mdudu huu) -- imethibitishwa moja kwa moja
+kwa kujenga gen2 na kuonyesha `(0-17)/3` inatoa `-5` sahihi. Kwa
+kuwa mbegu.bin imegandishwa milele, hitilafu hii haiwezi kurekebishwa
+huko -- lakini haiathiri mkusanyaji halisi unaotumika (mnyororo wa
+kujiendeleza zaidi ya kizazi kimoja), na majaribio ya PR hii
+YAMEUNDWA KWA MAKUSUDI kuepuka mkondo wa kukunja namba kabisa
+(kigawiwa daima ni kigezo, si namba halisi ya moja kwa moja) ili
+yasiathiriwe.
+
+**Vipimo halisi vilivyopo**: `matriki`'s `n/2` (mara moja tu, si
+kwenye kitanzi kizito, faida haina maana), `simd_jozi_d64`'s
+`sum/1000000000` (si nguvu ya 2, haihusiki), `kupanga`'s
+`nasibu_ijayo()` `% 2147483648` (2^31 -- LAKINI namba hii inazidi
+wigo chanya wa N32 (2147483647), hivyo inahifadhiwa kwenye dimbwi la
+N64 -- `gwm_kipeo_kulia` inakataa kwa usahihi kigawanyaji cha dimbwi
+kimakusudi, hivyo HAIFAIDIKI kabisa -- imethibitishwa kwa disassembly,
+hakuna SAR, idiv bado inatumika).
+
+**Kipimo kipya cha moja kwa moja (`vipimo/png_peephole/swa.swa`,
+tayari zilizopo -- `i % 8` ndani ya kitanzi cha mizunguko 40,000,000)**:
+binary ni TOFAUTI (kashe mpya inatumika, imethibitishwa kwa
+disassembly -- SAR badala ya idiv). Muda halisi (interleaved, mizunguko
+5):
+
+| mzunguko | zamani | mpya |
+|---|---|---|
+| 1 | 290ms | 179ms |
+| 2 | 264ms | 177ms |
+| 3 | 266ms | 181ms |
+| 4 | 269ms | 182ms |
+| 5 | 266ms | 181ms |
+
+Wastani: zamani 271.0ms, mpya 180.0ms -- **~33.6% haraka zaidi**,
+thabiti kwenye mizunguko yote mitano (hakuna mwingiliano). `kupanga`
+(kigawanyaji hakifaidiki, angalia juu): wastani zamani 283.2ms, mpya
+273.8ms -- tofauti ndogo (~3.3%) inayotokana na mgawanyo MMOJA usio
+wa kitanzi (`N_JUMLA/2` kwenye uchapishaji wa matokeo) uliopata njia
+ya haraka, si `nasibu_ijayo()` -- ndani ya kelele.
