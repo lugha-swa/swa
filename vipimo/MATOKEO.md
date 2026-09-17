@@ -279,6 +279,75 @@ kwenye muda wa ukuta. Sawa na SIMD (`matriki` yenyewe) na SU
 kwa kila mzigo wa kazi -- inategemea kama mzigo huo ni ALU-bound au
 memory-bound.
 
+## Peephole: unganisha push/pop (rax/rcx) inayofuatana
+
+Mkusanyaji huu hutumia rafu (push/pop) sana kama njia ya jumla ya
+kuhamisha thamani kati ya sehemu za usemi (`sukuma_thamani`/
+`vuta_thamani_rcx` na maeneo mengi ya moja kwa moja) -- disassembly
+za PR nyingi za kikao hiki zimeonyesha mara kwa mara mfuatano kama
+`push rax; pop rcx` (sawa na `mov rcx, rax` moja) au hata `push rax;
+push rax; pop rax` (kashe ya anwani ya kiwanja, PR #239/#240 --
+nakala ya pili + pop hulingana kabisa, hakuna athari).
+
+**Njia**: badala ya kuandika upya baiti ZILIZOKWISHA-ANDIKWA (tatizo
+la uhamishaji/relocation la kweli -- lebo/fixup/rela zote hurekodi
+`bafa_text_wapi` moja kwa moja), `andika_push_rax`/`andika_push_rcx`
+sasa HUAHIRISHA push MOJA (haiandiki baiti mara moja, huweka tu
+`png_akiba_reg`). `andika_pop_rax`/`andika_pop_rcx` hukagua hali hiyo:
+rejesta ile ile = hakuna athari (haiandiki KABISA); rejesta tofauti =
+`mov` moja badala ya push+pop mbili. `andika_baiti` YENYEWE (kizuia-
+njia cha PEKEE kinachopitiwa na kila agizo lingine) husafisha push
+inayosubiri KABLA ya kuandika baiti yoyote nyingine -- hii
+inashughulikia KILA agizo linaloweza kutokea kati ya push na pop
+(jumlisha, wito, kuruka, LEBO) bila kuhitaji kila kazi ya `andika_*`
+(kuna mamia) kujua kuhusu kipengele hiki. Kazi zinazorekodi
+`bafa_text_wapi` nje ya `andika_baiti` (`weka_lebo`, `weka_fixup`,
+`lebo_hifadhi`, `andika_rela_ulimwengu`, nafasi za mwisho za
+`uzalishaji_kuu`/`uzalishaji_jit`) zote husafisha eksplisiti pia --
+uhakika, si dhana ya mpangilio wa wito.
+
+**Mdudu halisi uliogunduliwa na kurekebishwa KABLA ya kuunganishwa**:
+jaribio la kwanza la utekelezaji lilisababisha SEGV/matokeo mabaya
+kwenye majaribio 18 (ikiwa ni pamoja na yale ya kashe ya anwani ya
+kiwanja) -- chanzo: `andika_pop_rcx`/`andika_pop_rax` ziliita
+`andika_mov_rcx_rax`/`andika_mov_rax_rcx` KABLA ya kufuta
+`png_akiba_reg`, hivyo wito huo wa ndani wa `andika_baiti` uliona hali
+ya zamani ikiwa bado hai na kutoa PUSH YA PILI ISIYO SAHIHI (rafu
+ikavurugika). Rekebisho: futa hali KWANZA, kisha ita `andika_mov_*`
+-- muundo uleule uliokuwa tayari sahihi kwenye `png_safisha`.
+Iligunduliwa kwa disassembly ya kesi ndogo (`c[i*n+j]+=7`), si dhana.
+
+**Usalama uliothibitishwa**: jaribio maalum la hatari kuu (lebo halisi
+kutoka `&&`/`||` NDANI ya usemi wenye push inayosubiri) limejengwa na
+kuthibitishwa kwa disassembly -- push hutolewa kikamilifu KABLA ya
+lebo yoyote, mtiririko wa udhibiti hauwezi kamwe kuruka juu ya push
+isiyotolewa.
+
+**Majaribio 4 mapya**: mnyororo mrefu wa jozi HURU za push/pop (=96),
+kesi maalum push;push;pop kutoka kiwanja_tail (fahirisi tata i*n+j),
+lebo katikati ya usemi (&&/||, =6), wito wa kazi katikati ya usemi
+wenye push inayosubiri (=23). 381/381 (377+4), fixpoint na gen1/gen2
+vyote vinapita, imethibitishwa mara 4 kutoka kwa ujenzi safi (idadi
+kubwa kimakusudi kutokana na wigo mpana wa mabadiliko haya).
+
+**Utendaji (uaminifu kamili)**: mabadiliko ya ukubwa wa binary kwenye
+vipimo vilivyopo tayari (fibonacci, kupanga, matriki, mzunguko_mchezo)
+ni SIFURI kabisa -- ugawaji wa rejesta (PR #226/227), Sethi-Ullman
+(#238), na kashe ya anwani (#239/#240) tayari zimeondoa fursa nyingi
+za push/pop zinazofuatana kwenye vitanzi vyao vikuu. `heshi` (djb2)
+pekee ilionyesha tofauti ya baiti 1 (kokotoo moja ya rejesta-moja
+imeondolewa). Kipimo kipya kilicholengwa
+(`vipimo/png_peephole/`, `c[idx]+=1` mara milioni 40 kwa mzunguko
+mmoja) kinakokotoa baiti 1 pungufu (kimethibitishwa), LAKINI muda wa
+ukuta haubadiliki HATA KIDOGO (264-287ms zote mbili, ndani kabisa ya
+kelele) -- push/pop ya rejesta MOJA (bila kugusa kumbukumbu ya
+maana) tayari ni ya haraka SANA kwenye CPU za kisasa (injini ya rafu/
+stack engine), na akiba ya maagizo 2-3 inapotea kabisa dhidi ya
+gharama nyingine za kitanzi (hapa: `%` -- modulo). Hitimisho la
+uaminifu: hii ni uboreshaji WA KWELI wa idadi ya maagizo (umethibitishwa
+kwa disassembly), lakini SIO uboreshaji wa muda wa ukuta unaoweza
+kupimwa kwenye mizigo ya kazi iliyojaribiwa -- thamani yake HALISI
+kwa sasa ni ubora wa msimbo (maagizo machache), si kasi.
 ## LICM CSE (kushiriki kigezo cha muda kati ya vielelezo vinavyofanana)
 
 Fursa ya "UGUNDUZI MUHIMU" iliyotajwa hapo juu (kashe mpya ya anwani

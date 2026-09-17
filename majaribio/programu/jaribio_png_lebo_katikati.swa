@@ -1,0 +1,23 @@
+// Peephole ya push/pop (rax/rcx) -- hatari kuu iliyofikiriwa kwa
+// makini: lebo HALISI (kutoka &&/|| -- mzunguko mfupi wa kimantiki)
+// ikitokea NDANI ya usemi wa kiwanja_tail wakati push (thamani ya
+// sasa) inasubiri kutolewa. png_safisha lazima itolewe KABLA ya
+// weka_lebo yoyote, la sivyo mtiririko wa udhibiti ungeruka juu ya
+// push isiyotolewa. c[3]=5, (a&&b) na a=1,b=0 -> 0 -> c[3]=5+0=5.
+// Kisha (x||y) na x=2,y=7 -> 1 (x ni kweli) -> c[3]=5+1=6.
+n32 c[10];
+
+n32 main() {
+    c[3] = 5;
+    n32 a = 1;
+    n32 b = 0;
+    c[3] = c[3] + (a && b);
+    kama (c[3] != 5) { rudisha 1; }
+
+    n32 x = 2;
+    n32 y = 7;
+    c[3] = c[3] + (x || y);
+    kama (c[3] != 6) { rudisha 2; }
+
+    rudisha 0;
+}
