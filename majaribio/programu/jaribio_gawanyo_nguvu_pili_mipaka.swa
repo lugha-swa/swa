@@ -1,0 +1,59 @@
+// Kupunguza nguvu kwa mgawanyo/modulo -- kesi za MIPAKA: d=1 (haipati
+// njia ya haraka kabisa -- nguvu_kamili_ya_pili inakataa v<=1 kwa
+// makusudi, hivyo hii inatumia idiv, lakini bado LAZIMA iwe sahihi),
+// d=2 (nguvu ndogo kabisa inayopata njia ya haraka), na thamani ndogo
+// kabisa inayowezekana ya N32 (-2147483648) ikigawanywa kwa 2 --
+// hii ndiyo hatari kubwa zaidi ya kufurika kwa mbinu ya upendeleo
+// (bias): -2147483648 + 1 (upendeleo wa d=2) = -2147483647, ambayo
+// bado inatoshea kikamilifu ndani ya N32 (haifuriki), hivyo hakuna
+// hatari ya kufurika kwa d=2.
+//
+// MUHIMU: kigawiwa NI KIGEZO daima (si namba halisi ya moja kwa moja
+// kwenye AST ya mgawanyo) -- inaepuka mkondo wa kukunja namba
+// (jaribu_kunja_namba), usiohusiana na kazi hii, angalia maelezo
+// kamili kwenye jaribio_gawanyo_nguvu_pili_kataa/ujumbe wa PR.
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+N32 jaribu_d_moja() {
+    N32 x = 0 - 9;
+    kama (x / 1 != (0 - 9)) { rudisha 1; }
+    kama (x % 1 != 0) { rudisha 2; }
+    N32 y = 17;
+    kama (y / 1 != 17) { rudisha 3; }
+    kama (y % 1 != 0) { rudisha 4; }
+    rudisha 0;
+}
+
+N32 jaribu_d_mbili() {
+    N32 a = 0 - 5;
+    kama (a / 2 != (0 - 2)) { rudisha 1; }   // -5/2 kukata = -2
+    kama (a % 2 != (0 - 1)) { rudisha 2; }   // -5%2 = -1
+    N32 b = 0 - 4;
+    kama (b / 2 != (0 - 2)) { rudisha 3; }   // -4/2 = -2 hasa
+    kama (b % 2 != 0) { rudisha 4; }
+    rudisha 0;
+}
+
+N32 jaribu_n32_ndogo_kabisa() {
+    // -2147483648 haiwezi kuandikwa moja kwa moja kama namba halisi
+    // chanya (2147483648 inafurika N32) -- kuundwa kwa hesabu badala
+    // yake, kuepuka tokeni ya moja kwa moja isiyofaa.
+    N32 dogo = (0 - 2147483647) - 1;
+    N32 q = dogo / 2;
+    // -2147483648 / 2 = -1073741824 HASA (haina salio)
+    kama (q != (0 - 1073741824)) { rudisha 1; }
+    N32 r = dogo % 2;
+    kama (r != 0) { rudisha 2; }
+    kama ((q * 2) + r != dogo) { rudisha 3; }
+    rudisha 0;
+}
+
+N32 main() {
+    N32 r1 = jaribu_d_moja();
+    kama (r1 != 0) { rudisha 100 + r1; }
+    N32 r2 = jaribu_d_mbili();
+    kama (r2 != 0) { rudisha 200 + r2; }
+    N32 r3 = jaribu_n32_ndogo_kabisa();
+    kama (r3 != 0) { rudisha 300 + r3; }
+    rudisha 0;
+}

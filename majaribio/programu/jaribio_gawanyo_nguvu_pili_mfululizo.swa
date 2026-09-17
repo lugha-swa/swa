@@ -1,0 +1,118 @@
+// Kupunguza nguvu kwa mgawanyo/modulo ya nguvu-ya-2 -- jaribio la
+// kudumu MUHIMU zaidi: mzunguko kamili wa x (KIGEZO CHA WAKATI WA
+// KUKIMBIA, SI la kudumu -- angalia maelezo chini) kutoka -20 hadi
+// 20, dhidi ya kila kigawanyaji 2,4,8,16 KIKIWA NAMBA HALISI YA
+// MOJA KWA MOJA (x/2, x/4, x/8, x/16 zilizoandikwa WAZI kwenye chanzo
+// -- hii ndiyo INAYOLAZIMISHA njia mpya ya haraka ITUMIKE, tofauti na
+// kigawanyaji kilichowekwa kwenye kigezo, ambacho HAKIWEZI kutambuliwa
+// na gwm_kipeo_kulia/nguvu_kamili_ya_pili kabisa -- angalia
+// jaribio_gawanyo_nguvu_pili_kataa kwa jaribio hilo tofauti).
+//
+// MUHIMU (uamuzi wa makusudi wa usanifu wa jaribio hili): x NI
+// KIGEZO CHA KITANZI (kinachobadilika kila mzunguko), SI namba halisi
+// ya moja kwa moja -- hii inaepuka KABISA mkondo wa KUKUNJA NAMBA
+// (jaribu_kunja_namba, msambazaji.swa), ambao ni SEHEMU TOFAUTI KABISA
+// ya mkusanyaji (wakati wa UCHANGANUZI, si UZALISHAJI) na
+// HAUGUSIKI na kazi hii KABISA. (Ugunduzi wa pekee: mbegu.bin
+// -- mkusanyaji wa awali uliogandishwa -- ana mdudu WA KWAKE
+// MWENYEWE, usiohusiana kabisa na kazi hii, kwenye ukokotoaji wa
+// jaribu_kunja_namba kwa mgawanyo wa namba hasi ya kudumu -- HUJIPONYA
+// (self-heals) kizazi cha pili (gen2) kikijiendeleza, hivyo hauathiri
+// mkusanyaji halisi unaotumika -- umeripotiwa kando, nje ya wigo wa
+// kazi hii, angalia ujumbe wa PR).
+//
+// Kila q/r halisi (njia mpya) unalinganishwa na thamani INAYOTOKANA
+// NA NJIA TOFAUTI KABISA -- mgawanyo wa D64 (usiogusika na
+// uboreshaji huu KABISA) ukibadilishwa kuwa N32 (ubadilishaji huo
+// hukata kuelekea sifuri, sawa na mgawanyo wa nambari kamili wenye
+// ishara wa lugha hii). Kwa vigezo vidogo kama hivi (chini ya 2^53),
+// mgawanyo wa D64 kwa nguvu ya 2 ni SAHIHI KABISA (hauna kosa la
+// mzunguko wa desimali kamwe), hivyo hii ni rejeleo huru la kweli.
+//
+// Pia inathibitisha UTAMBULISHO wa msingi wa mgawanyo:
+// (x/d)*d + (x%d) == x kwa kila jozi.
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+N32 jaribu_kigawanyaji_halisi_n32(N32 d) {
+    N32 x = 0 - 20;
+    wakati (x <= 20) {
+        D64 xd = x;
+        D64 dd = d;
+        D64 qd_f = xd / dd;
+        N32 q_tarajiwa = qd_f;  // D64 -> N32 hukata kuelekea sifuri
+        N32 r_tarajiwa = x - (q_tarajiwa * d);
+
+        N32 q_halisi = 0;
+        N32 r_halisi = 0;
+        kama (d == 2) { q_halisi = x / 2; r_halisi = x % 2; }
+        sivyo { kama (d == 4) { q_halisi = x / 4; r_halisi = x % 4; }
+        sivyo { kama (d == 8) { q_halisi = x / 8; r_halisi = x % 8; }
+        sivyo { kama (d == 16) { q_halisi = x / 16; r_halisi = x % 16; }
+        sivyo { rudisha 99; } } } }
+
+        kama (q_halisi != q_tarajiwa) { rudisha 1; }
+        kama (r_halisi != r_tarajiwa) { rudisha 2; }
+        kama ((q_halisi * d) + r_halisi != x) { rudisha 3; }
+
+        x = x + 1;
+    }
+    rudisha 0;
+}
+
+N32 jaribu_mfululizo_n32() {
+    N32 r;
+    r = jaribu_kigawanyaji_halisi_n32(2);
+    kama (r != 0) { rudisha 1000 + r; }
+    r = jaribu_kigawanyaji_halisi_n32(4);
+    kama (r != 0) { rudisha 2000 + r; }
+    r = jaribu_kigawanyaji_halisi_n32(8);
+    kama (r != 0) { rudisha 3000 + r; }
+    r = jaribu_kigawanyaji_halisi_n32(16);
+    kama (r != 0) { rudisha 4000 + r; }
+    rudisha 0;
+}
+
+N32 jaribu_kigawanyaji_halisi_n64(N32 lipi) {
+    N64 x = 0 - 200;
+    wakati (x <= 200) {
+        D64 xd = x;
+        D64 dd = 8;
+        kama (lipi == 0) { dd = 2; }
+        sivyo { kama (lipi == 2) { dd = 64; } }
+        D64 qd_f = xd / dd;
+        N64 q_tarajiwa = qd_f;
+        N64 r_tarajiwa = 0;
+
+        N64 q_halisi = 0;
+        N64 r_halisi = 0;
+        kama (lipi == 0) { q_halisi = x / 2; r_halisi = x % 2; r_tarajiwa = x - (q_tarajiwa * 2); }
+        sivyo { kama (lipi == 1) { q_halisi = x / 8; r_halisi = x % 8; r_tarajiwa = x - (q_tarajiwa * 8); }
+        sivyo { kama (lipi == 2) { q_halisi = x / 64; r_halisi = x % 64; r_tarajiwa = x - (q_tarajiwa * 64); }
+        sivyo { rudisha 99; } } }
+
+        kama (q_halisi != q_tarajiwa) { rudisha 1; }
+        kama (r_halisi != r_tarajiwa) { rudisha 2; }
+
+        x = x + 1;
+    }
+    rudisha 0;
+}
+
+N32 jaribu_mfululizo_n64() {
+    N32 r;
+    r = jaribu_kigawanyaji_halisi_n64(0);
+    kama (r != 0) { rudisha 1000 + r; }
+    r = jaribu_kigawanyaji_halisi_n64(1);
+    kama (r != 0) { rudisha 2000 + r; }
+    r = jaribu_kigawanyaji_halisi_n64(2);
+    kama (r != 0) { rudisha 3000 + r; }
+    rudisha 0;
+}
+
+N32 main() {
+    N32 r1 = jaribu_mfululizo_n32();
+    kama (r1 != 0) { rudisha 100 + r1; }
+    N32 r2 = jaribu_mfululizo_n64();
+    kama (r2 != 0) { rudisha 200 + r2; }
+    rudisha 0;
+}
