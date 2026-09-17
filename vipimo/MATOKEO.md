@@ -561,3 +561,96 @@ uwiano wa maagizo ya tawi dhidi ya kazi nyingine ni mkubwa zaidi
 kwenye kipimo hicho. kupanga/mzunguko_mchezo hazionyeshi tofauti ya
 wazi -- ndani ya kelele ya mzunguko wa CPU wa mashine hii, hazina
 sehemu kubwa ya wakati inayotumika kwenye matawi rahisi kiasi hicho.
+
+## Zidisho-na-uchawi (magic-number multiplication) kwa mgawanyo/modulo ya kigawanyaji chochote cha kudumu
+
+PR #243 ilishughulikia mgawanyo/modulo kwa nguvu-ya-2 tu (bias-kisha-
+SAR). Kigawanyaji chochote KINGINE cha kudumu (3, 5, 7, 10, 100...)
+kilikuwa kikiendelea kutumia idiv/div (maagizo 20-40+ ya mzunguko wa
+saa dhidi ya 3-5 kwa zidisho). Suluhisho la KAWAIDA la wakusanyaji
+halisi (GCC/LLVM/MSVC): zidisha kwa "namba ya uchawi" (M) iliyokokotolewa
+wakati wa kukusanya, kisha uhamishe -- fomula kutoka kwenye karatasi ya
+Granlund na Montgomery (1994) "Division by Invariant Integers using
+Multiplication", iliyoelezwa zaidi kwenye "Hacker's Delight" (Warren),
+Sura ya 10.
+
+**KUMBUKUMBU KWA UWAZI**: mtandao haukupatikana wakati wa kazi hii
+kuthibitisha fomula dhidi ya chapisho asilia moja kwa moja (chanzo-mbili
+kilichokusudiwa awali). MAJARIBIO YA NAMBA HALISI (zaidi ya milioni
+tano ya jozi (kigawanyaji, kigawiwa) kwa Python KABLA ya kutekelezwa
+kwa Swa, kisha mamia ya maelfu zaidi ya majaribio ya moja kwa moja ya
+Swa dhidi ya idiv) ndiyo msingi mkuu wa uthibitisho, si kumbukumbu ya
+karatasi peke yake.
+
+### Wigo (kwa makusudi mdogo)
+
+- **N32 TU** -- N64 haiguswi kabisa (utafutaji wa namba ya uchawi
+  ungehitaji usahihi wa 128-bit ambao lugha hii haina aina ya asili
+  ya kuutoa salama -- imeachwa kama kazi ya baadaye).
+- Kigawanyaji d: 2 <= d <= 65536, namba halisi ya moja kwa moja KUDUMU
+  (si kigezo, si dimbwi la N64) -- mipaka hii inahakikisha hesabu za
+  utafutaji (N64) zinabaki mbali sana na kikomo cha N64.
+- **Bila ishara (A32)**: baadhi ya vigawanyaji (mfano maarufu: 7)
+  HUHITAJI hatua ya ziada ya "ongeza" isiyotekelezwa kwa MAKUSUDI --
+  hizo HUENDELEA kutumia idiv, salama TAYARI, ni fursa iliyokosekana
+  TU. Karibu 2/3 ya vigawanyaji 3-2000 vinafaidika (imethibitishwa
+  kwa Python), 1/3 (wakiwemo 7,14,19,21...) huendelea kwenye idiv.
+- **Yenye ishara (N32)**: fomula ya "magic" inashughulikia hatua ya
+  marekebisho (q=q+n endapo M>=2^31, yaani "hasi" kama N32) MOJA KWA
+  MOJA kama SEHEMU ya kawaida ya fomula -- SI hali ya kushindwa, ni
+  hatua inayotarajiwa (d=7 signed inahitaji hatua hii, imethibitishwa
+  kwa disassembly ya jaribio_uchawi_gawanyo_ishara_msingi).
+
+### Ugunduzi wa pekee (nje ya wigo, umeripotiwa kwa uwazi)
+
+Wakati wa kuandaa majaribio, iligundulika mibegu miwili TOFAUTI KABISA
+na kazi hii, isiyohusiana:
+1. `{ N32 x = 1; }` (kitalu kisicho na kitanzi/tawi kinachofunga
+   tangazo la kigezo cha ndani) hutoa "kosa: kianzilishi cha safu
+   hakijaungwa mkono" kimakosa -- mdudu wa uchanganuzi (parser),
+   HAUHUSIANI na zidisho-na-uchawi kabisa.
+2. `A32 z = 4294964296;` (uanzishaji wa moja kwa moja wa A32 na namba
+   halisi kubwa kuliko 2^31) haufanyi kazi sahihi -- kigawanyaji
+   kilichotumika kwenye jaribio hilo (thamani ndogo, tayari
+   umethibitishwa sahihi na Python) HAUHUSIKI, ni tabia ya UANZISHAJI
+   pekee. Imeepukwa kwenye majaribio yote kwa kutumia hesabu ya
+   wakati wa kukimbia badala ya namba halisi ya moja kwa moja.
+
+Zote mbili zimeachwa bila kurekebishwa (nje ya wigo wa kazi hii),
+zimeripotiwa hapa kwa uwazi kwa kazi ya baadaye.
+
+### Uthibitisho
+
+Majaribio manne mapya: kesi za msingi zenye ishara (d=10 bila
+marekebisho, d=7 na hatua ya "ongeza", thamani za mkono zikiwemo
+karibu na N32_CHINI); kesi za msingi bila ishara (d=10/100, thamani
+karibu na 2^32-1 iliyoundwa kwa hesabu); kesi za kukataa (d=7 bila
+ishara, d>65536, kigawanyaji si wa kudumu, N64); mfululizo mpana wa
+vigawanyaji 14 dhidi ya idiv (N32 x=-600..600 ikiwemo karibu na
+N32_CHINI/N32_JUU, A32 y=0..600). 398/398 (394 zilizopo + 4 mpya).
+Fixpoint na gen1-dhidi-ya-gen2 vinapita, imethibitishwa mara TATU
+kutoka kwa ujenzi safi.
+
+Disassembly ya jaribio_uchawi_gawanyo_ishara_msingi imefuatiliwa
+KABISA mkononi kwa d=7 (kesi ya "ongeza"): push rax; mov ecx,
+0x92492493 (=2454267027, M iliyokokotolewa); imul ecx; mov eax,edx;
+pop rcx; add eax,ecx (marekebisho); mov ecx,2; sar cl,eax; push rax;
+mov ecx,31; shr cl,eax; pop rcx; add eax,ecx (usahihishaji wa ishara)
+-- kila baiti inalingana KABISA na fomula iliyokokotolewa. d=10 (bila
+marekebisho) imethibitishwa kutumia mov ecx,0x66666667 bila push/pop
+ya ziada kabla ya imul. Majaribio ya kukataa (jaribio_uchawi_kataa)
+yamethibitishwa kutumia idiv/div PEKEE (sifuri mul/imul).
+
+Matriki na kupanga (pekee vinavyotumia mgawanyo, vyote nguvu-ya-2)
+vimethibitishwa kuwa BAITI SAWA (`cmp`) kati ya mkusanyaji wa zamani
+na mpya -- kazi hii haigusi njia iliyopo ya nguvu-ya-2 hata kidogo.
+
+### Utendaji
+
+Hakuna kipimo kilichopo kinachotumia mgawanyo/modulo ya kigawanyaji-
+si-nguvu-ya-2 kwenye mzunguko mzito (matriki/kupanga ni nguvu-ya-2,
+fibonacci/heshi/mzunguko_mchezo hazina mgawanyo kabisa) -- kipimo
+kipya `vipimo/uchawi_gawanyo/` kimeundwa MAKUSUDI (i/7, i%7, mizunguko
+50,000,000). Muda halisi (interleaved, mizunguko 5, dhidi ya
+mkusanyaji wa zamani): wastani zamani 383.2ms, mpya 319.8ms -- **~16.5%
+haraka zaidi**, thabiti kwenye mizunguko yote (hakuna mwingiliano).
