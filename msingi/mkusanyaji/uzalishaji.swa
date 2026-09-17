@@ -2937,6 +2937,159 @@ N32 kusanya_herufi(N8* raw) {
 // -------------------------------------------------------
 // Utoaji wa kama (if/else) — AST_KAMA (9)
 // -------------------------------------------------------
+// -------------------------------------------------------
+// Ulinganishi wa moja kwa moja (cmp+jcc) kwa sharti la kama/wakati/kwa
+// -------------------------------------------------------
+// Njia ya JUMLA (uzalishaji_sawa/tofauti_si/chini/juu/chini_sawa/
+// juu_sawa, juu ya faili hili) daima hutoa thamani KAMILI ya 0/1
+// (cmp, KISHA setcc al, KISHA movzx eax,al) kwa sababu thamani hiyo
+// inaweza kuhitajika kwa matumizi mengine (kuhifadhiwa kwenye kigezo,
+// kurudishwa, kutumika ndani ya usemi mwingine). LAKINI: pale sharti
+// la kama/wakati/kwa LENYEWE ni ulinganishi HUO HUO moja kwa moja
+// (kwa mfano "kama (a < b)" au "wakati (i < n)" -- si "kama (f())"
+// wala "kama (x)" peke yake), thamani ya 0/1 haihitajiki KAMWE --
+// mahali pekee inapotumika ni KUAMUA tawi gani kuchukua. Katika kesi
+// hiyo, cmp/comisd YENYEWE tayari imeweka bendera (flags) za CPU
+// zinazohitajika -- setcc+movzx+test ni KAZI TATU za ziada
+// zinazotoa tu thamani ya kati (0/1) ili KISHA kuijaribu tena na
+// "test" -- badala yake tunaruka moja kwa moja kutoka cmp/comisd
+// hadi jcc inayolingana.
+//
+// UGUNDUZI (kutoka disassembly ya majaribio mengi kikao hiki):
+// muundo huu (cmp; setcc; movzx; test; jcc) unatokea kwenye KILA
+// sharti la kama/wakati/kwa la mradi huu -- ndiyo muundo wa
+// uzalishaji unaotokea mara nyingi ZAIDI kuliko mwingine wowote.
+//
+// UTAMBUZI: NI WA KIMUUNDO TU (ast_aina[cond] ni mojawapo ya vinodi
+// sita vya ulinganishi), SI uchambuzi wa matumizi (data-flow) -- kwa
+// sababu nafasi ya "sharti la kama/wakati/kwa" haina mtumiaji
+// mwingine yeyote wa thamani hiyo KWA UJENZI (ni sehemu ya AST_KAMA/
+// AST_WAKATI YENYEWE, si sehemu ya usemi mwingine), hivyo hakuna
+// haja ya kuthibitisha "haitumiki mahali pengine" -- ni dhahiri
+// tayari kutoka mahali unapoitwa.
+//
+// WIGO: vinodi sita vya ulinganishi TU (==, !=, <, >, <=, >=) --
+// SI && wala || (hizo tayari zinatoa matawi yake zenyewe kwa
+// mizunguko mifupi, si thamani ya moja kwa moja kutathminiwa hapa --
+// kazi ya baadaye kuungan[isha] na hizo pia, nje ya wigo wa sasa).
+N32 ni_ulinganisho_moja_kwa_moja(N32 node) {
+    kama (node == -1) { rudisha 0; }
+    N32 a = ast_aina[node];
+    rudisha (a == AST_SAWA || a == AST_TOFAUTI_SI || a == AST_CHINI ||
+             a == AST_JUU || a == AST_CHINI_SAWA || a == AST_JUU_SAWA);
+}
+
+// Toa uzalishaji wa PANDE ZOTE MBILI za nodi ya ulinganishi na cmp/
+// comisd YENYEWE (bila setcc/movzx) -- NAKALA ya kimuundo ya mistari
+// ya mwanzo ya uzalishaji_sawa/chini/juu/n.k. (hazijaguswa, zinabaki
+// kwa njia ya jumla). Baada ya kazi hii kurudi, bendera za CPU
+// tayari zimewekwa sahihi kwa jcc inayolingana na aina ya nodi.
+W0 toa_ulinganisho_cmp(N32 node, N32 kazi_node) {
+    N32 enc = ast_thamani[node];
+    uzalishaji_usemi(ast_kulia[node], kazi_node);
+    badili_mpaka_wa_desimali(ast_kulia[node], enc);
+    sukuma_thamani(enc);
+    uzalishaji_usemi(ast_kushoto[node], kazi_node);
+    badili_mpaka_wa_desimali(ast_kushoto[node], enc);
+    vuta_thamani_rcx(enc);
+    uzalishaji_cmp_kwa_enc(enc);
+}
+
+// Msingi wa PEKEE kwa kutoa jcc yoyote ya rel32 kwa lebo (mnyororo
+// ule ule wa kuruka nyuma/mbele unaotumika na toa_je_lebo/
+// toa_jne_lebo zilizopo -- kila jcc ya 2-baiti-opcode (0F 8x)
+// hutumia utaratibu ule ule wa lebo_buf_imewekwa/weka_fixup). Baiti
+// ya pili ya opcode (0F 8x) inapitishwa kama hoja badala ya
+// kuandikwa mara nane tofauti.
+W0 toa_jcc_lebo(N32 baiti2, N32 lebo_id) {
+    andika_baiti(15); andika_baiti(baiti2);
+    kama (lebo_buf_imewekwa[lebo_id]) {
+        N32 offset = lebo_buf_nafasi[lebo_id] - (bafa_text_wapi + 4);
+        andika_neno4(offset);
+    } sivyo {
+        weka_fixup(lebo_id);
+        andika_neno4(0);
+    }
+}
+
+// jl/jg/jle/jge (ishara) na jb/ja/jbe/jae (bila ishara/desimali) --
+// baiti ya pili sawa KABISA na setl/setg/setle/setge/setb/seta/
+// setbe/setae zilizopo tayari (0F 9x -> 0F 8x, nibble ile ile ya
+// sharti -- angalia weka_setcc_kwa_enc juu ya faili hili, ambayo
+// tayari inatumia utambuzi HUO HUO wa ni_desimali_enc||ni_bila_
+// ishara_enc kuchagua kati ya jozi hizi mbili za maagizo).
+W0 toa_jl_lebo(N32 lebo_id)  { toa_jcc_lebo(140, lebo_id); }
+W0 toa_jg_lebo(N32 lebo_id)  { toa_jcc_lebo(143, lebo_id); }
+W0 toa_jle_lebo(N32 lebo_id) { toa_jcc_lebo(142, lebo_id); }
+W0 toa_jge_lebo(N32 lebo_id) { toa_jcc_lebo(141, lebo_id); }
+W0 toa_jb_lebo(N32 lebo_id)  { toa_jcc_lebo(130, lebo_id); }
+W0 toa_ja_lebo(N32 lebo_id)  { toa_jcc_lebo(135, lebo_id); }
+W0 toa_jbe_lebo(N32 lebo_id) { toa_jcc_lebo(134, lebo_id); }
+W0 toa_jae_lebo(N32 lebo_id) { toa_jcc_lebo(131, lebo_id); }
+
+// Toa jcc ya mwelekeo WA MOJA KWA MOJA (kuruka kama sharti ni KWELI)
+// kwa nodi ya ulinganishi -- kutumika mahali kuruka kunapaswa
+// kutokea TU pale sharti ni kweli (mwili wa wakati/kwa).
+//
+// JEDWALI (limethibitishwa dhidi ya weka_setcc_kwa_enc juu ya faili
+// hili -- mwelekeo 0/1/2/3 = </>/<=/>=, ni_desimali_enc||ni_bila_
+// ishara_enc huchagua safu):
+//   AST_SAWA        -> je   (0F 84)
+//   AST_TOFAUTI_SI  -> jne  (0F 85)
+//   AST_CHINI       -> jl (ishara, 0F 8C)  / jb (bila ishara/desimali, 0F 82)
+//   AST_JUU         -> jg (0F 8F)          / ja (0F 87)
+//   AST_CHINI_SAWA  -> jle (0F 8E)         / jbe (0F 86)
+//   AST_JUU_SAWA    -> jge (0F 8D)         / jae (0F 83)
+W0 toa_jcc_moja_kwa_moja_lebo(N32 node, N32 lebo_id) {
+    N32 aina = ast_aina[node];
+    N32 enc = ast_thamani[node];
+    N32 bila_ishara = (ni_desimali_enc(enc) || ni_bila_ishara_enc(enc));
+    kama (aina == AST_SAWA) { toa_je_lebo(lebo_id); rudisha; }
+    kama (aina == AST_TOFAUTI_SI) { toa_jne_lebo(lebo_id); rudisha; }
+    kama (bila_ishara) {
+        kama (aina == AST_CHINI) { toa_jb_lebo(lebo_id); rudisha; }
+        kama (aina == AST_JUU) { toa_ja_lebo(lebo_id); rudisha; }
+        kama (aina == AST_CHINI_SAWA) { toa_jbe_lebo(lebo_id); rudisha; }
+        toa_jae_lebo(lebo_id);  // AST_JUU_SAWA
+        rudisha;
+    }
+    kama (aina == AST_CHINI) { toa_jl_lebo(lebo_id); rudisha; }
+    kama (aina == AST_JUU) { toa_jg_lebo(lebo_id); rudisha; }
+    kama (aina == AST_CHINI_SAWA) { toa_jle_lebo(lebo_id); rudisha; }
+    toa_jge_lebo(lebo_id);  // AST_JUU_SAWA
+}
+
+// Toa jcc ya mwelekeo WA KINYUME (kuruka kama sharti ni SIVYO) kwa
+// nodi ya ulinganishi -- kutumika mahali kuruka kunapaswa kutokea TU
+// pale sharti ni SIVYO (tawi la kama -- ruka kwenda else/mwisho
+// pale sharti halikutimia). Kinyume cha kila uhusiano: < <-> >=,
+// > <-> <=, == <-> !=. Jedwali kamili (limekaguliwa mara mbili
+// dhidi ya jedwali la toa_jcc_moja_kwa_moja_lebo hapo juu):
+//   AST_SAWA        -> jne (0F 85)   [kinyume cha je]
+//   AST_TOFAUTI_SI  -> je  (0F 84)   [kinyume cha jne]
+//   AST_CHINI       -> jge (0F 8D) / jae (0F 83)   [kinyume cha </jb]
+//   AST_JUU         -> jle (0F 8E) / jbe (0F 86)   [kinyume cha >/ja]
+//   AST_CHINI_SAWA  -> jg  (0F 8F) / ja  (0F 87)   [kinyume cha <=/jbe]
+//   AST_JUU_SAWA    -> jl  (0F 8C) / jb  (0F 82)   [kinyume cha >=/jae]
+W0 toa_jcc_kinyume_lebo(N32 node, N32 lebo_id) {
+    N32 aina = ast_aina[node];
+    N32 enc = ast_thamani[node];
+    N32 bila_ishara = (ni_desimali_enc(enc) || ni_bila_ishara_enc(enc));
+    kama (aina == AST_SAWA) { toa_jne_lebo(lebo_id); rudisha; }
+    kama (aina == AST_TOFAUTI_SI) { toa_je_lebo(lebo_id); rudisha; }
+    kama (bila_ishara) {
+        kama (aina == AST_CHINI) { toa_jae_lebo(lebo_id); rudisha; }
+        kama (aina == AST_JUU) { toa_jbe_lebo(lebo_id); rudisha; }
+        kama (aina == AST_CHINI_SAWA) { toa_ja_lebo(lebo_id); rudisha; }
+        toa_jb_lebo(lebo_id);  // AST_JUU_SAWA
+        rudisha;
+    }
+    kama (aina == AST_CHINI) { toa_jge_lebo(lebo_id); rudisha; }
+    kama (aina == AST_JUU) { toa_jle_lebo(lebo_id); rudisha; }
+    kama (aina == AST_CHINI_SAWA) { toa_jg_lebo(lebo_id); rudisha; }
+    toa_jl_lebo(lebo_id);  // AST_JUU_SAWA
+}
+
 W0 uzalishaji_kama(N32 node, N32 kazi_node) {
     N32 cond = ast_kushoto[node];
     N32 then_body = ast_kulia[node];
@@ -2948,19 +3101,25 @@ W0 uzalishaji_kama(N32 node, N32 kazi_node) {
 
     N32 lebo_else = lebo_buf_mpya();
     N32 lebo_mwisho = lebo_buf_mpya();
+    N32 lebo_sivyo_kweli = lebo_mwisho;
+    kama (else_body != -1) { lebo_sivyo_kweli = lebo_else; }
 
-    uzalishaji_usemi(cond, kazi_node);
-    andika_test_eax_eax();
+    kama (ni_ulinganisho_moja_kwa_moja(cond)) {
+        toa_ulinganisho_cmp(cond, kazi_node);
+        toa_jcc_kinyume_lebo(cond, lebo_sivyo_kweli);
+    } sivyo {
+        uzalishaji_usemi(cond, kazi_node);
+        andika_test_eax_eax();
+        toa_je_lebo(lebo_sivyo_kweli);
+    }
 
     kama (else_body != -1) {
-        toa_je_lebo(lebo_else);
         uzalishaji_taarifa(then_body, kazi_node);
         toa_jmp_lebo(lebo_mwisho);
         weka_lebo(lebo_else);
         uzalishaji_taarifa(else_body, kazi_node);
         weka_lebo(lebo_mwisho);
     } sivyo {
-        toa_je_lebo(lebo_mwisho);
         uzalishaji_taarifa(then_body, kazi_node);
         weka_lebo(lebo_mwisho);
     }
@@ -3354,11 +3513,20 @@ W0 uzalishaji_wakati(N32 node, N32 kazi_node) {
         // hadi vunja au rudisha. Hapo awali -1 ilitolewa kama usemi
         // usiotoa kitu — mwili haukuwahi kutekelezwa (jibu baya la kimya).
         andika_mov_eax(1);
-    } sivyo {
-        uzalishaji_usemi(cond, kazi_node);
-    }
-    andika_test_eax_eax();
-    toa_jne_lebo(lebo_body);
+        andika_test_eax_eax();
+        toa_jne_lebo(lebo_body);
+    } sivyo { kama (ni_ulinganisho_moja_kwa_moja(cond)) {
+            // Sharti la wakati/kwa/fanya LENYEWE ni ulinganishi moja
+            // kwa moja -- ruka moja kwa moja kwa cmp/comisd+jcc badala
+            // ya cmp;setcc;movzx;test;jcc (angalia maelezo kamili juu
+            // ya ni_ulinganisho_moja_kwa_moja, kabla ya uzalishaji_kama).
+            toa_ulinganisho_cmp(cond, kazi_node);
+            toa_jcc_moja_kwa_moja_lebo(cond, lebo_body);
+        } sivyo {
+            uzalishaji_usemi(cond, kazi_node);
+            andika_test_eax_eax();
+            toa_jne_lebo(lebo_body);
+        } }
 
     weka_lebo(lebo_exit);
 
