@@ -5283,12 +5283,105 @@ W0 uzalishaji_zidisha(N32 node, N32 kazi_node) {
     }
 }
 
+// Kupunguza nguvu (strength reduction) kwa MGAWANYO na MODULO ya
+// nambari kamili yenye ISHARA kwa nguvu kamili ya 2 (d=2^kipeo, upande
+// wa KULIA pekee -- mgawanyo/modulo SI wa ushirika, hivyo tofauti na
+// zidisho, upande wa KUSHOTO haukaguliwi kamwe).
+//
+// SABABU hii imekuwa ikiepukwa na kila uboreshaji mwingine kikao hiki
+// (angalia maelezo ya LICM/kunja-namba/kashe-ya-anwani): x86 SAR (na
+// mabadiliko ya biti kwa ujumla) huzunguka KUELEKEA -INFINITY (floor),
+// wakati mgawanyo wa nambari kamili wenye ishara wa lugha hii (kama C)
+// HUKATA KUELEKEA SIFURI (truncate) -- SI SAWA kwa nambari HASI.
+// Mfano: -7/4 lazima iwe -1 (kukata), LAKINI -7>>2 (SAR rahisi) ni -2
+// (floor) -- TOFAUTI. SIO hatari kwa BILA ISHARA (hakuna hasi kuwepo
+// kabisa, kukata=floor daima, SHR rahisi ni sahihi moja kwa moja).
+//
+// SULUHISHO (mbinu ya KAWAIDA ya wakusanyaji halisi -- GCC/LLVM/MSVC
+// hutumia HII HII kwa mgawanyo wa nguvu-ya-2 wenye ishara -- angalia
+// "Hacker's Delight" au maandiko yoyote ya kawaida ya uboreshaji wa
+// mkusanyaji kwa uthibitisho wa kinadharia): ongeza UPENDELEO (bias)
+// kwa x KABLA ya kuhamisha, ukitumia BARABARA (branchless) njia ya
+// "kinyago cha ishara":
+//   kinyago  = x >> (upana-1)     ; SAR -- sifuri kama x>=0, biti
+//                                    ZOTE 1 kama x<0
+//   upendeleo = kinyago & (d-1)   ; d-1 kama x<0, sifuri kama x>=0
+//   x_pendwa  = x + upendeleo
+//   q         = x_pendwa >> kipeo  ; SAR (kuhifadhi ishara)
+// Kisha MODULO (r = x - q*d, sawa na fomula ya asili ya mgawanyo):
+//   r = x - (q << kipeo)
+//
+// UTHIBITISHO WA MKONO (d=4, kipeo=2, d-1=3 -- imethibitishwa pia kwa
+// d=8, kipeo=3, d-1=7 kwenye majaribio ya kudumu):
+//   x=-7: kinyago=-1,upendeleo=3,x_pendwa=-4,q=-4>>2=-1 (-7/4 kukata=-1: SAHIHI)
+//         r=-7-(-1*4)=-3                                (-7%4=-3: SAHIHI)
+//   x=-8: kinyago=-1,upendeleo=3,x_pendwa=-5,q=-5>>2=-2 (-8/4=-2 HASA: SAHIHI)
+//         r=-8-(-2*4)=0                                 (-8%4=0: SAHIHI)
+//   x=-1: kinyago=-1,upendeleo=3,x_pendwa=2, q=2>>2=0   (-1/4 kukata=0: SAHIHI)
+//         r=-1-(0*4)=-1                                 (-1%4=-1: SAHIHI)
+//   x=7:  kinyago=0, upendeleo=0,x_pendwa=7, q=7>>2=1   (7/4 kukata=1: SAHIHI)
+//         r=7-(1*4)=3                                   (7%4=3: SAHIHI)
+//   x=8:  kinyago=0, upendeleo=0,x_pendwa=8, q=8>>2=2   (8/4=2 HASA: SAHIHI)
+//         r=8-(2*4)=0                                   (8%4=0: SAHIHI)
+//   x=1:  kinyago=0, upendeleo=0,x_pendwa=1, q=1>>2=0   (1/4 kukata=0: SAHIHI)
+//         r=1-(0*4)=1                                   (1%4=1: SAHIHI)
+//
+// WIGO (kwa makusudi mdogo): d LAZIMA iwe NAMBA HALISI YA KUDUMU (si
+// kigezo, si dimbwi la N64) na NGUVU KAMILI ya 2 (nguvu_kamili_ya_pili,
+// ile ile inayotumika na zidisho) -- d=3,5,6,7... (si nguvu ya 2)
+// HUENDELEA kwenye njia ya asili ya idiv (SAHIHI TAYARI, TU si haraka).
+// d ISIYO ya KUDUMU (kigezo cha wakati wa kukimbia) pia HUENDELEA
+// kwenye idiv -- hakuna njia ya kujua d ni nguvu ya 2 wakati wa
+// kukusanya. Desimali (D64/D32) HAIGUSWI KABISA -- uwanja huu ni
+// NAMBA KAMILI TU (ni_d imeshughulikiwa kando, angalia chini).
+N32 gwm_kipeo_kulia(N32 node) {
+    rudisha nguvu_kamili_ya_pili(ast_kulia[node]);
+}
+
 // AST_GAWANYA (32) -- gawanya
 W0 uzalishaji_gawanya(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
     N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_d = ni_desimali_enc(enc);
     N32 ni_b = ni_bila_ishara_enc(enc);
+
+    kama (ni_d == 0) {
+        N32 kipeo = gwm_kipeo_kulia(node);
+        kama (kipeo != -1) {
+            uzalishaji_usemi(ast_kushoto[node], kazi_node);
+            badili_mpaka_wa_desimali(ast_kushoto[node], enc);
+            kama (ni_b) {
+                // Bila ishara: SHR (logical) moja kwa moja, hakuna
+                // upendeleo unaohitajika -- angalia maelezo makuu juu.
+                andika_mov_ecx_imm32(kipeo);
+                kama (saizi >= 8) { andika_shr_rax_cl(); } sivyo { andika_shr_eax_cl(); }
+            } sivyo {
+                N32 d_thamani = ast_thamani[ast_kulia[node]];
+                kama (saizi >= 8) {
+                    andika_push_rax();                      // hifadhi x
+                    andika_mov_ecx_imm32(63);
+                    andika_sar_rax_cl();                     // rax = kinyago
+                    andika_mov_ecx_imm32(d_thamani - 1);
+                    andika_and_rax_rcx();                    // rax = upendeleo
+                    andika_pop_rcx();                        // rcx = x
+                    andika_add_rax_rcx();                    // rax = x + upendeleo
+                    andika_mov_ecx_imm32(kipeo);
+                    andika_sar_rax_cl();                     // rax = q
+                } sivyo {
+                    andika_push_rax();
+                    andika_mov_ecx_imm32(31);
+                    andika_sar_eax_cl();
+                    andika_mov_ecx_imm32(d_thamani - 1);
+                    andika_and_eax_ecx();
+                    andika_pop_rcx();
+                    andika_add_eax_ecx();
+                    andika_mov_ecx_imm32(kipeo);
+                    andika_sar_eax_cl();
+                }
+            }
+            rudisha;
+        }
+    }
 
     kama (ni_d) {
         uzalishaji_usemi(ast_kulia[node], kazi_node);
@@ -5328,6 +5421,63 @@ W0 uzalishaji_modulo(N32 node, N32 kazi_node) {
 
     N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_b = ni_bila_ishara_enc(enc);
+
+    // Kupunguza nguvu kwa MODULO ya nguvu kamili ya 2 -- angalia
+    // maelezo KAMILI (uthibitisho wa mkono ukiwemo) juu ya
+    // uzalishaji_gawanya, karibu na gwm_kipeo_kulia. BILA ISHARA:
+    // r = x & (d-1) moja kwa moja (hakuna hatari ya ishara kabisa --
+    // hii ndiyo mbinu ya KAWAIDA kabisa, hata kwa mgawanyo usio na
+    // uboreshaji). YENYE ISHARA: kokotoa q kama uzalishaji_gawanya
+    // (upendeleo-kisha-SAR), kisha r = x - (q << kipeo) -- fomula ile
+    // ile ya msingi ya mgawanyo (x = q*d + r), ikitumia shl
+    // iliyopo tayari badala ya kuandika upya kuzidisha.
+    N32 mod_kipeo = gwm_kipeo_kulia(node);
+    kama (mod_kipeo != -1) {
+        uzalishaji_usemi(ast_kushoto[node], kazi_node);
+        badili_mpaka_wa_desimali(ast_kushoto[node], enc);
+        kama (ni_b) {
+            andika_mov_ecx_imm32(ast_thamani[ast_kulia[node]] - 1);
+            kama (saizi >= 8) { andika_and_rax_rcx(); } sivyo { andika_and_eax_ecx(); }
+        } sivyo {
+            N32 mod_d = ast_thamani[ast_kulia[node]];
+            kama (saizi >= 8) {
+                andika_push_rax();                      // [x]  -- nakala ya NJE (kutoa mwishoni)
+                andika_push_rax();                      // [x,x] -- nakala ya NDANI (upendeleo)
+                andika_mov_ecx_imm32(63);
+                andika_sar_rax_cl();                     // rax = kinyago
+                andika_mov_ecx_imm32(mod_d - 1);
+                andika_and_rax_rcx();                    // rax = upendeleo
+                andika_pop_rcx();                        // rcx = x (ndani); [x]
+                andika_add_rax_rcx();                    // rax = x + upendeleo
+                andika_mov_ecx_imm32(mod_kipeo);
+                andika_sar_rax_cl();                     // rax = q
+                andika_mov_ecx_imm32(mod_kipeo);
+                andika_shl_rax_cl();                     // rax = q*d
+                andika_push_rax();                       // [x, q*d]
+                andika_pop_rcx();                        // rcx = q*d; [x]
+                andika_pop_rax();                        // rax = x (nje); []
+                andika_sub_rax_rcx();                    // rax = x - q*d = salio
+            } sivyo {
+                andika_push_rax();
+                andika_push_rax();
+                andika_mov_ecx_imm32(31);
+                andika_sar_eax_cl();
+                andika_mov_ecx_imm32(mod_d - 1);
+                andika_and_eax_ecx();
+                andika_pop_rcx();
+                andika_add_eax_ecx();
+                andika_mov_ecx_imm32(mod_kipeo);
+                andika_sar_eax_cl();
+                andika_mov_ecx_imm32(mod_kipeo);
+                andika_shl_eax_cl();
+                andika_push_rax();
+                andika_pop_rcx();
+                andika_pop_rax();
+                andika_sub_eax_ecx();
+            }
+        }
+        rudisha;
+    }
 
     // Hakuna modulo ya moja kwa moja kwa desimali;
     // kwa sasa tunaishia tu na nambari kamili.
