@@ -1,0 +1,44 @@
+// LICM CSE: kesi hasi -- "i*n" (fahirisi ya c) na "i*m" (fahirisi ya
+// d) zinafanana KIMUUNDO (kitambulisho * kitambulisho) lakini SI
+// SAWA (majina tofauti ya kigezo cha pili: n dhidi ya m) -- CSE
+// LAZIMA IKATAE kuzishiriki kigezo kimoja cha muda, la sivyo matokeo
+// yangekuwa MABAYA (c na d zingesoma/kuandika fahirisi isiyo sahihi).
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+N32 main() {
+    N32 n = 5;
+    N32 m = 8;
+    N32* c = tenga(ukubwa(N32) * n * n);
+    N32* d = tenga(ukubwa(N32) * m * n);
+    N32 i = 0;
+    wakati (i < n * n) { c[i] = 0; i = i + 1; }
+    i = 0;
+    wakati (i < m * n) { d[i] = 0; i = i + 1; }
+
+    i = 0;
+    wakati (i < n) {
+        N32 j = 0;
+        wakati (j < n) {
+            c[i * n + j] = 1;
+            d[i * m + j] = 2;
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+
+    N32 k = 0;
+    wakati (k < n * n) {
+        kama (c[k] != 1) { rudisha 100 + k; }
+        k = k + 1;
+    }
+    k = 0;
+    wakati (k < n) {
+        N32 jj = 0;
+        wakati (jj < n) {
+            kama (d[k * m + jj] != 2) { rudisha 200 + k; }
+            jj = jj + 1;
+        }
+        k = k + 1;
+    }
+    rudisha 0;
+}

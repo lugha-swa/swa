@@ -348,3 +348,69 @@ uaminifu: hii ni uboreshaji WA KWELI wa idadi ya maagizo (umethibitishwa
 kwa disassembly), lakini SIO uboreshaji wa muda wa ukuta unaoweza
 kupimwa kwenye mizigo ya kazi iliyojaribiwa -- thamani yake HALISI
 kwa sasa ni ubora wa msimbo (maagizo machache), si kasi.
+## LICM CSE (kushiriki kigezo cha muda kati ya vielelezo vinavyofanana)
+
+Fursa ya "UGUNDUZI MUHIMU" iliyotajwa hapo juu (kashe mpya ya anwani
+haikubadilisha `matriki` kwa sababu LICM ilikuwa ikihamisha "i*n"
+MARA MBILI kwa vigezo viwili tofauti vya jina) sasa imefungwa: LICM
+(`msambazaji.swa`, `licm_badilisha_kama_inavyowezekana`) sasa
+inatambua pale usemi usiobadilika unaotarajiwa kuhamishwa unafanana
+KIMUUNDO KABISA (`licm_keq`, ulinganisho wa AST wa kina -- jina la
+kitambulisho, namba halisi, +/-/*/ulinganisho/biti, wigo ULE ULE wa
+`licm_naingiliana` uliopo tayari) na usemi ULIOSHAHAMISHWA TAYARI
+ndani ya kitanzi hicho hicho -- badala ya kutengeneza kigezo kipya
+cha muda, tokeo la PILI (na lolote linalofuata) linarejelea TENA
+kigezo kilichotengenezwa na tokeo la KWANZA.
+
+**Usalama**: kila mgombea tayari amepitisha ukaguzi kamili wa
+`licm_naingiliana` (hauguswi popote ndani ya kitanzi) KIVYAKE kabla
+ya kufikia ulinganisho huu -- `licm_keq` haiongezi uthibitisho mpya
+wa "hauguswi", inaongeza TU uthibitisho kuwa MBILI ya vitu
+tayari-vilivyothibitishwa vinakokotoa thamani SAWA. Kushiriki kigezo
+kimoja badala ya viwili ni salama KWA UJENZI. Wigo ni ULE ULE wa LICM
+iliyopo (hakuna upanuzi) -- na kwa kuwa `licm_badilisha_kama_inavyowezekana`
+tayari haiingii ndani ya matawi ya "kama" kabisa (kizuizi cha awali cha
+LICM), swali la "tokeo la ndani ya tawi linashiriki na tokeo la nje"
+haliwezi kutokea.
+
+**Uthibitisho wa mfumo (disassembly, si dhana)**: kwa muundo mdogo
+uliojitenga (`c[i*n+j]=c[i*n+j]+x` ndani ya kitanzi cha j ndani ya
+kitanzi cha i), "i*n" sasa inakokotolewa MARA MOJA TU kwa kila
+mzunguko wa i (`imul` moja tu, thamani ikihifadhiwa kwenye r15,
+kabla ya kitanzi cha j kuanza) -- si mara mbili (moja kwa fahirisi ya
+LHS, moja kwa fahirisi ya kwanza ya RHS) kama awali. Zaidi ya hayo,
+kwa kuwa fahirisi mbili za `c[i*n+j]` sasa zinarejelea KIGEZO KIMOJA
+(r15+j pande zote mbili), kashe ya anwani ya ugawaji wa kawaida (PR
+iliyopita) SASA INAJIHUSISHA PIA kwa muundo huu -- disassembly
+inaonyesha anwani moja ikikokotolewa (shl+add mara moja), ikihifadhiwa
+kwa push/pop mara mbili, ikitumika kwa usomaji NA uandishi -- mnyororo
+mzima wa hoja tatu (LICM ya msingi -> LICM CSE -> kashe ya anwani)
+sasa unafanya kazi PAMOJA kwa muundo huu.
+
+**`matriki` halisi**: matokeo (c00/cmid/clast) ni SAWA KABISA kati ya
+mkusanyaji wa zamani na mpya (usahihi umethibitishwa). Binary
+ILIYOTOLEWA SASA NI TOFAUTI kati ya matoleo mawili (kinyume na kashe
+ya anwani peke yake, ambayo ilitoa binary SAWA KWA BAITI) --
+`matriki` sasa INAFAIDIKA kwa kweli.
+
+Muda halisi (interleaved, mizunguko 5, kulinganishwa dhidi ya
+mkusanyaji wa zamani NA rejeleo la C kwenye mzunguko ule ule kupunguza
+kelele ya mzunguko wa CPU wa mashine hii):
+
+| mzunguko | zamani | mpya | C |
+|---|---|---|---|
+| 1 | 182ms | 150ms | 13ms |
+| 2 | 162ms | 154ms | 13ms |
+| 3 | 164ms | 148ms | 15ms |
+| 4 | 161ms | 150ms | 13ms |
+| 5 | 162ms | 156ms | 13ms |
+
+Wastani: zamani 166.2ms, mpya 151.6ms -- **~8.8% haraka zaidi**,
+thabiti kwenye mizunguko yote mitano (hakuna mwingiliano kati ya
+matokeo ya "zamani" ya chini kabisa (161ms) na "mpya" ya juu kabisa
+(156ms)). Ni ndogo kuliko ile ya LICM ya msingi (~13%, PR #236) --
+inayotarajiwa, kwa kuwa `matriki` bado ina uzidishaji wa D64
+(`aik*b[k*n+j]`) usiobadilika ambao hauhusiani na kazi hii, na hesabu
+za anwani zinazoondolewa ni sehemu ndogo tu ya kazi ya jumla ya
+kitanzi cha ndani -- lakini ni HALISI, thabiti, na ya kwanza kutoka
+kwenye mnyororo wa kashe-ya-anwani/LICM-CSE tangu PR #239.
