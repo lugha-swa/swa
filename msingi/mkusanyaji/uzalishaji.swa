@@ -275,6 +275,17 @@ W0 andika_cdq() { andika_baiti(153); }
 // edx lazima iwe 0, si ishara ya eax/rax kama cdq/cqo inavyofanya.
 W0 andika_xor_edx_edx() { andika_baiti(49); andika_baiti(210); }
 W0 andika_idiv_ecx() { andika_baiti(247); andika_baiti(249); }
+// mul ecx — unsigned multiply edx:eax = eax*ecx (F7 E1) -- kundi
+// moja na div/idiv ecx (F7 /reg), reg=4 kwa MUL (kinyume na reg=6
+// DIV/reg=7 IDIV zilizopo tayari juu) -- angalia gwm_uchawi_* kwa
+// matumizi (kupunguza nguvu kwa mgawanyo/modulo ya kigawanyaji
+// chochote cha kudumu, si nguvu ya 2 tu).
+W0 andika_mul_ecx() { andika_baiti(247); andika_baiti(225); }
+// imul ecx — signed multiply edx:eax = eax*ecx (F7 E9, reg=5 IMUL wa
+// hoja MOJA -- SI sawa na andika_imul_eax_ecx (0F AF C1) iliyopo
+// tayari, ambayo ni IMUL ya hoja MBILI inayotoa NUSU YA CHINI TU ya
+// tokeo -- hapa tunahitaji NUSU YA JUU (edx) kwa fomula ya uchawi).
+W0 andika_imul_ecx() { andika_baiti(247); andika_baiti(233); }
 W0 andika_and_eax_ecx() { andika_baiti(33); andika_baiti(200); }
 W0 andika_or_eax_ecx() { andika_baiti(9); andika_baiti(200); }
 W0 andika_shl_eax_cl() { andika_baiti(211); andika_baiti(224); }
@@ -5506,6 +5517,161 @@ N32 gwm_kipeo_kulia(N32 node) {
     rudisha nguvu_kamili_ya_pili(ast_kulia[node]);
 }
 
+// -------------------------------------------------------
+// Kupunguza nguvu (strength reduction) kwa MGAWANYO/MODULO ya nambari
+// kamili kwa KIGAWANYAJI CHOCHOTE cha KUDUMU (si nguvu ya 2 tu -- ile
+// tayari imeshughulikiwa juu na gwm_kipeo_kulia/nguvu_kamili_ya_pili) --
+// "zidisho na uchawi" (magic-number multiplication), mbinu ya KAWAIDA ya
+// wakusanyaji halisi (GCC/LLVM/MSVC), inayotoka kwenye karatasi ya
+// Granlund na Montgomery (1994) "Division by Invariant Integers using
+// Multiplication", iliyoelezwa kwa undani zaidi kwenye "Hacker's
+// Delight" (Warren), Sura ya 10.
+//
+// WIGO (KWA MAKUSUDI MDOGO -- angalia SABABU kwa kila kizuizi):
+//   1. UPANA WA N32 TU -- N64 haiguswi kabisa, inabaki kwenye idiv.
+//      SABABU: utafutaji wa namba ya uchawi unahitaji usahihi wa upana
+//      MARA MBILI ya kigawiwa (64-bit kwa N32) -- N64/A64 ya lugha hii
+//      ina UPANA WA KUTOSHA kufanya hilo salama (angalia gwm_tafuta_*
+//      chini, zinazotumia N64 moja kwa moja bila hatari ya kufurika).
+//      LAKINI kwa N64 YENYEWE, utafutaji ungehitaji usahihi wa 128-bit
+//      ambao lugha hii haina aina ya asili ya kuutoa -- kuandika upya
+//      mbinu ya "kuongeza mara mbili" ya algorithm ya asili (iliyoundwa
+//      MAKUSUDI kwa upana mmoja ili kuepuka kufurika kwa modulo) kwa
+//      mkono bila aina pana ya kutosha ni hatari kubwa zaidi ya
+//      makosa -- IMEACHWA KIMAKUSUDI kama kazi ya baadaye.
+//   2. KIGAWANYAJI d: 2 <= d <= 65536 TU (namba halisi ya moja kwa moja
+//      KUDUMU -- si kigezo, si dimbwi la N64, sawa na gwm_kipeo_kulia).
+//      SABABU: mipaka hii inahakikisha HESABU ZOTE za utafutaji
+//      (N64 ndani ya gwm_tafuta_uchawi_*) zinabaki MBALI SANA na
+//      kikomo cha N64 (2^63) bila haja ya uchambuzi wa kina wa
+//      kufurika kwa kila hatua moja moja -- vigawanyaji vikubwa zaidi
+//      (nadra sana kwenye msimbo halisi) huendelea kutumia idiv,
+//      salama TAYARI.
+//   3. BILA ISHARA (A32): namba ya uchawi M LAZIMA ITOSHEE kwenye biti
+//      32 kikamilifu -- baadhi ya vigawanyaji (mfano maarufu kabisa
+//      kwenye maandiko ya somo hili: 7) HUHITAJI hatua ya ziada ya
+//      "ongeza" (add-correction) ISIYOTEKELEZWA hapa KWA MAKUSUDI
+//      (angalia gwm_tafuta_uchawi_bila_ishara chini) -- hizo HUENDELEA
+//      kutumia idiv, salama TAYARI, ni fursa iliyokosekana TU.
+//   4. YENYE ISHARA (N32): fomula ya "magic" inashughulikia hatua ya
+//      marekebisho (q=q+n endapo M ni hasi) MOJA KWA MOJA kama SEHEMU
+//      ya kawaida ya fomula (SI hali ya "kushindwa" -- ni hatua
+//      inayotarajiwa kwa baadhi ya vigawanyaji, HAIHITAJI kurudi
+//      kwenye idiv). Kwa d>0 TU: kigawanyaji hasi kilichoandikwa moja
+//      kwa moja HAKIWEZI kuwa AST_NAMBARI moja kwa moja (angalia jinsi
+//      "0-7" inavyochanganuliwa kama TOFAUTI/AST_TOFAUTI, si namba
+//      hasi ya moja kwa moja -- ast_thamani ya AST_NAMBARI ni HASI
+//      KAMWE kwenye lugha hii) -- hivyo tawi la d<0 la fomula asilia
+//      halihitajiki kabisa hapa, limeachwa kimakusudi.
+//
+// UTHIBITISHO: fomula ZOTE MBILI (bila ishara na yenye ishara)
+// zimejaribiwa kwa MAJARIBIO YA MOJA KWA MOJA (empirical) dhidi ya
+// mgawanyo halisi wa kukata, MAMILIONI ya jozi (kigawanyaji, kigawiwa)
+// zikiwemo thamani za mpaka (karibu na N32_CHINI/N32_JUU/A32_JUU),
+// KABLA ya kutekelezwa hapa -- angalia maelezo ya PR kwa mbinu kamili
+// ya uthibitisho na matokeo. KUMBUKA KWA UWAZI: mtandao haukupatikana
+// wakati wa kazi hii kuthibitisha dhidi ya chapisho asilia la Hacker's
+// Delight/Granlund-Montgomery moja kwa moja (chanzo-mbili kilichokusudiwa
+// awali) -- MAJARIBIO YA NAMBA HALISI (mamilioni ya jozi, si sampuli
+// chache) ndiyo msingi mkuu wa uthibitisho hapa, si kumbukumbu ya
+// karatasi peke yake. Hii ndiyo sababu N64 (inayohitaji fomula tofauti
+// na uthibitisho mpya kamili) imeachwa nje ya wigo kwa sasa.
+N32 gwm_uchawi_M = 0;
+N32 gwm_uchawi_sh = 0;
+N32 gwm_uchawi_hasi_m = 0;
+
+// Je, nodi hii ni namba halisi ya moja kwa moja KUDUMU, isiyo N64
+// kubwa (dimbwi), yenye thamani 2..65536? Rudisha thamani au -1.
+N32 gwm_thamani_kudumu_ndogo(N32 node) {
+    kama (ast_aina[node] != 4) { rudisha -1; }  // si AST_NAMBARI
+    kama (ast_kulia[node] == 1) { rudisha -1; }  // N64 kubwa (dimbwi)
+    N32 v = ast_thamani[node];
+    kama (v < 2 || v > 65536) { rudisha -1; }
+    rudisha v;
+}
+
+// Tafuta (M, sh) kwa mgawanyo/modulo BILA ISHARA ya d (2<=d<=65536,
+// SI nguvu ya 2). Kwa kila sh (0..30): p=32+sh, M=kikomo_juu(2^p/d);
+// (M,sh) INAFANYA KAZI (bila "ongeza") IKIWA TU: q_juu*e + (d-1)*M <
+// 2^p (kigezo halisi cha kihesabu cha njia ya "round-up") NA M<2^32
+// (lazima itoshee kwenye rejesta ya 32-bit ya hoja ya pili ya MUL).
+// Rudisha 1 (mafanikio, thamani ziko gwm_uchawi_M/sh) au 0 (idiv).
+N32 gwm_tafuta_uchawi_bila_ishara(N32 d) {
+    N64 dd = d;
+    N32 sh = 0;
+    wakati (sh <= 30) {
+        N32 jumla_p = 32 + sh;
+        N64 p_thamani = 1;
+        N32 i = 0;
+        wakati (i < jumla_p) { p_thamani = p_thamani * 2; i = i + 1; }
+        N64 m_thamani = (p_thamani + dd - 1) / dd;
+        N64 e = (m_thamani * dd) - p_thamani;
+        N64 mask32 = 4294967295;
+        N64 q_juu = mask32 / dd;
+        N64 kikomo_d = dd - 1;
+        N64 upande = (q_juu * e) + (kikomo_d * m_thamani);
+        N64 kikomo_32 = 4294967296;
+        kama (upande < p_thamani && m_thamani < kikomo_32) {
+            gwm_uchawi_M = m_thamani;
+            gwm_uchawi_sh = sh;
+            rudisha 1;
+        }
+        sh = sh + 1;
+    }
+    rudisha 0;
+}
+
+// Tafuta (M, s) kwa mgawanyo/modulo YENYE ISHARA ya d>0 (2<=d<=65536,
+// SI nguvu ya 2) -- fomula "magic", mnyororo wa "kuongeza mara mbili"
+// ukitumia N64 (upana mkubwa kuliko wa asili wa 32-bit wa algorithm)
+// kuepuka KABISA hatari za kufurika za toleo la asili -- hakuna haja
+// ya "modular wraparound" ya ziada kwa sababu N64 ina nafasi ya
+// kutosha kwa upana wote unaohitajika hapa (maadili yote yanabaki
+// SANA chini ya 2^33, mbali sana na kikomo cha N64 cha 2^63).
+// Kikomo cha marudio (iterasi<40) ni ULINZI TU dhidi ya kosa la
+// kupanga (haijawahi kufikiwa kwenye majaribio -- kinadharia hesabu
+// hukamilika ndani ya marudio machache): endapo kitafikiwa, rudisha 0
+// (idiv) badala ya kuzunguka milele KATIKA MKUSANYAJI MWENYEWE.
+N32 gwm_tafuta_uchawi_ishara(N32 d) {
+    N64 dd = d;
+    N64 two31 = 2147483648;
+    N64 anc = two31 - 1 - (two31 % dd);
+    N64 p = 31;
+    N64 q1 = two31 / anc;
+    N64 r1 = two31 - (q1 * anc);
+    N64 q2 = two31 / dd;
+    N64 r2 = two31 - (q2 * dd);
+    N64 delta = 0;
+    N32 zunguka_tena = 1;
+    N32 iterasi = 0;
+    wakati (zunguka_tena == 1 && iterasi < 40) {
+        p = p + 1;
+        q1 = q1 * 2;
+        r1 = r1 * 2;
+        kama (r1 >= anc) { q1 = q1 + 1; r1 = r1 - anc; }
+        q2 = q2 * 2;
+        r2 = r2 * 2;
+        kama (r2 >= dd) { q2 = q2 + 1; r2 = r2 - dd; }
+        delta = dd - r2;
+        kama (q1 < delta) { zunguka_tena = 1; }
+        sivyo { kama (q1 == delta && r1 == 0) { zunguka_tena = 1; } sivyo { zunguka_tena = 0; } }
+        iterasi = iterasi + 1;
+    }
+    kama (iterasi >= 40) { rudisha 0; }  // ulinzi -- angalia maelezo juu
+    N64 m_thamani = q2 + 1;
+    N64 kikomo_32 = 4294967296;
+    N64 nusu_32 = 2147483648;
+    kama (m_thamani >= nusu_32) {
+        gwm_uchawi_hasi_m = 1;
+        gwm_uchawi_M = m_thamani - kikomo_32;
+    } sivyo {
+        gwm_uchawi_hasi_m = 0;
+        gwm_uchawi_M = m_thamani;
+    }
+    gwm_uchawi_sh = p - 32;
+    rudisha 1;
+}
+
 // AST_GAWANYA (32) -- gawanya
 W0 uzalishaji_gawanya(N32 node, N32 kazi_node) {
     N32 enc = ast_thamani[node];
@@ -5548,6 +5714,57 @@ W0 uzalishaji_gawanya(N32 node, N32 kazi_node) {
                 }
             }
             rudisha;
+        }
+
+        // Kupunguza nguvu kwa mgawanyo wa KIGAWANYAJI CHOCHOTE cha
+        // kudumu (zidisho na uchawi) -- angalia maelezo kamili juu ya
+        // gwm_uchawi_M/gwm_tafuta_uchawi_*. N32 TU (saizi<8) -- N64
+        // haiguswi kabisa (angalia WIGO #1 kwenye maelezo makuu).
+        kama (saizi < 8) {
+            N32 d_kudumu = gwm_thamani_kudumu_ndogo(ast_kulia[node]);
+            kama (d_kudumu != -1) {
+                kama (ni_b) {
+                    kama (gwm_tafuta_uchawi_bila_ishara(d_kudumu)) {
+                        uzalishaji_usemi(ast_kushoto[node], kazi_node);
+                        badili_mpaka_wa_desimali(ast_kushoto[node], enc);
+                        andika_mov_ecx_imm32(gwm_uchawi_M);
+                        andika_mul_ecx();
+                        andika_mov_eax_edx();
+                        kama (gwm_uchawi_sh > 0) {
+                            andika_mov_ecx_imm32(gwm_uchawi_sh);
+                            andika_shr_eax_cl();
+                        }
+                        rudisha;
+                    }
+                } sivyo {
+                    kama (gwm_tafuta_uchawi_ishara(d_kudumu)) {
+                        uzalishaji_usemi(ast_kushoto[node], kazi_node);
+                        badili_mpaka_wa_desimali(ast_kushoto[node], enc);
+                        N32 hitaji_ongeza = gwm_uchawi_hasi_m;
+                        kama (hitaji_ongeza) { andika_push_rax(); }
+                        andika_mov_ecx_imm32(gwm_uchawi_M);
+                        andika_imul_ecx();
+                        andika_mov_eax_edx();
+                        kama (hitaji_ongeza) {
+                            andika_pop_rcx();
+                            andika_add_eax_ecx();
+                        }
+                        kama (gwm_uchawi_sh > 0) {
+                            andika_mov_ecx_imm32(gwm_uchawi_sh);
+                            andika_sar_eax_cl();
+                        }
+                        // ongeza 1 endapo q ni hasi (angalia maelezo
+                        // makuu -- fomula ya "magic" ya Hacker's
+                        // Delight, hatua ya mwisho ya usahihishaji).
+                        andika_push_rax();
+                        andika_mov_ecx_imm32(31);
+                        andika_shr_eax_cl();
+                        andika_pop_rcx();
+                        andika_add_eax_ecx();
+                        rudisha;
+                    }
+                }
+            }
         }
     }
 
@@ -5645,6 +5862,69 @@ W0 uzalishaji_modulo(N32 node, N32 kazi_node) {
             }
         }
         rudisha;
+    }
+
+    // Kupunguza nguvu kwa MODULO ya KIGAWANYAJI CHOCHOTE cha kudumu
+    // (zidisho na uchawi) -- angalia maelezo kamili juu ya
+    // uzalishaji_gawanya, karibu na gwm_uchawi_M. r = x - q*d, ikitumia
+    // TENA hesabu ya q (mul/imul+shift) ile ile ya uzalishaji_gawanya --
+    // fomula ya msingi ya mgawanyo (x = q*d + r). N32 TU (saizi<8).
+    kama (saizi < 8) {
+        N32 mod_d_kudumu = gwm_thamani_kudumu_ndogo(ast_kulia[node]);
+        kama (mod_d_kudumu != -1) {
+            kama (ni_b) {
+                kama (gwm_tafuta_uchawi_bila_ishara(mod_d_kudumu)) {
+                    uzalishaji_usemi(ast_kushoto[node], kazi_node);
+                    badili_mpaka_wa_desimali(ast_kushoto[node], enc);
+                    andika_push_rax();                        // [x]
+                    andika_mov_ecx_imm32(gwm_uchawi_M);
+                    andika_mul_ecx();
+                    andika_mov_eax_edx();                      // eax = q
+                    kama (gwm_uchawi_sh > 0) {
+                        andika_mov_ecx_imm32(gwm_uchawi_sh);
+                        andika_shr_eax_cl();
+                    }
+                    andika_mov_ecx_imm32(mod_d_kudumu);
+                    andika_imul_eax_ecx();                     // eax = q*d
+                    andika_push_rax();                         // [x, q*d]
+                    andika_pop_rcx();                          // rcx=q*d; [x]
+                    andika_pop_rax();                          // rax=x; []
+                    andika_sub_eax_ecx();                      // eax = x - q*d
+                    rudisha;
+                }
+            } sivyo {
+                kama (gwm_tafuta_uchawi_ishara(mod_d_kudumu)) {
+                    uzalishaji_usemi(ast_kushoto[node], kazi_node);
+                    badili_mpaka_wa_desimali(ast_kushoto[node], enc);
+                    andika_push_rax();                          // [x] -- nakala ya NJE
+                    N32 mod_hitaji_ongeza = gwm_uchawi_hasi_m;
+                    kama (mod_hitaji_ongeza) { andika_push_rax(); }  // [x,x] -- NDANI
+                    andika_mov_ecx_imm32(gwm_uchawi_M);
+                    andika_imul_ecx();
+                    andika_mov_eax_edx();                        // eax=q_ghafi
+                    kama (mod_hitaji_ongeza) {
+                        andika_pop_rcx();                        // rcx=x(ndani); [x]
+                        andika_add_eax_ecx();
+                    }
+                    kama (gwm_uchawi_sh > 0) {
+                        andika_mov_ecx_imm32(gwm_uchawi_sh);
+                        andika_sar_eax_cl();
+                    }
+                    andika_push_rax();                           // [x, q]
+                    andika_mov_ecx_imm32(31);
+                    andika_shr_eax_cl();                          // eax=signbit(q)
+                    andika_pop_rcx();                             // rcx=q; [x]
+                    andika_add_eax_ecx();                         // eax=q (mwisho)
+                    andika_mov_ecx_imm32(mod_d_kudumu);
+                    andika_imul_eax_ecx();                        // eax=q*d
+                    andika_push_rax();                            // [x, q*d]
+                    andika_pop_rcx();                             // rcx=q*d; [x]
+                    andika_pop_rax();                             // rax=x; []
+                    andika_sub_eax_ecx();                         // eax=x-q*d
+                    rudisha;
+                }
+            }
+        }
     }
 
     // Hakuna modulo ya moja kwa moja kwa desimali;
