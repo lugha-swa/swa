@@ -1,0 +1,25 @@
+// cmp+jcc ya moja kwa moja: ulinganishi wa A32 (bila ishara) --
+// jb/ja/jbe/jae, SI jl/jg/jle/jge. a=4000000000 (>2^31, hivyo
+// ingekuwa HASI ikiwa ingesomwa kama namba yenye ishara -- jaribio
+// hili linatofautisha wazi kati ya njia mbili: kama jcc ISIYOFAA
+// ingetumika (signed badala ya unsigned), "a > b" ingeonekana SIVYO
+// (kwa sababu a ingeonekana hasi), lakini kwa usomaji sahihi wa
+// bila-ishara "a > b" ni KWELI. Stage1 pekee (mbegu inakataa A/B/W).
+n32 main() {
+    a32 a = 4000000000;
+    a32 b = 100;
+
+    kama (a > b) { } sivyo { rudisha 1; }
+    kama (a >= b) { } sivyo { rudisha 2; }
+    kama (a < b) { rudisha 3; }
+    kama (a <= b) { rudisha 4; }
+    kama (a == b) { rudisha 5; }
+    kama (a != b) { } sivyo { rudisha 6; }
+
+    wakati (b < a) {
+        b = b + 500000000;
+    }
+    kama (b < 4000000000) { rudisha 7; }
+
+    rudisha 0;
+}

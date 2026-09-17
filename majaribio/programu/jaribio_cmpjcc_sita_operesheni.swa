@@ -1,0 +1,35 @@
+// cmp+jcc ya moja kwa moja: mzunguko wa mipaka wa vinodi sita vya
+// ulinganishi (==, !=, <, >, <=, >=), zote kama sharti la moja kwa
+// moja la "kama" (fast path mpya) NDANI ya "wakati" (fast path
+// mpya pia -- "i <= 5" ni sharti la kitanzi chenyewe). i inaenda
+// kutoka -5 hadi 5 (thamani 11), ikilinganishwa na 0 kila mara --
+// hesabu za kila operesheni zimekokotolewa kwa mkono:
+//   i<0: -5..-1 (5)   i<=0: -5..0 (6)   i>0: 1..5 (5)
+//   i>=0: 0..5 (6)    i==0: 0 (1)       i!=0: -5..-1,1..5 (10)
+n32 main() {
+    n32 i = 0 - 5;
+    n32 c_chini = 0;
+    n32 c_juu = 0;
+    n32 c_chini_sawa = 0;
+    n32 c_juu_sawa = 0;
+    n32 c_sawa = 0;
+    n32 c_tofauti = 0;
+
+    wakati (i <= 5) {
+        kama (i < 0) { c_chini = c_chini + 1; }
+        kama (i > 0) { c_juu = c_juu + 1; }
+        kama (i <= 0) { c_chini_sawa = c_chini_sawa + 1; }
+        kama (i >= 0) { c_juu_sawa = c_juu_sawa + 1; }
+        kama (i == 0) { c_sawa = c_sawa + 1; }
+        kama (i != 0) { c_tofauti = c_tofauti + 1; }
+        i = i + 1;
+    }
+
+    kama (c_chini != 5) { rudisha 1; }
+    kama (c_juu != 5) { rudisha 2; }
+    kama (c_chini_sawa != 6) { rudisha 3; }
+    kama (c_juu_sawa != 6) { rudisha 4; }
+    kama (c_sawa != 1) { rudisha 5; }
+    kama (c_tofauti != 10) { rudisha 6; }
+    rudisha 0;
+}

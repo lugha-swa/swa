@@ -1,0 +1,36 @@
+// cmp+jcc ya moja kwa moja: ulinganishi wa D64 (comisd, si cmp) --
+// bila_ishara (ni_desimali_enc) hutumia jb/ja/jbe/jae, angalia
+// jedwali kwenye toa_jcc_moja_kwa_moja_lebo/toa_jcc_kinyume_lebo.
+// Vinodi vyote sita, kama na wakati, D64 halisi (2.5 dhidi ya 4.5).
+n32 main() {
+    d64 x = 2.5;
+    d64 y = 4.5;
+
+    kama (x < y) { } sivyo { rudisha 1; }
+    kama (x > y) { rudisha 2; }
+    kama (x <= y) { } sivyo { rudisha 3; }
+    kama (x >= y) { rudisha 4; }
+    kama (x == y) { rudisha 5; }
+    kama (x != y) { } sivyo { rudisha 6; }
+
+    // sawa kabisa (mpaka)
+    d64 p = 3.0;
+    d64 q = 3.0;
+    kama (p == q) { } sivyo { rudisha 7; }
+    kama (p != q) { rudisha 8; }
+    kama (p <= q) { } sivyo { rudisha 9; }
+    kama (p >= q) { } sivyo { rudisha 10; }
+    kama (p < q) { rudisha 11; }
+    kama (p > q) { rudisha 12; }
+
+    // ndani ya wakati (D64 kitanzi)
+    d64 t = 0.0;
+    n32 idadi = 0;
+    wakati (t < 5.0) {
+        idadi = idadi + 1;
+        t = t + 1.0;
+    }
+    kama (idadi != 5) { rudisha 13; }
+
+    rudisha 0;
+}
