@@ -1,0 +1,71 @@
+// Jaribio la mzunguko mfupi (short-circuit): kazi yenye madhara ya
+// kando (kuongeza kihesabu cha ulimwengu) kwenye upande wa PILI wa
+// && / || -- lazima ISIITWE kabisa pale upande wa KWANZA tayari
+// unaamua matokeo.
+N32 wito_idadi = 0;
+
+N32 chukua_kweli() {
+    wito_idadi = wito_idadi + 1;
+    rudisha 1;
+}
+
+N32 chukua_sivyo() {
+    wito_idadi = wito_idadi + 1;
+    rudisha 0;
+}
+
+N32 main() {
+    N32 a = 5;
+    N32 b = 10;
+
+    // kama (a<b && chukua_...()) -- a<b ni KWELI, B LAZIMA iitwe.
+    wito_idadi = 0;
+    N32 x1 = 0;
+    kama (a < b && chukua_kweli() == 1) { x1 = 1; }
+    kama (wito_idadi != 1) { rudisha 1; }
+    kama (x1 != 1) { rudisha 2; }
+
+    // kama (a>b && chukua_...()) -- a>b ni SIVYO, B HAITAKIWI kuitwa.
+    wito_idadi = 0;
+    N32 x2 = 0;
+    kama (a > b && chukua_kweli() == 1) { x2 = 1; }
+    kama (wito_idadi != 0) { rudisha 3; }
+    kama (x2 != 0) { rudisha 4; }
+
+    // kama (a>b || chukua_...()) -- a>b ni SIVYO, B LAZIMA iitwe.
+    wito_idadi = 0;
+    N32 x3 = 0;
+    kama (a > b || chukua_kweli() == 1) { x3 = 1; }
+    kama (wito_idadi != 1) { rudisha 5; }
+    kama (x3 != 1) { rudisha 6; }
+
+    // kama (a<b || chukua_...()) -- a<b ni KWELI, B HAITAKIWI kuitwa.
+    wito_idadi = 0;
+    N32 x4 = 0;
+    kama (a < b || chukua_sivyo() == 1) { x4 = 1; }
+    kama (wito_idadi != 0) { rudisha 7; }
+    kama (x4 != 1) { rudisha 8; }
+
+    // wakati (i<n && chukua_...()) -- lazima kuita B mara MOJA kwa
+    // kila mzunguko unaoendelea (i<n kweli), sio zaidi.
+    wito_idadi = 0;
+    N32 i = 0;
+    N32 n = 3;
+    wakati (i < n && chukua_kweli() == 1) {
+        i = i + 1;
+    }
+    kama (i != 3) { rudisha 9; }
+    kama (wito_idadi != 3) { rudisha 10; }
+
+    // wakati (i>=n || chukua_...()) -- i>=n ni SIVYO mwanzoni (i=0,n=3),
+    // B lazima iitwe; ikiwa B daima ni kweli, kitanzi hakiishi kamwe --
+    // tumia counter kudhibiti idadi ya mizunguko badala yake.
+    wito_idadi = 0;
+    N32 j = 0;
+    wakati (j >= 5 || j < 3) {
+        j = j + 1;
+    }
+    kama (j != 3) { rudisha 11; }
+
+    rudisha 0;
+}
