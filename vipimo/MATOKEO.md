@@ -414,3 +414,72 @@ inayotarajiwa, kwa kuwa `matriki` bado ina uzidishaji wa D64
 za anwani zinazoondolewa ni sehemu ndogo tu ya kazi ya jumla ya
 kitanzi cha ndani -- lakini ni HALISI, thabiti, na ya kwanza kutoka
 kwenye mnyororo wa kashe-ya-anwani/LICM-CSE tangu PR #239.
+
+## cmp+jcc ya moja kwa moja kwa sharti la kama/wakati/kwa
+
+Njia ya JUMLA ya ulinganishi (uzalishaji_sawa/chini/juu/n.k.) hutoa
+KILA MARA thamani KAMILI ya 0/1 (cmp/comisd, setcc al, movzx eax,al)
+kwa sababu thamani hiyo inaweza kuhitajika kwa matumizi mengine
+(kuhifadhiwa, kurudishwa, kutumika ndani ya usemi mwingine). Lakini
+pale sharti la "kama"/"wakati"/"kwa" LENYEWE ni ulinganishi huo huo
+moja kwa moja -- muundo unaotokea KATIKA KILA sharti la kitanzi na
+tawi la mradi huu, ulioonekana kwenye kila disassembly ya kikao hiki
+-- thamani ya 0/1 haihitajiki kabisa: mahali pekee inapotumika ni
+kuamua tawi gani kuchukua, na cmp/comisd YENYEWE tayari imeweka
+bendera za CPU zinazohitajika. Muundo wa zamani (cmp; setcc; movzx;
+test; jcc, maagizo 5-6) sasa unakuwa cmp/comisd; jcc (maagizo 2) --
+utambuzi ni WA KIMUUNDO TU (ast_aina[cond] ni mojawapo ya vinodi sita
+vya ulinganishi), si uchambuzi wa matumizi (data-flow), kwa sababu
+nafasi ya sharti la kama/wakati/kwa haina mtumiaji mwingine yeyote wa
+thamani hiyo KWA UJENZI.
+
+Wigo: vinodi sita vya ulinganishi (==,!=,<,>,<=,>=), ISHARA (jl/jg/
+jle/jge) NA bila-ishara/desimali (jb/ja/jbe/jae, jedwali sawa na
+weka_setcc_kwa_enc iliyopo tayari), kama/wakati/kwa/fanya (nodi moja
+ya AST_WAKATI kwa zote). Njia ya jumla haijaguswa kabisa -- inatumika
+kila usemi wa ulinganishi haupo MOJA KWA MOJA kwenye nafasi ya
+sharti.
+
+### Uthibitisho
+
+Majaribio matano mapya: mzunguko wa mipaka wa vinodi sita (i=-5..5
+dhidi ya 0, hesabu za mkono za kila operesheni -- disassembly
+imefuatiliwa MKONONI, mwelekeo wa kila jcc umethibitishwa dhidi ya
+chanzo moja kwa moja, hakuna hitilafu); matumizi mengine (usemi
+mmoja wa ulinganishi kimuundo ukitumika njia ya jumla NA njia ya
+haraka ndani ya kazi moja); kitanzi cha kwa; ulinganishi wa D64
+(comisd, jb/ja/jbe/jae, ikiwemo mpaka wa usawa halisi); ulinganishi
+wa A32 bila ishara (a=4000000000 -- ingeonekana hasi kama ingesomwa
+kwa ishara, jaribio linatofautisha wazi kati ya njia mbili). 390/390
+(385 zilizopo + 5 mpya). Fixpoint na ukaguzi wa gen1-dhidi-ya-gen2
+vyote vinapita, imethibitishwa mara TATU kutoka kwa ujenzi safi
+(zaidi ya kawaida -- hii ni msimbo unaoamua mtiririko wa udhibiti,
+hatari ya hitilafu ni majibu MABAYA KIMYA, si kuanguka).
+
+Disassembly ya jaribio_cmpjcc_sita_operesheni imefuatiliwa KABISA
+mkononi: kila mojawapo ya vinodi sita, PAMOJA na sharti la wakati
+lenyewe (i<=5), imethibitishwa kuwa cmp+jcc SAHIHI (mwelekeo sahihi
+kabisa dhidi ya chanzo) -- SIFURI setcc/movzx popote kwenye binary
+hiyo. jaribio_cmpjcc_bila_ishara/desimali zimethibitisha familia
+sahihi ya jcc (jb/ja/jbe/jae, SI jl/jg/jle/jge) kwa A32 na D64.
+
+### Utendaji (vipimo vyote vitano, interleaved, mizunguko 5)
+
+| kipimo | zamani (wastani) | mpya (wastani) | tofauti |
+|---|---|---|---|
+| fibonacci | 97.2ms (90.25ms bila mzunguko 1 wa kwanza) | 81.8ms | ~9-16% haraka zaidi |
+| matriki | 150.4ms | 142.0ms | ~5.6% haraka zaidi |
+| heshi | 989.2ms | 955.2ms | ~3.4% haraka zaidi |
+| kupanga | 280.8ms | 278.4ms | ndani ya kelele |
+| mzunguko_mchezo | 20.6ms | 20.8ms | ndani ya kelele |
+
+Uboreshaji wa kweli na thabiti kwenye vipimo vitatu (fibonacci,
+matriki, heshi) -- vyote vina matawi/mizunguko mingi yenye
+ulinganishi wa moja kwa moja. `matriki` inaendelea kufaidika juu ya
+mnyororo mzima uliopo (LICM -> LICM CSE -> kashe ya anwani).
+fibonacci (kazi ya kujirudia yenye "kama (n<2)" kila wito -- mamilioni
+ya matawi) inaonyesha faida kubwa zaidi -- inatarajiwa, kwa kuwa
+uwiano wa maagizo ya tawi dhidi ya kazi nyingine ni mkubwa zaidi
+kwenye kipimo hicho. kupanga/mzunguko_mchezo hazionyeshi tofauti ya
+wazi -- ndani ya kelele ya mzunguko wa CPU wa mashine hii, hazina
+sehemu kubwa ya wakati inayotumika kwenye matawi rahisi kiasi hicho.
