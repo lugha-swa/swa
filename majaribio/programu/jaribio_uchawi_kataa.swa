@@ -1,0 +1,69 @@
+// Zidisho-na-uchawi kesi hasi -- kila mojawapo lazima kikatae kikamilifu
+// na kuendelea kutumia idiv/div ya asili (TAYARI sahihi), likitoa
+// matokeo sahihi -- HAKUNA "uboreshaji wa sehemu".
+//
+// (1) BILA ISHARA d=7: fomula "round-up" haipatikani ikiwa na M
+//     inayotoshea biti 32 (M ingehitaji biti 33 -- hatua ya "ongeza"
+//     isiyotekelezwa kwa makusudi kwa njia hii, angalia maelezo makuu
+//     juu ya uzalishaji_gawanya). gwm_tafuta_uchawi_bila_ishara
+//     inarudisha 0, idiv inatumika.
+// (2) Kigawanyaji > 65536: nje ya wigo (angalia gwm_thamani_kudumu_ndogo).
+// (3) Kigawanyaji SI wa kudumu (kigezo cha wakati wa kukimbia, hata
+//     kikiwa na thamani ya nguvu-si-ya-2 inayojulikana wakati wa
+//     kukimbia): haiwezekani kutambua wakati wa kukusanya.
+// (4) N64 (upana wa 64-bit): nje ya wigo kabisa (angalia WIGO #1 --
+//     N64 haiguswi hata ikiwa kigawanyaji ni kidogo na kizuri).
+
+N32 jaribu_bila_ishara_saba() {
+    A32 y = 100;
+    A32 dv = 7;
+    A32 qf = y / 7;
+    A32 qs = y / dv;
+    A32 rf = y % 7;
+    A32 rs = y % dv;
+    kama (qf != qs) { rudisha 1; }
+    kama (rf != rs) { rudisha 2; }
+    kama (qf != 14) { rudisha 3; }
+    kama (rf != 2) { rudisha 4; }
+    rudisha 0;
+}
+
+N32 jaribu_kigawanyaji_mkubwa() {
+    N32 x = 0 - 70000;
+    N32 dv = 70000;
+    kama (x / 70000 != x / dv) { rudisha 1; }
+    kama (x % 70000 != x % dv) { rudisha 2; }
+    kama (x / 70000 != (0 - 1)) { rudisha 3; }
+    rudisha 0;
+}
+
+N32 jaribu_kigawanyaji_sio_kudumu() {
+    N32 dv = 10;  // nguvu-si-ya-2 lakini SI namba halisi moja kwa moja
+    N32 x = 0 - 37;
+    kama (x / dv != (0 - 3)) { rudisha 1; }
+    kama (x % dv != (0 - 7)) { rudisha 2; }
+    rudisha 0;
+}
+
+N32 jaribu_n64() {
+    N64 x = 0 - 100000;
+    N64 dv = 10;
+    N64 qf = x / 10;
+    N64 qs = x / dv;
+    kama (qf != qs) { rudisha 1; }
+    kama (qf != (0 - 10000)) { rudisha 2; }
+    rudisha 0;
+}
+
+N32 main() {
+    N32 r;
+    r = jaribu_bila_ishara_saba();
+    kama (r != 0) { rudisha 100 + r; }
+    r = jaribu_kigawanyaji_mkubwa();
+    kama (r != 0) { rudisha 200 + r; }
+    r = jaribu_kigawanyaji_sio_kudumu();
+    kama (r != 0) { rudisha 300 + r; }
+    r = jaribu_n64();
+    kama (r != 0) { rudisha 400 + r; }
+    rudisha 0;
+}
