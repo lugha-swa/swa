@@ -1,0 +1,27 @@
+// Kipimo maalum cha peephole ya push/pop (rax/rcx): kitanzi kizito
+// kinachopiga kashe ya anwani ya kiwanja (uzalishaji_asimilia_
+// kiwanja_tail) mara nyingi sana -- muundo unaoathiriwa MOJA KWA
+// MOJA na kuondolewa kwa "push X; push X; pop X" isiyo na maana
+// (angalia MATOKEO.md kwa uthibitisho wa disassembly).
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+n32 N_KIPIMO = 40000000;
+
+n32 main() {
+    n32* c = tenga(ukubwa(n32) * 8);
+    n32 k = 0;
+    wakati (k < 8) { c[k] = 0; k = k + 1; }
+
+    n32 i = 0;
+    wakati (i < N_KIPIMO) {
+        n32 idx = i % 8;
+        c[idx] += 1;
+        i = i + 1;
+    }
+
+    n32 jumla = 0;
+    i = 0;
+    wakati (i < 8) { jumla = jumla + c[i]; i = i + 1; }
+    andika("jumla=%d\n", jumla, 0, 0, 0, 0, 0);
+    rudisha 0;
+}
