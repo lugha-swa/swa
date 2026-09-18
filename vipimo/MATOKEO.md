@@ -715,3 +715,51 @@ kipya `vipimo/uchawi_gawanyo/` kimeundwa MAKUSUDI (i/7, i%7, mizunguko
 50,000,000). Muda halisi (interleaved, mizunguko 5, dhidi ya
 mkusanyaji wa zamani): wastani zamani 383.2ms, mpya 319.8ms -- **~16.5%
 haraka zaidi**, thabiti kwenye mizunguko yote (hakuna mwingiliano).
+
+## SSCSE -- CSE ya msimbo wa mstari-moja-kwa-moja
+
+LICM (kilichoungana kabla) inashughulikia usemi usiobadilika ndani ya
+kitanzi tu -- usemi unaorudiwa NJE ya kitanzi (au ndani ya kitanzi
+lakini usiokuwa invariant) haugusiki kabisa. SSCSE inashughulikia
+hiyo: kigawanyaji cha "available expressions" cha kawaida (classical
+CSE) kwa mnyororo wa taarifa za ngazi moja (straight-line), na jedwali
+linalowekwa upya kabisa kila mpaka wa kama/wakati/kwa (angalia maelezo
+kamili juu ya sscse_boresha, msambazaji.swa, kwa muundo kamili wa
+uamuzi na sababu za kila kizuizi cha wigo).
+
+### Uthibitisho
+
+Majaribio matano mapya: kesi ya msingi (ulinganisho wa kina, si wa
+ngazi ya juu tu -- "a*b" ndani ya "a*b+c" na "a*b-d", vitengo vizima
+havifanani kamwe kimuundo); ubatilishaji (reassignment kati ya tokeo
+mbili, lazima ikokotolewe upya); mpaka wa tawi; tokeo la ngazi ya juu
+dhidi ya la ndani; na wito wa kazi kati ya tokeo mawili (wito wowote
+hufuta jedwali, hata usiohusiana -- fursa iliyokosekana, si hitilafu).
+406/406 (401 zilizopo + 5 mpya). Fixpoint na gen1-dhidi-ya-gen2
+vinapita, imethibitishwa mara TATU kutoka kwa ujenzi safi.
+
+Disassembly ya jaribio_sscse_msingi imethibitisha imul MOJA TU
+inatokea (badala ya mbili) -- "a*b" inashirikiwa kati ya "x=a*b+c" na
+"y=a*b-d". jaribio_sscse_ubatilishaji limethibitisha imul MBILI
+zinatokea (hazikushirikiana, kama inavyotarajiwa baada ya
+reassignment). Vipimo vyote vilivyopo (fibonacci, matriki, kupanga,
+heshi, mzunguko_mchezo) vimethibitishwa kuwa BAITI SAWA kati ya
+mkusanyaji wa zamani na mpya -- SSCSE haipati fursa mpya kwenye hivyo
+(vyote ni vizito vya vitanzi, vilivyoshughulikiwa TAYARI na LICM, au
+vina usomaji wa kumbukumbu ulio nje ya wigo wa SSCSE).
+
+### Utendaji
+
+Hakuna kipimo kilichopo kinachotumia mfano wa "usemi unaorudiwa lakini
+si invariant ndani ya kitanzi" -- kipimo kipya `vipimo/sscse_mstari/`
+kimeundwa MAKUSUDI: "i*i" hutokea mara mbili kwa kila mzunguko (h1=
+i*i+i, h2=i*i-i), SIYO invariant (i inabadilika kila mzunguko, hivyo
+LICM haiwezi kuigusa), lakini ni straight-line ndani ya mwili wa
+kitanzi (hakuna tawi kati ya h1 na h2). Mizunguko 50,000,000.
+Disassembly imethibitisha imul MOJA TU (32-bit, %ecx,%eax) ndani ya
+kitanzi hicho badala ya MBILI. Muda halisi (interleaved, mizunguko 5,
+dhidi ya mkusanyaji wa zamani): wastani zamani 214.6ms, mpya 204.4ms
+-- **~4.8% haraka zaidi**, thabiti kwenye mizunguko yote (hakuna
+mwingiliano). Ndogo kuliko ilivyotarajiwa kwa sababu ya kufurika kwa
+N32 (overflow) kwenye mzunguko wa 50M -- lakini halisi na inayoweza
+kuigwa (reproducible).
