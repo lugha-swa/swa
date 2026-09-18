@@ -1,0 +1,33 @@
+// SSCSE -- mpaka wa tawi (kama): "a*b" hutokea KABLA ya "kama",
+// MARA MBILI ndani ya mwili wa "kama" (zinapaswa kushiriki NDANI ya
+// tawi hilo hilo), na MARA MBILI TENA BAADA ya "kama" kuisha
+// (zinapaswa kushiriki NDANI YA hapo, lakini SI kwa tokeo la kabla
+// ya tawi wala la ndani ya tawi -- jedwali linawekwa upya KABISA
+// katika kila mpaka). Hii inathibitisha usahihi (SI ajali ya
+// kuanguka) hata kama fursa za kushiriki zinapotea kwa makusudi
+// kwenye mipaka hiyo. a=6,b=7 => a*b=42.
+N32 main() {
+    N32 a = 6;
+    N32 b = 7;
+    N32 flag = 1;
+
+    N32 x = a * b + 100;  // kabla ya tawi: 142
+    kama (x != 142) { rudisha 1; }
+
+    N32 p = 0;
+    kama (flag == 1) {
+        N32 m = a * b + 1;  // 43
+        N32 n = a * b + 2;  // 44 -- inapaswa kushiriki na m ndani ya tawi hili
+        p = m + n;          // 87
+    } sivyo {
+        p = 0;
+    }
+    kama (p != 87) { rudisha 2; }
+
+    N32 r = a * b + 3;  // 45 -- baada ya tawi, tokeo JIPYA (si la x, si la m/n)
+    N32 s = a * b + 4;  // 46 -- inapaswa kushiriki na r ndani ya sehemu hii mpya
+    kama (r != 45) { rudisha 3; }
+    kama (s != 46) { rudisha 4; }
+
+    rudisha 0;
+}
