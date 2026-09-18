@@ -1,0 +1,128 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+// maneno -- kuhesabu marudio ya maneno (word frequency): kuandika
+// maandishi kwa nasibu kutoka kamusi ndogo, kisha kuchambua kwa
+// nafasi na kulinganisha kila neno herufi kwa herufi -- hakuna
+// kipimo kilichopo kinachogusa safu za n8/mfuatano kabisa.
+
+n32 IDADI_MANENO = 400000;
+n32 IDADI_KAMUSI = 16;
+n32 URUFU_JUU_NENO = 12;
+
+n64 lcg_hali = 555777;
+
+n32 nasibu_ijayo() {
+    lcg_hali = (lcg_hali * 1103515245 + 12345) % 2147483648;
+    rudisha lcg_hali;
+}
+
+// Kamusi ya maneno 16 yenye urefu tofauti (herufi kadhaa) --
+// kutumika kupitia kielelezi cha jina, si safu ya vielekezi
+// (haijajaribiwa kama kipengele cha lugha kwenye mradi huu).
+n8* kamusi_neno(n32 idx) {
+    kama (idx == 0) { rudisha "paka"; }
+    kama (idx == 1) { rudisha "mbwa"; }
+    kama (idx == 2) { rudisha "ndege"; }
+    kama (idx == 3) { rudisha "samaki"; }
+    kama (idx == 4) { rudisha "nyoka"; }
+    kama (idx == 5) { rudisha "tembo"; }
+    kama (idx == 6) { rudisha "simba"; }
+    kama (idx == 7) { rudisha "chui"; }
+    kama (idx == 8) { rudisha "nyani"; }
+    kama (idx == 9) { rudisha "kobe"; }
+    kama (idx == 10) { rudisha "sungura"; }
+    kama (idx == 11) { rudisha "kuku"; }
+    kama (idx == 12) { rudisha "bata"; }
+    kama (idx == 13) { rudisha "mbuzi"; }
+    kama (idx == 14) { rudisha "ngamia"; }
+    rudisha "farasi";
+}
+
+n32 urefu_mfuatano_ndani(n8* s) {
+    n32 i = 0;
+    wakati (s[i] != 0) { i = i + 1; }
+    rudisha i;
+}
+
+n32 linganisha_urefu(n8* a, n8* b, n32 n) {
+    n32 i = 0;
+    wakati (i < n) {
+        kama (a[i] != b[i]) { rudisha 0; }
+        i = i + 1;
+    }
+    rudisha 1;
+}
+
+n32 main() {
+    // 1. Andika maandishi: maneno IDADI_MANENO, kila moja likifuatiwa
+    //    na nafasi moja, kutoka kamusi ya maneno 16 (nasibu).
+    n64 ukubwa_bafa = (IDADI_MANENO * (URUFU_JUU_NENO + 1)) + 1;
+    n8* maandishi = tenga(ukubwa_bafa);
+    n64 wapi = 0;
+    n32 w = 0;
+    wakati (w < IDADI_MANENO) {
+        n32 idx = nasibu_ijayo() % IDADI_KAMUSI;
+        n8* neno = kamusi_neno(idx);
+        n32 ul = urefu_mfuatano_ndani(neno);
+        n32 k = 0;
+        wakati (k < ul) {
+            maandishi[wapi] = neno[k];
+            wapi = wapi + 1;
+            k = k + 1;
+        }
+        maandishi[wapi] = 32;  // nafasi
+        wapi = wapi + 1;
+        w = w + 1;
+    }
+    maandishi[wapi] = 0;
+
+    // 2. Chambua kwa nafasi, hesabu marudio ya kila neno la kamusi.
+    n32 hesabu0 = 0; n32 hesabu1 = 0; n32 hesabu2 = 0; n32 hesabu3 = 0;
+    n32 hesabu4 = 0; n32 hesabu5 = 0; n32 hesabu6 = 0; n32 hesabu7 = 0;
+    n32 hesabu8 = 0; n32 hesabu9 = 0; n32 hesabu10 = 0; n32 hesabu11 = 0;
+    n32 hesabu12 = 0; n32 hesabu13 = 0; n32 hesabu14 = 0; n32 hesabu15 = 0;
+
+    n64 p = 0;
+    wakati (p < wapi) {
+        n64 mwanzo = p;
+        wakati (maandishi[p] != 32 && maandishi[p] != 0) { p = p + 1; }
+        n32 urefu_neno = p - mwanzo;
+        n32 idx = 0;
+        wakati (idx < IDADI_KAMUSI) {
+            n8* kn = kamusi_neno(idx);
+            n32 ukn = urefu_mfuatano_ndani(kn);
+            kama (ukn == urefu_neno) {
+                kama (linganisha_urefu(maandishi + mwanzo, kn, ukn)) {
+                    kama (idx == 0) { hesabu0 = hesabu0 + 1; }
+                    sivyo { kama (idx == 1) { hesabu1 = hesabu1 + 1; }
+                    sivyo { kama (idx == 2) { hesabu2 = hesabu2 + 1; }
+                    sivyo { kama (idx == 3) { hesabu3 = hesabu3 + 1; }
+                    sivyo { kama (idx == 4) { hesabu4 = hesabu4 + 1; }
+                    sivyo { kama (idx == 5) { hesabu5 = hesabu5 + 1; }
+                    sivyo { kama (idx == 6) { hesabu6 = hesabu6 + 1; }
+                    sivyo { kama (idx == 7) { hesabu7 = hesabu7 + 1; }
+                    sivyo { kama (idx == 8) { hesabu8 = hesabu8 + 1; }
+                    sivyo { kama (idx == 9) { hesabu9 = hesabu9 + 1; }
+                    sivyo { kama (idx == 10) { hesabu10 = hesabu10 + 1; }
+                    sivyo { kama (idx == 11) { hesabu11 = hesabu11 + 1; }
+                    sivyo { kama (idx == 12) { hesabu12 = hesabu12 + 1; }
+                    sivyo { kama (idx == 13) { hesabu13 = hesabu13 + 1; }
+                    sivyo { kama (idx == 14) { hesabu14 = hesabu14 + 1; }
+                    sivyo { hesabu15 = hesabu15 + 1; }
+                    } } } } } } } } } } } } } }
+                    idx = IDADI_KAMUSI;  // ondoka kwenye kitanzi cha kutafuta
+                }
+            }
+            idx = idx + 1;
+        }
+        p = p + 1;
+    }
+
+    n64 cheki = (hesabu0 * 1) + (hesabu1 * 2) + (hesabu2 * 3) + (hesabu3 * 4)
+              + (hesabu4 * 5) + (hesabu5 * 6) + (hesabu6 * 7) + (hesabu7 * 8)
+              + (hesabu8 * 9) + (hesabu9 * 10) + (hesabu10 * 11) + (hesabu11 * 12)
+              + (hesabu12 * 13) + (hesabu13 * 14) + (hesabu14 * 15) + (hesabu15 * 16);
+
+    andika("cheki=%d hesabu0=%d hesabu15=%d\n", cheki, hesabu0, hesabu15, 0, 0, 0);
+    rudisha 0;
+}

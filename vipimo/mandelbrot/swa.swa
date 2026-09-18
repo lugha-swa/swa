@@ -1,0 +1,45 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+// mandelbrot -- kitanzi kigumu cha D64 bila shinikizo la kumbukumbu
+// (hakuna ugawaji wowote wa arena) -- tofauti na matriki (ambayo pia
+// ni D64 lakini na usomaji/uandishi mwingi wa safu), hapa ni
+// hesabu safi kwenye vigezo vya ndani tu.
+
+n32 UKUBWA = 600;
+n32 KIWANGO_JUU = 200;
+
+n32 main() {
+    n64 jumla_iter = 0;
+    n32 py = 0;
+    wakati (py < UKUBWA) {
+        n32 px = 0;
+        wakati (px < UKUBWA) {
+            d64 pxd = px;
+            d64 pyd = py;
+            d64 ukubwad = UKUBWA;
+            d64 x0 = ((pxd * 3.5) / ukubwad) - 2.5;
+            d64 y0 = ((pyd * 2.0) / ukubwad) - 1.0;
+            d64 x = 0.0;
+            d64 y = 0.0;
+            n32 iter = 0;
+            n32 hai_bado = 1;
+            wakati (iter < KIWANGO_JUU && hai_bado == 1) {
+                d64 x2 = x * x;
+                d64 y2 = y * y;
+                kama ((x2 + y2) > 4.0) {
+                    hai_bado = 0;
+                } sivyo {
+                    d64 xt = (x2 - y2) + x0;
+                    y = (2.0 * x * y) + y0;
+                    x = xt;
+                    iter = iter + 1;
+                }
+            }
+            jumla_iter = jumla_iter + iter;
+            px = px + 1;
+        }
+        py = py + 1;
+    }
+    andika("jumla_iter=%d\n", jumla_iter, 0, 0, 0, 0, 0);
+    rudisha 0;
+}

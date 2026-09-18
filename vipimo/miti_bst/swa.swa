@@ -1,0 +1,114 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+// miti_bst -- mti wa BST (binary search tree): kujaza kwa kuingiza
+// (allocation nyingi ndogo ndogo) kisha kutafuta (pointer-chasing
+// safi, kusoma tu). Hakuna kipimo kilichopo kinachotumia mfuatano wa
+// vielekezi vidogo vidogo vinavyofuatana -- matriki/kupanga/heshi
+// zote hutumia ugawaji mmoja mkubwa wa awali.
+
+n32 N_INGIZA = 150000;
+n32 N_TAFUTA = 150000;
+
+muundo Nodi {
+    n32 thamani;
+    Nodi* kushoto;
+    Nodi* kulia;
+};
+
+n64 lcg_hali = 98765;
+
+n32 nasibu_ijayo() {
+    lcg_hali = (lcg_hali * 1103515245 + 12345) % 2147483648;
+    rudisha lcg_hali;
+}
+
+// Kuingiza kwa NJIA YA KURUDIA-RUDIA (iterative), SI kujirudia --
+// mti unaweza kuwa hauna usawa (unbalanced) kutegemea mfuatano wa
+// nasibu, hivyo kina chake si sharti kiwe log(N); kujirudia
+// kungeweza kuvunja rafu ya wito kwa mti mrefu sana.
+Nodi* ingiza(Nodi* mzizi, n32 v) {
+    kama (mzizi == 0) {
+        Nodi* n = tenga(ukubwa(Nodi));
+        n->thamani = v;
+        n->kushoto = 0;
+        n->kulia = 0;
+        rudisha n;
+    }
+    Nodi* sasa = mzizi;
+    wakati (1) {
+        kama (v < sasa->thamani) {
+            kama (sasa->kushoto == 0) {
+                Nodi* n = tenga(ukubwa(Nodi));
+                n->thamani = v;
+                n->kushoto = 0;
+                n->kulia = 0;
+                sasa->kushoto = n;
+                rudisha mzizi;
+            }
+            sasa = sasa->kushoto;
+        } sivyo {
+            kama (sasa->kulia == 0) {
+                Nodi* n = tenga(ukubwa(Nodi));
+                n->thamani = v;
+                n->kushoto = 0;
+                n->kulia = 0;
+                sasa->kulia = n;
+                rudisha mzizi;
+            }
+            sasa = sasa->kulia;
+        }
+    }
+    rudisha mzizi;
+}
+
+// Tafuta v ndani ya mti, ukirudisha idadi ya nodi zilizotembelewa
+// (hatua za pointer-chase) -- CHANYA ikiwa imepatikana, HASI ikiwa
+// haijapatikana (hatua daima >= 1 kwa mti usio tupu, hivyo ishara
+// inatosha kutofautisha bila kuhitaji hoja ya pili ya matokeo).
+// Checksum kuu inajumuisha hatua halisi, si tu "imepatikana", ili
+// kuhakikisha kazi halisi ya pointer-chase inafanyika (si kukatwa
+// mapema na mkusanyaji).
+n32 tafuta(Nodi* mzizi, n32 v) {
+    Nodi* sasa = mzizi;
+    n32 h = 0;
+    wakati (sasa != 0) {
+        h = h + 1;
+        kama (sasa->thamani == v) {
+            rudisha h;
+        }
+        kama (v < sasa->thamani) {
+            sasa = sasa->kushoto;
+        } sivyo {
+            sasa = sasa->kulia;
+        }
+    }
+    rudisha 0 - h;
+}
+
+n32 main() {
+    Nodi* mzizi = 0;
+    n32 i = 0;
+    wakati (i < N_INGIZA) {
+        n32 v = nasibu_ijayo() % 20000000;
+        mzizi = ingiza(mzizi, v);
+        i = i + 1;
+    }
+
+    n32 hatua_jumla = 0;
+    n32 idadi_patikana = 0;
+    i = 0;
+    wakati (i < N_TAFUTA) {
+        n32 v = nasibu_ijayo() % 20000000;
+        n32 r = tafuta(mzizi, v);
+        kama (r > 0) {
+            idadi_patikana = idadi_patikana + 1;
+            hatua_jumla = hatua_jumla + r;
+        } sivyo {
+            hatua_jumla = hatua_jumla - r;
+        }
+        i = i + 1;
+    }
+
+    andika("idadi_patikana=%d hatua_jumla=%d\n", idadi_patikana, hatua_jumla, 0, 0, 0, 0);
+    rudisha 0;
+}
