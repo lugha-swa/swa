@@ -796,9 +796,16 @@ zote nne).
 | rust | 9.2 |
 | go   | 23.4 |
 
-Swa ni ~5.5x polepole kuliko C, na ~13.4x polepole kuliko Rust
-(pengo pana zaidi kuliko kipimo kingine chochote, cha zamani au
-kipya) -- Rust inaonekana kuboresha ulinganishaji wa mfuatano
+Swa ni ~5.5x polepole kuliko C, na ~13.4x polepole kuliko Rust.
+
+SAHIHISHO (baada ya ukaguzi huru): madai ya awali hapa yalisema hili
+ndilo pengo pana zaidi kuliko kipimo kingine chochote, cha zamani au
+kipya -- si sahihi, kinyume na jedwali la muhtasari chini (matriki
+~10.1x) ambalo halikulinganishwa nalo wakati wa kuandika sehemu hii.
+maneno ndiyo pengo pana zaidi kati ya vipimo VINNE VIPYA pekee, na
+pengo la PILI kwa ukubwa kwenye mfululizo mzima (nyuma ya matriki).
+Bado ni ugunduzi halisi na wa thamani -- Rust inaonekana kuboresha
+ulinganishaji wa mfuatano
 (`kn.as_bytes() == &maandishi[mwanzo..p]`, huenda memcmp iliyoboreshwa
 sana/vectorized) kwa njia ambayo Swa (wito wa kazi unaorudiwa kwa
 kila neno la kamusi 16, ukubwa wa mfuatano ukikokotolewa upya kila
