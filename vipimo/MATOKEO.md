@@ -715,3 +715,113 @@ kipya `vipimo/uchawi_gawanyo/` kimeundwa MAKUSUDI (i/7, i%7, mizunguko
 50,000,000). Muda halisi (interleaved, mizunguko 5, dhidi ya
 mkusanyaji wa zamani): wastani zamani 383.2ms, mpya 319.8ms -- **~16.5%
 haraka zaidi**, thabiti kwenye mizunguko yote (hakuna mwingiliano).
+
+## Vipimo vipya: mapungufu manne yasiyokuwa na kipimo, na lugha za ziada za kulinganisha
+
+Kipimo cha awali (fibonacci, kupanga, matriki, heshi, mzunguko_mchezo)
+hakigusi kabisa: ugawaji mdogo mdogo wa mara kwa mara/pointer-chasing
+(zote hutumia ugawaji MMOJA mkubwa wa awali), D64 bila shinikizo la
+kumbukumbu, mfumo tofauti wa ufikiaji wa safu ya n8, wala mfuatano/
+maandishi kabisa. Vipimo vinne vipya vinaziba mapengo hayo -- kila
+kimoja kina Swa, C, Rust, na Go (lengo halisi bado ni kushinda C;
+Rust/Go ni muktadha wa ushindani, si lengo).
+
+Uthibitisho wa usahihi: KILA lugha (Swa/C/Rust/Go) kwa KILA kipimo
+inatoa checksum SAWA KABISA (si "inayoonekana sahihi" -- imelinganishwa
+neno kwa neno) -- LCG ile ile (mbegu, kizidishi 1103515245, ongezeko
+12345, modulo 2^31) inatumika katika lugha zote nne kwa vipimo
+vinavyohitaji data ya nasibu, ili mfuatano wa thamani uwe SAWA kabisa.
+
+### miti_bst -- mti wa BST (ugawaji mdogo mdogo + pointer-chasing)
+
+Kuingiza nodi 150,000 (kwa njia ya kurudia-rudia, SI kujirudia, kuepuka
+hatari ya kina cha rafu kwenye mti usio na usawa), kisha kutafuta
+150,000 (checksum inajumuisha hatua za pointer-chase, si tu
+imepatikana/haijapatikana, kuzuia kukatwa mapema). Checksum:
+`idadi_patikana=1074 hatua_jumla=3560678` (SAWA lugha zote nne).
+
+| lugha | wastani (ms, mizunguko 5) |
+|---|---|
+| swa  | 102.4 |
+| c    | 58.4 |
+| rust | 66.8 |
+| go   | 55.6 |
+
+Swa ni ~1.75x polepole kuliko C.
+
+### mandelbrot -- D64 bila shinikizo la kumbukumbu (600x600, kiwango cha juu 200)
+
+Hesabu safi ya vigezo vya ndani, hakuna ugawaji wowote. Checksum:
+`jumla_iter=17315689` (SAWA lugha zote nne).
+
+| lugha | wastani (ms, mizunguko 5) |
+|---|---|
+| swa  | 158.8 |
+| c    | 61.6 |
+| rust | 59.2 |
+| go   | 64.0 |
+
+Swa ni ~2.6x polepole kuliko C -- pengo pana kuliko matriki
+(~1.5-2x kwenye vipimo vya sasa), ikionyesha kitanzi cha D64
+kisicho na safu bado kina nafasi ya uboreshaji.
+
+### mchujo -- Mchujo wa Eratosthenes (N=25,000,000, safu ya n8)
+
+Muundo tofauti wa ufikiaji wa kumbukumbu kuliko matriki (uandishi wa
+mfuatano usio wa mstari, si row/column). Checksum: `idadi_kuu=1565927`
+(SAWA lugha zote nne).
+
+| lugha | wastani (ms, mizunguko 5) |
+|---|---|
+| swa  | 314.0 |
+| c    | 137.6 |
+| rust | 162.8 |
+| go   | 157.0 |
+
+Swa ni ~2.3x polepole kuliko C. Kwa kushangaza, Rust na Go zote mbili
+ni POLEPOLE kuliko C hapa (~1.15x-1.2x) -- muundo huu unaathiriwa na
+ukaguzi wa mipaka ya safu (bounds checking) katika lugha zote mbili;
+C pekee (bila ukaguzi) inaepuka gharama hiyo.
+
+### maneno -- kuhesabu marudio ya maneno (maandishi 400,000, kamusi 16)
+
+Ufikiaji wa safu ya n8/mfuatano, ulinganishaji wa herufi kwa herufi.
+Checksum: `cheki=3400000 hesabu0=25000 hesabu15=25000` (SAWA lugha
+zote nne).
+
+| lugha | wastani (ms, mizunguko 5) |
+|---|---|
+| swa  | 123.0 |
+| c    | 22.4 |
+| rust | 9.2 |
+| go   | 23.4 |
+
+Swa ni ~5.5x polepole kuliko C, na ~13.4x polepole kuliko Rust
+(pengo pana zaidi kuliko kipimo kingine chochote, cha zamani au
+kipya) -- Rust inaonekana kuboresha ulinganishaji wa mfuatano
+(`kn.as_bytes() == &maandishi[mwanzo..p]`, huenda memcmp iliyoboreshwa
+sana/vectorized) kwa njia ambayo Swa (wito wa kazi unaorudiwa kwa
+kila neno la kamusi 16, ukubwa wa mfuatano ukikokotolewa upya kila
+wakati kupitia urefu_mfuatano_ndani) haifanyi. Hii ni FURSA HALISI
+ya kazi ya baadaye -- si wigo wa kazi hii, ambayo ni kupima TU.
+
+### Muhtasari (kipimo kilichopo + kipya, dhidi ya C)
+
+| kipimo | uwiano wa Swa/C |
+|---|---|
+| fibonacci | ~4.6x |
+| kupanga | ~3.1x |
+| matriki | ~10.1x |
+| heshi | ~7.0x |
+| mzunguko_mchezo | ~6.1x |
+| miti_bst | ~1.75x |
+| mandelbrot | ~2.6x |
+| mchujo | ~2.3x |
+| maneno | ~5.5x |
+
+Kumbuka kuhusu kelele ya mashine: mashine hii ina tofauti halisi ya
+muda (imethibitishwa mara kadhaa kikao hiki kwa kupima tena binary
+ile ile ya C) -- nambari za mzunguko mmoja mmoja hapo juu zisichukuliwe
+kama sahihi hadi desimali ya mwisho, lakini mwelekeo wa jumla na
+ukubwa wa pengo umefuata mbinu ile ile ya kupima (interleaved,
+mizunguko mingi) inayotumika kila mahali kwenye hati hii.
