@@ -5370,6 +5370,31 @@ W0 toa_ongeza_msingi(N32 msingi_node, N32 kazi_node) {
         andika_add_rax_rcx();
         rudisha;
     }
+    // Safu ya ndani (si paramu): msingi ni anwani ya safu -- lea rcx, [rbp-off]
+    // (utafutaji ule ule wa uzalishaji_kitambulisho: jina la kwanza ndilo)
+    kama (ast_aina[msingi_node] == AST_KITAMBULISHO) {
+        N8* jina_s = ast_pool + ast_jina_off[msingi_node];
+        kama (jina_s[0] != 34) {
+            N32 si = 0;
+            wakati (si < var_idadi) {
+                kama (jina_linganisha(var_pool + var_jina_off[si], jina_s)) {
+                    kama (var_ni_safu[si] == 1) {
+                        N32 off_s = var_rbp_off[si];
+                        andika_baiti(72); andika_baiti(141);   // lea rcx, [rbp-off]
+                        kama (off_s < 128) {
+                            andika_baiti(77); andika_baiti((256 - off_s) & 255);
+                        } sivyo {
+                            andika_baiti(141); andika_disp32_ya_off(off_s);
+                        }
+                        andika_add_rax_rcx();
+                        rudisha;
+                    }
+                    vunja;
+                }
+                si = si + 1;
+            }
+        }
+    }
     andika_push_rax();  // hifadhi ofseti
     uzalishaji_usemi(msingi_node, kazi_node);  // rax = msingi
     andika_pop_rcx();  // rcx = ofseti
