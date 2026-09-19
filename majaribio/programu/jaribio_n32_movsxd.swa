@@ -1,0 +1,82 @@
+// Kusoma kigezo cha N32 chenye ishara hutumia movsxd moja (badala ya
+// mov + cdqe). Thamani hasi lazima zipanuliwe kwa ishara katika kila
+// muktadha wa biti 64: ugawaji kwa N64, hoja ya N64, faharasa hasi ya
+// safu, hesabu na N64, kurudi.
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+N64 kama_n64(N64 v) { rudisha v; }
+N32 kama_n32(N32 v) { rudisha v; }
+
+N32 jaribu_rejesta() {
+    N32 x = 0 - 5;
+    N64 w = x;
+    kama (w != (0 - 5)) { rudisha 1; }
+    kama (kama_n64(x) != (0 - 5)) { rudisha 2; }
+    N64 y = 1000000000000;
+    kama (y + x != 999999999995) { rudisha 3; }
+    kama (x + y != 999999999995) { rudisha 4; }
+    N32* p = tenga(ukubwa(N32) * 8);
+    p[3] = 33;
+    N32 k = 4;
+    N32 m = 0 - 1;
+    kama (p[k + m] != 33) { rudisha 5; }
+    N32* q = p + 4;
+    kama (q[m] != 33) { rudisha 6; }
+    kama (q[x + 4] != q[0 - 1]) { rudisha 7; }
+    rudisha 0;
+}
+
+N32 jaribu_rafu() {
+    // vigezo vingi: baadhi kwenye rafu
+    N32 a = 0 - 1; N32 b = 0 - 2; N32 c = 0 - 3; N32 d = 0 - 4; N32 e = 0 - 5; N32 f = 0 - 6; N32 g = 0 - 7; N32 h = 0 - 8;
+    N32 i = 0;
+    N32 s = 0;
+    wakati (i < 2) {
+        s = s + a + b + c + d + e + f + g + h;
+        i = i + 1;
+    }
+    kama (s != (0 - 72)) { rudisha 1; }
+    N64 w1 = a; N64 w2 = b; N64 w3 = c; N64 w4 = d; N64 w5 = e; N64 w6 = f; N64 w7 = g; N64 w8 = h;
+    kama (w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 != (0 - 36)) { rudisha 2; }
+    kama (kama_n64(h) != (0 - 8)) { rudisha 3; }
+    kama (kama_n64(a) != (0 - 1)) { rudisha 4; }
+    N64 tofauti = h;
+    tofauti = tofauti * 1000000000;
+    kama (tofauti != (0 - 8000000000)) { rudisha 5; }
+    rudisha 0;
+}
+
+// Aina zisizoguswa: A32 (bila ishara), N8, N16
+N32 jaribu_bila_ishara() {
+    A32 u = 0;
+    u = u - 1;                 // 4294967295
+    kama (u < 5) { rudisha 1; }
+    kama (u + 1 != 0) { rudisha 2; }
+    N8 b = 0 - 3;
+    N32 wb = b;
+    kama (wb != (0 - 3)) { rudisha 3; }
+    N16 h = 0 - 300;
+    N32 wh = h;
+    kama (wh != (0 - 300)) { rudisha 4; }
+    rudisha 0;
+}
+
+// Paramu (njia ya paramu haijabadilishwa)
+N64 t_paramu(N32 v, N32 z) { N64 w = v; N64 y = z; rudisha w * 1000 + y; }
+N32 jaribu_paramu() {
+    kama (t_paramu(0 - 2, 5) != (0 - 1995)) { rudisha 1; }
+    kama (kama_n32(0 - 9) != (0 - 9)) { rudisha 2; }
+    rudisha 0;
+}
+
+N32 main() {
+    N32 r = jaribu_rejesta();
+    kama (r != 0) { rudisha 10 + r; }
+    r = jaribu_rafu();
+    kama (r != 0) { rudisha 20 + r; }
+    r = jaribu_bila_ishara();
+    kama (r != 0) { rudisha 30 + r; }
+    r = jaribu_paramu();
+    kama (r != 0) { rudisha 40 + r; }
+    rudisha 0;
+}
