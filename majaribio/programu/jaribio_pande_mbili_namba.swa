@@ -1,0 +1,166 @@
+// Pande mbili bila push/pop -- namba kamili: kulia ni jani (namba, kigezo
+// cha rejesta, kigezo cha rafu, paramu) au kushoto ni jani. Kila thamani
+// imekokotolewa kwa mkono.
+
+// Vigezo vya rafu vyenye ofseti kubwa (>127 baiti) -- disp32
+N32 jaribu_ofseti_kubwa() {
+    N8 pedi[300];
+    pedi[0] = 1;
+    N32 a = 1000;
+    N32 b = 24;
+    N32 c = 7;
+    N32 d = 3;
+    N32 e = 11;
+    N32 f = 13;
+    N32 g = 17;
+    N32 h = 19;
+    N32 i = 0;
+    N32 jumla = 0;
+    wakati (i < 3) {
+        jumla = jumla + a + b - c * d + e + f + g + h;
+        i = i + 1;
+    }
+    // (1000 + 24 - 21 + 11 + 13 + 17 + 19) = 1063 kila mzunguko
+    kama (jumla != 3189) { rudisha 1; }
+    kama (a - b != 976) { rudisha 2; }
+    kama (b - a != (0 - 976)) { rudisha 3; }
+    kama (h * g != 323) { rudisha 4; }
+    kama ((a + b) * (c + d) != 10240) { rudisha 5; }
+    kama ((a - b) - (c - d) != 972) { rudisha 6; }
+    kama (pedi[0] != 1) { rudisha 7; }
+    rudisha 0;
+}
+
+// Paramu (kushoto na kulia), namba hasi zilizokunjwa, N64
+N32 t_paramu(N32 p, N32 q, N64 r, N64 s) {
+    kama (p + q != 30) { rudisha 1; }
+    kama (p - q != (0 - 10)) { rudisha 2; }
+    kama (q - p != 10) { rudisha 3; }
+    kama (p * q != 200) { rudisha 4; }
+    kama (p + 1 != 11) { rudisha 5; }
+    kama (1 + p != 11) { rudisha 6; }
+    kama (p - 100 != (0 - 90)) { rudisha 7; }
+    kama (100 - p != 90) { rudisha 8; }
+    kama (r + s != 300000000000) { rudisha 9; }
+    kama (r - s != (0 - 100000000000)) { rudisha 10; }
+    kama (s - r != 100000000000) { rudisha 11; }
+    kama (r != 100000000000) { rudisha 12; }
+    kama (r + 1 != 100000000001) { rudisha 13; }
+    kama (r - 1 != 99999999999) { rudisha 14; }
+    kama (r + (0 - 5) != 99999999995) { rudisha 15; }
+    kama (r * 3 != 300000000000) { rudisha 16; }
+    kama (r < s == 0) { rudisha 17; }
+    kama (s < r) { rudisha 18; }
+    kama (r > 5) { } sivyo { rudisha 19; }
+    kama (r < 5) { rudisha 20; }
+    rudisha 0;
+}
+
+N32 jaribu_paramu() {
+    N64 r = 100000000000;
+    N64 s = 200000000000;
+    rudisha t_paramu(10, 20, r, s);
+}
+
+// N64 hasi: namba hasi iliyokunjwa lazima ipanuliwe kwa ishara (rcx)
+N32 jaribu_n64_hasi() {
+    N64 x = 0 - 100000;
+    N64 y = x / 10;
+    kama (y != (0 - 10000)) { rudisha 1; }
+    kama (x + 5 != (0 - 99995)) { rudisha 2; }
+    kama (x - (0 - 5) != (0 - 99995)) { rudisha 3; }
+    kama (x * 2 != (0 - 200000)) { rudisha 4; }
+    kama (x < (0 - 1)) { } sivyo { rudisha 5; }
+    kama (x > (0 - 200000)) { } sivyo { rudisha 6; }
+    kama (x == (0 - 100000)) { } sivyo { rudisha 7; }
+    N64 z = x + (0 - 1);
+    kama (z != (0 - 100001)) { rudisha 8; }
+    rudisha 0;
+}
+
+// Upana tofauti (N8/N16 na N32; A32 bila ishara): njia ya asili
+N32 jaribu_upana_tofauti() {
+    N8 b = 100;
+    N16 h = 30000;
+    N32 w = 70000;
+    A32 u = 1500000000;
+    u = u + u;
+    A32 v = 1000000000;
+    v = v + v;
+    kama (w + b != 70100) { rudisha 1; }
+    kama (w + h != 100000) { rudisha 2; }
+    kama (h + b != 30100) { rudisha 3; }
+    kama (u > v) { } sivyo { rudisha 4; }
+    kama (v < u) { } sivyo { rudisha 5; }
+    kama (u - v != 1000000000) { rudisha 6; }
+    kama (v + 1294967296 != u + 294967296) { rudisha 7; }
+    N8 nb = 100;
+    kama (nb - 101 != (0 - 1)) { rudisha 8; }
+    rudisha 0;
+}
+
+// Kigezo cha rafu cha kiwango cha juu (rejesta zimejaa) upande wa kulia
+N32 jaribu_rejesta_zimejaa() {
+    N32 a = 1;
+    N32 b = 2;
+    N32 c = 3;
+    N32 d = 4;
+    N32 e = 5;
+    N32 f = 6;
+    N32 g = 7;
+    N32 h = 8;
+    N32 i = 0;
+    N32 s = 0;
+    wakati (i < 10) {
+        s = s + (a * b) + (c * d) + (e * f) + (g * h) - i;
+        i = i + 1;
+    }
+    // 2 + 12 + 30 + 56 = 100 kwa mzunguko; jumla ya i (0..9) = 45
+    kama (s != 955) { rudisha 1; }
+    kama (a + b + c + d + e + f + g + h != 36) { rudisha 2; }
+    kama (h - g - f - e - d - c - b - a != (0 - 20)) { rudisha 3; }
+    rudisha 0;
+}
+
+// Vigezo vya N64 vingi (baadhi kwenye rafu): rcx ya baiti 8 (REX.W)
+N32 jaribu_n64_rafu() {
+    N64 a = 4000000000;
+    N64 b = 5000000000;
+    N64 c = 6000000000;
+    N64 d = 7000000000;
+    N64 e = 8000000000;
+    N64 f = 9000000000;
+    N64 g = 10000000000;
+    N64 h = 11000000000;
+    N64 s = 0;
+    N32 i = 0;
+    wakati (i < 2) {
+        s = s + a + b + c + d + e + f + g + h;
+        i = i + 1;
+    }
+    kama (s != 120000000000) { rudisha 1; }
+    kama (h - g != 1000000000) { rudisha 2; }
+    kama (g - h != (0 - 1000000000)) { rudisha 3; }
+    kama (a + h != 15000000000) { rudisha 4; }
+    kama (h + a != 15000000000) { rudisha 5; }
+    kama (b * 2 != g) { rudisha 6; }
+    kama (e < f) { } sivyo { rudisha 7; }
+    kama (f < e) { rudisha 8; }
+    rudisha 0;
+}
+
+N32 main() {
+    N32 r = jaribu_ofseti_kubwa();
+    kama (r != 0) { rudisha 10 + r; }
+    r = jaribu_paramu();
+    kama (r != 0) { rudisha 30 + r; }
+    r = jaribu_n64_hasi();
+    kama (r != 0) { rudisha 60 + r; }
+    r = jaribu_upana_tofauti();
+    kama (r != 0) { rudisha 80 + r; }
+    r = jaribu_rejesta_zimejaa();
+    kama (r != 0) { rudisha 100 + r; }
+    r = jaribu_n64_rafu();
+    kama (r != 0) { rudisha 120 + r; }
+    rudisha 0;
+}
