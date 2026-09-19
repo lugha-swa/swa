@@ -6197,17 +6197,16 @@ W0 uzalishaji_gawanya(N32 node, N32 kazi_node) {
         kama (saizi >= 8) { andika_divsd_xmm0_xmm1(); }
         sivyo { andika_divss_xmm0_xmm1(); }
     } sivyo {
-        uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
-        uzalishaji_usemi(ast_kushoto[node], kazi_node);
+        // rax = kigawiwa, rcx = kigawanyaji (bila push/pop kama kulia ni jani)
+        toa_pande_mbili(node, kazi_node, enc);
         // Bila ishara: edx lazima iwe 0 (xor edx,edx) — cdq/cqo
         // inaongeza ishara na kufurika (SIGFPE) kwa thamani yenye
-        // biti ya juu. Zenye ishara: cdq/cqo kama kawaida.
+        // biti ya juu. Zenye ishara: cdq/cqo kama kawaida (hazigusi rcx).
         kama (ni_b) { andika_xor_edx_edx(); }
         sivyo {
             kama (saizi >= 8) { andika_cqo(); }
             sivyo { andika_cdq(); }
         }
-        andika_pop_rcx();
         kama (saizi >= 8) {
             kama (ni_b) { andika_div_rcx_rax(); }
             sivyo { andika_idiv_rcx_rax(); }
@@ -6348,8 +6347,8 @@ W0 uzalishaji_modulo(N32 node, N32 kazi_node) {
 
     // Hakuna modulo ya moja kwa moja kwa desimali;
     // kwa sasa tunaishia tu na nambari kamili.
-    uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
-    uzalishaji_usemi(ast_kushoto[node], kazi_node);
+    // rax = kigawiwa, rcx = kigawanyaji (bila push/pop kama kulia ni jani)
+    toa_pande_mbili(node, kazi_node, enc);
     // Bila ishara: edx lazima iwe 0 — cdq/cqo inaongeza ishara
     // na kufurika (SIGFPE) kwa thamani yenye biti ya juu.
     kama (ni_b) { andika_xor_edx_edx(); }
@@ -6357,7 +6356,6 @@ W0 uzalishaji_modulo(N32 node, N32 kazi_node) {
         kama (saizi >= 8) { andika_cqo(); }
         sivyo { andika_cdq(); }
     }
-    andika_pop_rcx();
     kama (saizi >= 8) {
         kama (ni_b) { andika_div_rcx_rax(); }
         sivyo { andika_idiv_rcx_rax(); }
@@ -6376,8 +6374,7 @@ W0 uzalishaji_hamisha_kushoto(N32 node, N32 kazi_node) {
     N32 saizi = ukubwa_kutoka_enc(ast_thamani[node]);
     kataa_operesheni_ya_desimali(node);
 
-    uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
-    uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
+    toa_pande_mbili(node, kazi_node, ast_thamani[node]);
     kama (saizi >= 8) { andika_shl_rax_cl(); }
     sivyo { andika_shl_eax_cl(); }
 }
@@ -6390,8 +6387,7 @@ W0 uzalishaji_hamisha_kulia(N32 node, N32 kazi_node) {
 
     N32 saizi = ukubwa_kutoka_enc(enc);
     N32 ni_b = ni_bila_ishara_enc(enc);
-    uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
-    uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
+    toa_pande_mbili(node, kazi_node, ast_thamani[node]);
     kama (saizi >= 8) {
         kama (ni_b) { andika_shr_rax_cl(); }
         sivyo { andika_sar_rax_cl(); }
@@ -6406,8 +6402,7 @@ W0 uzalishaji_bit_au(N32 node, N32 kazi_node) {
     N32 saizi = ukubwa_kutoka_enc(ast_thamani[node]);
     kataa_operesheni_ya_desimali(node);
 
-    uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
-    uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
+    toa_pande_mbili(node, kazi_node, ast_thamani[node]);
     kama (saizi >= 8) { andika_or_rax_rcx(); }
     sivyo { andika_or_eax_ecx(); }
 }
@@ -6417,8 +6412,7 @@ W0 uzalishaji_bit_na(N32 node, N32 kazi_node) {
     N32 saizi = ukubwa_kutoka_enc(ast_thamani[node]);
     kataa_operesheni_ya_desimali(node);
 
-    uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
-    uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
+    toa_pande_mbili(node, kazi_node, ast_thamani[node]);
     kama (saizi >= 8) { andika_and_rax_rcx(); }
     sivyo { andika_and_eax_ecx(); }
 }
@@ -6428,8 +6422,7 @@ W0 uzalishaji_bit_xor(N32 node, N32 kazi_node) {
     N32 saizi = ukubwa_kutoka_enc(ast_thamani[node]);
     kataa_operesheni_ya_desimali(node);
 
-    uzalishaji_usemi(ast_kulia[node], kazi_node); andika_push_rax();
-    uzalishaji_usemi(ast_kushoto[node], kazi_node); andika_pop_rcx();
+    toa_pande_mbili(node, kazi_node, ast_thamani[node]);
     kama (saizi >= 8) { andika_xor_rax_rcx(); }
     sivyo { andika_xor_eax_ecx(); }
 }
