@@ -1,0 +1,112 @@
+// Mgawanyo, modulo, hamisha na biti (/, %, <<, >>, &, |, ^) kupitia pande
+// mbili bila push/pop: kigawiwa kwenye rax, kigawanyaji/kiasi kwenye rcx,
+// kigawanyaji kikiwa jani (namba, kigezo cha rejesta/rafu, paramu) au
+// usemi; cqo/cdq/xor edx baada ya pande zote mbili. Thamani za mkono.
+
+N32 g = 7;
+
+N32 t_paramu(N32 a, N32 b) {
+    kama (a / b != 14) { rudisha 1; }
+    kama (a % b != 2) { rudisha 2; }
+    kama (b / a != 0) { rudisha 3; }
+    kama (b % a != 7) { rudisha 4; }
+    kama ((0 - a) / b != (0 - 14)) { rudisha 5; }
+    kama ((0 - a) % b != (0 - 2)) { rudisha 6; }
+    rudisha 0;
+}
+
+N32 jaribu_n32() {
+    N32 a = 100;
+    N32 b = 7;
+    N32 c = 0 - 100;
+    kama (a / b != 14) { rudisha 1; }
+    kama (a % b != 2) { rudisha 2; }
+    kama (c / b != (0 - 14)) { rudisha 3; }
+    kama (c % b != (0 - 2)) { rudisha 4; }
+    kama (a / (b - 2) != 20) { rudisha 5; }
+    kama ((a + 1) % (b + 1) != 5) { rudisha 6; }
+    kama (a / g != 14) { rudisha 7; }
+    kama (a / (0 - b) != (0 - 14)) { rudisha 8; }
+    kama (c / (0 - b) != 14) { rudisha 9; }
+    kama (t_paramu(100, 7) != 0) { rudisha 10; }
+    // kigawanyaji ni kigezo cha rafu: vigezo vingi
+    N32 d1 = 1; N32 d2 = 2; N32 d3 = 3; N32 d4 = 4; N32 d5 = 5; N32 d6 = 6; N32 d7 = 8; N32 d8 = 9;
+    kama (a / d8 != 11 || a % d8 != 1) { rudisha 11; }
+    kama (a / d7 != 12 || a % d7 != 4) { rudisha 12; }
+    kama (d1 + d2 + d3 + d4 + d5 + d6 + d7 + d8 != 38) { rudisha 13; }
+    rudisha 0;
+}
+
+N32 jaribu_n64() {
+    N64 a = 1000000000000;
+    N64 b = 7;
+    N64 c = 0 - 1000000000000;
+    kama (a / b != 142857142857) { rudisha 1; }
+    kama (a % b != 1) { rudisha 2; }
+    kama (c / b != (0 - 142857142857)) { rudisha 3; }
+    kama (c % b != (0 - 1)) { rudisha 4; }
+    N32 k = 1000;
+    kama (a / k != 1000000000) { rudisha 5; }
+    kama (a % (a / 3) != 1) { rudisha 6; }
+    // A32 (bila ishara)
+    A32 u = 4000000000;
+    A32 v = 7;
+    kama (u / v != 571428571) { rudisha 7; }
+    kama (u % v != 3) { rudisha 8; }
+    rudisha 0;
+}
+
+N32 jaribu_hamisha() {
+    N32 x = 5;
+    N32 n = 3;
+    kama ((x << n) != 40) { rudisha 1; }
+    kama ((x << 3) != 40) { rudisha 2; }
+    kama ((1 << n) != 8) { rudisha 3; }
+    kama ((40 >> n) != 5) { rudisha 4; }
+    N32 y = 0 - 40;
+    kama ((y >> n) != (0 - 5)) { rudisha 5; }               // hamisha ya hesabu (ishara)
+    kama ((y >> 3) != (0 - 5)) { rudisha 6; }
+    A32 u = 4000000000;
+    kama ((u >> 4) != 250000000) { rudisha 7; }             // hamisha ya mantiki
+    N64 w = 1;
+    N32 s = 40;
+    kama ((w << s) != 1099511627776) { rudisha 8; }         // N64 yenye kiasi cha N32
+    kama ((w << 40) != 1099511627776) { rudisha 9; }
+    N64 h = 5381;
+    kama ((((h << 5) + h) + 97) != 177670) { rudisha 10; }  // djb2
+    kama ((x << (n + 1)) != 80) { rudisha 11; }
+    rudisha 0;
+}
+
+N32 jaribu_biti() {
+    N32 a = 12;       // 1100
+    N32 b = 10;       // 1010
+    kama ((a & b) != 8) { rudisha 1; }
+    kama ((a | b) != 14) { rudisha 2; }
+    kama ((a ^ b) != 6) { rudisha 3; }
+    kama ((a & 5) != 4) { rudisha 4; }
+    kama ((5 | a) != 13) { rudisha 5; }
+    kama ((a ^ 255) != 243) { rudisha 6; }
+    kama (((a & b) | (a ^ b)) != 14) { rudisha 7; }
+    N32 c = 0 - 1;
+    kama ((c & 255) != 255) { rudisha 8; }
+    kama ((c ^ a) != (0 - 13)) { rudisha 9; }
+    N64 big = 1099511627775;    // 2^40 - 1
+    kama ((big & 65535) != 65535) { rudisha 10; }
+    kama ((big ^ 1) != 1099511627774) { rudisha 11; }
+    N64 low = 255;
+    kama ((big & low) != 255) { rudisha 12; }
+    rudisha 0;
+}
+
+N32 main() {
+    N32 r = jaribu_n32();
+    kama (r != 0) { rudisha 10 + r; }
+    r = jaribu_n64();
+    kama (r != 0) { rudisha 30 + r; }
+    r = jaribu_hamisha();
+    kama (r != 0) { rudisha 50 + r; }
+    r = jaribu_biti();
+    kama (r != 0) { rudisha 70 + r; }
+    rudisha 0;
+}
