@@ -4583,6 +4583,42 @@ W0 uzalishaji_nambari(N32 node, N32 kazi_node) {
     andika_mov_eax(val);
 }
 
+// movsxd rax, dword [rbp-off] (48 63 45 xx / 48 63 85 xxxx)
+W0 andika_movsxd_rax_rbp_off(N32 off) {
+    andika_baiti(72); andika_baiti(99);
+    kama (off < 128) { andika_baiti(69); andika_baiti((256 - off) & 255); }
+    sivyo { andika_baiti(133); andika_disp32_ya_off(off); }
+}
+
+// Kusoma kigezo cha N32 chenye ishara: uzalishaji_usemi ilikuwa inapakia
+// (mov eax,[kigezo] au mov rax,rejesta) KISHA panua_ishara_ndogo inaongeza
+// cdqe -- maagizo mawili. Rejesta za kudumu HAZIhakikishiwi kupanuliwa
+// kwa ishara (sawazisha_eax_kwa_enc haifanyi kitu kwa upana wa 4; "mov
+// eax" husafisha biti za juu), kwa hiyo cdqe HAIWEZI kuondolewa -- lakini
+// movsxd (48 63 /r) hufanya upakiaji na upanuzi kwa agizo MOJA, na matokeo
+// ni yale yale. Inarudisha 1 kama imetoa movsxd (na kuweka jr_panua_ruka
+// ili uzalishaji_usemi isirudie cdqe), 0 kama sivyo.
+N32 jr_panua_ruka = 0;
+N32 jr_pakia_movsxd(N32 node, N32 enc_var, N32 reg_id, N32 off) {
+    N32 en = ast_thamani[node];
+    kama (en <= 0 || ni_desimali_enc(en) || ni_bila_ishara_enc(en)) { rudisha 0; }
+    kama (ukubwa_kutoka_enc(en) != 4) { rudisha 0; }
+    kama (enc_var <= 0 || ni_desimali_enc(enc_var) || ni_bila_ishara_enc(enc_var)) { rudisha 0; }
+    kama ((enc_var / 2) * 2 != enc_var) { rudisha 0; }
+    kama (ukubwa_kutoka_enc(enc_var) != 4) { rudisha 0; }
+    kama (reg_id >= 0) {
+        N32 reg = regista_halisi_kwa_id(reg_id);
+        N32 reg7 = reg - ((reg / 8) * 8);
+        kama (reg >= 8) { andika_baiti(73); } sivyo { andika_baiti(72); }
+        andika_baiti(99);
+        andika_baiti(192 + reg7);
+    } sivyo {
+        andika_movsxd_rax_rbp_off(off);
+    }
+    jr_panua_ruka = 1;
+    rudisha 1;
+}
+
 // AST_KITAMBULISHO (5) -- kitambulisho (kigeu au herufi halisi)
 W0 uzalishaji_kitambulisho(N32 node, N32 kazi_node) {
     N8* jina = ast_pool + ast_jina_off[node];
@@ -4611,13 +4647,15 @@ W0 uzalishaji_kitambulisho(N32 node, N32 kazi_node) {
             kama (var_ni_safu[i] == 1) {
                 // Safu ya ndani: usemi wa jina unahitaji anwani ya msingi (LEA)
                 andika_lea_rax_rbp_off(var_rbp_off[i]);
-            } sivyo { kama (var_reg[i] >= 0) {
-                    // Kigezo cha kudumu kwenye rejesta -- nakili moja
-                    // kwa moja hadi rax (tayari kimepanuliwa kwa usahihi).
-                    andika_mov_rax_reg64(regista_halisi_kwa_id(var_reg[i]));
-                } sivyo {
-                    andika_pakia_kigeu_kwa_enc(var_enc[i], var_rbp_off[i]);
-                } }
+            } sivyo { kama (jr_pakia_movsxd(node, var_enc[i], var_reg[i], var_rbp_off[i])) {
+                    // N32 yenye ishara: movsxd moja (angalia jr_pakia_movsxd)
+                } sivyo { kama (var_reg[i] >= 0) {
+                        // Kigezo cha kudumu kwenye rejesta -- nakili moja
+                        // kwa moja hadi rax (tayari kimepanuliwa kwa usahihi).
+                        andika_mov_rax_reg64(regista_halisi_kwa_id(var_reg[i]));
+                    } sivyo {
+                        andika_pakia_kigeu_kwa_enc(var_enc[i], var_rbp_off[i]);
+                    } } }
             rudisha;
         }
         i = i + 1;
@@ -5310,13 +5348,6 @@ W0 toa_ongeza_msingi(N32 msingi_node, N32 kazi_node) {
     uzalishaji_usemi(msingi_node, kazi_node);  // rax = msingi
     andika_pop_rcx();  // rcx = ofseti
     andika_add_rax_rcx();  // rax = msingi + ofseti
-}
-
-// movsxd rax, dword [rbp-off] (48 63 45 xx / 48 63 85 xxxx)
-W0 andika_movsxd_rax_rbp_off(N32 off) {
-    andika_baiti(72); andika_baiti(99);
-    kama (off < 128) { andika_baiti(69); andika_baiti((256 - off) & 255); }
-    sivyo { andika_baiti(133); andika_disp32_ya_off(off); }
 }
 
 // x = x + namba / x = x - namba kwa kigezo cha N32 chenye ishara (kaunta
@@ -7372,7 +7403,7 @@ W0 uzalishaji_usemi(N32 node, N32 kazi_node) {
     // Panua ishara kwa thamani ndogo yenye ishara — thamani inapotumiwa
     // katika muktadha wa baiti 8 (kigezo, hoja, kurudi, operesheni ya
     // 64-bit), eax lazima ipanuliwe hadi rax.
-    panua_ishara_ndogo(node);
+    kama (jr_panua_ruka) { jr_panua_ruka = 0; } sivyo { panua_ishara_ndogo(node); }
 }
 
 // PAKIA KIGEZO CHA KAZI
