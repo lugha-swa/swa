@@ -4010,6 +4010,23 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
 
     // Tathmini hoja kutoka kulia kwenda kushoto, sukuma kwenye rafu
     // Hifadhi thamani kwenye rafu ili zisipotee wakati wa kutathmini hoja nyingine
+    // Hoja ya KWANZA (namba 0) hutathminiwa MWISHO na kuvutwa KWANZA; kwa
+    // wito wa kawaida (si sret, si syscall, si tekeleza, si wito wa
+    // kielekezi) haihitaji kupita rafuni: namba kamili -> mov rdi, rax;
+    // desimali inabaki xmm0. Kila kitu kingine kinabaki kama zamani.
+    // (bendera za ni_syscall_wito n.k. ni za ulimwengu na huandikwa upya
+    // na wito ulioota ndani ya hoja, kwa hiyo hali inarekodiwa hapa.)
+    N32 kuna_muundo = 0;   // nakala za miundo hutegemea sloti za rafu [rsp + j*8]
+    N32 kk = 0;
+    wakati (kk < hoja_n) {
+        kama (ni_muundo_enc(hoja_enc_bk[msingi + kk])) { kuna_muundo = 1; }
+        kk = kk + 1;
+    }
+    N32 wito_wa_kawaida = 0;
+    kama (kuna_muundo == 0 && ni_syscall_wito == 0 && ni_tekeleza_wito == 0 && ni_kielekezi == 0 && callee_ni_sret == 0) {
+        wito_wa_kawaida = 1;
+    }
+    N32 arg0_moja = 0;
     N32 i = hoja_n - 1;
     N32 cum_sh = 0;
     wakati (i >= 0) {
@@ -4053,7 +4070,12 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
             N32 enc_param = mkaguzi_tafuta_param_enc(callee, i);
             kama (enc_param > 0) { enc_hoja = enc_param; }
             badili_mpaka_wa_desimali(hoja_nodes_bk[msingi + i], enc_hoja);
-            sukuma_thamani(enc_hoja);
+            kama (i == 0 && wito_wa_kawaida == 1) {
+                kama (ni_desimali_enc(enc_hoja) == 0) { andika_mov_rdi_rax(); }
+                arg0_moja = 1;
+            } sivyo {
+                sukuma_thamani(enc_hoja);
+            }
         }
         i = i - 1;
     }
@@ -4135,7 +4157,9 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
         kama (enc_p > 0) { enc = enc_p; }
         kama (ni_desimali_enc(enc)) {
             n_xmm_jumla = n_xmm_jumla + 1;
-            kama (xmm_reg < 8) {
+            kama (j == 0 && arg0_moja == 1) {
+                xmm_reg = xmm_reg + 1;   // tayari xmm0 (haikusukumwa)
+            } sivyo { kama (xmm_reg < 8) {
                 // Vuta thamani ya desimali moja kwa moja kwenye rejesta
                 // sahihi ya XMM: movsd/movss xmmN, [rsp]; add rsp, 8
                 // (pop_xmm0 + movapd ilikuwa ikiharibu xmm0 ya hoja ya kwanza)
@@ -4154,7 +4178,7 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
                 // add rsp, 8 (48 83 C4 08)
                 andika_baiti(72); andika_baiti(131); andika_baiti(196); andika_baiti(8);
                 xmm_reg = xmm_reg + 1;
-            }
+            } }
             // TODO: rafu overflow — hoja zilizozidi rejesta 8 za XMM hazijasogezwa.
             // rsp imebadilika kutokana na pop za hoja zilizotangulia, lakini hoja
             // iliyozidi inasalia kwenye nafasi yake ya awali kwenye rafu.
@@ -4162,7 +4186,9 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
             // kwa hoja za GP na XMM zote — angalia pia mstari wa 1483.
         } sivyo {
             n_gp_jumla = n_gp_jumla + 1;
-            kama (gp_reg < 6) {
+            kama (j == 0 && arg0_moja == 1) {
+                gp_reg = gp_reg + 1;     // tayari rdi (haikusukumwa)
+            } sivyo { kama (gp_reg < 6) {
                 kama (gp_reg == 0) { andika_pop_rdi(); }
                 sivyo { kama (gp_reg == 1) { andika_pop_rsi(); }
                     sivyo { kama (gp_reg == 2) { andika_pop_rdx(); }
@@ -4170,7 +4196,7 @@ W0 uzalishaji_wito(N32 node, N32 kazi_node) {
                             sivyo { kama (gp_reg == 4) { andika_pop_r8(); }
                                 sivyo { andika_pop_r9(); } } } } }
                 gp_reg = gp_reg + 1;
-            }
+            } }
             // TODO: rafu overflow — hoja zilizozidi rejesta 6 za GP hazijasogezwa.
             // rsp imebadilika lakini hoja iliyozidi haijasogezwa.
             // Hili lilikuwepo kabla ya mabadiliko ya XMM. Linahitaji kurekebishwa
