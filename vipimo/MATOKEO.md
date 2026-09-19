@@ -879,3 +879,81 @@ dhidi ya mkusanyaji wa zamani): wastani zamani 214.6ms, mpya 204.4ms
 mwingiliano). Ndogo kuliko ilivyotarajiwa kwa sababu ya kufurika kwa
 N32 (overflow) kwenye mzunguko wa 50M -- lakini halisi na inayoweza
 kuigwa (reproducible).
+
+## Pande mbili bila push/pop kwenye rafu
+
+Njia ya asili kwa kila operesheni ya jozi ilikuwa: tathmini kulia,
+sukuma; tathmini kushoto; vuta. Kwa `c[i*n+j] + aik * b[k*n+j]` hiyo ni
+safari nne za kumbukumbu za rafu kwa desimali (`sub rsp; movsd
+[rsp]` ... `movsd xmm1,[rsp]; add rsp`) na mbili kwa kila namba
+kamili, bila sababu yoyote -- disassembly ya kitanzi cha ndani cha
+matriki ilionyesha mistari zaidi ya 50 kwa mzunguko mmoja.
+
+`toa_pande_mbili` (uzalishaji.swa) inaacha kushoto kwenye rax/xmm0 na
+kulia kwenye rcx/xmm1 kama zamani, kwa njia tatu:
+
+- **A -- kushoto ni jani** (namba, kitambulisho): kulia kwanza (mpangilio
+  ule ule wa asili), nakala ya rejesta hadi rejesta, kisha jani.
+- **B -- namba kamili, kulia ni jani** (namba ya kudumu, kigezo cha
+  rejesta/rafu, paramu; upana sawa na operesheni): kushoto kwanza, jani
+  moja kwa moja rcx. Hii inabadilisha mpangilio wa kusoma kigezo, kwa
+  hiyo kwa kigezo inahitaji kushoto isiyoweza kukibadilisha
+  (`jr_ni_salama`: hakuna wito, hakuna uandishi). Namba ya kudumu
+  hasi kwa upana wa 8 haikubaliwi (uzalishaji_usemi huipanua kwa
+  ishara, `mov ecx` haifanyi hivyo) -- mdudu huu ulipatikana na
+  `jaribio_uchawi_kataa` wakati wa kazi hii, na sasa una jaribio lake.
+- **C -- desimali, kushoto haina wito**: kulia huhifadhiwa xmm2..xmm7
+  (kina hadi 6), kushoto, kisha xmm1. Rejesta za xmm ni caller-saved,
+  kwa hiyo wito ndani ya kushoto ungeziharibu -- ndiyo sababu
+  `jr_ni_salama` inahitajika hapa pia.
+
+Vilevile msingi wa `arr[i]` ukiwa kigezo cha kielekezi hupakiwa moja
+kwa moja rcx (mpangilio wa asili haubadiliki: msingi ulikuwa unasomwa
+BAADA ya faharasa).
+
+Kinachobaki njia ya asili: namba kamili ambapo pande zote si majani
+(Sethi-Ullman iliyopo inashughulikia baadhi), desimali ambapo kushoto
+ina wito, kina cha xmm zaidi ya 6, upana usiolingana (N8/N16 na N32).
+
+### Uthibitisho
+
+- Majaribio manne mapya (410/410 yanapita, kutoka 406): `namba`,
+  `mpangilio` (kushoto inabadilisha kigezo cha kulia kupitia kielekezi au
+  ulimwengu), `desimali` (ikiwemo kazi inayotumia xmm2/xmm3 yenyewe
+  ndani ya kushoto), `safu`. Kila jaribio limethibitishwa kwa
+  *mutation*: kuvunja kila kanuni kwa makusudi (namba hasi bila panua
+  ishara, `jr_ni_salama` ikirudisha 1 daima, kina cha xmm bila kikomo,
+  `mov rcx` ya baiti 4 badala ya 8) hufanya angalau jaribio moja
+  lishindwe.
+- Fixpoint stage2 == stage3. Programu 307 (majaribio + vipimo)
+  zimeundwa na stage1 na stage2 -- baiti sawa isipokuwa
+  `jaribio_gawanyo_nguvu_pili_mipaka`, ambayo inatofautiana vilevile kwenye
+  mkusanyaji wa zamani (mdudu unaojulikana wa mbegu.bin: mgawanyo hasi
+  uliokunjwa hukusanywa vibaya kwenye gen1 tu).
+- Programu 3401 za nasibu (mbegu 1..4000; N32, N64, D64; vielekezi na
+  faharasa; ulinganishi) zimeundwa na mkusanyaji wa zamani na mpya --
+  matokeo yaliyochapishwa yanafanana kwa zote, sifuri tofauti.
+- Vipimo vyote tisa vinatoa matokeo yaleyale kwa mkusanyaji wa zamani na
+  mpya.
+
+### Utendaji
+
+Interleaved (mizunguko 9, wastani wa kati), gcc -O2 kama msingi:
+
+| Kipimo | C (ms) | zamani (ms) | mpya (ms) | zamani/C | mpya/C |
+|---|---|---|---|---|---|
+| fibonacci | 18.4 | 100.5 | 91.7 | 5.46x | 4.98x |
+| kupanga | 90.8 | 309.8 | 248.1 | 3.41x | 2.73x |
+| matriki | 15.3 | 170.9 | 111.0 | 11.14x | 7.23x |
+| heshi | 161.4 | 1153.0 | 992.7 | 7.14x | 6.15x |
+| mzunguko_mchezo | 4.0 | 21.5 | 21.5 | 5.26x | 5.27x |
+| miti_bst | 62.1 | 108.3 | 108.6 | 1.74x | 1.74x |
+| mandelbrot | 66.3 | 207.5 | 158.1 | 3.12x | 2.38x |
+| mchujo | 137.9 | 385.0 | 359.4 | 2.79x | 2.60x |
+| maneno | 28.1 | 156.3 | 103.5 | 5.55x | 3.67x |
+
+matriki bado ni pengo kubwa zaidi (7.2x): kitanzi cha ndani bado kina
+push/pop ya anwani ya `c[...] += ...`, `cltq` baada ya kila operesheni ya
+N32, na kaunta ya kitanzi inapita rax kabla ya kurudi kwenye rejesta --
+kazi ya baadaye. mzunguko_mchezo na miti_bst hazibadiliki (kazi yao
+kuu ni wito wa kazi na miundo, si hesabu ya jozi).
