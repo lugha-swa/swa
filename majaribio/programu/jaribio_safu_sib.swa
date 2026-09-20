@@ -1,0 +1,146 @@
+// arr[i] ya scalar yenye msingi jani: faharasa -> rax (cdqe), msingi -> rcx,
+// kisha upakiaji MMOJA [rcx + rax*saizi] (SIB) -- badala ya shl + cdqe + add +
+// pakia. Aina zote za elementi, msingi wa rejesta/rafu/paramu/safu ya ndani,
+// faharasa hasi, faharasa ndani ya faharasa (msingi lazima utafutwe baada ya
+// faharasa, si kabla), na safu mbili zenye majina tofauti.
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+N32 t_paramu(N8* b, N16* h, N32* w, N64* l, D64* d, D32* f, N32 i) {
+    kama (b[i] != 3) { rudisha 1; }
+    kama (h[i] != 300) { rudisha 2; }
+    kama (w[i] != 30000) { rudisha 3; }
+    kama (l[i] != 3000000000) { rudisha 4; }
+    kama (d[i] != 3.5) { rudisha 5; }
+    kama (f[i] != 2.5) { rudisha 6; }
+    kama (b[i - 1] != 2 || h[i - 1] != 200 || w[i - 1] != 20000) { rudisha 7; }
+    rudisha 0;
+}
+
+N32 jaribu_paramu() {
+    N8* b = tenga(8);
+    N16* h = tenga(ukubwa(N16) * 4);
+    N32* w = tenga(ukubwa(N32) * 4);
+    N64* l = tenga(ukubwa(N64) * 4);
+    D64* d = tenga(ukubwa(D64) * 4);
+    D32* f = tenga(ukubwa(D32) * 4);
+    b[1] = 2; b[2] = 3; h[1] = 200; h[2] = 300; w[1] = 20000; w[2] = 30000;
+    l[2] = 3000000000; d[2] = 3.5; f[2] = 2.5;
+    rudisha t_paramu(b, h, w, l, d, f, 2);
+}
+
+// Aina zenye ishara na bila ishara: upanuzi wa ishara/sifuri wa movsx/movzx
+N32 jaribu_ishara() {
+    N8* sb = tenga(8);
+    A8 ub[8];
+    N16* sh = tenga(ukubwa(N16) * 4);
+    A16 uh[4];
+    A32 uw[4];
+    N32 i = 1;
+    sb[i] = 0 - 5;
+    ub[i] = 250;
+    sh[i] = 0 - 300;
+    uh[i] = 60000;
+    uw[i] = 0;
+    uw[i] = uw[i] - 1;
+    kama (sb[i] != (0 - 5)) { rudisha 1; }
+    kama (sb[i] + 10 != 5) { rudisha 2; }
+    kama (ub[i] != 250) { rudisha 3; }
+    kama (ub[i] + 10 != 260) { rudisha 4; }
+    kama (sh[i] != (0 - 300)) { rudisha 5; }
+    kama (uh[i] != 60000) { rudisha 6; }
+    kama (uh[i] + 10 != 60010) { rudisha 7; }
+    kama (uw[i] < 5) { rudisha 8; }
+    N64 w = sb[i];
+    kama (w != (0 - 5)) { rudisha 9; }
+    rudisha 0;
+}
+
+// Faharasa hasi, N64 na usemi wa faharasa, safu ya ndani (lea) na ofseti kubwa
+N32 jaribu_hasi_na_ndani() {
+    N32 pedi[100];
+    N32 a[8];
+    D64 d[4];
+    N64 l[4];
+    N32 i = 0;
+    pedi[0] = 1;
+    wakati (i < 8) { a[i] = i * 10; i = i + 1; }
+    d[0] = 0.5; d[1] = 1.5; d[2] = 2.5; d[3] = 3.5;
+    l[0] = 4000000000; l[1] = 5000000000; l[2] = 6000000000; l[3] = 7000000000;
+    N32* q = a + 4;
+    N32 k = 2;
+    N64 wk = 3;
+    kama (q[0 - k] != 20) { rudisha 1; }
+    kama (q[0 - 1] != 30) { rudisha 2; }
+    kama (a[k + 1] != 30 || a[7 - k] != 50) { rudisha 3; }
+    kama (d[k] != 2.5 || d[k + 1] != 3.5) { rudisha 4; }
+    kama (l[k] != 6000000000 || l[wk] != 7000000000) { rudisha 5; }
+    kama (a[wk] != 30) { rudisha 6; }            // faharasa ya N64 (inapunguzwa hadi biti 32)
+    kama (pedi[0] != 1) { rudisha 7; }
+    rudisha 0;
+}
+
+// Faharasa ndani ya faharasa, na msingi wa safu mbili tofauti: msingi
+// unatafutwa BAADA ya faharasa ya ndani kutathminiwa (mdudu ulioonekana
+// wakati wa kuandika: hali ya utafutaji ya kimataifa iliandikwa juu na
+// faharasa ya ndani).
+N32 jaribu_ndani_ya_ndani() {
+    N32 a[8];
+    N32 b[8];
+    N32 c[8];
+    N32 i = 0;
+    wakati (i < 8) { a[i] = i * 10; b[i] = i * 100; c[i] = 7 - i; i = i + 1; }
+    kama (b[a[1] / 10] != 100) { rudisha 1; }
+    kama (b[a[2] / 10] != 200) { rudisha 2; }
+    kama (c[b[a[1] / 10] / 100] != 6) { rudisha 3; }
+    kama (a[c[b[1] / 100]] != 60) { rudisha 4; }     // c[1] = 6 -> a[6]
+    kama (b[c[a[1] / 10]] != 600) { rudisha 5; }     // c[1] = 6 -> b[6]
+    N32* p = tenga(ukubwa(N32) * 8);
+    N32* r = tenga(ukubwa(N32) * 8);
+    i = 0;
+    wakati (i < 8) { p[i] = 7 - i; r[i] = i + 100; i = i + 1; }
+    kama (r[p[p[1]]] != 101) { rudisha 6; }         // p[1]=6, p[6]=1, r[1]=101
+    rudisha 0;
+}
+
+// Faharasa yenye wito (msingi ni jani na si wa kubadilishwa na wito)
+N32 mara2(N32 x) { rudisha x * 2; }
+N32 jaribu_wito_kwenye_faharasa() {
+    N32* p = tenga(ukubwa(N32) * 16);
+    N32 i = 0;
+    wakati (i < 16) { p[i] = i * i; i = i + 1; }
+    kama (p[mara2(3)] != 36) { rudisha 1; }
+    kama (p[mara2(mara2(2))] != 64) { rudisha 2; }
+    kama (p[mara2(1) + mara2(2)] != 36) { rudisha 3; }
+    rudisha 0;
+}
+
+// Elementi za miundo na vielekezi (kipengele si scalar cha kawaida): njia ya asili
+muundo Jozi { N32 a; N32 b; };
+N32 jaribu_miundo_na_vielekezi() {
+    Jozi* z = tenga(ukubwa(Jozi) * 3);
+    z[1].a = 5; z[1].b = 6; z[2].a = 7; z[2].b = 8;
+    N32 i = 1;
+    kama (z[i].a + z[i + 1].b != 13) { rudisha 1; }
+    N32** pp = tenga(16);
+    N32* x = tenga(ukubwa(N32) * 2);
+    x[1] = 77;
+    pp[1] = x;
+    kama (pp[i][1] != 77) { rudisha 2; }
+    rudisha 0;
+}
+
+N32 main() {
+    N32 r = jaribu_paramu();
+    kama (r != 0) { rudisha 10 + r; }
+    r = jaribu_ishara();
+    kama (r != 0) { rudisha 20 + r; }
+    r = jaribu_hasi_na_ndani();
+    kama (r != 0) { rudisha 30 + r; }
+    r = jaribu_ndani_ya_ndani();
+    kama (r != 0) { rudisha 40 + r; }
+    r = jaribu_wito_kwenye_faharasa();
+    kama (r != 0) { rudisha 50 + r; }
+    r = jaribu_miundo_na_vielekezi();
+    kama (r != 0) { rudisha 60 + r; }
+    rudisha 0;
+}
