@@ -1,0 +1,105 @@
+// arr[i] ya safu ya ndani: anwani ya msingi inapakiwa moja kwa moja (lea rcx,
+// [rbp-off]) badala ya push/pop -- kusoma na kuandika, aina zote, ofseti ndogo
+// (disp8) na kubwa (disp32), faharasa hasi/kubwa kutoka usemi, kiwanja (+=).
+
+N32 jaribu_ndogo() {
+    N32 a[4];
+    N8 b[8];
+    N16 h[4];
+    N64 l[4];
+    D64 d[4];
+    N32 i = 2;
+    N32 j = 1;
+    a[0] = 10; a[1] = 20; a[2] = 30; a[3] = 40;
+    b[0] = 1; b[i] = 3; b[i + j] = 4;
+    h[j] = 300; h[i] = 0 - 5;
+    l[i] = 5000000000; l[j] = 0 - 7;
+    d[j] = 1.5; d[i] = 2.25;
+    kama (a[i] + a[j] != 50) { rudisha 1; }
+    kama (a[i + j] - a[j - 1] != 30) { rudisha 2; }
+    kama (b[i] + b[i + j] != 7) { rudisha 3; }
+    kama (h[j] + h[i] != 295) { rudisha 4; }
+    kama (l[i] + l[j] != 4999999993) { rudisha 5; }
+    kama (d[j] + d[i] != 3.75) { rudisha 6; }
+    a[i] = a[j] * 3;
+    kama (a[2] != 60) { rudisha 7; }
+    a[i + j] = a[i] + a[j];
+    kama (a[3] != 80) { rudisha 8; }
+    a[i * j] += 5;
+    kama (a[2] != 65) { rudisha 9; }
+    l[j] = l[i] - l[j];
+    kama (l[1] != 5000000007) { rudisha 10; }
+    d[i] = d[i] * d[j];
+    kama (d[2] != 3.375) { rudisha 11; }
+    rudisha 0;
+}
+
+// Safu kubwa mbele ya nyingine: ofseti zaidi ya 127 (disp32)
+N32 jaribu_kubwa() {
+    N32 pedi[100];
+    N32 a[6];
+    N64 l[4];
+    N32 i = 3;
+    N32 j = 2;
+    pedi[0] = 1; pedi[99] = 2;
+    a[0] = 1; a[1] = 2; a[2] = 3; a[3] = 4; a[4] = 5; a[5] = 6;
+    l[0] = 100; l[1] = 200; l[2] = 300; l[3] = 400;
+    kama (a[i] + a[j] != 7) { rudisha 1; }
+    kama (l[i] - l[j] != 100) { rudisha 2; }
+    a[i] = a[i] + 10;
+    kama (a[3] != 14) { rudisha 3; }
+    l[j] += l[i];
+    kama (l[2] != 700) { rudisha 4; }
+    kama (pedi[0] + pedi[99] != 3) { rudisha 5; }
+    // mtazamo huru: kielekezi cha safu (lea rax) lazima kione thamani zilezile
+    N32* pa = a;
+    N64* pl = l;
+    kama (pa[0] != 1 || pa[3] != 14 || pa[5] != 6) { rudisha 6; }
+    kama (pl[0] != 100 || pl[2] != 700 || pl[3] != 400) { rudisha 7; }
+    pa[1] = 99;
+    kama (a[1] != 99) { rudisha 8; }
+    rudisha 0;
+}
+
+// Faharasa hasi kupitia kielekezi kilichotokana na safu, na safu mbili
+N32 jaribu_hasi_na_mbili() {
+    N32 a[8];
+    N32 b[8];
+    N32 i = 0;
+    wakati (i < 8) { a[i] = i * 10; b[i] = i * 100; i = i + 1; }
+    N32* p = a;
+    N32* q = p + 4;
+    N32 k = 2;
+    kama (q[0 - k] != 20) { rudisha 1; }
+    kama (a[7 - k] + b[k] != 250) { rudisha 2; }
+    kama (b[a[1] / 10] != 100) { rudisha 3; }                  // faharasa ndani ya faharasa
+    b[a[2] / 10] = a[3];
+    kama (b[2] != 30) { rudisha 4; }
+    N32 j = 0;
+    N32 s = 0;
+    wakati (j < 8) { s = s + a[j] + b[j]; j = j + 1; }
+    kama (s != 280 + 2800 - 200 + 30) { rudisha 5; }           // b[2] = 30 badala ya 200
+    rudisha 0;
+}
+
+// Paramu ni kielekezi (si safu): njia ya jani la kigezo
+N32 t_paramu(N32* p, N32 i) { rudisha p[i] + p[i + 1]; }
+N32 jaribu_paramu() {
+    N32 a[4];
+    a[0] = 1; a[1] = 2; a[2] = 3; a[3] = 4;
+    kama (t_paramu(a, 1) != 5) { rudisha 1; }
+    kama (t_paramu(a, 2) != 7) { rudisha 2; }
+    rudisha 0;
+}
+
+N32 main() {
+    N32 r = jaribu_ndogo();
+    kama (r != 0) { rudisha 10 + r; }
+    r = jaribu_kubwa();
+    kama (r != 0) { rudisha 30 + r; }
+    r = jaribu_hasi_na_mbili();
+    kama (r != 0) { rudisha 50 + r; }
+    r = jaribu_paramu();
+    kama (r != 0) { rudisha 70 + r; }
+    rudisha 0;
+}

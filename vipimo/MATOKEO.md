@@ -957,3 +957,78 @@ push/pop ya anwani ya `c[...] += ...`, `cltq` baada ya kila operesheni ya
 N32, na kaunta ya kitanzi inapita rax kabla ya kurudi kwenye rejesta --
 kazi ya baadaye. mzunguko_mchezo na miti_bst hazibadiliki (kazi yao
 kuu ni wito wa kazi na miundo, si hesabu ya jozi).
+
+## Awamu ya pili: hesabu bila rafu (kiwanja, kaunta, hoja ya kwanza, uchawi wa N64, cmp)
+
+Inaendeleza `toa_pande_mbili` (sehemu iliyotangulia). Kila kipengele kina
+jaribio lake la kudumu na kila kimoja kimevunjwa kwa makusudi (mutation) ili
+kuthibitisha kuwa jaribio linakishika.
+
+- **Ugawaji wa kiwanja** (`c[idx] += x`, `-=`, `*=`): thamani ya sasa
+  haisukumwi rafuni -- kulia jani -> rcx; desimali isiyo na wito -> xmm2..xmm7;
+  vinginevyo rafu. Pia ilikuwa na `push rax; push rax; pop rax` isiyo na maana.
+- **Kaunta** `x = x + namba` / `x = x - namba` (N32 yenye ishara): `add
+  r32, imm32` + `movsxd` kwa rejesta, `add dword [rbp-off], imm32` kwa rafu
+  (badala ya maagizo 6 kupitia rax). Kuzunguka kwa 2^31 kunathibitishwa.
+- **`movsxd`**: kusoma kigezo cha N32 chenye ishara kulikuwa `mov` + `cdqe`;
+  sasa agizo moja. Rejesta za kudumu HAZIhakikishiwi kupanuliwa kwa ishara
+  (`sawazisha_eax_kwa_enc` haifanyi kitu kwa upana wa 4), kwa hiyo `cdqe`
+  haiwezi kuondolewa -- ila kuunganishwa kunaokoa agizo na kulipimwa ~10%
+  kwenye vipimo kadhaa. (Jaribio la kuondoa `cdqe` ya operanda kabisa
+  halikuleta faida yoyote inayopimika, na liliondolewa.)
+- **Hoja ya kwanza ya wito** haipiti rafuni: `mov rdi, rax` (au inabaki
+  xmm0). Inatumika tu kwa wito wa kawaida: si sret, si syscall, si
+  `tekeleza`, si wito wa kielekezi, na hakuna hoja ya muundo (sloti za
+  `[rsp + j*8]` zinategemea hoja zote kuwa rafuni).
+- **`/ % << >> & | ^`** zinapita `toa_pande_mbili` (kigawanyaji jani).
+- **Zidisho na uchawi kwa N64 yenye ishara**: kikwazo cha awali (hakuna hesabu
+  ya biti 128 kwenye lugha) kimepitwa kwa jedwali la vigawanyaji 79 (3..64
+  visivyo nguvu ya 2, na 22 vya kawaida: 100, 1000, 10^4..10^9, 10^9+7,
+  998244353, 3600, 86400, ...) lililohesabiwa nje kwa algorithm ya Hacker's
+  Delight na kuthibitishwa kwa C (`__int128`) dhidi ya mgawanyo halisi:
+  mamilioni ya thamani nasibu za mizani yote na thamani za mpaka, sifuri
+  tofauti. `jaribio_gawanyo_n64_uchawi` inarudia ulinganisho huo ndani ya
+  mradi kwa kila kigawanyaji. Kigawanyaji kisicho kwenye jedwali kinabaki idiv.
+- **`arr[i]` ya safu ya ndani**: msingi kwa `lea rcx, [rbp-off]`.
+- **Ulinganishi wa namba kamili**: `cmp reg,reg`, `cmp reg,[mem]`,
+  `cmp [mem],reg`, `cmp L,imm32`, `cmp L,rax`, `cmp rax,R` (REX.W/R/B kwa
+  N64 na r8+) badala ya kupakia rax/rcx; mpangilio wa tathmini
+  unahifadhiwa (kulia usemi kwanza, kigezo cha kushoto kinasomwa na cmp).
+
+### Uthibitisho
+
+- 418/418 (410 zilizopo + 8 mapya), imekimbizwa mara 3 kutoka ujenzi safi.
+  Fixpoint stage2 == stage3.
+- Programu 315 zimeundwa na stage1 na stage2: baiti sawa isipokuwa tatu --
+  `jaribio_gawanyo_nguvu_pili_mipaka`, `jaribio_kaunta_namba` na
+  `jaribio_wito_hoja_ya_kwanza` -- zote tatu zinatofautiana vilevile kwenye
+  mkusanyaji wa kabla ya PR hii (mdudu unaojulikana wa mbegu.bin: baadhi ya
+  namba hasi zilizokunjwa, mfano `0 - 2147483647 - 1`, hazikunjwi kwenye gen1;
+  tofauti ni anwani za data tu, matokeo ya kukimbia ni sawa).
+- Programu 6001 za nasibu (N32/N64/D64, vielekezi, faharasa, mgawanyo,
+  hamisha, biti, ulinganishi wa vigezo/namba/usemi, kama sharti na kama
+  thamani) zimeundwa na mkusanyaji wa kabla na wa baada: matokeo sawa kwa zote.
+- Vipimo vyote tisa vinatoa matokeo yaleyale.
+
+### Utendaji
+
+Interleaved, mizunguko 9, wastani wa kati, gcc -O2 kama msingi; mizunguko
+miwili kamili (nambari zilifanana ndani ya ~3%). "zamani" = main baada ya
+awamu ya kwanza.
+
+| Kipimo | C (ms) | zamani (ms) | mpya (ms) | zamani/C | mpya/C |
+|---|---|---|---|---|---|
+| fibonacci | 19.9 | 103.6 | 81.4 | 5.19x | 4.08x |
+| kupanga | 97.7 | 263.9 | 229.0 | 2.69x | 2.34x |
+| matriki | 16.2 | 117.7 | 78.4 | 7.25x | 4.83x |
+| heshi | 161.7 | 976.6 | 613.2 | 6.03x | 3.79x |
+| mzunguko_mchezo | 3.9 | 21.0 | 18.8 | 5.40x | 4.83x |
+| miti_bst | 61.8 | 107.1 | 111.1 | 1.73x | 1.79x |
+| mandelbrot | 65.0 | 155.1 | 149.3 | 2.38x | 2.29x |
+| mchujo | 151.3 | 367.6 | 260.8 | 2.42x | 1.72x |
+| maneno | 26.2 | 100.6 | 95.6 | 3.84x | 3.65x |
+
+miti_bst ni kipimo cha wito/miundo na inaonekana kubaki sawa ndani ya
+kelele (+1% hadi +4% kwenye mizunguko miwili; siwezi kudai ni uboreshaji au
+hasara). Pengo kubwa lililobaki: matriki (4.8x), fibonacci (4.1x, gharama ya
+wito na fremu), heshi (3.8x, bado maandishi-hadi-nambari ya maktaba).
