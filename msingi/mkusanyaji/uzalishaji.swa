@@ -5476,45 +5476,89 @@ W0 toa_cmp_pande_mbili(N32 node, N32 kazi_node, N32 enc) {
     uzalishaji_cmp_kwa_enc(enc);
 }
 
+// Msingi wa arr[i] unaoweza kupakiwa moja kwa moja rcx (bila kugusa rax):
+//   1 = kigezo cha kielekezi (rejesta, rafu, paramu) -> mov rcx, kigezo
+//   2 = safu ya ndani (si paramu) -> lea rcx, [rbp-off]
+//       (utafutaji ule ule wa uzalishaji_kitambulisho: jina la kwanza ndilo)
+//   0 = hapana
+N32 jr_msingi_off = 0;
+N32 jr_msingi_aina(N32 node, N32 kazi_node) {
+    kama (jr_jani_rcx(node, kazi_node, 8)) { rudisha 1; }
+    kama (ast_aina[node] != AST_KITAMBULISHO) { rudisha 0; }
+    N8* jina_s = ast_pool + ast_jina_off[node];
+    kama (jina_s[0] == 34) { rudisha 0; }
+    N32 si = 0;
+    wakati (si < var_idadi) {
+        kama (jina_linganisha(var_pool + var_jina_off[si], jina_s)) {
+            kama (var_ni_safu[si] == 1) {
+                jr_msingi_off = var_rbp_off[si];
+                rudisha 2;
+            }
+            rudisha 0;
+        }
+        si = si + 1;
+    }
+    rudisha 0;
+}
+
+W0 jr_pakia_msingi_rcx(N32 aina, N32 node, N32 kazi_node) {
+    kama (aina == 1) { jr_pakia_jani_rcx(node, kazi_node, 8); rudisha; }
+    // jr_msingi_off huandikwa upya na kila jr_msingi_aina -- faharasa (iliyotathminiwa
+    // kati ya uamuzi na upakiaji) inaweza kuwa imeandika juu yake; tafuta tena.
+    jr_msingi_aina(node, kazi_node);
+    N32 off_s = jr_msingi_off;
+    andika_baiti(72); andika_baiti(141);   // lea rcx, [rbp-off]
+    kama (off_s < 128) {
+        andika_baiti(77); andika_baiti((256 - off_s) & 255);
+    } sivyo {
+        andika_baiti(141); andika_disp32_ya_off(off_s);
+    }
+}
+
 // rax = ofseti (tayari imeongezwa kwa ukubwa wa kipengele) -> rax =
-// msingi + ofseti. Msingi ukiwa kigezo cha kielekezi (rejesta, rafu,
-// paramu) hupakiwa moja kwa moja rcx BAADA ya faharasa (mpangilio ule ule
-// wa asili: faharasa kwanza, msingi baadaye) -- hakuna push/pop.
+// msingi + ofseti. Msingi ukiwa jani (angalia jr_msingi_aina) hupakiwa moja
+// kwa moja rcx BAADA ya faharasa (mpangilio ule ule wa asili: faharasa
+// kwanza, msingi baadaye) -- hakuna push/pop.
 W0 toa_ongeza_msingi(N32 msingi_node, N32 kazi_node) {
-    kama (jr_jani_rcx(msingi_node, kazi_node, 8)) {
-        jr_pakia_jani_rcx(msingi_node, kazi_node, 8);
+    N32 ma = jr_msingi_aina(msingi_node, kazi_node);
+    kama (ma != 0) {
+        jr_pakia_msingi_rcx(ma, msingi_node, kazi_node);
         andika_add_rax_rcx();
         rudisha;
-    }
-    // Safu ya ndani (si paramu): msingi ni anwani ya safu -- lea rcx, [rbp-off]
-    // (utafutaji ule ule wa uzalishaji_kitambulisho: jina la kwanza ndilo)
-    kama (ast_aina[msingi_node] == AST_KITAMBULISHO) {
-        N8* jina_s = ast_pool + ast_jina_off[msingi_node];
-        kama (jina_s[0] != 34) {
-            N32 si = 0;
-            wakati (si < var_idadi) {
-                kama (jina_linganisha(var_pool + var_jina_off[si], jina_s)) {
-                    kama (var_ni_safu[si] == 1) {
-                        N32 off_s = var_rbp_off[si];
-                        andika_baiti(72); andika_baiti(141);   // lea rcx, [rbp-off]
-                        kama (off_s < 128) {
-                            andika_baiti(77); andika_baiti((256 - off_s) & 255);
-                        } sivyo {
-                            andika_baiti(141); andika_disp32_ya_off(off_s);
-                        }
-                        andika_add_rax_rcx();
-                        rudisha;
-                    }
-                    vunja;
-                }
-                si = si + 1;
-            }
-        }
     }
     andika_push_rax();  // hifadhi ofseti
     uzalishaji_usemi(msingi_node, kazi_node);  // rax = msingi
     andika_pop_rcx();  // rcx = ofseti
     andika_add_rax_rcx();  // rax = msingi + ofseti
+}
+
+// Pakia kipengele cha scalar kutoka [rcx + rax * saizi] (SIB) -- agizo moja
+// badala ya shl + cdqe + add + pakia. rax = faharasa iliyopanuliwa kwa ishara,
+// rcx = msingi. Upana wa upakiaji (kutoka enc) lazima ulingane na saizi.
+W0 andika_pakia_sib_kwa_enc(N32 enc, N32 saizi) {
+    N32 sib = 1;                     // base = rcx, index = rax
+    kama (saizi == 2) { sib = 65; }
+    kama (saizi == 4) { sib = 129; }
+    kama (saizi == 8) { sib = 193; }
+    kama (ni_desimali_enc(enc)) {
+        kama (saizi >= 8) { andika_baiti(242); } sivyo { andika_baiti(243); }
+        andika_baiti(15); andika_baiti(16); andika_baiti(4); andika_baiti(sib);
+        rudisha;
+    }
+    kama (saizi == 1) {
+        andika_baiti(15);
+        kama (ni_bila_ishara_enc(enc)) { andika_baiti(182); } sivyo { andika_baiti(190); }
+        andika_baiti(4); andika_baiti(sib);
+        rudisha;
+    }
+    kama (saizi == 2) {
+        andika_baiti(15);
+        kama (ni_bila_ishara_enc(enc)) { andika_baiti(183); } sivyo { andika_baiti(191); }
+        andika_baiti(4); andika_baiti(sib);
+        rudisha;
+    }
+    kama (saizi == 8) { andika_baiti(72); }
+    andika_baiti(139); andika_baiti(4); andika_baiti(sib);
 }
 
 // x = x + namba / x = x - namba kwa kigezo cha N32 chenye ishara (kaunta
@@ -7366,6 +7410,27 @@ W0 uzalishaji_nyoosha(N32 node, N32 kazi_node) {
         // ast_tiga ya hoja baada ya kukagua.
         N32 saizi = ukubwa_wa_kipengele(ast_thamani[node]);
         kama (saizi == 0) { saizi = 4; }  // chaguo-msingi
+        N32 enc_k = ast_thamani[node];
+        N32 ma_k = 0;
+        kama (enc_k > 0 && (saizi == 1 || saizi == 2 || saizi == 4 || saizi == 8)) {
+            kama (ukubwa_kutoka_enc(enc_k) == saizi) { ma_k = jr_msingi_aina(ptr_node, kazi_node); }
+        }
+        kama (ma_k != 0) {
+            // Kipengele cha scalar, msingi jani: faharasa kwanza (rax, cdqe),
+            // msingi rcx, kisha upakiaji mmoja [rcx + rax*saizi].
+            uzalishaji_usemi(idx_node, kazi_node);
+            // N32 yenye ishara tayari imepanuliwa na panua_ishara_ndogo (mwisho wa
+            // uzalishaji_usemi); aina nyingine (A32, N64 -- ilipunguzwa kwa biti 32
+            // na shl+cdqe ya njia ya asili) inahitaji cdqe hapa kwa matokeo yale yale.
+            N32 ie = ast_thamani[idx_node];
+            kama (ast_aina[idx_node] == 4) { ie = ast_nne[idx_node]; }
+            N32 tayari = 0;
+            kama (ast_aina[idx_node] != 45 && ie > 0 && ukubwa_kutoka_enc(ie) < 8 && ni_bila_ishara_enc(ie) == 0 && ni_desimali_enc(ie) == 0) { tayari = 1; }
+            kama (tayari == 0) { andika_cdqe(); }
+            jr_pakia_msingi_rcx(ma_k, ptr_node, kazi_node);
+            andika_pakia_sib_kwa_enc(enc_k, saizi);
+            rudisha;
+        }
         uzalishaji_usemi(idx_node, kazi_node);  // eax = idx
         andika_ongea_kipengele_kwa_saizi(saizi);  // eax = idx * saizi (ishara-extension)
         toa_ongeza_msingi(ptr_node, kazi_node);  // rax = msingi + ofseti
