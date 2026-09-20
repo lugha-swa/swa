@@ -997,7 +997,7 @@ kuthibitisha kuwa jaribio linakishika.
 
 ### Uthibitisho
 
-- 418/418 (410 zilizopo + 8 mapya), imekimbizwa mara 3 kutoka ujenzi safi.
+- 419/419 (410 zilizopo + 8 mapya + jaribio la rekebisho la mgawanyo ulioota), imekimbizwa mara 3 kutoka ujenzi safi.
   Fixpoint stage2 == stage3.
 - Programu 315 zimeundwa na stage1 na stage2: baiti sawa isipokuwa tatu --
   `jaribio_gawanyo_nguvu_pili_mipaka`, `jaribio_kaunta_namba` na
@@ -1032,3 +1032,65 @@ miti_bst ni kipimo cha wito/miundo na inaonekana kubaki sawa ndani ya
 kelele (+1% hadi +4% kwenye mizunguko miwili; siwezi kudai ni uboreshaji au
 hasara). Pengo kubwa lililobaki: matriki (4.8x), fibonacci (4.1x, gharama ya
 wito na fremu), heshi (3.8x, bado maandishi-hadi-nambari ya maktaba).
+
+### Masahihisho kwa awamu ya pili
+
+Awamu hiyo ilikuja na rekebisho la mdudu uliokuwepo main tangu #244:
+mgawanyo/modulo wa kudumu ulioota (`x / 10 / 100`) ulitumia namba ya uchawi ya
+kigawanyaji cha ndani (`gwm_uchawi_*` na `gwm64_*` ni vigezo vya ulimwengu
+vilivyoandikwa juu na mgawanyo wa ndani kabla ya wa nje kuvitumia). Sasa
+vinatafutwa tena baada ya kushoto kutathminiwa; `jaribio_uchawi_ndani_ya_ndani`
+linashindwa kabla ya rekebisho na linapita baada yake. Majaribio ya nasibu ya
+awali hayakuushika kwa sababu vigawanyaji vyake vilikuwa vigezo; njia
+iliyoushika ni kulinganisha toleo lenye vigawanyaji vya kudumu na toleo lenye
+vigawanyaji vilivyofichwa nyuma ya kazi (idiv halisi), kwa mkusanyaji ule ule.
+
+## Upakiaji wa arr[i] kwa agizo moja la SIB
+
+`arr[i]` ya scalar (N8/N16/N32/N64, A8/A16/A32, D32/D64) yenye msingi jani
+(kigezo cha kielekezi cha rejesta/rafu/paramu, au safu ya ndani) sasa
+inapakiwa kwa agizo MOJA `[rcx + rax*saizi]`: faharasa kwenye rax (cdqe tu
+kama `panua_ishara_ndogo` haikuiongeza tayari), msingi kwenye rcx BAADA ya
+faharasa (mpangilio ule ule wa asili), kisha upakiaji. Awali ilikuwa `shl`,
+`cdqe`, `add`, kisha upakiaji. Miundo (`z[i].a`), vielekezi vya vielekezi na
+msingi usio jani hubaki njia ya asili. Uhifadhi (`arr[i] = x`) haujaguswa.
+
+Mdudu mmoja ulipatikana na jaribio jipya wakati wa kuandika: `jr_msingi_off`
+(kigezo cha ulimwengu kilichoshikilia ofseti ya safu ya msingi) kiliandikwa
+juu na faharasa ya ndani (`b[a[1] / 10]`) kati ya uamuzi na upakiaji;
+`jr_pakia_msingi_rcx` sasa inatafuta tena. Jaribio: `jaribio_safu_sib`.
+
+### Uthibitisho
+
+- 420/420 (419 + 1 mpya), mara 3 kutoka ujenzi safi; fixpoint stage2 == stage3.
+- Programu 317 zimeundwa na stage1 na stage2: baiti sawa isipokuwa tatu
+  zinazojulikana (mdudu wa mbegu.bin wa kukunja namba hasi; zinatofautiana
+  vilevile kabla ya mabadiliko haya).
+- Programu 4001 za nasibu, mkusanyaji wa kabla dhidi ya wa baada: sifuri
+  tofauti. Programu 2501 za oracle (vigawanyaji vya kudumu dhidi ya
+  vilivyofichwa): sifuri tofauti.
+- Kila kanuni ya usimbaji (mizani ya SIB, movsx/movzx, REX.W, utafutaji wa
+  msingi) imevunjwa kwa makusudi na jaribio limeshindwa.
+
+### Utendaji
+
+Sasa nimepima kwa `perf stat` (mizunguko ya CPU, mizunguko 9, wastani), si
+muda wa ukuta, kwa sababu ya kelele ya mashine. "zamani" = main baada ya #250.
+
+| Kipimo | C (mzunguko M) | zamani | mpya | zamani/C | mpya/C | maagizo mpya/zamani |
+|---|---|---|---|---|---|---|
+| kupanga | 338 | 720 | 639 | 2.13x | 1.89x | 0.88 |
+| maneno | 90 | 306 | 226 | 3.39x | 2.51x | 0.91 |
+| matriki | 48 | 236 | 214 | 4.92x | 4.47x | 0.91 |
+| heshi | 519 | 1877 | 1839 | 3.61x | 3.54x | 0.92 |
+| fibonacci | 67 | 266 | 254 | 3.98x | 3.81x | 1.00 |
+| mandelbrot | 232 | 499 | 502 | 2.15x | 2.17x | 1.00 |
+| mchujo | 596 | 946 | 991 | 1.59x | 1.66x | 0.97 |
+
+Kuhusu mchujo: inaonekana +5% kwenye mizunguko yote, lakini si hasara halisi.
+Nilipoongeza kazi tupu kabla ya `main` (kuhamisha msimbo kwa baiti kadhaa) muda
+wa mkusanyaji wa ZAMANI na WA MPYA ulibadilika +-6% (915-994 M dhidi ya 912-975 M
+mizunguko) -- ni athari ya mpangilio wa msimbo wa kitanzi (mipaka ya 32/64 baiti),
+si gharama ya SIB (maagizo yamepungua 3%). Tofauti chini ya ~6% kwenye kipimo
+kimoja haipaswi kudaiwa bila jaribio hilo la kuhamisha msimbo. fibonacci na
+mandelbrot hazina `arr[i]` moto, kwa hiyo hazibadiliki (maagizo sawa kabisa).
