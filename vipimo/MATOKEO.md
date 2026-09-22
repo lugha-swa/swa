@@ -1326,3 +1326,47 @@ matriki hasa kwa marudio matatu ya moja kwa moja: 198.0M/199.1M,
 ya 0.5% kila wakati). Faida yake ni kwa msimbo unaotumia vielekezi
 moja kwa moja (bila safu), mfano linked-list au miundo ya mtu binafsi
 iliyofikiwa kupitia kielekezi kimoja bila faharasa.
+
+## Uhifadhi wa kielekezi->sehemu = thamani kwa [r9+off] moja kwa moja
+
+Kioo cha tatu cha mfululizo huu: `ptr->sehemu = thamani` sasa hutumia
+`[r9+off]` moja kwa moja -- OFSETI YA SEHEMU (iliyowekwa na mkaguzi,
+0/4/8 n.k.) inaandikwa ndani ya ModRM/disp8/disp32 ya agizo la
+kuhifadhi lenyewe, badala ya "add rax, off" tofauti + push/pop ya
+anwani. Kielekezi kinashikiliwa r9 (jr_jani_rcx) wakati RHS salama
+inatathminiwa, kama sehemu mbili zilizotangulia. Kiwanja (`ptr->f +=
+x`) HAIHITAJI hundi ya ziada: hujitokeza kama RHS inayosoma
+SEHEMU_MSHALE ile ile, ambayo haiko kwenye orodha nyeupe ya
+jr_ni_salama -- inarudi njia ya asili kiotomatiki.
+
+### Uthibitisho
+
+- `jaribio_uhifadhi_mshale`: sehemu ya kwanza (hakuna disp), disp8,
+  disp32 (ofseti > 127), RHS salama inayogusa rcx, RHS isiyo salama
+  (wito), kiwanja, kielekezi kilichotokana na pointer arithmetic.
+  426/426, fixpoint stage2==stage3.
+- Mdudu WA KANDO uliogunduliwa (nje ya wigo, HAUJAREKEBISHWA): muundo
+  wenye SAFU kama sehemu (`N32 pad[40];` ndani ya `muundo`) unashindwa
+  kukusanywa (`; KOSA: 1` kutoka kwa mchanganuzi wa stage2) -- ilikuwepo
+  hata kwenye mkusanyaji wa KABLA ya kazi hii (f1v), hivyo si
+  imesababishwa na mabadiliko haya. Jaribio hili liliepuka tatizo kwa
+  kutumia sehemu nyingi za N32 badala ya safu moja kupata ofseti > 127.
+- Mutation: kubadilisha kigezo cha disp8/disp32 (`off < 128` -> `off <
+  256`) kulisababisha SEGV kwenye jaribio_uhifadhi_mshale (ofseti ya
+  `mbali`, 140, ingeandikwa kama disp8 potovu) -- imekamatwa.
+- Fuzz 5001 programu za nasibu: sifuri tofauti.
+
+### Utendaji
+
+Kipimo cha `miti_bst` (mti wa utafutaji wa jozi) NDIO lengwa halisi la
+uboreshaji huu -- kitanzi chake cha uingizaji kinatumia `n->kushoto =
+n; sasa->kulia = n;` n.k. moja kwa moja. Matokeo (perf stat, mizunguko
+7): fibonacci -1.2%, kupanga ~sawa, matriki -2.4%, heshi -0.7%,
+mzunguko_mchezo -2.9%, **miti_bst -10.1%** (367M -> 329M), mandelbrot
+~sawa, mchujo +1.0%, maneno -1.0%. miti_bst imethibitishwa KUWA FAIDA
+HALISI (si kelele) kwa jaribio la pad: safu ya mkusanyaji MPYA pekee
+(pad=0/2/4) ilikaa ndani ya 333M-341M (~2.3%), mbali sana chini ya
+367M ya awali -- pengo la 10% haliwezi kuelezwa na kelele ya
+mpangilio. Vipimo vingine vyote viko ndani ya masafa ya kelele
+yaliyothibitishwa awali kwenye kikao hiki (chini ya 3%). HAKUNA hasara
+halisi kwenye kipimo chochote.
