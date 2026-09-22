@@ -1145,3 +1145,54 @@ kazi tupu (0..6), mizunguko ilibadilika kati ya 211M na 276M (~30%)
 BILA kugusa msimbo wa kazi hii kabisa, ikithibitisha ni kelele ya
 mpangilio wa msimbo (alignment), si hasara halisi -- angalia maelezo
 sawa kwenye sehemu ya SIB hapo juu.
+
+## Kuondoa "mov al, N" isiyo ya lazima kutoka kwa kila wito
+
+Njia ya jumla ya wito (`uzalishaji_wito`) ilikuwa ikiandika `mov al, N`
+(idadi ya rejesta za xmm zilizotumika) KABLA YA KILA wito bila
+masharti -- hii ni sharti la ABI ya SysV kwa WITO WA NJE (external)
+WA VARARGS PEKEE (mfano `printf` ya libc), ili kazi hiyo ijue idadi ya
+hoja za xmm bila kuchunguza aina zake wakati wa kukimbia.
+
+Lugha hii haina FFI (hakuna njia ya kuita kazi halisi ya nje yenye
+varargs). Kila lengwa la wito ni mojawapo ya: kazi ya Swa yenye idadi
+thabiti ya hoja (ikiwemo `andika`/`andika_stderr` pale njia ya haraka
+haipo), wito wa kielekezi (kielekezi hakiwezi kuundwa isipokuwa
+kupitia `&jina_la_kazi`, hivyo lengwa ni kazi ya Swa ile ile), syscall
+ya moja kwa moja (agizo la `syscall` halisi haliangalii AL kamwe), au
+`tekeleza`. `mov al` hii haikuwa na maana kamwe -- imeondolewa.
+
+### Uthibitisho
+
+- Hakuna mutation ya maana ya kujaribu (ni uondoaji wa msimbo mfu --
+  hakuna tabia mpya ya kuthibitisha kwa "kuvunja kwa makusudi").
+  Uthibitisho ni kwa upana: `jaribio_wito_gharama` (wito wa idadi
+  tofauti za hoja za xmm 0..8, wito wa kielekezi, wito ndani ya wito,
+  muundo kama matokeo, mfululizo wa wito 50) -- 422/422 kwa jumla,
+  mara 3 kutoka ujenzi safi. Fixpoint stage2 == stage3.
+- Programu 318 zimeundwa na stage1/stage2: baiti sawa isipokuwa tatu
+  zinazojulikana. Programu 4001 za nasibu na 1501 za faharasa
+  (mkusanyaji wa kabla dhidi ya wa baada): sifuri tofauti.
+
+### Utendaji
+
+`fibonacci` (kazi ndogo yenye wito mwingi) ndiyo iliyopata faida
+kubwa zaidi: maagizo -4.6% (642M -> 612M), mizunguko -2.4% (perf
+stat). Vipimo vingine vinabadilika kidogo au ndani ya kelele ya
+mpangilio wa msimbo (nimethibitisha kwa jaribio la kuhamisha msimbo
+kwa `heshi`, ambayo ilionekana +5% -- mizunguko ilibadilika kati ya
+1.67B na 1.77B kwa kuongeza tu kazi tupu, bila kugusa msimbo wa
+mabadiliko haya).
+
+### Kazi ya baadaye iliyogunduliwa (haijafanyiwa kazi -- hatari kubwa)
+
+`sub rsp, N` kwenye utangulizi wa kazi bado inahifadhi nafasi ya rafu
+kwa vigezo VYOTE (kutoka `param_stack`/`var_stack_idadi`), HATA vile
+vilivyopandishwa hadi rejesta za kudumu baadaye (havisomwi/kuandikwa
+kamwe kupitia anwani yao ya rafu). Kwa `fib`, hii inamaanisha `sub
+rsp, 0x10` inahifadhi baiti 16 zisizotumika kabisa. Kupunguza hili
+kwa usalama kunahitaji kuunganisha uamuzi wa ugawaji wa rejesta NDANI
+ya mchakato wa kutoa ofseti (si kupunguza jumla ya `sub rsp` peke
+yake baada ya ofseti kukwisha gawiwa -- hilo lingehamisha vigezo
+vingine chini ya rsp mpya, uharibifu wa rafu). Ni kazi kubwa zaidi,
+haijaguswa kikao hiki.
