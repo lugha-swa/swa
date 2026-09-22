@@ -1,0 +1,101 @@
+// Fahirisi kubwa: idx * saizi_ya_kipengele > 2^32 kwa arr[idx] (kuandika na
+// kusoma), &arr[idx], na *(ptr + n) -- mdudu uliogunduliwa kwenye ukaguzi wa
+// PR #251 (andika_ongea_kipengele_kwa_saizi ilizidisha kwenye eax (biti 32)
+// KISHA kupanua kwa ishara; kwa idx*saizi > 2^32 zidisho hilo lilizunguka
+// (overflow) kabla ya kupanuliwa, likitoa anwani mbaya). Usajili wa kumbukumbu
+// ni wa uvivu (mmap ya kibinafsi, isiyo na hifadhi/anonymous) -- safu za
+// hapa ni virtual kubwa lakini kumbukumbu halisi inayoguswa ni ndogo sana.
+//
+// Kila anwani inathibitishwa dhidi ya hesabu huru ya N64 (msingi + idx*saizi,
+// N64*N64 haina mdudu huu -- imul rax,rcx ni ya biti 64 tayari).
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+N64 kama_n64(N8* p) { rudisha p; }
+
+N32 jaribu_n64_saizi8() {
+    // idx*8 > 2^32 kwa idx > 536870912
+    N64 idx = 600000000;
+    N64* p = tenga(ukubwa(N64) * (idx + 8));
+    N64 msingi = kama_n64(p);
+    p[idx] = 123456789;
+    kama (p[idx] != 123456789) { rudisha 1; }
+    N64 anwani_halisi = kama_n64(&p[idx]);
+    N64 anwani_tarajiwa = msingi + (idx * 8);
+    kama (anwani_halisi != anwani_tarajiwa) { rudisha 2; }
+    // jirani (idx+1, idx-1) hazipaswi kuguswa
+    kama (p[idx + 1] != 0) { rudisha 3; }
+    kama (p[idx - 1] != 0) { rudisha 4; }
+    p[idx + 1] = 999;
+    kama (p[idx] != 123456789) { rudisha 5; }
+    rudisha 0;
+}
+
+N32 jaribu_d64_saizi8() {
+    N64 idx = 550000000;
+    D64* p = tenga(ukubwa(D64) * (idx + 4));
+    N64 msingi = kama_n64(p);
+    p[idx] = 3.5;
+    kama (p[idx] != 3.5) { rudisha 1; }
+    N64 anwani_halisi = kama_n64(&p[idx]);
+    kama (anwani_halisi != msingi + (idx * 8)) { rudisha 2; }
+    rudisha 0;
+}
+
+N32 jaribu_n32_saizi4() {
+    // idx*4 > 2^32 kwa idx > 1073741824
+    N64 idx = 1100000000;
+    N32* p = tenga(ukubwa(N32) * (idx + 8));
+    N64 msingi = kama_n64(p);
+    p[idx] = 42;
+    kama (p[idx] != 42) { rudisha 1; }
+    N64 anwani_halisi = kama_n64(&p[idx]);
+    kama (anwani_halisi != msingi + (idx * 4)) { rudisha 2; }
+    kama (p[idx - 5] != 0) { rudisha 3; }
+    rudisha 0;
+}
+
+N32 jaribu_nyoosha_ptr() {
+    // *(ptr + n) kwa n kubwa (uzalishaji_jumlisha_kielekezi hutumia
+    // andika_ongea_kielekezi_kipengele -- tayari sahihi, lakini
+    // tunathibitisha hapa pia kwa ukamilifu wa jaribio)
+    N64 idx = 700000000;
+    N64* p = tenga(ukubwa(N64) * (idx + 4));
+    N64* q = p + idx;
+    N64 msingi = kama_n64(p);
+    *q = 777;
+    kama (*q != 777) { rudisha 1; }
+    kama (p[idx] != 777) { rudisha 2; }
+    kama (kama_n64(q) != msingi + (idx * 8)) { rudisha 3; }
+    rudisha 0;
+}
+
+// Fahirisi ndogo, ya kawaida -- lazima ibaki sahihi baada ya mabadiliko
+N32 jaribu_ndogo_bado_sahihi() {
+    N32* a = tenga(ukubwa(N32) * 8);
+    N32 i = 3;
+    a[i] = 99;
+    kama (a[i] != 99) { rudisha 1; }
+    kama (a[i - 1] != 0) { rudisha 2; }
+    a[i - 2] = 0 - 5;
+    kama (a[1] != (0 - 5)) { rudisha 3; }
+    N8* b = tenga(8);
+    N32 j = 0 - 1;
+    b[7] = 100;   // < 128, hakuna utata wa ishara ya N8
+    kama (b[7 + j] != 0) { rudisha 4; }   // b[6], haijaandikwa
+    kama ((b[7 + j - j]) != 100) { rudisha 5; }  // b[7]
+    rudisha 0;
+}
+
+N32 main() {
+    N32 r = jaribu_n64_saizi8();
+    kama (r != 0) { rudisha 10 + r; }
+    r = jaribu_d64_saizi8();
+    kama (r != 0) { rudisha 20 + r; }
+    r = jaribu_n32_saizi4();
+    kama (r != 0) { rudisha 30 + r; }
+    r = jaribu_nyoosha_ptr();
+    kama (r != 0) { rudisha 40 + r; }
+    r = jaribu_ndogo_bado_sahihi();
+    kama (r != 0) { rudisha 50 + r; }
+    rudisha 0;
+}

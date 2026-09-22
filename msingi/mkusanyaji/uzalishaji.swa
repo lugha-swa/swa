@@ -485,16 +485,38 @@ W0 andika_imul_eax_imm32(N32 v) {
     andika_neno4(v);
 }
 
-// Kokotoa ofseti ya kipengele kutoka kwa faharisi (eax):
-// eax = eax * saizi, kisha cdqe (upanuzi wa ISHARA kwa 64-bit).
-// Bila cdqe, faharisi hasi (mf. -1) ingepanuliwa kwa sifuri kuwa
-// 0xFFFFFFFF na kugeuza anwani kuwa isiyo halali (SEGV).
+// Kokotoa ofseti ya kipengele kutoka kwa faharisi: rax = rax * saizi.
+//
+// MDUDU HALISI ULIOGUNDULIWA (ukaguzi wa PR #251, si dhana): toleo la
+// zamani lilifanya "shl eax, N" (biti 32) KISHA "cdqe". Kila mwitaji
+// (angalia maeneo manne yanayoita kazi hii) huita mara moja tu baada
+// ya uzalishaji_usemi(idx_node, ...), ambayo TAYARI imeacha rax
+// ikiwa faharisi sahihi ya biti-64 (panua_ishara_ndogo, mwisho wa
+// uzalishaji_usemi, tayari imefanya cdqe kwa aina zenye ishara; A32
+// inabaki imepanuliwa kwa sifuri KIASILIA na x86-64 -- "mov eax,.."
+// husafisha biti za juu za rax). "shl eax" ilikuwa ikitupa nusu ya
+// juu SAHIHI ya rax na kuzidisha kwa biti 32 TU -- kwa safu kubwa
+// (idx*saizi > 2^32, mfano safu > ~GB 2 za elementi za baiti 4)
+// zidisho hilo lilizunguka (overflow) KABLA cdqe haijafanya kazi,
+// likitoa anwani MBAYA bila kuanguka wazi (SEGV ya nasibu, au
+// mbaya zaidi, uandishi kimya mahali pasipo sahihi). Fahirisi ya
+// N64/N32/A32 yenyewe (kabla ya kuzidisha) haiwezi kuvunja hivyo --
+// ni bidhaa idx*saizi ndiyo iliyokuwa ikipita 2^32.
+//
+// SULUHISHO: zidisha kwenye RAX (biti 64) moja kwa moja -- rax
+// TAYARI ni sahihi (imepanuliwa ipasavyo, kwa ishara au sifuri
+// kulingana na aina) kabla ya kuitwa, hivyo hakuna cdqe ya ziada
+// inahitajika hapa (angalia andika_ongea_kielekezi_kipengele, juu ya
+// faili hili, kwa muundo ule ule -- kazi hiyo YENYEWE haina mdudu
+// huu kwa sababu ilikuwa tayari ikifanya kazi kwenye rax).
 W0 andika_ongea_kipengele_kwa_saizi(N32 saizi) {
-    kama (saizi == 8) { andika_baiti(193); andika_baiti(224); andika_baiti(3); }  // shl eax, 3
-    sivyo { kama (saizi == 4) { andika_baiti(193); andika_baiti(224); andika_baiti(2); }  // shl eax, 2
-        sivyo { kama (saizi == 2) { andika_baiti(193); andika_baiti(224); andika_baiti(1); }  // shl eax, 1
-            sivyo { kama (saizi != 1) { andika_imul_eax_imm32(saizi); } } } }
-    andika_cdqe();
+    kama (saizi == 8) { andika_baiti(72); andika_baiti(193); andika_baiti(224); andika_baiti(3); }  // shl rax, 3
+    sivyo { kama (saizi == 4) { andika_baiti(72); andika_baiti(193); andika_baiti(224); andika_baiti(2); }  // shl rax, 2
+        sivyo { kama (saizi == 2) { andika_baiti(72); andika_baiti(193); andika_baiti(224); andika_baiti(1); }  // shl rax, 1
+            sivyo { kama (saizi != 1) {
+                    andika_baiti(72); andika_baiti(105); andika_baiti(192);  // imul rax, rax, imm32
+                    andika_neno4(saizi);
+                } } } }
 }
 
 // mov rax, [rsp+disp32] (48 8B 84 24 + d32) — pakia sloti ya hoja ya rafu
