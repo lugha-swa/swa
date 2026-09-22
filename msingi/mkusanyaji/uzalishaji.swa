@@ -5613,6 +5613,81 @@ W0 andika_pakia_sib_kwa_enc(N32 enc, N32 saizi) {
     andika_baiti(139); andika_baiti(4); andika_baiti(sib);
 }
 
+// -------------------------------------------------------
+// Uhifadhi wa arr[idx] = thamani kwa SIB moja kwa moja ([r9 + r8*saizi])
+// pale msingi ni jani na RHS ni salama (angalia jr_ni_salama) -- badala
+// ya kukokotoa anwani kamili (shl+add), kuihifadhi kwenye rafu (push),
+// kutathmini RHS, kisha kuivuta (pop). r8/r9 ni salama kushikilia
+// wakati RHS inatathminiwa KWA SABABU jr_ni_salama inakataa wito wowote
+// (r8/r9 zinaguswa NA syscall/wito PEKEE -- angalia andika_pakia_gp_reg_
+// kwa_enc/pop_r8/pop_r9 -- hazitumiki kamwe na msimbo wa hesabu safi).
+// -------------------------------------------------------
+
+// mov r8, rax (49 89 C0) -- hifadhi faharasa (tayari imepanuliwa)
+W0 andika_mov_r8_rax() { andika_baiti(73); andika_baiti(137); andika_baiti(192); }
+// mov r9, rcx (49 89 C9) -- hifadhi msingi
+W0 andika_mov_r9_rcx() { andika_baiti(73); andika_baiti(137); andika_baiti(201); }
+
+// [r9 + r8*saizi] = thamani (rax/eax/ax/al au xmm0). SIB byte ni SAWA
+// na andika_pakia_sib_kwa_enc (index low3=000 kama rax, base low3=001
+// kama rcx -- r8/r9 wana low3 zilezile, tofauti pekee ni REX.X (index
+// r8) na REX.B (base r9) badala ya kutokuwepo kabisa).
+W0 andika_hifadhi_sib_r9_r8(N32 enc, N32 saizi) {
+    N32 sib = 8;
+    kama (saizi == 2) { sib = 65; }
+    kama (saizi == 4) { sib = 129; }
+    kama (saizi == 8) { sib = 193; }
+    kama (ni_desimali_enc(enc)) {
+        kama (saizi >= 8) { andika_baiti(242); } sivyo { andika_baiti(243); }
+        andika_baiti(67);  // REX.XB (0x40|X|B, hakuna W -- SSE haihitaji)
+        andika_baiti(15); andika_baiti(17); andika_baiti(4); andika_baiti(sib);
+        rudisha;
+    }
+    kama (saizi == 1) {
+        andika_baiti(67);  // REX.XB
+        andika_baiti(136); andika_baiti(4); andika_baiti(sib);
+        rudisha;
+    }
+    kama (saizi == 2) { andika_baiti(102); }  // 0x66 operand-size (KABLA ya REX)
+    kama (saizi == 8) { andika_baiti(75); }   // REX.WXB
+    sivyo { andika_baiti(67); }               // REX.XB
+    andika_baiti(137); andika_baiti(4); andika_baiti(sib);
+}
+
+// Je, arr[idx] = rhs inaweza kutumia njia ya SIB r8/r9 badala ya
+// kukokotoa anwani kamili + push/pop? Lazima: si muundo (enc>0), saizi
+// ni mojawapo ya 1/2/4/8, msingi ni jani (jr_msingi_aina), na RHS ni
+// salama (haiwezi kugusa r8/r9 kwa sababu haina wito -- angalia
+// jr_ni_salama). Inaacha jr_msingi_off (kama msingi ni safu ya ndani)
+// ikiwa tayari sahihi kwa matumizi ya papo hapo.
+N32 uzalishaji_hifadhi_safu_sib(N32 idx_node, N32 ptr_node, N32 rhs, N32 enc, N32 kazi_node) {
+    kama (enc <= 0) { rudisha 0; }
+    N32 saizi = ukubwa_wa_kipengele(enc);
+    kama (saizi == 0) { saizi = 4; }
+    kama (saizi != 1 && saizi != 2 && saizi != 4 && saizi != 8) { rudisha 0; }
+    N32 ma = jr_msingi_aina(ptr_node, kazi_node);
+    kama (ma == 0) { rudisha 0; }
+    kama (jr_ni_salama(rhs) == 0) { rudisha 0; }
+
+    uzalishaji_usemi(idx_node, kazi_node);
+    // Panua faharasa kwa usahihi -- kioo cha uzalishaji_nyoosha (SIB
+    // ya kusoma, #251): N32 yenye ishara tayari imepanuliwa na
+    // panua_ishara_ndogo; nyingine (A32/N64) zinahitaji cdqe hapa.
+    N32 ie = ast_thamani[idx_node];
+    kama (ast_aina[idx_node] == 4) { ie = ast_nne[idx_node]; }
+    N32 tayari = 0;
+    kama (ast_aina[idx_node] != 45 && ie > 0 && ukubwa_kutoka_enc(ie) < 8 && ni_bila_ishara_enc(ie) == 0 && ni_desimali_enc(ie) == 0) { tayari = 1; }
+    kama (tayari == 0) { andika_cdqe(); }
+    andika_mov_r8_rax();
+    jr_pakia_msingi_rcx(ma, ptr_node, kazi_node);
+    andika_mov_r9_rcx();
+
+    uzalishaji_usemi(rhs, kazi_node);
+    badili_mpaka_wa_desimali(rhs, enc);
+    andika_hifadhi_sib_r9_r8(enc, saizi);
+    rudisha 1;
+}
+
 // x = x + namba / x = x - namba kwa kigezo cha N32 chenye ishara (kaunta
 // za vitanzi): badala ya "mov rax,x; cdqe; mov ecx,imm; add eax,ecx; cdqe;
 // mov x,rax" (maagizo 6, kupitia rax), toa
@@ -7328,6 +7403,15 @@ W0 uzalishaji_asimilia(N32 node, N32 kazi_node) {
 
         kama (idx_node != -1) {
             // Uandikishaji wa safu: arr[idx] = thamani
+            // Njia ya haraka: SIB moja kwa moja ([r9+r8*saizi]) pale
+            // msingi ni jani na RHS haina wito -- angalia
+            // uzalishaji_hifadhi_safu_sib. Haitumiki kwa kiwanja
+            // (+=/-=) wala muundo (hizo zinabaki na njia ya asili).
+            kama (kiwanja_salama == 0 && ast_thamani[lhs] > 0) {
+                kama (uzalishaji_hifadhi_safu_sib(idx_node, ptr_node, rhs, ast_thamani[lhs], kazi_node)) {
+                    rudisha;
+                }
+            }
             N32 saizi = ukubwa_wa_kipengele(ast_thamani[lhs]);
             kama (saizi == 0) { saizi = 4; }
             uzalishaji_usemi(idx_node, kazi_node);  // eax = idx
