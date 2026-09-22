@@ -5688,6 +5688,46 @@ N32 uzalishaji_hifadhi_safu_sib(N32 idx_node, N32 ptr_node, N32 rhs, N32 enc, N3
     rudisha 1;
 }
 
+// [r9] = thamani (rax/eax/ax/al au xmm0) -- kioo cha andika_hifadhi_sib_
+// r9_r8 lakini BILA faharasa (kwa *ptr = thamani, si arr[idx] = thamani).
+// r9 ina low3=001 (sawa na rcx), hivyo ModRM peke yake (bila SIB) inatosha
+// -- rm=001 SI 100 (ambayo ingelazimisha SIB kwa force), hivyo
+// "mod=00,rm=001" na REX.B ni "[r9]" moja kwa moja.
+W0 andika_hifadhi_r9_kwa_enc(N32 enc, N32 saizi) {
+    kama (ni_desimali_enc(enc)) {
+        kama (saizi >= 8) { andika_baiti(242); } sivyo { andika_baiti(243); }
+        andika_baiti(65);  // REX.B
+        andika_baiti(15); andika_baiti(17); andika_baiti(1);  // ModRM: mod=00,reg=000,rm=001
+        rudisha;
+    }
+    kama (saizi == 1) {
+        andika_baiti(65); andika_baiti(136); andika_baiti(1);
+        rudisha;
+    }
+    kama (saizi == 2) { andika_baiti(102); }
+    kama (saizi == 8) { andika_baiti(73); } sivyo { andika_baiti(65); }
+    andika_baiti(137); andika_baiti(1);
+}
+
+// *ptr = thamani (isiyo ya kiwanja, isiyo ya muundo) kwa njia ya haraka:
+// kielekezi kinashikiliwa kwenye r9 (jr_jani_rcx) wakati RHS salama
+// inatathminiwa, badala ya push/pop ya anwani. Kioo kidogo cha
+// uzalishaji_hifadhi_safu_sib (hakuna faharasa/mizani hapa).
+N32 uzalishaji_hifadhi_ptr_sib(N32 ptr_node, N32 rhs, N32 enc, N32 kazi_node) {
+    kama (enc <= 0) { rudisha 0; }
+    N32 saizi = ukubwa_kutoka_enc(enc);
+    kama (saizi != 1 && saizi != 2 && saizi != 4 && saizi != 8) { rudisha 0; }
+    kama (jr_jani_rcx(ptr_node, kazi_node, 8) == 0) { rudisha 0; }
+    kama (jr_ni_salama(rhs) == 0) { rudisha 0; }
+
+    jr_pakia_jani_rcx(ptr_node, kazi_node, 8);
+    andika_mov_r9_rcx();
+    uzalishaji_usemi(rhs, kazi_node);
+    badili_mpaka_wa_desimali(rhs, enc);
+    andika_hifadhi_r9_kwa_enc(enc, saizi);
+    rudisha 1;
+}
+
 // x = x + namba / x = x - namba kwa kigezo cha N32 chenye ishara (kaunta
 // za vitanzi): badala ya "mov rax,x; cdqe; mov ecx,imm; add eax,ecx; cdqe;
 // mov x,rax" (maagizo 6, kupitia rax), toa
@@ -7439,6 +7479,14 @@ W0 uzalishaji_asimilia(N32 node, N32 kazi_node) {
             }
         } sivyo {
             // Nyoosha tu: *ptr = thamani
+            // Njia ya haraka: r9 inashikilia kielekezi (angalia
+            // uzalishaji_hifadhi_ptr_sib) -- haitumiki kwa kiwanja wala
+            // muundo (hizo zinabaki na njia ya asili chini).
+            kama (kiwanja_salama == 0 && ast_thamani[lhs] > 0) {
+                kama (uzalishaji_hifadhi_ptr_sib(ptr_node, rhs, ast_thamani[lhs], kazi_node)) {
+                    rudisha;
+                }
+            }
             N32 sz_elem = ukubwa_kutoka_enc(ast_thamani[lhs]);
             kama (sz_elem == 0) { sz_elem = 4; }
             uzalishaji_usemi(ptr_node, kazi_node);  // eax = kielekezi
