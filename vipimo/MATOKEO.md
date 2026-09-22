@@ -1196,3 +1196,46 @@ ya mchakato wa kutoa ofseti (si kupunguza jumla ya `sub rsp` peke
 yake baada ya ofseti kukwisha gawiwa -- hilo lingehamisha vigezo
 vingine chini ya rsp mpya, uharibifu wa rafu). Ni kazi kubwa zaidi,
 haijaguswa kikao hiki.
+
+## Kuondoa "cdqe" isiyo ya lazima baada ya kila wito wenye matokeo ya namba yenye ishara
+
+Sawa na kuondoa "mov al" (juu): kila wito wa kazi wenye aina ya
+kurudi yenye ishara ndogo (N8/N16/N32) ulikuwa ukipata `cdqe` ya
+ZIADA mara tu baada ya "call" (kupitia `panua_ishara_ndogo`, njia ya
+JUMLA inayotumika kwa usemi WOWOTE, si maalum kwa wito).
+
+UTHIBITISHO (si dhana): kwa kila kazi ya Swa iliyosajiliwa, aina ya
+usemi wa wito huo (`mkaguzi_kagua_wito` inarudisha `kazi_ret_aina[j]`)
+ni CHANZO KILE KILE kinachotumika na taarifa ya "rudisha" ya kazi
+hiyo hiyo (`AST_RUDISHA`: `badili_mpaka_wa_desimali(expr,
+ast_thamani[kazi_node])`, ambapo `ast_thamani[kazi_node]` ni
+`kazi_ret_aina[j]` ile ile) -- hivyo `rax` TAYARI imepanuliwa ipasavyo
+na kazi ILIYOITWA kabla ya "ret", KILA WAKATI. Kwa wito usiojulikana
+(kupitia kigezo, `wito_wa_mfumo`, `tekeleza`) `mkaguzi_kagua_wito`
+hurudisha 0 ("aina yoyote"), na `enc == 0` HAIKUWA ikipitisha sharti
+la awali la "enc > 0" -- njia hizo hazikuwa zikipata cdqe KABLA ya
+rekebisho hili pia, hivyo hakuna mabadiliko ya tabia kwa kesi hizo.
+
+### Uthibitisho
+
+- Jaribio jipya `jaribio_wito_bila_cdqe`: thamani HASI za N8/N16/N32
+  (ambapo cdqe iliyokosekana ingeonekana mara moja -- upanuzi wa
+  sifuri ungegeuza namba hasi ndogo kuwa kubwa chanya) kupitia
+  muktadha wa N64, ulinganishi wa moja kwa moja, mnyororo wa wito 21
+  (ishara inabadilika kila hatua), usemi mkubwa wa jumla ya matokeo
+  matatu ya wito, na faharasa ya safu. 423/423, mara 3 kutoka ujenzi
+  safi. Fixpoint stage2 == stage3.
+- Kama uondoaji wa "mov al", hakuna mutation ya maana ya "kuvunja
+  kwa makusudi" -- ni uondoaji wa msimbo mfu uliothibitishwa kwa
+  hoja hapo juu, si mdudu mpya wa kurekebisha. Programu 4001 za
+  nasibu (kabla dhidi ya baada): sifuri tofauti. Nimethibitisha kwa
+  disassembly ya moja kwa moja ya `fib` kuwa `cdqe` haitokei tena
+  mara moja baada ya `call`.
+
+### Utendaji
+
+`fibonacci`: maagizo -4.9% (612M -> 582M), mizunguko -0.6% (ndogo --
+`cdqe` ni agizo la bei nafuu sana kwenye CPU za kisasa, hivyo faida
+kubwa zaidi ni shinikizo la mbele la CPU (front-end), si mizunguko ya
+moja kwa moja). `mchujo` -1.7%, `maneno` -3.5%. Vingine ndani ya
+kelele iliyoelezwa juu.
