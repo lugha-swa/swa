@@ -1094,3 +1094,54 @@ mizunguko) -- ni athari ya mpangilio wa msimbo wa kitanzi (mipaka ya 32/64 baiti
 si gharama ya SIB (maagizo yamepungua 3%). Tofauti chini ya ~6% kwenye kipimo
 kimoja haipaswi kudaiwa bila jaribio hilo la kuhamisha msimbo. fibonacci na
 mandelbrot hazina `arr[i]` moto, kwa hiyo hazibadiliki (maagizo sawa kabisa).
+
+## Rekebisho la mdudu: fahirisi kubwa (idx * saizi > 2^32)
+
+Ukaguzi wa PR #251 uligundua kuwa `andika_ongea_kipengele_kwa_saizi`
+(inayotumika kwa `arr[idx] = x`, `&arr[idx]`, na njia ya asili -- isiyo
+ya SIB -- ya kusoma) ilizidisha faharasa kwenye `eax` (biti 32) KISHA
+kuipanua kwa ishara (`cdqe`). Kwa safu kubwa (`idx * saizi > 2^32`,
+mfano safu ya N64/D64 yenye zaidi ya vipengele milioni 537, au N32
+yenye zaidi ya bilioni 1.07) zidisho hilo lilizunguka (overflow) KABLA
+ya kupanuliwa, likitoa anwani mbaya bila kuanguka wazi.
+
+Kila mwitaji wa kazi hii huiita mara moja tu, mara tu baada ya
+`uzalishaji_usemi(idx_node, ...)` -- ambayo TAYARI imeacha `rax` ikiwa
+faharasa sahihi ya biti-64 (`panua_ishara_ndogo`, mwisho wa
+`uzalishaji_usemi`, tayari imefanya `cdqe` kwa aina zenye ishara; A32
+inabaki imepanuliwa kwa sifuri kiasili na x86-64). Suluhisho: zidisha
+kwenye `RAX` (biti 64) moja kwa moja (REX.W), bila `cdqe` ya ziada
+(haihitajiki -- `rax` tayari ni sahihi). Ni muundo ule ule ambao
+`andika_ongea_kielekezi_kipengele` (kwa `p + n`) ulikuwa akitumia
+tayari -- kazi hiyo haikuwa na mdudu huu.
+
+### Uthibitisho
+
+- Jaribio jipya `jaribio_fahirisi_kubwa`: safu za N64/D64 (fahirisi
+  milioni 550-700, kumbukumbu ya mmap ya uvivu -- RSS halisi ni ndogo)
+  na N32 (fahirisi bilioni 1.1), zikiandika, kusoma na kuchukua anwani
+  (`&arr[idx]`), kila anwani ikithibitishwa dhidi ya hesabu huru ya
+  N64 (`msingi + idx*saizi`, ambayo haina mdudu huu). Jaribio hili
+  linashindwa (msimbo 11) kwenye mkusanyaji wa kabla ya rekebisho hili
+  (c09c3d5) na linapita baada yake. 421/421.
+- Fixpoint stage2 == stage3, mara 3 kutoka ujenzi safi.
+- Programu 318 zimeundwa na stage1 na stage2: baiti sawa isipokuwa
+  tatu zinazojulikana (mdudu wa mbegu.bin).
+- Programu 3001 za nasibu (kabla dhidi ya baada): sifuri tofauti.
+  Programu 1500 za jenereta mpya ya faharasa (aina zote, faharasa
+  ndani ya faharasa, wito): sifuri tofauti.
+- Mutation: kuondoa REX.W (kurudi kwenye zidisho la biti 32)
+  kunafanya `jaribio_fahirisi_kubwa` lishindwe (msimbo 11).
+
+### Utendaji
+
+Hakuna mabadiliko ya maana yanayotarajiwa (fahirisi za kawaida za
+vipimo vyote tisa ni ndogo mno kufikia 2^32/saizi, na kazi hii
+haiitwi tena kabisa kwenye njia ya haraka ya SIB ya kusoma -- #251).
+Nilipima hata hivyo: matriki -4%, heshi -2%, mchujo -4% (mizunguko ya
+CPU, `perf stat`), zingine ndani ya kelele. `maneno` ilionekana +27%
+kwenye kipimo cha kwanza -- nikijaribu kuhamisha msimbo kwa kuongeza
+kazi tupu (0..6), mizunguko ilibadilika kati ya 211M na 276M (~30%)
+BILA kugusa msimbo wa kazi hii kabisa, ikithibitisha ni kelele ya
+mpangilio wa msimbo (alignment), si hasara halisi -- angalia maelezo
+sawa kwenye sehemu ya SIB hapo juu.
