@@ -1,0 +1,90 @@
+// kielekezi->sehemu = thamani kwa njia ya haraka: ofseti ya sehemu
+// inaandikwa moja kwa moja ndani ya ModRM/disp ya [r9+off], bila "add
+// rax, off" -- angalia uzalishaji_hifadhi_mshale_sib. Jaribio hili
+// linakagua sehemu ya kwanza (off=0/-1), sehemu za baadaye (disp8),
+// sehemu yenye ofseti kubwa (disp32), RHS salama dhidi ya isiyo salama
+// (wito), na kiwanja (ptr->f += x -- lazima ibaki njia ya asili).
+
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+muundo Ndogo { N32 a; N8 b; N64 c; D64 d; };
+// Sehemu nyingi za N32 (badala ya safu ndani ya muundo -- mdudu tofauti,
+// usiohusiana, uliogunduliwa wakati wa kuandika jaribio hili: muundo wenye
+// SAFU kama sehemu unashindwa kukusanywa (KOSA: 1) hata kwenye mkusanyaji
+// wa KABLA ya kazi hii -- angalia kumbukumbu, nje ya wigo hapa) ili kupata
+// ofseti > 127 (inayohitaji disp32, si disp8).
+muundo Kubwa { N32 sehemu0; N32 p0; N32 p1; N32 p2; N32 p3; N32 p4; N32 p5; N32 p6; N32 p7; N32 p8; N32 p9; N32 p10; N32 p11; N32 p12; N32 p13; N32 p14; N32 p15; N32 p16; N32 p17; N32 p18; N32 p19; N32 p20; N32 p21; N32 p22; N32 p23; N32 p24; N32 p25; N32 p26; N32 p27; N32 p28; N32 p29; N32 p30; N32 p31; N32 p32; N32 p33; N32 mbali; };  // mbali: ofseti > 127
+N32 piga(N32 x) { rudisha x * 2; }   // WITO -- hufanya RHS isiwe salama
+
+N32 jaribu_disp8() {
+    Ndogo* p = tenga(ukubwa(Ndogo));
+    p->a = 0 - 12345;             // sehemu ya kwanza (off=0/-1, hakuna disp)
+    p->b = 0 - 6;                  // disp8 (N8 ni na ishara -- angalia
+                                    // jaribio_uhifadhi_ptr kwa kanuni ile
+                                    // ile; 250 haitoshei baiti yenye ishara)
+    p->c = 0 - 5000000000;        // disp8, upana 8
+    p->d = 3.5;                   // disp8, desimali
+    kama (p->a != (0 - 12345)) { rudisha 1; }
+    kama (p->b != (0 - 6)) { rudisha 2; }
+    kama (p->c != (0 - 5000000000)) { rudisha 3; }
+    kama (p->d != 3.5) { rudisha 4; }
+    rudisha 0;
+}
+
+N32 jaribu_disp32() {
+    Kubwa* k = tenga(ukubwa(Kubwa));
+    k->sehemu0 = 1;
+    k->mbali = 999888;            // ofseti > 127 -> disp32
+    kama (k->sehemu0 != 1) { rudisha 1; }
+    kama (k->mbali != 999888) { rudisha 2; }
+    rudisha 0;
+}
+
+N32 jaribu_rhs_salama_na_isiyo_salama() {
+    Ndogo* p = tenga(ukubwa(Ndogo));
+    N32 x1 = 3; N32 x2 = 4;
+    p->a = x1 + x2 * 2;            // RHS salama, inagusa rcx -- angalia
+                                    // somo la jaribio_uhifadhi_ptr: RHS
+                                    // ndogo haigusi rcx KAMWE, hivyo
+                                    // mutation ya REX.B inaweza kupita
+                                    // bila kugundulika -- lazima RHS
+                                    // itumie hesabu kama hii.
+    kama (p->a != 11) { rudisha 1; }
+    p->a = piga(x2);                // RHS isiyo salama (wito)
+    kama (p->a != 8) { rudisha 2; }
+    rudisha 0;
+}
+
+N32 jaribu_kiwanja_bado_sahihi() {
+    Ndogo* p = tenga(ukubwa(Ndogo));
+    p->a = 10;
+    p->a += 5;
+    kama (p->a != 15) { rudisha 1; }
+    p->a -= 3;
+    kama (p->a != 12) { rudisha 2; }
+    rudisha 0;
+}
+
+// Muundo uliopachikwa ndani ya safu ya kielekezi -- p bado ni jani
+// (kigezo cha kawaida), tu na aina isiyo ya kawaida ya kupatikana kwake
+N32 jaribu_kupitia_kigezo_cha_kawaida() {
+    Ndogo* orodha = tenga(ukubwa(Ndogo) * 3);
+    Ndogo* p = orodha + 1;
+    p->a = 777;
+    kama (orodha[1].a != 777) { rudisha 1; }
+    rudisha 0;
+}
+
+N32 main() {
+    N32 r = jaribu_disp8();
+    kama (r != 0) { rudisha 10 + r; }
+    r = jaribu_disp32();
+    kama (r != 0) { rudisha 20 + r; }
+    r = jaribu_rhs_salama_na_isiyo_salama();
+    kama (r != 0) { rudisha 30 + r; }
+    r = jaribu_kiwanja_bado_sahihi();
+    kama (r != 0) { rudisha 40 + r; }
+    r = jaribu_kupitia_kigezo_cha_kawaida();
+    kama (r != 0) { rudisha 50 + r; }
+    rudisha 0;
+}
