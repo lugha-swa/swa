@@ -464,6 +464,20 @@ W0 andika_cdqe() { andika_baiti(72); andika_baiti(152); }
 // zina upanuzi wa sifuri tayari (mov eax husafisha biti za juu);
 // D64 ina thamani kwenye xmm0; miundo na kielekezi ni baiti 8.
 W0 panua_ishara_ndogo(N32 node) {
+    // AST_WITO (8, wito wa kazi): rax tayari ni sahihi -- haihitaji cdqe
+    // ya ziada. UTHIBITISHO (si dhana): kwa wito wa kazi ya Swa
+    // iliyosajiliwa (jina linalojulikana), mkaguzi_kagua_wito hurudisha
+    // kazi_ret_aina[j] -- CHANZO KILE KILE kinachotumika na taarifa ya
+    // "rudisha" ya kazi hiyo (angalia AST_RUDISHA: uzalishaji_usemi(expr)
+    // + badili_mpaka_wa_desimali(expr, ast_thamani[kazi_node])), hivyo
+    // ast_thamani[node] ya wito huu ni SAWA KABISA na enc iliyotumika
+    // kupanua rax kabla ya kazi hiyo kurudi -- rax tayari imepanuliwa
+    // ipasavyo. Kwa wito usiojulikana (kupitia kigezo, wito_wa_mfumo,
+    // tekeleza) mkaguzi_kagua_wito hurudisha 0 ("aina yoyote"), na
+    // enc==0 haipitishi sharti la "enc > 0" chini -- njia hiyo TAYARI
+    // haikuwa ikitoa cdqe kabla ya rekebisho hili, hivyo hakuna
+    // mabadiliko ya tabia kwa kesi hizo.
+    kama (ast_aina[node] == 8) { rudisha; }
     N32 enc = ast_thamani[node];
     kama (ast_aina[node] == 4) { enc = ast_nne[node]; }  // halisi kamili: enc iko ast_nne
     kama (ast_aina[node] == 45) { rudisha; }  // D64: thamani iko xmm0
