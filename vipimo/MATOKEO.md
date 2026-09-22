@@ -1293,3 +1293,36 @@ Interleaved, `perf stat` (mizunguko, mizunguko 7):
 Hakuna kipimo hata kimoja kilichoonyesha HASARA halisi (baada ya
 kuondoa kelele). kupanga, maneno na heshi zinafaidika zaidi kwa
 sababu zinaandika kwenye safu mara nyingi kwenye njia zao kuu.
+
+## Uhifadhi wa *ptr = thamani kwa [r9] moja kwa moja
+
+Kioo kidogo cha sehemu iliyotangulia lakini kwa `*ptr = thamani`
+(hakuna faharasa/mizani): kielekezi kinashikiliwa kwenye `r9` (jr_jani_rcx)
+wakati RHS salama inatathminiwa, kisha `mov [r9], thamani` moja kwa moja
+-- badala ya push/pop ya anwani. `r9` ina low3=001 (sawa na rcx), hivyo
+ModRM peke yake (bila SIB) inatosha (rm=001 si 100, hivyo hakuna
+kulazimishwa kwa SIB byte).
+
+### Uthibitisho
+
+- `jaribio_uhifadhi_ptr`: aina zote, RHS salama/isiyo salama, kielekezi
+  kilichotokana na pointer arithmetic, kiwanja (bado njia ya asili).
+  425/425, mara 3, fixpoint stage2==stage3.
+- Somo la pili la mutation kikao hiki: mutation ya kwanza (kuondoa
+  REX.B kwa uandishi wa byte) HAIKUGUNDULIKA na RHS ndogo (namba ya
+  moja kwa moja haigusi rcx KAMWE, hivyo rcx ilibaki sahihi kwa bahati
+  hata bila REX.B). Nimeongeza kesi za RHS zinazogusa rcx (hesabu)
+  kwa kila upana ikiwemo byte -- sasa mutation hiyo inasababisha SEGV.
+- Programu 4001 za nasibu: sifuri tofauti.
+
+### Utendaji
+
+Hakuna kipimo cha vipimo tisa vinavyotumia `*ptr = thamani` (bila
+faharasa) kwenye njia yake kuu -- vyote hutumia `arr[idx]`
+(iliyofaidika tayari kwenye sehemu iliyotangulia). Kama ilivyotarajiwa,
+mabadiliko ni ndani ya kelele kwa vipimo vyote tisa (nimethibitisha
+matriki hasa kwa marudio matatu ya moja kwa moja: 198.0M/199.1M,
+197.7M/198.2M, 198.4M/197.9M mizunguko -- kabla/baada, tofauti ndani
+ya 0.5% kila wakati). Faida yake ni kwa msimbo unaotumia vielekezi
+moja kwa moja (bila safu), mfano linked-list au miundo ya mtu binafsi
+iliyofikiwa kupitia kielekezi kimoja bila faharasa.
