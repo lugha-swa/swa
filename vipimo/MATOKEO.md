@@ -1239,3 +1239,57 @@ rekebisho hili pia, hivyo hakuna mabadiliko ya tabia kwa kesi hizo.
 kubwa zaidi ni shinikizo la mbele la CPU (front-end), si mizunguko ya
 moja kwa moja). `mchujo` -1.7%, `maneno` -3.5%. Vingine ndani ya
 kelele iliyoelezwa juu.
+
+## Uhifadhi wa arr[idx] = thamani kwa SIB moja kwa moja
+
+Sawa na #251 (ambayo iliongeza SIB kwa KUSOMA `arr[idx]` pekee): sasa
+KUANDIKA `arr[idx] = thamani` (isiyo ya kiwanja `+=`/`-=`/`*=`, isiyo
+ya muundo) pia hutumia agizo MOJA `mov [r9 + r8*saizi], thamani`
+badala ya kukokotoa anwani kamili (shl+add), kuihifadhi kwenye rafu
+(push), kutathmini RHS, kisha kuivuta (pop) kabla ya kuhifadhi.
+
+Njia hii inatumika PEKEE pale: msingi ni jani (jr_msingi_aina, kama
+kawaida), NA RHS haina wito (jr_ni_salama) -- vinginevyo njia ya asili
+(push/pop) inabaki. `r8`/`r9` ni salama kushikilia faharisi na msingi
+wakati RHS inatathminiwa kwa sababu jr_ni_salama inakataa wito wowote,
+na r8/r9 hazitumiki KAMWE na msimbo wa hesabu safi (zinatumika TU na
+wito za syscall/paramu 5+/6+).
+
+### Uthibitisho
+
+- Jaribio jipya `jaribio_uhifadhi_sib`: aina zote za kipengele
+  (N8/A8/N16/N32/N64/D32/D64), RHS salama dhidi ya isiyo salama
+  (wito), kiwanja (lazima libaki njia ya asili), muundo (lazima
+  ubaki njia ya asili), fahirisi kubwa (mwingiliano na rekebisho la
+  #252), safu ya ndani. 423/423, mara 3 kutoka ujenzi safi. Fixpoint
+  stage2 == stage3.
+- Mutation: kuharibu REX.X/B (agizo linatumia rax/rcx badala ya
+  r8/r9) kunasababisha SEGV; kuharibu mizani ya SIB kwa saizi 4
+  kunatoa matokeo mabaya (jaribio linashindwa); kuharibu lengwa la
+  "mov r8, rax" kunasababisha SEGV. (Somo dogo: mutation ya kwanza
+  niliyojaribu -- kubadilisha sib=1 kuwa sib=8 kwa saizi=1 -- HAIKUGUNDULIKA
+  kwa sababu kwa scale=1 kubadilishana base<->index hakubadilishi jumla
+  ya A+B; nilibadilisha kwa mutation yenye maana zaidi.)
+- Disassembly ya moja kwa moja imethibitisha `43 89 04 81`
+  (`mov %eax,(%r9,%r8,4)`) ikitokea kwenye programu za mfano.
+- Programu 5001 za nasibu na 3001 za faharasa (mkusanyaji wa kabla
+  dhidi ya wa baada): sifuri tofauti.
+
+### Utendaji
+
+Interleaved, `perf stat` (mizunguko, mizunguko 7):
+
+| Kipimo | Mabadiliko |
+|---|---|
+| kupanga | -7.5% |
+| maneno | -7.0% |
+| heshi | -6.1% |
+| mchujo | -4.5% |
+| mzunguko_mchezo | -1.0% |
+| matriki | -0.3% |
+| mandelbrot | ~sawa |
+| fibonacci, miti_bst | +2.9%/+3.8% (kelele ya mpangilio wa msimbo -- nimethibitisha kwa jaribio la kuhamisha msimbo: fibonacci ilibadilika 224M-237M, miti_bst 336M-351M, KWA KUONGEZA TU kazi tupu bila kugusa msimbo wa mabadiliko haya) |
+
+Hakuna kipimo hata kimoja kilichoonyesha HASARA halisi (baada ya
+kuondoa kelele). kupanga, maneno na heshi zinafaidika zaidi kwa
+sababu zinaandika kwenye safu mara nyingi kwenye njia zao kuu.
