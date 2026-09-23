@@ -1,46 +1,46 @@
 husisha { maktaba/kumbukumbu.swa }
 
 muundo Orodha {
-    N32* data;
-    N32 idadi;
-    N32 uwezo;
+    n32* data;
+    n32 idadi;
+    n32 uwezo;
 };
 
-Orodha orodha_mpya(N32 uwezo_awali) {
+Orodha orodha_mpya(n32 uwezo_awali) {
     Orodha o;
-    o.data = tenga(ukubwa(N32) * uwezo_awali);
+    o.data = tenga(ukubwa(n32) * uwezo_awali);
     o.idadi = 0;
     o.uwezo = uwezo_awali;
     rudisha o;
 }
 
-W0 orodha_ongeza(Orodha* o, N32 thamani) {
+w0 orodha_ongeza(Orodha* o, n32 thamani) {
     kama (o->idadi >= o->uwezo) {
         o->uwezo = o->uwezo * 2;
-        o->data = badili(o->data, ukubwa(N32) * o->uwezo);
+        o->data = badili(o->data, ukubwa(n32) * o->uwezo);
     }
     o->data[o->idadi] = thamani;
     o->idadi = o->idadi + 1;
 }
 
-N32 orodha_pata(Orodha* o, N32 faharisi) {
+n32 orodha_pata(Orodha* o, n32 faharisi) {
     kama (faharisi < 0 || faharisi >= o->idadi) {
         rudisha 0;
     }
     rudisha o->data[faharisi];
 }
 
-W0 orodha_futa_mwisho(Orodha* o) {
+w0 orodha_futa_mwisho(Orodha* o) {
     kama (o->idadi > 0) {
         o->idadi = o->idadi - 1;
     }
 }
 
-N32 orodha_urefu(Orodha* o) {
+n32 orodha_urefu(Orodha* o) {
     rudisha o->idadi;
 }
 
-W0 orodha_huru(Orodha* o) {
+w0 orodha_huru(Orodha* o) {
     achilia_arena(o->data);
     o->data = 0;
     o->idadi = 0;

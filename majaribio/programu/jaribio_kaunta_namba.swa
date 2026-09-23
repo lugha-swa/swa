@@ -1,11 +1,11 @@
-// x = x + namba / x = x - namba kwa kigezo cha N32: "add r32, imm32" +
+// x = x + namba / x = x - namba kwa kigezo cha n32: "add r32, imm32" +
 // movsxd (rejesta) au "add dword [rbp-off], imm32" (rafu). Hesabu ni ya
 // biti 32 -- lazima izunguke (wrap) kama njia ya kawaida, na thamani ya
-// N32 kwenye rejesta lazima ibaki imepanuliwa kwa ishara.
+// n32 kwenye rejesta lazima ibaki imepanuliwa kwa ishara.
 
-N32 jaribu_rejesta() {
-    N32 i = 0;
-    N32 s = 0;
+n32 jaribu_rejesta() {
+    n32 i = 0;
+    n32 s = 0;
     wakati (i < 10) {
         s = s + i;
         i = i + 1;
@@ -18,33 +18,33 @@ N32 jaribu_rejesta() {
     i = i + 5;
     i = i - 1000000;
     kama (i != (0 - 1000005)) { rudisha 5; }
-    // N64 nzima lazima ione thamani hasi iliyopanuliwa kwa ishara
-    N64 w = i;
+    // n64 nzima lazima ione thamani hasi iliyopanuliwa kwa ishara
+    n64 w = i;
     kama (w != (0 - 1000005)) { rudisha 6; }
     rudisha 0;
 }
 
-N32 jaribu_kuzunguka() {
-    N32 a = 2147483647;
+n32 jaribu_kuzunguka() {
+    n32 a = 2147483647;
     a = a + 1;                       // -2147483648
     kama (a != (0 - 2147483647 - 1)) { rudisha 1; }
     kama (a < 0) { } sivyo { rudisha 2; }
     a = a - 1;                       // 2147483647
     kama (a != 2147483647) { rudisha 3; }
     kama (a > 0) { } sivyo { rudisha 4; }
-    N64 w = a;
+    n64 w = a;
     kama (w != 2147483647) { rudisha 5; }
     a = a + 1;
-    N64 v = a;
+    n64 v = a;
     kama (v != (0 - 2147483647 - 1)) { rudisha 6; }
     rudisha 0;
 }
 
 // Vigezo vingi (baadhi kwenye rafu, ofseti kubwa)
-N32 jaribu_rafu() {
-    N8 pedi[300];
-    N32 a = 1; N32 b = 2; N32 c = 3; N32 d = 4; N32 e = 5; N32 f = 6; N32 g = 7; N32 h = 8;
-    N32 i = 0;
+n32 jaribu_rafu() {
+    n8 pedi[300];
+    n32 a = 1; n32 b = 2; n32 c = 3; n32 d = 4; n32 e = 5; n32 f = 6; n32 g = 7; n32 h = 8;
+    n32 i = 0;
     wakati (i < 3) {
         a = a + 10; b = b + 20; c = c - 1; d = d + 1; e = e - 5; f = f + 100; g = g - 100; h = h + 7;
         i = i + 1;
@@ -69,9 +69,9 @@ N32 jaribu_rafu() {
 }
 
 // Ofseti ndogo (disp8): vigezo vingi bila safu kubwa
-N32 jaribu_rafu_ndogo() {
-    N32 a = 1; N32 b = 2; N32 c = 3; N32 d = 4; N32 e = 5; N32 f = 6; N32 g = 7; N32 h = 8;
-    N32 i = 0;
+n32 jaribu_rafu_ndogo() {
+    n32 a = 1; n32 b = 2; n32 c = 3; n32 d = 4; n32 e = 5; n32 f = 6; n32 g = 7; n32 h = 8;
+    n32 i = 0;
     wakati (i < 3) {
         a = a - 10; b = b + 20; c = c - 1; d = d - 4; e = e + 5; f = f - 100; g = g + 100; h = h - 7;
         i = i + 1;
@@ -87,26 +87,26 @@ N32 jaribu_rafu_ndogo() {
     rudisha 0;
 }
 
-// Aina zisizoguswa: N64, N8, A32 (bila ishara), D64, kielekezi
-N32 jaribu_aina_nyingine() {
-    N64 x = 4000000000;
+// Aina zisizoguswa: n64, n8, a32 (bila ishara), d64, kielekezi
+n32 jaribu_aina_nyingine() {
+    n64 x = 4000000000;
     x = x + 1;
     kama (x != 4000000001) { rudisha 1; }
-    A32 u = 4000000000;
+    a32 u = 4000000000;
     u = u + 1;
     kama (u != 4000000001) { rudisha 2; }
-    A32 z = 0;
+    a32 z = 0;
     z = z - 1;                       // 4294967295
     kama (z < 5) { rudisha 3; }
-    N8 b = 127;
-    b = b + 1;                       // N8 inazunguka -128
+    n8 b = 127;
+    b = b + 1;                       // n8 inazunguka -128
     kama (b >= 0) { rudisha 4; }
-    D64 d = 1.5;
+    d64 d = 1.5;
     d = d + 2;
     kama (d != 3.5) { rudisha 5; }
-    N32 arr[4];
+    n32 arr[4];
     arr[0] = 1; arr[1] = 2; arr[2] = 3; arr[3] = 4;
-    N32* p = arr;
+    n32* p = arr;
     p = p + 1;
     kama (p[0] != 2) { rudisha 6; }
     p = p - 1;
@@ -115,9 +115,9 @@ N32 jaribu_aina_nyingine() {
 }
 
 // Kigezo cha kushoto ni kigezo TOFAUTI: si kaunta -- njia ya kawaida
-N32 jaribu_si_kaunta() {
-    N32 x = 5;
-    N32 y = 10;
+n32 jaribu_si_kaunta() {
+    n32 x = 5;
+    n32 y = 10;
     x = y + 3;
     kama (x != 13) { rudisha 1; }
     y = x - 4;
@@ -127,8 +127,8 @@ N32 jaribu_si_kaunta() {
     rudisha 0;
 }
 
-N32 main() {
-    N32 r = jaribu_rejesta();
+n32 main() {
+    n32 r = jaribu_rejesta();
     kama (r != 0) { rudisha 10 + r; }
     r = jaribu_kuzunguka();
     kama (r != 0) { rudisha 20 + r; }

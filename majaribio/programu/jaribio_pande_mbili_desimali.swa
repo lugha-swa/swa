@@ -1,40 +1,40 @@
-// Pande mbili bila push/pop -- desimali (D64/D32): kushoto ni jani
+// Pande mbili bila push/pop -- desimali (d64/d32): kushoto ni jani
 // (rejesta hadi rejesta), kushoto isiyo na wito (xmm2..xmm7), kina zaidi
 // ya 6 (njia ya asili), kushoto yenye wito (njia ya asili), na
 // ubadilishaji wa namba kamili kuwa desimali. Thamani zote ni nguvu za 2
 // au vipande vyake ili hesabu iwe kamili (hakuna makosa ya kuzungusha).
 husisha { maktaba/kumbukumbu.swa }
 
-D64 mara_mbili(D64 x) { rudisha x * 2.0; }
+d64 mara_mbili(d64 x) { rudisha x * 2.0; }
 
 // Kazi inayotumia xmm2..xmm3 yenyewe (kushoto/kulia zisizo jani): ikiitwa
 // ndani ya kushoto ya operesheni nyingine, ingeharibu thamani iliyoshikiliwa
 // kwenye xmm2 kama mkusanyaji ungedhani wito ni salama.
-D64 jozi_mbili(D64* w) { rudisha w[0] * w[1] + w[2] * w[3]; }
+d64 jozi_mbili(d64* w) { rudisha w[0] * w[1] + w[2] * w[3]; }
 
 // Nakala ya "andika" isiyo na wito ndani ya kushoto: p[i] * q[i] mfululizo
-N32 jaribu_jozi_zisizo_na_wito() {
-    D64* p = tenga(ukubwa(D64) * 16);
-    D64* q = tenga(ukubwa(D64) * 16);
-    N32 i = 0;
+n32 jaribu_jozi_zisizo_na_wito() {
+    d64* p = tenga(ukubwa(d64) * 16);
+    d64* q = tenga(ukubwa(d64) * 16);
+    n32 i = 0;
     wakati (i < 16) {
-        D64 vi = i;
+        d64 vi = i;
         p[i] = vi + 1.0;          // 1..16
         q[i] = vi * 0.5;          // 0, 0.5, 1, ...
         i = i + 1;
     }
     // p[1]*q[1] + p[2]*q[2] = 2*0.5 + 3*1 = 4
-    D64 a = p[1] * q[1] + p[2] * q[2];
+    d64 a = p[1] * q[1] + p[2] * q[2];
     kama (a != 4.0) { rudisha 1; }
     // p[3]*q[3] - p[2]*q[2] = 4*1.5 - 3*1 = 3
-    D64 b = p[3] * q[3] - p[2] * q[2];
+    d64 b = p[3] * q[3] - p[2] * q[2];
     kama (b != 3.0) { rudisha 2; }
     // kutoa na kugawanya: kushoto - kulia si sawa na kulia - kushoto
-    D64 c = (p[7] * q[2]) / (p[3] * q[1]);   // (8*1) / (4*0.5) = 4
+    d64 c = (p[7] * q[2]) / (p[3] * q[1]);   // (8*1) / (4*0.5) = 4
     kama (c != 4.0) { rudisha 3; }
-    D64 d = (p[3] * q[1]) / (p[7] * q[2]);   // 2 / 8 = 0.25
+    d64 d = (p[3] * q[1]) / (p[7] * q[2]);   // 2 / 8 = 0.25
     kama (d != 0.25) { rudisha 4; }
-    D64 e = (p[3] * q[1]) - (p[7] * q[2]);   // 2 - 8 = -6
+    d64 e = (p[3] * q[1]) - (p[7] * q[2]);   // 2 - 8 = -6
     kama (e != (0.0 - 6.0)) { rudisha 5; }
     // ulinganishi na kushoto/kulia zisizo jani
     kama (p[1] * q[3] < p[2] * q[1]) { rudisha 6; }      // 3 < 1.5 ni uongo
@@ -47,21 +47,21 @@ N32 jaribu_jozi_zisizo_na_wito() {
 // Kina zaidi ya 6: mfululizo wa jumla ya bidhaa (kushoto na kulia zote
 // zisizo jani kwa kila kiwango) -- xmm2..xmm7 zinaisha, kina cha 7+ kinarudi
 // kwenye njia ya asili.
-N32 jaribu_kina_kikubwa() {
-    D64* p = tenga(ukubwa(D64) * 16);
-    D64* q = tenga(ukubwa(D64) * 16);
-    N32 i = 0;
+n32 jaribu_kina_kikubwa() {
+    d64* p = tenga(ukubwa(d64) * 16);
+    d64* q = tenga(ukubwa(d64) * 16);
+    n32 i = 0;
     wakati (i < 16) {
-        D64 vi = i;
+        d64 vi = i;
         p[i] = vi;
         q[i] = 2.0;
         i = i + 1;
     }
-    D64 s = p[1] * q[1] + p[2] * q[2] + p[3] * q[3] + p[4] * q[4] + p[5] * q[5] + p[6] * q[6] + p[7] * q[7] + p[8] * q[8] + p[9] * q[9] + p[10] * q[10] + p[11] * q[11];
+    d64 s = p[1] * q[1] + p[2] * q[2] + p[3] * q[3] + p[4] * q[4] + p[5] * q[5] + p[6] * q[6] + p[7] * q[7] + p[8] * q[8] + p[9] * q[9] + p[10] * q[10] + p[11] * q[11];
     // 2 * (1 + 2 + ... + 11) = 132
     kama (s != 132.0) { rudisha 1; }
     // Kulia ya kina: p1*q1 - (p2*q2 - (p3*q3 - (p4*q4 - ...)))
-    D64 t = p[1] * q[1] - (p[2] * q[2] - (p[3] * q[3] - (p[4] * q[4] - (p[5] * q[5] - (p[6] * q[6] - (p[7] * q[7] - (p[8] * q[8] - p[9] * q[9])))))));
+    d64 t = p[1] * q[1] - (p[2] * q[2] - (p[3] * q[3] - (p[4] * q[4] - (p[5] * q[5] - (p[6] * q[6] - (p[7] * q[7] - (p[8] * q[8] - p[9] * q[9])))))));
     // 2 - (4 - (6 - (8 - (10 - (12 - (14 - (16 - 18))))))) = 2 - (4 - (6 - (8 - (10 - (12 - (14 - (-2)))))))
     // 14+2=16; 12-16=-4; 10+4=14; 8-14=-6; 6+6=12; 4-12=-8; 2+8=10
     kama (t != 10.0) { rudisha 2; }
@@ -69,78 +69,78 @@ N32 jaribu_kina_kikubwa() {
 }
 
 // Wito ndani ya kushoto au kulia: mpangilio (kulia kwanza) na usahihi
-D64 kaunta = 0.0;
-D64 hatua() {
+d64 kaunta = 0.0;
+d64 hatua() {
     kaunta = kaunta + 1.0;
     rudisha kaunta;
 }
 
-N32 jaribu_wito() {
-    D64* p = tenga(ukubwa(D64) * 4);
+n32 jaribu_wito() {
+    d64* p = tenga(ukubwa(d64) * 4);
     p[0] = 3.0;
     p[1] = 5.0;
-    D64 a = mara_mbili(p[0]) + p[1] * 2.0;        // 6 + 10
+    d64 a = mara_mbili(p[0]) + p[1] * 2.0;        // 6 + 10
     kama (a != 16.0) { rudisha 1; }
-    D64 b = p[1] * 2.0 + mara_mbili(p[0]);        // 10 + 6 (wito upande wa kulia)
+    d64 b = p[1] * 2.0 + mara_mbili(p[0]);        // 10 + 6 (wito upande wa kulia)
     kama (b != 16.0) { rudisha 2; }
-    D64 c = mara_mbili(p[0]) - mara_mbili(p[1]);  // 6 - 10
+    d64 c = mara_mbili(p[0]) - mara_mbili(p[1]);  // 6 - 10
     kama (c != (0.0 - 4.0)) { rudisha 3; }
     // mpangilio: kulia kwanza => hatua() ya kulia = 1, ya kushoto = 2 => 2 - 1
     kaunta = 0.0;
-    D64 d = hatua() - hatua();
+    d64 d = hatua() - hatua();
     kama (d != 1.0) { rudisha 4; }
     // kushoto isiyo na wito, kulia yenye wito: p[0]*2 - hatua()
-    D64* w = tenga(ukubwa(D64) * 4);
+    d64* w = tenga(ukubwa(d64) * 4);
     w[0] = 1.0; w[1] = 2.0; w[2] = 3.0; w[3] = 4.0;
-    D64 f = jozi_mbili(w) + w[0] * w[1];      // 14 + 2
+    d64 f = jozi_mbili(w) + w[0] * w[1];      // 14 + 2
     kama (f != 16.0) { rudisha 6; }
-    D64 g = jozi_mbili(w) - w[2] * w[3];      // 14 - 12
+    d64 g = jozi_mbili(w) - w[2] * w[3];      // 14 - 12
     kama (g != 2.0) { rudisha 7; }
-    D64 h = w[3] * w[2] - jozi_mbili(w);      // 12 - 14
+    d64 h = w[3] * w[2] - jozi_mbili(w);      // 12 - 14
     kama (h != (0.0 - 2.0)) { rudisha 8; }
     kaunta = 0.0;
-    D64 e = p[0] * 2.0 - hatua();                 // 6 - 1
+    d64 e = p[0] * 2.0 - hatua();                 // 6 - 1
     kama (e != 5.0) { rudisha 5; }
     rudisha 0;
 }
 
-// Ubadilishaji wa namba kamili kuwa desimali ndani ya operesheni ya D64
-N32 jaribu_mchanganyiko() {
-    D64 x = 2.5;
-    N32 n = 4;
-    D64 a = x * n;             // 10
+// Ubadilishaji wa namba kamili kuwa desimali ndani ya operesheni ya d64
+n32 jaribu_mchanganyiko() {
+    d64 x = 2.5;
+    n32 n = 4;
+    d64 a = x * n;             // 10
     kama (a != 10.0) { rudisha 1; }
-    D64 b = n * x;             // 10
+    d64 b = n * x;             // 10
     kama (b != 10.0) { rudisha 2; }
-    D64 c = x + 1;             // 3.5
+    d64 c = x + 1;             // 3.5
     kama (c != 3.5) { rudisha 3; }
-    D64 d = 10 - x;            // 7.5
+    d64 d = 10 - x;            // 7.5
     kama (d != 7.5) { rudisha 4; }
-    D64 e = x - 10;            // -7.5
+    d64 e = x - 10;            // -7.5
     kama (e != (0.0 - 7.5)) { rudisha 5; }
-    D64 f = (x + 0.5) * (x - 0.5) + n;   // 3 * 2 + 4 = 10
+    d64 f = (x + 0.5) * (x - 0.5) + n;   // 3 * 2 + 4 = 10
     kama (f != 10.0) { rudisha 6; }
     rudisha 0;
 }
 
-// D32 (kuelea): njia ile ile ya movapd (nakala kamili ya rejesta)
-N32 jaribu_d32() {
-    D32* p = tenga(ukubwa(D32) * 4);
+// d32 (kuelea): njia ile ile ya movapd (nakala kamili ya rejesta)
+n32 jaribu_d32() {
+    d32* p = tenga(ukubwa(d32) * 4);
     p[0] = 1.5;
     p[1] = 2.5;
     p[2] = 4.0;
-    D32 a = p[0] * p[1] + p[2] * p[1];    // 3.75 + 10 = 13.75
+    d32 a = p[0] * p[1] + p[2] * p[1];    // 3.75 + 10 = 13.75
     kama (a != 13.75) { rudisha 1; }
-    D32 b = p[2] * p[1] - p[0] * p[1];    // 10 - 3.75 = 6.25
+    d32 b = p[2] * p[1] - p[0] * p[1];    // 10 - 3.75 = 6.25
     kama (b != 6.25) { rudisha 2; }
-    D32 c = p[2] / p[1];                  // 1.6 haitoshi -- tumia p[2]/p[2]
-    D32 d = p[2] / p[2];
+    d32 c = p[2] / p[1];                  // 1.6 haitoshi -- tumia p[2]/p[2]
+    d32 d = p[2] / p[2];
     kama (d != 1.0) { rudisha 3; }
     rudisha 0;
 }
 
-N32 main() {
-    N32 r = jaribu_jozi_zisizo_na_wito();
+n32 main() {
+    n32 r = jaribu_jozi_zisizo_na_wito();
     kama (r != 0) { rudisha 10 + r; }
     r = jaribu_kina_kikubwa();
     kama (r != 0) { rudisha 30 + r; }

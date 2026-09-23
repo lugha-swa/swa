@@ -6,13 +6,13 @@
 // linalinganishwa na idiv halisi (kigezo cha wakati wa kukimbia).
 husisha { msingi/maktaba/kumbukumbu.swa }
 
-N32 op(N32 v) { rudisha v; }
-N64 op64(N64 v) { rudisha v; }
-A32 opu(A32 v) { rudisha v; }
+n32 op(n32 v) { rudisha v; }
+n64 op64(n64 v) { rudisha v; }
+a32 opu(a32 v) { rudisha v; }
 
-N32 jaribu_n32() {
-    N32 x = 123456;
-    N32 h = 0 - 987654;
+n32 jaribu_n32() {
+    n32 x = 123456;
+    n32 h = 0 - 987654;
     kama (x / 10 / 100 != op(x) / op(10) / op(100)) { rudisha 1; }
     kama (h / 10 / 100 != op(h) / op(10) / op(100)) { rudisha 2; }
     kama ((x % 7) / 3 != (op(x) % op(7)) / op(3)) { rudisha 3; }
@@ -25,9 +25,9 @@ N32 jaribu_n32() {
     // kulia pia ni usemi wenye mgawanyo (kigawanyaji si namba -- njia ya kawaida)
     kama (x / (h / 100000 + 20) != op(x) / (op(h) / op(100000) + op(20))) { rudisha 10; }
     // thamani nyingi
-    N32 i = 0 - 500;
+    n32 i = 0 - 500;
     wakati (i < 500) {
-        N32 v = i * 2731 + 17;
+        n32 v = i * 2731 + 17;
         kama (v / 10 / 3 != op(v) / op(10) / op(3)) { rudisha 11; }
         kama ((v % 13) / 5 != (op(v) % op(13)) / op(5)) { rudisha 12; }
         kama ((v / 6) % 11 != (op(v) / op(6)) % op(11)) { rudisha 13; }
@@ -36,17 +36,17 @@ N32 jaribu_n32() {
     rudisha 0;
 }
 
-N32 jaribu_bila_ishara() {
-    A32 u = 4000000000;
+n32 jaribu_bila_ishara() {
+    a32 u = 4000000000;
     kama (u / 10 / 100 != opu(u) / opu(10) / opu(100)) { rudisha 1; }
     kama ((u % 7) / 3 != (opu(u) % opu(7)) / opu(3)) { rudisha 2; }
     kama (u / 3 / 5 != opu(u) / opu(3) / opu(5)) { rudisha 3; }
     rudisha 0;
 }
 
-N32 jaribu_n64() {
-    N64 y = 123456789012;
-    N64 z = 0 - 987654321098;
+n32 jaribu_n64() {
+    n64 y = 123456789012;
+    n64 z = 0 - 987654321098;
     kama (y / 10 / 7 != op64(y) / op64(10) / op64(7)) { rudisha 1; }
     kama (z / 10 / 7 != op64(z) / op64(10) / op64(7)) { rudisha 2; }
     kama ((y % 100) / 3 != (op64(y) % op64(100)) / op64(3)) { rudisha 3; }
@@ -54,12 +54,12 @@ N32 jaribu_n64() {
     kama ((z / 1000) % 7 != (op64(z) / op64(1000)) % op64(7)) { rudisha 5; }
     kama (y / 3 / 5 / 11 != op64(y) / op64(3) / op64(5) / op64(11)) { rudisha 6; }
     kama (y % 1000000007 % 100 != op64(y) % op64(1000000007) % op64(100)) { rudisha 7; }
-    // mgawanyo wa N32 ndani ya N64 na kinyume chake
-    N32 k = 987654;
+    // mgawanyo wa n32 ndani ya n64 na kinyume chake
+    n32 k = 987654;
     kama ((y / 10) / k != op64(y) / op64(10) / op64(k)) { rudisha 8; }
-    N64 i = 0;
+    n64 i = 0;
     wakati (i < 400) {
-        N64 v = (i - 200) * 30000000007 + 123;
+        n64 v = (i - 200) * 30000000007 + 123;
         kama (v / 10 / 7 != op64(v) / op64(10) / op64(7)) { rudisha 9; }
         kama ((v % 1000) / 13 != (op64(v) % op64(1000)) / op64(13)) { rudisha 10; }
         i = i + 1;
@@ -68,12 +68,12 @@ N32 jaribu_n64() {
 }
 
 // Ndani ya faharasa ya safu na ndani ya hoja ya wito
-N32 mara(N32 a, N32 b) { rudisha a * b; }
-N32 jaribu_katika_muktadha() {
-    N32 a[8];
-    N32 b[8];
-    N32 c[8];
-    N32 i = 0;
+n32 mara(n32 a, n32 b) { rudisha a * b; }
+n32 jaribu_katika_muktadha() {
+    n32 a[8];
+    n32 b[8];
+    n32 c[8];
+    n32 i = 0;
     wakati (i < 8) { a[i] = i * 10; b[i] = i * 100; c[i] = 7 - i; i = i + 1; }
     kama (b[a[1] / 10] / 100 != 1) { rudisha 1; }
     kama (c[b[a[1] / 10] / 100] != 6) { rudisha 2; }
@@ -82,8 +82,8 @@ N32 jaribu_katika_muktadha() {
     rudisha 0;
 }
 
-N32 main() {
-    N32 r = jaribu_n32();
+n32 main() {
+    n32 r = jaribu_n32();
     kama (r != 0) { rudisha 10 + r; }
     r = jaribu_bila_ishara();
     kama (r != 0) { rudisha 30 + r; }

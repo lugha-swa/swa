@@ -4,30 +4,30 @@
 // mkaguzi_kagua_wito) ni SAWA na aina ya kurudi ya kazi hiyo. Jaribio hili
 // linazingatia hasa THAMANI HASI (ambapo cdqe iliyokosekana ingeonekana
 // mara moja -- upanuzi wa sifuri badala ya ishara ungegeuza namba hasi
-// ndogo kuwa namba kubwa chanya) kupitia N8/N16/N32, ndani ya muktadha wa
-// N64, kwenye ulinganishi, na kwenye mnyororo wa wito.
+// ndogo kuwa namba kubwa chanya) kupitia n8/n16/n32, ndani ya muktadha wa
+// n64, kwenye ulinganishi, na kwenye mnyororo wa wito.
 
 husisha { msingi/maktaba/kumbukumbu.swa }
 
-N32 hasi32(N32 x) { rudisha 0 - x; }
-N16 hasi16(N16 x) { rudisha 0 - x; }
-N8 hasi8(N8 x) { rudisha 0 - x; }
-N32 tambulisha(N32 x) { rudisha x; }
-N64 pua64(N32 x) { N64 w = x; rudisha w; }   // huhitaji x isiyo na sifuri isiyo sahihi
+n32 hasi32(n32 x) { rudisha 0 - x; }
+n16 hasi16(n16 x) { rudisha 0 - x; }
+n8 hasi8(n8 x) { rudisha 0 - x; }
+n32 tambulisha(n32 x) { rudisha x; }
+n64 pua64(n32 x) { n64 w = x; rudisha w; }   // huhitaji x isiyo na sifuri isiyo sahihi
 
-N32 mnyororo(N32 depth, N32 x) {
+n32 mnyororo(n32 depth, n32 x) {
     kama (depth <= 0) { rudisha x; }
     rudisha mnyororo(depth - 1, hasi32(x));
 }
 
-N32 jaribu_moja_kwa_moja() {
+n32 jaribu_moja_kwa_moja() {
     kama (hasi32(5) != (0 - 5)) { rudisha 1; }
     kama (hasi16(5) != (0 - 5)) { rudisha 2; }
     kama (hasi8(5) != (0 - 5)) { rudisha 3; }
-    // muktadha wa N64: matokeo ya wito yakiwa operesheni na N64
-    N64 w = hasi32(3);
+    // muktadha wa n64: matokeo ya wito yakiwa operesheni na n64
+    n64 w = hasi32(3);
     kama (w != (0 - 3)) { rudisha 4; }
-    N64 w2 = 1000000000000 + hasi32(7);
+    n64 w2 = 1000000000000 + hasi32(7);
     kama (w2 != 999999999993) { rudisha 5; }
     // ulinganishi wa moja kwa moja (thamani ya wito kama operanda)
     kama (hasi32(4) < 0) { } sivyo { rudisha 6; }
@@ -35,39 +35,39 @@ N32 jaribu_moja_kwa_moja() {
     rudisha 0;
 }
 
-N32 jaribu_mnyororo() {
+n32 jaribu_mnyororo() {
     // mnyororo wa wito 21: hasi32 inaitwa mara 21 mfululizo (ishara
     // inabadilika kila hatua) -- kila hatua matokeo ya wito ya awali
     // ni hoja ya wito unaofuata moja kwa moja
-    N32 r = mnyororo(21, 5);
+    n32 r = mnyororo(21, 5);
     // 21 ni isiyo ya kawaida (odd), kwa hiyo ishara inabadilika mara 21:
     // 5 -> -5 -> 5 -> -5 ... (mara 21) -> -5
     kama (r != (0 - 5)) { rudisha 1; }
-    N32 r2 = mnyororo(20, 5);
+    n32 r2 = mnyororo(20, 5);
     kama (r2 != 5) { rudisha 2; }
     rudisha 0;
 }
 
-N32 jaribu_usemi_mkubwa() {
+n32 jaribu_usemi_mkubwa() {
     // matokeo matatu ya wito yakijumlishwa moja kwa moja (bila kuhifadhiwa
     // kwenye kigezo kati) -- kila mmoja hasi
-    N32 s = hasi32(1) + hasi32(2) + hasi32(3);
+    n32 s = hasi32(1) + hasi32(2) + hasi32(3);
     kama (s != (0 - 6)) { rudisha 1; }
-    N32 s2 = hasi32(10) - hasi32(3);
+    n32 s2 = hasi32(10) - hasi32(3);
     kama (s2 != (0 - 7)) { rudisha 2; }         // -10 - (-3) = -7
-    N32 s3 = tambulisha(hasi32(4)) * 2;
+    n32 s3 = tambulisha(hasi32(4)) * 2;
     kama (s3 != (0 - 8)) { rudisha 3; }
     // wito ndani ya faharasa ya safu (hasi -- lazima ipanuliwe sahihi
     // kwa hesabu ya anwani)
-    N32* p = tenga(ukubwa(N32) * 16);
-    N32 i = 0; wakati (i < 16) { p[i] = i * 10; i = i + 1; }
-    N32* q = p + 8;
+    n32* p = tenga(ukubwa(n32) * 16);
+    n32 i = 0; wakati (i < 16) { p[i] = i * 10; i = i + 1; }
+    n32* q = p + 8;
     kama (q[hasi32(2)] != 60) { rudisha 4; }    // q[-2] == p[6] == 60
     rudisha 0;
 }
 
-N32 main() {
-    N32 r = jaribu_moja_kwa_moja();
+n32 main() {
+    n32 r = jaribu_moja_kwa_moja();
     kama (r != 0) { rudisha 10 + r; }
     r = jaribu_mnyororo();
     kama (r != 0) { rudisha 30 + r; }
