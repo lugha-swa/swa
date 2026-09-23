@@ -1,4 +1,4 @@
-// Zidisho na uchawi kwa N64 yenye ishara: kila kigawanyaji kwenye jedwali la
+// Zidisho na uchawi kwa n64 yenye ishara: kila kigawanyaji kwenye jedwali la
 // gwm64_tafuta (uzalishaji.swa) -- x / D na x % D (D ni namba halisi, njia ya
 // uchawi) lazima zilingane na x / opaque(D) na x % opaque(D) (kigezo cha
 // wakati wa kukimbia, idiv halisi) kwa thamani za mpaka (INT64_MIN/MAX,
@@ -6,17 +6,17 @@
 // (2^0..2^63), chanya na hasi. Faili hili linazalishwa kwa mfuatano wa
 // vigawanyaji vya jedwali -- likibadilisha jedwali, lisasishwe pia.
 
-N64 mbegu_lcg = 88172645463325252;
+n64 mbegu_lcg = 88172645463325252;
 
-N64 opaque(N64 v) { rudisha v; }
+n64 opaque(n64 v) { rudisha v; }
 
-N64 nasibu() {
+n64 nasibu() {
     mbegu_lcg = mbegu_lcg * 6364136223846793005 + 1442695040888963407;
     rudisha mbegu_lcg;
 }
 
 // rudisha 0 kama yote yanalingana, vinginevyo kigawanyaji kilichoshindwa
-N64 kagua(N64 x) {
+n64 kagua(n64 x) {
     kama (x / 3 != x / opaque(3)) { rudisha 3; }
     kama (x % 3 != x % opaque(3)) { rudisha 3; }
     kama (x / 5 != x / opaque(5)) { rudisha 5; }
@@ -178,10 +178,10 @@ N64 kagua(N64 x) {
     rudisha 0;
 }
 
-N32 main() {
-    N64 kubwa = 9223372036854775807;
-    N64 kidogo = 0 - kubwa - 1;
-    N64 r = kagua(0);
+n32 main() {
+    n64 kubwa = 9223372036854775807;
+    n64 kidogo = 0 - kubwa - 1;
+    n64 r = kagua(0);
     kama (r != 0) { rudisha 1; }
     r = kagua(1);
     kama (r != 0) { rudisha 2; }
@@ -196,7 +196,7 @@ N32 main() {
     r = kagua(kidogo + 1);
     kama (r != 0) { rudisha 7; }
     // karibu na vizidisho vya 10, 7, 1000, 10^9+7
-    N64 m = 0;
+    n64 m = 0;
     wakati (m < 300) {
         r = kagua(m);
         kama (r != 0) { rudisha 8; }
@@ -211,10 +211,10 @@ N32 main() {
         m = m + 1;
     }
     // nasibu: mizani yote
-    N32 i = 0;
+    n32 i = 0;
     wakati (i < 6000) {
-        N64 x = nasibu();
-        N64 kiasi = nasibu() & 63;
+        n64 x = nasibu();
+        n64 kiasi = nasibu() & 63;
         x = x >> kiasi;
         r = kagua(x);
         kama (r != 0) { rudisha 20; }

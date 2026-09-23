@@ -1,42 +1,42 @@
 // Jaribio la mchanganyiko: leg MOJA ni ulinganishi wa moja kwa moja
 // (njia mpya ya haraka), leg NYINGINE ni kigezo cha kawaida (njia ya
 // jumla) -- ndani ya && MOJA na || MOJA, kwa kama na wakati.
-N32 main() {
-    N32 a = 5;
-    N32 b = 10;
-    N32 flag_kweli = 1;
-    N32 flag_sivyo = 0;
+n32 main() {
+    n32 a = 5;
+    n32 b = 10;
+    n32 flag_kweli = 1;
+    n32 flag_sivyo = 0;
 
     // kama (a<b && flag) -- a<b(fast)=kweli, flag(jumla)=kweli -> kweli
-    N32 x1 = 0;
+    n32 x1 = 0;
     kama (a < b && flag_kweli) { x1 = 1; }
     kama (x1 != 1) { rudisha 1; }
 
     // kama (flag && a<b) -- flag(jumla)=kweli, a<b(fast)=kweli -> kweli
-    N32 x2 = 0;
+    n32 x2 = 0;
     kama (flag_kweli && a < b) { x2 = 1; }
     kama (x2 != 1) { rudisha 2; }
 
     // kama (a>b && flag) -- a>b(fast)=sivyo -> sivyo, flag HAITATHMINIWI
     // (haihitajiki kuthibitishwa hapa kwa sababu flag si kazi yenye
     // madhara -- tunathibitisha TU matokeo sahihi).
-    N32 x3 = 0;
+    n32 x3 = 0;
     kama (a > b && flag_kweli) { x3 = 1; }
     kama (x3 != 0) { rudisha 3; }
 
     // kama (flag_sivyo || a<b) -- flag(jumla)=sivyo, a<b(fast)=kweli -> kweli
-    N32 x4 = 0;
+    n32 x4 = 0;
     kama (flag_sivyo || a < b) { x4 = 1; }
     kama (x4 != 1) { rudisha 4; }
 
     // kama (a>=b || flag_sivyo) -- a>=b(fast)=sivyo, flag(jumla)=sivyo -> sivyo
-    N32 x5 = 0;
+    n32 x5 = 0;
     kama (a >= b || flag_sivyo) { x5 = 1; }
     kama (x5 != 0) { rudisha 5; }
 
     // wakati (i<n && flag) -- fast + jumla ndani ya kitanzi
-    N32 i = 0;
-    N32 n = 4;
+    n32 i = 0;
+    n32 n = 4;
     wakati (i < n && flag_kweli) { i = i + 1; }
     kama (i != 4) { rudisha 6; }
 

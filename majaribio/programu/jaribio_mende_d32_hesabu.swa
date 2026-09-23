@@ -1,35 +1,35 @@
 // jaribio_mende_d32_hesabu: hesabu, ulinganisho, ulimwengu, na
-// ugawaji upya wa D32. Kabla: D32 ilitoa jibu baya (0) au SEGV.
+// ugawaji upya wa d32. Kabla: d32 ilitoa jibu baya (0) au SEGV.
 // Sasa: upana wa 4 unaheshimiwa kila mahali (movss, cvtsd2ss,
 // cvtss2sd, cvttss2si, comiss, addss n.k.).
 // Inatarajiwa: 2 + 2*10 + 1*100 + 1*1000 + 7*10000 + 3*100000 = 371122
 // (mod 256 = 178)
-// (stage1 pekee — mbegu bado inaanguka kwenye D32.)
-D32 hesabu(D32 a, D32 b) {
-    D32 c = a + b;
-    D32 d = c * 2.0;
-    D32 e = d - 1.5;
+// (stage1 pekee — mbegu bado inaanguka kwenye d32.)
+d32 hesabu(d32 a, d32 b) {
+    d32 c = a + b;
+    d32 d = c * 2.0;
+    d32 e = d - 1.5;
     rudisha e / 2.0;
 }
 
-N32 linganisha(D32 x) {
+n32 linganisha(d32 x) {
     kama (x < 2.0) { rudisha 1; }
     kama (x == 2.5) { rudisha 2; }
     kama (x > 3.0) { rudisha 3; }
     rudisha 4;
 }
 
-D32 ulimwengu_d32 = 1.5;
+d32 ulimwengu_d32 = 1.5;
 
-N32 main() {
-    N32 r1 = hesabu(2.5, 1.0);   // (3.5*2 - 1.5)/2 = 2.75 → 2
-    N32 r2 = linganisha(2.5);    // 2
-    N32 r3 = linganisha(1.0);    // 1
-    N32 r4 = ulimwengu_d32;      // 1
-    D32 from_int = 7;            // upanuzi kamili → D32
-    N32 r5 = from_int;           // 7
-    D32 x = 1.0;
+n32 main() {
+    n32 r1 = hesabu(2.5, 1.0);   // (3.5*2 - 1.5)/2 = 2.75 → 2
+    n32 r2 = linganisha(2.5);    // 2
+    n32 r3 = linganisha(1.0);    // 1
+    n32 r4 = ulimwengu_d32;      // 1
+    d32 from_int = 7;            // upanuzi kamili → d32
+    n32 r5 = from_int;           // 7
+    d32 x = 1.0;
     x = 3.5;                     // ugawaji upya
-    N32 r6 = x;                  // 3
+    n32 r6 = x;                  // 3
     rudisha r1 + r2 * 10 + r3 * 100 + r4 * 1000 + r5 * 10000 + r6 * 100000;
 }

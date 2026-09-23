@@ -22,28 +22,28 @@
 // kazi hii, angalia ujumbe wa PR).
 //
 // Kila q/r halisi (njia mpya) unalinganishwa na thamani INAYOTOKANA
-// NA NJIA TOFAUTI KABISA -- mgawanyo wa D64 (usiogusika na
-// uboreshaji huu KABISA) ukibadilishwa kuwa N32 (ubadilishaji huo
+// NA NJIA TOFAUTI KABISA -- mgawanyo wa d64 (usiogusika na
+// uboreshaji huu KABISA) ukibadilishwa kuwa n32 (ubadilishaji huo
 // hukata kuelekea sifuri, sawa na mgawanyo wa nambari kamili wenye
 // ishara wa lugha hii). Kwa vigezo vidogo kama hivi (chini ya 2^53),
-// mgawanyo wa D64 kwa nguvu ya 2 ni SAHIHI KABISA (hauna kosa la
+// mgawanyo wa d64 kwa nguvu ya 2 ni SAHIHI KABISA (hauna kosa la
 // mzunguko wa desimali kamwe), hivyo hii ni rejeleo huru la kweli.
 //
 // Pia inathibitisha UTAMBULISHO wa msingi wa mgawanyo:
 // (x/d)*d + (x%d) == x kwa kila jozi.
 husisha { msingi/maktaba/kumbukumbu.swa }
 
-N32 jaribu_kigawanyaji_halisi_n32(N32 d) {
-    N32 x = 0 - 20;
+n32 jaribu_kigawanyaji_halisi_n32(n32 d) {
+    n32 x = 0 - 20;
     wakati (x <= 20) {
-        D64 xd = x;
-        D64 dd = d;
-        D64 qd_f = xd / dd;
-        N32 q_tarajiwa = qd_f;  // D64 -> N32 hukata kuelekea sifuri
-        N32 r_tarajiwa = x - (q_tarajiwa * d);
+        d64 xd = x;
+        d64 dd = d;
+        d64 qd_f = xd / dd;
+        n32 q_tarajiwa = qd_f;  // d64 -> n32 hukata kuelekea sifuri
+        n32 r_tarajiwa = x - (q_tarajiwa * d);
 
-        N32 q_halisi = 0;
-        N32 r_halisi = 0;
+        n32 q_halisi = 0;
+        n32 r_halisi = 0;
         kama (d == 2) { q_halisi = x / 2; r_halisi = x % 2; }
         sivyo { kama (d == 4) { q_halisi = x / 4; r_halisi = x % 4; }
         sivyo { kama (d == 8) { q_halisi = x / 8; r_halisi = x % 8; }
@@ -59,8 +59,8 @@ N32 jaribu_kigawanyaji_halisi_n32(N32 d) {
     rudisha 0;
 }
 
-N32 jaribu_mfululizo_n32() {
-    N32 r;
+n32 jaribu_mfululizo_n32() {
+    n32 r;
     r = jaribu_kigawanyaji_halisi_n32(2);
     kama (r != 0) { rudisha 1000 + r; }
     r = jaribu_kigawanyaji_halisi_n32(4);
@@ -72,19 +72,19 @@ N32 jaribu_mfululizo_n32() {
     rudisha 0;
 }
 
-N32 jaribu_kigawanyaji_halisi_n64(N32 lipi) {
-    N64 x = 0 - 200;
+n32 jaribu_kigawanyaji_halisi_n64(n32 lipi) {
+    n64 x = 0 - 200;
     wakati (x <= 200) {
-        D64 xd = x;
-        D64 dd = 8;
+        d64 xd = x;
+        d64 dd = 8;
         kama (lipi == 0) { dd = 2; }
         sivyo { kama (lipi == 2) { dd = 64; } }
-        D64 qd_f = xd / dd;
-        N64 q_tarajiwa = qd_f;
-        N64 r_tarajiwa = 0;
+        d64 qd_f = xd / dd;
+        n64 q_tarajiwa = qd_f;
+        n64 r_tarajiwa = 0;
 
-        N64 q_halisi = 0;
-        N64 r_halisi = 0;
+        n64 q_halisi = 0;
+        n64 r_halisi = 0;
         kama (lipi == 0) { q_halisi = x / 2; r_halisi = x % 2; r_tarajiwa = x - (q_tarajiwa * 2); }
         sivyo { kama (lipi == 1) { q_halisi = x / 8; r_halisi = x % 8; r_tarajiwa = x - (q_tarajiwa * 8); }
         sivyo { kama (lipi == 2) { q_halisi = x / 64; r_halisi = x % 64; r_tarajiwa = x - (q_tarajiwa * 64); }
@@ -98,8 +98,8 @@ N32 jaribu_kigawanyaji_halisi_n64(N32 lipi) {
     rudisha 0;
 }
 
-N32 jaribu_mfululizo_n64() {
-    N32 r;
+n32 jaribu_mfululizo_n64() {
+    n32 r;
     r = jaribu_kigawanyaji_halisi_n64(0);
     kama (r != 0) { rudisha 1000 + r; }
     r = jaribu_kigawanyaji_halisi_n64(1);
@@ -109,10 +109,10 @@ N32 jaribu_mfululizo_n64() {
     rudisha 0;
 }
 
-N32 main() {
-    N32 r1 = jaribu_mfululizo_n32();
+n32 main() {
+    n32 r1 = jaribu_mfululizo_n32();
     kama (r1 != 0) { rudisha 100 + r1; }
-    N32 r2 = jaribu_mfululizo_n64();
+    n32 r2 = jaribu_mfululizo_n64();
     kama (r2 != 0) { rudisha 200 + r2; }
     rudisha 0;
 }
