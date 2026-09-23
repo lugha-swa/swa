@@ -1358,15 +1358,54 @@ jr_ni_salama -- inarudi njia ya asili kiotomatiki.
 
 ### Utendaji
 
-Kipimo cha `miti_bst` (mti wa utafutaji wa jozi) NDIO lengwa halisi la
-uboreshaji huu -- kitanzi chake cha uingizaji kinatumia `n->kushoto =
-n; sasa->kulia = n;` n.k. moja kwa moja. Matokeo (perf stat, mizunguko
-7): fibonacci -1.2%, kupanga ~sawa, matriki -2.4%, heshi -0.7%,
-mzunguko_mchezo -2.9%, **miti_bst -10.1%** (367M -> 329M), mandelbrot
-~sawa, mchujo +1.0%, maneno -1.0%. miti_bst imethibitishwa KUWA FAIDA
-HALISI (si kelele) kwa jaribio la pad: safu ya mkusanyaji MPYA pekee
-(pad=0/2/4) ilikaa ndani ya 333M-341M (~2.3%), mbali sana chini ya
-367M ya awali -- pengo la 10% haliwezi kuelezwa na kelele ya
-mpangilio. Vipimo vingine vyote viko ndani ya masafa ya kelele
-yaliyothibitishwa awali kwenye kikao hiki (chini ya 3%). HAKUNA hasara
-halisi kwenye kipimo chochote.
+**SAHIHISHO (baada ya ukaguzi wa Kandemark):** kipimo cha kwanza cha
+kikao hiki kilidai `miti_bst -10.1%` kama faida kuu ya kazi hii, kwa
+sababu kitanzi cha uingizaji cha `miti_bst` kinatumia `n->kushoto = n;
+sasa->kulia = n;` n.k. moja kwa moja -- ndiyo mfano uliotumika
+kuhalalisha kuchagua kipimo hicho. Dai hilo HALIKUWA SAHIHI, kwa
+sababu MBILI zilizogundulika wakati wa ukaguzi:
+
+1. **Njia mpya HAITUMIKI kwa sehemu za kielekezi-kwenda-muundo.**
+   `uzalishaji_hifadhi_mshale_sib` inalindwa na `ast_thamani[lhs] > 0`
+   -- lakini sehemu za aina `Nodi* kushoto;`/`Nodi* kulia;` zina ENC
+   HASI kwenye usimbaji wa mkusanyaji huu (muundo uliopachikwa NA
+   kielekezi-kwenda-muundo VYOTE hutumia hasi). Kwa hiyo `n->kushoto =
+   n;` na `sasa->kulia = n;` -- HASA mfano uliotajwa -- HAZITUMII
+   njia mpya kabisa. Imethibitishwa kwa disassembly (mara mbili, kwa
+   ukaguzi wa Kandemark na tena hapa): kati ya maandiko matatu ya
+   mshale kwa kila uingizaji (`thamani`, `kushoto`, `kulia`), MOJA TU
+   (`thamani`, N32 ya kawaida) inaonyesha muundo mpya wa `(%r9)`.
+2. **Kipimo cha awali hakikuwa marudio ya kubadilishana (interleaved)**
+   -- kilikuwa old-kisha-new mfululizo mmoja. Baada ya marudio 10 ya
+   kubadilishana (perf stat -r 5..8, taskset -c 7) siku hii hii: old
+   372M-445M, new 349M-416M -- wastani unaonyesha uboreshaji (karibu
+   -6% hadi -11% kutegemea kundi la marudio), LAKINI jaribio la pad
+   (safu MOJA, mabadiliko YA MPANGILIO TU, sifuri mabadiliko ya
+   semantiki) lilionyesha safu ya 322.9M-379.7M (~17.5%!) -- WIGO
+   MKUBWA ZAIDI kuliko pengo la old-vs-new lenyewe. Kwa maneno
+   mengine: kelele ya mpangilio wa msimbo peke yake (bila kazi hii
+   kabisa) inaweza kutoa mabadiliko makubwa kuliko yale
+   yanayodaiwa kuwa "faida" -- kipimo hiki, kwenye mzigo wa sasa wa
+   mfumo, HAKINA UHAKIKA wa kutosha kutoa namba MOJA ya asilimia.
+
+**Hitimisho la kweli:** njia mpya ni sahihi na salama (fuzzing na
+majaribio yanathibitisha), na INAWEZEKANA ina faida ndogo kwa
+`miti_bst` (kupitia sehemu ya `thamani` PEKEE, si `kushoto`/`kulia`),
+lakini HAIWEZI kudaiwa kwa uhakika kwa idadi mahususi kwenye kipimo
+hiki bila upimaji zaidi (mfumo tulivu zaidi, marudio mengi zaidi).
+Faida HALISI na iliyothibitishwa vizuri zaidi ya sehemu hii ya
+mfululizo (arr[idx]=/`*ptr=`) iko kwenye vipimo vingine (kupanga,
+maneno, heshi, mchujo -- angalia sehemu za awali za hati hii).
+Kazi ya baadaye inayoweza kuleta faida HALISI kwa miundo kama Nodi
+(BST, orodha iliyounganishwa): kupanua `uzalishaji_hifadhi_mshale_sib`
+kutambua sehemu za kielekezi-kwenda-muundo pia (maandiko ya kielekezi
+ya baiti 8 sahihi kabisa, hayahitaji semantiki ya kunakili muundo).
+
+Matokeo mengine (perf stat, mizunguko 7, siku ya kwanza ya kupima --
+haya HAYAKUFUATWA na jaribio la pad kwa kila mmoja, chukua kwa
+tahadhari ile ile): fibonacci -1.2%, kupanga ~sawa, matriki -2.4%,
+heshi -0.7%, mzunguko_mchezo -2.9%, mandelbrot ~sawa, mchujo +1.0%,
+maneno -1.0%. HAKUNA hasara halisi iliyothibitishwa kwenye kipimo
+chochote -- lakini pia hakuna faida iliyothibitishwa kwa uhakika
+zaidi ya kupanga/maneno/heshi/mchujo (kutoka sehemu za awali za
+mfululizo huu, zilizopimwa kwa uangalifu zaidi).
