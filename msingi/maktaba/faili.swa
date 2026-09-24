@@ -10,7 +10,7 @@ husisha { maktaba/kumbukumbu.swa }
 // syscalls. Moduli inakusanyika na kuendesha kwenye minyororo
 // YOTE MIWILI (mbegu na stage1).
 //
-// Kishikio kinachorudishwa na faili_fungua ni N8* lenye thamani ya
+// Kishikio kinachorudishwa na faili_fungua ni n8* lenye thamani ya
 // deskripta ya faili (fd) — si kielekezi halisi kinachoweza kusomwa.
 // Kipitishe tu kwa kazi nyingine za moduli hii; usijaribu kukibomoa.
 //
@@ -26,13 +26,13 @@ husisha { maktaba/kumbukumbu.swa }
 // mmiliki, soma kwa kikundi na wengine). Inapaswa kupitishwa kwa
 // sys_fungua kama hoja ya 3 — bila hiyo kernel huunda faili lenye
 // ruhusa 0000 (halifunguki kwa usomaji).
-N64 faili_ruhusa = 420;
+n64 faili_ruhusa = 420;
 
 // Mchoro wa namna ("r"/"w"/"a"[+"]) hadi bendera za open(2):
 // O_RDONLY=0, O_WRONLY=1, O_RDWR=2, O_CREAT=64, O_TRUNC=512,
 // O_APPEND=1024.
-N64 faili_bendera(N8* namna) {
-    N64 b = 0;
+n64 faili_bendera(n8* namna) {
+    n64 b = 0;
     kama (namna[0] == 119) { b = 1; }  // 'w' — andika
     kama (namna[0] == 97) { b = 1; }  // 'a' — ongeza
     kama (namna[1] == 43) { b = 2; }  // '+' — soma na andika (O_RDWR)
@@ -44,23 +44,23 @@ N64 faili_bendera(N8* namna) {
     rudisha b;
 }
 
-// Fungua faili. Hurudisha kishikio (N8*) au 0 kwa kushindwa.
-N8* faili_fungua(N8* njia, N8* namna) {
-    N64 fd = sys_fungua(njia, faili_bendera(namna), faili_ruhusa);
+// Fungua faili. Hurudisha kishikio (n8*) au 0 kwa kushindwa.
+n8* faili_fungua(n8* njia, n8* namna) {
+    n64 fd = sys_fungua(njia, faili_bendera(namna), faili_ruhusa);
     kama (fd < 0) { rudisha 0; }
-    rudisha fd;  // N8* lenye thamani ya fd (si kielekezi halisi)
+    rudisha fd;  // n8* lenye thamani ya fd (si kielekezi halisi)
 }
 
 // Kishikio cha faili (fd) kutoka kwa kielekezi: faili_fungua hurudisha
-// fd ndani ya N8* (0 = kushindwa). Ukaguzi wa hoja unakataa kielekezi
-// kwa kigezo cha N32 tangu 2026-09-01 — ubadilishaji wazi.
-N32 kishikio_kutoka_hoja(N8* f) {
-    N32 k = f;
+// fd ndani ya n8* (0 = kushindwa). Ukaguzi wa hoja unakataa kielekezi
+// kwa kigezo cha n32 tangu 2026-09-01 — ubadilishaji wazi.
+n32 kishikio_kutoka_hoja(n8* f) {
+    n32 k = f;
     rudisha k;
 }
 
 // Funga faili.
-W0 faili_funga(N8* f) {
+w0 faili_funga(n8* f) {
     kama (f != 0) {
         sys_funga(kishikio_kutoka_hoja(f));
     }
@@ -68,20 +68,20 @@ W0 faili_funga(N8* f) {
 
 // Soma data kutoka faili. Hurudisha idadi ya vipengele vilivyosomwa
 // (vipengele kamili; salio la mwisho linatupwa kama fread ya C).
-N64 faili_soma(N8* buf, N64 ukubwa, N64 idadi, N8* f) {
+n64 faili_soma(n8* buf, n64 ukubwa, n64 idadi, n8* f) {
     kama (f == 0) { rudisha 0; }
     kama (ukubwa == 0) { rudisha 0; }
-    N64 n = sys_soma(kishikio_kutoka_hoja(f), buf, ukubwa * idadi);
+    n64 n = sys_soma(kishikio_kutoka_hoja(f), buf, ukubwa * idadi);
     kama (n <= 0) { rudisha 0; }
     rudisha n / ukubwa;
 }
 
 // Andika data kwenye faili. Hurudisha idadi ya vipengele
 // vilivyoandikwa.
-N64 faili_andika(N8* buf, N64 ukubwa, N64 idadi, N8* f) {
+n64 faili_andika(n8* buf, n64 ukubwa, n64 idadi, n8* f) {
     kama (f == 0) { rudisha 0; }
     kama (ukubwa == 0) { rudisha 0; }
-    N64 n = sys_andika(kishikio_kutoka_hoja(f), buf, ukubwa * idadi);
+    n64 n = sys_andika(kishikio_kutoka_hoja(f), buf, ukubwa * idadi);
     kama (n <= 0) { rudisha 0; }
     rudisha n / ukubwa;
 }
@@ -89,12 +89,12 @@ N64 faili_andika(N8* buf, N64 ukubwa, N64 idadi, N8* f) {
 // Soma faili lote na ulihifadhi kwenye bafa.
 // Hurudisha urefu wa data iliyosomwa, au -1 kwa kushindwa.
 // Bafa lazima iwe na nafasi ya kutosha (uwezo ni pamoja na NUL).
-N64 faili_soma_yote(N8* njia, N8* buf, N64 uwezo) {
-    N8* f = faili_fungua(njia, "r");
+n64 faili_soma_yote(n8* njia, n8* buf, n64 uwezo) {
+    n8* f = faili_fungua(njia, "r");
     kama (f == 0) { rudisha -1; }
-    N64 n = 0;
+    n64 n = 0;
     wakati (n + 1 < uwezo) {
-        N64 r = sys_soma(kishikio_kutoka_hoja(f), buf + n, uwezo - 1 - n);
+        n64 r = sys_soma(kishikio_kutoka_hoja(f), buf + n, uwezo - 1 - n);
         kama (r <= 0) { vunja; }
         n = n + r;
     }
@@ -105,18 +105,18 @@ N64 faili_soma_yote(N8* njia, N8* buf, N64 uwezo) {
 
 // Andika mfuatano kwenye faili. Hurudisha 0 kwa mafanikio, -1 kwa
 // kushindwa.
-N32 faili_andika_yote(N8* njia, N8* data, N64 urefu) {
-    N8* f = faili_fungua(njia, "w");
+n32 faili_andika_yote(n8* njia, n8* data, n64 urefu) {
+    n8* f = faili_fungua(njia, "w");
     kama (f == 0) { rudisha -1; }
-    N64 n = sys_andika(kishikio_kutoka_hoja(f), data, urefu);
+    n64 n = sys_andika(kishikio_kutoka_hoja(f), data, urefu);
     faili_funga(f);
     kama (n < urefu) { rudisha -1; }
     rudisha 0;
 }
 
 // Angalia kama faili lipo (na linaweza kufunguliwa kwa usomaji).
-N32 faili_ipo(N8* njia) {
-    N8* f = faili_fungua(njia, "r");
+n32 faili_ipo(n8* njia) {
+    n8* f = faili_fungua(njia, "r");
     kama (f == 0) { rudisha 0; }
     faili_funga(f);
     rudisha 1;
@@ -125,14 +125,14 @@ N32 faili_ipo(N8* njia) {
 // Soma mstari mmoja kutoka faili hadi bafa.
 // Huacha kwenye '\n' (inayojumuishwa kwenye bafa) au EOF.
 // Hurudisha urefu uliosomwa au -1 kwa mwisho.
-N32 faili_soma_mstari(N8* f, N8* buf, N32 uwezo) {
+n32 faili_soma_mstari(n8* f, n8* buf, n32 uwezo) {
     kama (f == 0 || uwezo <= 0) {
         rudisha -1;
     }
-    N32 i = 0;
+    n32 i = 0;
     wakati (i < uwezo - 1) {
-        N8 c = 0;
-        N64 r = sys_soma(kishikio_kutoka_hoja(f), &c, 1);
+        n8 c = 0;
+        n64 r = sys_soma(kishikio_kutoka_hoja(f), &c, 1);
         kama (r <= 0) {  // EOF — hakuna baiti zaidi
             kama (i == 0) {
                 rudisha -1;
@@ -152,6 +152,6 @@ N32 faili_soma_mstari(N8* f, N8* buf, N32 uwezo) {
 }
 
 // Futa faili (unlink). Hurudisha 0 kwa mafanikio, -1 kwa kushindwa.
-N32 faili_futa(N8* njia) {
+n32 faili_futa(n8* njia) {
     rudisha wito_wa_mfumo(87, njia, 0, 0, 0, 0, 0);
 }
