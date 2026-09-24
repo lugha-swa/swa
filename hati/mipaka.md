@@ -267,3 +267,29 @@ herufi moja ya n/d ikifuatiwa na tarakimu TU) si jina la kawaida la
 mradi huu (vitambulisho vya kweli huwa na maneno kamili ya Kiswahili),
 hatari ni ndogo kivitendo — imethibitishwa: hakuna mgongano wowote wa
 kweli kwenye faili 10 zinazojengwa moja kwa moja na mbegu.bin.
+
+## 11. Lengwa ya WebAssembly (`stage1 --wasm`) — Awamu ya 1 pekee: N32, hakuna kumbukumbu [UKALI: KWA KUBUNI]
+
+`msingi/mkusanyaji/uzalishaji_wasm.swa` (backend ya PILI ya
+uzalishaji msimbo, sambamba na `uzalishaji.swa` ya x86-64) inatoa
+moduli za WebAssembly kwa Awamu ya 1 TU: N32 pekee — hesabu,
+ulinganisho, `&&`/`||` za mzunguko mfupi, kama/sivyo, wakati (+kwa/
+vunja/endelea), wito wa kazi (ikiwemo kujirudia), rudisha. Ujenzi
+wowote ulio nje ya wigo huu (vielekezi, safu, D64/D32, miundo,
+vigezo vya ulimwengu, I/O, `tenga()`, `wito_wa_mfumo`, `chagua`)
+UNAKATALIWA kwa sauti (`wasm_kosa`) wakati wa kukusanya kupitia
+`wasm_kagua_enc_kigezo` (paramu/vigezo vya ndani/aina ya matokeo,
+ikijumuisha `ast_tiga` — idadi ya safu, si `enc` tu) na ukaguzi wa
+AST kwenye `wasm_usemi`/`wasm_taarifa` (kielekezi/safu kwa AST_TAJA,
+miundo/vigezo-vya-ulimwengu/chagua kwa aina ya AST ya moja kwa moja).
+
+Kikomo hiki KIPO KWA MAKUSUDI (angalia mpango wa Awamu ya 1 — hati ya
+mradi) — si mdudu, ni wigo uliobuniwa kimakusudi kudumisha PR ya
+kwanza ndogo. Awamu 2+ (kumbukumbu/`tenga()`/vielekezi kupitia
+`memory.grow`, I/O kupitia Import section, D32/D64/miundo/vigezo vya
+ulimwengu) ni kazi ya baadaye, haijaanzishwa.
+
+TANGAZO LA MUUNDO PEKEE (bila kutumika kama aina ya kigezo popote)
+LINAKUBALIWA KIMYA — sio kosa, ni la KUBUNI: tangazo la aina peke
+yake halitoi msimbo wowote wa WASM, hivyo halina sababu ya kukataliwa
+(ni MATUMIZI ya muundo kama aina ya kigezo ndiyo yanayokataliwa).

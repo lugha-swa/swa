@@ -287,13 +287,19 @@ N32 wasm_ni_w0_enc(N32 enc) {
     rudisha (enc == 1280);
 }
 
-// Angalia enc ya tangazo la kigezo (parameta au la ndani) -- ripoti
-// KOSA la wazi (wasm_kosa=1) kama ni nje ya wigo, badala ya kukubali
-// kimya na kuzalisha moduli isiyo sahihi (mfano N32* ingekuwa
-// ikitibiwa kama N32 ya kawaida bila ukaguzi huu -- imepatikana kwa
-// jaribio halisi la n2.swa: "N32* p = 0;" lilipita kimya).
-W0 wasm_kagua_enc_kigezo(N8* jina, N32 enc) {
-    kama (wasm_ni_n32_enc(enc) == 0) {
+// Angalia enc (NA idadi ya safu, kama ipo) ya tangazo la kigezo
+// (parameta au la ndani) -- ripoti KOSA la wazi (wasm_kosa=1) kama
+// ni nje ya wigo, badala ya kukubali kimya na kuzalisha moduli isiyo
+// sahihi (mfano N32* ingekuwa ikitibiwa kama N32 ya kawaida bila
+// ukaguzi huu -- imepatikana kwa jaribio halisi la n2.swa:
+// "N32* p = 0;" lilipita kimya). `safu_count` (kutoka ast_tiga[node]
+// ya AST_TANGAZO, si var_node -- 0 kama si safu, pitisha 0 kwenye
+// paramu ambazo haziwezi kuwa safu kisintaksia) NAYO inakaguliwa:
+// bila hii, "N32 arr[3];" isiyoguswa kamwe ilikuwa ikisajiliwa
+// kimya kama local MOJA ya i32 (ukubwa mbaya) badala ya kukataliwa
+// -- imepatikana kwenye ukaguzi wa Kandemark, PR #260.
+W0 wasm_kagua_enc_kigezo(N8* jina, N32 enc, N32 safu_count) {
+    kama (wasm_ni_n32_enc(enc) == 0 || safu_count > 0) {
         andika_stderr("KOSA: wasm -- aina ya kigezo '%s' iko nje ya wigo wa Awamu 1 (N32 pekee inaungwa mkono -- hakuna kielekezi/safu/D64/D32/muundo/upana mwingine)\n", jina);
         wasm_kosa = 1;
     }
@@ -308,7 +314,7 @@ W0 wasm_kusanya_locals(N32 node) {
     N32 aina = ast_aina[node];
     kama (aina == AST_TANGAZO) {
         N32 var_node = ast_kushoto[node];
-        wasm_kagua_enc_kigezo(ast_pool + ast_jina_off[var_node], ast_thamani[var_node]);
+        wasm_kagua_enc_kigezo(ast_pool + ast_jina_off[var_node], ast_thamani[var_node], ast_tiga[node]);
         wasm_ongeza_local(ast_pool + ast_jina_off[var_node]);
     }
     kama (aina == AST_KAMA) {
@@ -322,7 +328,7 @@ W0 wasm_kusanya_locals(N32 node) {
         N32 init = ast_tiga[node];
         kama (init != -1 && ast_aina[init] == AST_TANGAZO) {
             N32 var_node2 = ast_kushoto[init];
-            wasm_kagua_enc_kigezo(ast_pool + ast_jina_off[var_node2], ast_thamani[var_node2]);
+            wasm_kagua_enc_kigezo(ast_pool + ast_jina_off[var_node2], ast_thamani[var_node2], ast_tiga[init]);
             wasm_ongeza_local(ast_pool + ast_jina_off[var_node2]);
         }
         wasm_kusanya_locals(ast_kulia[node]);  // mwili
@@ -697,7 +703,7 @@ W0 wasm_jenga_kazi(N32 kazi_node) {
     N32 nparam = 0;
     N32 pn = ast_kulia[kazi_node];
     wakati (pn != -1) {
-        wasm_kagua_enc_kigezo(ast_pool + ast_jina_off[pn], ast_thamani[pn]);
+        wasm_kagua_enc_kigezo(ast_pool + ast_jina_off[pn], ast_thamani[pn], 0);
         wasm_ongeza_local(ast_pool + ast_jina_off[pn]);
         nparam = nparam + 1;
         pn = ast_kulia[pn];
