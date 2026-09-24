@@ -24,6 +24,7 @@ kikomo kimeandikwa na kikomo chake.
 | Kazi isiyofafanuliwa inalia kwa sauti kwenye uzalishaji (si SEGV); mbegu inakataa kimya katika kesi kadhaa | jaribio_mbegu_kazi_kukosa; hati/uthibitisho-wa-lugha.md |
 | Maktaba ya kawaida (hesabu, mifuatano, I/O, sort) — kwa kiasi: badili na ukuaji wa Orodha zinaanguka (SEGV), ramani ni no-op kwenye mbegu, nambari_kwa_mfuatano_n64 imevunjika (uthibitisho 2026-08-27) | jaribio_maktaba_mbegu_exe; hati/uthibitisho-wa-lugha.md |
 | Desimali (D64) — hesabu, ulinganisho, ukanushaji NA WITO WA KAZI kwenye minyororo yote miwili (mbegu inatumia ABI ya uhamisho wa GP; kilichopimwa 2026-08-27 — mipaka.md 4c imerekebishwa). Kikomo: kila mpaka kati ya D64 na nambari kamili umevunjika (jibu baya); D32 imevunjika | jaribio_mende_60_desimali_mbegu, jaribio_mende_135_desimali; hati/uthibitisho-wa-lugha.md |
+| Herufi ndogo za aina 6 za msingi kwenye mbegu YENYEWE (n8/n16/n32/n64/w0/d64 -- alama HASA za herufi kubwa, si aina mpya) -- mzizi wa bootstrap umegandishwa upya 2026-09-24 (angalia CONTRIBUTING.md "Sheria ya Mzizi wa Uaminifu"); mbegu bado HAIJUI familia A/B wala D32 kwa hali yoyote ya herufi | jaribio_mbegu_herufi_ndogo (haina alama ya stage1 -- linaendeshwa dhidi ya mbegu NA stage1); disassembly ilithibitisha msimbo wa mashine sawa kabisa kati ya herufi kubwa na ndogo |
 | Vipimo rasmi vya lugha | hati/vipimo-vya-lugha.md |
 
 ## Kilicho na kikomo (kilichoandikwa kwa ukali)

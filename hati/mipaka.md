@@ -241,3 +241,29 @@ ambapo minyororo miwili inatofautiana. Mipaka iliyorekebishwa na
 rekodi hiyo: kipengee 4c (ABI ya D64 kwenye mbegu — imefanya kazi),
 kipengee 5 (N64 — kwa [2^31, 2^63) pekee), na kipengee 8 (husisha —
 hakuna mnyororo unaoingiza faili).
+
+## 10. `ukubwa(x)` kwenye mbegu: jina la muundo/kigezo lililo HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi ndogo) linatafsiriwa kimya kama aina ya msingi [UKALI: CHINI — TAHADHARI]
+
+Tangu mbegu.bin kugandishwa upya 2026-09-24 kutambua herufi ndogo za
+aina 6 za msingi (n8/n16/n32/n64/w0/d64 — angalia hali-ya-lugha.md),
+mnyororo wa `ukubwa(x)` (builtin ya sizeof, `msingi/mbegu.s`) huchunguza
+jina la hoja dhidi ya majina hayo 6 (herufi kubwa NA ndogo) KABLA ya
+kutafuta jina la muundo. Tofauti na maeneo mengine ya kuchanganua aina
+(`changanua_aina` — matangazo ya kigezo/paramu/kurudi/muundo/ulimwengu),
+mnyororo huu WA `ukubwa` PEKEE HAUNA "backtrack" salama.
+
+Athari: `ukubwa(x)` ambapo `x` ni jina la muundo (au kigezo) LILILO
+HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi ndogo) litarudisha 1/2/4/8/8
+(ukubwa wa aina ya msingi) badala ya kutafuta ukubwa halisi wa muundo
+huo — bila kosa la sauti. Hii ni tofauti na `changanua_aina` (matangazo),
+ambayo ina backtrack salama kwa vitambulisho halisi.
+
+Kikomo hiki KIPO KWA MAKUSUDI (si uzembe): kuruhusu `ukubwa` kubackrack
+kama `changanua_aina` kungehitaji mabadiliko makubwa zaidi ya mnyororo
+wake (haufuati muundo wa "jaribu, kama haipo rudi nyuma" — ni
+ulinganisho wa mfuatano wa moja kwa moja). Kwa kuwa jina la muundo/
+kigezo lililo HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi tatu au chini,
+herufi moja ya n/d ikifuatiwa na tarakimu TU) si jina la kawaida la
+mradi huu (vitambulisho vya kweli huwa na maneno kamili ya Kiswahili),
+hatari ni ndogo kivitendo — imethibitishwa: hakuna mgongano wowote wa
+kweli kwenye faili 10 zinazojengwa moja kwa moja na mbegu.bin.
