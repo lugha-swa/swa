@@ -14,28 +14,28 @@
 // Towe la umbaji linaandikwa kwenye stdout.
 // ==========================================================
 
-N8 chanzo[1048576];
-N8 towe[2097152];
-N32 chanzo_urefu = 0;
-N32 towe_urefu = 0;
-N32 towe_imejaa = 0;
-N32 ambatisha = 0;
-N32 mwanzo_mstari = 0;
+n8 chanzo[1048576];
+n8 towe[2097152];
+n32 chanzo_urefu = 0;
+n32 towe_urefu = 0;
+n32 towe_imejaa = 0;
+n32 ambatisha = 0;
+n32 mwanzo_mstari = 0;
 
-N8 miundo_jina[2048];
-N32 miundo_idadi = 0;
+n8 miundo_jina[2048];
+n32 miundo_idadi = 0;
 
-N32 HALI_MSIMBO = 0;
-N32 HALI_MFUATANO = 1;
-N32 HALI_HERUFI = 2;
-N32 HALI_MAONI_K = 3;
-N32 HALI_MAONI_M = 4;
+n32 HALI_MSIMBO = 0;
+n32 HALI_MFUATANO = 1;
+n32 HALI_HERUFI = 2;
+n32 HALI_MAONI_K = 3;
+n32 HALI_MAONI_M = 4;
 
 // -------------------------------------------------------
 // Visaidizi vya herufi na maneno
 // -------------------------------------------------------
 
-N32 ni_herufi_ya_neno(N8 c) {
+n32 ni_herufi_ya_neno(n8 c) {
     kama (c >= 48 && c <= 57) { rudisha 1; }
     kama (c >= 65 && c <= 90) { rudisha 1; }
     kama (c >= 97 && c <= 122) { rudisha 1; }
@@ -44,12 +44,12 @@ N32 ni_herufi_ya_neno(N8 c) {
 }
 
 // Neno la chanzo (la herufi za neno) linaloishia kabla ya nafasi i.
-N32 neno_la_kabla(N32 i, N32* mwanzo, N32* urefu) {
-    N32 j = i - 1;
+n32 neno_la_kabla(n32 i, n32* mwanzo, n32* urefu) {
+    n32 j = i - 1;
     wakati (j >= 0 && (chanzo[j] == 32 || chanzo[j] == 9 || chanzo[j] == 13)) {
         j = j - 1;
     }
-    N32 mwisho = j;
+    n32 mwisho = j;
     wakati (j >= 0 && ni_herufi_ya_neno(chanzo[j]) != 0) {
         j = j - 1;
     }
@@ -59,8 +59,8 @@ N32 neno_la_kabla(N32 i, N32* mwanzo, N32* urefu) {
     rudisha *urefu;
 }
 
-N32 neno_linalingana(N32 mwanzo, N32 urefu, N8* neno) {
-    N32 k = 0;
+n32 neno_linalingana(n32 mwanzo, n32 urefu, n8* neno) {
+    n32 k = 0;
     wakati (neno[k] != 0) {
         kama (k >= urefu) { rudisha 0; }
         kama (chanzo[mwanzo + k] != neno[k]) { rudisha 0; }
@@ -70,15 +70,15 @@ N32 neno_linalingana(N32 mwanzo, N32 urefu, N8* neno) {
     rudisha 1;
 }
 
-N32 neno_la_kabla_ni(N32 i, N8* neno) {
-    N32 mwanzo = 0;
-    N32 urefu = 0;
+n32 neno_la_kabla_ni(n32 i, n8* neno) {
+    n32 mwanzo = 0;
+    n32 urefu = 0;
     neno_la_kabla(i, &mwanzo, &urefu);
     kama (urefu == 0) { rudisha 0; }
     rudisha neno_linalingana(mwanzo, urefu, neno);
 }
 
-N32 neno_la_kabla_ni_muhimu(N32 i) {
+n32 neno_la_kabla_ni_muhimu(n32 i) {
     kama (neno_la_kabla_ni(i, "kama") != 0) { rudisha 1; }
     kama (neno_la_kabla_ni(i, "wakati") != 0) { rudisha 1; }
     kama (neno_la_kabla_ni(i, "sivyo") != 0) { rudisha 1; }
@@ -89,14 +89,14 @@ N32 neno_la_kabla_ni_muhimu(N32 i) {
     rudisha 0;
 }
 
-// Neno la kabla ni aina (N8, N32, ... au muundo)? Ruka nyota za mfululizo.
-N32 neno_la_kabla_ni_aina(N32 i) {
-    N32 j = i - 1;
+// Neno la kabla ni aina (n8, n32, ... au muundo)? Ruka nyota za mfululizo.
+n32 neno_la_kabla_ni_aina(n32 i) {
+    n32 j = i - 1;
     wakati (j >= 0 && chanzo[j] == 42) {
         j = j - 1;
     }
-    N32 mwanzo = 0;
-    N32 urefu = 0;
+    n32 mwanzo = 0;
+    n32 urefu = 0;
     neno_la_kabla(j + 1, &mwanzo, &urefu);
     kama (urefu == 0) { rudisha 0; }
     kama (neno_linalingana(mwanzo, urefu, "N8") != 0) { rudisha 1; }
@@ -106,9 +106,21 @@ N32 neno_la_kabla_ni_aina(N32 i) {
     kama (neno_linalingana(mwanzo, urefu, "W0") != 0) { rudisha 1; }
     kama (neno_linalingana(mwanzo, urefu, "D64") != 0) { rudisha 1; }
     kama (neno_linalingana(mwanzo, urefu, "F64") != 0) { rudisha 1; }
-    N32 m = 0;
+    // Herufi ndogo (sawa na hoja/matokeo -- PR #225 na Awamu B ya
+    // uhamiaji wa herufi ndogo) -- pengo lililopatikana: jedwali hili
+    // lilikuwa herufi kubwa TU, likishindwa kutambua "n32*" kama
+    // kielekezi cha aina (nafasi ya ziada kabla ya "*" ilijitokeza
+    // kimya kwenye fixpoint ya umbizaji.swa yenyewe baada ya
+    // kuhamishiwa herufi ndogo).
+    kama (neno_linalingana(mwanzo, urefu, "n8") != 0) { rudisha 1; }
+    kama (neno_linalingana(mwanzo, urefu, "n16") != 0) { rudisha 1; }
+    kama (neno_linalingana(mwanzo, urefu, "n32") != 0) { rudisha 1; }
+    kama (neno_linalingana(mwanzo, urefu, "n64") != 0) { rudisha 1; }
+    kama (neno_linalingana(mwanzo, urefu, "w0") != 0) { rudisha 1; }
+    kama (neno_linalingana(mwanzo, urefu, "d64") != 0) { rudisha 1; }
+    n32 m = 0;
     wakati (m < miundo_idadi) {
-        N32 ms = m * 32;
+        n32 ms = m * 32;
         kama (neno_linalingana(mwanzo, urefu, miundo_jina + ms) != 0) {
             rudisha 1;
         }
@@ -119,17 +131,17 @@ N32 neno_la_kabla_ni_aina(N32 i) {
 
 // Je, ishara kwenye nafasi i ni ya baina (binary)? Sivyo ni awali (unary).
 // Hutumika kwa - + * na & . Operandi ni nambari, jina, ) au ].
-N32 ni_baina(N32 i) {
-    N32 j = i - 1;
+n32 ni_baina(n32 i) {
+    n32 j = i - 1;
     wakati (j >= 0 && (chanzo[j] == 32 || chanzo[j] == 9 || chanzo[j] == 13)) {
         j = j - 1;
     }
     kama (j < 0) { rudisha 0; }
-    N8 c = chanzo[j];
+    n8 c = chanzo[j];
     kama (c == 41 || c == 93 || c == 34 || c == 39) { rudisha 1; }
     kama (ni_herufi_ya_neno(c) != 0) {
-        N32 mwanzo = 0;
-        N32 urefu = 0;
+        n32 mwanzo = 0;
+        n32 urefu = 0;
         neno_la_kabla(i, &mwanzo, &urefu);
         kama (neno_linalingana(mwanzo, urefu, "rudisha") != 0) { rudisha 0; }
         kama (neno_linalingana(mwanzo, urefu, "umoja") != 0) { rudisha 0; }
@@ -142,27 +154,27 @@ N32 ni_baina(N32 i) {
 // Usomaji wa majina ya miundo (kwa nyota za kielekezi)
 // -------------------------------------------------------
 
-W0 kusanya_miundo() {
-    N32 i = 0;
+w0 kusanya_miundo() {
+    n32 i = 0;
     wakati (i < chanzo_urefu) {
         kama (i + 5 < chanzo_urefu) {
             kama (chanzo[i] == 109 && chanzo[i + 1] == 117 && chanzo[i + 2] == 117 && chanzo[i + 3] == 110 && chanzo[i + 4] == 100 && chanzo[i + 5] == 111) {
-                N32 kabla = 1;
+                n32 kabla = 1;
                 kama (i > 0 && ni_herufi_ya_neno(chanzo[i - 1]) != 0) { kabla = 0; }
-                N32 baada = 1;
+                n32 baada = 1;
                 kama (i + 6 < chanzo_urefu && ni_herufi_ya_neno(chanzo[i + 6]) != 0) { baada = 0; }
                 kama (kabla != 0 && baada != 0) {
-                    N32 j = i + 6;
+                    n32 j = i + 6;
                     wakati (j < chanzo_urefu && (chanzo[j] == 32 || chanzo[j] == 9)) {
                         j = j + 1;
                     }
-                    N32 mwanzo = j;
+                    n32 mwanzo = j;
                     wakati (j < chanzo_urefu && ni_herufi_ya_neno(chanzo[j]) != 0) {
                         j = j + 1;
                     }
                     kama (j > mwanzo && miundo_idadi < 64) {
-                        N32 ms = miundo_idadi * 32;
-                        N32 k = mwanzo;
+                        n32 ms = miundo_idadi * 32;
+                        n32 k = mwanzo;
                         wakati (k < j) {
                             miundo_jina[ms] = chanzo[k];
                             ms = ms + 1;
@@ -184,7 +196,7 @@ W0 kusanya_miundo() {
 // Uandishi kwenye bafa ya towe
 // -------------------------------------------------------
 
-W0 towe_herufi(N8 c) {
+w0 towe_herufi(n8 c) {
     kama (towe_urefu >= 2097152) {
         towe_imejaa = 1;
         rudisha;
@@ -194,7 +206,7 @@ W0 towe_herufi(N8 c) {
 }
 
 // Nafasi moja kabla ya tokeni inayofuata (kama inahitajika).
-W0 towe_nafasi_kabla() {
+w0 towe_nafasi_kabla() {
     kama (ambatisha != 0) {
         ambatisha = 0;
         rudisha;
@@ -209,12 +221,12 @@ W0 towe_nafasi_kabla() {
 // Nafasi mbili kabla ya maoni ya mstari kwenye mstari wenye msimbo
 // (mkongwe wa repo: `msimbo;  // maoni`). Maoni ya pekee mwanzoni
 // mwa mstari yanabaki kwenye ujongezaji wake — bila nafasi ya ziada.
-W0 towe_nafasi_maoni() {
+w0 towe_nafasi_maoni() {
     kama (towe_urefu > mwanzo_mstari) {
         // Angalia kama kuna msimbo tangu mwanzo wa mstari — ikiwa
         // ni nafasi tu (maoni ya pekee), usiongeze chochote.
-        N32 p = mwanzo_mstari;
-        N32 kuna_msimbo = 0;
+        n32 p = mwanzo_mstari;
+        n32 kuna_msimbo = 0;
         wakati (p < towe_urefu) {
             kama (towe[p] != 32 && towe[p] != 9) {
                 kuna_msimbo = 1;
@@ -231,7 +243,7 @@ W0 towe_nafasi_maoni() {
 }
 
 // Ondoa nafasi ya mwisho kwenye mstari (kabla ya ) ] , ; na .).
-W0 towe_ondo_nafasi() {
+w0 towe_ondo_nafasi() {
     kama (towe_urefu > mwanzo_mstari) {
         kama (towe[towe_urefu - 1] == 32) {
             towe_urefu = towe_urefu - 1;
@@ -240,7 +252,7 @@ W0 towe_ondo_nafasi() {
 }
 
 // Kiendeshi cha baina: nafasi kabla, ishara, nafasi baada.
-W0 towe_kiendeshi_baina(N8 a, N8 b) {
+w0 towe_kiendeshi_baina(n8 a, n8 b) {
     towe_nafasi_kabla();
     towe_herufi(a);
     kama (b != 0) {
@@ -253,17 +265,17 @@ W0 towe_kiendeshi_baina(N8 a, N8 b) {
 // Mchanganuzi mkuu: chanzo hadi towe
 // -------------------------------------------------------
 
-N32 panga_chanzo() {
-    N32 i = 0;
-    N32 umoja = HALI_MSIMBO;
-    N32 kina = 0;
-    N32 kiwango = 0;
-    N32 kiwango_mstari = 0;
-    N32 imeanza = 0;
-    N32 funguka = 0;
-    N32 funga = 0;
+n32 panga_chanzo() {
+    n32 i = 0;
+    n32 umoja = HALI_MSIMBO;
+    n32 kina = 0;
+    n32 kiwango = 0;
+    n32 kiwango_mstari = 0;
+    n32 imeanza = 0;
+    n32 funguka = 0;
+    n32 funga = 0;
     wakati (i < chanzo_urefu) {
-        N8 c = chanzo[i];
+        n8 c = chanzo[i];
         kama (c == 10) {
             kama (umoja != HALI_MFUATANO && umoja != HALI_HERUFI) {
                 wakati (towe_urefu > mwanzo_mstari && (towe[towe_urefu - 1] == 32 || towe[towe_urefu - 1] == 9)) {
@@ -287,7 +299,7 @@ N32 panga_chanzo() {
         }
         kama (imeanza == 0) {
             kama (umoja == HALI_MSIMBO) {
-                N32 j = i;
+                n32 j = i;
                 wakati (j < chanzo_urefu && (chanzo[j] == 32 || chanzo[j] == 9)) {
                     j = j + 1;
                 }
@@ -298,7 +310,7 @@ N32 panga_chanzo() {
                 kama (kiwango_mstari < 0) {
                     kiwango_mstari = 0;
                 }
-                N32 k2 = 0;
+                n32 k2 = 0;
                 wakati (k2 < kiwango_mstari * 4) {
                     towe_herufi(32);
                     k2 = k2 + 1;
@@ -666,19 +678,19 @@ N32 panga_chanzo() {
 // Kazi kuu
 // -------------------------------------------------------
 
-N32 main(N32 argc, N8** argv) {
+n32 main(n32 argc, n8** argv) {
     kama (argc < 2) {
         andika_stderr("Matumizi: umbizaji <faili.swa>\n");
         rudisha 1;
     }
-    N64 f = sys_fungua(argv[1], 0, 0);
+    n64 f = sys_fungua(argv[1], 0, 0);
     kama (f < 0) {
         andika_stderr("Hitilafu: faili halifunguki: %s\n", argv[1]);
         rudisha 1;
     }
-    N64 n = 0;
+    n64 n = 0;
     wakati (1 == 1) {
-        N64 r = sys_soma(f, chanzo + n, 1048576 - n);
+        n64 r = sys_soma(f, chanzo + n, 1048576 - n);
         kama (r <= 0) {
             vunja;
         }
