@@ -1,21 +1,21 @@
 // c[idx] += / -= / *= thamani -- thamani ya sasa inashikiliwa bila rafu
-// pale inapowezekana: N32/N64 kulia ni jani (rcx moja kwa moja), desimali
+// pale inapowezekana: n32/n64 kulia ni jani (rcx moja kwa moja), desimali
 // kulia isiyo na wito (xmm2..xmm7), na kulia yenye wito (njia ya rafu, kwa
 // sababu wito unaharibu xmm).
 husisha { msingi/maktaba/kumbukumbu.swa }
 
-D64 mara_tatu(D64 x) { rudisha x * 3.0; }
-N32 mara_saba(N32 x) { rudisha x * 7; }
-D64 jozi(D64* w) { rudisha w[0] * w[1] + w[2] * w[3]; }
+d64 mara_tatu(d64 x) { rudisha x * 3.0; }
+n32 mara_saba(n32 x) { rudisha x * 7; }
+d64 jozi(d64* w) { rudisha w[0] * w[1] + w[2] * w[3]; }
 
-N32 jaribu_namba() {
-    N32* c = tenga(ukubwa(N32) * 100);
-    N64* l = tenga(ukubwa(N64) * 100);
-    N32 i = 3;
-    N32 n = 10;
-    N32 j = 5;
-    N32 k = 6;
-    N64 big = 5000000000;
+n32 jaribu_namba() {
+    n32* c = tenga(ukubwa(n32) * 100);
+    n64* l = tenga(ukubwa(n64) * 100);
+    n32 i = 3;
+    n32 n = 10;
+    n32 j = 5;
+    n32 k = 6;
+    n64 big = 5000000000;
     c[i * n + j] = 100;
     c[i * n + j] += k;                    // kulia ni kigezo (jani)
     kama (c[i * n + j] != 106) { rudisha 1; }
@@ -30,7 +30,7 @@ N32 jaribu_namba() {
     c[i * n + j] -= c[i * n + j - 1] + 3; // kulia inasoma safu ile ile (0 + 3)
     kama (c[i * n + j] != 700) { rudisha 6; }
     l[i * n + j] = 1;
-    l[i * n + j] += big;                  // N64 jani
+    l[i * n + j] += big;                  // n64 jani
     kama (l[i * n + j] != 5000000001) { rudisha 7; }
     l[i * n + j] -= big;
     kama (l[i * n + j] != 1) { rudisha 8; }
@@ -39,13 +39,13 @@ N32 jaribu_namba() {
     rudisha 0;
 }
 
-N32 jaribu_desimali() {
-    D64* d = tenga(ukubwa(D64) * 100);
-    D64* w = tenga(ukubwa(D64) * 4);
-    N32 i = 3;
-    N32 n = 10;
-    N32 j = 5;
-    D64 x = 0.5;
+n32 jaribu_desimali() {
+    d64* d = tenga(ukubwa(d64) * 100);
+    d64* w = tenga(ukubwa(d64) * 4);
+    n32 i = 3;
+    n32 n = 10;
+    n32 j = 5;
+    d64 x = 0.5;
     w[0] = 1.0; w[1] = 2.0; w[2] = 3.0; w[3] = 4.0;
     d[i * n + j] = 4.0;
     d[i * n + j] += x;                    // jani: 4.5
@@ -65,9 +65,9 @@ N32 jaribu_desimali() {
     rudisha 0;
 }
 
-N32 jaribu_d32() {
-    D32* f = tenga(ukubwa(D32) * 10);
-    N32 i = 2;
+n32 jaribu_d32() {
+    d32* f = tenga(ukubwa(d32) * 10);
+    n32 i = 2;
     f[i * 2 + 1] = 1.5;
     f[i * 2 + 1] += 2.25;
     kama (f[i * 2 + 1] != 3.75) { rudisha 1; }
@@ -76,8 +76,8 @@ N32 jaribu_d32() {
     rudisha 0;
 }
 
-N32 main() {
-    N32 r = jaribu_namba();
+n32 main() {
+    n32 r = jaribu_namba();
     kama (r != 0) { rudisha 10 + r; }
     r = jaribu_desimali();
     kama (r != 0) { rudisha 30 + r; }
