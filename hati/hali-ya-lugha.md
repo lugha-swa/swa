@@ -25,6 +25,7 @@ kikomo kimeandikwa na kikomo chake.
 | Maktaba ya kawaida (hesabu, mifuatano, I/O, sort) — kwa kiasi: badili na ukuaji wa Orodha zinaanguka (SEGV), ramani ni no-op kwenye mbegu, nambari_kwa_mfuatano_n64 imevunjika (uthibitisho 2026-08-27) | jaribio_maktaba_mbegu_exe; hati/uthibitisho-wa-lugha.md |
 | Desimali (D64) — hesabu, ulinganisho, ukanushaji NA WITO WA KAZI kwenye minyororo yote miwili (mbegu inatumia ABI ya uhamisho wa GP; kilichopimwa 2026-08-27 — mipaka.md 4c imerekebishwa). Kikomo: kila mpaka kati ya D64 na nambari kamili umevunjika (jibu baya); D32 imevunjika | jaribio_mende_60_desimali_mbegu, jaribio_mende_135_desimali; hati/uthibitisho-wa-lugha.md |
 | Herufi ndogo za aina za msingi (n8/n16/n32/n64/a*/d32/d64/b*/w* — sanjari na herufi kubwa, aina MOJA HASA, si aina mpya) — kwenye mkusanyaji uliojijenga (stage1/stage2) KAMILI; kwenye mbegu YENYEWE kwa aina 6 TU (n8/n16/n32/n64/w0/d64 — mzizi wa bootstrap umegandishwa upya 2026-09-24, angalia CONTRIBUTING.md "Sheria ya Mzizi wa Uaminifu") — mbegu bado HAIJUI familia A/B wala D32 kwa hali yoyote ya herufi. Majaribio 179 na maktaba 5 za jumla (mpangilio/nasibu/orodha/ramani/wakati.swa) zimehamishiwa herufi ndogo 2026-09-23/24. Faili 10 zinazojengwa moja kwa moja na mbegu.bin (msingi/mkusanyaji/*.swa, kumbukumbu.swa, mfuatano.swa, faili.swa, hesabu.swa, gharama/msuluhishi.swa, zana/umbizaji.swa) BADO ni herufi kubwa — hazikuwa ZIKIWEZEKANA kuhamishwa kabla ya mbegu kugandishwa upya, sasa ZINAWEZEKANA (kazi ya baadaye, si kizuizi cha kudumu tena). Pengo lililojulikana: ukaguzi wa "jina la aina halitumiki kama usemi" (`tenga N32` unakataliwa) haufanyi kazi kwa tahajia ya herufi ndogo (`tenga n32` hukubaliwa kimya) — kwa makusudi, kuepuka mgongano na vitambulisho vya ndani vya mkusanyaji (a1..a6, b1..b3) — angalia issue #255; vivyo hivyo `ukubwa(x)` kwenye mbegu (jina la muundo lililo HASA n8/n16/n32/n64/d64 linatafsiriwa kimya kama aina ya msingi — hati/mipaka.md #10) | PR #225, #256, #257; jaribio_tenga_jina_la_aina.swa na jaribio_herufi_ndogo_kubwa_muunganiko.swa (zimebaki herufi maalum kimakusudi); jaribio_mbegu_herufi_ndogo (haina alama ya stage1) |
+| Lengwa ya WebAssembly (`stage1 --wasm`, kwa kivinjari) — Awamu ya 1 TU: N32 pekee (hesabu, ulinganisho, &&/\|\| za mzunguko mfupi, kama/sivyo, wakati/kwa/vunja/endelea, wito wa kazi ikiwemo kujirudia). HAKUNA: vielekezi, safu, D64/D32, miundo, vigezo vya ulimwengu, I/O, tenga(), wito_wa_mfumo, chagua — ujenzi wowote ulio nje ya wigo huu unatoa KOSA LA WAZI la kukusanya (msimbo wa kutoka != 0), si moduli mbovu kimya. mbegu.bin HAIHITAJI --wasm kabisa (ni kipengele cha stage1 pekee, sawa na muundo wa vipengele vingine vya hivi karibuni); node (WebAssembly.validate/.instantiate asili) ndiyo oracle pekee ya usahihi, hakuna wat2wasm/wasmtime | msingi/mkusanyaji/uzalishaji_wasm.swa; majaribio/wasm/MANIFEST.txt (24 majaribio, ikiwemo 8 hasi za nje-ya-wigo); gharama/jaribu-wasm.sh |
 | Vipimo rasmi vya lugha | hati/vipimo-vya-lugha.md |
 
 ## Kilicho na kikomo (kilichoandikwa kwa ukali)
@@ -54,9 +55,11 @@ lugha-swa/swa-dereva (2026-09-05).
 
 ## Uthibitisho wa jumla
 
-Majaribio 304/304 kwenye mnyororo wa Swa pekee (mbegu na stage1).
+Majaribio 428/428 kwenye mnyororo wa Swa pekee (mbegu na stage1).
 Fixpoint: stage2-exe == stage3-exe sawa kwa baiti baada ya kila
-mchanganyiko. Alama za nje za exe: SIFURI.
+mchanganyiko. Alama za nje za exe: SIFURI. (Majaribio 24/24 ya
+lengwa ya WebAssembly ni mnyororo TOFAUTI — `gharama/jaribu-wasm.sh`
+— hayajumuishwi kwenye hesabu hii ya juu.)
 
 Kumbuka: fixpoint inathibitisha kujikusanya, si usahihi wa
 semantiki. Uthibitisho kamili wa lugha (2026-08-27, kesi ~487

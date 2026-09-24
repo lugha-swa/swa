@@ -3,6 +3,7 @@ husisha { mkusanyaji/msambazaji.swa }
 husisha { mkusanyaji/mkaguzi.swa }
 husisha { mkusanyaji/mteremko.swa }
 husisha { mkusanyaji/uzalishaji.swa }
+husisha { mkusanyaji/uzalishaji_wasm.swa }
 
 // ==========================================================
 // Kusoma na kutatua chanzo — mkusanyaji anatatua mistari ya
@@ -455,6 +456,7 @@ W0 changanua_husisha(N8* b, N64 urefu, N32 ni_kuu) {
 N32 main(N32 argc, N8** argv) {
     N32 ni_jit = 0;
     N32 ni_exe = 0;
+    N32 ni_wasm = 0;
     N32 faili_idx = 1;
     kama (argc > 1) {
         N8* a = argv[1];
@@ -463,6 +465,12 @@ N32 main(N32 argc, N8** argv) {
         }
         kama (a[0]==45 && a[1]==45 && a[2]==101 && a[3]==120 && a[4]==101 && a[5]==0) {
             ni_exe = 1; faili_idx = 2;
+        }
+        // --wasm: kwenda WebAssembly (kwa kivinjari) badala ya x86-64
+        // ELF. mbegu.bin HAIHITAJI kuelewa bendera hii kabisa -- ni
+        // ya stage1 pekee (angalia uzalishaji_wasm.swa).
+        kama (a[0]==45 && a[1]==45 && a[2]==119 && a[3]==97 && a[4]==115 && a[5]==109 && a[6]==0) {
+            ni_wasm = 1; faili_idx = 2;
         }
     }
 
@@ -477,6 +485,7 @@ N32 main(N32 argc, N8** argv) {
         tatua_husisha("mkusanyaji/mteremko.swa");
         tatua_husisha("mkusanyaji/mkaguzi.swa");
         tatua_husisha("mkusanyaji/uzalishaji.swa");
+        tatua_husisha("mkusanyaji/uzalishaji_wasm.swa");
         tatua_husisha("maktaba/orodha.swa");
         tatua_husisha("maktaba/ramani.swa");
         tatua_husisha("mkusanyaji/stage1.swa");
@@ -557,7 +566,16 @@ N32 main(N32 argc, N8** argv) {
         andika_stderr("; ONYO: makosa ya kuteremsha %d, inaendelea\n", t.makosa);
     }
 
-    kama (ni_jit) { uzalishaji_jit(mzizi, argc - faili_idx, argv, faili_idx); } sivyo { uzalishaji_kuu(mzizi, ni_exe); }
+    kama (ni_jit) { uzalishaji_jit(mzizi, argc - faili_idx, argv, faili_idx); }
+    sivyo { kama (ni_wasm) {
+            // uzalishaji_wasm_kuu inarudisha 1 kwa ujenzi ulio nje ya
+            // wigo wa Awamu 1 (angalia uzalishaji_wasm.swa) -- lazima
+            // ijulishwe kwa msimbo wa kutoka wa mchakato, sawa na
+            // ukaguzi wa "kosa" hapo juu, la sivyo stdout ingekuwa
+            // tupu lakini mchakato ungeonekana kufaulu.
+            N32 matokeo_wasm = uzalishaji_wasm_kuu(mzizi);
+            kama (matokeo_wasm != 0) { rudisha 1; }
+        } sivyo { uzalishaji_kuu(mzizi, ni_exe); } }
 
     rudisha 0;
 }
