@@ -1239,3 +1239,173 @@ rekebisho hili pia, hivyo hakuna mabadiliko ya tabia kwa kesi hizo.
 kubwa zaidi ni shinikizo la mbele la CPU (front-end), si mizunguko ya
 moja kwa moja). `mchujo` -1.7%, `maneno` -3.5%. Vingine ndani ya
 kelele iliyoelezwa juu.
+
+## Uhifadhi wa arr[idx] = thamani kwa SIB moja kwa moja
+
+Sawa na #251 (ambayo iliongeza SIB kwa KUSOMA `arr[idx]` pekee): sasa
+KUANDIKA `arr[idx] = thamani` (isiyo ya kiwanja `+=`/`-=`/`*=`, isiyo
+ya muundo) pia hutumia agizo MOJA `mov [r9 + r8*saizi], thamani`
+badala ya kukokotoa anwani kamili (shl+add), kuihifadhi kwenye rafu
+(push), kutathmini RHS, kisha kuivuta (pop) kabla ya kuhifadhi.
+
+Njia hii inatumika PEKEE pale: msingi ni jani (jr_msingi_aina, kama
+kawaida), NA RHS haina wito (jr_ni_salama) -- vinginevyo njia ya asili
+(push/pop) inabaki. `r8`/`r9` ni salama kushikilia faharisi na msingi
+wakati RHS inatathminiwa kwa sababu jr_ni_salama inakataa wito wowote,
+na r8/r9 hazitumiki KAMWE na msimbo wa hesabu safi (zinatumika TU na
+wito za syscall/paramu 5+/6+).
+
+### Uthibitisho
+
+- Jaribio jipya `jaribio_uhifadhi_sib`: aina zote za kipengele
+  (N8/A8/N16/N32/N64/D32/D64), RHS salama dhidi ya isiyo salama
+  (wito), kiwanja (lazima libaki njia ya asili), muundo (lazima
+  ubaki njia ya asili), fahirisi kubwa (mwingiliano na rekebisho la
+  #252), safu ya ndani. 423/423, mara 3 kutoka ujenzi safi. Fixpoint
+  stage2 == stage3.
+- Mutation: kuharibu REX.X/B (agizo linatumia rax/rcx badala ya
+  r8/r9) kunasababisha SEGV; kuharibu mizani ya SIB kwa saizi 4
+  kunatoa matokeo mabaya (jaribio linashindwa); kuharibu lengwa la
+  "mov r8, rax" kunasababisha SEGV. (Somo dogo: mutation ya kwanza
+  niliyojaribu -- kubadilisha sib=1 kuwa sib=8 kwa saizi=1 -- HAIKUGUNDULIKA
+  kwa sababu kwa scale=1 kubadilishana base<->index hakubadilishi jumla
+  ya A+B; nilibadilisha kwa mutation yenye maana zaidi.)
+- Disassembly ya moja kwa moja imethibitisha `43 89 04 81`
+  (`mov %eax,(%r9,%r8,4)`) ikitokea kwenye programu za mfano.
+- Programu 5001 za nasibu na 3001 za faharasa (mkusanyaji wa kabla
+  dhidi ya wa baada): sifuri tofauti.
+
+### Utendaji
+
+Interleaved, `perf stat` (mizunguko, mizunguko 7):
+
+| Kipimo | Mabadiliko |
+|---|---|
+| kupanga | -7.5% |
+| maneno | -7.0% |
+| heshi | -6.1% |
+| mchujo | -4.5% |
+| mzunguko_mchezo | -1.0% |
+| matriki | -0.3% |
+| mandelbrot | ~sawa |
+| fibonacci, miti_bst | +2.9%/+3.8% (kelele ya mpangilio wa msimbo -- nimethibitisha kwa jaribio la kuhamisha msimbo: fibonacci ilibadilika 224M-237M, miti_bst 336M-351M, KWA KUONGEZA TU kazi tupu bila kugusa msimbo wa mabadiliko haya) |
+
+Hakuna kipimo hata kimoja kilichoonyesha HASARA halisi (baada ya
+kuondoa kelele). kupanga, maneno na heshi zinafaidika zaidi kwa
+sababu zinaandika kwenye safu mara nyingi kwenye njia zao kuu.
+
+## Uhifadhi wa *ptr = thamani kwa [r9] moja kwa moja
+
+Kioo kidogo cha sehemu iliyotangulia lakini kwa `*ptr = thamani`
+(hakuna faharasa/mizani): kielekezi kinashikiliwa kwenye `r9` (jr_jani_rcx)
+wakati RHS salama inatathminiwa, kisha `mov [r9], thamani` moja kwa moja
+-- badala ya push/pop ya anwani. `r9` ina low3=001 (sawa na rcx), hivyo
+ModRM peke yake (bila SIB) inatosha (rm=001 si 100, hivyo hakuna
+kulazimishwa kwa SIB byte).
+
+### Uthibitisho
+
+- `jaribio_uhifadhi_ptr`: aina zote, RHS salama/isiyo salama, kielekezi
+  kilichotokana na pointer arithmetic, kiwanja (bado njia ya asili).
+  425/425, mara 3, fixpoint stage2==stage3.
+- Somo la pili la mutation kikao hiki: mutation ya kwanza (kuondoa
+  REX.B kwa uandishi wa byte) HAIKUGUNDULIKA na RHS ndogo (namba ya
+  moja kwa moja haigusi rcx KAMWE, hivyo rcx ilibaki sahihi kwa bahati
+  hata bila REX.B). Nimeongeza kesi za RHS zinazogusa rcx (hesabu)
+  kwa kila upana ikiwemo byte -- sasa mutation hiyo inasababisha SEGV.
+- Programu 4001 za nasibu: sifuri tofauti.
+
+### Utendaji
+
+Hakuna kipimo cha vipimo tisa vinavyotumia `*ptr = thamani` (bila
+faharasa) kwenye njia yake kuu -- vyote hutumia `arr[idx]`
+(iliyofaidika tayari kwenye sehemu iliyotangulia). Kama ilivyotarajiwa,
+mabadiliko ni ndani ya kelele kwa vipimo vyote tisa (nimethibitisha
+matriki hasa kwa marudio matatu ya moja kwa moja: 198.0M/199.1M,
+197.7M/198.2M, 198.4M/197.9M mizunguko -- kabla/baada, tofauti ndani
+ya 0.5% kila wakati). Faida yake ni kwa msimbo unaotumia vielekezi
+moja kwa moja (bila safu), mfano linked-list au miundo ya mtu binafsi
+iliyofikiwa kupitia kielekezi kimoja bila faharasa.
+
+## Uhifadhi wa kielekezi->sehemu = thamani kwa [r9+off] moja kwa moja
+
+Kioo cha tatu cha mfululizo huu: `ptr->sehemu = thamani` sasa hutumia
+`[r9+off]` moja kwa moja -- OFSETI YA SEHEMU (iliyowekwa na mkaguzi,
+0/4/8 n.k.) inaandikwa ndani ya ModRM/disp8/disp32 ya agizo la
+kuhifadhi lenyewe, badala ya "add rax, off" tofauti + push/pop ya
+anwani. Kielekezi kinashikiliwa r9 (jr_jani_rcx) wakati RHS salama
+inatathminiwa, kama sehemu mbili zilizotangulia. Kiwanja (`ptr->f +=
+x`) HAIHITAJI hundi ya ziada: hujitokeza kama RHS inayosoma
+SEHEMU_MSHALE ile ile, ambayo haiko kwenye orodha nyeupe ya
+jr_ni_salama -- inarudi njia ya asili kiotomatiki.
+
+### Uthibitisho
+
+- `jaribio_uhifadhi_mshale`: sehemu ya kwanza (hakuna disp), disp8,
+  disp32 (ofseti > 127), RHS salama inayogusa rcx, RHS isiyo salama
+  (wito), kiwanja, kielekezi kilichotokana na pointer arithmetic.
+  426/426, fixpoint stage2==stage3.
+- Mdudu WA KANDO uliogunduliwa (nje ya wigo, HAUJAREKEBISHWA): muundo
+  wenye SAFU kama sehemu (`N32 pad[40];` ndani ya `muundo`) unashindwa
+  kukusanywa (`; KOSA: 1` kutoka kwa mchanganuzi wa stage2) -- ilikuwepo
+  hata kwenye mkusanyaji wa KABLA ya kazi hii (f1v), hivyo si
+  imesababishwa na mabadiliko haya. Jaribio hili liliepuka tatizo kwa
+  kutumia sehemu nyingi za N32 badala ya safu moja kupata ofseti > 127.
+- Mutation: kubadilisha kigezo cha disp8/disp32 (`off < 128` -> `off <
+  256`) kulisababisha SEGV kwenye jaribio_uhifadhi_mshale (ofseti ya
+  `mbali`, 140, ingeandikwa kama disp8 potovu) -- imekamatwa.
+- Fuzz 5001 programu za nasibu: sifuri tofauti.
+
+### Utendaji
+
+**SAHIHISHO (baada ya ukaguzi wa Kandemark):** kipimo cha kwanza cha
+kikao hiki kilidai `miti_bst -10.1%` kama faida kuu ya kazi hii, kwa
+sababu kitanzi cha uingizaji cha `miti_bst` kinatumia `n->kushoto = n;
+sasa->kulia = n;` n.k. moja kwa moja -- ndiyo mfano uliotumika
+kuhalalisha kuchagua kipimo hicho. Dai hilo HALIKUWA SAHIHI, kwa
+sababu MBILI zilizogundulika wakati wa ukaguzi:
+
+1. **Njia mpya HAITUMIKI kwa sehemu za kielekezi-kwenda-muundo.**
+   `uzalishaji_hifadhi_mshale_sib` inalindwa na `ast_thamani[lhs] > 0`
+   -- lakini sehemu za aina `Nodi* kushoto;`/`Nodi* kulia;` zina ENC
+   HASI kwenye usimbaji wa mkusanyaji huu (muundo uliopachikwa NA
+   kielekezi-kwenda-muundo VYOTE hutumia hasi). Kwa hiyo `n->kushoto =
+   n;` na `sasa->kulia = n;` -- HASA mfano uliotajwa -- HAZITUMII
+   njia mpya kabisa. Imethibitishwa kwa disassembly (mara mbili, kwa
+   ukaguzi wa Kandemark na tena hapa): kati ya maandiko matatu ya
+   mshale kwa kila uingizaji (`thamani`, `kushoto`, `kulia`), MOJA TU
+   (`thamani`, N32 ya kawaida) inaonyesha muundo mpya wa `(%r9)`.
+2. **Kipimo cha awali hakikuwa marudio ya kubadilishana (interleaved)**
+   -- kilikuwa old-kisha-new mfululizo mmoja. Baada ya marudio 10 ya
+   kubadilishana (perf stat -r 5..8, taskset -c 7) siku hii hii: old
+   372M-445M, new 349M-416M -- wastani unaonyesha uboreshaji (karibu
+   -6% hadi -11% kutegemea kundi la marudio), LAKINI jaribio la pad
+   (safu MOJA, mabadiliko YA MPANGILIO TU, sifuri mabadiliko ya
+   semantiki) lilionyesha safu ya 322.9M-379.7M (~17.5%!) -- WIGO
+   MKUBWA ZAIDI kuliko pengo la old-vs-new lenyewe. Kwa maneno
+   mengine: kelele ya mpangilio wa msimbo peke yake (bila kazi hii
+   kabisa) inaweza kutoa mabadiliko makubwa kuliko yale
+   yanayodaiwa kuwa "faida" -- kipimo hiki, kwenye mzigo wa sasa wa
+   mfumo, HAKINA UHAKIKA wa kutosha kutoa namba MOJA ya asilimia.
+
+**Hitimisho la kweli:** njia mpya ni sahihi na salama (fuzzing na
+majaribio yanathibitisha), na INAWEZEKANA ina faida ndogo kwa
+`miti_bst` (kupitia sehemu ya `thamani` PEKEE, si `kushoto`/`kulia`),
+lakini HAIWEZI kudaiwa kwa uhakika kwa idadi mahususi kwenye kipimo
+hiki bila upimaji zaidi (mfumo tulivu zaidi, marudio mengi zaidi).
+Faida HALISI na iliyothibitishwa vizuri zaidi ya sehemu hii ya
+mfululizo (arr[idx]=/`*ptr=`) iko kwenye vipimo vingine (kupanga,
+maneno, heshi, mchujo -- angalia sehemu za awali za hati hii).
+Kazi ya baadaye inayoweza kuleta faida HALISI kwa miundo kama Nodi
+(BST, orodha iliyounganishwa): kupanua `uzalishaji_hifadhi_mshale_sib`
+kutambua sehemu za kielekezi-kwenda-muundo pia (maandiko ya kielekezi
+ya baiti 8 sahihi kabisa, hayahitaji semantiki ya kunakili muundo).
+
+Matokeo mengine (perf stat, mizunguko 7, siku ya kwanza ya kupima --
+haya HAYAKUFUATWA na jaribio la pad kwa kila mmoja, chukua kwa
+tahadhari ile ile): fibonacci -1.2%, kupanga ~sawa, matriki -2.4%,
+heshi -0.7%, mzunguko_mchezo -2.9%, mandelbrot ~sawa, mchujo +1.0%,
+maneno -1.0%. HAKUNA hasara halisi iliyothibitishwa kwenye kipimo
+chochote -- lakini pia hakuna faida iliyothibitishwa kwa uhakika
+zaidi ya kupanga/maneno/heshi/mchujo (kutoka sehemu za awali za
+mfululizo huu, zilizopimwa kwa uangalifu zaidi).
