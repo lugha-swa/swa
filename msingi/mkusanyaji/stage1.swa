@@ -35,30 +35,30 @@ husisha { mkusanyaji/uzalishaji_wasm.swa }
 // hiyo faili linasomwa upya baada ya kila kujirudia.
 // bafa_ukaguzi ni bafa ya ziada kwa ukaguzi wa "maudhui
 // yapo tayari kwenye towe".
-N8 chanzo_buf[1048576];
-N32 chanzo_urefu = 0;
-N8 bafa_kuu[1048576];
-N8 bafa_chanzo[1048576];
-N8 bafa_ukaguzi[1048576];
+n8 chanzo_buf[1048576];
+n32 chanzo_urefu = 0;
+n8 bafa_kuu[1048576];
+n8 bafa_chanzo[1048576];
+n8 bafa_ukaguzi[1048576];
 
 // Hifadhi ya majina — safu bapa ya vipande (njia kamili + NUL).
 // rafu ni kwa kutambua mizunguko; zilizotatuliwa ni kwa
 // kutofanya marudio (kila faili linatolewa mara moja tu).
-N8 majina_husisha[262144];
-N32 idadi_majina = 0;
-N32 KIPANDE = 512;
-N32 rafu_husisha[512];
-N32 rafu_kiasi = 0;
-N32 zilizotatuliwa[512];
-N32 idadi_zilizotatuliwa = 0;
+n8 majina_husisha[262144];
+n32 idadi_majina = 0;
+n32 KIPANDE = 512;
+n32 rafu_husisha[512];
+n32 rafu_kiasi = 0;
+n32 zilizotatuliwa[512];
+n32 idadi_zilizotatuliwa = 0;
 
-N8 njia_buf[512];  // njia kamili ya faili linalotafutwa
-N8 jina_buf[512];  // jina la faili kati ya mabano { }
-N32 kosa = 0;      // kosa limeonekana — hakuna msimbo utakaotolewa
+n8 njia_buf[512];  // njia kamili ya faili linalotafutwa
+n8 jina_buf[512];  // jina la faili kati ya mabano { }
+n32 kosa = 0;      // kosa limeonekana — hakuna msimbo utakaotolewa
 
 // faili_ipo_swa — kama faili linapatikana (bila maktaba ya faili)
-N32 faili_ipo_swa(N8* njia) {
-    N64 f = sys_fungua(njia, 0, 0);
+n32 faili_ipo_swa(n8* njia) {
+    n64 f = sys_fungua(njia, 0, 0);
     kama (f < 0) {
         rudisha 0;
     }
@@ -68,19 +68,19 @@ N32 faili_ipo_swa(N8* njia) {
 
 // soma_faili — soma faili lote hadi bafa (lenye NUL mwishoni).
 // Rudisha urefu, au -1 kama halifunguki. Kikomo: upeo - 1.
-N64 soma_faili(N8* njia, N8* bafa, N64 upeo) {
-    N64 f = sys_fungua(njia, 0, 0);
+n64 soma_faili(n8* njia, n8* bafa, n64 upeo) {
+    n64 f = sys_fungua(njia, 0, 0);
     kama (f < 0) {
         rudisha -1;
     }
-    N64 n = sys_soma(f, bafa, upeo - 1);
+    n64 n = sys_soma(f, bafa, upeo - 1);
     sys_funga(f);
     bafa[n] = 0;
     rudisha n;
 }
 
 // ongeza_chanzo — ongeza baiti kwenye pato la mwisho (chanzo_buf)
-N32 ongeza_chanzo(N8* data, N64 urefu) {
+n32 ongeza_chanzo(n8* data, n64 urefu) {
     kama (chanzo_urefu + urefu > 1048576) {
         andika_stderr("; KOSA: chanzo cha mkusanyaji ni kikubwa mno\n");
         kosa = 1;
@@ -97,16 +97,16 @@ N32 ongeza_chanzo(N8* data, N64 urefu) {
 //   2 = husisha nyingine (C::, pekee, au mwisho wa mstari) — linatupwa
 // Neno KAMILI "husisha" tu ndilo linalohesabika — si kiambishi
 // "hu": "husishakitu" mwanzoni mwa mstari si maelekezo.
-N32 tambua_mstari(N8* b, N64 p, N64 urefu) {
+n32 tambua_mstari(n8* b, n64 p, n64 urefu) {
     kama (urefu >= 7 &&
     b[p] == 104 && b[p + 1] == 117 && b[p + 2] == 115 &&
     b[p + 3] == 105 && b[p + 4] == 115 && b[p + 5] == 104 &&
     b[p + 6] == 97) {
         kama (urefu == 7) { rudisha 2; }  // "husisha" pekee — tupishe
-        N8 baada = b[p + 7];
+        n8 baada = b[p + 7];
         kama (baada == 32) {
             kama (urefu >= 9) {
-                N8 ya = b[p + 8];
+                n8 ya = b[p + 8];
                 kama (ya == 123) { rudisha 1; }  // '{' — faili la Swa
                 kama (ya == 67) { rudisha 2; }   // 'C' — kiungo cha C
                 rudisha 2;
@@ -115,7 +115,7 @@ N32 tambua_mstari(N8* b, N64 p, N64 urefu) {
         }
         kama (baada == 9) {
             kama (urefu >= 9) {
-                N8 ya = b[p + 8];
+                n8 ya = b[p + 8];
                 kama (ya == 123) { rudisha 1; }
                 kama (ya == 67) { rudisha 2; }
                 rudisha 2;
@@ -131,12 +131,12 @@ N32 tambua_mstari(N8* b, N64 p, N64 urefu) {
 
 // toa_jina — toa jina la faili kati ya { } na ulinakili hadi
 // jina_buf (lenye NUL). Rudisha 0 kwa sawa, -1 kwa kosa.
-N32 toa_jina(N8* b, N64 p, N64 urefu) {
-    N64 j = p + 9;  // mara tu baada ya '{'
+n32 toa_jina(n8* b, n64 p, n64 urefu) {
+    n64 j = p + 9;  // mara tu baada ya '{'
     wakati (j < p + urefu && (b[j] == 32 || b[j] == 9)) {
         j = j + 1;
     }
-    N64 mwanzo = j;
+    n64 mwanzo = j;
     wakati (j < p + urefu && b[j] != 125) {  // '}'
         j = j + 1;
     }
@@ -145,7 +145,7 @@ N32 toa_jina(N8* b, N64 p, N64 urefu) {
         kosa = 1;
         rudisha -1;
     }
-    N64 mwisho = j;
+    n64 mwisho = j;
     wakati (mwisho > mwanzo && (b[mwisho - 1] == 32 || b[mwisho - 1] == 9)) {
         mwisho = mwisho - 1;
     }
@@ -154,13 +154,13 @@ N32 toa_jina(N8* b, N64 p, N64 urefu) {
         kosa = 1;
         rudisha -1;
     }
-    N64 n = mwisho - mwanzo;
+    n64 n = mwisho - mwanzo;
     kama (n >= 500) {
         andika_stderr("; KOSA: jina la faili ni refu mno\n");
         kosa = 1;
         rudisha -1;
     }
-    N64 i = 0;
+    n64 i = 0;
     wakati (i < n) {
         jina_buf[i] = b[mwanzo + i];
         i = i + 1;
@@ -171,8 +171,8 @@ N32 toa_jina(N8* b, N64 p, N64 urefu) {
 
 // ongeza_jina — pata faharisi ya njia kwenye hifadhi ya majina;
 // likikosekana, linaandikwa. Rudisha faharisi.
-N32 ongeza_jina(N8* jina) {
-    N32 k = 0;
+n32 ongeza_jina(n8* jina) {
+    n32 k = 0;
     wakati (k < idadi_majina) {
         kama (linganisha_mfuatano(jina, majina_husisha + k * KIPANDE) == 0) {
             rudisha k;
@@ -196,7 +196,7 @@ N32 ongeza_jina(N8* jina) {
 
 // pata_njia — njia ya kwanza iliyopo kwa mpangilio wa utafutaji;
 // njia yenyewe inaishia kwenye njia_buf. Rudisha 1 ikiwa ipo.
-N32 pata_njia(N8* jina) {
+n32 pata_njia(n8* jina) {
     unganisha_mfuatano(njia_buf, "msingi/", jina);
     kama (faili_ipo_swa(njia_buf) != 0) {
         rudisha 1;
@@ -214,13 +214,13 @@ N32 pata_njia(N8* jina) {
 
 // tafuta_katika — kama mfuatano [data, data + urefu) unatokea
 // ndani ya eneo [mwanzo, mwisho) la bafa b. Rudisha 1 kama lipo.
-N32 tafuta_katika(N8* b, N64 mwanzo, N64 mwisho, N8* data, N64 urefu) {
+n32 tafuta_katika(n8* b, n64 mwanzo, n64 mwisho, n8* data, n64 urefu) {
     kama (urefu == 0) {
         rudisha 1;
     }
-    N64 i = mwanzo;
+    n64 i = mwanzo;
     wakati (i + urefu <= mwisho) {
-        N64 k = 0;
+        n64 k = 0;
         wakati (k < urefu) {
             kama (b[i + k] != data[k]) {
                 vunja;
@@ -241,11 +241,11 @@ N32 tafuta_katika(N8* b, N64 mwanzo, N64 mwisho, N8* data, N64 urefu) {
 // nakala yake ya zamani: mstari wa husisha unaolitaja hupuuzwa,
 // hakuna kujirudia — faili hilo linaletwa na mkondo wenyewe, si
 // mara mbili.
-N32 maudhui_yapo(N8* jina, N8* b, N64 p, N64 urefu) {
+n32 maudhui_yapo(n8* jina, n8* b, n64 p, n64 urefu) {
     kama (pata_njia(jina) == 0) {
         rudisha 0;
     }
-    N64 L = soma_faili(njia_buf, bafa_ukaguzi, 1048576);
+    n64 L = soma_faili(njia_buf, bafa_ukaguzi, 1048576);
     kama (L < 0) {
         rudisha 0;
     }
@@ -258,14 +258,14 @@ N32 maudhui_yapo(N8* jina, N8* b, N64 p, N64 urefu) {
         rudisha 1;
     }
     // Toa mistari ya husisha kwenye bafa_ukaguzi (kubana mahali)
-    N64 r = 0;  // mwandishi
-    N64 s = 0;  // msomaji
+    n64 r = 0;  // mwandishi
+    n64 s = 0;  // msomaji
     wakati (s < L) {
-        N64 mwisho = s;
+        n64 mwisho = s;
         wakati (mwisho < L && bafa_ukaguzi[mwisho] != 10) {
             mwisho = mwisho + 1;
         }
-        N64 baada = mwisho;
+        n64 baada = mwisho;
         kama (mwisho < L) { baada = mwisho + 1; }
         kama (tambua_mstari(bafa_ukaguzi, s, mwisho - s) == 0) {
             nakili(bafa_ukaguzi + r, bafa_ukaguzi + s, baada - s);
@@ -286,16 +286,16 @@ N32 maudhui_yapo(N8* jina, N8* b, N64 p, N64 urefu) {
     // ishara — zamani mstari wa husisha ulifutwa bila kujali, kwa
     // hiyo hupuuza ni kama zamani. Maelezo hayatoshi: maelezo ya
     // chanzo kikuu yako kwenye towe kila wakati, lakini si msimbo.
-    N64 mwanzo_mstari = 0;
-    N64 mwisho_ishara = 0;
-    N64 idadi_ishara = 0;
-    N64 t = 0;
+    n64 mwanzo_mstari = 0;
+    n64 mwisho_ishara = 0;
+    n64 idadi_ishara = 0;
+    n64 t = 0;
     wakati (t < r && idadi_ishara < 2) {
-        N64 mwisho = t;
+        n64 mwisho = t;
         wakati (mwisho < r && bafa_ukaguzi[mwisho] != 10) {
             mwisho = mwisho + 1;
         }
-        N32 ni_maelezo = 0;
+        n32 ni_maelezo = 0;
         kama (mwisho > t + 1) {
             kama (bafa_ukaguzi[t] == 47) {
                 kama (bafa_ukaguzi[t + 1] == 47) { ni_maelezo = 1; }
@@ -311,7 +311,7 @@ N32 maudhui_yapo(N8* jina, N8* b, N64 p, N64 urefu) {
         kama (t < r) { t = t + 1; }
     }
     kama (idadi_ishara > 0) {
-        N64 urefu_ishara = mwisho_ishara - mwanzo_mstari;
+        n64 urefu_ishara = mwisho_ishara - mwanzo_mstari;
         kama (tafuta_katika(chanzo_buf, 0, chanzo_urefu, bafa_ukaguzi + mwanzo_mstari, urefu_ishara) == 1) {
             rudisha 1;
         }
@@ -324,10 +324,10 @@ N32 maudhui_yapo(N8* jina, N8* b, N64 p, N64 urefu) {
 
 // chapisha_mzunguko — chapisha mzunguko kuanzia rafu[mwanzo]
 // hadi mwisho wa rafu, kisha kurudi kwenye rafu[mwanzo] tena
-W0 chapisha_mzunguko(N32 mwanzo) {
+w0 chapisha_mzunguko(n32 mwanzo) {
     andika_stderr("; KOSA: mzunguko wa husisha umegunduliwa:\n");
     andika_stderr(";   ");
-    N32 k = mwanzo;
+    n32 k = mwanzo;
     wakati (k < rafu_kiasi) {
         andika_stderr("%s", majina_husisha + rafu_husisha[k] * KIPANDE);
         k = k + 1;
@@ -340,14 +340,14 @@ W0 chapisha_mzunguko(N32 mwanzo) {
 
 // Tangazo la mbele — tatua_husisha na changanua_husisha
 // zinajirudia kwa kila nyingine
-W0 changanua_husisha(N8* b, N64 urefu, N32 ni_kuu);
+w0 changanua_husisha(n8* b, n64 urefu, n32 ni_kuu);
 
 // tatua_husisha — tafuta faili kwa mpangilio wa utafutaji, usome,
 // na uchanganue mistari yake kwa kujirudia. Maudhui yake yanaisha
 // kwenye pato kwa mpangilio wa utegemezi (tegemezi kabla ya
 // tegemeziwa). Kila faili linatolewa mara moja tu; mzunguko
 // unakataliwa kwa sauti.
-W0 tatua_husisha(N8* jina) {
+w0 tatua_husisha(n8* jina) {
     kama (kosa) {
         rudisha;
     }
@@ -362,7 +362,7 @@ W0 tatua_husisha(N8* jina) {
         rudisha;
     }
     // Mzunguko? — faili liko tayari kwenye rafu ya sasa
-    N32 k = 0;
+    n32 k = 0;
     wakati (k < rafu_kiasi) {
         kama (linganisha_mfuatano(njia_buf, majina_husisha + rafu_husisha[k] * KIPANDE) == 0) {
             chapisha_mzunguko(k);
@@ -385,7 +385,7 @@ W0 tatua_husisha(N8* jina) {
         rudisha;
     }
     // Soma faili lote
-    N64 urefu = soma_faili(njia_buf, bafa_chanzo, 1048576);
+    n64 urefu = soma_faili(njia_buf, bafa_chanzo, 1048576);
     kama (urefu < 0) {
         andika_stderr("; KOSA: faili halisomeki: %s\n", njia_buf);
         kosa = 1;
@@ -397,7 +397,7 @@ W0 tatua_husisha(N8* jina) {
         rudisha;
     }
     // Andika njia kwenye hifadhi; sukuma kwenye rafu
-    N32 faharisi = ongeza_jina(njia_buf);
+    n32 faharisi = ongeza_jina(njia_buf);
     kama (kosa) {
         rudisha;
     }
@@ -420,16 +420,16 @@ W0 tatua_husisha(N8* jina) {
 // chanzo cha sasa kinasomwa upya baada ya kila kujirudia
 // (bafa ya chanzo kikuu haiwezi kuharibiwa: tegemezi hazisomi
 // humo kamwe).
-W0 changanua_husisha(N8* b, N64 urefu, N32 ni_kuu) {
-    N64 p = 0;
+w0 changanua_husisha(n8* b, n64 urefu, n32 ni_kuu) {
+    n64 p = 0;
     wakati (p < urefu && kosa == 0) {
-        N64 mwisho = p;
+        n64 mwisho = p;
         wakati (mwisho < urefu && b[mwisho] != 10) {
             mwisho = mwisho + 1;
         }
-        N64 baada = mwisho;
+        n64 baada = mwisho;
         kama (mwisho < urefu) { baada = mwisho + 1; }
-        N32 aina = tambua_mstari(b, p, mwisho - p);
+        n32 aina = tambua_mstari(b, p, mwisho - p);
         kama (aina == 1) {
             kama (toa_jina(b, p, mwisho - p) == 0) {
                 kama (maudhui_yapo(jina_buf, b, p, urefu) == 0) {
@@ -437,8 +437,8 @@ W0 changanua_husisha(N8* b, N64 urefu, N32 ni_kuu) {
                     kama (ni_kuu == 0 && kosa == 0) {
                         // bafa_chanzo imeharibiwa — isome upya njia
                         // ya sasa (juu ya rafu)
-                        N8* njia_sasa = majina_husisha + rafu_husisha[rafu_kiasi - 1] * KIPANDE;
-                        N64 m2 = soma_faili(njia_sasa, bafa_chanzo, 1048576);
+                        n8* njia_sasa = majina_husisha + rafu_husisha[rafu_kiasi - 1] * KIPANDE;
+                        n64 m2 = soma_faili(njia_sasa, bafa_chanzo, 1048576);
                         kama (m2 != urefu) {
                             andika_stderr("; KOSA: faili lilibadilika wakati wa kutatua: %s\n", njia_sasa);
                             kosa = 1;
@@ -453,13 +453,13 @@ W0 changanua_husisha(N8* b, N64 urefu, N32 ni_kuu) {
     }
 }
 
-N32 main(N32 argc, N8** argv) {
-    N32 ni_jit = 0;
-    N32 ni_exe = 0;
-    N32 ni_wasm = 0;
-    N32 faili_idx = 1;
+n32 main(n32 argc, n8** argv) {
+    n32 ni_jit = 0;
+    n32 ni_exe = 0;
+    n32 ni_wasm = 0;
+    n32 faili_idx = 1;
     kama (argc > 1) {
-        N8* a = argv[1];
+        n8* a = argv[1];
         kama (a[0]==45 && a[1]==45 && a[2]==106 && a[3]==105 && a[4]==116 && a[5]==0) {
             ni_jit = 1; faili_idx = 2;
         }
@@ -492,7 +492,7 @@ N32 main(N32 argc, N8** argv) {
     }
 
     kama (faili_idx < argc) {
-        N64 n = soma_faili(argv[faili_idx], bafa_kuu, 1048576);
+        n64 n = soma_faili(argv[faili_idx], bafa_kuu, 1048576);
         kama (n < 0) {
             andika_stderr("; KOSA: faili la chanzo halifunguki: %s\n", argv[faili_idx]);
             rudisha 1;
@@ -503,7 +503,7 @@ N32 main(N32 argc, N8** argv) {
         }
         // Njia kuu iko kwenye rafu kuanzia mwanzo — mzunguko
         // unaorudi kwenye chanzo kikuu hugunduliwa
-        N32 faharisi = ongeza_jina(argv[faili_idx]);
+        n32 faharisi = ongeza_jina(argv[faili_idx]);
         kama (kosa) {
             rudisha 1;
         }
@@ -520,7 +520,7 @@ N32 main(N32 argc, N8** argv) {
 
     // 1. Changanua chanzo hadi AST
     Msambazaji p = msambazaji_mpya(chanzo_buf, chanzo_urefu);
-    N32 mzizi = changanua(&p);
+    n32 mzizi = changanua(&p);
     kama (p.kosa != 0) {
         andika_stderr("; KOSA: %d\n", p.kosa);
         rudisha 1;
@@ -537,7 +537,7 @@ N32 main(N32 argc, N8** argv) {
     // Makosa ya aina ni ya kufa: programu iliyokataliwa haipaswi
     // kutoa msimbo wowote. Kosa lolote la mkaguzi linazuia mkusanyaji
     // (ona hati/uthibitisho-wa-lugha.md, kipengele J10).
-    N32 makosa = mkaguzi_angalia(mzizi);
+    n32 makosa = mkaguzi_angalia(mzizi);
     kama (makosa != 0) {
         andika_stderr("Hitilafu: makosa %d ya aina yalipatikana; hakuna msimbo uliotolewa\n", makosa);
         rudisha 1;
@@ -561,7 +561,7 @@ N32 main(N32 argc, N8** argv) {
 
     // 3. Teremsha AST hadi IR (uthibitishaji wa muundo)
     Mteremshi t;
-    N32 ir_mzizi = teremsha(&t, mzizi);
+    n32 ir_mzizi = teremsha(&t, mzizi);
     kama (t.makosa != 0) {
         andika_stderr("; ONYO: makosa ya kuteremsha %d, inaendelea\n", t.makosa);
     }
@@ -573,7 +573,7 @@ N32 main(N32 argc, N8** argv) {
             // ijulishwe kwa msimbo wa kutoka wa mchakato, sawa na
             // ukaguzi wa "kosa" hapo juu, la sivyo stdout ingekuwa
             // tupu lakini mchakato ungeonekana kufaulu.
-            N32 matokeo_wasm = uzalishaji_wasm_kuu(mzizi);
+            n32 matokeo_wasm = uzalishaji_wasm_kuu(mzizi);
             kama (matokeo_wasm != 0) { rudisha 1; }
         } sivyo { uzalishaji_kuu(mzizi, ni_exe); } }
 
