@@ -4,34 +4,34 @@
 
 husisha { msingi/maktaba/kumbukumbu.swa }
 
-N32 piga(N32 x) { rudisha x * 2; }   // WITO -- hufanya RHS isiwe salama
+n32 piga(n32 x) { rudisha x * 2; }   // WITO -- hufanya RHS isiwe salama
 
-N32 jaribu_aina_zote() {
-    N8* b8 = tenga(8);
-    N16* b16 = tenga(ukubwa(N16) * 4);
-    N32* b32 = tenga(ukubwa(N32) * 4);
-    N64* b64 = tenga(ukubwa(N64) * 4);
-    D32* d32 = tenga(ukubwa(D32) * 4);
-    D64* d64 = tenga(ukubwa(D64) * 4);
+n32 jaribu_aina_zote() {
+    n8* b8 = tenga(8);
+    n16* b16 = tenga(ukubwa(n16) * 4);
+    n32* b32 = tenga(ukubwa(n32) * 4);
+    n64* b64 = tenga(ukubwa(n64) * 4);
+    d32* bd32 = tenga(ukubwa(d32) * 4);
+    d64* bd64 = tenga(ukubwa(d64) * 4);
     *b8 = 0 - 5;
     *b16 = 0 - 3000;
     *b32 = 0 - 300000;
     *b64 = 0 - 5000000000;
-    *d32 = 2.5;
-    *d64 = 3.5;
+    *bd32 = 2.5;
+    *bd64 = 3.5;
     kama (*b8 != (0 - 5)) { rudisha 1; }
     kama (*b16 != (0 - 3000)) { rudisha 2; }
     kama (*b32 != (0 - 300000)) { rudisha 3; }
     kama (*b64 != (0 - 5000000000)) { rudisha 4; }
-    kama (*d32 != 2.5) { rudisha 5; }
-    kama (*d64 != 3.5) { rudisha 6; }
+    kama (*bd32 != 2.5) { rudisha 5; }
+    kama (*bd64 != 3.5) { rudisha 6; }
     // RHS isiyo dogo (inatumia rcx kama scratch ya ndani -- inathibitisha
     // kielekezi hakiharibiki, hakitegemei rcx kubaki bila kuguswa kwa
     // bahati) kwa kila upana, ikiwemo byte -- mdudu HALISI ulipatikana
     // hapa wakati wa kuandika (angalia jaribio_uhifadhi_ptr kwenye
     // MANIFEST): RHS ndogo (namba ya moja kwa moja) haikuwa ikigusa rcx
       // KAMWE, hivyo mutation ya REX.B ilipita bila kugundulika.
-    N32 x1 = 3; N32 x2 = 4;
+    n32 x1 = 3; n32 x2 = 4;
     *b8 = x1 + x2 * 2;       // 11
     kama (*b8 != 11) { rudisha 7; }
     *b16 = x1 + x2 * 2;
@@ -41,9 +41,9 @@ N32 jaribu_aina_zote() {
     rudisha 0;
 }
 
-N32 jaribu_rhs_salama_na_isiyo_salama() {
-    N32* p = tenga(ukubwa(N32) * 4);
-    N32* q = tenga(ukubwa(N32) * 4);
+n32 jaribu_rhs_salama_na_isiyo_salama() {
+    n32* p = tenga(ukubwa(n32) * 4);
+    n32* q = tenga(ukubwa(n32) * 4);
     *p = 5; *q = 10;
     *p = *p + *q * 2;              // RHS salama (usemi wa hesabu)
     kama (*p != 25) { rudisha 1; }
@@ -55,19 +55,19 @@ N32 jaribu_rhs_salama_na_isiyo_salama() {
 }
 
 // Kielekezi kilichotokana na pointer arithmetic (bado jani -- kigezo)
-N32 jaribu_kielekezi_kilichosongwa() {
-    N32* arr = tenga(ukubwa(N32) * 8);
-    N32 i = 0;
+n32 jaribu_kielekezi_kilichosongwa() {
+    n32* arr = tenga(ukubwa(n32) * 8);
+    n32 i = 0;
     wakati (i < 8) { arr[i] = i; i = i + 1; }
-    N32* mid = arr + 4;
+    n32* mid = arr + 4;
     *mid = 999;
     kama (arr[4] != 999) { rudisha 1; }
     kama (*mid != 999) { rudisha 2; }
     rudisha 0;
 }
 
-N32 jaribu_kiwanja_bado_sahihi() {
-    N32* p = tenga(ukubwa(N32) * 4);
+n32 jaribu_kiwanja_bado_sahihi() {
+    n32* p = tenga(ukubwa(n32) * 4);
     *p = 10;
     *p += 5;
     kama (*p != 15) { rudisha 1; }
@@ -76,8 +76,8 @@ N32 jaribu_kiwanja_bado_sahihi() {
     rudisha 0;
 }
 
-N32 main() {
-    N32 r = jaribu_aina_zote();
+n32 main() {
+    n32 r = jaribu_aina_zote();
     kama (r != 0) { rudisha 10 + r; }
     r = jaribu_rhs_salama_na_isiyo_salama();
     kama (r != 0) { rudisha 20 + r; }

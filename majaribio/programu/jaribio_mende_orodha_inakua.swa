@@ -3,14 +3,14 @@
 // ilikuwa SEGV na Orodha haikui kamwe. Hapa uwezo 2 -> 4 -> 8.
 // Maktaba imeandikwa ndani (kama majaribio mengine ya programu).
 // Inatarajiwa: 10 (0 + 1 + 2 + 3 + 4)
-N64 arena_anwani = 0;
-N64 arena_nafasi = 0;
+n64 arena_anwani = 0;
+n64 arena_nafasi = 0;
 
-N64 sys_mmap(N8* anwani, N64 urefu, N64 ulinzi, N64 bendera, N64 faili) {
+n64 sys_mmap(n8* anwani, n64 urefu, n64 ulinzi, n64 bendera, n64 faili) {
     rudisha wito_wa_mfumo(9, anwani, urefu, ulinzi, bendera, faili, 0);
 }
 
-N64 ukubwa(N32 aina) {
+n64 ukubwa(n32 aina) {
     kama (aina == 1) { rudisha 1; }
     kama (aina == 2) { rudisha 2; }
     kama (aina == 3) { rudisha 4; }
@@ -18,21 +18,21 @@ N64 ukubwa(N32 aina) {
     rudisha 8;
 }
 
-N8* tenga(N64 ukubwa) {
+n8* tenga(n64 ukubwa) {
     kama (arena_anwani == 0) {
         // Anwani sifuri = "popote" (kama mmap(NULL, ...) ya C).
         // Halisi 0 kwa kigezo cha kielekezi inakataliwa na ukaguzi
         // wa 2026-09-01 — tumia kielekezi cha sifuri wazi.
-        N8* anwani_sifuri = 0;
+        n8* anwani_sifuri = 0;
         arena_anwani = sys_mmap(anwani_sifuri, 1048576, 3, 34, 0 - 1);
         kama (arena_anwani == 0 - 1) { rudisha 0; }
     }
     kama (ukubwa == 0) { ukubwa = 8; }
     ukubwa = ukubwa + 8;  // nafasi ya ukubwa wa kipande (kwa badili)
     kama (arena_nafasi + ukubwa > 1048576) { rudisha 0; }
-    N8* r = arena_anwani + arena_nafasi;
-    N8* h = &ukubwa;
-    N32 bi = 0;
+    n8* r = arena_anwani + arena_nafasi;
+    n8* h = &ukubwa;
+    n32 bi = 0;
     wakati (bi < 8) {
         r[bi] = h[bi];
         bi = bi + 1;
@@ -41,59 +41,59 @@ N8* tenga(N64 ukubwa) {
     rudisha r + 8;
 }
 
-W0 nakili(N8* lengwa, N8* chanzo, N64 n) {
-    N64 i = 0;
+w0 nakili(n8* lengwa, n8* chanzo, n64 n) {
+    n64 i = 0;
     wakati (i < n) {
         lengwa[i] = chanzo[i];
         i = i + 1;
     }
 }
 
-N8* badili(N8* p, N64 ukubwa) {
+n8* badili(n8* p, n64 ukubwa) {
     kama (p == 0) { rudisha tenga(ukubwa); }
     kama (ukubwa == 0) { rudisha p; }
-    N64 zamani = 0;
-    N8* h2 = &zamani;
-    N32 bi2 = 0;
+    n64 zamani = 0;
+    n8* h2 = &zamani;
+    n32 bi2 = 0;
     wakati (bi2 < 8) {
         h2[bi2] = p[bi2 - 8];
         bi2 = bi2 + 1;
     }
-    N8* r = tenga(ukubwa);
+    n8* r = tenga(ukubwa);
     kama (r == 0) { rudisha 0; }
-    N64 nakili_urefu = zamani;
+    n64 nakili_urefu = zamani;
     kama (ukubwa < zamani) { nakili_urefu = ukubwa; }
     nakili(r, p, nakili_urefu);
     rudisha r;
 }
 
-muundo Orodha { N32* data; N32 idadi; N32 uwezo; };
+muundo Orodha { n32* data; n32 idadi; n32 uwezo; };
 
-Orodha orodha_mpya(N32 uwezo_awali) {
+Orodha orodha_mpya(n32 uwezo_awali) {
     Orodha o;
-    o.data = tenga(ukubwa(N32) * uwezo_awali);
+    o.data = tenga(ukubwa(n32) * uwezo_awali);
     o.idadi = 0;
     o.uwezo = uwezo_awali;
     rudisha o;
 }
 
-W0 orodha_ongeza(Orodha* o, N32 thamani) {
+w0 orodha_ongeza(Orodha* o, n32 thamani) {
     kama (o->idadi >= o->uwezo) {
         o->uwezo = o->uwezo * 2;
-        o->data = badili(o->data, ukubwa(N32) * o->uwezo);
+        o->data = badili(o->data, ukubwa(n32) * o->uwezo);
     }
     o->data[o->idadi] = thamani;
     o->idadi = o->idadi + 1;
 }
 
-N32 orodha_pata(Orodha* o, N32 faharisi) {
+n32 orodha_pata(Orodha* o, n32 faharisi) {
     kama (faharisi < 0 || faharisi >= o->idadi) { rudisha 0; }
     rudisha o->data[faharisi];
 }
 
-N32 main() {
+n32 main() {
     Orodha o = orodha_mpya(2);
-    N32 i = 0;
+    n32 i = 0;
     wakati (i < 5) {
         orodha_ongeza(&o, i);
         i = i + 1;
