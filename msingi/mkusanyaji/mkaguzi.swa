@@ -161,6 +161,41 @@ n32 global_jina_off[1024];
 n32 global_aina[1024];
 n32 global_idadi = 0;
 
+// Thibitisha kwamba encoding ya aina, IKIWA ni ya muundo (enc < 0),
+// inarejelea muundo ULIOTANGAZWA KWELI kwenye graph nzima ya husisha
+// (muundo_nodes[0..muundo_count), iliyokusanywa na "pitia ya kwanza"
+// KABLA ya kuitwa hapa -- angalia mkaguzi_angalia). Bila ukaguzi huu,
+// jina lisilotambuliwa KABISA (mfano typo au neno lisilo na maana)
+// likitumika kama aina ya kurudi/hoja/kigezo cha ulimwengu/sehemu ya
+// muundo lilikubaliwa KIMYA na changanua_aina_tokeni (msambazaji.swa)
+// kama muundo asiyejulikana wa mtumiaji -- lengo la tabia hiyo ni
+// kuruhusu miundo ya kujirejelea/kutangazwa mbele (mfano
+// "muundo Nodi { Nodi* ijayo; }", ambapo "Nodi" bado haijasajiliwa
+// wakati mwili wake unachanganuliwa) -- LAKINI haikutofautisha
+// "bado haijasajiliwa (itasajiliwa)" na "kamwe haitasajiliwa (typo)",
+// ikitoa msimbo mbaya kimya badala ya kosa la sauti. Ugunduzi
+// ulifanyika wakati wa Awamu D (uondoaji wa herufi kubwa, PR #279),
+// umeandikwa kwenye hati/hali-ya-lugha.md, umerekebishwa hapa.
+//
+// muktadha: maandishi ya kuelezea mahali (jina la kazi/muundo) kwa
+// ujumbe wa kosa.
+w0 mkaguzi_thibitisha_aina_ya_muundo(n32 enc, n8* muktadha) {
+    kama (enc >= 0) { rudisha; }  // aina ya msingi -- hakuna cha kuthibitisha
+    // Fungua jina kutoka kwa encoding (sawa na SEHEMU_DOT/SEHEMU_MSHALE
+    // chini): enc = -((off+1)*2) + mshale, mshale ni 0/1/3.
+    n32 name_off = ((-enc) / 2) - 1;
+    kama ((enc / 2) * 2 != enc) { name_off = name_off + 1; }  // mshale huhamisha -1
+    n8* jina = ast_pool + name_off;
+    n32 mi = 0;
+    wakati (mi < muundo_count) {
+        n32 mn = ast_kushoto[muundo_nodes[mi]];
+        kama (jina_linganisha(ast_pool + ast_jina_off[mn], jina)) { rudisha; }
+        mi = mi + 1;
+    }
+    andika_stderr("kosa [%s]: aina ya muundo haijatangazwa: %s\n", muktadha, jina);
+    mkaguzi_makosa = mkaguzi_makosa + 1;
+}
+
 n32 mkaguzi_angalia(n32 mzizi) {
     mkaguzi_makosa = 0;
     wigo_idadi = 0;
@@ -200,6 +235,29 @@ n32 mkaguzi_angalia(n32 mzizi) {
             }
         }
         node = ast_nne[node];
+    }
+    // Thibitisha vigezo vya ulimwengu vya aina ya muundo (lazima
+    // ifanyike BAADA ya muundo_nodes[] kujazwa hapo juu, ili miundo
+    // iliyotangazwa BAADAYE kwenye faili bado ithibitike sahihi).
+    n32 gi = 0;
+    wakati (gi < global_idadi) {
+        mkaguzi_thibitisha_aina_ya_muundo(global_aina[gi], "kigezo cha ulimwengu");
+        gi = gi + 1;
+    }
+    // Thibitisha sehemu za miundo yenyewe za aina ya muundo (mfano
+    // muundo A { B f; } -- B lazima iwe imetangazwa mahali fulani
+    // kwenye graph, hata kama ni BAADA ya A -- angalia maelezo ya
+    // mkaguzi_thibitisha_aina_ya_muundo hapo juu).
+    n32 si = 0;
+    wakati (si < muundo_count) {
+        n8* sjina = ast_pool + ast_jina_off[ast_kushoto[muundo_nodes[si]]];
+        n32 fn = ast_kulia[muundo_nodes[si]];
+        wakati (fn != -1) {
+            n32 fname_node = ast_kushoto[fn];
+            mkaguzi_thibitisha_aina_ya_muundo(ast_thamani[fname_node], sjina);
+            fn = ast_kulia[fn];
+        }
+        si = si + 1;
     }
     // Pitia ya pili: sajili SAINI za kazi zote KABLA ya kukagua mwili
     // wowote (lugha-swa/swa#180) — kazi A inayoita kazi B iliyofafanuliwa
@@ -262,12 +320,16 @@ w0 mkaguzi_sajili_kazi(n32 kazi_node) {
     kama (kazi_idadi >= 1024) { rudisha; }
     n32 name_node = ast_kushoto[kazi_node];
     n8* jina = ast_pool + ast_jina_off[name_node];
+    // Thibitisha aina ya kurudi (kama ni muundo, lazima iwe imetangazwa
+    // mahali fulani kwenye graph -- angalia mkaguzi_thibitisha_aina_ya_muundo).
+    mkaguzi_thibitisha_aina_ya_muundo(ast_thamani[kazi_node], jina);
     // Hesabu vigezo na hifadhi aina zao (viko kwenye nodi ya kazi, si nodi ya jina)
     n32 pc = 0;
     n32 param_start = kazi_param_enc_wapi;
     kazi_param_start[kazi_idadi] = param_start;
     n32 p = ast_kulia[kazi_node];
     wakati (p != -1) {
+        mkaguzi_thibitisha_aina_ya_muundo(ast_thamani[p], jina);
         kama (kazi_param_enc_wapi < 4096) {
             kazi_param_enc[kazi_param_enc_wapi] = ast_thamani[p];
             kazi_param_enc_wapi = kazi_param_enc_wapi + 1;
