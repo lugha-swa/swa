@@ -2171,62 +2171,33 @@ changanua_aina:
         push    r13
         push    r14
 
-        ; Angalia ikiwa ni aina ya msingi (herufi kubwa, kisha herufi
-        ; ndogo -- lugha-swa/swa#225: alama HASA, si aina mpya)
-        lea     rdi, [tn_w0]
-        call    tarajia_neno
-        cmp     eax, 1
-        je      .is_w0
-
+        ; Aina ya msingi -- herufi ndogo PEKEE (herufi kubwa
+        ; imeondolewa, uamuzi wa msimamizi baada ya Awamu C
+        ; kukamilika -- angalia hati/mipaka.md)
         lea     rdi, [tn_w0_ndogo]
         call    tarajia_neno
         cmp     eax, 1
         je      .is_w0
-
-        lea     rdi, [tn_n8]
-        call    tarajia_neno
-        cmp     eax, 1
-        je      .is_n8
 
         lea     rdi, [tn_n8_ndogo]
         call    tarajia_neno
         cmp     eax, 1
         je      .is_n8
 
-        lea     rdi, [tn_n16]
-        call    tarajia_neno
-        cmp     eax, 1
-        je      .is_n16
-
         lea     rdi, [tn_n16_ndogo]
         call    tarajia_neno
         cmp     eax, 1
         je      .is_n16
-
-        lea     rdi, [tn_n32]
-        call    tarajia_neno
-        cmp     eax, 1
-        je      .is_n32
 
         lea     rdi, [tn_n32_ndogo]
         call    tarajia_neno
         cmp     eax, 1
         je      .is_n32
 
-        lea     rdi, [tn_n64]
-        call    tarajia_neno
-        cmp     eax, 1
-        je      .is_n64
-
         lea     rdi, [tn_n64_ndogo]
         call    tarajia_neno
         cmp     eax, 1
         je      .is_n64
-
-        lea     rdi, [tn_d64]
-        call    tarajia_neno
-        cmp     eax, 1
-        je      .is_d64
 
         lea     rdi, [tn_d64_ndogo]
         call    tarajia_neno
@@ -11865,72 +11836,31 @@ uzalishaji_wambile:
         mov     r15d, [ast_jina_off + r14*4]
         lea     r15, [str_pool + r15]
         mov     rdi, r15
-        lea     rsi, [tn_n8]
-        call    linganisha_mfuatano
-        cmp     eax, 0
-        jne     .uk_jaribu_n8_ndogo
-        mov     r15d, 1
-        jmp     .ukubwa_toa
-.uk_jaribu_n8_ndogo:
-        ; herufi ndogo -- lugha-swa/swa#225, alama HASA
-        mov     rdi, r15
         lea     rsi, [tn_n8_ndogo]
         call    linganisha_mfuatano
         cmp     eax, 0
-        jne     .uk_jaribu_n16
-        mov     r15d, 1
-        jmp     .ukubwa_toa
-.uk_jaribu_n16:
-        mov     rdi, r15
-        lea     rsi, [tn_n16]
-        call    linganisha_mfuatano
-        cmp     eax, 0
         jne     .uk_jaribu_n16_ndogo
-        mov     r15d, 2
+        mov     r15d, 1
         jmp     .ukubwa_toa
 .uk_jaribu_n16_ndogo:
         mov     rdi, r15
         lea     rsi, [tn_n16_ndogo]
         call    linganisha_mfuatano
         cmp     eax, 0
-        jne     .uk_jaribu_n32
-        mov     r15d, 2
-        jmp     .ukubwa_toa
-.uk_jaribu_n32:
-        mov     rdi, r15
-        lea     rsi, [tn_n32]
-        call    linganisha_mfuatano
-        cmp     eax, 0
         jne     .uk_jaribu_n32_ndogo
-        mov     r15d, 4
+        mov     r15d, 2
         jmp     .ukubwa_toa
 .uk_jaribu_n32_ndogo:
         mov     rdi, r15
         lea     rsi, [tn_n32_ndogo]
         call    linganisha_mfuatano
         cmp     eax, 0
-        jne     .uk_jaribu_n64
-        mov     r15d, 4
-        jmp     .ukubwa_toa
-.uk_jaribu_n64:
-        mov     rdi, r15
-        lea     rsi, [tn_n64]
-        call    linganisha_mfuatano
-        cmp     eax, 0
         jne     .uk_jaribu_n64_ndogo
-        mov     r15d, 8
+        mov     r15d, 4
         jmp     .ukubwa_toa
 .uk_jaribu_n64_ndogo:
         mov     rdi, r15
         lea     rsi, [tn_n64_ndogo]
-        call    linganisha_mfuatano
-        cmp     eax, 0
-        jne     .uk_jaribu_d64
-        mov     r15d, 8
-        jmp     .ukubwa_toa
-.uk_jaribu_d64:
-        mov     rdi, r15
-        lea     rsi, [tn_d64]
         call    linganisha_mfuatano
         cmp     eax, 0
         jne     .uk_jaribu_d64_ndogo

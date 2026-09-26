@@ -112,10 +112,10 @@ done < majaribio/programu/MANIFEST.txt
 # ============ 5. Mkazo wa RELA (wito 1,000 wa mbele) ============
 MK="$TMP/mkazo.swa"
 {
-    echo "N32 main() { N32 s = 0;"
+    echo "n32 main() { n32 s = 0;"
     i=0; while [ $i -lt 1000 ]; do echo "s = s + lengo(1);"; i=$((i+1)); done
     echo "kama (s != 1000) rudisha 1; rudisha 0; }"
-    echo "N32 lengo(N32 x) { rudisha x; }"
+    echo "n32 lengo(n32 x) { rudisha x; }"
 } > "$MK"
 "$MBEGU" --exe "$MK" > "$TMP/mkazo-exe" 2> /dev/null && chmod +x "$TMP/mkazo-exe" \
     && "$TMP/mkazo-exe"; kagua "$?" "0" "mkazo wa RELA (mbegu)"
@@ -123,9 +123,9 @@ MK="$TMP/mkazo.swa"
 # ============ 6. Semantiki ya C ya endelea-kwenye-kwa ============
 KWC="$TMP/kwa_c.swa"
 cat > "$KWC" <<'EOF'
-N32 main() {
-    N32 i = 0;
-    N32 s = 0;
+n32 main() {
+    n32 i = 0;
+    n32 s = 0;
     kwa (; i < 6; i = i + 1) {
         kama (i == 2) { endelea; }
         s = s + 1;
@@ -146,18 +146,18 @@ done
 # ============ 7. Desimali (D64) ============
 DES="$TMP/des.swa"
 cat > "$DES" <<'EOF'
-N32 main() {
-    D64 pi = 3.14;
-    D64 r = 2.0;
-    D64 eneo = pi * r * r;
+n32 main() {
+    d64 pi = 3.14;
+    d64 r = 2.0;
+    d64 eneo = pi * r * r;
     kama (eneo > 12.55 && eneo < 12.57) { } sivyo { rudisha 1; }
-    D64 a = 1.5 + 0.5;
+    d64 a = 1.5 + 0.5;
     kama (a > 1.99 && a < 2.01) { } sivyo { rudisha 2; }
-    D64 b = 6.0 / 2.0;
+    d64 b = 6.0 / 2.0;
     kama (b > 2.99 && b < 3.01) { } sivyo { rudisha 3; }
-    D64 c = -2.5;
+    d64 c = -2.5;
     kama (c > -2.51 && c < -2.49) { } sivyo { rudisha 4; }
-    D64 d = 10.0 - 3.25;
+    d64 d = 10.0 - 3.25;
     kama (d > 6.74 && d < 6.76) { } sivyo { rudisha 5; }
     rudisha 0;
 }
@@ -175,11 +175,11 @@ done
 # ============ 8. Mzunguko mfupi wa && / || ============
 MZ="$TMP/mz.swa"
 cat > "$MZ" <<'EOF'
-N32 main() {
-    N32 bwete = 0;
-    N32 a[4];
+n32 main() {
+    n32 bwete = 0;
+    n32 a[4];
     kama (bwete && a[99999999] == 1) rudisha 1;
-    N32 x = 2 && 4;
+    n32 x = 2 && 4;
     kama (x != 1) rudisha 2;
     rudisha 0;
 }
@@ -194,9 +194,9 @@ EOF
 # mstari, kwa hiyo kazi za maktaba hazipo na inalia; stage1 mpya
 # inatatua msingi/maktaba/mfuatano.swa yenyewe na kufaulu (urefu wa
 # "habari" = 6).
-echo 'N32 main() { rudisha kazi_haipo(); }' > "$TMP/kk.swa"
+echo 'n32 main() { rudisha kazi_haipo(); }' > "$TMP/kk.swa"
 echo 'husisha { maktaba/mfuatano.swa }' > "$TMP/khus.swa"
-echo 'N32 main() { rudisha urefu_wa_mfuatano("habari"); }' >> "$TMP/khus.swa"
+echo 'n32 main() { rudisha urefu_wa_mfuatano("habari"); }' >> "$TMP/khus.swa"
 for mk in "mbegu" "stage1"; do
     if [ "$mk" = "mbegu" ]; then
         "$MBEGU" --exe "$TMP/kk.swa" > "$TMP/kk" 2> "$TMP/kk.err"; rc=$?
@@ -218,8 +218,8 @@ kagua "$rc1|$rc2" "0|6" "husisha { maktaba/mfuatano.swa } inatatuliwa na stage1 
 BOM="$TMP/bomba.swa"
 {
     i=0; while [ $i -lt 3000 ]; do echo "// mstari wa kujaza bafa $i"; i=$((i+1)); done
-    echo "N32 main() { rudisha kazi_ya_mwisho(); }"
-    echo "N32 kazi_ya_mwisho() { rudisha 7; }"
+    echo "n32 main() { rudisha kazi_ya_mwisho(); }"
+    echo "n32 kazi_ya_mwisho() { rudisha 7; }"
 } > "$BOM"
 cat "$BOM" | "$MBEGU" --exe > "$TMP/bomba-exe" 2> /dev/null
 chmod +x "$TMP/bomba-exe"; timeout 5 "$TMP/bomba-exe"; rc=$?
@@ -230,12 +230,12 @@ kagua "$rc" "7" "bomba la stdin (mbegu)"
 # zilizochanganywa na nafasi 7-9 bado hazisaidiwi — zinalia kwa sauti.
 D64F="$TMP/d64w.swa"
 cat > "$D64F" <<'EOF'
-D64 mara_mbili(D64 x) { rudisha x * 2.0; }
-D64 jumla3(D64 a, D64 b, D64 c) { rudisha a + b + c; }
-N32 main() {
-    D64 r = mara_mbili(3.5);
+d64 mara_mbili(d64 x) { rudisha x * 2.0; }
+d64 jumla3(d64 a, d64 b, d64 c) { rudisha a + b + c; }
+n32 main() {
+    d64 r = mara_mbili(3.5);
     kama (r < 6.99 || r > 7.01) rudisha 1;
-    D64 s = jumla3(1.5, 2.5, 3.0);
+    d64 s = jumla3(1.5, 2.5, 3.0);
     kama (s < 6.99 || s > 7.01) rudisha 2;
     rudisha 0;
 }
@@ -253,8 +253,8 @@ done
 # Kikomo: D64 iliyochanganywa na hoja 7-9 inakataliwa kwa sauti
 D64M="$TMP/d64m.swa"
 cat > "$D64M" <<'EOF'
-D64 nyingi(N32 a, N32 b, N32 c, N32 d, N32 e, N32 f, N32 g, D64 h) { rudisha h; }
-N32 main() { D64 r = nyingi(1, 2, 3, 4, 5, 6, 7, 8.5); rudisha 0; }
+d64 nyingi(n32 a, n32 b, n32 c, n32 d, n32 e, n32 f, n32 g, d64 h) { rudisha h; }
+n32 main() { d64 r = nyingi(1, 2, 3, 4, 5, 6, 7, 8.5); rudisha 0; }
 EOF
 "$MBEGU" --exe "$D64M" > "$TMP/d64m" 2> /dev/null; rc=$?
 grep -q "hoja 7-9" "$TMP/d64m"
