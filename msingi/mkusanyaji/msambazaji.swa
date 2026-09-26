@@ -444,30 +444,26 @@ n32 ni_aina_msingi(n8* txt, n64 n) {
     rudisha 1;
 }
 
-// Jina la aina ya msingi, herufi KUBWA (yoyote A-Z, tabia ya asili
-// iliyopo tayari) NA HERUFI NDOGO (n/a/d/b/w PEKEE -- angalia hapa
-// chini kwa nini hii ni tofauti kimakusudi) zote mbili zinakubalika.
-// n32 na n32 zinatoa familia/upana SAWA (angalia changanua_aina_tokeni
-// chini), hivyo ni aina MOJA HASA, si mbili tofauti.
+// Jina la aina ya msingi, herufi NDOGO PEKEE (herufi kubwa
+// imeondolewa -- uamuzi wa msimamizi baada ya Awamu C kukamilika,
+// angalia hati/mipaka.md). n32 na N32 hazikuwa aina mbili tofauti
+// kabla ya uondoaji huu (zilitoa familia/upana SAWA), na sasa N32
+// haitambuliwi KABISA kama jina la aina (angalia changanua_aina_tokeni
+// chini).
 //
-// MUHIMU: upande wa herufi NDOGO umezuiliwa KIMAKUSUDI kwa herufi
-// TANO za familia halisi (n, a, d, b, w) TU -- SI herufi yoyote ya
-// alfabeti kama upande wa herufi kubwa (ule ni tabia ya asili
-// iliyopo tayari, salama kwa vitendo kwa sababu vitambulisho vya
-// ndani vya hazina hii huwa herufi ndogo, si kubwa). Kwa herufi
-// ndogo, kuruhusu HERUFI YOYOTE (si tano hizi tu) kungegonga
-// vitambulisho vingi HALISI vya ndani ya hazina hii yenyewe
-// (iligunduliwa kwa majaribio HALISI, si dhana: "h2" -- kigezo cha
-// kawaida cha ndani cha uzalishaji.swa -- kililingana kimakosa na
-// muundo huu kabla ya kuzuiliwa kwa herufi tano, likivunja
-// kujikusanya kwa hazina hii yenyewe kwa hitilafu ya uwongo "jina
-// la aina halifuatwi na jina la kigeu").
+// MUHIMU: umezuiliwa KIMAKUSUDI kwa herufi TANO za familia halisi
+// (n, a, d, b, w) TU -- SI herufi yoyote ya alfabeti. Kuruhusu HERUFI
+// YOYOTE (si tano hizi tu) kungegonga vitambulisho vingi HALISI vya
+// ndani ya hazina hii yenyewe (iligunduliwa kwa majaribio HALISI, si
+// dhana: "h2" -- kigezo cha kawaida cha ndani cha uzalishaji.swa --
+// kililingana kimakosa na muundo huu kabla ya kuzuiliwa kwa herufi
+// tano, likivunja kujikusanya kwa hazina hii yenyewe kwa hitilafu ya
+// uwongo "jina la aina halifuatwi na jina la kigeu").
 n32 ni_aina_msingi_pia_ndogo(n8* txt, n64 n) {
     kama (n < 2) { rudisha 0; }
     n8 c0 = txt[0];
-    n32 ni_kubwa = (c0 >= 65 && c0 <= 90);
     n32 ni_ndogo = (c0 == 110 || c0 == 97 || c0 == 100 || c0 == 98 || c0 == 119);  // n a d b w
-    kama (ni_kubwa == 0 && ni_ndogo == 0) { rudisha 0; }
+    kama (ni_ndogo == 0) { rudisha 0; }
     n64 j = 1;
     wakati (j < n) {
         n8 c = txt[j];
@@ -528,12 +524,12 @@ n32 changanua_aina_tokeni(Msambazaji* p) {
     n32 mshale = 0;
     kama (ni_aina_msingi_pia_ndogo(txt, n)) {
         n8 c0 = txt[0];
-        // Herufi kubwa NA ndogo zinatoa familia SAWA (n32 == n32).
-        kama (c0 == 78 || c0 == 110) { familia = 1; }  // N / n
-        kama (c0 == 65 || c0 == 97) { familia = 2; }  // A / a
-        kama (c0 == 68 || c0 == 100) { familia = 3; }  // D / d
-        kama (c0 == 66 || c0 == 98) { familia = 4; }  // B / b
-        kama (c0 == 87 || c0 == 119) { familia = 5; }  // W / w
+        // Herufi ndogo PEKEE (herufi kubwa imeondolewa).
+        kama (c0 == 110) { familia = 1; }  // n
+        kama (c0 == 97) { familia = 2; }  // a
+        kama (c0 == 100) { familia = 3; }  // d
+        kama (c0 == 98) { familia = 4; }  // b
+        kama (c0 == 119) { familia = 5; }  // w
     }
     kama (familia == 0) { familia = 6; }  // muundo wa mtumiaji
     kama (familia != 6) {
