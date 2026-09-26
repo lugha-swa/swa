@@ -76,6 +76,23 @@ n32 wigo_tafuta(n8* jina) {
     rudisha -1;
 }
 
+// Sawa na wigo_tafuta, lakini inarudisha UWEPO TU (1/0), si usimbaji
+// wa aina. MUHIMU: wigo_tafuta HAIWEZI kutumika peke yake kuamua kama
+// kitambulisho "kimepatikana" -- kigezo halisi kilichopo kwenye wigo
+// kinaweza kuwa na usimbaji -1 lenyewe (aina isiyojulikana/wildcard,
+// mfano kigezo kutoka usemi wa halisi kamili), sawa kabisa na thamani
+// inayorudishwa kwa "hakijapatikana". Kazi hii inaondoa utata huo --
+// angalia mkaguzi_kagua_usemi, kesi ya AST_KITAMBULISHO.
+n32 wigo_ipo(n8* jina) {
+    n32 i = wigo_idadi - 1;
+    wakati (i >= 0) {
+        n8* wj = ast_pool + wigo_jina_off[i];
+        kama (jina_linganisha(wj, jina)) { rudisha 1; }
+        i = i - 1;
+    }
+    rudisha 0;
+}
+
 // Kielekezi? Rudisha 1 kwa kielekezi, 0 kwa thamani, -1 kwa
 // aina isiyojulikana (0/-1). Kielekezi: enc chanya yenye biti ya
 // mshale (isiyo sawa), au enc hasi isiyo sawa (kielekezi cha
@@ -160,6 +177,14 @@ n8* global_jina_pool;
 n32 global_jina_off[1024];
 n32 global_aina[1024];
 n32 global_idadi = 0;
+
+// Alama ya muktadha: hoja ya ukubwa(...) inayokaguliwa SASA hivi
+// (angalia mkaguzi_kagua_wito) -- mahali pekee ambapo kitambulisho
+// kinaruhusiwa kuwa jina la aina (n32, d64, n.k.) au jina la muundo
+// badala ya kigezo/kigezo cha ulimwengu/jina la kazi halisi -- sawa
+// na ukubwa_hoja kwenye msambazaji.swa (parser), lakini kwa ajili ya
+// mkaguzi_kagua_usemi (AST_KITAMBULISHO, angalia chini).
+n32 mkaguzi_ukubwa_hoja = 0;
 
 // Thibitisha kwamba encoding ya aina, IKIWA ni ya muundo (enc < 0),
 // inarejelea muundo ULIOTANGAZWA KWELI kwenye graph nzima ya husisha
@@ -561,6 +586,11 @@ n32 mkaguzi_kagua_wito(n32 node) {
     n32 name_node = ast_kushoto[node];
     kama (name_node != -1) {
         n8* jina = ast_pool + ast_jina_off[name_node];
+        // Hoja ya ukubwa(...) ni jina la aina/muundo, si kigezo halisi
+        // -- angalia mkaguzi_ukubwa_hoja hapo juu na AST_KITAMBULISHO
+        // kwenye mkaguzi_kagua_usemi kwa maelezo kamili.
+        n32 ukubwa_hoja_zamani = mkaguzi_ukubwa_hoja;
+        kama (jina_linganisha(jina, "ukubwa")) { mkaguzi_ukubwa_hoja = 1; }
         // Hesabu na kagua hoja zilizotolewa
         n32 hoja_idadi = 0;
         n32 a = ast_kulia[node];
@@ -638,6 +668,7 @@ n32 mkaguzi_kagua_wito(n32 node) {
             hoja_idadi = hoja_idadi + 1;
             a = ijayo;
         }
+        mkaguzi_ukubwa_hoja = ukubwa_hoja_zamani;
         // Kazi za pekee zisizosajiliwa (wito_wa_mfumo, tekeleza,
         // ukubwa, anwani_ya_kazi) — angalia kikomo cha hoja zao.
         mkaguzi_kagua_kiwango_cha_huduma(jina, hoja_idadi);
@@ -808,13 +839,17 @@ w0 mkaguzi_kagua_taarifa(n32 node) {
         rudisha;
     }
     kama (aina == 10) {  // WAKATI
-        mkaguzi_kagua_usemi(ast_kushoto[node]);
         // Kwa kitanzi cha "kwa", ast_tiga ina taarifa ya anzisha.
         // Tangazo (n32 j = 0) lazima lisajiriwe kwenye wigo — usemi
         // pekee hupitia mkaguzi_kagua_usemi. Zamani j haikujulikana
         // kwenye hatua na mwili (mkaguzi haukujali — vitambulisho
         // visivyojulikana havikuwa makosa); ukaguzi wa kihifadhi
-        // unategemea wigo kamili.
+        // unategemea wigo kamili. MUHIMU: hii LAZIMA ifanyike KABLA
+        // ya ast_kushoto (hali, mfano "j < 10") kukaguliwa -- vinginevyo
+        // "j" bado haijasajiliwa wakati hali yenyewe inarejelea "j",
+        // ikitoa kosa la uwongo "kitambulisho hakijafafanuliwa: j"
+        // (pengo lililopatikana wakati wa uthibitisho wa ukaguzi mpya
+        // wa kitambulisho-kisichofafanuliwa, 2026-09-26, issue #255).
         kama (ast_tiga[node] != -1) {
             kama (ast_aina[ast_tiga[node]] == 11) {
                 mkaguzi_kagua_taarifa(ast_tiga[node]);
@@ -822,6 +857,7 @@ w0 mkaguzi_kagua_taarifa(n32 node) {
                 mkaguzi_kagua_usemi(ast_tiga[node]);
             }
         }
+        mkaguzi_kagua_usemi(ast_kushoto[node]);
         kitanzi_kina = kitanzi_kina + 1;
         wigo_sukuma();
         mkaguzi_kagua_taarifa(ast_kulia[node]);
@@ -1045,19 +1081,47 @@ n32 mkaguzi_kagua_usemi(n32 node) {
     kama (aina == 5) {
         n8* jina = ast_pool + ast_jina_off[node];
         n32 enc = wigo_tafuta(jina);
-        kama (enc == -1) {
+        n32 imepatikana = wigo_ipo(jina);
+        kama (imepatikana == 0) {
             // Angalia vigeu vya ulimwengu
             n32 g = 0;
             wakati (g < global_idadi) {
                 n8* gj = global_jina_pool + global_jina_off[g];
-                kama (jina_linganisha(gj, jina)) { enc = global_aina[g]; vunja; }
+                kama (jina_linganisha(gj, jina)) { enc = global_aina[g]; imepatikana = 1; vunja; }
                 g = g + 1;
             }
         }
-        kama (enc == -1) {
+        kama (imepatikana == 0) {
             // Angalia majina ya kazi (viashiria vya kazi)
             n32 pc = mkaguzi_tafuta_kazi(jina);
-            kama (pc >= 0) { enc = 1; }  // kiashiria cha kazi
+            kama (pc >= 0) { enc = 1; imepatikana = 1; }  // kiashiria cha kazi
+        }
+        // Jina halisi halipatikani mahali popote (wigo, kigezo cha
+        // ulimwengu, jina la kazi) -- kosa la sauti, si kupitishwa kimya
+        // kama "aina yoyote" (-1). Bila hii, kwa mfano jina la aina
+        // (n32, d64 n.k.) likitumika kama usemi likiwa halijaguswa na
+        // ukubwa(...) linapita kimya likiwa halina athari (angalia
+        // lugha-swa/swa issue #255) -- ISIPOKUWA lina ujumbe wa kirafiki
+        // zaidi kama linafanana na jina la aina la msingi.
+        //
+        // MUHIMU: halisi za kamba (string literals) NAZO ni nodi za
+        // AST_KITAMBULISHO (angalia changanua_primary, TOKENI_MFUATANO) --
+        // maandishi yaliyohifadhiwa YANAJUMUISHA alama za kunukuu
+        // zenyewe (jina[0] == '"'), kwa hiyo KAMWE hayatapatikana kwenye
+        // wigo/kigezo/jina la kazi (si kusudio lao) -- lazima yaruke
+        // ukaguzi huu kabisa, si kutibiwa kama kitambulisho kisichopo.
+        // Vivyo hivyo hoja ya ukubwa(...) (mkaguzi_ukubwa_hoja) -- ni
+        // jina la aina/muundo kimakusudi, si kigezo halisi.
+        kama (imepatikana == 0 && jina[0] != 34 && mkaguzi_ukubwa_hoja == 0) {
+            n32 jlen = 0;
+            wakati (jina[jlen] != 0) { jlen = jlen + 1; }
+            kama (ni_aina_msingi_pia_ndogo(jina, jlen)) {
+                andika_stderr("kosa [%s]: jina la aina halitumiki kama usemi: %s\n", mkaguzi_kazi_sasa, jina);
+            } sivyo {
+                andika_stderr("kosa [%s]: kitambulisho hakijafafanuliwa: %s\n", mkaguzi_kazi_sasa, jina);
+            }
+            mkaguzi_makosa = mkaguzi_makosa + 1;
+            enc = -1;
         }
         // Hifadhi usimbaji kwenye nodi — uzalishaji wa wito unausoma
         // kwa hoja za kigeu (rejeleo jipya la KITAMBULISHO lina thamani 0)
