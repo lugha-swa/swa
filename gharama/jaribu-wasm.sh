@@ -45,10 +45,16 @@ chmod +x "$TMP/stage1"
 STAGE1="$TMP/stage1"
 
 # ============ 3. Majaribio ya MANIFEST ============
+# Safu ya 4 (hiari, Awamu 2): aina ya uthibitisho wa Node --
+# "namba" (chaguo-msingi, tabia ya Awamu 1 HAIJABADILIKA), "mfuatano"
+# (usomaji wa NUL-terminated kutoka memory.buffer), "safu" (orodha ya
+# i32 zilizotenganishwa kwa mkato) -- angalia kimbiza.js kwa maelezo
+# kamili ya kila aina.
 MANIFEST="majaribio/wasm/MANIFEST.txt"
-while IFS=$'\t' read -r tarajiwa jina njia; do
+while IFS=$'\t' read -r tarajiwa jina njia aina; do
     [ -z "$tarajiwa" ] && continue
     case "$tarajiwa" in \#*) continue ;; esac
+    [ -z "$aina" ] && aina="namba"
 
     WASM_OUT="$TMP/$jina.wasm"
     WASM_ERR="$TMP/$jina.err"
@@ -71,7 +77,7 @@ while IFS=$'\t' read -r tarajiwa jina njia; do
         continue
     fi
 
-    if node majaribio/wasm/kimbiza.js "$WASM_OUT" "$tarajiwa" 2> "$TMP/$jina.node.err"; then
+    if node majaribio/wasm/kimbiza.js "$WASM_OUT" "$tarajiwa" "$aina" 2> "$TMP/$jina.node.err"; then
         PASS=$((PASS+1))
     else
         echo "SHINDWA: $jina"; cat "$TMP/$jina.node.err"

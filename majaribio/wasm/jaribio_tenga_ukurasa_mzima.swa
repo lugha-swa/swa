@@ -1,0 +1,19 @@
+// WASM Awamu 2: tenga() ya kutosha KUVUKA ukurasa mmoja wa kumbukumbu
+// (64KiB) -- inathibitisha memory.grow() KWELI inaitwa na kufanya
+// kazi (si nadharia tu). Tenga vipande kadhaa vinavyofikia jumla ya
+// zaidi ya 65536 baiti, andika kwenye kipande cha KWANZA na cha
+// MWISHO, soma tena -- lazima ziendelee kuwa sahihi baada ya ukuaji.
+n32 main() {
+    n32* kwanza = tenga(4);
+    kwanza[0] = 111;
+
+    n32 jumla_baiti = 4;
+    n32* mwisho = kwanza;
+    wakati (jumla_baiti < 70000) {
+        mwisho = tenga(4);
+        jumla_baiti = jumla_baiti + 4;
+    }
+    mwisho[0] = 222;
+
+    rudisha kwanza[0] + mwisho[0];
+}
