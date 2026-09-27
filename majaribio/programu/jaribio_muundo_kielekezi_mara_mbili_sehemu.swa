@@ -1,0 +1,35 @@
+// lugha-swa/swa#284: mkaguzi_thibitisha_aina_ya_muundo (mkaguzi.swa,
+// iliyoongezwa na #280) ilikuwa ikikataa KIMAKOSA sehemu YOYOTE ya
+// muundo yenye aina ya KIELEKEZI-CHA-KIELEKEZI (TYPE** jina;), ikitoa
+// "kosa [...]: aina ya muundo haijatangazwa: " (jina tupu/kilichoharibika)
+// hata kama muundo unaoelekezwa ULISHATANGAZWA KIKAMILIFU. Sababu:
+// usimbaji wa hasi (enc = -((off+1)*2) + mshale) hauwezi kutofautisha
+// mshale=1 (kielekezi kimoja, *) na mshale=3 (kielekezi-mara-mbili, **)
+// kwa usawa/isivyo usawa pekee -- zote mbili ni HASI ISIYO SAWA, na
+// hesabu ya "+1 kama isiyo sawa" iliyopo ni sahihi kwa mshale=1 pekee.
+// Jaribio hili linathibitisha kielekezi-mara-mbili (kujirejelea NA
+// kuelekeza muundo mwingine) linafanya kazi sahihi -- kukusanya NA
+// kusoma/kuandika thamani halisi kupitia safu ya wana. Stage1 pekee.
+husisha { maktaba/kumbukumbu.swa }
+muundo Nodi {
+    n32 thamani;
+    Nodi** wana;
+}
+n32 main() {
+    Nodi* mzizi = tenga(ukubwa(Nodi));
+    mzizi->thamani = 1;
+    mzizi->wana = tenga(8 * 2);
+
+    Nodi* mtoto0 = tenga(ukubwa(Nodi));
+    mtoto0->thamani = 10;
+    mtoto0->wana = 0;
+
+    Nodi* mtoto1 = tenga(ukubwa(Nodi));
+    mtoto1->thamani = 20;
+    mtoto1->wana = 0;
+
+    mzizi->wana[0] = mtoto0;
+    mzizi->wana[1] = mtoto1;
+
+    rudisha mzizi->wana[0]->thamani + mzizi->wana[1]->thamani;
+}
