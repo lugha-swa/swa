@@ -59,7 +59,10 @@ else
 fi
 
 # ============ 4. Program za majaribio (minyororo yote miwili) ============
-# Safu ya nne (hiari) inachagua mnyororo: "stage1" = stage1 pekee.
+# Safu ya nne (hiari) inachagua mnyororo: "stage1" = stage1 pekee,
+# "mbegu" = mbegu pekee (mfano: jaribio la mdudu ulio KWENYE mbegu.s
+# yenyewe pekee, ambao uzalishaji.swa/stage1 ina toleo lake tofauti
+# -- sahihi au batili -- angalia hati/mipaka.md #10).
 # Hii inatumiwa na jaribio_chagua_* — mbegu haijui neno la chagua,
 # kwa hiyo mnyororo wa mbegu huachwa (mbegu kukataa ni halali).
 # Safu ya kwanza "KATA" = chanzo lazima KIKATALIWE na mkusanyaji:
@@ -91,6 +94,17 @@ while IFS=$'\t' read -r code jina faili mnyororo ujumbe; do
         chmod +x "$TMP/p"
         timeout 5 "$TMP/p"; rc=$?
         kagua "$rc" "$code" "$faili kwa stage1"
+        continue
+    fi
+    if [ "$mnyororo" = "mbegu" ]; then
+        "$MBEGU" --exe "$faili" > "$TMP/p" 2> /dev/null
+        if [ $? -ne 0 ]; then
+            echo "SHINDWA: kukusanya $faili kwa mbegu"
+            FAIL=$((FAIL+1)); continue
+        fi
+        chmod +x "$TMP/p"
+        timeout 5 "$TMP/p"; rc=$?
+        kagua "$rc" "$code" "$faili kwa mbegu"
         continue
     fi
     for mk in "mbegu" "stage1"; do
