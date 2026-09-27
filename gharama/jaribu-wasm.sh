@@ -45,11 +45,12 @@ chmod +x "$TMP/stage1"
 STAGE1="$TMP/stage1"
 
 # ============ 3. Majaribio ya MANIFEST ============
-# Safu ya 4 (hiari, Awamu 2): aina ya uthibitisho wa Node --
+# Safu ya 4 (hiari, Awamu 2/3): aina ya uthibitisho wa Node --
 # "namba" (chaguo-msingi, tabia ya Awamu 1 HAIJABADILIKA), "mfuatano"
 # (usomaji wa NUL-terminated kutoka memory.buffer), "safu" (orodha ya
-# i32 zilizotenganishwa kwa mkato) -- angalia kimbiza.js kwa maelezo
-# kamili ya kila aina.
+# i32 zilizotenganishwa kwa mkato), "dom" (Awamu 3 -- mti wa
+# dom_mock.js unalinganishwa na faili la JSON lililotajwa kwenye safu
+# ya kwanza) -- angalia kimbiza.js kwa maelezo kamili ya kila aina.
 MANIFEST="majaribio/wasm/MANIFEST.txt"
 while IFS=$'\t' read -r tarajiwa jina njia aina; do
     [ -z "$tarajiwa" ] && continue

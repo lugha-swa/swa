@@ -19,14 +19,30 @@
 //                kwa mkato (,), idadi ya vipengele inatokana na hesabu
 //                yao. Kila kipengele kinasomwa kama i32 (baiti 4) na
 //                kulinganishwa moja kwa moja.
+//   dom       -- (Awamu 3) main() haihitaji thamani ya kurudi maalum
+//                (inaweza kuwa 0/w0) -- baada ya kuiendesha, mti wa
+//                dom_mock.js (kuanzia mzizi, id=0) unalinganishwa
+//                (JSON.stringify iliyopangwa) na muundo tarajiwa
+//                uliohifadhiwa kwenye FAILI la JSON ambalo NJIA yake
+//                ni <thamani_tarajiwa> (safu ya kwanza ya MANIFEST,
+//                si namba -- angalia majaribio/wasm/*.tarajiwa.json).
+//
+// Sehemu za Uingizaji (Awamu 3): KILA moduli sasa ina Import section
+// (kazi 6 za env.*, angalia dom_mock.js) -- importObject hutolewa
+// kwa KILA aina ya jaribio, si "dom" pekee, kwa sababu
+// WebAssembly.instantiate inakataa moduli yenye uingizaji bila
+// importObject inayolingana, hata kama uingizaji huo haitumiki
+// kamwe wakati wa kukimbia.
 //
 // Husoma faili, huthibitisha (WebAssembly.validate), huipakia
-// (WebAssembly.instantiate), huita instance.exports.main(), na
-// kulinganisha na thamani tarajiwa kulingana na aina. process.exit(0)
-// kwa mafanikio, process.exit(1) kwa kushindwa kokote (haikubaliki,
-// haijapakika, matokeo si sawa).
+// (WebAssembly.instantiate na importObject ya dom_mock), huita
+// instance.exports.main(), na kulinganisha na thamani tarajiwa
+// kulingana na aina. process.exit(0) kwa mafanikio, process.exit(1)
+// kwa kushindwa kokote (haikubaliki, haijapakika, matokeo si sawa).
 
 const fs = require("fs");
+const path = require("path");
+const { createDomMock } = require("./dom_mock.js");
 
 function shindwa(ujumbe) {
     console.error("SHINDWA: " + ujumbe);
@@ -52,13 +68,37 @@ if (!WebAssembly.validate(bafa)) {
     shindwa("moduli ya WASM haikubaliki (WebAssembly.validate): " + njia);
 }
 
-WebAssembly.instantiate(bafa)
+const dom = createDomMock();
+
+WebAssembly.instantiate(bafa, dom.importObject)
     .then((matokeo) => {
         const main = matokeo.instance.exports.main;
         if (typeof main !== "function") {
             shindwa("hakuna 'main' iliyotolewa nje kwenye moduli: " + njia);
         }
+        if (matokeo.instance.exports.memory) {
+            dom.setMemory(matokeo.instance.exports.memory);
+        }
         const halisi = main();
+
+        if (aina === "dom") {
+            let tarajiwa_tree;
+            try {
+                const jp = path.isAbsolute(tarajiwa_str) ? tarajiwa_str : path.join(__dirname, tarajiwa_str);
+                tarajiwa_tree = JSON.parse(fs.readFileSync(jp, "utf8"));
+            } catch (e) {
+                shindwa("faili la mti tarajiwa halisomeki (" + tarajiwa_str + "): " + e.message);
+            }
+            const halisi_tree = dom.getTree();
+            const a = JSON.stringify(halisi_tree);
+            const b = JSON.stringify(tarajiwa_tree);
+            if (a !== b) {
+                shindwa(
+                    "mti wa DOM si sawa (" + njia + "):\n  tarajiwa=" + b + "\n  halisi=  " + a
+                );
+            }
+            process.exit(0);
+        }
 
         if (aina === "namba") {
             const tarajiwa = parseInt(tarajiwa_str, 10);
