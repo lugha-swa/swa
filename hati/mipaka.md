@@ -242,31 +242,44 @@ rekodi hiyo: kipengee 4c (ABI ya D64 kwenye mbegu — imefanya kazi),
 kipengee 5 (N64 — kwa [2^31, 2^63) pekee), na kipengee 8 (husisha —
 hakuna mnyororo unaoingiza faili).
 
-## 10. `ukubwa(x)` kwenye mbegu: jina la muundo/kigezo lililo HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi ndogo) linatafsiriwa kimya kama aina ya msingi [UKALI: CHINI — TAHADHARI]
+## 10. `ukubwa(x)` kwenye mbegu: jina la muundo/kigezo lililo HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi ndogo) linatafsiriwa kimya kama aina ya msingi [IMEREKEBISHWA 2026-09-27 — freeze ya TATU ya mzizi wa uaminifu]
 
-Tangu mbegu.bin kugandishwa upya 2026-09-24 kutambua herufi ndogo za
-aina 6 za msingi (n8/n16/n32/n64/w0/d64 — angalia hali-ya-lugha.md),
-mnyororo wa `ukubwa(x)` (builtin ya sizeof, `msingi/mbegu.s`) huchunguza
-jina la hoja dhidi ya majina hayo 6 (herufi kubwa NA ndogo) KABLA ya
-kutafuta jina la muundo. Tofauti na maeneo mengine ya kuchanganua aina
-(`changanua_aina` — matangazo ya kigezo/paramu/kurudi/muundo/ulimwengu),
-mnyororo huu WA `ukubwa` PEKEE HAUNA "backtrack" salama.
+Hali ya AWALI (kabla ya rekebisho): tangu mbegu.bin kugandishwa upya
+2026-09-24 kutambua herufi ndogo za aina 6 za msingi (n8/n16/n32/n64/
+w0/d64 — angalia hali-ya-lugha.md), mnyororo wa `ukubwa(x)` (builtin
+ya sizeof, `msingi/mbegu.s`) ulichunguza jina la hoja dhidi ya majina
+hayo 6 KABLA ya kutafuta jina la muundo. Athari: `ukubwa(x)` ambapo
+`x` ni jina la muundo (au kigezo) LILILO HASA `n8`/`n16`/`n32`/`n64`/
+`d64` lilirudisha 1/2/4/8/8 (ukubwa wa aina ya msingi) badala ya
+kutafuta ukubwa halisi wa muundo huo — bila kosa la sauti. Imethibitishwa
+kwa vitendo: `muundo n32 { n64 a; n64 b; }` (ukubwa halisi 16) na
+`ukubwa(n32)` ilirudisha 4.
 
-Athari: `ukubwa(x)` ambapo `x` ni jina la muundo (au kigezo) LILILO
-HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi ndogo) litarudisha 1/2/4/8/8
-(ukubwa wa aina ya msingi) badala ya kutafuta ukubwa halisi wa muundo
-huo — bila kosa la sauti. Hii ni tofauti na `changanua_aina` (matangazo),
-ambayo ina backtrack salama kwa vitambulisho halisi.
+**REKEBISHO:** mnyororo wa `ukubwa(x)` sasa unatafuta `tafuta_muundo`
+KWANZA (kabla ya majina ya aina za msingi) — muundo ULIOTANGAZWA KWA
+MAKUSUDI lenye jina linalofanana na aina ya msingi sasa unapewa
+kipaumbele juu ya usomaji wa kimakosa kama primitive. Kama HAKUNA
+muundo wa jina hilo (idadi kubwa zaidi ya matumizi halisi), tabia
+HAIBADILIKI KABISA — anguka kwenye ukaguzi wa majina ya aina za
+msingi kama zamani. Imethibitishwa: `ukubwa(n32)` (bila muundo wa
+jina hilo) bado inarudisha 4; miundo ya kawaida (isiyogongana)
+bado inarudisha ukubwa wao sahihi; freeze imefuata utaratibu KAMILI
+wa CONTRIBUTING.md (nasm+ld, majaribio ya chanzo kidogo, mnyororo
+mzima, mkazo wa RELA, KISHA kugandisha, jaribu-mnyororo.sh 439/439 +
+jaribu-wasm.sh 25/25).
 
-Kikomo hiki KIPO KWA MAKUSUDI (si uzembe): kuruhusu `ukubwa` kubackrack
-kama `changanua_aina` kungehitaji mabadiliko makubwa zaidi ya mnyororo
-wake (haufuati muundo wa "jaribu, kama haipo rudi nyuma" — ni
-ulinganisho wa mfuatano wa moja kwa moja). Kwa kuwa jina la muundo/
-kigezo lililo HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi tatu au chini,
-herufi moja ya n/d ikifuatiwa na tarakimu TU) si jina la kawaida la
-mradi huu (vitambulisho vya kweli huwa na maneno kamili ya Kiswahili),
-hatari ni ndogo kivitendo — imethibitishwa: hakuna mgongano wowote wa
-kweli kwenye faili 10 zinazojengwa moja kwa moja na mbegu.bin.
+**PENGO LA ANALOGIA LILILOPATIKANA (halijarekebishwa, NJE ya wigo wa
+rekebisho hili):** `uzalishaji.swa` (mkusanyaji uliojijenga, kazi
+`uzalishaji_wito`, mstari ~3811) ina MUUNDO ULE ULE WA TATIZO kwa
+`ukubwa()` yake YENYEWE -- inachunguza majina ya aina za msingi
+(N8/n8...D64/d64) KWANZA kupitia mnyororo wa if-sivyo, ikianguka
+kwenye `ukubwa_wa_muundo_kwa_jina` PEKEE kama HAKUNA jina la msingi
+linalolingana. Imethibitishwa kwa vitendo: stage1 (self-hosted)
+ILIYOJENGWA na mbegu MPYA (baada ya rekebisho hili) BADO inarudisha 4
+kwa `ukubwa(n32)` yenye muundo `n32` wa kweli -- kwa sababu chanzo cha
+uzalishaji.swa chenyewe hakijaguswa. Hii ni kazi ya BAADAYE, tofauti
+kabisa na rekebisho hili (faili tofauti, hakuna hatari ya mzizi wa
+uaminifu -- mkusanyaji wa kawaida, si mbegu.s).
 
 ## 11. Lengwa ya WebAssembly (`stage1 --wasm`) — Awamu ya 1 pekee: N32, hakuna kumbukumbu [UKALI: KWA KUBUNI]
 

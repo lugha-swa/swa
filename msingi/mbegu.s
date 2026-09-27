@@ -11835,6 +11835,25 @@ uzalishaji_wambile:
         mov     r15d, -1                ; ukubwa (chaguo-msingi: 4)
         mov     r15d, [ast_jina_off + r14*4]
         lea     r15, [str_pool + r15]
+        ; KWANZA: jina la muundo (jina la mtumiaji) -- KABLA ya majina
+        ; ya aina za msingi, ili muundo ULIOTANGAZWA KWA MAKUSUDI lenye
+        ; jina linalofanana na aina ya msingi (n8/n16/n32/n64/d64)
+        ; kipewe kipaumbele juu ya usomaji wa kimakosa kama primitive
+        ; (hati/mipaka.md #10 -- jina la muundo/kigezo lililo HASA
+        ; n8/n16/n32/n64/d64 lilikuwa likirudisha ukubwa wa aina ya
+        ; msingi badala ya ukubwa halisi wa muundo). Kama HAKUNA muundo
+        ; wa jina hilo, anguka kwenye ukaguzi wa majina ya aina za
+        ; msingi kama zamani -- tabia kwa majina yasiyogongana (idadi
+        ; kubwa zaidi ya matumizi halisi) HAIBADILIKI KABISA.
+        mov     edi, [ast_jina_off + r14*4]
+        call    tafuta_muundo
+        cmp     eax, -1
+        je      .uk_jaribu_n8_ndogo
+        cmp     eax, [muundo_count]
+        jae     .uk_jaribu_n8_ndogo
+        mov     r15d, [muundo_ukubwa + rax*4]
+        jmp     .ukubwa_toa
+.uk_jaribu_n8_ndogo:
         mov     rdi, r15
         lea     rsi, [tn_n8_ndogo]
         call    linganisha_mfuatano
@@ -11871,18 +11890,8 @@ uzalishaji_wambile:
         lea     rsi, [tn_d64_ndogo]
         call    linganisha_mfuatano
         cmp     eax, 0
-        jne     .uk_jaribu_muundo
+        jne     .ukubwa_toa_sio_muundo
         mov     r15d, 8
-        jmp     .ukubwa_toa
-.uk_jaribu_muundo:
-        ; Jina la muundo: tafuta kwenye jedwali la miundo
-        mov     edi, [ast_jina_off + r14*4]
-        call    tafuta_muundo
-        cmp     eax, -1
-        je      .ukubwa_toa_sio_muundo
-        cmp     eax, [muundo_count]
-        jae     .ukubwa_toa_sio_muundo
-        mov     r15d, [muundo_ukubwa + rax*4]
         jmp     .ukubwa_toa
 .ukubwa_toa_sio_muundo:
         mov     r15d, 4
