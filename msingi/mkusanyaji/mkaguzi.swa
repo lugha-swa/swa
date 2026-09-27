@@ -217,6 +217,27 @@ w0 mkaguzi_thibitisha_aina_ya_muundo(n32 enc, n8* muktadha) {
         kama (jina_linganisha(ast_pool + ast_jina_off[mn], jina)) { rudisha; }
         mi = mi + 1;
     }
+    // lugha-swa/swa#284: usimbaji huu HAUTOFAUTISHI mshale=1 (kielekezi
+    // kimoja, *) na mshale=3 (kielekezi-mara-mbili, **) kwa usawa/isivyo
+    // usawa PEKEE -- zote mbili ni HASI ISIYO SAWA (odd), kwa hiyo
+    // "+1 kama isiyo sawa" hapo juu ni SAHIHI kwa mshale=1 pekee. Kwa
+    // mshale=3 halisi, hesabu hiyo hiyo hutoa name_off NDOGO KWA BAITI
+    // MOJA (imethibitishwa kwa mkono, kesi kadhaa) -- jaribu jina
+    // lililohamishwa +1 kabla ya kukata tamaa. (changanua_muundo/
+    // uzalishaji.swa HAZIHITAJI kutofautisha mshale=1/3 kabisa --
+    // vielekezi vyote viwili ni baiti 8, HAKUNA lookup ya jina
+    // inayohitajika -- ni kazi hii MOJA TU (mpya, #280) inayohitaji
+    // jina hasa kwa kesi ya kielekezi, kwa hiyo mgongano huu haujawahi
+    // kuonekana kwenye njia nyingine za msimbo.)
+    kama ((enc / 2) * 2 != enc) {
+        n8* jina2 = jina + 1;
+        n32 mi2 = 0;
+        wakati (mi2 < muundo_count) {
+            n32 mn2 = ast_kushoto[muundo_nodes[mi2]];
+            kama (jina_linganisha(ast_pool + ast_jina_off[mn2], jina2)) { rudisha; }
+            mi2 = mi2 + 1;
+        }
+    }
     andika_stderr("kosa [%s]: aina ya muundo haijatangazwa: %s\n", muktadha, jina);
     mkaguzi_makosa = mkaguzi_makosa + 1;
 }
