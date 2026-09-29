@@ -3799,12 +3799,274 @@ w0 uzalishaji_chagua(n32 node, n32 kazi_node) {
 // -------------------------------------------------------
 // Utoaji wa wito wa kazi — AST_WITO (8)
 // -------------------------------------------------------
+// =========================================================
+// Kawira (--kernel, hali_exe_sasa==2): kazi za msaada za vga_andika()
+// -- anwani mbili za kudumu: 0x9000 (kaka/cursor, n32 moja, chini ya
+// eneo la kupakia kernel 0x100000 -- HAKUNA sehemu ya .data kwenye
+// hali hii, hivyo hali hii ya kudumu HAILAZIMU kuwa "kigezo cha
+// ulimwengu" cha Swa, ni maelezo ya ndani ya uzalishaji pekee), na
+// 0xB8000 (VGA text buffer, 80x25, herufi+attribute kila baiti
+// mbili -- mkataba wa maunzi ya kudumu, si uchaguzi wetu).
+//
+// Mkataba wa ModRM/SIB unaotumika mara kwa mara hapa chini: anwani
+// KAMILI (absolute disp32, bila base/index register) -- ModRM=04
+// (mod=00,reg=<tofauti>,rm=100 "SIB inafuata"), SIB=25 (scale=00,
+// index=100 "hakuna", base=101 "hakuna base, disp32 pekee") --
+// KISHA disp32 (anwani, 4 baiti, little-endian). Hii inafanya kazi
+// KWA USALAMA kwa sababu kiini.s (Kawira) tayari imeweka identity-map
+// ya MB 2 za kwanza za kumbukumbu (angalia hati/mipaka.md ya Kawira,
+// Sehemu 1) -- 0x9000 na 0xB8000 zote mbili ziko chini ya mpaka huo.
+// =========================================================
+
+// Andika herufi MOJA (thamani inayojulikana WAKATI WA KUKUSANYA) kwenye
+// nafasi ya sasa ya kaka, kisha ongeza kaka kwa 1. Rejesta rax/rbx/rcx
+// zinahifadhiwa kwa push/pop -- HAZIATHIRI hali ya usemi unaozunguka.
+w0 kernel_vga_andika_herufi(n32 ch) {
+    andika_baiti(80);  // push rax
+    andika_baiti(83);  // push rbx
+    andika_baiti(81);  // push rcx
+
+    // mov eax, [0x9000]  (kaka ya sasa)
+    andika_baiti(139); andika_baiti(4); andika_baiti(37); andika_neno4(36864);
+    // mov ebx, eax
+    andika_baiti(137); andika_baiti(195);
+    // add ebx, ebx  (ebx = kaka*2 -- baiti mbili kwa kila kiini cha VGA)
+    andika_baiti(1); andika_baiti(219);
+    // mov ecx, 0xB8000
+    andika_baiti(185); andika_neno4(753664);
+    // add ebx, ecx  (ebx = anwani KAMILI ya VGA kwa kiini hiki)
+    andika_baiti(1); andika_baiti(203);
+    // mov byte [ebx], ch
+    andika_baiti(198); andika_baiti(3); andika_baiti(ch & 255);
+    // mov byte [ebx+1], 0x0F  (attribute: nyeupe juu ya nyeusi)
+    andika_baiti(198); andika_baiti(67); andika_baiti(1); andika_baiti(15);
+    // inc eax
+    andika_baiti(255); andika_baiti(192);
+    // mov [0x9000], eax  (hifadhi kaka mpya)
+    andika_baiti(137); andika_baiti(4); andika_baiti(37); andika_neno4(36864);
+
+    andika_baiti(89);  // pop rcx
+    andika_baiti(91);  // pop rbx
+    andika_baiti(88);  // pop rax
+}
+
+// Songesha kaka kwenda mwanzo wa mstari unaofuata (mfano wa "\n") --
+// kaka_mpya = ((kaka / 80) + 1) * 80. Rejesta rax/rcx/rdx zinahifadhiwa.
+w0 kernel_vga_andika_mstari_mpya() {
+    andika_baiti(80);  // push rax
+    andika_baiti(81);  // push rcx
+    andika_baiti(82);  // push rdx
+
+    // mov eax, [0x9000]
+    andika_baiti(139); andika_baiti(4); andika_baiti(37); andika_neno4(36864);
+    // xor edx, edx  (thibitisha nusu ya juu ya dividend ni sifuri kabla ya div)
+    andika_baiti(49); andika_baiti(210);
+    // mov ecx, 80
+    andika_baiti(185); andika_neno4(80);
+    // div ecx  (eax = kaka/80, edx = kaka%80 -- edx hatuitumii)
+    andika_baiti(247); andika_baiti(241);
+    // inc eax  (mstari unaofuata)
+    andika_baiti(255); andika_baiti(192);
+    // mov ecx, 80
+    andika_baiti(185); andika_neno4(80);
+    // mul ecx  (eax = (mstari_unaofuata) * 80 -- thamani ndogo, edx haizingatiwi)
+    andika_baiti(247); andika_baiti(225);
+    // mov [0x9000], eax
+    andika_baiti(137); andika_baiti(4); andika_baiti(37); andika_neno4(36864);
+
+    andika_baiti(90);  // pop rdx
+    andika_baiti(89);  // pop rcx
+    andika_baiti(88);  // pop rax
+}
+
+// vga_andika("...") -- hoja LAZIMA iwe mfuatano halisi (literal),
+// SI kigezo (toleo la kwanza -- kioo cha jinsi andika() inavyohitaji
+// halisi kwa njia yake ya haraka ya kukusanya). Herufi zinatolewa
+// MOJA BAADA YA NYINGINE (haziungwi kwenye kitanzi cha wakati wa
+// kukimbia) -- rahisi na sahihi kwa mfuatano mfupi wa ujumbe wa
+// kernel; utorokaji unaotambuliwa: \n (mstari mpya), \\, \" (herufi
+// halisi) -- nyingine yoyote inatolewa kama herufi iliyofuata
+// backslash moja kwa moja (backslash yenyewe inaruka).
+w0 uzalishaji_vga_andika(n32 node, n32 kazi_node) {
+    n32 a0 = ast_kulia[node];
+    kama (a0 == -1 || ast_aina[a0] != 5) {
+        andika_stderr("KOSA: --kernel -- vga_andika() inahitaji hoja moja ya mfuatano halisi (si kigezo)\n");
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+    n8* umbo = ast_pool + ast_jina_off[a0];
+    kama (umbo[0] != 34) {
+        andika_stderr("KOSA: --kernel -- vga_andika() inahitaji mfuatano halisi (kuanzia na nukuu)\n");
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+    n32 urefu_m = jina_urefu(umbo);  // jumla, ikiwa na nukuu mbili
+    n32 p = 1;  // baada ya nukuu ya mwanzo
+    wakati (p < urefu_m - 1) {
+        n8 ch = umbo[p];
+        kama (ch == 92 && p + 1 < urefu_m - 1) {  // '\'
+            n8 nxt = umbo[p + 1];
+            kama (nxt == 110) {  // \n -- mstari mpya
+                kernel_vga_andika_mstari_mpya();
+            } sivyo {
+                // \\ , \" , au utorokaji usiotambuliwa -- herufi
+                // iliyofuata backslash inatolewa moja kwa moja.
+                kernel_vga_andika_herufi(nxt);
+            }
+            p = p + 2;
+        } sivyo {
+            kernel_vga_andika_herufi(ch);
+            p = p + 1;
+        }
+    }
+}
+
+// Ukaguzi wa wigo wa --kernel (hali_exe_sasa==2): tembea AST NZIMA
+// KABLA ya msimbo wowote kutolewa, ukikataa ujenzi ulio nje ya wigo
+// kwa kosa la wazi (kioo cha wasm_kagua_enc_kigezo, Awamu 1 ya WASM).
+// PIA inathibitisha kernel_main ni kazi ya KWANZA iliyotangazwa --
+// bila hii, "call kernel_main" ya kiini.s (Kawira, Sehemu 1) ingeruka
+// kwenye ofseti 0 ya pato ambayo SI kernel_main halisi.
+w0 kernel_kagua_wigo(n32 mzizi) {
+    n32 kwanza_kazi_jina_ok = 0;
+    n32 kwanza_kazi_imeonekana = 0;
+    n32 node = ast_kushoto[mzizi];
+    wakati (node != -1) {
+        kama (ast_aina[node] == AST_KAZI) {
+            kama (ast_tiga[node] != -1) {  // ina mwili (si tamko la mbele)
+                kama (kwanza_kazi_imeonekana == 0) {
+                    kwanza_kazi_imeonekana = 1;
+                    n8* jkwanza = ast_pool + ast_jina_off[ast_kushoto[node]];
+                    kama (jina_linganisha(jkwanza, "kernel_main")) { kwanza_kazi_jina_ok = 1; }
+                }
+                kernel_kagua_kazi_mwili(node);
+            }
+        } sivyo { kama (ast_aina[node] == AST_MUUNDO) {
+                andika_stderr("KOSA: --kernel -- miundo (muundo) yako nje ya wigo (hakuna kumbukumbu inayosimamiwa bado)\n");
+                wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+            } sivyo { kama (ast_aina[node] == AST_TANGAZO_ULIMWENGU) {
+                    andika_stderr("KOSA: --kernel -- vigezo vya ulimwengu (global) viko nje ya wigo\n");
+                    wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+                } } }
+        node = ast_nne[node];
+    }
+    kama (kwanza_kazi_imeonekana == 0) {
+        andika_stderr("KOSA: --kernel -- hakuna kazi 'kernel_main'\n");
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+    kama (kwanza_kazi_jina_ok == 0) {
+        andika_stderr("KOSA: --kernel -- 'kernel_main' LAZIMA iwe kazi ya KWANZA iliyotangazwa kwenye chanzo (angalia hati/mipaka.md ya Kawira)\n");
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+}
+
+// Tembea taarifa za mwili wa kazi MOJA, ukikataa D32/D64 na 'chagua'
+// popote zinapoonekana (miundo/globals tayari zimekaguliwa ngazi ya
+// juu na kernel_kagua_wigo).
+w0 kernel_kagua_kazi_mwili(n32 kazi_node) {
+    n32 ret_enc = ast_thamani[kazi_node];
+    kama (ni_desimali_enc(ret_enc)) {
+        andika_stderr("KOSA: --kernel -- D32/D64 ziko nje ya wigo (aina ya kurudi)\n");
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+    n32 pn = ast_kulia[kazi_node];
+    wakati (pn != -1) {
+        kama (ni_desimali_enc(ast_thamani[pn])) {
+            andika_stderr("KOSA: --kernel -- D32/D64 ziko nje ya wigo (aina ya hoja)\n");
+            wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+        }
+        pn = ast_nne[pn];
+    }
+    kernel_kagua_taarifa(ast_tiga[kazi_node]);
+}
+
+w0 kernel_kagua_taarifa(n32 node) {
+    kama (node == -1) { rudisha; }
+    n32 aina = ast_aina[node];
+    kama (aina == AST_CHAGUA) {
+        andika_stderr("KOSA: --kernel -- 'chagua' iko nje ya wigo\n");
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+    kama (aina == AST_TANGAZO && ni_desimali_enc(ast_thamani[ast_kushoto[node]])) {
+        andika_stderr("KOSA: --kernel -- D32/D64 ziko nje ya wigo (tangazo la ndani)\n");
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+    kama (aina == AST_KAMA) {
+        // Muundo (uzalishaji_kama, karibu na mstari 3196): cond=
+        // ast_kushoto, then_body=ast_kulia, "sivyo" wrapper node
+        // (ikiwa ipo) = ast_tiga, else_body = ast_kushoto[sivyo_node].
+        kernel_kagua_taarifa(ast_kulia[node]);
+        n32 sivyo_node = ast_tiga[node];
+        kama (sivyo_node != -1) {
+            kernel_kagua_taarifa(ast_kushoto[sivyo_node]);
+        }
+    }
+    kama (aina == AST_WAKATI) {
+        // Muundo (uzalishaji_wakati, karibu na mstari 3540): cond=
+        // ast_kushoto, body=ast_kulia, init (kwa "kwa"-loop)=ast_tiga.
+        n32 init = ast_tiga[node];
+        kama (init != -1) { kernel_kagua_taarifa(init); }
+        kernel_kagua_taarifa(ast_kulia[node]);
+    }
+    kama (aina == AST_BLOCK) {
+        // Kioo cha wasm_taarifa (uzalishaji_wasm.swa): mwili wa block
+        // (hatua ya "kwa") uko ast_kushoto.
+        kernel_kagua_taarifa(ast_kushoto[node]);
+    }
+    kernel_kagua_taarifa(ast_nne[node]);  // ndugu inayofuata
+}
+
+// Kazi TOFAUTI (si sehemu ya uzalishaji_kuu moja kwa moja) kwa
+// makusudi -- vigeu vyake vya ndani (kri/kpos/knje_idx/knafasi)
+// visingeweza kuongezwa moja kwa moja kwenye uzalishaji_kuu bila
+// kuvunja kikomo cha "vigezo vya ndani vimezidi 64" (uzalishaji_kuu
+// tayari iko karibu na kikomo -- imegunduliwa kwa vitendo: kuzijumlisha
+// hapo kuligeuza ujenzi wa stage1 kutoka kwa stage1 kuwa batili).
+// Rekebisha (patch) kila `rela_idadi` ya --kernel (hali_exe==2) kwa
+// anwani ya JAMAA (relative) ndani ya bafa_text pekee -- angalia
+// maelezo kamili ya SABABU (mdudu wa RELA usioshughulikiwa) kwenye
+// maoni ya uzalishaji_kuu karibu na mahali hii inapoitwa.
+w0 kernel_rekebisha_rela() {
+    n32 kri = 0;
+    wakati (kri < rela_idadi) {
+        n32 kpos = rela_text_off[kri];
+        n32 knje_idx = rela_nje_id[kri];
+        kama (knje_idx == -1) {
+            andika_stderr("KOSA: --kernel -- kigezo cha ulimwengu (global) kimeonekana kwenye urekebishaji (haipaswi kutokea -- kernel_kagua_wigo ilishakataa)\n");
+            wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+        }
+        n32 knafasi = kazi_nafasi_kwa_jina(nje_pool + nje_jina_off[knje_idx]);
+        kama (knafasi < 0) {
+            andika_stderr("Hitilafu: kazi haijafafanuliwa: %s\n", nje_pool + nje_jina_off[knje_idx]);
+            wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+        }
+        andika_disp32_kwenye(bafa_text, kpos, knafasi - (kpos + 4));
+        kri = kri + 1;
+    }
+}
+
 w0 uzalishaji_wito(n32 node, n32 kazi_node) {
     ni_syscall_wito = 0;
     ni_tekeleza_wito = 0;
     ni_andika_nje = 0;
     n32 callee_node = ast_kushoto[node];
     n8* callee = ast_pool + ast_jina_off[callee_node];
+
+    // --kernel (hali_exe_sasa==2, Kawira): I/O ya Linux (syscalls,
+    // andika, tekeleza) HAIPO -- hakuna kernel ya chini kuipokea.
+    // vga_andika ni MPYA, PEKEE inayoruhusiwa kwa I/O, inatambuliwa
+    // KWA JINA (kioo cha jinsi "ukubwa"/"urefu" tayari zinatambuliwa
+    // hapa juu, na jinsi Awamu 3 ya WASM ilivyoongeza dom_unda).
+    kama (hali_exe_sasa == 2) {
+        kama (jina_linganisha(callee, "vga_andika")) {
+            uzalishaji_vga_andika(node, kazi_node);
+            rudisha;
+        }
+        kama (jina_linganisha(callee, "wito_wa_mfumo") || jina_linganisha(callee, "andika") ||
+        jina_linganisha(callee, "andika_stderr") || jina_linganisha(callee, "tekeleza") ||
+        jina_linganisha(callee, "tenga") || jina_linganisha(callee, "achilia_arena")) {
+            andika_stderr("KOSA: --kernel -- '%s' iko nje ya wigo (hakuna syscalls/I/O ya Linux kwenye ring 0, tumia vga_andika() pekee)\n", callee);
+            wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+        }
+    }
 
     // Wito maalum wa ukubwa(aina) — kokotoa ukubwa wakati wa kukusanya
     // (sizeof). Hoja ni jina la aina; hatutoi wito wa kweli.
@@ -8985,11 +9247,20 @@ w0 uzalishaji_kuu(n32 mzizi, n32 hali_exe) {
     // miundo) ni kosa la kufa — kabla ya kutoa msimbo wowote.
     hakiki_marudio_ya_ngazi_ya_juu(mzizi);
 
-    // Katika hali ya exe: _start mwanzoni mwa .text — mov rdi,[rsp]
-    // (argc); lea rsi,[rsp+8] (argv); mov al,0; call main (disp32
-    // hurekebishwa baada ya main kutolewa); mov rdi,rax; mov eax,60;
-    // syscall.
-    kama (hali_exe) {
+    // hali_exe==2 (--kernel, Kawira): programu ya mtumiaji LAZIMA
+    // isitumie ujenzi usio na maana bila mfumo wa uendeshaji chini
+    // (miundo, D32/D64, chagua, vigezo vya ulimwengu) -- ukaguzi wa
+    // wigo unafanyika KABLA ya msimbo wowote kutolewa (kioo cha jinsi
+    // wasm_kagua_enc_kigezo inavyofanya kazi kwa Awamu 1 ya WASM).
+    kama (hali_exe == 2) {
+        kernel_kagua_wigo(mzizi);
+    }
+
+    // Katika hali ya exe (hali_exe==1): _start mwanzoni mwa .text —
+    // mov rdi,[rsp] (argc); lea rsi,[rsp+8] (argv); mov al,0; call
+    // main (disp32 hurekebishwa baada ya main kutolewa); mov
+    // rdi,rax; mov eax,60; syscall.
+    kama (hali_exe == 1) {
         // Stub ya _start kama maneno ya n32 (baiti 28).
         kipande32[0] = 607947592;
         kipande32[1] = 611618120;
@@ -9001,6 +9272,28 @@ w0 uzalishaji_kuu(n32 mzizi, n32 hali_exe) {
         sj = 0;
         wakati (sj < 7) { andika_neno4(kipande32[sj]); sj = sj + 1; }
     }
+    sivyo { kama (hali_exe == 2) {
+        // --kernel: HAKUNA _start (hakuna argc/argv, hakuna mchakato
+        // wa Linux unaoanzisha). Badala yake: andika "mov dword
+        // [0x9000], 0" -- anzisha kaka (cursor) ya vga_andika() kuwa
+        // 0 KABLA kernel_main (LAZIMA iwe kazi ya KWANZA iliyotangazwa
+        // -- angalia kernel_kagua_wigo -- kwa sababu hali hii ya
+        // --kernel HAITOI ELF/_start yenye anwani ya "main" iliyotafutwa
+        // kwa jina (kama hali_exe==1 inavyofanya kupitia main_off) --
+        // ni baiti ghafi za .text TU, kiini.s (Kawira) inaita
+        // "call kernel_main" ikitegemea kernel_main iko HASA kwenye
+        // ofseti 0 ya pato).
+        //
+        // C7 04 25 <disp32=0x9000> <imm32=0>: MOV DWORD [0x9000], 0
+        // (ModRM=04,SIB=25 ni mkataba wa "hakuna base/index, disp32
+        // pekee" -- angalia maelezo kamili ya mkataba huu huu kwenye
+        // uzalishaji_vga_andika chini).
+        andika_baiti(199);
+        andika_baiti(4);
+        andika_baiti(37);
+        andika_neno4(36864);  // 0x9000
+        andika_neno4(0);
+    } }
 
     // 0. Futa data ya ulimwengu
     bafa_data_wapi = 0; data_ulimwengu_idadi = 0; bss_wapi = 0;
@@ -9317,7 +9610,7 @@ w0 uzalishaji_kuu(n32 mzizi, n32 hali_exe) {
     // Kumbuka: inatumia vigeu vilivyopo (text_off, i, sz, n.k.) —
     // jedwali la vigeu vya ndani lina ukomo wa 64.
     // ==================================================
-    kama (hali_exe) {
+    kama (hali_exe == 1) {
         // main haipo: wito wa _start ungeenda anwani 0 na binary
         // ingeanguka. Kataa kwa sauti bila kutoa faili — sawa na mbegu.
         kama (main_off == 0) {
@@ -9328,6 +9621,35 @@ w0 uzalishaji_kuu(n32 mzizi, n32 hali_exe) {
         // ndani la mbegu halina nafasi zaidi hapa.
         uzalishaji_exe(text_size, data_size, bss_size, main_off);
 
+        rudisha;
+    }
+
+    // --kernel (hali_exe==2, Kawira): HAKUNA ELF, HAKUNA _start,
+    // HAKUNA linker -- bafa_text (kaka ya mov [0x9000],0 + kernel_main
+    // + kazi zake za msaada zote, kwa mpangilio wa tangazo la chanzo)
+    // ni pato LOTE moja kwa moja kwa stdout. Kawira's kiini.s inaingiza
+    // baiti hizi kupitia "incbin" na kuruka moja kwa moja kwa ofseti 0
+    // (angalia kernel_kagua_wigo -- inathibitisha kernel_main ni kazi
+    // ya KWANZA kabla ya hatua hii kufikiwa kabisa).
+    //
+    // MUHIMU (mdudu HALISI uliopatikana na kurekebishwa wakati wa
+    // maendeleo, si dhana -- angalia jaribio_kazi_ya_mtumiaji.swa):
+    // wito wa kazi ya MTUMIAJI iliyotangazwa BAADAYE kwenye chanzo
+    // (wito wa mbele) HAUJAREKEBISHWI (fixed up) na chochote kwenye
+    // njia hii -- utaratibu wa `rela_idadi`/`nje_idadi` (RELA) upo,
+    // LAKINI unashughulikiwa TU na `uzalishaji_exe` (kwa hali_exe==1,
+    // ikitumia anwani KAMILI ya kudumu 0x400000+off), ambayo hali hii
+    // (==2) HAIITWI kabisa. Bila kurekebisha wenyewe, `call` kwenda
+    // kazi ya mbele huachwa na disp32=0 (yaani "call" inayoruka kwenye
+    // agizo LINALOFUATA lenyewe -- kimya kabisa, HAKUNA SEGV, matokeo
+    // ni ya UONGO tu). Suluhisho: rekebisha kila `rela_idadi` MOJA KWA
+    // MOJA hapa, kwa anwani ya JAMAA (relative) ndani ya bafa_text
+    // pekee (SIYO anwani kamili ya kudumu -- hakuna anwani ya kupakia
+    // iliyowekwa mapema kwenye --kernel, `call rel32` ni "position
+    // independent" ndani ya bafa moja iliyo pamoja).
+    kama (hali_exe == 2) {
+        kernel_rekebisha_rela();
+        futa_bafa_text();
         rudisha;
     }
 
