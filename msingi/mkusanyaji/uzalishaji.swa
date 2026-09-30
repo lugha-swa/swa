@@ -3850,6 +3850,79 @@ w0 kernel_vga_andika_herufi(n32 ch) {
     andika_baiti(88);  // pop rax
 }
 
+// Andika herufi MOJA ya WAKATI WA KUKIMBIA (thamani tayari iko kwenye
+// eax wakati kazi hii inapoitwa) -- KIOO cha kernel_vga_andika_herufi
+// hapo juu, LAKINI chanzo cha thamani ni REGISTER (eax), SI immediate
+// ya wakati wa kukusanya -- muhimu kwa kibodi (Sehemu 3): scancode
+// inajulikana TU wakati wa kukimbia. Rejesta rax/rbx/rcx/rdx
+// zinahifadhiwa kwa push/pop -- HAZIATHIRI hali ya usemi unaozunguka,
+// sawa na kernel_vga_andika_herufi.
+w0 kernel_vga_andika_herufi_rt() {
+    andika_baiti(82);  // push rdx
+    // mov edx, eax  (hifadhi thamani ya herufi KABLA eax kutumika kwa kaka)
+    andika_baiti(137); andika_baiti(194);
+
+    andika_baiti(80);  // push rax
+    andika_baiti(83);  // push rbx
+    andika_baiti(81);  // push rcx
+
+    // mov eax, [0x9000]  (kaka ya sasa)
+    andika_baiti(139); andika_baiti(4); andika_baiti(37); andika_neno4(36864);
+    // mov ebx, eax
+    andika_baiti(137); andika_baiti(195);
+    // add ebx, ebx  (ebx = kaka*2)
+    andika_baiti(1); andika_baiti(219);
+    // mov ecx, 0xB8000
+    andika_baiti(185); andika_neno4(753664);
+    // add ebx, ecx  (ebx = anwani KAMILI ya VGA kwa kiini hiki)
+    andika_baiti(1); andika_baiti(203);
+    // mov byte [ebx], dl  (REGISTER-TO-MEMORY -- tofauti pekee ya
+    // kimuundo na kernel_vga_andika_herufi, ambayo hutumia immediate)
+    andika_baiti(136); andika_baiti(19);
+    // mov byte [ebx+1], 0x0F  (attribute: nyeupe juu ya nyeusi)
+    andika_baiti(198); andika_baiti(67); andika_baiti(1); andika_baiti(15);
+    // inc eax  (eax bado = kaka -- edx/ebx/ecx pekee zimeguswa tangu upakiaji)
+    andika_baiti(255); andika_baiti(192);
+    // mov [0x9000], eax  (hifadhi kaka mpya)
+    andika_baiti(137); andika_baiti(4); andika_baiti(37); andika_neno4(36864);
+
+    andika_baiti(89);  // pop rcx
+    andika_baiti(91);  // pop rbx
+    andika_baiti(88);  // pop rax
+    andika_baiti(90);  // pop rdx
+}
+
+// vga_herufi(usemi) -- hoja ni USEMI WOWOTE (si lazima iwe halisi),
+// unaotathminiwa WAKATI WA KUKIMBIA kupitia injini ya kawaida ya
+// usemi (uzalishaji_usemi -- KIOO cha jinsi hoja za kawaida za wito
+// zinavyotathminiwa, angalia uzalishaji_wito karibu na uzalishaji_usemi
+// (hoja_nodes_bk...)) -- TOFAUTI na uzalishaji_vga_andika (ambayo
+// inahitaji mfuatano halisi pekee, haiwezi kuandika herufi
+// iliyokokotolewa wakati wa kukimbia).
+w0 uzalishaji_vga_herufi(n32 node, n32 kazi_node) {
+    n32 a0 = ast_kulia[node];
+    kama (a0 == -1) {
+        andika_stderr("KOSA: --kernel -- vga_herufi() inahitaji hoja moja (usemi)\n");
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+    uzalishaji_usemi(a0, kazi_node);
+    kernel_vga_andika_herufi_rt();
+}
+
+// kbd_scancode() -- soma "PS/2 data port" (0x60): baiti ya mwisho ya
+// scancode kutoka kwa kidhibiti cha kibodi (8042). Hakuna hoja;
+// thamani inabaki kwenye eax baada ya kuitwa (mkataba wa kurudi wa
+// hali hii, kioo cha jinsi ukubwa()/urefu() zinavyorudisha). Kusoma
+// port ya I/O kwa IN/OUT haihitaji ruhusa maalum kwenye ring 0 (CPL=0)
+// -- hakuna TSS I/O bitmap inayohitajika hapa.
+w0 uzalishaji_kbd_scancode(n32 node, n32 kazi_node) {
+    // xor eax, eax  (safisha nusu ya juu KABLA -- "in al" inaandika AL
+    // pekee, HAIPANUZI sifuri moja kwa moja)
+    andika_baiti(49); andika_baiti(192);
+    // in al, 0x60
+    andika_baiti(228); andika_baiti(96);
+}
+
 // Songesha kaka kwenda mwanzo wa mstari unaofuata (mfano wa "\n") --
 // kaka_mpya = ((kaka / 80) + 1) * 80. Rejesta rax/rcx/rdx zinahifadhiwa.
 w0 kernel_vga_andika_mstari_mpya() {
@@ -4058,6 +4131,14 @@ w0 uzalishaji_wito(n32 node, n32 kazi_node) {
     kama (hali_exe_sasa == 2) {
         kama (jina_linganisha(callee, "vga_andika")) {
             uzalishaji_vga_andika(node, kazi_node);
+            rudisha;
+        }
+        kama (jina_linganisha(callee, "vga_herufi")) {
+            uzalishaji_vga_herufi(node, kazi_node);
+            rudisha;
+        }
+        kama (jina_linganisha(callee, "kbd_scancode")) {
+            uzalishaji_kbd_scancode(node, kazi_node);
             rudisha;
         }
         kama (jina_linganisha(callee, "wito_wa_mfumo") || jina_linganisha(callee, "andika") ||
