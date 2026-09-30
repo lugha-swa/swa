@@ -457,6 +457,7 @@ n32 main(n32 argc, n8** argv) {
     n32 ni_jit = 0;
     n32 ni_exe = 0;
     n32 ni_wasm = 0;
+    n32 ni_kernel = 0;
     n32 faili_idx = 1;
     kama (argc > 1) {
         n8* a = argv[1];
@@ -471,6 +472,14 @@ n32 main(n32 argc, n8** argv) {
         // ya stage1 pekee (angalia uzalishaji_wasm.swa).
         kama (a[0]==45 && a[1]==45 && a[2]==119 && a[3]==97 && a[4]==115 && a[5]==109 && a[6]==0) {
             ni_wasm = 1; faili_idx = 2;
+        }
+        // --kernel: pato ghafi la .text la x86-64 freestanding (Kawira,
+        // ring 0) -- hakuna ELF, hakuna _start/argv, hakuna syscalls.
+        // mbegu.bin HAIHITAJI kuelewa bendera hii kabisa -- ni ya
+        // stage1 pekee (angalia uzalishaji_kuu, uzalishaji.swa,
+        // hali_exe==2).
+        kama (a[0]==45 && a[1]==45 && a[2]==107 && a[3]==101 && a[4]==114 && a[5]==110 && a[6]==101 && a[7]==108 && a[8]==0) {
+            ni_kernel = 1; faili_idx = 2;
         }
     }
 
@@ -575,7 +584,18 @@ n32 main(n32 argc, n8** argv) {
             // tupu lakini mchakato ungeonekana kufaulu.
             n32 matokeo_wasm = uzalishaji_wasm_kuu(mzizi);
             kama (matokeo_wasm != 0) { rudisha 1; }
-        } sivyo { uzalishaji_kuu(mzizi, ni_exe); } }
+        } sivyo { kama (ni_kernel) {
+                // hali_exe==2: --kernel (Kawira). Ukaguzi wa wigo
+                // (kernel_kagua_wigo) na makosa mengine ndani ya
+                // uzalishaji_kuu/uzalishaji_wito hutoka moja kwa moja
+                // (wito_wa_mfumo(60,1,...)) -- kioo cha jinsi makosa
+                // mengine ya kufa ya uzalishaji.swa yanavyofanya kazi
+                // tayari (mfano "kazi 'main' haipo"), hivyo hakuna
+                // ukaguzi wa ziada wa msimbo wa kutoka unaohitajika
+                // hapa (tofauti na --wasm, ambayo inarudi 1 badala ya
+                // kutoka moja kwa moja).
+                uzalishaji_kuu(mzizi, 2);
+            } sivyo { uzalishaji_kuu(mzizi, ni_exe); } } }
 
     rudisha 0;
 }
