@@ -8649,15 +8649,36 @@ w0 kusanya_vigeu_vya_ndani(n32 node) {
 // kielekezi kilichofichwa kwenye rdi.
 // ==========================================================
 
-// Angalia ikiwa encoding ni ya muundo (familia == 6)
+// Angalia ikiwa encoding ni ya muundo (muundo wa mtumiaji HUSIMBWA
+// KAMA HASI PEKEE -- angalia msambazaji.swa, karibu na "familia ==
+// 6": -((off+1)*2)+mshale, ambapo off ni nafasi ya jina la muundo
+// kwenye ast_pool na mshale (biti ya chini) huamua kielekezi.
+// encode_aina(familia=6, ...) HAIWAHI kuitwa (tawi la familia==6
+// kwenye msambazaji.swa daima hurudi thamani hasi hapo juu kabla
+// ya kufika encode_aina), kwa hiyo encoding chanya yenye familia==6
+// KAMWE haipo -- ukaguzi wa zamani wa "familia = (enc>>8)&255; kama
+// (familia==6)" ulikuwa kificho kilichokufa (dead code) KIHATARI:
+// >>/& kwenye enc HASI (badala ya / na % kama ukubwa_kutoka_enc
+// inavyofanya, angalia maelezo yake "mbegu ina hitilafu katika & na
+// >>") hutegemea biti za juu za uwakilishi wa kukamilishana-mbili
+// (two's complement) za enc -- kwa thamani fulani za off (nafasi
+// kwenye ast_pool, inayokua kadiri faili linavyokuwa kubwa), bahati
+// mbaya ya biti hizo ilitoa familia==6 HATA kwa KIELEKEZI (mshale!=0,
+// enc isiyo sawia/odd), si muundo-kwa-thamani. Hii ilisababisha
+// lugha-swa/swa#292: TYPE* ilichukuliwa kimakosa kama muundo-kwa-
+// thamani ya kurudi (sret), ikitoa rep movsb + kielekezi batili +
+// SIGSEGV kimya -- ilionekana TU kwenye tafsiri za ukubwa fulani
+// (~440-444 kazi/moduli nyingi za Dominion) kwa sababu off (na hivyo
+// bahati mbaya ya biti) hutegemea kiasi cha maandishi yaliyopita
+// kwenye ast_pool KABLA ya jina husika la muundo kuandikishwa.
 n32 ni_muundo_enc(n32 enc) {
     kama (enc == 0) { rudisha 0; }
-    n32 familia = (enc >> 8) & 255;
-    // Familia 6 = muundo wa mtumiaji, na pia encoding hasi
-    // (jina lililohifadhiwa kwenye dimbwi) inaashiria muundo
-    kama (familia == 6) { rudisha 1; }
-    kama (enc < 0 && (enc / 2) * 2 == enc) { rudisha 1; }  // jina la muundo kwenye dimbwi (siyo kielekezi)
-    rudisha 0;
+    kama (enc < 0) {
+        // sawia (even) => muundo-kwa-thamani; isiyo sawia (odd) =>
+        // kielekezi (mshale=1 au 3) -- SI muundo-kwa-thamani.
+        rudisha (enc / 2) * 2 == enc;
+    }
+    rudisha 0;  // enc >= 0 ni aina za msingi pekee (N/A/D/B/W) -- kamwe si muundo
 }
 
 // Tafuta ukubwa wa muundo kwa kutembea nodi za AST_MUUNDO
