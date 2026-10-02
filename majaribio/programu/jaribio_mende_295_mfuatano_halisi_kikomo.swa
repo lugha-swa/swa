@@ -1,0 +1,2164 @@
+// lugha-swa/swa#295 -- jaribio la kudumu dhidi ya "anwani za string
+// literal zinazochanganyikiwa na mtiririko wa udhibiti" baada ya #292
+// kurekebishwa: pale idadi ya JUMLA ya herufi halisi (string literals)
+// za KIPEKEE kwenye kitengo kimoja cha utafsiri inapovuka 1024,
+// uzalishaji.swa (str_off/str_len/str_lebo_id[1024], str_buf[16384])
+// ilijaa KIMYA -- kusanya_herufi() ilichapisha "KOSA: ... limejaa"
+// kwenye stderr LAKINI IKAENDELEA (haikusimamisha ukusanyaji),
+// ikirudisha -1. -1 hiyo ilipofika uzalishaji_kitambulisho, AGIZO LA
+// LEA (kupakia anwani ya mfuatano ndani ya rax) LILIRUKWA KABISA --
+// hakuna agizo lolote lililotolewa kwa mfuatano huo husika. Rejesta
+// (rax) ilibaki na THAMANI YA ZAMANI isiyohusiana (anwani ya
+// mfuatano mwingine uliopakiwa kwa mafanikio tayari kwenye msimbo),
+// ikisababisha kigezo kupewa ANWANI YA MFUATANO MBAYA kimya kimya --
+// bila kosa la kukusanya, bila kuanguka (SIGSEGV), kazi ikimaliza
+// kwa msimbo wa kutoka sahihi vinginevyo. Hesabu halisi (ALU/FPU)
+// hazikuharibika, ni ANWANI za mfuatano tu zilizochanganyikiwa --
+// hii ndiyo dalili halisi iliyoripotiwa kwenye #295 (thibitisho
+// linaloandika "PASS: B" badala ya maandishi sahihi, "B" ikiwa
+// ni mfuatano mwingine uliotumika KATIKA WITO ULIOTANGULIA).
+//
+// Jaribio hili (lililotengenezwa kiotomatiki) huunda kazi 1050, kila
+// mmoja akiwa na: (1) kigezo "nanga" chenye herufi halisi YA KUDUMU
+// inayorudiwa kila mara ("NANGA_SHIKAMANO", huanza na 'N'=78 -- hii
+// hupewa nafasi #0 ya jedwali la str_* mara ya kwanza tu inapoonekana,
+// kisha hudumishwa/kutambuliwa upya kwa dedup kila mara baadaye), na
+// (2) kigezo "m" chenye herufi halisi YA KIPEKEE ("KIPEKEE_<i>", huanza
+// na 'K'=75, 'I'=73). "nanga" hupewa thamani mara moja kabla ya "m"
+// kwenye kila kazi ili kuhakikisha anwani YA MWISHO ILIYOPAKIWA KWA
+// MAFANIKIO ibaki kwenye rax ikiwa agizo la LEA la "m" litarukwa --
+// mkataba HASA uliosababisha #295.
+//
+// Ukaguzi WA MAKUSUDI haulinganishi "m" na herufi halisi NYINGINE
+// (ambayo yenyewe ingekuwa chini ya hitilafu ile ile baada ya
+// kikomo kuvukwa, na kuweza "kupitisha" kimakosa ikiwa pande zote
+// mbili zingegeuka kuwa anwani ile ile potovu) -- badala yake
+// hukagua BAITI GHAFI za "m" dhidi ya namba za ASCII zilizowekwa
+// kwa mkono moja kwa moja (75, 73), ukaguzi usiotegemea
+// kusanya_herufi kabisa. "m" ikiwa imeharibika (ikielekeza kwa
+// "nanga" badala yake) itaanza na 78 ('N'), si 75 ('K') -- kaunta
+// ya ulimwengu "kosa" huongezeka kwa kila hitilafu kama hiyo.
+//
+// Herufi 1..~1024 za kwanza zinapaswa kuwa SAHIHI (ndani ya kikomo
+// cha ZAMANI); zilizobaki ndizo zilizokuwa zinaharibika KABLA ya
+// rekebisho hili. UTHIBITISHO WA MUTATION (umefanywa kabla ya PR
+// hii): kurudisha uzalishaji.swa kwenye hali ya awali (kabla ya
+// rekebisho) na kujenga upya stage1 hutoa hasa dalili hii --
+// kukusanya kwa "mafanikio" (rudisha-msimbo 0, "KOSA" kwenye
+// stderr PEKEE, si kwenye njia inayozuia), kisha kuendesha
+// binary hutoa msimbo wa kutoka usio sifuri (idadi ya mfuatano
+// uliopotoshwa). Baada ya rekebisho (ongezeko la str_*[1024] hadi
+// str_*[65536] + str_buf[16384] hadi str_buf[1048576], na ukaguzi
+// wa kufurika sasa unasimamisha ukusanyaji -- exit 1 -- badala ya
+// kuendelea kimya), jaribio hili hurudisha 0.
+//
+// stage1 pekee (mbegu haina ukomo huu wa str_*[1024] -- bwawa lake
+// la herufi (STR_POOL_SIZE) tayari ni kubwa zaidi tangu Agosti 2026).
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+n32 kosa = 0;
+
+n32 kaz0() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_0"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz2() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_2"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz3() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_3"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz4() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_4"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz5() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_5"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz6() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_6"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz7() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_7"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz8() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_8"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz9() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_9"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz10() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_10"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz11() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_11"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz12() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_12"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz13() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_13"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz14() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_14"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz15() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_15"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz16() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_16"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz17() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_17"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz18() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_18"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz19() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_19"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz20() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_20"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz21() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_21"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz22() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_22"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz23() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_23"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz24() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_24"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz25() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_25"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz26() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_26"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz27() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_27"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz28() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_28"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz29() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_29"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz30() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_30"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz31() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_31"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz32() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_32"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz33() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_33"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz34() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_34"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz35() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_35"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz36() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_36"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz37() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_37"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz38() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_38"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz39() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_39"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz40() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_40"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz41() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_41"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz42() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_42"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz43() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_43"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz44() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_44"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz45() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_45"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz46() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_46"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz47() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_47"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz48() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_48"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz49() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_49"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz50() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_50"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz51() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_51"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz52() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_52"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz53() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_53"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz54() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_54"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz55() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_55"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz56() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_56"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz57() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_57"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz58() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_58"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz59() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_59"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz60() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_60"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz61() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_61"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz62() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_62"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz63() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_63"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz64() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_64"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz65() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_65"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz66() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_66"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz67() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_67"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz68() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_68"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz69() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_69"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz70() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_70"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz71() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_71"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz72() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_72"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz73() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_73"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz74() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_74"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz75() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_75"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz76() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_76"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz77() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_77"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz78() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_78"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz79() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_79"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz80() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_80"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz81() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_81"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz82() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_82"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz83() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_83"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz84() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_84"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz85() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_85"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz86() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_86"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz87() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_87"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz88() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_88"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz89() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_89"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz90() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_90"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz91() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_91"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz92() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_92"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz93() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_93"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz94() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_94"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz95() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_95"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz96() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_96"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz97() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_97"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz98() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_98"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz99() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_99"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz100() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_100"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz101() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_101"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz102() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_102"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz103() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_103"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz104() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_104"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz105() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_105"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz106() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_106"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz107() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_107"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz108() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_108"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz109() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_109"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz110() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_110"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz111() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_111"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz112() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_112"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz113() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_113"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz114() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_114"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz115() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_115"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz116() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_116"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz117() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_117"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz118() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_118"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz119() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_119"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz120() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_120"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz121() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_121"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz122() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_122"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz123() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_123"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz124() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_124"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz125() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_125"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz126() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_126"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz127() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_127"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz128() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_128"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz129() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_129"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz130() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_130"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz131() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_131"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz132() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_132"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz133() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_133"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz134() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_134"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz135() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_135"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz136() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_136"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz137() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_137"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz138() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_138"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz139() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_139"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz140() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_140"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz141() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_141"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz142() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_142"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz143() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_143"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz144() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_144"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz145() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_145"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz146() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_146"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz147() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_147"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz148() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_148"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz149() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_149"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz150() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_150"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz151() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_151"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz152() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_152"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz153() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_153"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz154() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_154"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz155() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_155"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz156() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_156"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz157() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_157"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz158() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_158"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz159() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_159"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz160() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_160"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz161() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_161"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz162() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_162"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz163() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_163"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz164() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_164"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz165() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_165"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz166() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_166"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz167() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_167"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz168() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_168"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz169() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_169"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz170() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_170"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz171() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_171"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz172() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_172"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz173() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_173"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz174() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_174"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz175() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_175"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz176() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_176"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz177() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_177"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz178() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_178"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz179() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_179"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz180() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_180"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz181() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_181"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz182() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_182"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz183() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_183"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz184() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_184"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz185() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_185"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz186() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_186"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz187() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_187"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz188() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_188"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz189() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_189"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz190() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_190"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz191() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_191"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz192() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_192"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz193() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_193"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz194() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_194"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz195() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_195"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz196() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_196"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz197() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_197"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz198() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_198"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz199() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_199"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz200() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_200"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz201() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_201"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz202() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_202"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz203() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_203"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz204() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_204"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz205() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_205"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz206() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_206"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz207() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_207"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz208() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_208"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz209() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_209"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz210() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_210"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz211() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_211"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz212() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_212"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz213() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_213"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz214() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_214"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz215() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_215"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz216() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_216"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz217() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_217"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz218() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_218"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz219() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_219"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz220() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_220"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz221() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_221"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz222() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_222"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz223() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_223"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz224() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_224"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz225() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_225"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz226() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_226"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz227() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_227"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz228() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_228"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz229() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_229"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz230() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_230"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz231() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_231"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz232() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_232"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz233() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_233"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz234() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_234"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz235() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_235"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz236() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_236"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz237() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_237"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz238() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_238"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz239() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_239"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz240() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_240"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz241() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_241"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz242() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_242"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz243() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_243"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz244() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_244"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz245() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_245"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz246() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_246"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz247() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_247"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz248() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_248"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz249() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_249"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz250() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_250"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz251() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_251"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz252() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_252"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz253() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_253"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz254() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_254"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz255() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_255"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz256() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_256"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz257() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_257"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz258() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_258"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz259() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_259"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz260() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_260"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz261() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_261"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz262() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_262"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz263() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_263"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz264() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_264"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz265() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_265"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz266() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_266"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz267() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_267"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz268() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_268"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz269() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_269"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz270() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_270"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz271() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_271"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz272() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_272"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz273() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_273"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz274() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_274"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz275() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_275"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz276() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_276"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz277() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_277"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz278() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_278"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz279() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_279"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz280() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_280"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz281() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_281"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz282() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_282"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz283() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_283"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz284() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_284"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz285() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_285"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz286() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_286"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz287() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_287"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz288() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_288"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz289() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_289"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz290() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_290"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz291() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_291"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz292() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_292"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz293() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_293"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz294() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_294"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz295() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_295"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz296() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_296"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz297() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_297"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz298() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_298"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz299() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_299"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz300() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_300"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz301() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_301"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz302() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_302"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz303() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_303"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz304() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_304"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz305() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_305"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz306() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_306"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz307() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_307"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz308() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_308"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz309() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_309"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz310() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_310"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz311() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_311"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz312() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_312"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz313() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_313"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz314() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_314"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz315() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_315"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz316() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_316"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz317() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_317"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz318() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_318"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz319() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_319"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz320() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_320"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz321() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_321"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz322() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_322"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz323() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_323"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz324() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_324"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz325() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_325"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz326() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_326"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz327() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_327"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz328() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_328"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz329() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_329"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz330() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_330"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz331() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_331"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz332() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_332"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz333() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_333"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz334() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_334"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz335() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_335"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz336() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_336"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz337() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_337"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz338() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_338"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz339() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_339"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz340() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_340"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz341() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_341"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz342() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_342"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz343() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_343"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz344() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_344"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz345() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_345"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz346() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_346"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz347() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_347"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz348() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_348"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz349() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_349"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz350() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_350"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz351() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_351"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz352() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_352"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz353() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_353"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz354() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_354"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz355() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_355"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz356() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_356"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz357() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_357"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz358() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_358"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz359() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_359"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz360() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_360"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz361() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_361"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz362() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_362"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz363() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_363"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz364() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_364"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz365() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_365"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz366() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_366"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz367() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_367"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz368() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_368"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz369() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_369"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz370() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_370"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz371() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_371"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz372() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_372"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz373() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_373"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz374() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_374"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz375() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_375"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz376() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_376"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz377() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_377"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz378() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_378"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz379() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_379"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz380() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_380"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz381() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_381"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz382() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_382"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz383() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_383"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz384() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_384"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz385() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_385"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz386() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_386"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz387() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_387"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz388() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_388"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz389() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_389"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz390() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_390"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz391() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_391"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz392() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_392"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz393() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_393"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz394() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_394"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz395() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_395"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz396() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_396"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz397() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_397"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz398() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_398"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz399() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_399"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz400() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_400"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz401() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_401"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz402() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_402"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz403() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_403"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz404() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_404"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz405() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_405"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz406() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_406"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz407() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_407"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz408() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_408"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz409() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_409"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz410() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_410"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz411() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_411"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz412() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_412"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz413() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_413"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz414() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_414"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz415() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_415"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz416() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_416"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz417() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_417"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz418() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_418"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz419() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_419"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz420() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_420"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz421() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_421"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz422() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_422"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz423() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_423"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz424() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_424"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz425() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_425"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz426() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_426"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz427() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_427"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz428() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_428"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz429() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_429"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz430() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_430"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz431() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_431"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz432() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_432"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz433() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_433"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz434() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_434"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz435() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_435"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz436() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_436"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz437() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_437"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz438() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_438"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz439() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_439"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz440() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_440"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz441() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_441"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz442() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_442"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz443() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_443"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz444() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_444"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz445() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_445"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz446() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_446"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz447() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_447"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz448() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_448"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz449() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_449"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz450() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_450"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz451() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_451"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz452() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_452"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz453() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_453"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz454() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_454"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz455() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_455"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz456() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_456"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz457() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_457"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz458() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_458"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz459() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_459"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz460() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_460"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz461() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_461"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz462() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_462"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz463() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_463"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz464() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_464"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz465() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_465"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz466() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_466"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz467() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_467"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz468() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_468"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz469() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_469"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz470() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_470"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz471() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_471"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz472() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_472"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz473() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_473"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz474() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_474"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz475() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_475"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz476() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_476"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz477() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_477"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz478() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_478"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz479() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_479"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz480() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_480"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz481() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_481"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz482() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_482"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz483() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_483"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz484() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_484"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz485() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_485"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz486() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_486"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz487() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_487"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz488() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_488"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz489() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_489"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz490() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_490"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz491() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_491"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz492() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_492"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz493() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_493"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz494() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_494"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz495() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_495"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz496() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_496"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz497() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_497"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz498() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_498"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz499() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_499"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz500() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_500"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz501() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_501"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz502() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_502"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz503() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_503"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz504() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_504"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz505() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_505"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz506() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_506"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz507() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_507"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz508() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_508"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz509() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_509"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz510() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_510"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz511() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_511"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz512() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_512"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz513() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_513"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz514() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_514"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz515() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_515"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz516() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_516"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz517() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_517"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz518() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_518"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz519() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_519"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz520() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_520"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz521() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_521"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz522() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_522"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz523() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_523"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz524() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_524"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz525() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_525"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz526() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_526"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz527() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_527"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz528() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_528"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz529() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_529"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz530() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_530"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz531() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_531"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz532() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_532"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz533() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_533"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz534() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_534"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz535() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_535"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz536() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_536"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz537() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_537"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz538() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_538"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz539() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_539"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz540() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_540"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz541() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_541"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz542() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_542"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz543() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_543"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz544() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_544"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz545() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_545"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz546() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_546"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz547() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_547"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz548() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_548"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz549() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_549"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz550() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_550"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz551() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_551"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz552() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_552"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz553() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_553"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz554() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_554"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz555() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_555"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz556() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_556"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz557() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_557"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz558() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_558"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz559() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_559"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz560() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_560"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz561() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_561"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz562() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_562"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz563() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_563"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz564() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_564"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz565() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_565"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz566() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_566"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz567() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_567"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz568() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_568"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz569() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_569"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz570() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_570"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz571() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_571"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz572() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_572"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz573() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_573"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz574() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_574"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz575() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_575"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz576() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_576"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz577() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_577"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz578() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_578"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz579() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_579"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz580() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_580"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz581() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_581"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz582() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_582"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz583() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_583"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz584() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_584"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz585() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_585"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz586() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_586"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz587() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_587"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz588() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_588"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz589() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_589"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz590() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_590"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz591() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_591"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz592() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_592"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz593() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_593"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz594() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_594"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz595() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_595"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz596() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_596"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz597() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_597"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz598() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_598"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz599() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_599"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz600() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_600"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz601() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_601"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz602() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_602"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz603() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_603"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz604() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_604"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz605() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_605"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz606() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_606"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz607() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_607"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz608() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_608"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz609() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_609"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz610() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_610"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz611() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_611"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz612() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_612"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz613() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_613"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz614() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_614"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz615() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_615"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz616() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_616"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz617() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_617"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz618() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_618"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz619() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_619"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz620() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_620"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz621() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_621"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz622() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_622"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz623() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_623"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz624() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_624"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz625() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_625"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz626() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_626"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz627() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_627"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz628() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_628"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz629() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_629"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz630() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_630"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz631() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_631"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz632() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_632"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz633() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_633"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz634() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_634"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz635() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_635"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz636() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_636"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz637() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_637"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz638() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_638"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz639() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_639"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz640() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_640"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz641() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_641"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz642() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_642"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz643() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_643"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz644() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_644"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz645() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_645"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz646() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_646"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz647() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_647"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz648() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_648"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz649() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_649"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz650() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_650"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz651() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_651"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz652() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_652"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz653() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_653"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz654() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_654"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz655() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_655"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz656() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_656"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz657() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_657"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz658() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_658"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz659() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_659"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz660() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_660"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz661() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_661"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz662() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_662"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz663() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_663"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz664() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_664"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz665() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_665"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz666() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_666"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz667() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_667"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz668() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_668"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz669() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_669"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz670() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_670"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz671() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_671"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz672() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_672"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz673() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_673"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz674() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_674"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz675() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_675"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz676() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_676"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz677() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_677"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz678() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_678"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz679() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_679"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz680() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_680"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz681() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_681"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz682() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_682"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz683() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_683"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz684() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_684"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz685() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_685"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz686() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_686"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz687() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_687"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz688() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_688"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz689() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_689"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz690() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_690"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz691() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_691"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz692() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_692"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz693() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_693"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz694() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_694"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz695() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_695"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz696() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_696"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz697() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_697"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz698() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_698"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz699() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_699"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz700() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_700"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz701() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_701"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz702() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_702"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz703() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_703"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz704() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_704"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz705() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_705"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz706() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_706"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz707() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_707"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz708() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_708"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz709() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_709"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz710() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_710"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz711() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_711"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz712() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_712"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz713() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_713"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz714() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_714"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz715() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_715"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz716() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_716"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz717() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_717"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz718() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_718"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz719() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_719"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz720() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_720"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz721() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_721"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz722() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_722"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz723() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_723"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz724() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_724"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz725() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_725"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz726() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_726"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz727() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_727"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz728() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_728"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz729() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_729"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz730() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_730"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz731() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_731"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz732() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_732"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz733() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_733"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz734() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_734"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz735() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_735"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz736() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_736"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz737() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_737"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz738() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_738"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz739() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_739"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz740() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_740"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz741() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_741"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz742() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_742"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz743() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_743"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz744() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_744"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz745() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_745"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz746() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_746"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz747() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_747"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz748() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_748"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz749() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_749"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz750() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_750"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz751() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_751"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz752() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_752"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz753() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_753"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz754() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_754"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz755() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_755"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz756() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_756"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz757() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_757"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz758() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_758"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz759() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_759"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz760() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_760"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz761() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_761"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz762() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_762"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz763() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_763"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz764() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_764"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz765() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_765"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz766() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_766"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz767() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_767"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz768() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_768"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz769() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_769"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz770() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_770"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz771() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_771"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz772() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_772"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz773() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_773"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz774() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_774"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz775() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_775"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz776() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_776"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz777() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_777"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz778() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_778"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz779() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_779"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz780() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_780"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz781() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_781"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz782() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_782"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz783() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_783"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz784() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_784"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz785() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_785"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz786() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_786"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz787() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_787"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz788() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_788"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz789() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_789"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz790() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_790"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz791() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_791"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz792() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_792"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz793() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_793"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz794() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_794"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz795() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_795"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz796() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_796"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz797() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_797"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz798() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_798"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz799() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_799"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz800() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_800"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz801() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_801"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz802() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_802"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz803() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_803"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz804() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_804"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz805() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_805"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz806() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_806"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz807() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_807"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz808() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_808"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz809() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_809"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz810() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_810"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz811() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_811"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz812() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_812"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz813() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_813"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz814() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_814"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz815() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_815"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz816() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_816"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz817() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_817"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz818() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_818"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz819() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_819"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz820() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_820"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz821() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_821"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz822() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_822"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz823() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_823"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz824() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_824"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz825() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_825"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz826() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_826"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz827() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_827"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz828() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_828"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz829() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_829"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz830() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_830"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz831() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_831"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz832() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_832"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz833() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_833"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz834() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_834"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz835() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_835"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz836() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_836"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz837() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_837"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz838() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_838"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz839() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_839"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz840() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_840"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz841() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_841"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz842() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_842"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz843() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_843"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz844() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_844"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz845() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_845"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz846() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_846"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz847() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_847"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz848() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_848"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz849() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_849"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz850() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_850"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz851() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_851"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz852() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_852"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz853() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_853"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz854() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_854"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz855() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_855"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz856() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_856"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz857() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_857"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz858() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_858"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz859() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_859"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz860() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_860"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz861() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_861"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz862() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_862"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz863() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_863"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz864() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_864"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz865() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_865"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz866() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_866"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz867() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_867"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz868() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_868"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz869() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_869"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz870() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_870"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz871() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_871"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz872() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_872"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz873() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_873"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz874() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_874"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz875() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_875"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz876() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_876"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz877() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_877"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz878() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_878"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz879() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_879"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz880() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_880"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz881() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_881"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz882() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_882"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz883() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_883"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz884() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_884"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz885() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_885"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz886() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_886"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz887() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_887"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz888() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_888"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz889() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_889"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz890() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_890"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz891() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_891"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz892() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_892"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz893() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_893"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz894() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_894"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz895() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_895"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz896() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_896"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz897() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_897"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz898() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_898"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz899() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_899"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz900() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_900"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz901() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_901"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz902() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_902"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz903() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_903"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz904() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_904"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz905() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_905"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz906() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_906"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz907() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_907"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz908() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_908"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz909() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_909"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz910() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_910"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz911() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_911"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz912() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_912"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz913() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_913"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz914() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_914"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz915() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_915"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz916() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_916"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz917() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_917"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz918() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_918"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz919() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_919"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz920() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_920"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz921() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_921"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz922() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_922"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz923() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_923"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz924() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_924"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz925() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_925"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz926() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_926"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz927() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_927"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz928() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_928"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz929() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_929"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz930() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_930"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz931() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_931"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz932() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_932"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz933() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_933"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz934() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_934"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz935() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_935"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz936() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_936"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz937() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_937"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz938() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_938"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz939() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_939"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz940() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_940"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz941() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_941"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz942() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_942"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz943() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_943"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz944() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_944"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz945() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_945"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz946() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_946"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz947() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_947"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz948() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_948"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz949() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_949"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz950() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_950"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz951() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_951"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz952() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_952"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz953() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_953"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz954() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_954"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz955() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_955"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz956() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_956"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz957() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_957"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz958() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_958"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz959() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_959"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz960() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_960"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz961() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_961"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz962() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_962"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz963() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_963"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz964() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_964"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz965() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_965"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz966() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_966"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz967() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_967"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz968() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_968"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz969() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_969"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz970() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_970"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz971() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_971"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz972() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_972"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz973() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_973"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz974() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_974"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz975() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_975"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz976() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_976"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz977() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_977"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz978() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_978"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz979() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_979"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz980() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_980"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz981() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_981"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz982() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_982"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz983() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_983"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz984() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_984"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz985() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_985"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz986() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_986"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz987() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_987"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz988() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_988"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz989() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_989"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz990() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_990"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz991() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_991"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz992() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_992"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz993() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_993"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz994() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_994"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz995() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_995"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz996() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_996"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz997() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_997"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz998() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_998"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz999() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_999"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1000() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1000"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1001() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1001"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1002() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1002"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1003() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1003"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1004() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1004"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1005() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1005"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1006() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1006"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1007() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1007"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1008() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1008"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1009() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1009"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1010() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1010"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1011() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1011"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1012() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1012"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1013() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1013"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1014() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1014"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1015() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1015"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1016() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1016"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1017() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1017"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1018() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1018"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1019() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1019"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1020() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1020"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1021() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1021"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1022() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1022"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1023() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1023"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1024() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1024"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1025() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1025"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1026() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1026"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1027() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1027"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1028() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1028"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1029() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1029"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1030() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1030"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1031() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1031"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1032() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1032"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1033() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1033"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1034() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1034"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1035() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1035"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1036() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1036"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1037() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1037"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1038() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1038"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1039() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1039"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1040() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1040"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1041() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1041"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1042() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1042"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1043() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1043"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1044() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1044"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1045() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1045"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1046() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1046"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1047() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1047"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1048() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1048"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+n32 kaz1049() { n8* nanga = "NANGA_SHIKAMANO"; n8* m = "KIPEKEE_1049"; kama (m == 0 || m[0] != 75 || m[1] != 73) { kosa = kosa + 1; } rudisha 0; }
+
+n32 main() {
+    kaz0();
+    kaz1();
+    kaz2();
+    kaz3();
+    kaz4();
+    kaz5();
+    kaz6();
+    kaz7();
+    kaz8();
+    kaz9();
+    kaz10();
+    kaz11();
+    kaz12();
+    kaz13();
+    kaz14();
+    kaz15();
+    kaz16();
+    kaz17();
+    kaz18();
+    kaz19();
+    kaz20();
+    kaz21();
+    kaz22();
+    kaz23();
+    kaz24();
+    kaz25();
+    kaz26();
+    kaz27();
+    kaz28();
+    kaz29();
+    kaz30();
+    kaz31();
+    kaz32();
+    kaz33();
+    kaz34();
+    kaz35();
+    kaz36();
+    kaz37();
+    kaz38();
+    kaz39();
+    kaz40();
+    kaz41();
+    kaz42();
+    kaz43();
+    kaz44();
+    kaz45();
+    kaz46();
+    kaz47();
+    kaz48();
+    kaz49();
+    kaz50();
+    kaz51();
+    kaz52();
+    kaz53();
+    kaz54();
+    kaz55();
+    kaz56();
+    kaz57();
+    kaz58();
+    kaz59();
+    kaz60();
+    kaz61();
+    kaz62();
+    kaz63();
+    kaz64();
+    kaz65();
+    kaz66();
+    kaz67();
+    kaz68();
+    kaz69();
+    kaz70();
+    kaz71();
+    kaz72();
+    kaz73();
+    kaz74();
+    kaz75();
+    kaz76();
+    kaz77();
+    kaz78();
+    kaz79();
+    kaz80();
+    kaz81();
+    kaz82();
+    kaz83();
+    kaz84();
+    kaz85();
+    kaz86();
+    kaz87();
+    kaz88();
+    kaz89();
+    kaz90();
+    kaz91();
+    kaz92();
+    kaz93();
+    kaz94();
+    kaz95();
+    kaz96();
+    kaz97();
+    kaz98();
+    kaz99();
+    kaz100();
+    kaz101();
+    kaz102();
+    kaz103();
+    kaz104();
+    kaz105();
+    kaz106();
+    kaz107();
+    kaz108();
+    kaz109();
+    kaz110();
+    kaz111();
+    kaz112();
+    kaz113();
+    kaz114();
+    kaz115();
+    kaz116();
+    kaz117();
+    kaz118();
+    kaz119();
+    kaz120();
+    kaz121();
+    kaz122();
+    kaz123();
+    kaz124();
+    kaz125();
+    kaz126();
+    kaz127();
+    kaz128();
+    kaz129();
+    kaz130();
+    kaz131();
+    kaz132();
+    kaz133();
+    kaz134();
+    kaz135();
+    kaz136();
+    kaz137();
+    kaz138();
+    kaz139();
+    kaz140();
+    kaz141();
+    kaz142();
+    kaz143();
+    kaz144();
+    kaz145();
+    kaz146();
+    kaz147();
+    kaz148();
+    kaz149();
+    kaz150();
+    kaz151();
+    kaz152();
+    kaz153();
+    kaz154();
+    kaz155();
+    kaz156();
+    kaz157();
+    kaz158();
+    kaz159();
+    kaz160();
+    kaz161();
+    kaz162();
+    kaz163();
+    kaz164();
+    kaz165();
+    kaz166();
+    kaz167();
+    kaz168();
+    kaz169();
+    kaz170();
+    kaz171();
+    kaz172();
+    kaz173();
+    kaz174();
+    kaz175();
+    kaz176();
+    kaz177();
+    kaz178();
+    kaz179();
+    kaz180();
+    kaz181();
+    kaz182();
+    kaz183();
+    kaz184();
+    kaz185();
+    kaz186();
+    kaz187();
+    kaz188();
+    kaz189();
+    kaz190();
+    kaz191();
+    kaz192();
+    kaz193();
+    kaz194();
+    kaz195();
+    kaz196();
+    kaz197();
+    kaz198();
+    kaz199();
+    kaz200();
+    kaz201();
+    kaz202();
+    kaz203();
+    kaz204();
+    kaz205();
+    kaz206();
+    kaz207();
+    kaz208();
+    kaz209();
+    kaz210();
+    kaz211();
+    kaz212();
+    kaz213();
+    kaz214();
+    kaz215();
+    kaz216();
+    kaz217();
+    kaz218();
+    kaz219();
+    kaz220();
+    kaz221();
+    kaz222();
+    kaz223();
+    kaz224();
+    kaz225();
+    kaz226();
+    kaz227();
+    kaz228();
+    kaz229();
+    kaz230();
+    kaz231();
+    kaz232();
+    kaz233();
+    kaz234();
+    kaz235();
+    kaz236();
+    kaz237();
+    kaz238();
+    kaz239();
+    kaz240();
+    kaz241();
+    kaz242();
+    kaz243();
+    kaz244();
+    kaz245();
+    kaz246();
+    kaz247();
+    kaz248();
+    kaz249();
+    kaz250();
+    kaz251();
+    kaz252();
+    kaz253();
+    kaz254();
+    kaz255();
+    kaz256();
+    kaz257();
+    kaz258();
+    kaz259();
+    kaz260();
+    kaz261();
+    kaz262();
+    kaz263();
+    kaz264();
+    kaz265();
+    kaz266();
+    kaz267();
+    kaz268();
+    kaz269();
+    kaz270();
+    kaz271();
+    kaz272();
+    kaz273();
+    kaz274();
+    kaz275();
+    kaz276();
+    kaz277();
+    kaz278();
+    kaz279();
+    kaz280();
+    kaz281();
+    kaz282();
+    kaz283();
+    kaz284();
+    kaz285();
+    kaz286();
+    kaz287();
+    kaz288();
+    kaz289();
+    kaz290();
+    kaz291();
+    kaz292();
+    kaz293();
+    kaz294();
+    kaz295();
+    kaz296();
+    kaz297();
+    kaz298();
+    kaz299();
+    kaz300();
+    kaz301();
+    kaz302();
+    kaz303();
+    kaz304();
+    kaz305();
+    kaz306();
+    kaz307();
+    kaz308();
+    kaz309();
+    kaz310();
+    kaz311();
+    kaz312();
+    kaz313();
+    kaz314();
+    kaz315();
+    kaz316();
+    kaz317();
+    kaz318();
+    kaz319();
+    kaz320();
+    kaz321();
+    kaz322();
+    kaz323();
+    kaz324();
+    kaz325();
+    kaz326();
+    kaz327();
+    kaz328();
+    kaz329();
+    kaz330();
+    kaz331();
+    kaz332();
+    kaz333();
+    kaz334();
+    kaz335();
+    kaz336();
+    kaz337();
+    kaz338();
+    kaz339();
+    kaz340();
+    kaz341();
+    kaz342();
+    kaz343();
+    kaz344();
+    kaz345();
+    kaz346();
+    kaz347();
+    kaz348();
+    kaz349();
+    kaz350();
+    kaz351();
+    kaz352();
+    kaz353();
+    kaz354();
+    kaz355();
+    kaz356();
+    kaz357();
+    kaz358();
+    kaz359();
+    kaz360();
+    kaz361();
+    kaz362();
+    kaz363();
+    kaz364();
+    kaz365();
+    kaz366();
+    kaz367();
+    kaz368();
+    kaz369();
+    kaz370();
+    kaz371();
+    kaz372();
+    kaz373();
+    kaz374();
+    kaz375();
+    kaz376();
+    kaz377();
+    kaz378();
+    kaz379();
+    kaz380();
+    kaz381();
+    kaz382();
+    kaz383();
+    kaz384();
+    kaz385();
+    kaz386();
+    kaz387();
+    kaz388();
+    kaz389();
+    kaz390();
+    kaz391();
+    kaz392();
+    kaz393();
+    kaz394();
+    kaz395();
+    kaz396();
+    kaz397();
+    kaz398();
+    kaz399();
+    kaz400();
+    kaz401();
+    kaz402();
+    kaz403();
+    kaz404();
+    kaz405();
+    kaz406();
+    kaz407();
+    kaz408();
+    kaz409();
+    kaz410();
+    kaz411();
+    kaz412();
+    kaz413();
+    kaz414();
+    kaz415();
+    kaz416();
+    kaz417();
+    kaz418();
+    kaz419();
+    kaz420();
+    kaz421();
+    kaz422();
+    kaz423();
+    kaz424();
+    kaz425();
+    kaz426();
+    kaz427();
+    kaz428();
+    kaz429();
+    kaz430();
+    kaz431();
+    kaz432();
+    kaz433();
+    kaz434();
+    kaz435();
+    kaz436();
+    kaz437();
+    kaz438();
+    kaz439();
+    kaz440();
+    kaz441();
+    kaz442();
+    kaz443();
+    kaz444();
+    kaz445();
+    kaz446();
+    kaz447();
+    kaz448();
+    kaz449();
+    kaz450();
+    kaz451();
+    kaz452();
+    kaz453();
+    kaz454();
+    kaz455();
+    kaz456();
+    kaz457();
+    kaz458();
+    kaz459();
+    kaz460();
+    kaz461();
+    kaz462();
+    kaz463();
+    kaz464();
+    kaz465();
+    kaz466();
+    kaz467();
+    kaz468();
+    kaz469();
+    kaz470();
+    kaz471();
+    kaz472();
+    kaz473();
+    kaz474();
+    kaz475();
+    kaz476();
+    kaz477();
+    kaz478();
+    kaz479();
+    kaz480();
+    kaz481();
+    kaz482();
+    kaz483();
+    kaz484();
+    kaz485();
+    kaz486();
+    kaz487();
+    kaz488();
+    kaz489();
+    kaz490();
+    kaz491();
+    kaz492();
+    kaz493();
+    kaz494();
+    kaz495();
+    kaz496();
+    kaz497();
+    kaz498();
+    kaz499();
+    kaz500();
+    kaz501();
+    kaz502();
+    kaz503();
+    kaz504();
+    kaz505();
+    kaz506();
+    kaz507();
+    kaz508();
+    kaz509();
+    kaz510();
+    kaz511();
+    kaz512();
+    kaz513();
+    kaz514();
+    kaz515();
+    kaz516();
+    kaz517();
+    kaz518();
+    kaz519();
+    kaz520();
+    kaz521();
+    kaz522();
+    kaz523();
+    kaz524();
+    kaz525();
+    kaz526();
+    kaz527();
+    kaz528();
+    kaz529();
+    kaz530();
+    kaz531();
+    kaz532();
+    kaz533();
+    kaz534();
+    kaz535();
+    kaz536();
+    kaz537();
+    kaz538();
+    kaz539();
+    kaz540();
+    kaz541();
+    kaz542();
+    kaz543();
+    kaz544();
+    kaz545();
+    kaz546();
+    kaz547();
+    kaz548();
+    kaz549();
+    kaz550();
+    kaz551();
+    kaz552();
+    kaz553();
+    kaz554();
+    kaz555();
+    kaz556();
+    kaz557();
+    kaz558();
+    kaz559();
+    kaz560();
+    kaz561();
+    kaz562();
+    kaz563();
+    kaz564();
+    kaz565();
+    kaz566();
+    kaz567();
+    kaz568();
+    kaz569();
+    kaz570();
+    kaz571();
+    kaz572();
+    kaz573();
+    kaz574();
+    kaz575();
+    kaz576();
+    kaz577();
+    kaz578();
+    kaz579();
+    kaz580();
+    kaz581();
+    kaz582();
+    kaz583();
+    kaz584();
+    kaz585();
+    kaz586();
+    kaz587();
+    kaz588();
+    kaz589();
+    kaz590();
+    kaz591();
+    kaz592();
+    kaz593();
+    kaz594();
+    kaz595();
+    kaz596();
+    kaz597();
+    kaz598();
+    kaz599();
+    kaz600();
+    kaz601();
+    kaz602();
+    kaz603();
+    kaz604();
+    kaz605();
+    kaz606();
+    kaz607();
+    kaz608();
+    kaz609();
+    kaz610();
+    kaz611();
+    kaz612();
+    kaz613();
+    kaz614();
+    kaz615();
+    kaz616();
+    kaz617();
+    kaz618();
+    kaz619();
+    kaz620();
+    kaz621();
+    kaz622();
+    kaz623();
+    kaz624();
+    kaz625();
+    kaz626();
+    kaz627();
+    kaz628();
+    kaz629();
+    kaz630();
+    kaz631();
+    kaz632();
+    kaz633();
+    kaz634();
+    kaz635();
+    kaz636();
+    kaz637();
+    kaz638();
+    kaz639();
+    kaz640();
+    kaz641();
+    kaz642();
+    kaz643();
+    kaz644();
+    kaz645();
+    kaz646();
+    kaz647();
+    kaz648();
+    kaz649();
+    kaz650();
+    kaz651();
+    kaz652();
+    kaz653();
+    kaz654();
+    kaz655();
+    kaz656();
+    kaz657();
+    kaz658();
+    kaz659();
+    kaz660();
+    kaz661();
+    kaz662();
+    kaz663();
+    kaz664();
+    kaz665();
+    kaz666();
+    kaz667();
+    kaz668();
+    kaz669();
+    kaz670();
+    kaz671();
+    kaz672();
+    kaz673();
+    kaz674();
+    kaz675();
+    kaz676();
+    kaz677();
+    kaz678();
+    kaz679();
+    kaz680();
+    kaz681();
+    kaz682();
+    kaz683();
+    kaz684();
+    kaz685();
+    kaz686();
+    kaz687();
+    kaz688();
+    kaz689();
+    kaz690();
+    kaz691();
+    kaz692();
+    kaz693();
+    kaz694();
+    kaz695();
+    kaz696();
+    kaz697();
+    kaz698();
+    kaz699();
+    kaz700();
+    kaz701();
+    kaz702();
+    kaz703();
+    kaz704();
+    kaz705();
+    kaz706();
+    kaz707();
+    kaz708();
+    kaz709();
+    kaz710();
+    kaz711();
+    kaz712();
+    kaz713();
+    kaz714();
+    kaz715();
+    kaz716();
+    kaz717();
+    kaz718();
+    kaz719();
+    kaz720();
+    kaz721();
+    kaz722();
+    kaz723();
+    kaz724();
+    kaz725();
+    kaz726();
+    kaz727();
+    kaz728();
+    kaz729();
+    kaz730();
+    kaz731();
+    kaz732();
+    kaz733();
+    kaz734();
+    kaz735();
+    kaz736();
+    kaz737();
+    kaz738();
+    kaz739();
+    kaz740();
+    kaz741();
+    kaz742();
+    kaz743();
+    kaz744();
+    kaz745();
+    kaz746();
+    kaz747();
+    kaz748();
+    kaz749();
+    kaz750();
+    kaz751();
+    kaz752();
+    kaz753();
+    kaz754();
+    kaz755();
+    kaz756();
+    kaz757();
+    kaz758();
+    kaz759();
+    kaz760();
+    kaz761();
+    kaz762();
+    kaz763();
+    kaz764();
+    kaz765();
+    kaz766();
+    kaz767();
+    kaz768();
+    kaz769();
+    kaz770();
+    kaz771();
+    kaz772();
+    kaz773();
+    kaz774();
+    kaz775();
+    kaz776();
+    kaz777();
+    kaz778();
+    kaz779();
+    kaz780();
+    kaz781();
+    kaz782();
+    kaz783();
+    kaz784();
+    kaz785();
+    kaz786();
+    kaz787();
+    kaz788();
+    kaz789();
+    kaz790();
+    kaz791();
+    kaz792();
+    kaz793();
+    kaz794();
+    kaz795();
+    kaz796();
+    kaz797();
+    kaz798();
+    kaz799();
+    kaz800();
+    kaz801();
+    kaz802();
+    kaz803();
+    kaz804();
+    kaz805();
+    kaz806();
+    kaz807();
+    kaz808();
+    kaz809();
+    kaz810();
+    kaz811();
+    kaz812();
+    kaz813();
+    kaz814();
+    kaz815();
+    kaz816();
+    kaz817();
+    kaz818();
+    kaz819();
+    kaz820();
+    kaz821();
+    kaz822();
+    kaz823();
+    kaz824();
+    kaz825();
+    kaz826();
+    kaz827();
+    kaz828();
+    kaz829();
+    kaz830();
+    kaz831();
+    kaz832();
+    kaz833();
+    kaz834();
+    kaz835();
+    kaz836();
+    kaz837();
+    kaz838();
+    kaz839();
+    kaz840();
+    kaz841();
+    kaz842();
+    kaz843();
+    kaz844();
+    kaz845();
+    kaz846();
+    kaz847();
+    kaz848();
+    kaz849();
+    kaz850();
+    kaz851();
+    kaz852();
+    kaz853();
+    kaz854();
+    kaz855();
+    kaz856();
+    kaz857();
+    kaz858();
+    kaz859();
+    kaz860();
+    kaz861();
+    kaz862();
+    kaz863();
+    kaz864();
+    kaz865();
+    kaz866();
+    kaz867();
+    kaz868();
+    kaz869();
+    kaz870();
+    kaz871();
+    kaz872();
+    kaz873();
+    kaz874();
+    kaz875();
+    kaz876();
+    kaz877();
+    kaz878();
+    kaz879();
+    kaz880();
+    kaz881();
+    kaz882();
+    kaz883();
+    kaz884();
+    kaz885();
+    kaz886();
+    kaz887();
+    kaz888();
+    kaz889();
+    kaz890();
+    kaz891();
+    kaz892();
+    kaz893();
+    kaz894();
+    kaz895();
+    kaz896();
+    kaz897();
+    kaz898();
+    kaz899();
+    kaz900();
+    kaz901();
+    kaz902();
+    kaz903();
+    kaz904();
+    kaz905();
+    kaz906();
+    kaz907();
+    kaz908();
+    kaz909();
+    kaz910();
+    kaz911();
+    kaz912();
+    kaz913();
+    kaz914();
+    kaz915();
+    kaz916();
+    kaz917();
+    kaz918();
+    kaz919();
+    kaz920();
+    kaz921();
+    kaz922();
+    kaz923();
+    kaz924();
+    kaz925();
+    kaz926();
+    kaz927();
+    kaz928();
+    kaz929();
+    kaz930();
+    kaz931();
+    kaz932();
+    kaz933();
+    kaz934();
+    kaz935();
+    kaz936();
+    kaz937();
+    kaz938();
+    kaz939();
+    kaz940();
+    kaz941();
+    kaz942();
+    kaz943();
+    kaz944();
+    kaz945();
+    kaz946();
+    kaz947();
+    kaz948();
+    kaz949();
+    kaz950();
+    kaz951();
+    kaz952();
+    kaz953();
+    kaz954();
+    kaz955();
+    kaz956();
+    kaz957();
+    kaz958();
+    kaz959();
+    kaz960();
+    kaz961();
+    kaz962();
+    kaz963();
+    kaz964();
+    kaz965();
+    kaz966();
+    kaz967();
+    kaz968();
+    kaz969();
+    kaz970();
+    kaz971();
+    kaz972();
+    kaz973();
+    kaz974();
+    kaz975();
+    kaz976();
+    kaz977();
+    kaz978();
+    kaz979();
+    kaz980();
+    kaz981();
+    kaz982();
+    kaz983();
+    kaz984();
+    kaz985();
+    kaz986();
+    kaz987();
+    kaz988();
+    kaz989();
+    kaz990();
+    kaz991();
+    kaz992();
+    kaz993();
+    kaz994();
+    kaz995();
+    kaz996();
+    kaz997();
+    kaz998();
+    kaz999();
+    kaz1000();
+    kaz1001();
+    kaz1002();
+    kaz1003();
+    kaz1004();
+    kaz1005();
+    kaz1006();
+    kaz1007();
+    kaz1008();
+    kaz1009();
+    kaz1010();
+    kaz1011();
+    kaz1012();
+    kaz1013();
+    kaz1014();
+    kaz1015();
+    kaz1016();
+    kaz1017();
+    kaz1018();
+    kaz1019();
+    kaz1020();
+    kaz1021();
+    kaz1022();
+    kaz1023();
+    kaz1024();
+    kaz1025();
+    kaz1026();
+    kaz1027();
+    kaz1028();
+    kaz1029();
+    kaz1030();
+    kaz1031();
+    kaz1032();
+    kaz1033();
+    kaz1034();
+    kaz1035();
+    kaz1036();
+    kaz1037();
+    kaz1038();
+    kaz1039();
+    kaz1040();
+    kaz1041();
+    kaz1042();
+    kaz1043();
+    kaz1044();
+    kaz1045();
+    kaz1046();
+    kaz1047();
+    kaz1048();
+    kaz1049();
+    rudisha kosa;
+}

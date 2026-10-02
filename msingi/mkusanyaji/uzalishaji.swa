@@ -2630,12 +2630,27 @@ n32 rela_idadi = 0;
 // Herufi halisi (string literals) zilizokusanywa
 // -------------------------------------------------------
 
-n8 str_buf[16384];
-n32 str_off[1024];
-n32 str_len[1024];
+// lugha-swa/swa#295 -- ukubwa wa ZAMANI (str_off/str_len/str_lebo_id[1024],
+// str_buf[16384]) ulikuwa mdogo mno kwa miradi mikubwa: mradi halisi
+// (Dominion's mchezo.swa, ~1136 kazi) hufikia zaidi ya herufi halisi
+// 1024 za KIPEKEE kwa urahisi. Kulikuwa na ukaguzi wa kufurika
+// uliopo tayari (kusanya_herufi chini) LAKINI ulichapisha KOSA
+// kisha UKAENDELEA kimya (hakuna exit) -- kurudisha -1 bila
+// kusimamisha ukusanyaji. -1 hiyo ilipofika uzalishaji_kitambulisho,
+// LEA ya anwani ya mfuatano ILIRUKWA KABISA (hakuna agizo
+// lililotolewa), ikiacha rejesta (rax) na THAMANI YA ZAMANI isiyo
+// husiana (k.m. anwani ya mfuatano mwingine uliopita tayari) --
+// hii ndiyo "anwani za string literal zinazochanganyikiwa" za #295.
+// Suluhisho: (1) ongeza ukubwa (mara 64 kwa idadi, mara 64 kwa
+// bafa) kutoa nafasi ya kutosha, NA (2) badilisha ukaguzi wa
+// kufurika kusimamisha ukusanyaji (exit 1) badala ya kuendelea --
+// angalia kusanya_herufi() chini.
+n8 str_buf[1048576];
+n32 str_off[65536];
+n32 str_len[65536];
 n32 str_buf_wapi = 1;
 n32 str_idadi = 0;
-n32 str_lebo_id[1024];
+n32 str_lebo_id[65536];
 
 // Constants za desimali halisi (d64) — ofseti ya dimbwi (baiti 8) kwa kila moja.
 // MUHIMU (lugha-swa/swa#192): kikomo hiki NI CHA KILA TOKEO (occurrence),
@@ -2951,10 +2966,22 @@ n32 kusanya_herufi(n8* raw) {
     }
 
     // Ongeza mpya — badilisha utorokaji wakati wa kunakili
-    kama (str_idadi >= 1024 || str_buf_wapi + len + 1 >= 16384) {
-        andika_stderr("KOSA: jedwali la mfuatano halisi (str_*) limejaa (kikomo cha idadi 1024, au bafa ya baiti 16384) — mfuatano huu hautahifadhiwa sahihi\n");
+    //
+    // MUHIMU (#295): kikomo hiki LAZIMA kisimamishe ukusanyaji kwa
+    // sauti (exit 1) -- SI kuchapisha KOSA kisha kuendelea kimya.
+    // Kuendelea kimya kulisababisha kusanya_herufi kurudisha -1,
+    // ambayo ilifanya uzalishaji_kitambulisho KURUKA KABISA agizo
+    // la LEA la anwani ya mfuatano -- rejesta ilibaki na thamani ya
+    // zamani isiyohusiana (anwani ya mfuatano mwingine uliotangulia),
+    // ikitoa "PASS: B" badala ya maandishi sahihi (angalia #295).
+    // Namba hizi mbili (65536/1048576) LAZIMA zilingane na ukubwa wa
+    // tangazo la str_off/str_len/str_lebo_id na str_buf juu ya faili
+    // hili (Swa haina sizeof/lengthof -- kumbuka #197).
+    kama (str_idadi >= 65536 || str_buf_wapi + len + 1 >= 1048576) {
+        andika_stderr("KOSA: jedwali la mfuatano halisi (str_*) limejaa (kikomo cha idadi 65536, au bafa ya baiti 1048576) — programu hii ina herufi halisi nyingi mno kwa jumla\n");
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
-    kama (str_idadi < 1024 && str_buf_wapi + len + 1 < 16384) {
+    kama (str_idadi < 65536 && str_buf_wapi + len + 1 < 1048576) {
         n32 o = str_buf_wapi;
         n32 j = 0;  // faharisi ya chanzo
         n32 w = 0;  // faharisi ya lengwa (baada ya utorokaji)
@@ -5047,8 +5074,14 @@ w0 uzalishaji_kitambulisho(n32 node, n32 kazi_node) {
     kama (jina[0] == 34) {
         n32 si = kusanya_herufi(jina);
         kama (si == -1) {
+            // Haipaswi kufikiwa (#295): kusanya_herufi sasa inasimamisha
+            // ukusanyaji moja kwa moja ikiwa jedwali limejaa -- ukaguzi
+            // huu unabaki kama ulinzi wa ziada tu. ZAMANI: hii ilikuwa
+            // 'rudisha;' kimya (bila exit), ikiacha agizo la LEA
+            // likirukwa kabisa na rejesta ikibaki na thamani ya zamani
+            // isiyohusiana -- chanzo halisi cha #295.
             andika_stderr("KOSA: bafa ya herufi halisi imejaa\n");
-            rudisha;
+            wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
         }
         kama (str_lebo_id[si] < 0 && lebo_buf_idadi < 65536) {
             str_lebo_id[si] = lebo_buf_mpya();
@@ -9343,7 +9376,7 @@ w0 uzalishaji_kuu(n32 mzizi, n32 hali_exe) {
     sehemu_idadi = 0;
     sehemu_buf_wapi = 1;
     n32 sj = 0;
-    wakati (sj < 1024) { str_lebo_id[sj] = -1; sj = sj + 1; }
+    wakati (sj < 65536) { str_lebo_id[sj] = -1; sj = sj + 1; }
 
     // Marudio ya majina ya ngazi ya juu (kazi, vigezo vya ulimwengu,
     // miundo) ni kosa la kufa — kabla ya kutoa msimbo wowote.
@@ -9903,7 +9936,7 @@ w0 uzalishaji_jit(n32 mzizi, n32 argc_jit, n8** argv_jit, n32 ofseti_jit) {
     sehemu_idadi = 0;
     sehemu_buf_wapi = 1;
     n32 sj = 0;
-    wakati (sj < 1024) { str_lebo_id[sj] = -1; sj = sj + 1; }
+    wakati (sj < 65536) { str_lebo_id[sj] = -1; sj = sj + 1; }
 
     // Marudio ya majina ya ngazi ya juu ni kosa la kufa pia hapa.
     hakiki_marudio_ya_ngazi_ya_juu(mzizi);
