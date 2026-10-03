@@ -4387,6 +4387,25 @@ w0 uzalishaji_wito(n32 node, n32 kazi_node) {
             hoja_enc[hoja_idadi] = ast_thamani[a];
             kama (ast_aina[a] == 45) { hoja_enc[hoja_idadi] = ast_nne[a]; }  // HALISI_D: enc iko ast_nne
             kama (ast_aina[a] == 4) { hoja_enc[hoja_idadi] = ast_nne[a]; }  // AST_NAMBARI: enc iko ast_nne (thamani iko ast_thamani)
+            // lugha-swa/swa#295 -- AST_SAWA..AST_JUU_SAWA (20-25,
+            // ulinganishi == != < > <= >=): ast_thamani ya nodi hizi
+            // ni aina ya OPERANDI zilizolinganishwa (angalia
+            // mkaguzi_kagua_usemi() kwenye mkaguzi.swa -- ulinganishi
+            // hupita kupitia mantiki ile ile ya kupandisha aina
+            // inayotumika na hesabu), SI aina ya MATOKEO ya
+            // ulinganishi (ambayo NI DAIMA B1/boolean, 1025 -- angalia
+            // aina_ya_usemi() juu ya faili hili, ambayo tayari ina
+            // ubaguzi huu kwa matumizi mengine). Bila ubaguzi huu
+            // hapa pia, hoja ya ulinganishi (k.m.
+            // f(mvutano == 0.0, "...") ambapo mvutano ni d64)
+            // ilichukuliwa kimakosa kama hoja ya d64 -- ikisababisha
+            // uzalishaji_wito kubadilisha matokeo ya B1 (tayari
+            // kwenye eax) kuwa xmm0 (cvtsi2sd) badala ya kuliacha
+            // kwenye eax/rdi, ikivuruga mpangilio wa rejesta za hoja
+            // zilizofuata (hoja ya mfuatano ikaishia kwenye rejesta
+            // isiyo sahihi, ikisoma thamani ya zamani isiyohusiana --
+            // "anwani za string literal zinazochanganyikiwa" ya #295).
+            kama (ast_aina[a] >= 20 && ast_aina[a] <= 25) { hoja_enc[hoja_idadi] = 1025; }
             hoja_idadi = hoja_idadi + 1;
         } sivyo {
             // Ulinzi wa ziada: mkaguzi.swa tayari inakataa wito wenye
