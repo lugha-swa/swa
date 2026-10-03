@@ -344,26 +344,57 @@ n32 mkaguzi_angalia(n32 mzizi) {
 // kutosha. Kuna ulinzi wa kufurika uliopo tayari (haiandiki nje ya
 // mipaka, hutoa ujumbe wa hitilafu), lakini ujumbe huo wenyewe
 // ulikuwa ukitokea mara kwa mara badala ya kufanya kazi ipasavyo.
+// lugha-swa/swa#295 -- ukubwa wa ZAMANI (kazi_jina_off/kazi_param_count/
+// kazi_ret_jina_off/kazi_ret_aina/kazi_param_start[1024]) ulikuwa mdogo
+// mno kwa miradi makubwa: mradi halisi (Dominion's mchezo.swa, ~1136
+// kazi) huvuka kikomo hiki kwa urahisi. Ukaguzi wa kufurika kwenye
+// mkaguzi_sajili_kazi (chini) ULIKUWA UKIENDELEA KIMYA (hakuna hata
+// ujumbe wa kosa) ukifikia 1024 -- kila kazi BAADA ya ya 1024
+// HAIKUWAHI kusajiliwa, ikimaanisha mkaguzi_tafuta_param_enc() kwa
+// kazi hizo HURUDISHA -1 (haijapatikana) DAIMA -- hii iliondoa
+// UREKEBISHO (override ya aina ya hoja kutoka saini ya kazi
+// iliyosajiliwa) ambao ungerekebisha vinginevyo hitilafu TOFAUTI
+// (angalia uzalishaji.swa, uzalishaji_wito -- ukusanyaji wa hoja
+// ulikuwa ukisoma ast_thamani ghafi badala ya aina_ya_usemi(),
+// ukichukua aina ya OPERANDI kwa hoja ya ulinganishi (== != < > <=
+// >=) badala ya B1/boolean -- rekebisho kamili la #295). Suluhisho
+// hapa: (1) ongeza ukubwa (mara 64), (2) ukaguzi wa kufurika sasa
+// unasimamisha ukusanyaji (exit 1) badala ya kuendelea kimya.
 n32 kazi_idadi = 0;
 n8 kazi_jina_pool[131072];
 n32 kazi_jina_pool_wapi = 1;
-n32 kazi_jina_off[1024];
-n32 kazi_param_count[1024];
+n32 kazi_jina_off[65536];
+n32 kazi_param_count[65536];
 
 // Jedwali la aina za kurudi kwa kazi — linajazwa wakati wa usajili
 n32 kazi_ret_idadi = 0;
 n8 kazi_ret_pool[8192];
 n32 kazi_ret_pool_wapi = 1;
-n32 kazi_ret_jina_off[1024];
-n32 kazi_ret_aina[1024];
+n32 kazi_ret_jina_off[65536];
+n32 kazi_ret_aina[65536];
 
 // Hifadhi za aina za vigezo kwa ukaguzi wa hoja za mwito
-n32 kazi_param_enc[4096];  // aina za vigezo bapa
+//
+// lugha-swa/swa#295 -- hii ni jedwali BAPA la aina za PARAMU ZOTE
+// za KAZI ZOTE ZIMEUNGANISHWA (si idadi ya kazi, ni jumla ya
+// paramu -- kazi 1136 zenye wastani wa paramu 2-4 kila moja
+// zinakaribia au kuzidi 4096 kwa urahisi; ukubwa huu HAUKUBADILISHWA
+// pale kazi_idadi/kazi_ret_idadi zilipoongezwa (1024->65536) hapo
+// juu, ukibaki kama "landmine" inayofuata ya aina ile ile (#295
+// ilifichwa na #292 kwa muda; hii ingeweza kufichwa na #295).
+// Ukaguzi wa kufurika uliopo tayari (chini) ULIKUWA ukiongeza
+// mkaguzi_makosa TU (bila kusimamisha) -- sasa unasimamisha
+// ukusanyaji (exit 1), sawa na muundo wa kazi_idadi/kazi_ret_idadi
+// ulio juu kwenye kazi hii hii.
+n32 kazi_param_enc[262144];  // aina za vigezo bapa
 n32 kazi_param_enc_wapi = 0;  // nafasi ya sasa katika kazi_param_enc
-n32 kazi_param_start[1024];  // fahirisi ya mwanzo wa vigezo kwa kila kazi
+n32 kazi_param_start[65536];  // fahirisi ya mwanzo wa vigezo kwa kila kazi
 
 w0 mkaguzi_sajili_kazi(n32 kazi_node) {
-    kama (kazi_idadi >= 1024) { rudisha; }
+    kama (kazi_idadi >= 65536) {
+        andika_stderr("kosa: jedwali la usajili wa kazi (kazi_idadi) limejaa (kikomo 65536) — mradi una kazi nyingi mno\n");
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
     n32 name_node = ast_kushoto[kazi_node];
     n8* jina = ast_pool + ast_jina_off[name_node];
     // Thibitisha aina ya kurudi (kama ni muundo, lazima iwe imetangazwa
@@ -376,12 +407,12 @@ w0 mkaguzi_sajili_kazi(n32 kazi_node) {
     n32 p = ast_kulia[kazi_node];
     wakati (p != -1) {
         mkaguzi_thibitisha_aina_ya_muundo(ast_thamani[p], jina);
-        kama (kazi_param_enc_wapi < 4096) {
+        kama (kazi_param_enc_wapi < 262144) {
             kazi_param_enc[kazi_param_enc_wapi] = ast_thamani[p];
             kazi_param_enc_wapi = kazi_param_enc_wapi + 1;
         } sivyo {
-            andika_stderr("kosa [%s]: jedwali la aina za hoja bapa (kazi_param_enc) limejaa (kikomo 4096) — mradi una hoja nyingi mno kwa jumla, kwenye kazi zote\n", jina);
-            mkaguzi_makosa = mkaguzi_makosa + 1;
+            andika_stderr("kosa [%s]: jedwali la aina za hoja bapa (kazi_param_enc) limejaa (kikomo 262144) — mradi una hoja nyingi mno kwa jumla, kwenye kazi zote\n", jina);
+            wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
         }
         pc = pc + 1;
         p = ast_kulia[p];
@@ -431,13 +462,16 @@ w0 mkaguzi_sajili_kazi(n32 kazi_node) {
     kazi_idadi = kazi_idadi + 1;
 
     // Pia sajili aina ya kurudi kwa ukaguzi wa matumizi ya wito
-    kama (kazi_ret_idadi < 1024) {
+    kama (kazi_ret_idadi < 65536) {
         kazi_ret_jina_off[kazi_ret_idadi] = off;
         kazi_ret_aina[kazi_ret_idadi] = ast_thamani[kazi_node];
         kazi_ret_idadi = kazi_ret_idadi + 1;
     } sivyo {
-        andika_stderr("kosa [%s]: jedwali la aina za kurudi za kazi (kazi_ret_idadi) limejaa (kikomo 1024) — mradi una kazi nyingi mno\n", jina);
-        mkaguzi_makosa = mkaguzi_makosa + 1;
+        // lugha-swa/swa#295 -- hii ilikuwa ikiongeza mkaguzi_makosa tu
+        // (bila kusimamisha mara moja), tofauti na jedwali dada
+        // kazi_idadi hapo juu -- sasa inasimamisha sawa sawa (exit 1).
+        andika_stderr("kosa [%s]: jedwali la aina za kurudi za kazi (kazi_ret_idadi) limejaa (kikomo 65536) — mradi una kazi nyingi mno\n", jina);
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
 }
 

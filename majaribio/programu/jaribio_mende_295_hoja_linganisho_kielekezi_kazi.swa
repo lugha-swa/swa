@@ -1,0 +1,83 @@
+// lugha-swa/swa#295 -- jaribio la kudumu dhidi ya chanzo HALISI cha
+// "anwani za string literal zinazochanganyikiwa na mtiririko wa
+// udhibiti" (dalili halisi iliyoripotiwa dhidi ya Dominion
+// mchezo.swa, kazi 1136): AST_SAWA..AST_JUU_SAWA (20-25, ulinganishi
+// == != < > <= >=) hupitishwa kupitia mantiki ile ile ya
+// "kupandisha aina" (type promotion) inayotumika na HESABU (+ - * /)
+// kwenye mkaguzi_kagua_usemi() (mkaguzi.swa) -- ast_thamani ya nodi
+// ya ulinganishi inaishia kuwa aina ya OPERANDI zilizolinganishwa
+// (k.m. d64 ikiwa operandi zote mbili ni d64), SI B1/boolean (1025)
+// kama inavyopaswa kuwa (matokeo ya ulinganishi NI DAIMA 0/1,
+// haijalishi aina za operandi). uzalishaji.swa's aina_ya_usemi()
+// tayari inajua hili (ina ubaguzi: 20<=aina<=25 -> rudisha 1025) --
+// LAKINI ukusanyaji wa hoja za wito (uzalishaji_wito, hoja_enc[...] =
+// ast_thamani[a] moja kwa moja) ulikuwa ukisoma ast_thamani GHAFI,
+// ukipitisha aina_ya_usemi(). Kwa KAWAIDA hitilafu hii ilikuwa
+// ikifichwa na mkaguzi_tafuta_param_enc() (inayobadilisha aina ya
+// hoja na aina HALISI iliyotangazwa ya parameta ya kazi iliyoitwa) --
+// LAKINI override hiyo HAIFANYIKI kwa wito kupitia KIELEKEZI CHA
+// KAZI (jina la kigezo, si jina la kazi iliyosajiliwa -- angalia
+// jaribio_kazi_kielekezi_d64.swa kwa muundo huu halali, uliopo
+// tayari) WALA kwa kazi ambazo hazijasajiliwa kabisa (angalia
+// rekebisho pacha kwenye mkaguzi.swa: kazi_idadi[1024] ilikuwa
+// ikiacha usajili KIMYA mara idadi ya JUMLA ya kazi kwenye programu
+// ilipovuka 1024 -- hii ndiyo hasa iliyotokea kwenye Dominion's
+// mchezo.swa, ikifichua hitilafu hii YA PILI).
+//
+// Matokeo ya mdudu: hoja ya BOOLEAN (matokeo ya ulinganishi la d64)
+// ilichukuliwa kimakosa kama hoja ya d64, ikibadilishwa (cvtsi2sd)
+// kutoka eax kwenda xmm0 kabla ya wito -- ikiacha nafasi ya
+// kwanza ya rejesta za integer (RDI) bila kujazwa ipasavyo, ikisukuma
+// hoja ya PILI (kielekezi cha mfuatano) kuingia RDI badala ya RSI,
+// RSI ikibaki na thamani ya ZAMANI isiyohusiana kutoka mahali
+// pengine kwenye msimbo -- hii ndiyo "anwani za string literal
+// zinazochanganyikiwa" ya #295 (thibitisho linaloandika "PASS: B"
+// badala ya maandishi sahihi, "B" ikiwa mfuatano mwingine
+// uliotumika KATIKA WITO ULIOTANGULIA).
+//
+// Jaribio hili huzalisha upya kwa KUSUDI LA MAKUSUDI kupitia wito wa
+// KIELEKEZI CHA KAZI (k(...), si jina la kazi moja kwa moja) --
+// hii inahakikisha mkaguzi_tafuta_param_enc() HAIPATI usajili (jina
+// la kigezo "k" si jina la kazi), ikiwasha hitilafu HII HASA bila
+// kuhitaji kazi 1024+ kujaza usajili (ambayo ingefanya jaribio hili
+// kuwa zito mno kwa CI). Thibitisho: kazi inayolengwa (iliyoitwa
+// kupitia kielekezi) huhifadhi hoja zake ZOTE mbili (sharti, jina)
+// kwenye vigezo vya ulimwengu kwa ukaguzi wa moja kwa moja (si
+// kutegemea kuchapisha/kusoma stdout) -- sharti (matokeo ya x==y,
+// x na y zote d64 1.5) lazima iwe 1, na jina lazima lielekeze kwa
+// "JIBU_SAHIHI_LA_KIPEKEE" (herufi ya kwanza 'J'=74), SI kwa
+// "nanga_isiyohusiana" iliyotangazwa kabla yake kwenye chanzo
+// (ambayo ingekuwa 'H'=72 ikiwa hitilafu hii imerudi).
+//
+// Msimbo wa kutoka = idadi ya ukaguzi uliopotoshwa (0 = sahihi
+// kabisa). Kabla ya rekebisho hili: 2 (sharti na jina zote mbili
+// zimepotoshwa). Baada ya rekebisho: 0.
+//
+// stage1 pekee (mbegu haina mkaguzi_tafuta_param_enc/aina_ya_usemi
+// kama ilivyo kwenye uzalishaji.swa -- mkusanyaji wa kujikusanya
+// pekee ndiye mwenye hitilafu hii).
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+n32 kosa = 0;
+n32 kipokee_sharti = -999;
+n8* kipokee_jina = 0;
+
+w0 thibitisha_kigezo(n32 sharti, n8* jina) {
+    kipokee_sharti = sharti;
+    kipokee_jina = jina;
+}
+
+n32 main() {
+    d64 x = 1.5;
+    d64 y = 1.5;
+    n8* k = &thibitisha_kigezo;
+    n8* nanga_isiyohusiana = "HII_SIO_JIBU_SAHIHI";
+    n8* jina_sahihi = "JIBU_SAHIHI_LA_KIPEKEE";
+    k(x == y, jina_sahihi);
+    kama (kipokee_sharti != 1) { kosa = kosa + 1; }
+    kama (kipokee_jina == 0) { kosa = kosa + 1; }
+    sivyo {
+        kama (kipokee_jina[0] != 74) { kosa = kosa + 1; }
+    }
+    rudisha kosa;
+}
