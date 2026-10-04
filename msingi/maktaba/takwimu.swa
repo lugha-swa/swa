@@ -1,0 +1,295 @@
+husisha { maktaba/kumbukumbu.swa }
+husisha { maktaba/hesabu.swa }
+husisha { maktaba/mpangilio.swa }
+
+// takwimu.swa — Takwimu (statistics)
+//
+// Hutoa: jenereta sahihi ya nambari nasibu (PRNG), sampuli ya
+// usambazaji wa kawaida (Gaussian), na takwimu za maelezo (wastani,
+// tofauti, mkengeuko wa kawaida, kati, kiwango) pamoja na mgawo wa
+// uhusiano wa Pearson.
+//
+// MUHIMU — kwa nini PRNG hii SI xorshift/splitmix/PCG ya kawaida
+// (&, |, ^, >>, << kwenye hali ya n64):
+//
+// mbegu (mzizi wa bootstrap, msingi/mbegu.s) ina historia ndefu ya
+// hitilafu ya & na >> kwenye n64 -- angalia maoni yaliyorudiwa
+// kote kwenye msingi/mkusanyaji/{uzalishaji,msambazaji,mkaguzi}.swa
+// ("mbegu ina hitilafu katika & na >>"), hasa uzalishaji.swa:9328
+// ("mbegu ina hitilafu katika & na >> za n64 (zinakata kwa biti
+// 32)"). mbegu ni mzizi wa uaminifu uliogandishwa kabisa (CONTRIBUTING.md,
+// "Sheria ya Mzizi wa Uaminifu") -- HAIBADILIKI KAMWE, hivyo hitilafu
+// yoyote ndani yake ni ya KUDUMU bila kujali ni mchanganyiko gani
+// hasa wa usimbaji unaoisababisha. Jaribio la pekee (nje ya hazina
+// hii) lilithibitisha kesi kadhaa rahisi za & na >> za n64 hasi
+// zikifanya kazi sahihi kwenye mbegu.bin ya sasa -- lakini hilo
+// HALITHIBITISHI kutokuwepo kwa hitilafu kwenye maumbo mengine ya
+// msimbo (register allocation tofauti, idadi ya vigezo hai, n.k.)
+// ambayo PRNG halisi ya xorshift/splitmix (iliyo na >> kadhaa kwa
+// kiasi tofauti, pamoja na ^) ingegusa. Hatari haifai: PRNG hii
+// itatumiwa na programu nyingi za baadaye ambazo hazitajua kama
+// matokeo yake ni sahihi.
+//
+// Uamuzi: jenereta ya LCG ya familia ya PCG (64-bit), kwa kutumia
+// * na + PEKEE (hesabu ya kawaida ya kukamilishana-mbili ya kuzidisha
+// na kuongeza inajizungusha sahihi bila kujali ishara -- operesheni
+// hizi mbili pekee ndizo zinazotumika sana na kujaribiwa kote kwenye
+// mradi huu kwa n64, tofauti na & na >>). Vigezo (multiplier
+// 6364136223846793005, increment 1442695040888963407) ni vile vile
+// vinavyotumika KWENYE JARIBIO LILILOPO LA MRADI HUU
+// (majaribio/programu/jaribio_gawanyo_n64_uchawi.swa) kama chanzo
+// cha thamani nasibu za kujaribu uchawi wa mgawanyo -- jaribio hilo
+// tayari linathibitisha kwamba fomula hii hasa (hali = hali * M + I)
+// inakusanywa na kuendeshwa SAHIHI kupitia mbegu.bin --exe (na
+// stage1 --exe), kwenye mnyororo huu wa majaribio (jaribu-mnyororo.sh).
+//
+// a64/a32 (familia isiyo na ishara) HAIKUTUMIKA hapa: mbegu bado
+// haitambui familia A/B/D32 kwa hali yoyote (hati/hali-ya-lugha.md),
+// na jaribio la pekee la `a64 x = 5;` chini ya mbegu.bin --exe
+// lilishindwa kukusanywa (toka si 0) -- moduli hii inahitajika
+// ifanye kazi kupitia mbegu NA stage1, kwa hiyo a64 haiwezi
+// kutumika kwa chochote kinachoshirikiwa.
+
+n64 takwimu_hali = 88172645463325252;
+
+n64 TAKWIMU_LCG_M = 6364136223846793005;
+n64 TAKWIMU_LCG_I = 1442695040888963407;
+
+// Weka mbegu ya jenereta. mbegu == 0 hubadilishwa kwa thamani
+// chaguo-msingi isiyo sifuri (hali ya sifuri bado ingefanya kazi kwa
+// LCG hii kwa sababu ya increment isiyo sifuri, lakini kuepuka hali
+// inayojulikana kwa makusudi ni salama zaidi na haina gharama).
+w0 takwimu_panda(n64 mbegu) {
+    kama (mbegu == 0) {
+        takwimu_hali = 88172645463325252;
+        rudisha;
+    }
+    takwimu_hali = mbegu;
+}
+
+// Hatua moja ya LCG, inarudisha hali nzima ya n64 kama matokeo ghafi
+// (hasi au chanya -- kipengele chote cha 64-bit kinatumika).
+n64 takwimu_nasibu_n64() {
+    takwimu_hali = takwimu_hali * TAKWIMU_LCG_M + TAKWIMU_LCG_I;
+    rudisha takwimu_hali;
+}
+
+// Nambari kamili nasibu sawasawa (uniform) ndani ya [chini, juu]
+// (pande zote mbili zimejumuishwa). Kama chini > juu, zinabadilishwa.
+n64 takwimu_nasibu_kati(n64 chini, n64 juu) {
+    n64 lo = hesabu_dogo(chini, juu);
+    n64 hi = hesabu_kubwa(chini, juu);
+    n64 span = hi - lo;
+    n64 idadi_thamani = span + 1;
+    // Kingo: masafa yanayofunika karibu/zaidi ya 2^64 huzunguka kuwa
+    // <= 0 (overflow ya n64). Katika hali hiyo (nadra sana kwa matumizi
+    // halisi), rudisha thamani ghafi moja kwa moja -- inashughulikia
+    // tayari karibu kila thamani inayowezekana ya [chini, juu].
+    kama (idadi_thamani <= 0) {
+        rudisha takwimu_nasibu_n64();
+    }
+    n64 ghafi = takwimu_nasibu_n64();
+    n64 m = ghafi % idadi_thamani;
+    kama (m < 0) {
+        m = m + idadi_thamani;
+    }
+    rudisha lo + m;
+}
+
+// d64 sawasawa (uniform) ndani ya [0.0, 1.0). Inatumia 2^53 (idadi
+// ya thamani kamili inayoweza kuwakilishwa sahihi na d64 bila
+// kupoteza usahihi) kama kigawanyo.
+d64 takwimu_nasibu_d64() {
+    n64 M = 9007199254740992;  // 2^53
+    n64 r = takwimu_nasibu_kati(0, M - 1);
+    d64 rd = r;
+    d64 Md = M;
+    rudisha rd / Md;
+}
+
+// Sampuli moja ya usambazaji wa kawaida (Gaussian/normal) kwa
+// mbinu ya Box-Muller (fomu ya msingi, si ya polar). wastani =
+// mean (mu), mkengeuko = stddev (sigma). Hutumia sin/log/sqrt
+// kutoka hesabu.swa (hazijajengwa upya hapa).
+d64 takwimu_nasibu_kawaida(d64 wastani, d64 mkengeuko) {
+    d64 u1 = takwimu_nasibu_d64();
+    // u1 == 0.0 ingesababisha log(0) -- nafasi ni ~1/2^53, lakini
+    // kinga ni ya bei nafuu.
+    wakati (u1 <= 0.0) {
+        u1 = takwimu_nasibu_d64();
+    }
+    d64 u2 = takwimu_nasibu_d64();
+
+    d64 r = mzizi_hesabu(0.0 - 2.0 * logasili_hesabu(u1));
+    d64 pi2 = 2.0 * pi_hesabu();
+    d64 theta = pi2 * u2;
+    d64 z0 = r * cos_hesabu(theta);
+
+    rudisha wastani + mkengeuko * z0;
+}
+
+// ==========================================================
+// Takwimu za maelezo juu ya safu ya d64
+//
+// MUHIMU — kazi zote hapa chini (hoja ya d64*) ni STAGE1 PEKEE
+// kwenye majaribio ya kudumu (jaribio_takwimu_maelezo.swa), SI mbegu:
+// jaribio la pekee wakati wa kuandika moduli hii lilithibitisha
+// kwamba kazi YOYOTE inayopokea d64* kama HOJA (hata moja rahisi
+// isiyo na kitanzi, data[0]+data[1] pekee) husababisha SIGSEGV
+// inapoendeshwa na programu iliyokusanywa na mbegu.bin --exe (ingawa
+// mbegu YENYEWE inakusanya chanzo hicho bila kulalamika -- hitilafu
+// ni ya WAKATI WA KUKIMBIA, si ya ukusanyaji). Hii SI hitilafu mpya
+// -- ni kikomo kile kile kinachoonekana kwenye majaribio matatu
+// yaliyopo tayari kabla ya moduli hii (jaribio_kiwanja_bila_rafu.swa
+// kazi "jozi", jaribio_pande_mbili_desimali.swa kazi "jozi_mbili",
+// na jaribio_safu_sib.swa kazi "t_paramu" -- zote tatu zina d64*
+// kwenye hoja na zote tatu zimewekwa alama "stage1 pekee" kwenye
+// MANIFEST.txt). Kazi zenye hoja ya n32*/n64* (mfano pangilia_n32,
+// pangilia_n64) HAZINA tatizo hili kabisa -- ni maalum kwa d64*
+// (na uwezekano D32*, haijathibitishwa). Kwa hiyo PRNG/Gaussian
+// (hapo juu, hoja/kurudisha n64/d64 TU, hakuna kielekezi) hufanya
+// kazi sahihi kwenye mbegu NA stage1, lakini takwimu za maelezo na
+// uhusiano (hapa chini, d64* kwenye hoja) ni stage1 pekee. Programu
+// halisi zinazotumia moduli hii (kupitia msuluhishi + stage1, kama
+// kawaida ya mradi) hazigusiwi na hili -- ni mbegu TU (mzizi wa
+// bootstrap) usiofaa kwa kazi hizi hasa.
+// ==========================================================
+
+// Wastani (mean) wa safu ya d64. Safu tupu/batili hurudisha 0.0.
+d64 takwimu_wastani(d64* data, n32 idadi) {
+    kama (idadi <= 0) {
+        rudisha 0.0;
+    }
+    d64 jumla = 0.0;
+    n32 i = 0;
+    wakati (i < idadi) {
+        jumla = jumla + data[i];
+        i = i + 1;
+    }
+    d64 idadi_d = idadi;
+    rudisha jumla / idadi_d;
+}
+
+// Tofauti (variance) ya WATU WOTE (population variance -- kugawa
+// kwa idadi, SI idadi-1) ya safu ya d64. Safu tupu/batili hurudisha
+// 0.0.
+d64 takwimu_tofauti(d64* data, n32 idadi) {
+    kama (idadi <= 0) {
+        rudisha 0.0;
+    }
+    d64 wastani = takwimu_wastani(data, idadi);
+    d64 jumla = 0.0;
+    n32 i = 0;
+    wakati (i < idadi) {
+        d64 tofauti = data[i] - wastani;
+        jumla = jumla + tofauti * tofauti;
+        i = i + 1;
+    }
+    d64 idadi_d = idadi;
+    rudisha jumla / idadi_d;
+}
+
+// Mkengeuko wa kawaida (standard deviation) wa safu ya d64.
+d64 takwimu_mkengeuko_wa_kawaida(d64* data, n32 idadi) {
+    rudisha mzizi_hesabu(takwimu_tofauti(data, idadi));
+}
+
+// Kati (median) ya safu ya d64. HAIBADILISHI safu ya asili (inatengeneza
+// nakala ya ndani kisha kuipanga) -- tofauti na pangilia_d64 ambayo
+// hupanga mahali pake. Safu tupu/batili hurudisha 0.0.
+d64 takwimu_kati(d64* data, n32 idadi) {
+    kama (idadi <= 0) {
+        rudisha 0.0;
+    }
+    d64* nakala = tenga(ukubwa(d64) * idadi);
+    n32 i = 0;
+    wakati (i < idadi) {
+        nakala[i] = data[i];
+        i = i + 1;
+    }
+    pangilia_d64(nakala, idadi);
+
+    d64 matokeo = 0.0;
+    kama ((idadi / 2) * 2 != idadi) {
+        // idadi isiyo hata (odd): kipengele cha kati HASA.
+        matokeo = nakala[idadi / 2];
+    } sivyo {
+        // idadi hata (even): wastani wa viwili vya kati.
+        d64 a = nakala[idadi / 2 - 1];
+        d64 b = nakala[idadi / 2];
+        matokeo = (a + b) / 2.0;
+    }
+
+    achilia_arena(nakala);
+    rudisha matokeo;
+}
+
+// Thamani ndogo kabisa (minimum) ya safu ya d64. Safu tupu/batili
+// hurudisha 0.0.
+d64 takwimu_dogo(d64* data, n32 idadi) {
+    kama (idadi <= 0) {
+        rudisha 0.0;
+    }
+    d64 m = data[0];
+    n32 i = 1;
+    wakati (i < idadi) {
+        kama (data[i] < m) {
+            m = data[i];
+        }
+        i = i + 1;
+    }
+    rudisha m;
+}
+
+// Thamani kubwa kabisa (maximum) ya safu ya d64. Safu tupu/batili
+// hurudisha 0.0.
+d64 takwimu_kubwa(d64* data, n32 idadi) {
+    kama (idadi <= 0) {
+        rudisha 0.0;
+    }
+    d64 m = data[0];
+    n32 i = 1;
+    wakati (i < idadi) {
+        kama (data[i] > m) {
+            m = data[i];
+        }
+        i = i + 1;
+    }
+    rudisha m;
+}
+
+// ==========================================================
+// Mgawo wa uhusiano wa Pearson (Pearson correlation coefficient)
+// ==========================================================
+
+// Mgawo wa uhusiano wa Pearson (r) kati ya safu mbili za d64 zenye
+// urefu sawa (idadi). r iko kati ya -1.0 (uhusiano kamili hasi) na
+// 1.0 (uhusiano kamili chanya); 0.0 ni kutokuwepo kwa uhusiano wa
+// mstari. Safu tupu/batili au tofauti == 0 (hakuna mtawanyiko)
+// hurudisha 0.0.
+d64 takwimu_uhusiano(d64* x, d64* y, n32 idadi) {
+    kama (idadi <= 0) {
+        rudisha 0.0;
+    }
+    d64 wastani_x = takwimu_wastani(x, idadi);
+    d64 wastani_y = takwimu_wastani(y, idadi);
+
+    d64 jumla_xy = 0.0;
+    d64 jumla_xx = 0.0;
+    d64 jumla_yy = 0.0;
+    n32 i = 0;
+    wakati (i < idadi) {
+        d64 dx = x[i] - wastani_x;
+        d64 dy = y[i] - wastani_y;
+        jumla_xy = jumla_xy + dx * dy;
+        jumla_xx = jumla_xx + dx * dx;
+        jumla_yy = jumla_yy + dy * dy;
+        i = i + 1;
+    }
+
+    kama (jumla_xx <= 0.0 || jumla_yy <= 0.0) {
+        rudisha 0.0;
+    }
+
+    rudisha jumla_xy / mzizi_hesabu(jumla_xx * jumla_yy);
+}
