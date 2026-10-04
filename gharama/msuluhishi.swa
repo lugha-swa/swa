@@ -25,8 +25,12 @@ husisha { faili.swa }
 // ==========================================================
 
 // Bafa za kazi — za kudumu (hakuna tenga; pato ni la uhakika)
-n8 bafa_kuu[1048576];  // chanzo kikuu (hoja ya kwanza au kituo cha kuingiza)
-n8 bafa_chanzo[1048576];  // chanzo cha faili linalotatuliwa sasa
+// Ukubwa 16777216 (16MB) unafuata kiolezo kilichopo tayari cha
+// ast_pool (msambazaji.swa) -- LAZIMA usogee pamoja na bafa
+// zinazofanana kwenye stage1.swa, vinginevyo msuluhishi hutoa
+// chanzo kikubwa zaidi ya uwezo wa stage1 kukisoma.
+n8 bafa_kuu[16777216];  // chanzo kikuu (hoja ya kwanza au kituo cha kuingiza)
+n8 bafa_chanzo[16777216];  // chanzo cha faili linalotatuliwa sasa
 n8 bafa_pato[4194304];  // pato la mwisho
 n32 pato_urefu = 0;
 
@@ -214,13 +218,13 @@ w0 tatua(n8* jina) {
         rudisha;
     }
     // Soma faili lote
-    n64 urefu = faili_soma_yote(njia_buf, bafa_chanzo, 1048576);
+    n64 urefu = faili_soma_yote(njia_buf, bafa_chanzo, 16777216);
     kama (urefu < 0) {
         andika_stderr("; KOSA: faili halisomeki: %s\n", njia_buf);
         kosa = 1;
         rudisha;
     }
-    kama (urefu >= 1048575) {
+    kama (urefu >= 16777215) {
         andika_stderr("; KOSA: faili ni kubwa mno kwa msuluhishi: %s\n", njia_buf);
         kosa = 1;
         rudisha;
@@ -263,7 +267,7 @@ w0 changanua(n8* b, n64 urefu, n32 ni_kuu) {
                     // bafa ya chanzo imeharibiwa — isome upya njia
                     // ya sasa (juu ya rafu)
                     n8* njia_sasa = majina + rafu[rafu_kiasi - 1] * KIPANDE;
-                    n64 m2 = faili_soma_yote(njia_sasa, bafa_chanzo, 1048576);
+                    n64 m2 = faili_soma_yote(njia_sasa, bafa_chanzo, 16777216);
                     kama (m2 != urefu) {
                         andika_stderr("; KOSA: faili lilibadilika wakati wa kutatua: %s\n", njia_sasa);
                         kosa = 1;
@@ -282,12 +286,12 @@ n32 main(n32 argc, n8** argv) {
     kama (argc > 1) {
         // Chanzo kikuu kutoka kwa faili
         n8* njia_kuu = argv[1];
-        urefu = faili_soma_yote(njia_kuu, bafa_kuu, 1048576);
+        urefu = faili_soma_yote(njia_kuu, bafa_kuu, 16777216);
         kama (urefu < 0) {
             andika_stderr("; KOSA: faili la chanzo halifunguki: %s\n", njia_kuu);
             rudisha 1;
         }
-        kama (urefu >= 1048575) {
+        kama (urefu >= 16777215) {
             andika_stderr("; KOSA: faili la chanzo ni kubwa mno: %s\n", njia_kuu);
             rudisha 1;
         }
@@ -300,11 +304,11 @@ n32 main(n32 argc, n8** argv) {
     } sivyo {
         // Chanzo kikuu kutoka kituo cha kuingiza
         wakati (1 == 1) {
-            kama (urefu >= 1048575) {
+            kama (urefu >= 16777215) {
                 andika_stderr("; KOSA: chanzo kutoka kituo cha kuingiza ni kikubwa mno\n");
                 rudisha 1;
             }
-            n64 r = sys_soma(0, bafa_kuu + urefu, 1048575 - urefu);
+            n64 r = sys_soma(0, bafa_kuu + urefu, 16777215 - urefu);
             kama (r <= 0) { vunja; }
             urefu = urefu + r;
         }
