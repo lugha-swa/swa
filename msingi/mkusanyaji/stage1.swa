@@ -35,11 +35,15 @@ husisha { mkusanyaji/uzalishaji_wasm.swa }
 // hiyo faili linasomwa upya baada ya kila kujirudia.
 // bafa_ukaguzi ni bafa ya ziada kwa ukaguzi wa "maudhui
 // yapo tayari kwenye towe".
-n8 chanzo_buf[1048576];
+// Ukubwa 16777216 (16MB) unafuata kiolezo kilichopo tayari cha
+// ast_pool (msambazaji.swa) -- miradi mikubwa (k.m. Dominion's
+// mchezo.swa, iliyotatuliwa kikamilifu) ilikuwa inagonga kikomo
+// cha zamani cha 1048576 (1MB).
+n8 chanzo_buf[16777216];
 n32 chanzo_urefu = 0;
-n8 bafa_kuu[1048576];
-n8 bafa_chanzo[1048576];
-n8 bafa_ukaguzi[1048576];
+n8 bafa_kuu[16777216];
+n8 bafa_chanzo[16777216];
+n8 bafa_ukaguzi[16777216];
 
 // Hifadhi ya majina — safu bapa ya vipande (njia kamili + NUL).
 // rafu ni kwa kutambua mizunguko; zilizotatuliwa ni kwa
@@ -68,20 +72,41 @@ n32 faili_ipo_swa(n8* njia) {
 
 // soma_faili — soma faili lote hadi bafa (lenye NUL mwishoni).
 // Rudisha urefu, au -1 kama halifunguki. Kikomo: upeo - 1.
+//
+// Kabla ya kusoma, ukubwa HALISI wa faili unatambuliwa kwa
+// lseek(fd, 0, SEEK_END) -- kama ukubwa huo hauingii kwenye bafa
+// (ukubwa + 1 > upeo), kazi inarudisha -1 MARA MOJA bila kusoma
+// chochote; mwito (tatua_husisha n.k.) tayari unalia kwa sauti na
+// kusimamisha ukusanyaji (kosa=1) pale soma_faili inaporudisha -1.
+// Baada ya kusoma, idadi ya baiti zilizopatikana ililinganishwa na
+// ukubwa uliotarajiwa -- usomaji wa sehemu tu (kwa sababu yoyote)
+// pia unarudisha -1 badala ya kuendelea na maudhui yaliyokatwa
+// kimya (aina ile ile ya mdudu uliorekebishwa #189/#197/#199/#200/
+// #292/#295/#298 -- bafa yenye ukubwa dhahiri lazima isimamishe
+// kazi kwa uwazi inapojaa/kukatika, si kuendelea kimya).
 n64 soma_faili(n8* njia, n8* bafa, n64 upeo) {
     n64 f = sys_fungua(njia, 0, 0);
     kama (f < 0) {
         rudisha -1;
     }
-    n64 n = sys_soma(f, bafa, upeo - 1);
+    n64 ukubwa = sys_lseek(f, 0, 2);  // SEEK_END — ukubwa halisi wa faili
+    kama (ukubwa < 0 || ukubwa + 1 > upeo) {
+        sys_funga(f);
+        rudisha -1;  // kikubwa mno (au lseek imeshindwa) — usiendelee kimya
+    }
+    sys_lseek(f, 0, 0);  // SEEK_SET — rudi mwanzo kabla ya kusoma
+    n64 n = sys_soma(f, bafa, ukubwa);
     sys_funga(f);
+    kama (n != ukubwa) {
+        rudisha -1;  // usomaji wa sehemu tu — usiendelee kimya
+    }
     bafa[n] = 0;
     rudisha n;
 }
 
 // ongeza_chanzo — ongeza baiti kwenye pato la mwisho (chanzo_buf)
 n32 ongeza_chanzo(n8* data, n64 urefu) {
-    kama (chanzo_urefu + urefu > 1048576) {
+    kama (chanzo_urefu + urefu > 16777216) {
         andika_stderr("; KOSA: chanzo cha mkusanyaji ni kikubwa mno\n");
         kosa = 1;
         rudisha -1;
@@ -245,11 +270,11 @@ n32 maudhui_yapo(n8* jina, n8* b, n64 p, n64 urefu) {
     kama (pata_njia(jina) == 0) {
         rudisha 0;
     }
-    n64 L = soma_faili(njia_buf, bafa_ukaguzi, 1048576);
+    n64 L = soma_faili(njia_buf, bafa_ukaguzi, 16777216);
     kama (L < 0) {
         rudisha 0;
     }
-    kama (L >= 1048575) {
+    kama (L >= 16777215) {
         rudisha 0;  // kikubwa mno — tatua_husisha litalia kwa sauti
     }
     // Kilichosalia cha mkondo wa sasa kinafaili hili (bila
@@ -385,13 +410,13 @@ w0 tatua_husisha(n8* jina) {
         rudisha;
     }
     // Soma faili lote
-    n64 urefu = soma_faili(njia_buf, bafa_chanzo, 1048576);
+    n64 urefu = soma_faili(njia_buf, bafa_chanzo, 16777216);
     kama (urefu < 0) {
         andika_stderr("; KOSA: faili halisomeki: %s\n", njia_buf);
         kosa = 1;
         rudisha;
     }
-    kama (urefu >= 1048575) {
+    kama (urefu >= 16777215) {
         andika_stderr("; KOSA: faili ni kubwa mno kwa mkusanyaji: %s\n", njia_buf);
         kosa = 1;
         rudisha;
@@ -438,7 +463,7 @@ w0 changanua_husisha(n8* b, n64 urefu, n32 ni_kuu) {
                         // bafa_chanzo imeharibiwa — isome upya njia
                         // ya sasa (juu ya rafu)
                         n8* njia_sasa = majina_husisha + rafu_husisha[rafu_kiasi - 1] * KIPANDE;
-                        n64 m2 = soma_faili(njia_sasa, bafa_chanzo, 1048576);
+                        n64 m2 = soma_faili(njia_sasa, bafa_chanzo, 16777216);
                         kama (m2 != urefu) {
                             andika_stderr("; KOSA: faili lilibadilika wakati wa kutatua: %s\n", njia_sasa);
                             kosa = 1;
@@ -501,12 +526,12 @@ n32 main(n32 argc, n8** argv) {
     }
 
     kama (faili_idx < argc) {
-        n64 n = soma_faili(argv[faili_idx], bafa_kuu, 1048576);
+        n64 n = soma_faili(argv[faili_idx], bafa_kuu, 16777216);
         kama (n < 0) {
             andika_stderr("; KOSA: faili la chanzo halifunguki: %s\n", argv[faili_idx]);
             rudisha 1;
         }
-        kama (n >= 1048575) {
+        kama (n >= 16777215) {
             andika_stderr("; KOSA: faili la chanzo ni kubwa mno: %s\n", argv[faili_idx]);
             rudisha 1;
         }
