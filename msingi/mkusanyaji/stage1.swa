@@ -622,5 +622,30 @@ n32 main(n32 argc, n8** argv) {
                 uzalishaji_kuu(mzizi, 2);
             } sivyo { uzalishaji_kuu(mzizi, ni_exe); } } }
 
+    // Wavu wa usalama wa PILI (ule wa kwanza na wa KWELI uko ndani ya
+    // uzalishaji_kuu yenyewe, mara moja kabla ya "4. Toa ELF kwa
+    // stdout" -- hutoka kabisa kupitia wito_wa_mfumo(60,1,...) KABLA
+    // ya baiti yoyote kuandikwa, kwa hali_exe zote (exe, --kernel, .o),
+    // hivyo kwa kawaida haifikiki hapa). Hii hapa inashughulikia --jit
+    // (uzalishaji_jit ina ukaguzi wake wa ndani kabla ya tekeleza(),
+    // lakini hiyo inarudi kimya -- rudisha; -- badala ya kuashiria
+    // mchakato, hivyo ukaguzi huu unahakikisha msimbo wa kutoka wa
+    // MCHAKATO MZIMA pia ni sahihi) na kama ulinzi wa ziada endapo
+    // njia nyingine ya uzalishaji itaongezwa baadaye bila kupitia
+    // ukaguzi wa ndani wa uzalishaji_kuu. text_imefurika (uzalishaji.swa)
+    // inawekwa 1 na andika_baiti() kama bafa_text imefurika, na pia na
+    // ukaguzi mwingine wa ndani unaotumia bendera ile ile kama ishara
+    // ya jumla ya "uzalishaji wa msimbo umeshindwa kimya" (mfano
+    // vigezo vya ndani vimezidi 64, undani wa kitanzi umezidi 16).
+    // Zamani bendera hii iliandikwa lakini HAIJAWAHI kusomwa mahali
+    // popote -- mkusanyaji ulitoka kwa msimbo 0 (mafanikio ya uwongo)
+    // ukiwa ametoa ELF iliyokatika/kuharibika kimya kimya (ona
+    // uchunguzi wa Dominion jaribio_mchezo_kamili.swa uliogundua
+    // hitilafu hii baada ya #301).
+    kama (text_imefurika != 0) {
+        andika_stderr("KOSA: uzalishaji wa msimbo umefurika bafa ya ndani (bafa_text au jedwali linalohusiana) -- msimbo uliotolewa ni HARIBIKA, usiutumie\n");
+        rudisha 1;
+    }
+
     rudisha 0;
 }

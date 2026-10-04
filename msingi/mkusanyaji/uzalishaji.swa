@@ -12,7 +12,16 @@ husisha { mkusanyaji/msambazaji.swa }
 // hutoka moja kwa moja kwenye stdout.
 // -------------------------------------------------------
 
-n8 bafa_text[524288];
+// Ukubwa 16777216 (16MB) unafuata kiolezo kilichopo tayari cha
+// chanzo_buf/ast_pool/bafa_kuu/bafa_chanzo/bafa_ukaguzi (16MB -- #301):
+// bafa_text (msimbo wa mashine uliozalishwa) lazima ikue sanjari na
+// chanzo kinachoruhusiwa, kwa sababu programu kubwa (Dominion,
+// jaribio_mchezo_kamili.swa, mifumo 47) inaweza kuzalisha msimbo
+// zaidi ya mara kadhaa wa ukubwa wa chanzo chake. Kikomo cha zamani
+// cha 524288 (512KB) kilifurika kimya wakati wa kutatua mnyororo
+// kamili wa Dominion -- ona andika_baiti() na ukaguzi wa
+// text_imefurika mwishoni mwa stage1.swa::main().
+n8 bafa_text[16777216];
 n32 bafa_text_wapi = 0;
 n32 text_imefurika = 0;
 
@@ -81,7 +90,7 @@ w0 png_safisha() {
 
 w0 andika_baiti(n32 b) {
     kama (png_akiba_reg != -1) { png_safisha(); }
-    kama (bafa_text_wapi < 524288) {
+    kama (bafa_text_wapi < 16777216) {
         bafa_text[bafa_text_wapi] = b & 255;
         bafa_text_wapi = bafa_text_wapi + 1;
     } sivyo { kama (text_imefurika == 0) {
@@ -9754,6 +9763,25 @@ w0 uzalishaji_kuu(n32 mzizi, n32 hali_exe) {
         i = i + 1;
     }
 
+    // Ukaguzi wa mwisho KABLA ya kuamua kutoa ELF: text_imefurika
+    // inawekwa 1 na andika_baiti() kama bafa_text imefurika, na pia na
+    // ukaguzi mwingine wa ndani unaotumia bendera ile ile kama ishara
+    // ya jumla ya "uzalishaji wa msimbo umeshindwa kimya" (mfano
+    // vigezo vya ndani vimezidi 64, undani wa kitanzi umezidi 16).
+    // Zamani bendera hii iliandikwa lakini HAIJAWAHI kusomwa popote --
+    // ELF iliyokatika/kuharibika ilitolewa HADI stdout na mchakato
+    // ukitoka kwa msimbo 0 (mafanikio ya uwongo) -- ona uchunguzi wa
+    // Dominion jaribio_mchezo_kamili.swa uliogundua hitilafu hii baada
+    // ya #301. Kataa HAPA -- kabla ya kichwa/.text/.data kuanza
+    // kuandikwa (kioo cha jinsi ukaguzi wa "main haipo" hapa chini
+    // unavyolia kwa sauti NA kutoka kabla ya kuandika baiti yoyote) --
+    // ili HAKUNA faili lenye uharibifu litolewe kwa hali_exe YOYOTE
+    // (exe, --kernel, .o).
+    kama (text_imefurika != 0) {
+        andika_stderr("KOSA: uzalishaji wa msimbo umefurika bafa ya ndani (bafa_text au jedwali linalohusiana) -- sitatoa ELF iliyoharibika\n");
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+
     // 4. Toa ELF kwa stdout
     //    Kichwa → bafa (.text) → symtab → strtab → rela.text → shstrtab → vichwa
 
@@ -10070,6 +10098,19 @@ w0 uzalishaji_jit(n32 mzizi, n32 argc_jit, n8** argv_jit, n32 ofseti_jit) {
             wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
         }
         r = r + 1;
+    }
+
+    // Kama bafa_text (au jedwali lingine linaloshiriki bendera ile
+    // ile) imefurika wakati wa uzalishaji, msimbo uliotolewa hapo juu
+    // ni HARIBIKA -- usiutekeleze KAMWE (tofauti na njia ya exe, JIT
+    // haisubiri hadi stage1.swa::main() ikague bendera hii, kwa sababu
+    // tekeleza() hapa chini ingeruka moja kwa moja kwenye msimbo
+    // uliokatika). Toka kwa sauti badala ya kuendesha mzunguko
+    // usiojulikana.
+    kama (text_imefurika != 0) {
+        andika_stderr("KOSA: uzalishaji wa JIT umefurika bafa ya ndani -- msimbo ni HARIBIKA, sitaendesha\n");
+        sys_munmap(kumbukumbu, jumla);
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
 
     // Ita bafa ya JIT kupitia daraja la C (tekeleza) — mbegu haina
