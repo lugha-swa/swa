@@ -1,0 +1,237 @@
+// Jaribio la kudumu la takwimu.swa (lugha-swa/swa) -- takwimu za
+// maelezo (wastani/tofauti/mkengeuko/kati/dogo/kubwa) na mgawo wa
+// uhusiano wa Pearson. STAGE1 PEKEE: kazi zote hapa chini zina d64*
+// kwenye hoja -- hii inagongana na kikomo cha mbegu kilichogunduliwa
+// wakati wa kuandika jaribio hili (jaribio la pekee, nje ya hazina:
+// kazi rahisi kabisa yenye hoja MOJA ya d64* ikisoma data[0]+data[1]
+// pekee -- bila kitanzi, bila hoja ya pili -- ilisababisha SIGSEGV
+// kwenye mbegu.bin --exe, hali ile ile inayoonekana KWENYE JARIBIO
+// LILILOPO la mradi huu: jaribio_kiwanja_bila_rafu.swa (jozi),
+// jaribio_pande_mbili_desimali.swa (jozi_mbili), na
+// jaribio_safu_sib.swa (t_paramu) -- zote tatu zimewekwa alama
+// "stage1 pekee" kwenye MANIFEST.txt kwa sababu hii hii, kabla ya
+// jaribio hili kuandikwa. Kazi za n32*/n64* (mfano pangilia_n32)
+// HAZINA tatizo hili -- ni maalum kwa d64* (na uwezekano D32*).
+// Kinafuata mtindo wa jaribio_k10f_hesabu.swa: nakala ya moja kwa
+// moja ya kazi (si husisha).
+
+w0 nakili(n8* lengwa, n8* chanzo, n64 n) {
+    n64 i = 0;
+    wakati (i < n) { lengwa[i] = chanzo[i]; i = i + 1; }
+}
+
+n64 sys_mmap(n8* anwani, n64 urefu, n64 ulinzi, n64 bendera, n64 faili) {
+    rudisha wito_wa_mfumo(9, anwani, urefu, ulinzi, bendera, faili, 0);
+}
+
+n64 ukubwa(n32 aina) {
+    kama (aina == 1) { rudisha 1; }
+    kama (aina == 2) { rudisha 2; }
+    kama (aina == 3) { rudisha 4; }
+    kama (aina == 4) { rudisha 8; }
+    rudisha 8;
+}
+
+n8* arena_anwani = 0;
+n64 arena_nafasi = 0;
+n64 arena_ukubwa = 0;
+n64 ARENA_UKUBWA_MSINGI = 1048576;
+
+n8* tenga(n64 ukubwa) {
+    kama (ukubwa == 0) { ukubwa = 8; }
+    ukubwa = ukubwa + 8;
+    kama (arena_anwani == 0 || arena_nafasi + ukubwa > arena_ukubwa) {
+        n64 kipya_ukubwa = ARENA_UKUBWA_MSINGI;
+        kama (ukubwa > kipya_ukubwa) { kipya_ukubwa = ukubwa; }
+        n8* anwani_sifuri = 0;
+        n8* kipande_kipya = sys_mmap(anwani_sifuri, kipya_ukubwa, 3, 34, 0 - 1);
+        kama (kipande_kipya == 0 - 1) { rudisha 0; }
+        arena_anwani = kipande_kipya;
+        arena_nafasi = 0;
+        arena_ukubwa = kipya_ukubwa;
+    }
+    n8* r = arena_anwani + arena_nafasi;
+    n8* h = &ukubwa;
+    n32 bi = 0;
+    wakati (bi < 8) { r[bi] = h[bi]; bi = bi + 1; }
+    arena_nafasi = arena_nafasi + ukubwa;
+    rudisha r + 8;
+}
+
+w0 achilia_arena(n8* p) {
+}
+
+d64 mzizi_hesabu(d64 x) {
+    kama (x <= 0.0) { rudisha 0.0; }
+    d64 kisio = x;
+    kama (kisio < 1.0) { kisio = 1.0; }
+    n32 n = 0;
+    wakati (n < 25) { kisio = 0.5 * (kisio + x / kisio); n = n + 1; }
+    rudisha kisio;
+}
+
+w0 pangilia_d64(d64* arr, n32 idadi) {
+    kama (idadi <= 1) { rudisha; }
+    n32 i = 0;
+    wakati (i < idadi - 1) {
+        n32 j = 0;
+        wakati (j < idadi - i - 1) {
+            kama (arr[j] > arr[j + 1]) {
+                d64 tmp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = tmp;
+            }
+            j = j + 1;
+        }
+        i = i + 1;
+    }
+}
+
+d64 takwimu_wastani(d64* data, n32 idadi) {
+    kama (idadi <= 0) { rudisha 0.0; }
+    d64 jumla = 0.0;
+    n32 i = 0;
+    wakati (i < idadi) { jumla = jumla + data[i]; i = i + 1; }
+    d64 idadi_d = idadi;
+    rudisha jumla / idadi_d;
+}
+
+d64 takwimu_tofauti(d64* data, n32 idadi) {
+    kama (idadi <= 0) { rudisha 0.0; }
+    d64 wastani = takwimu_wastani(data, idadi);
+    d64 jumla = 0.0;
+    n32 i = 0;
+    wakati (i < idadi) {
+        d64 tofauti = data[i] - wastani;
+        jumla = jumla + tofauti * tofauti;
+        i = i + 1;
+    }
+    d64 idadi_d = idadi;
+    rudisha jumla / idadi_d;
+}
+
+d64 takwimu_mkengeuko_wa_kawaida(d64* data, n32 idadi) {
+    rudisha mzizi_hesabu(takwimu_tofauti(data, idadi));
+}
+
+d64 takwimu_kati(d64* data, n32 idadi) {
+    kama (idadi <= 0) { rudisha 0.0; }
+    d64* nakala = tenga(ukubwa(d64) * idadi);
+    n32 i = 0;
+    wakati (i < idadi) { nakala[i] = data[i]; i = i + 1; }
+    pangilia_d64(nakala, idadi);
+    d64 matokeo = 0.0;
+    kama ((idadi / 2) * 2 != idadi) {
+        matokeo = nakala[idadi / 2];
+    } sivyo {
+        d64 a = nakala[idadi / 2 - 1];
+        d64 b = nakala[idadi / 2];
+        matokeo = (a + b) / 2.0;
+    }
+    achilia_arena(nakala);
+    rudisha matokeo;
+}
+
+d64 takwimu_dogo(d64* data, n32 idadi) {
+    kama (idadi <= 0) { rudisha 0.0; }
+    d64 m = data[0];
+    n32 i = 1;
+    wakati (i < idadi) { kama (data[i] < m) { m = data[i]; } i = i + 1; }
+    rudisha m;
+}
+
+d64 takwimu_kubwa(d64* data, n32 idadi) {
+    kama (idadi <= 0) { rudisha 0.0; }
+    d64 m = data[0];
+    n32 i = 1;
+    wakati (i < idadi) { kama (data[i] > m) { m = data[i]; } i = i + 1; }
+    rudisha m;
+}
+
+d64 takwimu_uhusiano(d64* x, d64* y, n32 idadi) {
+    kama (idadi <= 0) { rudisha 0.0; }
+    d64 wastani_x = takwimu_wastani(x, idadi);
+    d64 wastani_y = takwimu_wastani(y, idadi);
+    d64 jumla_xy = 0.0;
+    d64 jumla_xx = 0.0;
+    d64 jumla_yy = 0.0;
+    n32 i = 0;
+    wakati (i < idadi) {
+        d64 dx = x[i] - wastani_x;
+        d64 dy = y[i] - wastani_y;
+        jumla_xy = jumla_xy + dx * dy;
+        jumla_xx = jumla_xx + dx * dx;
+        jumla_yy = jumla_yy + dy * dy;
+        i = i + 1;
+    }
+    kama (jumla_xx <= 0.0 || jumla_yy <= 0.0) { rudisha 0.0; }
+    rudisha jumla_xy / mzizi_hesabu(jumla_xx * jumla_yy);
+}
+
+// Kulinganisha d64 na uvumilivu (tolerance) -- ulinganisho kamili wa
+// == haufai kwa matokeo ya mgawanyo/mzizi hata kama matarajio ni
+// "sahihi" kihisabati.
+n32 karibu(d64 a, d64 b, d64 uvumilivu) {
+    d64 tofauti = a - b;
+    kama (tofauti < 0.0) { tofauti = 0.0 - tofauti; }
+    kama (tofauti <= uvumilivu) { rudisha 1; }
+    rudisha 0;
+}
+
+n32 main() {
+    // 1. Dataset ya mkono, inayojulikana kabla: [2,4,4,4,5,5,7,9]
+    // (n=8) -- wastani=5, tofauti ya watu wote=4, mkengeuko=2,
+    // kati=4.5, dogo=2, kubwa=9 (zilizokokotolewa kwa mkono, si kwa
+    // msimbo huu huu -- angalia ripoti ya PR kwa hesabu kamili).
+    d64* ds = tenga(ukubwa(d64) * 8);
+    ds[0] = 2.0; ds[1] = 4.0; ds[2] = 4.0; ds[3] = 4.0;
+    ds[4] = 5.0; ds[5] = 5.0; ds[6] = 7.0; ds[7] = 9.0;
+
+    kama (karibu(takwimu_wastani(ds, 8), 5.0, 0.0000001) == 0) { rudisha 1; }
+    kama (karibu(takwimu_tofauti(ds, 8), 4.0, 0.0000001) == 0) { rudisha 2; }
+    kama (karibu(takwimu_mkengeuko_wa_kawaida(ds, 8), 2.0, 0.0000001) == 0) { rudisha 3; }
+    kama (karibu(takwimu_kati(ds, 8), 4.5, 0.0000001) == 0) { rudisha 4; }
+    kama (karibu(takwimu_dogo(ds, 8), 2.0, 0.0000001) == 0) { rudisha 5; }
+    kama (karibu(takwimu_kubwa(ds, 8), 9.0, 0.0000001) == 0) { rudisha 6; }
+
+    // dataset isiyo hata (n=7): [1,3,3,6,7,8,9], kati=6 (kipengele
+    // cha kati HASA, si wastani wa viwili).
+    d64* de = tenga(ukubwa(d64) * 7);
+    de[0] = 1.0; de[1] = 3.0; de[2] = 3.0; de[3] = 6.0;
+    de[4] = 7.0; de[5] = 8.0; de[6] = 9.0;
+    kama (karibu(takwimu_kati(de, 7), 6.0, 0.0000001) == 0) { rudisha 7; }
+
+    // ds haikubadilishwa na takwimu_kati (nakala ya ndani pekee).
+    kama (karibu(ds[0], 2.0, 0.0000001) == 0) { rudisha 8; }
+    kama (karibu(ds[7], 9.0, 0.0000001) == 0) { rudisha 9; }
+
+    // 2. Uhusiano wa Pearson: chanya kamili (r=1), hasi kamili (r=-1),
+    // sifuri kamili (r=0, iliyoundwa kwa makusudi kuwa SAWA 0.0, si
+    // ya kistatiki pekee).
+    d64* x5 = tenga(ukubwa(d64) * 5);
+    d64* yp = tenga(ukubwa(d64) * 5);
+    d64* yn = tenga(ukubwa(d64) * 5);
+    n32 i = 0;
+    wakati (i < 5) {
+        d64 iv = i + 1;
+        x5[i] = iv;
+        yp[i] = iv * 2.0;
+        yn[i] = 12.0 - iv * 2.0;
+        i = i + 1;
+    }
+    kama (karibu(takwimu_uhusiano(x5, yp, 5), 1.0, 0.0000001) == 0) { rudisha 10; }
+    kama (karibu(takwimu_uhusiano(x5, yn, 5), 0.0 - 1.0, 0.0000001) == 0) { rudisha 11; }
+
+    d64* x4 = tenga(ukubwa(d64) * 4);
+    d64* y0 = tenga(ukubwa(d64) * 4);
+    x4[0] = 1.0; x4[1] = 2.0; x4[2] = 3.0; x4[3] = 4.0;
+    y0[0] = 1.0; y0[1] = 0.0 - 1.0; y0[2] = 0.0 - 1.0; y0[3] = 1.0;
+    kama (karibu(takwimu_uhusiano(x4, y0, 4), 0.0, 0.0000001) == 0) { rudisha 12; }
+
+    // 3. Kingo: idadi <= 0 hurudisha 0.0 kwa kila kazi (si SIGSEGV).
+    kama (karibu(takwimu_wastani(ds, 0), 0.0, 0.0000001) == 0) { rudisha 13; }
+    kama (karibu(takwimu_kati(ds, 0), 0.0, 0.0000001) == 0) { rudisha 14; }
+    kama (karibu(takwimu_uhusiano(x5, yp, 0), 0.0, 0.0000001) == 0) { rudisha 15; }
+
+    rudisha 0;
+}
