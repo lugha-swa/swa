@@ -121,15 +121,19 @@ muundo Msambazaji {
 // -------------------------------------------------------
 n32 node_mpya(n32 aina, n32 thamani, n32 kushoto, n32 kulia) {
     kama (ast_idadi >= 1048576) {
-        // MUHIMU: kama muundo_nodes[1024] (#189) na kazi_jina_pool[131072]
-        // (#197), dimbwi hili ni jedwali linaloendana na UKUBWA WA MRADI —
-        // faili kubwa la kweli (mfano Dominion) huweza kulifikia. Wito
-        // huu unarudisha -1 KWA MAKUSUDI (badala ya kuandika nje ya
-        // mipaka), LAKINI waitaji wengi wa node_mpya() bado hawaangalii
-        // matokeo haya kabla ya kuyatumia kama faharisi ya AST -- angalia
-        // lugha-swa/swa#199 kwa maelezo kamili ya hatari hii.
+        // lugha-swa/swa#298 -- kama muundo_nodes[1024] (#189) na
+        // kazi_jina_pool[131072] (#197), dimbwi hili ni jedwali
+        // linaloendana na UKUBWA WA MRADI -- faili kubwa la kweli
+        // (mfano Dominion) huweza kulifikia. ZAMANI (#199) wito huu
+        // ulirudisha -1 KWA MAKUSUDI (badala ya kuandika nje ya
+        // mipaka), LAKINI waitaji wengi wa node_mpya() hawakuangalia
+        // matokeo haya kabla ya kuyatumia kama faharisi ya AST --
+        // hatari iliyobaki wazi kwenye maoni ya #199 bila kufungwa
+        // kweli. Badala ya kutegemea KILA mwitaji (kuna mamia)
+        // kukagua -1, chanzo CHENYEWE sasa kinasimamisha ukusanyaji
+        // mara moja -- sawa na andika_baiti() kwa bafa_text (#298).
         andika_stderr("KOSA: akiba ya nodi za AST (ast_aina/ast_thamani/...) imejaa (idadi=%d, aina ya nodi iliyoshindwa=%d) — chanzo (baada ya kutatua husisha zote) ni kikubwa mno kwa kikomo cha 1048576\n", ast_idadi, aina);
-        rudisha -1;
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
     n32 idx = ast_idadi;
     ast_aina[idx] = aina;
@@ -214,10 +218,21 @@ n32 jaribu_kunja_namba(n32 op, n32 kushoto, n32 kulia) {
 // Nakili jina/kamba ndani ya ast_pool na rekodi kukabilia kwake
 // -------------------------------------------------------
 w0 hifadhi_jina(n32 node, n8* maandishi, n64 urefu) {
-    kama (ast_pool_wapi + urefu + 1 > 4194304) {
+    // lugha-swa/swa#298 -- ukaguzi huu ULIKUWA ukitumia kikomo cha
+    // ZAMANI (4194304, 4MB) BAADA ya ast_pool[] kuongezwa hadi 16MB
+    // (16777216) kwa ajili ya #200 -- namba mbili zinazopaswa
+    // kuendana (ukubwa wa tangazo la safu + ukaguzi wa kufurika)
+    // zilitofautiana, sawa na somo la #197. Matokeo: majina ya
+    // vitambulisho yalikataliwa KIMYA (hakuna hata ujumbe wa hitilafu
+    // wa kawaida, ni "; DEB" tu) mara tu dimbwi lilipopita 4MB, licha
+    // ya 12MB ya nafasi halisi iliyobaki -- node husika iliachwa na
+    // ast_jina_off==0 (jina tupu), ikisababisha ulinganisho WA UONGO
+    // wa majina baadaye. Sasa inatumia kikomo sahihi (16777216) na
+    // inasimamisha ukusanyaji badala ya kuendelea kimya.
+    kama (ast_pool_wapi + urefu + 1 > 16777216) {
         n64 u = urefu;
-        andika_stderr("; DEB: HITILAFU hifadhi_jina imefurika! wapi=%d urefu=%d\n", ast_pool_wapi, u);
-        rudisha;
+        andika_stderr("KOSA: dimbwi la majina ya AST (ast_pool) limejaa (kikomo cha baiti 16777216, wapi=%d, urefu=%d)\n", ast_pool_wapi, u);
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
     n32 off = ast_pool_wapi;
     ast_jina_off[node] = off;
@@ -598,8 +613,13 @@ n32 changanua_aina_tokeni(Msambazaji* p) {
         kama (off == -1) {
             off = ast_pool_wapi;
             kama (off + n + 1 >= 16777216) {
-                andika_stderr("; DEB: HITILAFU ast_pool imefurika (jina la muundo)! wapi=%d\n", off);
-                rudisha 0;
+                // lugha-swa/swa#298 -- kurudisha 0 kimya hapa
+                // kungeharibu usimbaji wa aina ya muundo huu KIMYA
+                // (0 ni usimbaji batili/tofauti kabisa na jina sahihi
+                // la dimbwi), ikisababisha ukubwa/ofseti za field
+                // kuhesabiwa vibaya baadaye bila hitilafu ya kukusanya.
+                andika_stderr("KOSA: dimbwi la majina ya AST (ast_pool) limejaa (jina la muundo, kikomo cha baiti 16777216, wapi=%d)\n", off);
+                wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
             }
             n32 i = 0;
             wakati (i < n) {
@@ -2389,7 +2409,12 @@ n32 changanua_muundo(Msambazaji* p) {
         muundo_ukubwa_val[muundo_ukubwa_idadi] = running_offset;
         muundo_ukubwa_idadi = muundo_ukubwa_idadi + 1;
     } sivyo {
+        // lugha-swa/swa#298 -- muundo huu (na kila mmoja unaofuata)
+        // ungekosa ukubwa wake kimya -- ukubwa_kutoka_enc ingerudi
+        // 0 kwa struct hii, ikivuruga ofseti za field na ukubwa wa
+        // tenga() bila hitilafu yoyote ya kukusanya.
         andika_stderr("KOSA: akiba ya ukubwa wa miundo (muundo_ukubwa_jina/val) imejaa (kikomo 1024) — muundo '%s' na zinazofuata hazitapata ukubwa sahihi\n", ast_pool + ast_jina_off[name]);
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
     rudisha mnode;
 }
