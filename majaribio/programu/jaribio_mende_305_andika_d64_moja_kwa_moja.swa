@@ -1,0 +1,117 @@
+// lugha-swa/swa#305 -- jaribio la kudumu dhidi ya chanzo HALISI cha
+// mdudu: kupitisha USEMI WA d64 (si kigezo/kitambulisho) MOJA KWA
+// MOJA kama hoja ya `andika()` lilitoa TAKATAKA (thamani
+// inayofanana na anwani ya kumbukumbu), kwa sababu njia maalum ya
+// codegen ya `uzalishaji_wito` kwa `andika()` (uzalishaji.swa,
+// inayochanganua `%d`/`%s`/`%c` wakati wa kukusanya) ilikokotoa aina
+// ya hoja ya `%d` kwa kusoma `ast_thamani[h]`/`ast_nne[h]` MOJA KWA
+// MOJA (hii HUKAMATA TU halisi ya desimali YENYEWE, aina==45) badala
+// ya kutumia `aina_ya_usemi(h)` (kazi SAHIHI, ya ujumla, inayotumika
+// KILA MAHALI pengine faili hili linapohitaji kujua aina ya usemi
+// WOWOTE -- wito wa kazi, operesheni ya hisabati, n.k.). Matokeo:
+// usemi wowote wa d64 zaidi ya halisi-wazi uliacha thamani kwenye
+// xmm0 (ABI ya desimali) lakini `andika_wito_n64` ilisoma rax --
+// rax ilibaki na TAKATAKA ya hesabu iliyotangulia, ikichapishwa
+// KIMYA bila hitilafu ya kukusanya wala kuanguka.
+//
+// Rekebisho: tumia `aina_ya_usemi(h)` kutambua aina HALISI, kisha
+// (ikiwa ni desimali) tumia `badili_mpaka_wa_desimali(h, n64_enc)`
+// (kazi ILIYOPO tayari, inayotumika kila mahali pengine kwa mpaka wa
+// kamili/desimali) kuibadilisha kwenda rax (cvttsd2si/cvttss2si)
+// KABLA ya kuichapisha.
+//
+// UTHIBITISHO (si kutegemea kusoma maandishi ya stdout kwa jicho --
+// jaribio hili linanakili fd 1 kwenda faili ya muda kupitia dup2(2)
+// ghafi, kisha linasoma faili hilo NDANI YA PROGRAMU na kulinganisha
+// tarakimu halisi): usemi WA d64 unaotokana na kuzidisha (`a *
+// 1000.0`) na wito wa kazi unaorudisha d64 (`rudisha_3500() *
+// 1000.0`), vyote vikipitishwa MOJA KWA MOJA (bila kigezo cha n64
+// cha muda) kwenye `andika("%d", ...)`, LAZIMA vichapishwe HASA
+// "3500" -- si takataka yoyote nyingine.
+//
+// Msimbo wa kutoka = idadi ya ukaguzi uliopotoshwa (0 = sahihi
+// kabisa). Kabla ya rekebisho hili: 2 (kesi zote mbili za usemi wa
+// moja kwa moja zilipotoshwa, kila moja ikitoa namba tofauti isiyo
+// na maana badala ya 3500). Baada ya rekebisho: 0.
+//
+// stage1 pekee (mbegu inakataa WAZI hoja za d64 zilizochanganywa na
+// hoja 7-9 za andika -- "hazisaidiwi bado", HAITOI takataka ya
+// kimya -- angalia maelezo kamili kwenye issue #305).
+
+husisha { msingi/maktaba/kumbukumbu.swa }
+husisha { msingi/maktaba/faili.swa }
+
+n32 kosa = 0;
+
+
+d64 rudisha_3500() {
+    rudisha 3.5;
+}
+
+// jm305_soma_n64_kutoka_maandishi -- changanua tarakimu za kwanza
+// (mfuatano wa nambari chanya) kutoka `buf`, kuanzia `mwanzo`.
+// Haitegemei sprintf/atoi za nje -- uchanganuzi rahisi wa tarakimu.
+n64 jm305_soma_n64_kutoka_maandishi(n8* buf, n64 mwanzo, n64 urefu) {
+    n64 v = 0;
+    n64 i = mwanzo;
+    n32 imeanza = 0;
+    wakati (i < urefu) {
+        n8 c = buf[i];
+        kama (c >= 48 && c <= 57) {
+            v = (v * 10) + (c - 48);
+            imeanza = 1;
+        } sivyo { kama (imeanza == 1) { vunja; } }
+        i = i + 1;
+    }
+    rudisha v;
+}
+
+// jm305_funga_bafa_na_soma -- rudisha fd 1 kwenda stdout halisi
+// (kutoka fd 500), funga faili la muda, kisha soma na urudishe
+// namba ya KWANZA iliyoandikwa.
+n64 jm305_funga_bafa_na_soma(n8* f) {
+    wito_wa_mfumo(33, 500, 1, 0, 0, 0, 0);  // dup2(500, 1) -- rudisha stdout halisi
+    wito_wa_mfumo(3, 500, 0, 0, 0, 0, 0);   // close(500)
+    faili_funga(f);
+    n8 soma_bafa[64];
+    weka_sifuri(soma_bafa, 64);
+    faili_soma_yote("/tmp/jaribio_mende_305_tokeo.txt", soma_bafa, 63);
+    rudisha jm305_soma_n64_kutoka_maandishi(soma_bafa, 0, 64);
+}
+
+n64 jm305_chapisha_moja_kwa_moja_a(d64 a) {
+    n8* f = faili_fungua("/tmp/jaribio_mende_305_tokeo.txt", "w");
+    n32 fd_faili = kishikio_kutoka_hoja(f);
+    wito_wa_mfumo(33, 1, 500, 0, 0, 0, 0);       // dup2(1, 500) -- hifadhi stdout halisi
+    wito_wa_mfumo(33, fd_faili, 1, 0, 0, 0, 0);  // dup2(fd_faili, 1) -- elekeza fd 1 kwenye faili
+    andika("%d\n", a * 1000.0, 0, 0, 0, 0, 0);
+    rudisha jm305_funga_bafa_na_soma(f);
+}
+
+n64 jm305_chapisha_moja_kwa_moja_wito_kazi() {
+    n8* f = faili_fungua("/tmp/jaribio_mende_305_tokeo.txt", "w");
+    n32 fd_faili = kishikio_kutoka_hoja(f);
+    wito_wa_mfumo(33, 1, 500, 0, 0, 0, 0);
+    wito_wa_mfumo(33, fd_faili, 1, 0, 0, 0, 0);
+    andika("%d\n", rudisha_3500() * 1000.0, 0, 0, 0, 0, 0);
+    rudisha jm305_funga_bafa_na_soma(f);
+}
+
+n32 main() {
+    d64 a = 3.5;
+
+    n64 tokeo1 = jm305_chapisha_moja_kwa_moja_a(a);
+    kama (tokeo1 != 3500) {
+        andika_stderr("FAIL: a*1000.0 moja kwa moja ilitoa %d, ilitarajiwa 3500\n", tokeo1, 0, 0, 0, 0, 0);
+        kosa = kosa + 1;
+    }
+
+    n64 tokeo2 = jm305_chapisha_moja_kwa_moja_wito_kazi();
+    kama (tokeo2 != 3500) {
+        andika_stderr("FAIL: rudisha_3500()*1000.0 moja kwa moja ilitoa %d, ilitarajiwa 3500\n", tokeo2, 0, 0, 0, 0, 0);
+        kosa = kosa + 1;
+    }
+
+    faili_futa("/tmp/jaribio_mende_305_tokeo.txt");
+    rudisha kosa;
+}
