@@ -74,6 +74,98 @@ n64 sys_munmap(n8* anwani, n64 urefu) {
     rudisha wito_wa_mfumo(11, anwani, urefu, 0, 0, 0, 0);
 }
 
+// sys_fork — unda mchakato mtoto (child process) kwa kuiga mchakato
+// wa sasa kikamilifu (kumbukumbu, deskripta za faili zote). Hoja
+// ZOTE ni sifuri (fork() haina hoja kabisa). Hurudisha: 0 kwenye
+// mchakato MTOTO, PID ya mtoto (>0) kwenye mchakato MZAZI, namba
+// hasi kwa kushindwa. MUHIMU: baada ya fork(), MICHAKATO MIWILI
+// huendelea kutekeleza KUTOKA HAPA HAPA (si kutoka main()) --
+// ubaguzi kwa thamani ya kurudi ndiyo njia PEKEE ya kujua ni
+// mchakato upi.
+n64 sys_fork() {
+    rudisha wito_wa_mfumo(57, 0, 0, 0, 0, 0, 0);
+}
+
+// sys_execve — badilisha picha YOTE ya mchakato wa SASA na programu
+// mpya (HAIRUDI kamwe ikiwa imefaulu — mchakato wa sasa HAUPO tena,
+// umebadilishwa kikamilifu; ikirudi, ni HITILAFU, thamani hasi).
+// `argv`/`envp` ni safu za n8* (kielekezi cha mfuatano), ZIKIISHIA
+// na kiingilio cha 0 (NULL) — kioo HASA cha mkataba wa C wa
+// `execve(2)` (angalia jaribio_sys_fork_execve_waitpid.swa kwa jinsi
+// safu hizi zinavyojengwa kwa mkono: hakuna safu za kielekezi
+// zinazokua [growable] bado, idadi ya hoja/env LAZIMA ijulikane
+// wakati wa kuandika msimbo).
+n64 sys_execve(n8* njia, n8** argv, n8** envp) {
+    rudisha wito_wa_mfumo(59, njia, argv, envp, 0, 0, 0);
+}
+
+// sys_wait4 — subiri mchakato MTOTO abadilishe hali (kawaida: amalize
+// kutekeleza). `pid`: >0 subiri MTOTO HUYO HASA, -1 subiri MTOTO
+// WOWOTE. `status_ptr`: kielekezi cha n32 MOJA ambapo kernel itaandika
+// hali ya kutoka iliyosimbwa (encoded) — tumia
+// `sys_wait4_msimbo_wa_kutoka`/`sys_wait4_ulikufa_kwa_ishara` chini
+// kuichanganua, USIJARIBU kuisoma moja kwa moja (umbizo la kiwango
+// cha biti ni maalum kwa kernel, SI msimbo wa kutoka safi). `chaguo`:
+// 0 kwa tabia ya kawaida (subiri hadi mtoto amalize), WNOHANG=1
+// kuuliza bila kuzuia. Hoja ya 4 (rusage) HAIHITAJIKI humu, daima 0.
+// Hurudisha PID ya mtoto aliyebadilisha hali, au namba hasi kwa
+// kushindwa.
+n64 sys_wait4(n64 pid, n32* status_ptr, n64 chaguo) {
+    rudisha wito_wa_mfumo(61, pid, status_ptr, chaguo, 0, 0, 0);
+}
+
+// sys_wait4_msimbo_wa_kutoka — toa msimbo wa kutoka (0-255) kutoka
+// kwenye thamani iliyoandikwa na kernel kwenye status_ptr ya
+// sys_wait4. Umbizo (angalia <bits/waitstatus.h> ya glibc/kernel):
+// biti 8-15 (((status) >> 8) & 0xff) ni msimbo wa kutoka IKIWA TU
+// mchakato ulitoka kwa kawaida (angalia sys_wait4_ulitoka_kwa_kawaida
+// kwanza) — HESABU ya / na % inatumika hapa kuepuka >> na & (mbegu
+// ina hitilafu kwenye hizo, kama ilivyoelezwa kote kwenye mradi).
+n32 sys_wait4_msimbo_wa_kutoka(n32 status) {
+    rudisha (status / 256) % 256;
+}
+
+// sys_wait4_ulitoka_kwa_kawaida — 1 ikiwa mchakato ulitoka kwa
+// wito wa kawaida wa exit() (SI kuuawa na ishara/signal). Umbizo:
+// biti 0-6 za status ni namba ya ishara (0 ikiwa ulitoka kwa
+// kawaida).
+n32 sys_wait4_ulitoka_kwa_kawaida(n32 status) {
+    n32 biti_za_ishara = status % 128;
+    kama (biti_za_ishara == 0) { rudisha 1; }
+    rudisha 0;
+}
+
+// sys_kill — tuma ishara (signal) kwenye mchakato. `ishara`=9 ni
+// SIGKILL (toa mara moja, HAIWEZI kupuuzwa/kukamatwa) — hutumika
+// kusitisha mchakato uliozidi muda wa kikomo (timeout). Kutuma
+// kwenye PID isiyokuwepo tena (mfano imekwisha toka yenyewe) ni
+// salama — kernel hurudisha ESRCH (hasi), hakuna athari.
+n64 sys_kill(n64 pid, n64 ishara) {
+    rudisha wito_wa_mfumo(62, pid, ishara, 0, 0, 0, 0);
+}
+
+// sys_nanosleep_sekunde — lala kwa idadi kamili ya SEKUNDE (hoja
+// pekee ya kutumika na kikomo cha muda cha mchakato wa "mlinzi" --
+// angalia maelezo ya pr_endesha_kwa_kikomo, gharama/jaribu_mnyororo.swa).
+// Hujenga muundo wa `timespec` (sekunde za n64 + nanosekunde za n64,
+// baiti 16) kwenye rafu, hupitisha kielekezi chake kwenye
+// nanosleep(2) (namba 35). Hoja ya "rem" (muda uliobaki ikiwa
+// ishara imeingilia kati) HAIHITAJIKI humu — daima 0 (hatutarajii
+// ishara nyingine yoyote wakati wa kulala).
+n64 sys_nanosleep_sekunde(n64 sekunde) {
+    n64 muda[2];
+    muda[0] = sekunde;
+    muda[1] = 0;
+    rudisha wito_wa_mfumo(35, muda, 0, 0, 0, 0, 0);
+}
+
+// sys_mkdir — unda saraka (haifanyi kazi kimya ikiwa TAYARI ipo --
+// angalia maelezo ya matumizi, ambayo yanapaswa kupuuza hitilafu
+// "tayari ipo" badala ya kuikataa). `ruhusa` ya kawaida: 0755 (493).
+n64 sys_mkdir(n8* njia, n64 ruhusa) {
+    rudisha wito_wa_mfumo(83, njia, ruhusa, 0, 0, 0, 0);
+}
+
 // ==========================================================
 // Uchapishaji — andika_n64 / andika_mfuatano / andika_baiti
 // Hizi ndizo kazi zinazoitwa na builtin ya andika katika mzalishaji.

@@ -1,0 +1,70 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+// jaribio_sys_fork_execve_wait4_msingi.swa -- jaribio la kudumu
+// linalothibitisha sys_fork/sys_execve/sys_wait4 (mkusanyiko mpya wa
+// kumbukumbu.swa) zinafanya kazi SAHIHI -- msingi unaowezesha
+// gharama/jaribu_mnyororo.swa (toleo la Swa ASILIA la
+// jaribu-mnyororo.sh, linaloendesha mbegu/stage1/programu za
+// majaribio kupitia fork/execve/wait4 badala ya bash).
+//
+// Inazalisha mtoto MARA MBILI: mara ya kwanza ukitekeleza /bin/true
+// (unatarajiwa kutoka 0), mara ya pili ukitekeleza /bin/false
+// (unatarajiwa kutoka 1) -- kuthibitisha msimbo HALISI wa kutoka
+// unasomwa sahihi kupitia sys_wait4_msimbo_wa_kutoka, si bahati
+// mbaya ya "0 ikiwa imefaulu kiholela".
+
+n32 kosa = 0;
+
+n32 jendesha_na_subiri(n8* njia) {
+    n8** argv = tenga(16);
+    argv[0] = njia;
+    argv[1] = 0;
+    n8** envp = tenga(8);
+    envp[0] = 0;
+
+    n64 pid = sys_fork();
+    kama (pid < 0) {
+        andika_stderr("FAIL: sys_fork() imeshindwa\n", 0, 0, 0, 0, 0, 0);
+        rudisha -1;
+    }
+    kama (pid == 0) {
+        // Mchakato MTOTO -- badilisha picha, HAIRUDI ikiwa imefaulu.
+        sys_execve(njia, argv, envp);
+        // Ikifika hapa, execve imeshindwa -- toka papo hapo (SI
+        // kurudi kwenye mantiki ya mzazi, ambayo ingezalisha
+        // mchakato wa PILI usiotarajiwa).
+        wito_wa_mfumo(60, 127, 0, 0, 0, 0, 0);
+    }
+    // Mchakato MZAZI
+    n32 status = 0;
+    n64 pid_aliyebadilika = sys_wait4(pid, &status, 0);
+    kama (pid_aliyebadilika != pid) {
+        andika_stderr("FAIL: sys_wait4 ilirudisha pid=%d, ilitarajiwa %d\n", pid_aliyebadilika, pid, 0, 0, 0, 0);
+        rudisha -1;
+    }
+    kama (sys_wait4_ulitoka_kwa_kawaida(status) == 0) {
+        andika_stderr("FAIL: mtoto hakutoka kwa kawaida (status=%d)\n", status, 0, 0, 0, 0, 0);
+        rudisha -1;
+    }
+    rudisha sys_wait4_msimbo_wa_kutoka(status);
+}
+
+n32 main() {
+    n32 msimbo_kweli = jendesha_na_subiri("/usr/bin/true");
+    kama (msimbo_kweli != 0) {
+        andika_stderr("FAIL: /usr/bin/true ilitoka na %d, ilitarajiwa 0\n", msimbo_kweli, 0, 0, 0, 0, 0);
+        kosa = kosa + 1;
+    } sivyo {
+        andika("PASS: /usr/bin/true ilitoka na 0 (fork+execve+wait4 zinafanya kazi)\n", 0, 0, 0, 0, 0, 0);
+    }
+
+    n32 msimbo_uwongo = jendesha_na_subiri("/usr/bin/false");
+    kama (msimbo_uwongo != 1) {
+        andika_stderr("FAIL: /usr/bin/false ilitoka na %d, ilitarajiwa 1\n", msimbo_uwongo, 0, 0, 0, 0, 0);
+        kosa = kosa + 1;
+    } sivyo {
+        andika("PASS: /usr/bin/false ilitoka na 1 (msimbo HALISI wa kutoka unasomwa sahihi)\n", 0, 0, 0, 0, 0, 0);
+    }
+
+    rudisha kosa;
+}
