@@ -1,0 +1,402 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+husisha { msingi/maktaba/mfuatano.swa }
+husisha { msingi/maktaba/faili.swa }
+
+// jaribu_mnyororo.swa -- toleo la Swa ASILIA la gharama/jaribu-mnyororo.sh,
+// likiendesha mchakato mwingine (mbegu/stage1/programu za majaribio)
+// kupitia sys_fork/sys_execve/sys_wait4 (msingi/maktaba/kumbukumbu.swa)
+// BADALA ya bash. Jibu la moja kwa moja kwa swali la mtumiaji
+// "why are we using sh?? cant swa do so??" -- kabla ya hii, HAKUNA
+// wrapper ya fork/execve/waitpid ilikuwepo KABISA (imethibitishwa kwa
+// grep moja kwa moja), ndiyo sababu HALISI (SI uzembe) mkimbiaji wa
+// majaribio ulibaki bash milele.
+//
+// WIGO (kwa makusudi, SI pengo lililosahaulika): faili hili
+// linachukua nafasi ya SEHEMU 2-4 TU za jaribu-mnyororo.sh (jenga
+// stage1, fixpoint, mzunguko wa MANIFEST.txt -- KIOO HASA cha
+// mantiki yake) -- hii ndiyo "mnyororo wa 452" wenyewe, sehemu
+// kubwa na muhimu zaidi kiutendaji. Sehemu 5-14 za bash (mkazo wa
+// RELA, semantiki za kwa/endelea, desimali, mzunguko mfupi, bomba
+// la stdin, ABI ya xmm, formatter fixpoint, n.k.) ni majaribio ya
+// MSAADA/MKAZO yaliyotengwa, YANAYOBAKI kwenye bash
+// (gharama/jaribu-mnyororo.sh HAIONDOLEWI -- bado ni muhimu kama
+// chanzo cha pili cha uthibitisho/CI). `gharama/jenga-kwanza.sh`
+// (Sehemu 1) HAIBADILIKI KAMWE -- lazima ibaki bash milele kwa
+// sababu ya mzunguko wa kuzaliwa kwa mbegu.bin yenyewe: hakuna
+// kinachoweza kuendesha Swa KABLA mbegu.bin haijatengenezwa.
+//
+// JINSI YA KUENDESHA (angalia gharama/jaribu-mnyororo-asili.sh --
+// wrapper NDOGO, bado bash, inayofunga pengo la kuzaliwa): hoja mbili
+// pekee zinahitajika -- argv[1]=njia ya mbegu.bin, argv[2]=njia ya
+// msuluhishi ILIYOJENGWA TAYARI (wrapper hujenga hii MARA MOJA kabla
+// ya kuita faili hili, kwa sababu faili hili LENYEWE lilihitaji
+// kutatuliwa na msuluhishi KABLA ya kukusanywa -- angalia maoni ya
+// wrapper).
+
+n32 JM_PASS = 0;
+n32 JM_FAIL = 0;
+
+// JM_TUPU -- kielekezi cha 0 (NULL) chenye AINA WAZI ya n8* --
+// mkusanyaji HAUBADILISHI literal 0 moja kwa moja kuwa aina ya
+// kielekezi kwenye nafasi ya hoja ya wito (tofauti na kauli za
+// kama/kurudisha/kianzio, ambapo 0 inakubaliwa kama NULL bila
+// malalamiko) -- tumia kigezo hiki kila mahali "hakuna
+// uelekezaji"/njia ya hiari inahitajika kama hoja ya n8*.
+n8* JM_TUPU = 0;
+
+w0 jm_kagua(n64 halisi, n64 tarajiwa, n8* maelezo) {
+    kama (halisi == tarajiwa) {
+        JM_PASS = JM_PASS + 1;
+    } sivyo {
+        andika_stderr("SHINDWA: %s (ilitarajiwa %d, ilipata %d)\n", maelezo, tarajiwa, halisi, 0, 0, 0);
+        JM_FAIL = JM_FAIL + 1;
+    }
+}
+
+// ---------------------------------------------------------------
+// envp -- ABI ya Linux x86-64 huweka envp[0] mara moja BAADA ya
+// NULL inayomalizia argv (kioo HASA cha wayland_mazingira_pata_envp,
+// Dominion -- angalia moduli/onyesho/wayland/mazingira.swa huko,
+// imethibitishwa dhidi ya shell halisi).
+// ---------------------------------------------------------------
+n8** jm_pata_envp(n8** argv) {
+    n64 i = 0;
+    wakati (argv[i] != 0) { i = i + 1; }
+    rudisha argv + (i + 1);
+}
+
+// ---------------------------------------------------------------
+// Ujenzi wa argv za watoto (idadi ndogo, inayojulikana wakati wa
+// kuandika -- hakuna safu za kielekezi zinazokua zinazohitajika).
+// ---------------------------------------------------------------
+n8** jm_argv1(n8* a0) {
+    n8** v = tenga(16);
+    v[0] = a0; v[1] = 0;
+    rudisha v;
+}
+
+n8** jm_argv2(n8* a0, n8* a1) {
+    n8** v = tenga(24);
+    v[0] = a0; v[1] = a1; v[2] = 0;
+    rudisha v;
+}
+
+n8** jm_argv3(n8* a0, n8* a1, n8* a2) {
+    n8** v = tenga(32);
+    v[0] = a0; v[1] = a1; v[2] = a2; v[3] = 0;
+    rudisha v;
+}
+
+// ---------------------------------------------------------------
+// jm_elekeza_fd -- fungua `njia` kwa uandishi na dup2 juu ya
+// `fd_chanzo` (1=stdout, 2=stderr). `njia`==0 inamaanisha "usibadilishe
+// chochote" (rithi fd ya mzazi moja kwa moja, kama "2>&1" isiyoguswa
+// ya bash). Inaitwa NDANI ya mchakato MTOTO (baada ya fork, KABLA ya
+// execve) -- kubadilisha fd ya mzazi mwenyewe kungeharibu I/O ya
+// programu hii yenyewe.
+// ---------------------------------------------------------------
+w0 jm_elekeza_fd(n64 fd_chanzo, n8* njia) {
+    kama (njia == 0) { rudisha; }
+    n8* f = faili_fungua(njia, "w");
+    kama (f == 0) { rudisha; }
+    n32 fd_faili = kishikio_kutoka_hoja(f);
+    wito_wa_mfumo(33, fd_faili, fd_chanzo, 0, 0, 0, 0);  // dup2(fd_faili, fd_chanzo)
+    sys_funga(fd_faili);
+}
+
+// ---------------------------------------------------------------
+// jm_endesha_kwa_kikomo -- fork+execve mtoto (ikielekeza stdout/
+// stderr kama ilivyoombwa), fork mchakato WA PILI ("mlinzi")
+// unaolala `kikomo_sekunde` kisha kuua mtoto kwa SIGKILL akiwa bado
+// anaendelea (kioo cha `timeout N` cha bash, lakini bila kuhitaji
+// clock_gettime -- "yeyote anayemaliza kwanza" kati ya mtoto
+// kutoka wenyewe na mlinzi kuamka ndiye anayeamua). Baada ya mtoto
+// HALISI kumalizika (ametoka kwa kawaida AU ameuawa), mlinzi
+// anauawa naye (kama bado yungali akisubiri) na KUKUSANYWA (reap)
+// ili asiwe "zombie". Hurudisha 1 ikiwa mtoto alitoka KWA KAWAIDA
+// (msimbo_nje umewekwa), 0 ikiwa aliuawa na ishara (muda umeisha
+// AU hitilafu nyingine ya ishara) -- msimbo_nje si sahihi katika
+// hali hii.
+// ---------------------------------------------------------------
+n32 jm_endesha_kwa_kikomo(n8* njia, n8** argv_mtoto, n8** envp, n8* stdout_njia, n8* stderr_njia, n64 kikomo_sekunde, n32* msimbo_nje) {
+    n64 mtoto = sys_fork();
+    kama (mtoto == 0) {
+        jm_elekeza_fd(1, stdout_njia);
+        jm_elekeza_fd(2, stderr_njia);
+        sys_execve(njia, argv_mtoto, envp);
+        wito_wa_mfumo(60, 127, 0, 0, 0, 0, 0);
+    }
+    n64 mlinzi = sys_fork();
+    kama (mlinzi == 0) {
+        sys_nanosleep_sekunde(kikomo_sekunde);
+        sys_kill(mtoto, 9);
+        wito_wa_mfumo(60, 0, 0, 0, 0, 0, 0);
+    }
+    n32 status = 0;
+    sys_wait4(mtoto, &status, 0);
+    sys_kill(mlinzi, 9);
+    n32 status_mlinzi = 0;
+    sys_wait4(mlinzi, &status_mlinzi, 0);
+    *msimbo_nje = sys_wait4_msimbo_wa_kutoka(status);
+    rudisha sys_wait4_ulitoka_kwa_kawaida(status);
+}
+
+// ---------------------------------------------------------------
+// jm_kusanya -- toleo rahisi la jm_endesha_kwa_kikomo kwa KAZI ZA
+// KUKUSANYA (mbegu/stage1/msuluhishi) -- HAZIHITAJI kikomo cha
+// muda (hazijawahi kunasa, zinajulikana kumaliza haraka) wala
+// mlinzi -- `sys_wait4` ya moja kwa moja, kuzuia (blocking) inatosha.
+// Hurudisha msimbo wa kutoka (0 = ukusanyaji umefaulu).
+// ---------------------------------------------------------------
+n32 jm_kusanya(n8* njia_ya_kutekeleza, n8** argv_mtoto, n8** envp, n8* stdout_njia, n8* stderr_njia) {
+    n64 mtoto = sys_fork();
+    kama (mtoto == 0) {
+        jm_elekeza_fd(1, stdout_njia);
+        jm_elekeza_fd(2, stderr_njia);
+        sys_execve(njia_ya_kutekeleza, argv_mtoto, envp);
+        wito_wa_mfumo(60, 127, 0, 0, 0, 0, 0);
+    }
+    n32 status = 0;
+    sys_wait4(mtoto, &status, 0);
+    rudisha sys_wait4_msimbo_wa_kutoka(status);
+}
+
+// ---------------------------------------------------------------
+// Vifaa vya faili: ukubwa, usomaji kamili (uwezo uliowekwa mapema,
+// kioo cha faili_soma_yote iliyopo -- angalia hapa chini kwa SABABU
+// hatujaiita moja kwa moja), kutafuta kipande (substring), kuangalia
+// uwepo+ukubwa (kioo cha `[ -s FILE ]` ya bash), na kulinganisha
+// mafaili mawili baiti kwa baiti (kioo cha `cmp -s`).
+// ---------------------------------------------------------------
+
+n32 jm_faili_lipo_na_lina_ukubwa(n8* njia) {
+    n8* f = faili_fungua(njia, "r");
+    kama (f == 0) { rudisha 0; }
+    n32 fd = kishikio_kutoka_hoja(f);
+    n64 ukubwa = sys_lseek(fd, 0, 2);
+    faili_funga(f);
+    kama (ukubwa > 0) { rudisha 1; }
+    rudisha 0;
+}
+
+n32 jm_tafuta_kipande(n8* bafa, n64 urefu, n8* kipande) {
+    n64 klen = urefu_wa_mfuatano(kipande);
+    kama (klen == 0) { rudisha 1; }
+    kama (klen > urefu) { rudisha 0; }
+    n64 i = 0;
+    n64 mwisho = urefu - klen;
+    wakati (i <= mwisho) {
+        n32 sawa = 1;
+        n64 j = 0;
+        wakati (j < klen) {
+            kama (bafa[i + j] != kipande[j]) { sawa = 0; vunja; }
+            j = j + 1;
+        }
+        kama (sawa == 1) { rudisha 1; }
+        i = i + 1;
+    }
+    rudisha 0;
+}
+
+// Uwezo wa bafa kwa ujumbe wa makosa ya mkusanyaji (stdout+stderr
+// ya `--exe`) -- 65536 inatosha kwa ujumbe wowote HALISI wa hitilafu
+// uliowahi kuonekana kwenye mradi (angalia KANUNI-MAJINA.md kwa
+// kikomo kinachofanana cha bafa za ujumbe mahali pengine).
+n64 JM_UWEZO_UJUMBE = 65536;
+
+n32 jm_faili_lina_kipande(n8* njia, n8* kipande) {
+    n8* buf = tenga(JM_UWEZO_UJUMBE);
+    weka_sifuri(buf, JM_UWEZO_UJUMBE);
+    n64 n = faili_soma_yote(njia, buf, JM_UWEZO_UJUMBE);
+    kama (n < 0) { rudisha 0; }
+    rudisha jm_tafuta_kipande(buf, n, kipande);
+}
+
+n32 jm_mafaili_mawili_yana_kipande(n8* njia_a, n8* njia_b, n8* kipande) {
+    kama (jm_faili_lina_kipande(njia_a, kipande)) { rudisha 1; }
+    kama (jm_faili_lina_kipande(njia_b, kipande)) { rudisha 1; }
+    rudisha 0;
+}
+
+// Uwezo wa bafa kwa kulinganisha maFAILE MAKUBWA (ELF za stage2/
+// stage3) -- binaries hizi ni ~400KB kwa sasa; 8MB ni nafasi KUBWA
+// ya kutosha kwa ukuaji wa mkusanyaji kwa miaka mingi ijayo bila
+// kuhitaji kubadilishwa (kioo cha kanuni ya mradi ya "angalia
+// ukomo HALISI, usikisie" -- angalia #295/#298/#189 kwenye
+// kumbukumbu ya mradi).
+n64 JM_UWEZO_ELF = 8388608;
+
+n32 jm_mafaili_sawa(n8* njia_a, n8* njia_b) {
+    n8* ba = tenga(JM_UWEZO_ELF);
+    n8* bb = tenga(JM_UWEZO_ELF);
+    n64 na = faili_soma_yote(njia_a, ba, JM_UWEZO_ELF);
+    n64 nb = faili_soma_yote(njia_b, bb, JM_UWEZO_ELF);
+    kama (na < 0 || nb < 0) { rudisha 0; }
+    kama (na != nb) { rudisha 0; }
+    kama (linganisha_kumbukumbu(ba, bb, na) == 0) { rudisha 1; }
+    rudisha 0;
+}
+
+// ---------------------------------------------------------------
+// jm_mgawanyo_mstari -- gawanya `mstari` (tayari ni mfuatano wenye
+// mwisho wa 0) kwa vigawanyaji vya TAB (9), ukijaza `nje[0..4]` na
+// kielekezi kwa kila sehemu -- HUBADILISHA `mstari` MAHALI PALE
+// (kuweka 0 badala ya kila '\t'), kurudisha idadi ya sehemu
+// zilizopatikana (1-5, sehemu ya 5 ikiwa na mabaki ya mstari mzima
+// kama kuna TAB zaidi ya 4 -- kioo cha `read -r a b c d e` ya bash
+// inayoweka "kila kilichobaki" kwenye kigezo cha mwisho).
+// ---------------------------------------------------------------
+n32 jm_mgawanyo_mstari(n8* mstari, n8** nje) {
+    nje[0] = mstari;
+    nje[1] = mstari + urefu_wa_mfuatano(mstari);
+    nje[2] = nje[1];
+    nje[3] = nje[1];
+    nje[4] = nje[1];
+    n32 idadi = 1;
+    n64 i = 0;
+    wakati (mstari[i] != 0) {
+        kama (mstari[i] == 9) {
+            mstari[i] = 0;
+            kama (idadi < 5) {
+                nje[idadi] = mstari + i + 1;
+                idadi = idadi + 1;
+            }
+        }
+        i = i + 1;
+    }
+    rudisha idadi;
+}
+
+// ---------------------------------------------------------------
+// Sehemu MOJA ya mzunguko wa MANIFEST (KATA au namba-ya-kutoka),
+// zikigawanywa kwa `mnyororo` (""=zote mbili, "stage1"=hiyo pekee,
+// "mbegu"=hiyo pekee) -- kioo cha mzunguko wa bash.
+// ---------------------------------------------------------------
+w0 jm_jaribu_kata(n8* MBEGU, n8* STAGE1, n8** envp, n8* faili, n8* mnyororo, n8* ujumbe) {
+    n8* kipande = ujumbe;
+    kama (urefu_wa_mfuatano(kipande) == 0) { kipande = "jina la aina"; }
+    n8* binary = MBEGU;
+    kama (linganisha_mfuatano(mnyororo, "stage1") == 0) { binary = STAGE1; }
+    n8** argv = jm_argv3(binary, "--exe", faili);
+    n32 rc = jm_kusanya(binary, argv, envp, "/tmp/swa-mnyororo-asili/p", "/tmp/swa-mnyororo-asili/p.err");
+    n32 ni_ujumbe = jm_mafaili_mawili_yana_kipande("/tmp/swa-mnyororo-asili/p", "/tmp/swa-mnyororo-asili/p.err", kipande);
+    n32 ni_tupu = jm_faili_lipo_na_lina_ukubwa("/tmp/swa-mnyororo-asili/p");
+    n32 sahihi = 0;
+    kama (rc == 1 && ni_ujumbe == 1 && ni_tupu == 0) { sahihi = 1; }
+    jm_kagua(sahihi, 1, "kukataa (KATA)");
+}
+
+w0 jm_jaribu_moja(n8* binary, n8** envp, n8* faili, n64 tarajiwa, n8* jina_mnyororo) {
+    n8** argv = jm_argv3(binary, "--exe", faili);
+    n32 rc_kusanya = jm_kusanya(binary, argv, envp, "/tmp/swa-mnyororo-asili/p", JM_TUPU);
+    kama (rc_kusanya != 0) {
+        andika_stderr("SHINDWA: kukusanya %s kwa %s\n", faili, jina_mnyororo, 0, 0, 0, 0);
+        JM_FAIL = JM_FAIL + 1;
+        rudisha;
+    }
+    n64 rc_chmod = wito_wa_mfumo(90, "/tmp/swa-mnyororo-asili/p", 493, 0, 0, 0, 0);
+    n8** argv_p = jm_argv1("/tmp/swa-mnyororo-asili/p");
+    n32 msimbo = 0;
+    n32 kwa_kawaida = jm_endesha_kwa_kikomo("/tmp/swa-mnyororo-asili/p", argv_p, envp, JM_TUPU, JM_TUPU, 5, &msimbo);
+    kama (kwa_kawaida == 0) { msimbo = 124; }  // kioo cha msimbo wa "timeout" cha bash
+    jm_kagua(msimbo, tarajiwa, faili);
+}
+
+n32 main(n32 argc, n8** argv) {
+    kama (argc < 3) {
+        andika_stderr("Matumizi: jaribu_mnyororo <njia-ya-mbegu> <njia-ya-msuluhishi>\n", 0, 0, 0, 0, 0, 0);
+        rudisha 1;
+    }
+    n8** envp = jm_pata_envp(argv);
+    n8* MBEGU = argv[1];
+    n8* MSULUHISHI = argv[2];
+
+    sys_mkdir("/tmp/swa-mnyororo-asili", 493);
+
+    // ============ Jenga mkusanyaji wa .swa (stage1) ============
+    n8** argv_msulu = jm_argv2(MSULUHISHI, "msingi/mkusanyaji/stage1.swa");
+    // MSULUHISHI huandika matokeo (chanzo kimoja kilichotatuliwa)
+    // kwenye STDOUT YAKE, SIO kwenye hoja ya pili -- kioo HASA cha
+    // matumizi yake ya bash (`"$MSULU" faili > zima.swa`).
+    n32 rc_tatua = jm_kusanya(MSULUHISHI, argv_msulu, envp, "/tmp/swa-mnyororo-asili/zima.swa", JM_TUPU);
+    kama (rc_tatua != 0) {
+        andika_stderr("SHINDWA: kutatua msingi/mkusanyaji/stage1.swa\n", 0, 0, 0, 0, 0, 0);
+        rudisha 1;
+    }
+    n8** argv_stage1 = jm_argv3(MBEGU, "--exe", "/tmp/swa-mnyororo-asili/zima.swa");
+    n32 rc_stage1 = jm_kusanya(MBEGU, argv_stage1, envp, "/tmp/swa-mnyororo-asili/stage1", "/tmp/swa-mnyororo-asili/stage1.err");
+    kama (rc_stage1 != 0) {
+        andika_stderr("SHINDWA: mbegu --exe zima.swa\n", 0, 0, 0, 0, 0, 0);
+        rudisha 1;
+    }
+    wito_wa_mfumo(90, "/tmp/swa-mnyororo-asili/stage1", 493, 0, 0, 0, 0);  // chmod +x
+    JM_PASS = JM_PASS + 1;  // ujenzi wa stage1
+
+    // ============ Fixpoint: stage2 == stage3 ============
+    n8** argv_s2 = jm_argv3("/tmp/swa-mnyororo-asili/stage1", "--exe", "/tmp/swa-mnyororo-asili/zima.swa");
+    n32 rc_s2 = jm_kusanya("/tmp/swa-mnyororo-asili/stage1", argv_s2, envp, "/tmp/swa-mnyororo-asili/stage2", JM_TUPU);
+    kama (rc_s2 != 0) { andika_stderr("SHINDWA: stage1 --exe\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
+    wito_wa_mfumo(90, "/tmp/swa-mnyororo-asili/stage2", 493, 0, 0, 0, 0);
+
+    n8** argv_s3 = jm_argv3("/tmp/swa-mnyororo-asili/stage2", "--exe", "/tmp/swa-mnyororo-asili/zima.swa");
+    n32 rc_s3 = jm_kusanya("/tmp/swa-mnyororo-asili/stage2", argv_s3, envp, "/tmp/swa-mnyororo-asili/stage3", JM_TUPU);
+    kama (rc_s3 != 0) { andika_stderr("SHINDWA: stage2 --exe\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
+
+    kama (jm_mafaili_sawa("/tmp/swa-mnyororo-asili/stage2", "/tmp/swa-mnyororo-asili/stage3")) {
+        JM_PASS = JM_PASS + 1;
+    } sivyo {
+        andika_stderr("SHINDWA: fixpoint (stage2 != stage3)\n", 0, 0, 0, 0, 0, 0);
+        JM_FAIL = JM_FAIL + 1;
+    }
+
+    // ============ Mzunguko wa MANIFEST.txt ============
+    n64 JM_UWEZO_MANIFEST = 1048576;
+    n8* manifest_buf = tenga(JM_UWEZO_MANIFEST);
+    weka_sifuri(manifest_buf, JM_UWEZO_MANIFEST);
+    n64 urefu = faili_soma_yote("majaribio/programu/MANIFEST.txt", manifest_buf, JM_UWEZO_MANIFEST);
+    kama (urefu < 0) {
+        andika_stderr("SHINDWA: MANIFEST.txt ni kubwa mno au haifunguki\n", 0, 0, 0, 0, 0, 0);
+        rudisha 1;
+    }
+
+    n8** nafasi = tenga(40);
+    n64 i = 0;
+    wakati (i < urefu) {
+        n64 mwanzo = i;
+        wakati (i < urefu && manifest_buf[i] != 10) { i = i + 1; }
+        manifest_buf[i] = 0;
+        i = i + 1;
+        n8* mstari = manifest_buf + mwanzo;
+
+        kama (urefu_wa_mfuatano(mstari) == 0) { endelea; }
+
+        n32 idadi_sehemu = jm_mgawanyo_mstari(mstari, nafasi);
+        n8* code = nafasi[0];
+        n8* faili = nafasi[2];
+        n8* mnyororo = "";
+        kama (idadi_sehemu >= 4) { mnyororo = nafasi[3]; }
+        n8* ujumbe = "";
+        kama (idadi_sehemu >= 5) { ujumbe = nafasi[4]; }
+
+        kama (linganisha_mfuatano(code, "FAIL") == 0) { endelea; }
+
+        kama (linganisha_mfuatano(code, "KATA") == 0) {
+            jm_jaribu_kata(MBEGU, "/tmp/swa-mnyororo-asili/stage1", envp, faili, mnyororo, ujumbe);
+            endelea;
+        }
+
+        n64 tarajiwa = mfuatano_hadi_n64(code);
+        kama (linganisha_mfuatano(mnyororo, "stage1") == 0) {
+            jm_jaribu_moja("/tmp/swa-mnyororo-asili/stage1", envp, faili, tarajiwa, "stage1");
+        } sivyo { kama (linganisha_mfuatano(mnyororo, "mbegu") == 0) {
+            jm_jaribu_moja(MBEGU, envp, faili, tarajiwa, "mbegu");
+        } sivyo {
+            jm_jaribu_moja(MBEGU, envp, faili, tarajiwa, "mbegu");
+            jm_jaribu_moja("/tmp/swa-mnyororo-asili/stage1", envp, faili, tarajiwa, "stage1");
+        } }
+    }
+
+    andika("\n===== Matokeo ya mnyororo (asili): %d yamefaulu, %d yameshindwa =====\n", JM_PASS, JM_FAIL, 0, 0, 0, 0);
+    kama (JM_FAIL > 0) { rudisha 1; }
+    rudisha 0;
+}
