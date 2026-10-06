@@ -4372,10 +4372,35 @@ w0 uzalishaji_wito(n32 node, n32 kazi_node) {
                             andika_wito_baiti(fd);
                         } sivyo { kama (h != -1) {
                                 kama (sp == 100) {  // %d
-                                    n32 enc_h = ast_thamani[h];
-                                    kama (ast_aina[h] == 45) { enc_h = ast_nne[h]; }
+                                    // lugha-swa/swa#305: `enc_h` HAPO AWALI
+                                    // ilitumia `ast_thamani[h]`/`ast_nne[h]`
+                                    // moja kwa moja -- hii HUKAMATA TU usemi
+                                    // ulio HALISI YA DESIMALI YENYEWE (aina==45),
+                                    // SI usemi WOWOTE wa d64 (wito wa kazi,
+                                    // operesheni ya hisabati, kigezo cha d64).
+                                    // `aina_ya_usemi(h)` ndiyo kazi SAHIHI ya
+                                    // kutambua aina ya usemi WOWOTE (inatumika
+                                    // kila mahali pengine kwenye faili hili).
+                                    // Bila marekebisho haya, usemi wa d64
+                                    // (mfano `x * 1000.0` au wito wa kazi
+                                    // unaorudisha d64) uliacha thamani kwenye
+                                    // xmm0 (ABI ya desimali), LAKINI
+                                    // andika_wito_n64 husoma rax -- rax
+                                    // ilibaki na TAKATAKA ya hesabu
+                                    // iliyotangulia (mfano anwani ya
+                                    // kumbukumbu), ikichapishwa KIMYA bila
+                                    // hitilafu. Suluhisho: ikiwa usemi ni
+                                    // desimali, tumia `badili_mpaka_wa_desimali`
+                                    // (kazi ILIYOPO tayari, inayotumika
+                                    // kwenye kila mahali pengine panapohitaji
+                                    // mpaka wa kamili/desimali) kuibadilisha
+                                    // hadi n64 kwenye rax (cvttsd2si/
+                                    // cvttss2si) KABLA ya kuichapisha.
+                                    n32 enc_h = aina_ya_usemi(h);
                                     uzalishaji_usemi(h, kazi_node);
-                                    kama (ukubwa_kutoka_enc(enc_h) < 8) { andika_cdqe(); }
+                                    kama (ni_desimali_enc(enc_h)) {
+                                        badili_mpaka_wa_desimali(h, encode_aina(1, 64, 0));
+                                    } sivyo { kama (ukubwa_kutoka_enc(enc_h) < 8) { andika_cdqe(); } }
                                     andika_wito_n64(fd);
                                 } sivyo { kama (sp == 115) {  // %s
                                         uzalishaji_usemi(h, kazi_node);
