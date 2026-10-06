@@ -1,0 +1,42 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+// jaribio_sys_kill_sleep_mkdir_msingi.swa -- jaribio la kudumu
+// linalothibitisha sys_kill/sys_nanosleep_sekunde/sys_mkdir
+// (mkusanyiko mpya wa kumbukumbu.swa, pamoja na sys_fork/sys_execve/
+// sys_wait4 -- angalia jaribio_sys_fork_execve_wait4_msingi.swa).
+// sys_kill+sys_nanosleep_sekunde ndizo msingi wa "mlinzi"
+// (watchdog) wa muda wa kikomo (timeout) unaotumika na
+// gharama/jaribu_mnyororo.swa kwa kila programu ya jaribio
+// inayoendeshwa -- jaribio hili linathibitisha mtoto ANAYELALA
+// SEKUNDE 10 HALISI anaweza kuuawa BAADA YA SEKUNDE 1 TU (si
+// kusubiri mpaka amalize), kuthibitisha ishara (signal) inafika
+// kabla ya muda kamili.
+
+n32 main() {
+    n64 pid = sys_fork();
+    kama (pid == 0) {
+        sys_nanosleep_sekunde(10);
+        wito_wa_mfumo(60, 0, 0, 0, 0, 0, 0);
+    }
+    sys_nanosleep_sekunde(1);
+    n64 rc_kill = sys_kill(pid, 9);
+    n32 status = 0;
+    sys_wait4(pid, &status, 0);
+    kama (rc_kill < 0) {
+        andika_stderr("FAIL: sys_kill ilishindwa\n", 0, 0, 0, 0, 0, 0);
+        rudisha 1;
+    }
+    kama (sys_wait4_ulitoka_kwa_kawaida(status) == 1) {
+        andika_stderr("FAIL: mtoto alitarajiwa kuuawa na ishara, si kutoka kwa kawaida\n", 0, 0, 0, 0, 0, 0);
+        rudisha 1;
+    }
+    andika("PASS: sys_kill + sys_nanosleep_sekunde zinafanya kazi (mtoto aliuawa kabla ya sekunde 10)\n", 0, 0, 0, 0, 0, 0);
+
+    n64 rc_mkdir = sys_mkdir("/tmp/jaribio-swa-mkdir-msingi", 493);
+    kama (rc_mkdir < 0 && rc_mkdir != (0 - 17)) {
+        andika_stderr("FAIL: sys_mkdir ilishindwa rc=%d\n", rc_mkdir, 0, 0, 0, 0, 0);
+        rudisha 1;
+    }
+    andika("PASS: sys_mkdir inafanya kazi (rc=%d, -17=tayari ipo ni sawa)\n", rc_mkdir, 0, 0, 0, 0, 0);
+    rudisha 0;
+}
