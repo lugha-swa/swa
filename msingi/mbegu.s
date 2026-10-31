@@ -11924,6 +11924,15 @@ uzalishaji_wambile:
         call    gen_baiti
         mov     al, 0xC2
         call    gen_baiti
+        ; mov r8, r9 — 4D 89 C8 (a5: hoja ya 6). lugha-swa/swa#311: bila
+        ; hii, a5 ilipotea kimya na r8 ilibaki na a4 (kioo cha #303/#304
+        ; kwenye uzalishaji.swa). LAZIMA iwe KABLA ya pop r9 ya chini.
+        mov     al, 0x4D
+        call    gen_baiti
+        mov     al, 0x89
+        call    gen_baiti
+        mov     al, 0xC8
+        call    gen_baiti
         ; mov rax, rdi — 48 89 F8 (namba ya syscall)
         mov     al, 0x48
         call    gen_baiti
