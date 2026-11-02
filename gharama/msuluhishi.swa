@@ -16,9 +16,8 @@ husisha { faili.swa }
 // Mzunguko wa utegemezi unakataliwa kwa sauti na msimbo wa
 // kutoka usio 0. Towe: faili zote kwa mpangilio wa utegemezi
 // (tegemezi kabla ya tegemeziwa), kisha maudhui ya chanzo
-// asili bila mistari ya "husisha { }". Mistari ya
-// "husisha C::jina" inapitishwa bila kubadilishwa — mstakaji
-// wa mkusanyaji (ondoza_husisha) ndiye anayeiondoa baadaye.
+// asili bila mistari ya "husisha { }". Mstari mwingine wowote wa
+// "husisha" (si faili) ni kosa la sauti: Swa haina kiungo cha C.
 //
 // Matumizi: msuluhishi <faili.swa>
 //           cat <faili.swa> | msuluhishi
@@ -92,7 +91,7 @@ n32 ongeza_jina(n8* jina) {
 // tambua_mstari — aina ya mstari mwanzoni mwa mstari:
 //   0 = si maelekezo ya husisha (kila kitu kingine)
 //   1 = husisha { faili.swa }   (linatatuliwa)
-//   2 = husisha C::jina au husisha nyingine (linapitishwa)
+//   2 = husisha nyingine (si faili) — kosa la sauti
 // Neno KAMILI "husisha" tu ndilo linalohesabika — si kiambishi
 // "hu". Kanuni hii inaendana na mstakaji wa mkusanyaji: neno
 // likifuatiwa tu na nafasi, tabo, mwisho wa mstari, au mwisho
@@ -106,7 +105,6 @@ n32 tambua_mstari(n8* b, n64 p, n64 mstari_urefu) {
         kama (baada == 32 || baada == 9) {
             n8 ya = b[p + 8];
             kama (ya == 123) { rudisha 1; }  // '{' — faili la Swa
-            kama (ya == 67) { rudisha 2; }  // 'C' — kiungo cha C
             rudisha 2;
         }
         rudisha 2;  // "husisha" pekee au kitu kingine — tupitishe
@@ -260,7 +258,10 @@ w0 changanua(n8* b, n64 urefu, n32 ni_kuu) {
         n64 baada = mwisho_mstari;
         kama (mwisho_mstari < urefu) { baada = mwisho_mstari + 1; }
         n32 aina = tambua_mstari(b, p, mwisho_mstari - p);
-        kama (aina == 1) {
+        kama (aina == 2) {
+            andika_stderr("; KOSA: husisha isiyo sahihi -- muundo pekee ni 'husisha { faili.swa }' (Swa haina kiungo cha C wala libc)\n");
+            kosa = 1;
+        } sivyo { kama (aina == 1) {
             kama (toa_jina(b, p, mwisho_mstari - p) == 0) {
                 tatua(jina_buf);
                 kama (ni_kuu == 0 && kosa == 0) {
@@ -276,7 +277,7 @@ w0 changanua(n8* b, n64 urefu, n32 ni_kuu) {
             }
         } sivyo {
             ongeza_pato(b + p, baada - p);
-        }
+        } }
         p = baada;
     }
 }
