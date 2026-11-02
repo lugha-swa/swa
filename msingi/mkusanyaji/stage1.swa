@@ -1,4 +1,3 @@
-husisha C::stdio
 husisha { mkusanyaji/msambazaji.swa }
 husisha { mkusanyaji/mkaguzi.swa }
 husisha { mkusanyaji/mtafsiri.swa }
@@ -15,8 +14,8 @@ husisha { mkusanyaji/uzalishaji_wasm.swa }
 // moja tu), kisha maudhui ya chanzo asili bila mistari ya
 // husisha. Mzunguko unakataliwa kwa sauti na msimbo wa
 // kutoka usio 0; faili lisilopatikana linalia kwa sauti.
-// Mistari ya "husisha C::jina" inatupwa (kiungo cha C
-// kinashughulikiwa na mzalishaji) — kama ilivyokuwa zamani.
+// Mstari mwingine wowote wa "husisha" (si "husisha { faili }") ni
+// kosa la sauti: Swa haina kiungo cha C wala libc.
 //
 // Mkusanyaji wa kujikusanya haufanyi kitu hapa: mnyororo
 // unaofika hapa umeshatatuliwa na zana ya ujenzi (hakuna
@@ -119,7 +118,7 @@ n32 ongeza_chanzo(n8* data, n64 urefu) {
 // tambua_mstari — aina ya mstari mwanzoni mwa mstari:
 //   0 = si maelekezo ya husisha (kila kitu kingine)
 //   1 = husisha { faili.swa }   (linatatuliwa)
-//   2 = husisha nyingine (C::, pekee, au mwisho wa mstari) — linatupwa
+//   2 = husisha nyingine (si faili) — kosa la sauti
 // Neno KAMILI "husisha" tu ndilo linalohesabika — si kiambishi
 // "hu": "husishakitu" mwanzoni mwa mstari si maelekezo.
 n32 tambua_mstari(n8* b, n64 p, n64 urefu) {
@@ -133,7 +132,6 @@ n32 tambua_mstari(n8* b, n64 p, n64 urefu) {
             kama (urefu >= 9) {
                 n8 ya = b[p + 8];
                 kama (ya == 123) { rudisha 1; }  // '{' — faili la Swa
-                kama (ya == 67) { rudisha 2; }   // 'C' — kiungo cha C
                 rudisha 2;
             }
             rudisha 2;  // "husisha " mwishoni mwa mstari
@@ -142,7 +140,6 @@ n32 tambua_mstari(n8* b, n64 p, n64 urefu) {
             kama (urefu >= 9) {
                 n8 ya = b[p + 8];
                 kama (ya == 123) { rudisha 1; }
-                kama (ya == 67) { rudisha 2; }
                 rudisha 2;
             }
             rudisha 2;
@@ -545,7 +542,10 @@ w0 changanua_husisha(n8* b, n64 urefu, n32 ni_kuu) {
         n64 baada = mwisho;
         kama (mwisho < urefu) { baada = mwisho + 1; }
         n32 aina = tambua_mstari(b, p, mwisho - p);
-        kama (aina == 1) {
+        kama (aina == 2) {
+            andika_stderr("; KOSA: husisha isiyo sahihi -- muundo pekee ni 'husisha { faili.swa }' (Swa haina kiungo cha C wala libc)\n");
+            kosa = 1;
+        } sivyo { kama (aina == 1) {
             kama (toa_jina(b, p, mwisho - p) == 0) {
                 kama (maudhui_yapo(jina_buf, b, p, urefu) == 0) {
                     tatua_husisha(jina_buf);
@@ -563,7 +563,7 @@ w0 changanua_husisha(n8* b, n64 urefu, n32 ni_kuu) {
             }
         } sivyo {
             ongeza_chanzo(b + p, baada - p);
-        }
+        } }
         p = baada;
     }
 }
