@@ -2370,6 +2370,27 @@ n32 changanua_muundo(Msambazaji* p) {
     // Neno muhimu kama jina la muundo — kosa la sauti (hati 2.2)
     kama (kataa_neno_muhimu(p)) { rudisha -1; }
 
+    // Jina la aina ya msingi kama jina la muundo (#215). Zamani
+    // "muundo n32 { ... }" ilipita kimya, lakini muundo huo haukuweza
+    // kufikiwa kamwe: kila mahali jina la aina linasomwa (ni_aina_tokeni,
+    // changanua_aina_tokeni, ukubwa()) aina ya msingi hushinda kwanza,
+    // hivyo ukubwa(n32) ilirudisha 4 badala ya ukubwa wa muundo. Kipimo
+    // ni kile kile ambacho mchanganuzi hutumia kutambua aina ya msingi
+    // (herufi ya familia + tarakimu), hivyo jina lolote ambalo
+    // mchanganuzi angelisoma kama aina linakataliwa hapa.
+    kama (ni_aina_msingi_pia_ndogo(p->sasa.mwanzo, p->sasa.urefu)) {
+        n8 bafa_aina[64];
+        n32 bi = 0;
+        wakati (bi < p->sasa.urefu && bi < 63) {
+            bafa_aina[bi] = p->sasa.mwanzo[bi];
+            bi = bi + 1;
+        }
+        bafa_aina[bi] = 0;
+        andika_stderr("kosa: '%s' ni jina la aina ya msingi — haliwezi kutumika kama jina la muundo\n", bafa_aina);
+        p->kosa = 1;
+        rudisha -1;
+    }
+
     n32 name = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
     hifadhi_jina(name, p->sasa.mwanzo, p->sasa.urefu);
     sogeza(p);  // tumia jina la muundo
