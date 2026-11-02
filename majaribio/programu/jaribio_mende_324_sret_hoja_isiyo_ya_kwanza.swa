@@ -1,0 +1,45 @@
+// lugha-swa/swa#324 -- wito unaorudisha muundo (sret), ukiwa hoja
+// ISIYO ya kwanza ya wito mwingine, haukuonwa na kipitishi awali cha
+// fremu (kusanya_vigeu_vya_ndani ilifuata hoja ya kwanza tu). Bafa ya
+// sret ikawa ya ukubwa 0 mwishoni mwa vigeu, na kazi iliyoitwa
+// iliandika muundo juu ya kigeu cha mwisho cha fremu -- thamani mbaya
+// KIMYA (0 badala ya 69), au SEGV. Kesi tatu; kutoka = idadi ya makosa.
+muundo Jozi { n64 a; n64 b; };
+Jozi hifadhi[8];
+
+Jozi tengeneza(n64 x, n64 y, n64 z, n64 u, n64 v) {
+    Jozi j;
+    j.a = x + y + z;
+    j.b = u + v;
+    rudisha j;
+}
+
+w0 weka(n64 i, Jozi j) { hifadhi[i] = j; }
+w0 weka3(n64 i, n64 k, Jozi j) { hifadhi[i + k] = j; }
+
+// 1. Paramu 6 (moja lazima iwe rafuni) na kazi inayounganishwa.
+w0 kifuniko(n64 i, n64 x, n64 y, n64 z, n64 u, n64 v) {
+    weka(i, tengeneza(x, y, z, u, v));
+}
+
+// 2. Kazi isiyounganishwa (ina kigeu cha ndani).
+w0 kifuniko_kigeu(n64 i, n64 x, n64 y, n64 z, n64 u, n64 v) {
+    n64 t = i;
+    weka(t, tengeneza(x, y, z, u, v));
+}
+
+// 3. Sret kama hoja ya TATU.
+w0 kifuniko_tatu(n64 i, n64 k, n64 x, n64 y, n64 z, n64 u) {
+    weka3(i, k, tengeneza(x, y, z, u, 5));
+}
+
+n32 main() {
+    n32 makosa = 0;
+    kifuniko(1, 1, 2, 3, 4, 5);
+    kama (hifadhi[1].a != 6 || hifadhi[1].b != 9) { makosa = makosa + 1; }
+    kifuniko_kigeu(2, 10, 20, 30, 40, 50);
+    kama (hifadhi[2].a != 60 || hifadhi[2].b != 90) { makosa = makosa + 1; }
+    kifuniko_tatu(1, 2, 1, 1, 1, 1);
+    kama (hifadhi[3].a != 3 || hifadhi[3].b != 6) { makosa = makosa + 1; }
+    rudisha makosa;
+}

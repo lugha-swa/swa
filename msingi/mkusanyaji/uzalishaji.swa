@@ -8737,6 +8737,21 @@ w0 kusanya_vigeu_vya_ndani(n32 node) {
         }
         kama (cum_w > wito_buf_haja) { wito_buf_haja = cum_w; }
         kama (cum_sa > sret_hoja_haja) { sret_hoja_haja = cum_sa; }
+        // Tembelea KILA hoja (lugha-swa/swa#324). Usafiri wa jumla hapa
+        // chini unafika hoja ya kwanza tu (ast_kulia); hoja zinazofuata
+        // ziko kwenye mnyororo wa ast_tiga, ambao unarukwa kwa nodi
+        // nyingi (KITAMBULISHO, hesabu, WITO -- tiga yao ina maana
+        // nyingine). Hivyo `weka(i, tengeneza(...))` haikuona wito wa
+        // sret wa hoja ya pili: wito_sret_haja ilibaki 0, bafa ya sret
+        // ikawa ya ukubwa 0 mwishoni mwa vigeu, na kazi iliyoitwa
+        // iliandika muundo wake juu ya kigeu cha mwisho cha fremu (hapa
+        // paramu `i` ya kazi iliyounganishwa) -- thamani mbaya kimya au
+        // SEGV. kvn_visited inazuia kutembelea nodi mara mbili.
+        n32 a_v = ast_kulia[node];
+        wakati (a_v != -1) {
+            kusanya_vigeu_vya_ndani(a_v);
+            a_v = ast_tiga[a_v];
+        }
         // Bafa ya sret inahitajika tu kama wito wowote unalenga kazi
         // inayorudisha muundo (kielekezi cha sret hutumia bafa ya
         // MPIGAJI). Bila hii, kila fremu ingetumia baiti 256 bure —
