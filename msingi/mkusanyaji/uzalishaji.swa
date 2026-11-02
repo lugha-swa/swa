@@ -2254,6 +2254,7 @@ n32 var_stack_idadi = 0;  // jumla ya baiti za vigeu kwenye rafu
 n32 frame_imeshinda = 0;  // 1 kama rafu ilianzishwa
 n32 sub_rsp_nafasi = 0;  // nafasi ya thamani katika sub rsp kwa ajili ya kurekebisha
 
+n8* kazi_ya_sasa_jina = 0;  // jina la kazi inayozalishwa sasa -- kwa ujumbe wa makosa
 n32 sret_inafanya = 0;  // 1 ikiwa kazi ya sasa inarudisha muundo
 n32 sret_ofseti = 0;  // ofseti ya rbp kwa kielekezi cha sret
 n32 sret_buf_off = 0;  // ofseti ya rbp kwa bafa ya muda ya sret (upande wa mpigaji)
@@ -2960,7 +2961,7 @@ n32 pata_au_unda_kigeu_ukubwa(n8* jina, n32 saizi, n32 enc) {
         // ukusanyaji uliendelea kimya na kigezo cha 65+ kilijihesabu
         // kama slot 0, LIKIANDIKA JUU ya kigezo cha kwanza kimya kimya.
         // Sasa inasimamisha ukusanyaji mara moja.
-        andika_stderr("KOSA: vigezo vya ndani (vya kazi hii) vimezidi 64\n");
+        andika_stderr("KOSA [%s]: vigezo vya ndani vimezidi 64\n", kazi_ya_sasa_jina);
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
     kama (1 == 1) {
@@ -8737,6 +8738,21 @@ w0 kusanya_vigeu_vya_ndani(n32 node) {
         }
         kama (cum_w > wito_buf_haja) { wito_buf_haja = cum_w; }
         kama (cum_sa > sret_hoja_haja) { sret_hoja_haja = cum_sa; }
+        // Tembelea KILA hoja (lugha-swa/swa#324). Usafiri wa jumla hapa
+        // chini unafika hoja ya kwanza tu (ast_kulia); hoja zinazofuata
+        // ziko kwenye mnyororo wa ast_tiga, ambao unarukwa kwa nodi
+        // nyingi (KITAMBULISHO, hesabu, WITO -- tiga yao ina maana
+        // nyingine). Hivyo `weka(i, tengeneza(...))` haikuona wito wa
+        // sret wa hoja ya pili: wito_sret_haja ilibaki 0, bafa ya sret
+        // ikawa ya ukubwa 0 mwishoni mwa vigeu, na kazi iliyoitwa
+        // iliandika muundo wake juu ya kigeu cha mwisho cha fremu (hapa
+        // paramu `i` ya kazi iliyounganishwa) -- thamani mbaya kimya au
+        // SEGV. kvn_visited inazuia kutembelea nodi mara mbili.
+        n32 a_v = ast_kulia[node];
+        wakati (a_v != -1) {
+            kusanya_vigeu_vya_ndani(a_v);
+            a_v = ast_tiga[a_v];
+        }
         // Bafa ya sret inahitajika tu kama wito wowote unalenga kazi
         // inayorudisha muundo (kielekezi cha sret hutumia bafa ya
         // MPIGAJI). Bila hii, kila fremu ingetumia baiti 256 bure —
@@ -8966,6 +8982,7 @@ w0 uzalishaji_kazi(n32 kazi_node) {
     su_kina_kitanzi = 0;
 
     // Tambua ikiwa kazi inarudisha muundo (sret)
+    kazi_ya_sasa_jina = ast_pool + ast_jina_off[ast_kushoto[kazi_node]];
     sret_inafanya = ni_muundo_enc(ret_enc);
     sret_ofseti = 0;
 
