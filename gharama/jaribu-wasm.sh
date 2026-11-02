@@ -86,6 +86,17 @@ while IFS=$'\t' read -r tarajiwa jina njia aina; do
     fi
 done < "$MANIFEST"
 
+# ============ 4. Daraja la kivinjari (Awamu 4) ============
+# mifano/kivinjari/kaunta.swa kupitia msingi/kivinjari/swa-kivinjari.js
+# (daraja halisi la kivinjari, si dom_mock) kwenye hati bandia ya Node.
+if "$STAGE1" --wasm mifano/kivinjari/kaunta.swa > "$TMP/kaunta.wasm" 2> "$TMP/kaunta.err" \
+   && node majaribio/wasm/jaribu_kivinjari.js "$TMP/kaunta.wasm" > /dev/null 2> "$TMP/kivinjari.err"; then
+    PASS=$((PASS+1))
+else
+    echo "SHINDWA: daraja la kivinjari (mifano/kivinjari)"; cat "$TMP/kaunta.err" "$TMP/kivinjari.err"
+    FAIL=$((FAIL+1))
+fi
+
 echo ""
 echo "===== Matokeo ya WASM: $PASS yamefaulu, $FAIL yameshindwa ====="
 [ "$FAIL" -eq 0 ]

@@ -347,6 +347,33 @@ n32 wasm_kazi_ni_w0(n32 kidx) {
     rudisha wasm_ni_w0_enc(ast_thamani[wasm_kazi_node[kidx]]);
 }
 
+// -------------------------------------------------------
+// Sehemu 2b (Awamu 4): vigezo vya ulimwengu na jedwali la kazi
+// -------------------------------------------------------
+// Kigezo cha ulimwengu (n32 au kielekezi) ni WASM Global yenye
+// kubadilika; faharisi 0 ni heap pointer ya tenga(), hivyo kigezo i
+// cha mtumiaji ni global 1+i. Hii ndiyo hali inayodumu kati ya
+// matukio (kaunta ya kubofya, n.k.) -- locals hufa kazi inaporudi.
+//
+// &kazi ni faharisi ya kazi kwenye jedwali (Table 0). Jedwali lina
+// kazi zote za ndani kwa mpangilio wa faharisi zao, hivyo faharisi ya
+// jedwali ni faharisi ya ndani ya kazi. Jedwali linatolewa nje kama
+// "jedwali" ili JS iite msikilizaji: jedwali.get(kazi)(id).
+n32 WASM_MAX_ULIMWENGU = 256;
+n8* wasm_ulimwengu_jina[256];
+n32 wasm_ulimwengu_init[256];
+n32 wasm_ulimwengu_idadi = 0;
+n32 wasm_jedwali_linatumika = 0;
+
+n32 wasm_tafuta_ulimwengu(n8* jina) {
+    n32 i = 0;
+    wakati (i < wasm_ulimwengu_idadi) {
+        kama (jina_linganisha(wasm_ulimwengu_jina[i], jina)) { rudisha i; }
+        i = i + 1;
+    }
+    rudisha -1;
+}
+
 n32 wasm_tafuta_kazi(n8* jina) {
     n32 i = 0;
     wakati (i < wasm_kazi_idadi) {
@@ -615,6 +642,11 @@ w0 wasm_usemi(n32 node, n32 kazi_node) {
 
         n32 idx = wasm_tafuta_local(jina);
         kama (idx < 0) {
+            n32 g = wasm_tafuta_ulimwengu(jina);
+            kama (g >= 0) {
+                wasm_op_global_get(1 + g);
+                rudisha;
+            }
             andika_stderr("KOSA: wasm -- kigezo kisichojulikana au nje ya wigo: %s\n", jina);
             wasm_kosa = 1;
             rudisha;
@@ -630,6 +662,15 @@ w0 wasm_usemi(n32 node, n32 kazi_node) {
 
     kama (aina == AST_KUMBUKA) {
         n32 operand = ast_kushoto[node];
+        // Awamu 4: &kazi -- faharisi ya kazi kwenye jedwali (Table 0).
+        kama (operand != -1 && ast_aina[operand] == AST_KITAMBULISHO) {
+            n32 kf = wasm_tafuta_kazi(ast_pool + ast_jina_off[operand]);
+            kama (kf >= 0) {
+                wasm_jedwali_linatumika = 1;
+                wasm_op_i32_const(kf);
+                rudisha;
+            }
+        }
         kama (operand == -1 || ast_aina[operand] != AST_TAJA) {
             andika_stderr("KOSA: wasm -- '&' inaungwa mkono TU kwa &arr[idx]/&*ptr kwenye Awamu 2 (si '&kigezo' cha ndani -- WASM 'locals' hazina anwani ya kumbukumbu, tofauti na rbp-offset za x86-64)\n");
             wasm_kosa = 1;
@@ -725,6 +766,29 @@ w0 wasm_usemi(n32 node, n32 kazi_node) {
         }
         kama (jina_linganisha(jina, "dom_mzizi")) {
             wasm_op_call(4);
+            rudisha;
+        }
+        // Awamu 4: dom_sikiliza(id, tukioPtr, kazi) -- JS huita
+        // jedwali.get(kazi)(id) kila tukio linapotokea kwenye nodi id.
+        kama (jina_linganisha(jina, "dom_sikiliza")) {
+            n32 h1 = ast_kulia[node];
+            kama (h1 == -1 || ast_tiga[h1] == -1 || ast_tiga[ast_tiga[h1]] == -1) { andika_stderr("KOSA: wasm -- dom_sikiliza() inahitaji hoja tatu (id, tukioPtr, &kazi)\n"); wasm_kosa = 1; rudisha; }
+            wasm_usemi(h1, kazi_node);
+            wasm_usemi(ast_tiga[h1], kazi_node);
+            wasm_usemi(ast_tiga[ast_tiga[h1]], kazi_node);
+            wasm_jedwali_linatumika = 1;
+            wasm_op_call(6);
+            rudisha;
+        }
+        // Awamu 4: dom_weka_namba(id, n) -- maandishi ya nodi = n kwa
+        // desimali. WASM ya Swa bado haiandiki baiti moja moja (safu ni
+        // za n32 pekee), kwa hiyo haiwezi kujenga mfuatano wa namba.
+        kama (jina_linganisha(jina, "dom_weka_namba")) {
+            n32 h1 = ast_kulia[node];
+            kama (h1 == -1 || ast_tiga[h1] == -1) { andika_stderr("KOSA: wasm -- dom_weka_namba() inahitaji hoja mbili (id, namba)\n"); wasm_kosa = 1; rudisha; }
+            wasm_usemi(h1, kazi_node);
+            wasm_usemi(ast_tiga[h1], kazi_node);
+            wasm_op_call(7);
             rudisha;
         }
         kama (jina_linganisha(jina, "console_andika")) {
@@ -925,12 +989,18 @@ w0 wasm_taarifa(n32 node, n32 kazi_node) {
             n8* jina2 = ast_pool + ast_jina_off[lhs];
             n32 idx2 = wasm_tafuta_local(jina2);
             kama (idx2 < 0) {
-                andika_stderr("KOSA: wasm -- kigezo kisichojulikana: %s\n", jina2);
-                wasm_kosa = 1;
-                rudisha;
+                n32 g2 = wasm_tafuta_ulimwengu(jina2);
+                kama (g2 < 0) {
+                    andika_stderr("KOSA: wasm -- kigezo kisichojulikana: %s\n", jina2);
+                    wasm_kosa = 1;
+                    rudisha;
+                }
+                wasm_usemi(rhs, kazi_node);
+                wasm_op_global_set(1 + g2);
+            } sivyo {
+                wasm_usemi(rhs, kazi_node);
+                wasm_op_local_set(idx2);
             }
-            wasm_usemi(rhs, kazi_node);
-            wasm_op_local_set(idx2);
         } sivyo { kama (aina == AST_WITO) {
                 n32 jina_node_w = ast_kushoto[node];
                 n8* jina_w = ast_pool + ast_jina_off[jina_node_w];
@@ -1139,14 +1209,67 @@ w0 wasm_andika_memory_sehemu(n32 min_pages) {
 w0 wasm_andika_global_sehemu(n32 heap_init) {
     wasm_bafu_sasa = 0;
     wasm_baiti(6);
-    n32 init_sz = 1 + wasm_sleb128_ukubwa(heap_init) + 1;
-    n32 content = wasm_uleb128_ukubwa(1) + 1 + 1 + init_sz;
+    n32 idadi = 1 + wasm_ulimwengu_idadi;
+    n32 content = wasm_uleb128_ukubwa(idadi) + 1 + 1 + 1 + wasm_sleb128_ukubwa(heap_init) + 1;
+    n32 g = 0;
+    wakati (g < wasm_ulimwengu_idadi) {
+        content = content + 1 + 1 + 1 + wasm_sleb128_ukubwa(wasm_ulimwengu_init[g]) + 1;
+        g = g + 1;
+    }
     wasm_uleb128(content);
-    wasm_uleb128(1);
+    wasm_uleb128(idadi);
     wasm_baiti(WASM_I32);
     wasm_baiti(1);  // mutable = kweli
     wasm_baiti(65); wasm_sleb128(heap_init);  // i32.const heap_init
     wasm_op_end();
+    // Awamu 4: vigezo vya ulimwengu vya mtumiaji (global 1..N)
+    g = 0;
+    wakati (g < wasm_ulimwengu_idadi) {
+        wasm_baiti(WASM_I32);
+        wasm_baiti(1);
+        wasm_baiti(65); wasm_sleb128(wasm_ulimwengu_init[g]);
+        wasm_op_end();
+        g = g + 1;
+    }
+}
+
+// Table section (id=4, Awamu 4): jedwali MOJA la funcref lenye nafasi
+// kwa kila kazi ya ndani. Linaandikwa tu likitumika (&kazi au
+// dom_sikiliza), ili moduli zisizo na matukio zibaki kama zilivyokuwa.
+w0 wasm_andika_table_sehemu() {
+    kama (wasm_jedwali_linatumika == 0) { rudisha; }
+    wasm_bafu_sasa = 0;
+    wasm_baiti(4);
+    wasm_uleb128(wasm_uleb128_ukubwa(1) + 1 + 1 + wasm_uleb128_ukubwa(wasm_kazi_idadi));
+    wasm_uleb128(1);
+    wasm_baiti(112);  // 0x70 funcref
+    wasm_baiti(0);    // mipaka: min pekee
+    wasm_uleb128(wasm_kazi_idadi);
+}
+
+// Element section (id=9, Awamu 4): segment MOJA amilifu ya jedwali 0
+// kuanzia ofseti 0: kazi zote za ndani kwa mpangilio wao, hivyo
+// jedwali[i] ni kazi ya ndani i (faharisi kamili i + uingizaji).
+w0 wasm_andika_element_sehemu() {
+    kama (wasm_jedwali_linatumika == 0) { rudisha; }
+    n32 orodha = wasm_uleb128_ukubwa(wasm_kazi_idadi);
+    n32 i = 0;
+    wakati (i < wasm_kazi_idadi) {
+        orodha = orodha + wasm_uleb128_ukubwa(i + wasm_import_idadi);
+        i = i + 1;
+    }
+    wasm_bafu_sasa = 0;
+    wasm_baiti(9);
+    wasm_uleb128(wasm_uleb128_ukubwa(1) + 1 + 3 + orodha);
+    wasm_uleb128(1);
+    wasm_uleb128(0);                              // aina 0: amilifu, jedwali 0, funcidx
+    wasm_baiti(65); wasm_sleb128(0); wasm_op_end(); // ofseti: i32.const 0
+    wasm_uleb128(wasm_kazi_idadi);
+    i = 0;
+    wakati (i < wasm_kazi_idadi) {
+        wasm_uleb128(i + wasm_import_idadi);
+        i = i + 1;
+    }
 }
 
 // Data section (id=11, Awamu 2): segment MOJA amilifu (memidx=0,
@@ -1297,6 +1420,10 @@ w0 wasm_andika_aina_uingizaji() {
     wasm_baiti(96); wasm_uleb128(0); wasm_uleb128(1); wasm_baiti(WASM_I32);
     // console_andika(i32) -> ()
     wasm_baiti(96); wasm_uleb128(1); wasm_baiti(WASM_I32); wasm_uleb128(0);
+    // dom_sikiliza(i32, i32, i32) -> ()  (Awamu 4)
+    wasm_baiti(96); wasm_uleb128(3); wasm_baiti(WASM_I32); wasm_baiti(WASM_I32); wasm_baiti(WASM_I32); wasm_uleb128(0);
+    // dom_weka_namba(i32, i32) -> ()  (Awamu 4)
+    wasm_baiti(96); wasm_uleb128(2); wasm_baiti(WASM_I32); wasm_baiti(WASM_I32); wasm_uleb128(0);
 }
 
 // Ukubwa (baiti, bila kuandika) wa entry moja ya Import section:
@@ -1328,20 +1455,25 @@ w0 wasm_andika_sehemu_uingizaji() {
     n8* n3 = "dom_ambatanisha";
     n8* n4 = "dom_mzizi";
     n8* n5 = "console_andika";
-    n32 content = wasm_uleb128_ukubwa(6)
+    n8* n6 = "dom_sikiliza";
+    n8* n7 = "dom_weka_namba";
+    n32 content = wasm_uleb128_ukubwa(8)
         + wasm_uingizaji_entry_ukubwa(n0, 0) + wasm_uingizaji_entry_ukubwa(n1, 1)
         + wasm_uingizaji_entry_ukubwa(n2, 2) + wasm_uingizaji_entry_ukubwa(n3, 3)
-        + wasm_uingizaji_entry_ukubwa(n4, 4) + wasm_uingizaji_entry_ukubwa(n5, 5);
+        + wasm_uingizaji_entry_ukubwa(n4, 4) + wasm_uingizaji_entry_ukubwa(n5, 5)
+        + wasm_uingizaji_entry_ukubwa(n6, 6) + wasm_uingizaji_entry_ukubwa(n7, 7);
     wasm_bafu_sasa = 0;
     wasm_baiti(2);
     wasm_uleb128(content);
-    wasm_uleb128(6);
+    wasm_uleb128(8);
     wasm_andika_uingizaji_entry(n0, 0);
     wasm_andika_uingizaji_entry(n1, 1);
     wasm_andika_uingizaji_entry(n2, 2);
     wasm_andika_uingizaji_entry(n3, 3);
     wasm_andika_uingizaji_entry(n4, 4);
     wasm_andika_uingizaji_entry(n5, 5);
+    wasm_andika_uingizaji_entry(n6, 6);
+    wasm_andika_uingizaji_entry(n7, 7);
 }
 
 // Export section (id=7): "main" (func) NA "memory" (Awamu 2 -- ili
@@ -1353,11 +1485,17 @@ w0 wasm_andika_export_sehemu(n32 main_idx) {
     n32 entry1 = jina_sz1 + 1 + idx_sz;
     n32 jina_sz2 = wasm_uleb128_ukubwa(6) + 6;  // "memory"
     n32 entry2 = jina_sz2 + 1 + wasm_uleb128_ukubwa(0);
-    n32 content_sz = wasm_uleb128_ukubwa(2) + entry1 + entry2;
+    n32 hesabu = 2;
+    n32 entry3 = 0;
+    kama (wasm_jedwali_linatumika) {
+        hesabu = 3;
+        entry3 = wasm_uleb128_ukubwa(7) + 7 + 1 + wasm_uleb128_ukubwa(0);  // "jedwali"
+    }
+    n32 content_sz = wasm_uleb128_ukubwa(hesabu) + entry1 + entry2 + entry3;
     wasm_bafu_sasa = 0;
     wasm_baiti(7);
     wasm_uleb128(content_sz);
-    wasm_uleb128(2);  // hesabu ya export: 2
+    wasm_uleb128(hesabu);
     wasm_uleb128(4);
     wasm_baiti(109); wasm_baiti(97); wasm_baiti(105); wasm_baiti(110);  // "main"
     wasm_baiti(0);  // aina = func
@@ -1366,6 +1504,12 @@ w0 wasm_andika_export_sehemu(n32 main_idx) {
     wasm_baiti(109); wasm_baiti(101); wasm_baiti(109); wasm_baiti(111); wasm_baiti(114); wasm_baiti(121);  // "memory"
     wasm_baiti(2);  // aina = memtype
     wasm_uleb128(0);
+    kama (wasm_jedwali_linatumika) {
+        wasm_uleb128(7);
+        wasm_baiti(106); wasm_baiti(101); wasm_baiti(100); wasm_baiti(119); wasm_baiti(97); wasm_baiti(108); wasm_baiti(105);  // "jedwali"
+        wasm_baiti(1);  // aina = table
+        wasm_uleb128(0);
+    }
 }
 
 n32 uzalishaji_wasm_kuu(n32 mzizi) {
@@ -1380,7 +1524,9 @@ n32 uzalishaji_wasm_kuu(n32 mzizi) {
     wasm_data_wapi = 0;
     wasm_str_idadi = 0;
     wasm_tenga_kutumika = 0;
-    wasm_import_idadi = 6;
+    wasm_import_idadi = 8;
+    wasm_ulimwengu_idadi = 0;
+    wasm_jedwali_linatumika = 0;
 
     // Awamu 3: aina za kazi 6 zilizoingizwa zaandikwa KWANZA kwenye
     // wasm_type_buf (faharisi 0..5) -- KABLA ya Pitio la 1/2 la kazi
@@ -1413,10 +1559,43 @@ n32 uzalishaji_wasm_kuu(n32 mzizi) {
             wasm_kazi_jina_off[wasm_kazi_idadi] = off;
             wasm_kazi_node[wasm_kazi_idadi] = gn;
             wasm_kazi_idadi = wasm_kazi_idadi + 1;
-        } sivyo { kama (ast_aina[gn] != AST_MUUNDO) {
-                andika_stderr("KOSA: wasm -- ujenzi wa ngazi ya juu haukubaliki kwenye Awamu 1 (aina ya AST=%d -- vigezo vya ulimwengu havitumiki)\n", ast_aina[gn]);
+        } sivyo { kama (ast_aina[gn] == AST_TANGAZO_ULIMWENGU) {
+                // Awamu 4: n32 au kielekezi, kianzio cha namba halisi au
+                // mfuatano halisi (au hakuna -> 0). Safu za ulimwengu bado
+                // haziko kwenye wigo.
+                n8* gjina = ast_pool + ast_jina_off[ast_kushoto[gn]];
+                n32 ginit = ast_kulia[gn];
+                kama (wasm_ni_n32_au_kielekezi_enc(ast_thamani[gn]) == 0) {
+                    andika_stderr("KOSA: wasm -- kigezo cha ulimwengu '%s': n32 au kielekezi pekee kwenye Awamu 4\n", gjina);
+                    rudisha 1;
+                }
+                kama (ast_tiga[gn] != -1) {
+                    andika_stderr("KOSA: wasm -- safu ya ulimwengu '%s' haiko kwenye wigo wa Awamu 4\n", gjina);
+                    rudisha 1;
+                }
+                kama (wasm_ulimwengu_idadi >= WASM_MAX_ULIMWENGU) {
+                    andika_stderr("KOSA: wasm -- vigezo vya ulimwengu vingi mno (kikomo %d)\n", WASM_MAX_ULIMWENGU);
+                    rudisha 1;
+                }
+                n32 thamani_g = 0;
+                kama (ginit != -1) {
+                    n8* gtxt = ast_pool + ast_jina_off[ginit];
+                    kama (ast_aina[ginit] == AST_NAMBARI && ast_kulia[ginit] != 1) {
+                        thamani_g = ast_thamani[ginit];
+                    } sivyo { kama (ast_aina[ginit] == AST_KITAMBULISHO && gtxt[0] == 34) {
+                            thamani_g = wasm_ongeza_mfuatano(gtxt);
+                        } sivyo {
+                            andika_stderr("KOSA: wasm -- kianzio cha kigezo cha ulimwengu '%s' lazima kiwe namba halisi au mfuatano halisi\n", gjina);
+                            rudisha 1;
+                        } }
+                }
+                wasm_ulimwengu_jina[wasm_ulimwengu_idadi] = gjina;
+                wasm_ulimwengu_init[wasm_ulimwengu_idadi] = thamani_g;
+                wasm_ulimwengu_idadi = wasm_ulimwengu_idadi + 1;
+            } sivyo { kama (ast_aina[gn] != AST_MUUNDO) {
+                andika_stderr("KOSA: wasm -- ujenzi wa ngazi ya juu haukubaliki (aina ya AST=%d)\n", ast_aina[gn]);
                 rudisha 1;
-            } }
+            } } }
         gn = ast_nne[gn];
     }
 
@@ -1486,9 +1665,11 @@ n32 uzalishaji_wasm_kuu(n32 mzizi) {
     wasm_andika_sehemu_kutoka(1, wasm_kazi_idadi + wasm_import_idadi, wasm_type_buf, wasm_type_wapi);
     wasm_andika_sehemu_uingizaji();
     wasm_andika_function_sehemu();
+    wasm_andika_table_sehemu();
     wasm_andika_memory_sehemu(min_pages);
     wasm_andika_global_sehemu(heap_init);
     wasm_andika_export_sehemu(main_idx);
+    wasm_andika_element_sehemu();
     wasm_andika_sehemu_kutoka(10, wasm_kazi_idadi, wasm_sec_buf, wasm_sec_wapi);
     wasm_andika_data_sehemu();
 

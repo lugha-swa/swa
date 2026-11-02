@@ -1,0 +1,33 @@
+// WASM Awamu 4: kaunta ya kubofya. main hujenga kitufe (id 1) na
+// lebo (id 2), husajili msikilizaji, na kurudi. Kila "click" kwenye
+// kitufe huongeza kigezo cha ulimwengu na kuandika thamani kwenye
+// lebo. Kitufe cha pili (id 3) kina msikilizaji tofauti unaosafisha.
+// Mti tarajiwa ni BAADA ya kubofya: 1, 1, 1, safisha, 1 -> "1".
+n32 hesabu = 0;
+n32 lebo = 0;
+
+w0 bonyeza(n32 id) {
+    hesabu = hesabu + 1;
+    dom_weka_namba(lebo, hesabu);
+}
+
+w0 safisha(n32 id) {
+    hesabu = 0;
+    dom_weka_namba(lebo, hesabu);
+}
+
+n32 main() {
+    n32 mzizi = dom_mzizi();
+    n32 kitufe = dom_unda("button");
+    dom_weka_maandishi(kitufe, "Ongeza");
+    dom_ambatanisha(mzizi, kitufe);
+    lebo = dom_unda("span");
+    dom_weka_namba(lebo, hesabu);
+    dom_ambatanisha(mzizi, lebo);
+    n32 futa = dom_unda("button");
+    dom_weka_maandishi(futa, "Safisha");
+    dom_ambatanisha(mzizi, futa);
+    dom_sikiliza(kitufe, "click", &bonyeza);
+    dom_sikiliza(futa, "click", &safisha);
+    rudisha 0;
+}

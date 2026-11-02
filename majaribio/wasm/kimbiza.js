@@ -28,7 +28,7 @@
 //                si namba -- angalia majaribio/wasm/*.tarajiwa.json).
 //
 // Sehemu za Uingizaji (Awamu 3): KILA moduli sasa ina Import section
-// (kazi 6 za env.*, angalia dom_mock.js) -- importObject hutolewa
+// (kazi 8 za env.*, angalia dom_mock.js) -- importObject hutolewa
 // kwa KILA aina ya jaribio, si "dom" pekee, kwa sababu
 // WebAssembly.instantiate inakataa moduli yenye uingizaji bila
 // importObject inayolingana, hata kama uingizaji huo haitumiki
@@ -79,6 +79,9 @@ WebAssembly.instantiate(bafa, dom.importObject)
         if (matokeo.instance.exports.memory) {
             dom.setMemory(matokeo.instance.exports.memory);
         }
+        if (matokeo.instance.exports.jedwali) {
+            dom.setTable(matokeo.instance.exports.jedwali);
+        }
         const halisi = main();
 
         if (aina === "dom") {
@@ -88,6 +91,17 @@ WebAssembly.instantiate(bafa, dom.importObject)
                 tarajiwa_tree = JSON.parse(fs.readFileSync(jp, "utf8"));
             } catch (e) {
                 shindwa("faili la mti tarajiwa halisomeki (" + tarajiwa_str + "): " + e.message);
+            }
+            // Awamu 4: { "chochea": [[id, "tukio"], ...], "mti": {...} } --
+            // matukio yanachochewa kwa mpangilio baada ya main(), kisha
+            // mti unalinganishwa. Muundo wa zamani (mti peke yake) haubadiliki.
+            if (tarajiwa_tree && tarajiwa_tree.mti !== undefined) {
+                for (const [id, tukio] of tarajiwa_tree.chochea || []) {
+                    if (dom.chochea(id, tukio) === 0) {
+                        shindwa("hakuna msikilizaji wa '" + tukio + "' kwenye nodi " + id + " (" + njia + ")");
+                    }
+                }
+                tarajiwa_tree = tarajiwa_tree.mti;
             }
             const halisi_tree = dom.getTree();
             const a = JSON.stringify(halisi_tree);

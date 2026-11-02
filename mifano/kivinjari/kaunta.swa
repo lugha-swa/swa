@@ -1,0 +1,35 @@
+// Kaunta ya kubofya -- mfano wa Swa kwenye kivinjari (WASM Awamu 4).
+//
+//   swa --wasm kaunta.swa > kaunta.wasm
+//   cp <swa>/msingi/kivinjari/swa-kivinjari.js .
+//   python3 -m http.server   # kisha fungua http://localhost:8000
+//
+// Hali (hesabu, lebo) ni vigezo vya ulimwengu: vinadumu kati ya mibofyo.
+n32 hesabu = 0;
+n32 lebo = 0;
+
+w0 bonyeza(n32 id) {
+    hesabu = hesabu + 1;
+    dom_weka_namba(lebo, hesabu);
+}
+
+w0 safisha(n32 id) {
+    hesabu = 0;
+    dom_weka_namba(lebo, hesabu);
+}
+
+n32 main() {
+    n32 mzizi = dom_mzizi();
+    n32 kitufe = dom_unda("button");
+    dom_weka_maandishi(kitufe, "Ongeza");
+    dom_ambatanisha(mzizi, kitufe);
+    lebo = dom_unda("span");
+    dom_weka_namba(lebo, hesabu);
+    dom_ambatanisha(mzizi, lebo);
+    n32 futa = dom_unda("button");
+    dom_weka_maandishi(futa, "Safisha");
+    dom_ambatanisha(mzizi, futa);
+    dom_sikiliza(kitufe, "click", &bonyeza);
+    dom_sikiliza(futa, "click", &safisha);
+    rudisha 0;
+}
