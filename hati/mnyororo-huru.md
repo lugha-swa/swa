@@ -29,7 +29,7 @@ Zana inayogeuza `mbegu.s` kuwa `mbegu.bin` lazima ijengwe kutoka `kwanza.bin` PE
 
 - [x] Hatua 1: `msingi/mnyororo/hatua1_maoni.hexc` (+ `.hex` safi kwa kwanza). Baiti 400 (msimbo 280). Hujijenga yenyewe; hujenga `kwanza.bin`.
 - [x] Hatua 2: `msingi/mnyororo/hatua2_lebo.hexc` (hujengwa na maoni) + `.hex2` (chanzo chake kwa lebo zake mwenyewe). Baiti 730 (msimbo 610). Mapitio mawili; `:jina`, `!jina` (rel8), `%jina` (rel32), `&jina` (anwani). Hujijenga yenyewe sawa kwa baiti (matawi 61 kwa majina); lebo haijulikani -> kutoka 2, rel8 mbali -> 3.
-- [ ] Hatua 3: `kusanyiko0`
+- [x] Hatua 3: `msingi/mnyororo/hatua3_kusanyiko0.hex2` (hujengwa na lebo) + `.kus` (chanzo chake kwa lugha yake: makro 138 za maagizo kwa **majina ya Kiswahili**, rejista `r0`-`r15`). Baiti 1019. `FAFANUA jina baiti`, namba `!N %N ^N`, mifuatano `"..."`, lebo zinapitishwa; tokeni isiyojulikana -> kutoka 4. Hujijenga yenyewe sawa kwa baiti (.kus -> kusanyiko0 -> lebo).
 - [ ] Hatua 4: assembler ya x86 (maagizo 63 ambayo `mbegu.s` hutumia)
 - [ ] Hatua 5: kugandisha upya `mbegu.hex` kutoka hatua 4
 

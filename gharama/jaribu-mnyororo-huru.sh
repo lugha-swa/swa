@@ -44,5 +44,30 @@ kagua lebo_ni '# abc def
 kagua lebo_ni 'e9 %hakuna' 2 ""
 kagua lebo_ni "eb !mbali $(printf '90 %.0s' $(seq 1 200)):mbali" 3 ""
 
+# Hatua 3: lebo hujenga kusanyiko0 kutoka .hex2; kusanyiko0 lazima
+# ijijenge yenyewe sawa kwa baiti kutoka chanzo chake cha makro za
+# Kiswahili (.kus -> kusanyiko0 -> lebo), kisha kila kipengele.
+"$TMP/lebo" < $M/hatua3_kusanyiko0.hex2 > "$TMP/k0"
+chmod +x "$TMP/k0"
+"$TMP/k0" < $M/hatua3_kusanyiko0.kus > "$TMP/k0.hex2" && "$TMP/lebo" < "$TMP/k0.hex2" > "$TMP/k02"
+kagua cmp -s "$TMP/k0" "$TMP/k02"
+k0_ni() {  # $1 chanzo, $2 kutoka tarajiwa, $3 baiti tarajiwa (hex)
+    printf '%s\n' "$1" | "$TMP/k0" > "$TMP/ko" 2> /dev/null
+    local rc=$? got
+    if [ "$rc" = 0 ]; then "$TMP/lebo" < "$TMP/ko" > "$TMP/o"; rc=$?; else : > "$TMP/o"; fi
+    got=$(od -An -tx1 "$TMP/o" | tr -s ' ' | sed 's/^ //;s/ $//')
+    [ "$rc" = "$2" ] && [ "$got" = "$3" ]
+}
+kagua k0_ni 'rudi
+FAFANUA rudi c3' 0 "c3"
+kagua k0_ni '!5 !-1 %258 ^-2' 0 "05 ff 02 01 00 00 fe ff ff ff ff ff ff ff"
+kagua k0_ni '"Habari"' 0 "48 61 62 61 72 69"
+kagua k0_ni ':a FAFANUA ruka8 eb
+ruka8 !a' 0 "eb fe"
+kagua k0_ni 'FAFANUA x 90 90 ; maoni
+x' 0 "90 90"
+kagua k0_ni 'hamisha_r9,r10' 4 ""
+kagua k0_ni '%12x' 4 ""
+
 echo "===== Matokeo ya mnyororo huru: $PASS yamefaulu, $FAIL yameshindwa ====="
 [ "$FAIL" -eq 0 ]
