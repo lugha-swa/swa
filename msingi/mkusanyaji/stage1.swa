@@ -219,8 +219,84 @@ n32 ongeza_jina(n8* jina) {
     rudisha idadi_majina - 1;
 }
 
+// Mzizi wa usakinishaji: saraka mbili juu ya binary yenyewe.
+// <mzizi>/bin/swa -> <mzizi>, na maktaba iko <mzizi>/msingi/maktaba
+// -- mpangilio ule ule wa hazina hii. Bila hili, swa ilipata maktaba
+// tu ikiendeshwa kutoka mzizi wa hazina (njia zote zilikuwa kulingana
+// na saraka ya sasa), kwa hiyo binary iliyopakuliwa haikuweza
+// kukusanya program yoyote yenye husisha ya maktaba.
+n8 mzizi_wa_swa[512];
+n32 mzizi_wa_swa_hali = 0;  // 0 = haijatafutwa, 1 = ipo, -1 = haipo
+n8* swa_argv0 = 0;          // argv[0], hujazwa na main
+
+n32 mzizi_wa_swa_tafuta() {
+    kama (mzizi_wa_swa_hali != 0) {
+        rudisha mzizi_wa_swa_hali;
+    }
+    mzizi_wa_swa_hali = -1;
+    // readlink(2) = 89; haiandiki NUL, urefu unarudishwa. Hufuata
+    // viungo (symlink), kwa hiyo /usr/local/bin/swa -> /opt/swa/bin/swa
+    // hupata /opt/swa.
+    n64 n = wito_wa_mfumo(89, "/proc/self/exe", mzizi_wa_swa, 511, 0, 0, 0);
+    kama (n <= 0) {
+        // Hakuna /proc (chroot, initramfs): tumia argv[0] likiwa na '/'.
+        // Njia ya jamaa hupewa "./" ili kuvua ngazi mbili kubaki halali.
+        kama (swa_argv0 == 0) {
+            rudisha -1;
+        }
+        n64 ua = urefu_wa_mfuatano(swa_argv0);
+        n64 k = 0;
+        n32 ina_mkwaju = 0;
+        wakati (k < ua) {
+            kama (swa_argv0[k] == 47) {
+                ina_mkwaju = 1;
+            }
+            k = k + 1;
+        }
+        kama (ina_mkwaju == 0 || ua >= 500) {
+            rudisha -1;
+        }
+        kama (swa_argv0[0] == 47) {
+            nakili_mfuatano(mzizi_wa_swa, swa_argv0);
+        } sivyo {
+            unganisha_mfuatano(mzizi_wa_swa, "./", swa_argv0);
+        }
+        n = urefu_wa_mfuatano(mzizi_wa_swa);
+    }
+    mzizi_wa_swa[n] = 0;
+    n32 ngazi = 0;
+    wakati (ngazi < 2) {
+        n64 i = n - 1;
+        wakati (i > 0 && mzizi_wa_swa[i] != 47) {
+            i = i - 1;
+        }
+        // binary moja kwa moja chini ya / (mf. /bin/swa): hakuna mzizi
+        kama (i <= 0) {
+            rudisha -1;
+        }
+        mzizi_wa_swa[i] = 0;
+        n = i;
+        ngazi = ngazi + 1;
+    }
+    mzizi_wa_swa_hali = 1;
+    rudisha 1;
+}
+
+// jaribu_chini_ya_mzizi — <mzizi><kati><jina> kwenye njia_buf.
+n32 jaribu_chini_ya_mzizi(n8* kati, n8* jina) {
+    kama (urefu_wa_mfuatano(mzizi_wa_swa) + urefu_wa_mfuatano(kati) + urefu_wa_mfuatano(jina) >= 511) {
+        rudisha 0;
+    }
+    n8 kiambishi[512];
+    unganisha_mfuatano(kiambishi, mzizi_wa_swa, kati);
+    unganisha_mfuatano(njia_buf, kiambishi, jina);
+    rudisha faili_ipo_swa(njia_buf);
+}
+
 // pata_njia — njia ya kwanza iliyopo kwa mpangilio wa utafutaji;
 // njia yenyewe inaishia kwenye njia_buf. Rudisha 1 ikiwa ipo.
+// Saraka ya sasa kwanza (tabia ya zamani haibadiliki), kisha mzizi
+// wa usakinishaji wa swa yenyewe.
 n32 pata_njia(n8* jina) {
     unganisha_mfuatano(njia_buf, "msingi/", jina);
     kama (faili_ipo_swa(njia_buf) != 0) {
@@ -233,6 +309,17 @@ n32 pata_njia(n8* jina) {
     nakili_mfuatano(njia_buf, jina);
     kama (faili_ipo_swa(njia_buf) != 0) {
         rudisha 1;
+    }
+    kama (jina[0] != 47 && mzizi_wa_swa_tafuta() == 1) {
+        kama (jaribu_chini_ya_mzizi("/msingi/", jina) != 0) {
+            rudisha 1;
+        }
+        kama (jaribu_chini_ya_mzizi("/msingi/maktaba/", jina) != 0) {
+            rudisha 1;
+        }
+        kama (jaribu_chini_ya_mzizi("/", jina) != 0) {
+            rudisha 1;
+        }
     }
     rudisha 0;
 }
@@ -383,6 +470,9 @@ w0 tatua_husisha(n8* jina) {
             andika_stderr(";   Ilitajwa kutoka: %s\n", majina_husisha + rafu_husisha[rafu_kiasi - 1] * KIPANDE);
         }
         andika_stderr(";   Utafutaji: msingi/%s, msingi/maktaba/%s, %s\n", jina, jina, jina);
+        kama (mzizi_wa_swa_tafuta() == 1) {
+            andika_stderr(";   kisha chini ya usakinishaji: %s/msingi/, %s/msingi/maktaba/, %s/\n", mzizi_wa_swa, mzizi_wa_swa, mzizi_wa_swa);
+        }
         kosa = 1;
         rudisha;
     }
@@ -479,6 +569,7 @@ w0 changanua_husisha(n8* b, n64 urefu, n32 ni_kuu) {
 }
 
 n32 main(n32 argc, n8** argv) {
+    swa_argv0 = argv[0];
     n32 ni_jit = 0;
     n32 ni_exe = 0;
     n32 ni_wasm = 0;
