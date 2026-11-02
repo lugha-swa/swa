@@ -111,7 +111,7 @@ Mfano huu hukusanywa na kuendeshwa kwenye CI kila PR (`gharama/jaribu-mifano.sh`
 | Lengo | Amri | Matokeo |
 |---|---|---|
 | Linux x86-64 | `bin/swa --exe p.swa > p` | ELF inayojitegemea |
-| WebAssembly | `bin/swa --wasm p.swa > p.wasm` | moduli ya `.wasm` kwa kivinjari |
+| WebAssembly | `bin/swa --wasm p.swa > p.wasm` | moduli ya `.wasm` kwa kivinjari; [`msingi/kivinjari/swa-kivinjari.js`](msingi/kivinjari/swa-kivinjari.js) huiunganisha na DOM na matukio (mfano: [`mifano/kivinjari/`](mifano/kivinjari/)) |
 | Ring 0 | `bin/swa --kernel p.swa > p.bin` | msimbo bapa kwa [Kawira](https://github.com/lugha-swa/kawira) (kazi ya kwanza lazima iwe `kernel_main`) |
 
 </details>
