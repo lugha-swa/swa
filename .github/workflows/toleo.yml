@@ -1,0 +1,78 @@
+# Jina la utendaji
+name: Toleo
+
+# Lebo ya toleo pekee (v0.0.1, v0.0.2, ...). Lebo husukumwa na
+# msimamizi; kila kitu kingine hufanywa hapa.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write   # kuunda toleo
+  packages: write   # kusukuma picha kwenye ghcr.io
+
+jobs:
+  toleo:
+    name: Jenga, jaribu, toa
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pakua msimbo
+        uses: actions/checkout@v4
+
+      - name: Jenga kutoka baiti za mkono
+        run: bash gharama/jenga.sh
+
+      # Lango: hakuna toleo bila suti kamili kupita kwenye lebo hii hii.
+      - name: Majaribio
+        run: |
+          bash gharama/jaribu-mnyororo.sh
+          bash gharama/jaribu-mnyororo-asili.sh
+          bash gharama/jaribu-mifano.sh
+          bash gharama/jaribu-usakinishaji.sh
+
+      - name: Funga tarball
+        run: |
+          T="$GITHUB_REF_NAME"
+          D="swa-$T-linux-x86_64"
+          mkdir -p "dist/$D/bin" "dist/$D/msingi"
+          cp bin/swa "dist/$D/bin/swa"
+          cp -r msingi/maktaba "dist/$D/msingi/maktaba"
+          cp README.md LICENSE-MIT LICENSE-APACHE "dist/$D/"
+          tar -C dist --owner=0 --group=0 --numeric-owner -czf "dist/$D.tar.gz" "$D"
+          cp msingi/mbegu.bin "dist/mbegu-$T.bin"
+          (cd dist && sha256sum "$D.tar.gz" "mbegu-$T.bin" > SHA256SUMS)
+          echo "D=$D" >> "$GITHUB_ENV"
+
+      # Tarball iliyofunguliwa nje ya hazina lazima ikusanye mfano wa README.
+      - name: Jaribu tarball
+        run: |
+          mkdir -p "$RUNNER_TEMP/t" "$RUNNER_TEMP/mradi" && tar -C "$RUNNER_TEMP/t" -xzf "dist/$D.tar.gz"
+          cp mifano/salamu.swa "$RUNNER_TEMP/mradi/"
+          cd "$RUNNER_TEMP/mradi" && "$RUNNER_TEMP/t/$D/bin/swa" --exe salamu.swa > p && chmod +x p
+          ./p | cmp - "$GITHUB_WORKSPACE/mifano/salamu.tarajiwa"
+
+      - name: Jenga na jaribu picha
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          P="ghcr.io/${GITHUB_REPOSITORY_OWNER}/swa"
+          docker build -f gharama/kifurushi/Dockerfile -t "$P:$V" -t "$P:latest" "dist/$D"
+          docker run --rm -v "$PWD/mifano:/kazi" "$P:$V" --exe salamu.swa > "$RUNNER_TEMP/p_picha"
+          chmod +x "$RUNNER_TEMP/p_picha" && "$RUNNER_TEMP/p_picha" | cmp - mifano/salamu.tarajiwa
+          echo "P=$P" >> "$GITHUB_ENV"
+          echo "V=$V" >> "$GITHUB_ENV"
+
+      - name: Toleo la GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          MAELEZO="hati/matoleo/$GITHUB_REF_NAME.md"
+          if [ -f "$MAELEZO" ]; then HOJA=(--notes-file "$MAELEZO"); else HOJA=(--generate-notes); fi
+          gh release create "$GITHUB_REF_NAME" --verify-tag --title "Swa $GITHUB_REF_NAME" "${HOJA[@]}" \
+            "dist/$D.tar.gz" "dist/mbegu-$GITHUB_REF_NAME.bin" dist/SHA256SUMS
+
+      - name: Sukuma picha
+        run: |
+          echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker push "$P:$V"
+          docker push "$P:latest"

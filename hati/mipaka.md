@@ -184,7 +184,7 @@ uzalishaji ni mbegu/exe PEKEE.
 **KUFUNGWA (2026-09-05):** dereva wa Rust/LLVM umehamishiwa hazina ya
 kumbukumbu [lugha-swa/swa-dereva](https://github.com/lugha-swa/swa-dereva)
 (iliyohifadhiwa). Hazina kuu sasa ina lugha moja tu: Swa. Historia
-kamili ya dereva ipo kwenye hazina kuu hadi commit 8fd71b2 (v0.1.0).
+kamili ya dereva ipo kwenye hazina kuu hadi commit 8fd71b2.
 
 ## 7. Kwanza haina chanzo chenye maelezo [UKALI: TAARIFA]
 

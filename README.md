@@ -32,7 +32,13 @@ Mwongozo kamili wa lugha uko kwenye [lugha-swa.github.io](https://lugha-swa.gith
 <summary><b>Sakinisha</b></summary>
 <br>
 
-Mahitaji: Linux ya x86-64 na `bash`. Hakuna kingine.
+Toleo lililojengwa tayari (Linux x86-64) liko kwenye [matoleo](https://github.com/lugha-swa/swa/releases/latest): fungua tarball popote, `bin/swa` hupata `msingi/maktaba/` iliyo kando yake. Au kwa Docker:
+
+```sh
+docker run --rm -v "$PWD:/kazi" ghcr.io/lugha-swa/swa --exe p.swa > p
+```
+
+Kujenga kutoka chanzo, mahitaji ni Linux ya x86-64 na `bash` pekee:
 
 ```sh
 git clone https://github.com/lugha-swa/swa && cd swa
