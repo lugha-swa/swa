@@ -10,7 +10,7 @@
 #   5) grafu kamili ya mkusanyaji (msingi/mkusanyaji/stage1.swa) — fixpoint stage2 == stage3
 #   6) kujitatua: towe la msuluhishi kujengwa linalingana kwa baiti
 #   7) kutoathirika: kutatua towe tena ni kitendo tupu
-#   8) husisha C:: inapitishwa; faili lisilopo na { bila kufunga zinalia
+#   8) husisha isiyo ya faili (mf. C::), faili lisilopo na { bila kufunga zinalia
 set -u
 
 cd "$(dirname "$0")/.." || exit 1
@@ -40,17 +40,10 @@ chmod +x "$TMP/msuluhishi"
 PASS=$((PASS+1))
 
 # ============ 2. Jenga stage1 mpya (mnyororo wa .swa) ============
+# Kama jenga.sh: msuluhishi hutatua grafu ya husisha ya mkusanyaji.
 ZIMA1="$TMP/zima.swa"
-for f in kumbukumbu mfuatano; do
-    cat msingi/maktaba/$f.swa >> "$ZIMA1"
-done
-for f in msomaji msambazaji mteremko mkaguzi uzalishaji; do
-    cat msingi/mkusanyaji/$f.swa >> "$ZIMA1"
-done
-for f in orodha ramani; do
-    cat msingi/maktaba/$f.swa >> "$ZIMA1"
-done
-cat msingi/mkusanyaji/stage1.swa >> "$ZIMA1"
+"$TMP/msuluhishi" msingi/mkusanyaji/stage1.swa > "$ZIMA1" || {
+    echo "SHINDWA: kutatua msingi/mkusanyaji/stage1.swa"; exit 1; }
 ./msingi/mbegu.bin --exe "$ZIMA1" > "$TMP/stage1" 2> /dev/null || {
     echo "SHINDWA: ujenzi wa stage1"; exit 1; }
 chmod +x "$TMP/stage1"
@@ -59,8 +52,8 @@ PASS=$((PASS+1))
 # ============ 3. Jaribio dogo ============
 cat > "$TMP/dogo.swa" <<'EOF'
 husisha { mfuatano.swa }
-N32 main() {
-    N64 n = urefu_wa_mfuatano("habari");
+n32 main() {
+    n64 n = urefu_wa_mfuatano("habari");
     kama (n == 6) { rudisha 0; }
     rudisha 1;
 }
@@ -78,9 +71,9 @@ done
 
 # ============ 4. Mnyororo wa ngazi tatu (saraka ya sasa) ============
 MNYORO="$TMP/mnyororo"; mkdir -p "$MNYORO"
-printf 'N32 kazi_c() { rudisha 3; }\n' > "$MNYORO/c.swa"
-printf 'husisha { c.swa }\nN32 kazi_b() { rudisha kazi_c() + 1; }\n' > "$MNYORO/b.swa"
-printf 'husisha { b.swa }\nN32 main() { kama (kazi_b() == 4) { rudisha 0; } rudisha 1; }\n' > "$MNYORO/a.swa"
+printf 'n32 kazi_c() { rudisha 3; }\n' > "$MNYORO/c.swa"
+printf 'husisha { c.swa }\nn32 kazi_b() { rudisha kazi_c() + 1; }\n' > "$MNYORO/b.swa"
+printf 'husisha { b.swa }\nn32 main() { kama (kazi_b() == 4) { rudisha 0; } rudisha 1; }\n' > "$MNYORO/a.swa"
 ( cd "$MNYORO" && "$TMP/msuluhishi" a.swa > towe-a.swa ) || { echo "SHINDWA: kutatua mnyororo"; exit 1; }
 grep -q "kazi_c" "$MNYORO/towe-a.swa" && grep -q "kazi_b" "$MNYORO/towe-a.swa"
 kagua "$?" "0" "mnyororo: c na b ziko kwenye towe"
@@ -89,8 +82,8 @@ kagua "$?" "0" "mnyororo: c na b ziko kwenye towe"
     && ( cd "$MNYORO" && ./exe-a ); kagua "$?" "0" "mnyororo wa ngazi 3 (mbegu)"
 
 # ============ 5. Mzunguko ============
-printf 'husisha { y.swa }\nN32 main() { rudisha 0; }\n' > "$MNYORO/x.swa"
-printf 'husisha { x.swa }\nN32 kazi_y() { rudisha 1; }\n' > "$MNYORO/y.swa"
+printf 'husisha { y.swa }\nn32 main() { rudisha 0; }\n' > "$MNYORO/x.swa"
+printf 'husisha { x.swa }\nn32 kazi_y() { rudisha 1; }\n' > "$MNYORO/y.swa"
 ( cd "$MNYORO" && "$TMP/msuluhishi" x.swa > /dev/null 2> "mz.txt" ); rc=$?
 grep -q "mzunguko" "$MNYORO/mz.txt"
 kagua "$rc|$?" "1|0" "mzunguko unakataliwa kwa sauti"
@@ -127,14 +120,15 @@ cmp -s "$TMP/kutodhani.swa" "$TMP/kujitatua.swa"
 kagua "$?" "0" "kutoathirika: pato la pili == la kwanza"
 
 # ============ 9. C:: na makosa ============
-printf 'husisha C::stdio\nhusisha { mfuatano.swa }\nN32 main() { rudisha 0; }\n' > "$TMP/c.swa"
-"$TMP/msuluhishi" "$TMP/c.swa" 2> /dev/null | grep -q "husisha C::stdio"
-kagua "$?" "0" "husisha C:: inapitishwa"
-printf 'husisha { haipo.swa }\nN32 main() { rudisha 0; }\n' > "$TMP/hp.swa"
+printf 'husisha C::stdio\nhusisha { mfuatano.swa }\nn32 main() { rudisha 0; }\n' > "$TMP/c.swa"
+"$TMP/msuluhishi" "$TMP/c.swa" > /dev/null 2> "$TMP/ce"; rc=$?
+grep -q "husisha isiyo sahihi" "$TMP/ce"
+kagua "$rc|$?" "1|0" "husisha C:: inakataliwa kwa sauti (Swa haina kiungo cha C)"
+printf 'husisha { haipo.swa }\nn32 main() { rudisha 0; }\n' > "$TMP/hp.swa"
 "$TMP/msuluhishi" "$TMP/hp.swa" > /dev/null 2> "$TMP/hpe"; rc=$?
 grep -q "halipatikani" "$TMP/hpe"
 kagua "$rc|$?" "1|0" "faili lisilopo linalia kwa sauti"
-printf 'husisha { x\nN32 main() { rudisha 0; }\n' > "$TMP/bf.swa"
+printf 'husisha { x\nn32 main() { rudisha 0; }\n' > "$TMP/bf.swa"
 "$TMP/msuluhishi" "$TMP/bf.swa" > /dev/null 2> "$TMP/bfe"; rc=$?
 grep -q "kufunga" "$TMP/bfe"
 kagua "$rc|$?" "1|0" "husisha { bila '}' linalia kwa sauti"
