@@ -9,9 +9,12 @@
 ; kwa nafasi (njia hazina nafasi ndani yake).
 ;
 ;   saraka NJIA                    tengeneza saraka (ikiwepo tayari ni sawa)
-;   endesha PROG HOJA... [< NDANI] [> NJE]
+;   endesha PROG HOJA... [< NDANI] [> NJE] [2> KOSA] [@ SARAKA]
 ;                                  endesha programu; lazima itoke kwa 0.
-;                                  NJE huundwa upya ikiwa inatekelezeka
+;                                  NJE huundwa upya ikiwa inatekelezeka;
+;                                  KOSA hupokea stderr ya programu; SARAKA
+;                                  ni mahali pa kazi pa programu (njia za
+;                                  < > 2> hubaki za mahali pa mapishi)
 ;   endesha_kosa N PROG ... [< NDANI] [> NJE]
 ;                                  kama endesha, lakini lazima itoke kwa N
 ;   sawa A B                       faili mbili lazima ziwe sawa kwa baiti
@@ -20,6 +23,8 @@
 ;   hex A B                        andika baiti za A kama hex ya kwanza.bin
 ;                                  (baiti 16 kwa mstari) kwenye B
 ;   andika MANENO...               chapisha maneno kwenye stdout
+;   kiungo LENGO JINA              kiungo (symlink) JINA -> LENGO
+;   ina FAILI NENO                 FAILI lazima liwe na NENO ndani yake
 ;
 ; Kosa lolote: "mjenzi: mstari N: AMRI imeshindwa" kwenye stderr, kutoka 1.
 ;
@@ -245,6 +250,8 @@ endesha_kutoka:
         ruka shindwa kama >=a
         n64[njia_ndani] = 0
         n64[njia_nje] = 0
+        n64[njia_kosa] = 0
+        n64[saraka_ya_kazi] = 0
         r13d ^= r13d   ; idadi ya hoja za programu
 .k:
         linganisha r12, n64[idadi_hoja]
@@ -259,6 +266,16 @@ endesha_kutoka:
         ita neno_ni
         pima r0d, r0d
         ruka .nje kama !=
+        r7 = n64[hoja + r12*8]
+        r6 = alama_kosa
+        ita neno_ni
+        pima r0d, r0d
+        ruka .kosa kama !=
+        r7 = n64[hoja + r12*8]
+        r6 = alama_saraka
+        ita neno_ni
+        pima r0d, r0d
+        ruka .saraka kama !=
         r0 = n64[hoja + r12*8]
         n64[hoja_programu + r13*8] = r0
         r13++
@@ -278,6 +295,22 @@ endesha_kutoka:
         ruka shindwa kama >=a
         r0 = n64[hoja + r12*8]
         n64[njia_nje] = r0
+        r12++
+        ruka .k
+.kosa:
+        r12++
+        linganisha r12, n64[idadi_hoja]
+        ruka shindwa kama >=a
+        r0 = n64[hoja + r12*8]
+        n64[njia_kosa] = r0
+        r12++
+        ruka .k
+.saraka:
+        r12++
+        linganisha r12, n64[idadi_hoja]
+        ruka shindwa kama >=a
+        r0 = n64[hoja + r12*8]
+        n64[saraka_ya_kazi] = r0
         r12++
         ruka .k
 .tayari:
@@ -339,6 +372,26 @@ mtoto:
         r0d = 33   ; dup2(fd, 1)
         mfumo
 .si_nje:
+        r7 = n64[njia_kosa]
+        pima r7, r7
+        ruka .si_kosa kama ==
+        r10d = KAWAIDA
+        ita fungua_kuandika
+        pima r0, r0
+        ruka .ameshindwa kama <n
+        r7 = r0
+        r6d = 2
+        r0d = 33   ; dup2(fd, 2)
+        mfumo
+.si_kosa:
+        r7 = n64[saraka_ya_kazi]
+        pima r7, r7
+        ruka .si_saraka kama ==
+        r0d = 80   ; chdir
+        mfumo
+        pima r0, r0
+        ruka .saraka_imeshindwa kama <n
+.si_saraka:
         r7 = n64[hoja_programu]
         r6 = hoja_programu
         r2 = mazingira_tupu
@@ -346,6 +399,10 @@ mtoto:
         mfumo
 .ameshindwa:
         r7d = 127
+        r0d = 60
+        mfumo
+.saraka_imeshindwa:
+        r7d = 126
         r0d = 60
         mfumo
 
@@ -539,6 +596,61 @@ amri_hex:
         r10d = KAWAIDA
         ruka andika_faili
 
+; kiungo LENGO JINA
+amri_kiungo:
+        r0d = 3
+        ita idadi_lazima
+        r7 = n64[hoja + 16]
+        r0d = 87   ; unlink (ili mapishi yaweze kurudiwa)
+        mfumo
+        r7 = n64[hoja + 8]
+        r6 = n64[hoja + 16]
+        r0d = 88   ; symlink
+        mfumo
+        pima r0, r0
+        ruka shindwa kama !=
+        rudi
+
+; ina FAILI NENO: NENO lazima lipatikane ndani ya FAILI
+amri_ina:
+        r0d = 3
+        ita idadi_lazima
+        r7 = n64[hoja + 8]
+        r6 = bafa_a
+        r2d = UPEO_FAILI
+        ita soma_faili
+        r12 = r0   ; ukubwa wa faili
+        r6 = n64[hoja + 16]
+        r13d ^= r13d   ; urefu wa neno
+.urefu:
+        linganisha n8[r6+r13], 0
+        ruka .tafuta kama ==
+        r13++
+        ruka .urefu
+.tafuta:
+        r1d ^= r1d   ; mwanzo
+.k:
+        r0 = r1
+        r0 += r13
+        linganisha r0, r12
+        ruka shindwa kama >a
+        r2d ^= r2d
+.linganisha:
+        linganisha r2, r13
+        ruka .imepatikana kama ==
+        r3 = r1
+        r3 += r2
+        r0d = a8[bafa_a + r3]
+        linganisha r0b, n8[r6+r2]
+        ruka .ijayo kama !=
+        r2++
+        ruka .linganisha
+.ijayo:
+        r1++
+        ruka .k
+.imepatikana:
+        rudi
+
 ; namba_ya_neno: r7 = neno la tarakimu -> r0
 namba_ya_neno:
         r0d ^= r0d
@@ -653,6 +765,8 @@ n8 mstari_mpya = 10
 n8 nafasi_moja = " "
 n8 alama_ndani = "<", 0
 n8 alama_nje = ">", 0
+n8 alama_kosa = "2>", 0
+n8 alama_saraka = "@", 0
 n8 tarakimu_hex = "0123456789abcdef"
 
 n8 neno_saraka = "saraka", 0
@@ -663,6 +777,8 @@ n8 neno_nakili = "nakili", 0
 n8 neno_unganisha = "unganisha", 0
 n8 neno_hex = "hex", 0
 n8 neno_andika = "andika", 0
+n8 neno_kiungo = "kiungo", 0
+n8 neno_ina = "ina", 0
 
 ; jedwali_amri: (neno, kazi), mwisho 0
 n64 jedwali_amri = neno_saraka, amri_saraka
@@ -673,6 +789,8 @@ n64 = neno_nakili, amri_nakili
 n64 = neno_unganisha, amri_unganisha
 n64 = neno_hex, amri_hex
 n64 = neno_andika, amri_andika
+n64 = neno_kiungo, amri_kiungo
+n64 = neno_ina, amri_ina
 n64 = 0, 0
 
 n64 mazingira_tupu = 0
@@ -686,6 +804,8 @@ n64 hoja[UPEO_HOJA + 1]
 n64 hoja_programu[UPEO_HOJA + 1]
 n64 njia_ndani
 n64 njia_nje
+n64 njia_kosa
+n64 saraka_ya_kazi
 n64 kutoka_tarajiwa
 n64 kutoka_halisi
 n32 hali_ya_mtoto

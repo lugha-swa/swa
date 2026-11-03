@@ -100,7 +100,7 @@ umbali^2 = 25
 2 ni shufwa
 ```
 
-Mfano huu hukusanywa na kuendeshwa kwenye CI kila PR (`gharama/jaribu-mifano.sh`) — msimbo ulio hapa juu hauwezi kupitwa na wakati kimya.
+Mfano huu hukusanywa na kuendeshwa kwenye CI kila PR (`gharama/jaribu-mifano.mapishi`) — msimbo ulio hapa juu hauwezi kupitwa na wakati kimya.
 
 </details>
 

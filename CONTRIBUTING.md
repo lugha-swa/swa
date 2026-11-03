@@ -108,7 +108,7 @@ Mpangilio wa lazima:
 4. Baada ya hapo tu: gandisha (`./msingi/mjenzi.bin gharama/gandisha.mapishi`
    huandika `mbegu.bin` + `mbegu.hex` na `mjenzi.bin` + `mjenzi.hex`,
    kisha huthibitisha mnyororo mzima), endesha
-   `bash gharama/jaribu-mnyororo-huru.sh`, na endesha
+   `./msingi/mjenzi.bin gharama/jaribu-mnyororo-huru.mapishi`, na endesha
    `bash gharama/jaribu-mnyororo.sh` nzima.
 5. Tazama `hati/mipaka.md` kwa mipaka inayojulikana ya mbegu.
 
