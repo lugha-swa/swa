@@ -90,5 +90,22 @@ kus_maagizo() {
 }
 kagua kus_maagizo
 
+kagua kus_endesha data2 110 ""
+
+# Hatua 5: mbegu kwa lugha ya mashine ya Swa (mbegu.swm), ikikusanywa na
+# kusanyiko, lazima itoe msimbo (.text, baiti 43209 kwenye 0x401000),
+# data (baiti 3032 kwenye 0x40c000) na mahali pa kuanzia SAWA KWA BAITI
+# na msingi/mbegu.bin -- iliyotengenezwa zamani na NASM + GNU ld.
+"$TMP/kus" < $M/mbegu.swm > "$TMP/mbegu_huru"
+mbegu_sawa() {
+    cmp -s <(dd if="$TMP/mbegu_huru" bs=1 skip=4096 count=43209 status=none) \
+           <(dd if=msingi/mbegu.bin bs=1 skip=4096 count=43209 status=none) &&
+    cmp -s <(dd if="$TMP/mbegu_huru" bs=4096 skip=12 count=1 status=none | head -c 3032) \
+           <(dd if=msingi/mbegu.bin bs=4096 skip=12 count=1 status=none | head -c 3032) &&
+    cmp -s <(dd if="$TMP/mbegu_huru" bs=1 skip=24 count=8 status=none) \
+           <(dd if=msingi/mbegu.bin bs=1 skip=24 count=8 status=none)
+}
+kagua mbegu_sawa
+
 echo "===== Matokeo ya mnyororo huru: $PASS yamefaulu, $FAIL yameshindwa ====="
 [ "$FAIL" -eq 0 ]
