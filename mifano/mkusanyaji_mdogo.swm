@@ -1,0 +1,289 @@
+; =============================================================================
+; mkusanyaji_mdogo.swm -- mkusanyaji mdogo kabisa wa Swa, kwa lugha ya mashine
+; ya Swa (hati/kusanyiko-x86.md). Hukusanya kazi moja ya main yenye vigeu
+; vya n32 na rudisha ya usemi wa + - * kuwa programu ya ELF inayotoka kwa
+; thamani hiyo.
+;
+;   ./mkusanyaji_mdogo 'n32 main() { n32 x = 50; n32 y = 27; rudisha x - y; }' > p
+;   ./p; echo $?        ; -> 23
+;
+; Lugha yake:
+;   - kila kitu kabla ya '{' kinarukwa
+;   - "n32 JINA = NAMBA;" -- kigeu (jina hadi herufi 8, vigeu hadi 20)
+;   - "rudisha USEMI;" -- USEMI ni NAMBA au JINA, likiunganishwa na + - *
+;     kutoka kushoto kwenda kulia (bila mpangilio wa kipaumbele)
+;   - "}" bila rudisha -> programu inatoka kwa 0
+; Kosa lolote: ujumbe kwenye stderr, kutoka 1.
+;
+; Historia: huu ndio mkusanyaji wa kwanza wa Swa, uliotengenezwa Julai 2026
+; kama msingi/bootstrap.bin (baiti 1305, zilizozalishwa na bootstrap.py
+; iliyofutwa baadaye). Umeandikwa upya hapa kwa maana kutoka kwenye baiti
+; zake; gharama/jaribu-mifano.mapishi huthibitisha kwamba programu
+; unazotoa ni sawa kwa baiti na zile za bootstrap.bin kwa visa vyote vyake.
+; Marekebisho mawili: vigeu vya herufi ndogo (n32) -- lugha ya sasa -- na
+; "}" bila rudisha sasa huandika thamani 0 mahali pake halisi (ofseti 0x81),
+; si ndani ya kitambulisho cha ELF (ofseti 9) kama zamani.
+; =============================================================================
+
+fafanua UPEO_VIGEU = 20
+fafanua KIPENGELE = 12   ; jina (baiti 8, sifuri mwishoni) + thamani (n32)
+fafanua MAHALI_THAMANI = 0x81   ; namba ya "r7d = THAMANI" ndani ya kiolezo
+
+anza:
+        r0 = n64[r4]   ; argc
+        linganisha r0, 2
+        ruka matumizi kama <n
+        r7 = n64[r4 + 16]   ; argv[1]: chanzo
+        n32[idadi_vigeu] = 0
+        r8d ^= r8d   ; mahali ndani ya chanzo
+
+; ruka hadi '{'
+.tafuta_fungo:
+        r2d = a8[r7 + r8]
+        pima r2b, r2b
+        ruka kosa_chanzo kama ==
+        linganisha r2b, 0x7b   ; {
+        ruka .taarifa kama ==
+        r8++
+        ruka .tafuta_fungo
+
+; taarifa moja: n32 ... ; | rudisha ... ; | }
+.taarifa:
+        r8++
+        ita ruka_nafasi
+        r2d = a8[r7 + r8]
+        linganisha r2b, 0x7d   ; }
+        ruka bila_rudisha kama ==
+        linganisha r2b, 0x6e   ; n
+        ruka .kigeu kama ==
+        linganisha r2b, 0x72   ; r
+        ruka kosa_chanzo kama !=
+        linganisha n32[r7 + r8 + 1], 0x73696475   ; "udis"
+        ruka kosa_chanzo kama !=
+        linganisha n16[r7 + r8 + 5], 0x6168   ; "ha"
+        ruka kosa_chanzo kama !=
+        r8 += 7
+        ruka rudisha_usemi
+
+; n32 JINA = NAMBA ;
+.kigeu:
+        r8 += 3   ; "n32"
+        ita ruka_nafasi
+        r1d = n32[idadi_vigeu]
+        linganisha r1d, UPEO_VIGEU
+        ruka kosa_chanzo kama >=a
+        r0d = r1d * KIPENGELE
+        r6 = &[jedwali_vigeu + r0]
+        r10d ^= r10d
+.jina:
+        r2d = a8[r7 + r8]
+        linganisha r2b, 0x20
+        ruka .jina_kwisha kama ==
+        linganisha r2b, 0x3d   ; =
+        ruka .jina_kwisha kama ==
+        linganisha r2b, 0x3b   ; ;
+        ruka .jina_kwisha kama ==
+        pima r2b, r2b
+        ruka kosa_chanzo kama ==
+        n8[r6 + r10] = r2b
+        r8++
+        r10++
+        linganisha r10, 8
+        ruka .jina kama <a
+.jina_kwisha:
+        ita ruka_nafasi
+        linganisha n8[r7 + r8], 0x3d   ; =
+        ruka kosa_chanzo kama !=
+        r8++
+        ita ruka_nafasi
+        ita soma_namba
+        n32[r6 + 8] = r0d
+        n32[idadi_vigeu]++
+        ita ruka_nafasi
+        linganisha n8[r7 + r8], 0x3b   ; ;
+        ruka kosa_chanzo kama !=
+        ruka .taarifa
+
+; rudisha USEMI ; -- kutoka kushoto kwenda kulia
+rudisha_usemi:
+        ita soma_kipengele
+.waendeshaji:
+        ita ruka_nafasi
+        r2d = a8[r7 + r8]
+        linganisha r2b, 0x2b   ; +
+        ruka .jumlisha kama ==
+        linganisha r2b, 0x2d   ; -
+        ruka .toa kama ==
+        linganisha r2b, 0x2a   ; *
+        ruka .zidisha kama ==
+        linganisha r2b, 0x3b   ; ;
+        ruka andika_programu kama ==
+        linganisha r2b, 0x7d   ; }
+        ruka andika_programu kama ==
+        ruka kosa_chanzo
+.jumlisha:
+        r8++
+        sukuma r0
+        ita soma_kipengele
+        vuta r1
+        r0d += r1d
+        ruka .waendeshaji
+.toa:
+        r8++
+        sukuma r0
+        ita soma_kipengele
+        vuta r1
+        r1d -= r0d
+        r0d = r1d
+        ruka .waendeshaji
+.zidisha:
+        r8++
+        sukuma r0
+        ita soma_kipengele
+        vuta r1
+        r0d *= r1d
+        ruka .waendeshaji
+
+bila_rudisha:
+        r0d ^= r0d
+andika_programu:
+        n32[kiolezo + MAHALI_THAMANI] = r0d
+        r7d = 1
+        r6 = kiolezo
+        r2d = kiolezo_mwisho - kiolezo
+        r0d = 1   ; write
+        mfumo
+        r7d ^= r7d
+        r0d = 60
+        mfumo
+
+; ---------------------------------------------------------------
+; ruka_nafasi: songa r8 juu ya nafasi, tab, mistari
+ruka_nafasi:
+        r2d = a8[r7 + r8]
+        linganisha r2b, 0x20
+        ruka .ruka kama ==
+        linganisha r2b, 9
+        ruka .ruka kama ==
+        linganisha r2b, 10
+        ruka .ruka kama ==
+        linganisha r2b, 13
+        ruka .ruka kama ==
+        rudi
+.ruka:
+        r8++
+        ruka ruka_nafasi
+
+; soma_namba: tarakimu za desimali kuanzia r8 -> r0d
+soma_namba:
+        r0d ^= r0d
+        r2d = a8[r7 + r8]
+        r2d -= 0x30
+        linganisha r2d, 9
+        ruka kosa_chanzo kama >a   ; si namba kabisa
+.k:
+        r2d = a8[r7 + r8]
+        r2d -= 0x30
+        linganisha r2d, 9
+        ruka .m kama >a
+        r0d = r0d * 10
+        r0d += r2d
+        r8++
+        ruka .k
+.m:
+        rudi
+
+; soma_kipengele: NAMBA au JINA la kigeu -> r0d
+soma_kipengele:
+        ita ruka_nafasi
+        r2d = a8[r7 + r8]
+        r2d -= 0x30
+        linganisha r2d, 9
+        ruka soma_namba kama <=a
+; jina: hadi herufi 8, kwenye n64 (sifuri mwishoni), kisha tafuta
+        r9d ^= r9d
+        r1d ^= r1d
+.jina:
+        r2d = a8[r7 + r8]
+        linganisha r2b, 0x20
+        ruka .jina_kwisha kama ==
+        linganisha r2b, 0x2b
+        ruka .jina_kwisha kama ==
+        linganisha r2b, 0x2d
+        ruka .jina_kwisha kama ==
+        linganisha r2b, 0x2a
+        ruka .jina_kwisha kama ==
+        linganisha r2b, 0x3b
+        ruka .jina_kwisha kama ==
+        linganisha r2b, 0x7d
+        ruka .jina_kwisha kama ==
+        linganisha r2b, 0x28
+        ruka .jina_kwisha kama ==
+        linganisha r2b, 0x29
+        ruka .jina_kwisha kama ==
+        pima r2b, r2b
+        ruka .jina_kwisha kama ==
+        r2 <<= r1b   ; herufi ya r1d/8: biti 8 * nafasi
+        r9 |= r2
+        r8++
+        r1d += 8
+        linganisha r1d, 64
+        ruka .jina kama <a
+.jina_kwisha:
+        r10d ^= r10d
+.tafuta:
+        linganisha r10d, n32[idadi_vigeu]
+        ruka kosa_chanzo kama >=a   ; kigeu kisichotangazwa
+        r0d = r10d * KIPENGELE
+        linganisha n64[jedwali_vigeu + r0], r9
+        ruka .imepatikana kama ==
+        r10++
+        ruka .tafuta
+.imepatikana:
+        r0d = n32[jedwali_vigeu + r0 + 8]
+        rudi
+
+; ---------------------------------------------------------------
+matumizi:
+        r6 = ujumbe_matumizi
+        r2d = ujumbe_matumizi_mwisho - ujumbe_matumizi
+        ruka kosa_andika
+kosa_chanzo:
+        r6 = ujumbe_kosa
+        r2d = ujumbe_kosa_mwisho - ujumbe_kosa
+kosa_andika:
+        r7d = 2
+        r0d = 1
+        mfumo
+        r7d = 1
+        r0d = 60
+        mfumo
+
+; ---------------------------------------------------------------
+n8 ujumbe_matumizi = "matumizi: mkusanyaji_mdogo '<chanzo>'", 10
+n8 ujumbe_matumizi_mwisho =
+n8 ujumbe_kosa = "kosa: chanzo hakieleweki", 10
+n8 ujumbe_kosa_mwisho =
+
+; Kiolezo cha programu inayotolewa: ELF ya biti 64, sehemu moja, mahali pa
+; kuanzia 0x400078, msimbo wa baiti 20 unaotoka kwa THAMANI.
+n8 kiolezo = 0x7f, "ELF", 2, 1, 1, 0   ; ELF, biti 64, LE, toleo 1
+n8 = 0, 0, 0, 0, 0, 0, 0, 0
+n16 = 2, 0x3e                        ; ET_EXEC, x86-64
+n32 = 1                              ; e_version
+n64 = 0x400078, 0x40, 0              ; e_entry, e_phoff, e_shoff
+n32 = 0                              ; e_flags
+n16 = 0x40, 0x38, 1, 0, 0, 0         ; e_ehsize, e_phentsize, e_phnum, sh...
+n32 = 1, 5                           ; PT_LOAD, soma + tekeleza
+n64 = 0, 0x400000, 0x400000          ; p_offset, p_vaddr, p_paddr
+n64 = 0x8c, 0x8c, 0x1000             ; p_filesz, p_memsz, p_align
+; msimbo (baiti 20): sukuma r5; r5 = r4; r4 -= 32; r7d = THAMANI;
+; r0d = 60; mfumo
+n8 = 0x55, 0x48, 0x89, 0xe5, 0x48, 0x83, 0xec, 0x20
+n8 = 0xbf
+n32 = 0                              ; THAMANI (ofseti MAHALI_THAMANI)
+n8 = 0xb8, 0x3c, 0, 0, 0, 0x0f, 0x05
+n8 kiolezo_mwisho =
+
+n32 idadi_vigeu
+n8 jedwali_vigeu[UPEO_VIGEU * KIPENGELE]

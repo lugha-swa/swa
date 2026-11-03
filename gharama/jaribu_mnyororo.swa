@@ -2,36 +2,23 @@ husisha { msingi/maktaba/kumbukumbu.swa }
 husisha { msingi/maktaba/mfuatano.swa }
 husisha { msingi/maktaba/faili.swa }
 
-// jaribu_mnyororo.swa -- toleo la Swa ASILIA la gharama/jaribu-mnyororo.sh,
-// likiendesha mchakato mwingine (mbegu/stage1/programu za majaribio)
-// kupitia sys_fork/sys_execve/sys_wait4 (msingi/maktaba/kumbukumbu.swa)
-// BADALA ya bash. Jibu la moja kwa moja kwa swali la mtumiaji
-// "why are we using sh?? cant swa do so??" -- kabla ya hii, HAKUNA
-// wrapper ya fork/execve/waitpid ilikuwepo KABISA (imethibitishwa kwa
-// grep moja kwa moja), ndiyo sababu HALISI (SI uzembe) mkimbiaji wa
-// majaribio ulibaki bash milele.
+// jaribu_mnyororo.swa -- mkimbiaji wa majaribio wa Swa ASILIA: ujenzi wa
+// stage1, fixpoint (stage2 == stage3), na kila programu ya
+// majaribio/programu/MANIFEST.txt kwa minyororo yote miwili, ukiendesha
+// michakato mingine (mbegu/stage1/programu za majaribio) kupitia
+// sys_fork/sys_execve/sys_wait4 (msingi/maktaba/kumbukumbu.swa) badala ya
+// bash. Majaribio ya mkazo na semantiki (wito 1,000 wa mbele, kwa/endelea,
+// desimali, mzunguko mfupi, bomba la stdin, ABI ya xmm, umbizaji, #232)
+// yako kwenye gharama/jaribu-mnyororo.mapishi, ambayo huanza kwa kuendesha
+// faili hili. Pengo la kuzaliwa (hakuna Swa inayoweza kuendeshwa KABLA
+// mbegu haijatengenezwa) hufungwa na mjenzi (msingi/mnyororo/mjenzi.swm) --
+// programu ya lugha ya mashine ya Swa inayojengwa kutoka baiti 393.
 //
-// WIGO (kwa makusudi, SI pengo lililosahaulika): faili hili
-// linachukua nafasi ya SEHEMU 2-4 TU za jaribu-mnyororo.sh (jenga
-// stage1, fixpoint, mzunguko wa MANIFEST.txt -- KIOO HASA cha
-// mantiki yake) -- hii ndiyo "mnyororo wa 452" wenyewe, sehemu
-// kubwa na muhimu zaidi kiutendaji. Sehemu 5-14 za bash (mkazo wa
-// RELA, semantiki za kwa/endelea, desimali, mzunguko mfupi, bomba
-// la stdin, ABI ya xmm, formatter fixpoint, n.k.) ni majaribio ya
-// MSAADA/MKAZO yaliyotengwa, YANAYOBAKI kwenye bash
-// (gharama/jaribu-mnyororo.sh HAIONDOLEWI -- bado ni muhimu kama
-// chanzo cha pili cha uthibitisho/CI). `gharama/jenga-kwanza.sh`
-// (Sehemu 1) HAIBADILIKI KAMWE -- lazima ibaki bash milele kwa
-// sababu ya mzunguko wa kuzaliwa kwa mbegu.bin yenyewe: hakuna
-// kinachoweza kuendesha Swa KABLA mbegu.bin haijatengenezwa.
-//
-// JINSI YA KUENDESHA (angalia gharama/jaribu-mnyororo-asili.sh --
-// wrapper NDOGO, bado bash, inayofunga pengo la kuzaliwa): hoja mbili
-// pekee zinahitajika -- argv[1]=njia ya mbegu.bin, argv[2]=njia ya
-// msuluhishi ILIYOJENGWA TAYARI (wrapper hujenga hii MARA MOJA kabla
-// ya kuita faili hili, kwa sababu faili hili LENYEWE lilihitaji
-// kutatuliwa na msuluhishi KABLA ya kukusanywa -- angalia maoni ya
-// wrapper).
+// JINSI YA KUENDESHA: ./msingi/mjenzi.bin gharama/jaribu-mnyororo-asili.mapishi
+// Hoja mbili pekee: argv[1]=njia ya mbegu, argv[2]=njia ya msuluhishi
+// ILIYOJENGWA TAYARI (mapishi hujenga hii MARA MOJA kabla ya kuita faili
+// hili, kwa sababu faili hili LENYEWE lilihitaji kutatuliwa na
+// msuluhishi KABLA ya kukusanywa).
 
 n32 JM_PASS = 0;
 n32 JM_FAIL = 0;
@@ -378,7 +365,12 @@ n32 main(n32 argc, n8** argv) {
         n8* ujumbe = "";
         kama (idadi_sehemu >= 5) { ujumbe = nafasi[4]; }
 
-        kama (linganisha_mfuatano(code, "FAIL") == 0) { endelea; }
+        // Hakuna kuruka kimya: kila mstari ni KATA au namba ya kutoka.
+        kama (linganisha_mfuatano(code, "KATA") != 0 && (code[0] < 48 || code[0] > 57)) {
+            andika_stderr("SHINDWA: MANIFEST: safu ya kwanza si KATA wala namba: %s\n", code, 0, 0, 0, 0, 0);
+            JM_FAIL = JM_FAIL + 1;
+            endelea;
+        }
 
         kama (linganisha_mfuatano(code, "KATA") == 0) {
             jm_jaribu_kata(MBEGU, "/tmp/swa-mnyororo-asili/stage1", envp, faili, mnyororo, ujumbe);

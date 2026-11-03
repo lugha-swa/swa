@@ -1,0 +1,35 @@
+; jaribu-mifano.mapishi -- kila mfano wa README (mifano/*.swa) lazima
+; ukusanywe na utoe HASA mifano/*.tarajiwa. README hunukuu mifano hii;
+; mfano mpya huongezwa hapa kwa mistari mitatu.
+;   ./msingi/mjenzi.bin gharama/jaribu-mifano.mapishi
+saraka jengo
+endesha msingi/mjenzi.bin gharama/jenga.mapishi > jengo/jenga.towe
+saraka jengo/mifano
+endesha bin/swa --exe mifano/salamu.swa > jengo/mifano/salamu
+endesha jengo/mifano/salamu > jengo/mifano/salamu.towe
+sawa jengo/mifano/salamu.towe mifano/salamu.tarajiwa
+; mifano/mkusanyaji_mdogo.swm -- mkusanyaji mdogo kwa lugha ya mashine ya Swa
+; (zamani msingi/bootstrap.bin): hujengwa na kusanyiko, kisha hukusanya na
+; kuendesha programu ndogo. Matokeo yake yalithibitishwa kuwa sawa kwa baiti
+; na ya bootstrap.bin kwa visa hivi (kwa aina za herufi KUBWA za zamani).
+endesha jengo/kusanyiko < mifano/mkusanyaji_mdogo.swm > jengo/mifano/mkusanyaji_mdogo
+endesha jengo/mifano/mkusanyaji_mdogo "n32 main() { rudisha 42; }" > jengo/mifano/m1
+endesha_kosa 42 jengo/mifano/m1
+endesha jengo/mifano/mkusanyaji_mdogo "n32 main() { n32 x = 50; n32 y = 27; rudisha x - y; }" > jengo/mifano/m2
+endesha_kosa 23 jengo/mifano/m2
+endesha jengo/mifano/mkusanyaji_mdogo "n32 main() { }" > jengo/mifano/m3
+endesha jengo/mifano/m3
+; kushoto kwenda kulia, bila kipaumbele: ((2 * 5) + 2) * 2
+endesha jengo/mifano/mkusanyaji_mdogo "n32 main() { n32 a = 2; n32 b = 5; n32 c = 2; rudisha a * b + c * 2; }" > jengo/mifano/m4
+endesha_kosa 24 jengo/mifano/m4
+endesha jengo/mifano/mkusanyaji_mdogo "n32 main(){n32 kubwa=10;n32 nyingine=20;rudisha kubwa*nyingine;}" > jengo/mifano/m5
+endesha_kosa 200 jengo/mifano/m5
+endesha jengo/mifano/mkusanyaji_mdogo "n32 main() { n32 abcdefgh = 1; rudisha abcdefgh + 300 - 46; }" > jengo/mifano/m6
+endesha_kosa 255 jengo/mifano/m6
+; makosa: kigeu kisichotangazwa, aina ya herufi KUBWA, hoja haipo
+endesha_kosa 1 jengo/mifano/mkusanyaji_mdogo "n32 main() { rudisha y; }" > jengo/mifano/k 2> jengo/mifano/k.kosa
+ina jengo/mifano/k.kosa "chanzo hakieleweki"
+endesha_kosa 1 jengo/mifano/mkusanyaji_mdogo "n32 main() { N32 x = 1; rudisha x; }" > jengo/mifano/k 2> jengo/mifano/k.kosa
+endesha_kosa 1 jengo/mifano/mkusanyaji_mdogo > jengo/mifano/k 2> jengo/mifano/k.kosa
+ina jengo/mifano/k.kosa matumizi:
+andika mifano: yote yamefaulu

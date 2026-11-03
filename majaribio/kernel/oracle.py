@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# oracle.py -- oracle ya QEMU+KVM kwa gharama/jaribu-kernel.sh.
+# oracle.py -- oracle ya QEMU+KVM kwa gharama/jaribu-kernel.mapishi.
 #
-# Huchukua binary iliyokamilika (stub.s + kernel_main iliyotolewa na
-# "stage1 --kernel" kupitia incbin), huianzisha kwenye QEMU (-kernel,
+# Huchukua binary iliyokamilika (stub.swm + kernel_main iliyotolewa na
+# "stage1 --kernel", iliyounganishwa mwishoni mwa picha), huianzisha kwenye QEMU (-kernel,
 # hakuna BIOS/GRUB -- muundo wa a.out kludge wa Multiboot1 unaruhusu
 # hili), na kusoma HALI HALISI ya CPU/kumbukumbu kupitia monitor socket
 # (human monitor protocol) baada ya HLT -- SI "haikuanguka", ni
@@ -18,7 +18,7 @@
 #
 # Uthibitisho:
 #   - "info registers": RDI LAZIMA iwe sawa na <rdi-tarajiwa> (n32
-#     ya kurudi ya kernel_main, iliyohamishwa kwenda edi na stub.s
+#     ya kurudi ya kernel_main, iliyohamishwa kwenda edi na stub.swm
 #     mara moja baada ya "call kernel_main").
 #   - Ikiwa [maandishi-ya-vga] limetolewa: kila mstari (baada ya
 #     kugawanywa kwa "\n") LAZIMA uonekane kwenye safu-mlalo yake

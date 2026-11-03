@@ -277,6 +277,18 @@ n32 tafuta_jina_dimbeni(n8* maandishi, n64 urefu) {
 // -------------------------------------------------------
 // Kitenzi-njia -- anzisha utazamaji wa tokeni
 // -------------------------------------------------------
+// jina_linganisha: 1 ikiwa maandishi mawili (0 mwishoni) ni sawa. Iko hapa
+// (si uzalishaji.swa) kwa sababu msambazaji huitumia, na moduli za juu
+// (mkaguzi, uzalishaji, uzalishaji_wasm) huipata kupitia msambazaji.
+n32 jina_linganisha(n8* a, n8* b) {
+    wakati (a[0] != 0 && b[0] != 0) {
+        kama (a[0] != b[0]) { rudisha 0; }
+        a = a + 1;
+        b = b + 1;
+    }
+    rudisha (a[0] == b[0]);
+}
+
 Msambazaji msambazaji_mpya(n8* chanzo, n64 urefu) {
     Msambazaji p;
     p.msomaji = msomaji_mpya(chanzo, urefu);
@@ -2516,6 +2528,7 @@ n32 changanua_muundo(Msambazaji* p) {
 n32 changanua(Msambazaji* p) {
     n32 kwanza = -1;
     n32 prev = -1;
+    n32 alishalia = 0;  // kosa la tamko limeshatajwa kwa mfululizo huu
     kusanya_majina_ya_miundo(p);
 
     wakati (p->sasa.urefu != 0) {
@@ -2550,12 +2563,29 @@ n32 changanua(Msambazaji* p) {
         // (kurejesha-hitilafu: badala ya kukoma, ruka na uchukue mengine)
         kama (node == -1) {
             kama (p->sasa.urefu != 0) {
+                // Taja tokeni ya KWANZA ya mfululizo usiotambulika (si kila
+                // tokeni inayorukwa) -- bila hili kosa lilikuwa "; KOSA: 1"
+                // tu, bila mahali wala sababu. Kama kosa mahususi limeshatajwa
+                // (p->kosa tayari), tokeni zinazofuata ni mwangwi wake tu.
+                kama (alishalia == 0 && p->kosa == 0) {
+                    n8 bafa_tamko[64];
+                    n32 bi = 0;
+                    wakati (bi < p->sasa.urefu && bi < 63) {
+                        bafa_tamko[bi] = p->sasa.mwanzo[bi];
+                        bi = bi + 1;
+                    }
+                    bafa_tamko[bi] = 0;
+                    n32 mstari_tamko = p->sasa.mstari;
+                    andika_stderr("kosa: mstari %d: tamko la ngazi ya juu halitambuliki, kuanzia '%s'\n", mstari_tamko, bafa_tamko);
+                    alishalia = 1;
+                }
                 p->kosa = 1;  // alama kwamba mchanganuo ulishindwa
                 sogeza(p);  // ruka tokeni lisilotambulika
                 endelea;  // endelea kutafuta makosa zaidi
             }
             vunja;  // EOF
         }
+        alishalia = 0;
 
         kama (prev == -1) { kwanza = node; }
         sivyo { ast_nne[prev] = node; }
@@ -3055,7 +3085,7 @@ n32 kujumuisha_kazi_ndogo(n32 mzizi) {
 // tena ukaguzi wa mkaguzi_angalia kama "wavu wa usalama wa bure" kwa
 // mti tuliousuka (kama kuunganisha kazi ndogo kunavyofanya) -- lakini
 // teremsha (ukaguzi wa muundo) bado unatembea baada yetu, na zaidi ya
-// yote, mnyororo mzima wa majaribio (gharama/jaribu-mnyororo.sh) ndio
+// yote, mnyororo mzima wa majaribio (gharama/jaribu-mnyororo.mapishi) ndio
 // wavu wa usalama halisi kwa mabadiliko haya yote.
 //
 // HATARI SITA ZILIZOZINGATIWA KWA MAKUSUDI (kila moja ina jaribio la

@@ -1,0 +1,83 @@
+husisha { mkusanyaji/msambazaji.swa }
+
+// jaribio_msambazaji_kitengo.swa -- majaribio ya kitengo ya msambazaji (mchanganuzi
+// wa mkusanyaji, msingi/mkusanyaji/msambazaji.swa): tokeni ya sasa na
+// inayofuata, neno_ni, aina, dimbwi la majina, muundo wa AST wa kazi
+// (pamoja na mpangilio wa waendeshaji na ukunjaji wa namba), mtiririko,
+// muundo, na kosa la sintaksia. 0 = yote sawa.
+
+Msambazaji mpya(n8* s) {
+    rudisha msambazaji_mpya(s, urefu_wa_mfuatano(s));
+}
+
+n32 main() {
+    // sasa / inayofuata / sogeza
+    Msambazaji p = mpya("n32 f");
+    kama (p.sasa.urefu != 3 || p.sasa.mwanzo[0] != 110) rudisha 1;
+    kama (p.inayofuata.urefu != 1 || p.inayofuata.mwanzo[0] != 102) rudisha 2;
+    sogeza(&p);
+    kama (p.sasa.urefu != 1 || p.sasa.mwanzo[0] != 102) rudisha 3;
+    kama (p.inayofuata.aina != TOKENI_MWISHO || p.inayofuata.urefu != 0) rudisha 4;
+
+    // neno_ni linganisha urefu kamili
+    Msambazaji q = mpya("( rudisha");
+    kama (neno_ni(&q.sasa, "(") != 1) rudisha 5;
+    kama (neno_ni(&q.sasa, "((") != 0) rudisha 6;
+    kama (neno_ni(&q.inayofuata, "rudisha") != 1 || neno_ni(&q.inayofuata, "rudi") != 0) rudisha 7;
+    kama (jina_linganisha("abc", "abc") != 1 || jina_linganisha("abc", "abd") != 0 || jina_linganisha("ab", "abc") != 0) rudisha 8;
+
+    // aina: kila moja ina msimbo wake, na tokeni zake zinatumiwa
+    Msambazaji a1 = mpya("n32 x");
+    n32 n32_ = changanua_aina_tokeni(&a1);
+    kama (a1.sasa.mwanzo[0] != 120) rudisha 9;
+    Msambazaji a2 = mpya("n64 x");
+    n32 n64_ = changanua_aina_tokeni(&a2);
+    Msambazaji a3 = mpya("n8* x");
+    n32 n8k = changanua_aina_tokeni(&a3);
+    kama (a3.sasa.mwanzo[0] != 120) rudisha 10;
+    Msambazaji a4 = mpya("n8 x");
+    n32 n8_ = changanua_aina_tokeni(&a4);
+    kama (n32_ == n64_ || n8k == n8_ || n32_ == n8_) rudisha 11;
+
+    // dimbwi la majina
+    n32 nodi = node_mpya(AST_KITAMBULISHO, 0, -1, -1);
+    kama (ast_aina[nodi] != AST_KITAMBULISHO) rudisha 12;
+    hifadhi_jina(nodi, "jaribu_jina", 11);
+    kama (jina_linganisha(ast_pool + ast_jina_off[nodi], "jaribu_jina") != 1) rudisha 13;
+    kama (tafuta_jina_dimbeni("jaribu_jina", 11) != ast_jina_off[nodi]) rudisha 14;
+    kama (tafuta_jina_dimbeni("hakuna_jina_hili", 16) != -1) rudisha 15;
+
+    // AST ya kazi: PROGRAMU -> KAZI -> mwili: RUDISHA(JUMLISHA(a, 6));
+    // 2 * 3 imekunjwa kuwa 6 na * imefungwa kabla ya +
+    Msambazaji k = mpya("n32 f(n32 a) { rudisha a + 2 * 3; }");
+    n32 mzizi = changanua(&k);
+    kama (k.kosa != 0) rudisha 16;
+    kama (ast_aina[mzizi] != AST_PROGRAMU) rudisha 17;
+    n32 kazi = ast_kushoto[mzizi];
+    kama (ast_aina[kazi] != AST_KAZI) rudisha 18;
+    n32 rud = ast_tiga[kazi];
+    kama (ast_aina[rud] != AST_RUDISHA) rudisha 19;
+    n32 jum = ast_kushoto[rud];
+    kama (ast_aina[jum] != AST_JUMLISHA) rudisha 20;
+    kama (ast_aina[ast_kushoto[jum]] != AST_KITAMBULISHO) rudisha 21;
+    kama (ast_aina[ast_kulia[jum]] != AST_NAMBARI || ast_thamani[ast_kulia[jum]] != 6) rudisha 22;
+
+    // bila namba za kukunja: a + b * c -> JUMLISHA(a, ZIDISHA(b, c))
+    Msambazaji z = mpya("n32 g(n32 a, n32 b, n32 c) { rudisha a + b * c; }");
+    mzizi = changanua(&z);
+    kama (z.kosa != 0) rudisha 23;
+    jum = ast_kushoto[ast_tiga[ast_kushoto[mzizi]]];
+    kama (ast_aina[jum] != AST_JUMLISHA || ast_aina[ast_kulia[jum]] != AST_ZIDISHA) rudisha 24;
+
+    // mtiririko na muundo vinachanganuliwa bila kosa
+    Msambazaji m = mpya("muundo P { n32 x; n32 y; }; n32 h(n32 i) { kama (i > 0) { rudisha 1; } sivyo { rudisha 2; } wakati (i < 3) { i = i + 1; kama (i == 2) { vunja; } } kwa (i = 0; i < 2; i = i + 1) { endelea; } rudisha 0; }");
+    mzizi = changanua(&m);
+    kama (m.kosa != 0) rudisha 25;
+    kama (ast_aina[ast_kushoto[mzizi]] != AST_MUUNDO) rudisha 26;
+
+    // kosa la sintaksia linaonekana
+    Msambazaji b = mpya("n32 h( { rudisha; } ) ]");
+    changanua(&b);
+    kama (b.kosa == 0) rudisha 27;
+    rudisha 0;
+}

@@ -1,0 +1,18 @@
+; bandari.swm -- bandari za I/O, waendeshaji wa biti kwenye usemi, na
+; jumuisha (majaribio ya kusanyiko). Hukusanywa kutoka mzizi wa hazina
+; (njia ya jumuisha.dat). Matokeo yalikaguliwa mara moja dhidi ya NASM.
+picha 0x1000
+biti 64
+        r0b = bandari[0x21]
+        r0b &= 0xFD
+        bandari[0x21] = r0b
+        bandari[0x80] = r0b
+        r0w = bandari[r2w]
+        bandari[r2w] = r0d
+        r0d = bandari[0x60]
+        bandari[0xA1] = r0w
+n16 = (x & 0xFFFF) | 0, (x >> 16) & 0xFFFF
+n32 = (x >> 32) & 0xFFFFFFFF, 1 << 4, 6 | 9, 2 + 3 << 1
+jumuisha "msingi/mnyororo/majaribio/jumuisha.dat"
+jumuisha "msingi/mnyororo/majaribio/jumuisha.dat", 2
+x:

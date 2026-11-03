@@ -24,7 +24,7 @@
 //                dom_mock.js (kuanzia mzizi, id=0) unalinganishwa
 //                (JSON.stringify iliyopangwa) na muundo tarajiwa
 //                uliohifadhiwa kwenye FAILI la JSON ambalo NJIA yake
-//                ni <thamani_tarajiwa> (safu ya kwanza ya MANIFEST,
+//                ni <thamani_tarajiwa> (thamani ya kisa kwenye gharama/jaribu-wasm.mapishi,
 //                si namba -- angalia majaribio/wasm/*.tarajiwa.json).
 //
 // Sehemu za Uingizaji (Awamu 3): KILA moduli sasa ina Import section
