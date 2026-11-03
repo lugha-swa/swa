@@ -37,4 +37,19 @@ Zana inayogeuza chanzo cha mbegu kuwa `mbegu.bin` lazima ijengwe kutoka `kwanza.
 
 - [x] NASM imeondolewa kila mahali: kusanyiko lina `picha`, `biti 32`, maagizo ya ring 0, `bandari`, `jumuisha` (hati/kusanyiko-x86.md). `majaribio/kernel/stub.swm` (jaribio la --kernel) na kiini cha Kawira (lugha-swa/kawira `kiini.swm`) hujengwa nalo; picha zote mbili ni sawa kwa baiti na za NASM.
 
-Uthibitisho: `gharama/jaribu-mnyororo-huru.sh` (kwenye CI). `gharama/jenga-kusanyiko.sh` hujenga kusanyiko kutoka baiti 393 kwa matumizi mengine (jaribio la kernel, Kawira).
+Uthibitisho: `gharama/jaribu-mnyororo-huru.sh` (kwenye CI). 
+
+## Ujenzi bila bash: mjenzi
+
+`msingi/mnyororo/mjenzi.swm` ni kiendeshaji cha mapishi kwa lugha ya mashine ya Swa (amri: `saraka`, `endesha PROG ... < NDANI > NJE`, `endesha_kosa`, `sawa`, `nakili`, `unganisha`, `hex`, `andika`). Huhifadhiwa kama `msingi/mjenzi.bin` + `msingi/mjenzi.hex`, na `mnyororo.mapishi` huthibitisha kwamba vyote viwili ni sawa kwa baiti na kusanyiko(mjenzi.swm). Mapishi:
+
+| Mapishi | Kazi |
+|---|---|
+| `gharama/kusanyiko.mapishi` | baiti 393 -> maoni -> lebo -> kusanyiko0 -> kusanyiko, kila hatua ikijijenga; `jengo/kusanyiko` |
+| `gharama/mbegu-mpya.mapishi` | `jengo/mbegu`, `jengo/mjenzi` kutoka vyanzo vyao (kujaribu kabla ya kugandisha) |
+| `gharama/mnyororo.mapishi` | vilivyogandishwa (`mbegu.bin`, `mjenzi.bin`, `.hex` zao) == vinavyojengwa |
+| `gharama/jenga.mapishi` | yote hadi `bin/swa` |
+| `gharama/gandisha.mapishi` | gandisha mbegu na mjenzi kutoka vyanzo, kisha thibitisha |
+| `gharama/jaribu-mnyororo-asili.mapishi` | majaribio ya Swa asili (`gharama/jaribu_mnyororo.swa`) |
+
+Pengo pekee la kuzaliwa lililobaki ni kuanzisha programu moja (`./msingi/mjenzi.bin ...`). Mwenye shaka anaweza kujenga mjenzi kwa mkono kutoka `msingi/kwanza.bin` na `msingi/mjenzi.hex`.

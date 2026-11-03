@@ -4,7 +4,7 @@
 # linalohakikisha msimbo ulio kwenye ukurasa wa mbele bado unafanya kazi.
 set -u
 cd "$(dirname "$0")/.." || exit 1
-[ -x bin/swa ] || bash gharama/jenga.sh > /dev/null || exit 1
+[ -x bin/swa ] || ./msingi/mjenzi.bin gharama/jenga.mapishi > /dev/null || exit 1
 TMP="$(mktemp -d /tmp/swa-mifano-XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT
 

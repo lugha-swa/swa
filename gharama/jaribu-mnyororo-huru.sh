@@ -142,13 +142,36 @@ kagua kus2_kosa 'picha 0
 # ikikusanywa na kusanyiko, lazima iwe SAWA KWA BAITI na msingi/mbegu.bin
 # iliyogandishwa -- faili zima, si sehemu tu. Hivyo mbegu.bin (na
 # mbegu.hex, ambayo kwanza.bin huigeuza kuwa mbegu.bin hiyo hiyo --
-# gharama/jenga-kwanza.sh) hutoka kwenye baiti 393 za mkono pekee.
+# gharama/mnyororo.mapishi) hutoka kwenye baiti 393 za mkono pekee.
 # (Kabla ya kugandishwa upya 2026-11-03, msimbo na data ya kusanyiko
 # yalithibitishwa kuwa sawa kwa baiti na mbegu ya zamani ya NASM + ld.)
 "$TMP/kus" < msingi/mbegu.swm > "$TMP/mbegu_huru"
 kagua cmp -s "$TMP/mbegu_huru" msingi/mbegu.bin
 "$TMP/kus2" < msingi/mbegu.swm > "$TMP/mbegu_huru2"
 kagua cmp -s "$TMP/mbegu_huru2" msingi/mbegu.bin
+# mjenzi (kiendeshaji cha mapishi): msingi/mjenzi.bin na .hex yake ni sawa
+# kwa baiti na kusanyiko(mjenzi.swm); amri zake na makosa yake.
+"$TMP/kus2" < $M/mjenzi.swm > "$TMP/mjenzi"
+kagua cmp -s "$TMP/mjenzi" msingi/mjenzi.bin
+mjenzi_hex_sawa() { ./msingi/kwanza.bin < msingi/mjenzi.hex | cmp -s - msingi/mjenzi.bin; }
+kagua mjenzi_hex_sawa
+mjenzi_ni() {  # $1 mapishi, $2 kutoka tarajiwa, $3 towe tarajiwa (stdout+stderr)
+    printf '%s\n' "$1" > "$TMP/m.mapishi"
+    local towe; towe=$(cd "$TMP" && "$OLDPWD/msingi/mjenzi.bin" m.mapishi 2>&1); local rc=$?
+    [ "$rc" = "$2" ] && [ "$towe" = "$3" ]
+}
+kagua mjenzi_ni 'andika habari dunia ; maoni' 0 "habari dunia"
+kagua mjenzi_ni "unganisha a m.mapishi m.mapishi
+hex a b
+sawa a a
+nakili b c
+sawa b c" 0 ""
+kagua mjenzi_ni 'endesha_kosa 127 hakuna/programu' 0 ""
+kagua mjenzi_ni 'kitu' 1 "mjenzi: mstari 1: kitu imeshindwa"
+kagua mjenzi_ni 'andika a
+sawa m.mapishi hakuna' 1 "a
+mjenzi: mstari 2: sawa imeshindwa"
+kagua mjenzi_ni 'endesha hakuna/programu' 1 "mjenzi: mstari 1: endesha imeshindwa (kutoka 127)"
 mbegu_hex_sawa() { ./msingi/kwanza.bin < msingi/mbegu.hex | cmp -s - msingi/mbegu.bin; }
 kagua mbegu_hex_sawa
 

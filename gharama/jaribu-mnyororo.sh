@@ -25,8 +25,8 @@ kagua() { # kagua <msimbo-halisi> <msimbo-tarajiwa> <maelezo>
 }
 
 # ============ 1. Mnyororo wa kwanza ============
-bash gharama/jenga-kwanza.sh > /dev/null || { echo "SHINDWA: jenga-kwanza"; exit 1; }
-MBEGU="/tmp/mbegu2.bin"
+./msingi/mjenzi.bin gharama/mnyororo.mapishi > /dev/null || { echo "SHINDWA: mnyororo.mapishi"; exit 1; }
+MBEGU="$PWD/jengo/mbegu"
 
 # ============ 2. Jenga mkusanyaji wa .swa (stage1) ============
 # Msuluhishi wa husisha (gharama/msuluhishi.swa) hujengwa kwanza na

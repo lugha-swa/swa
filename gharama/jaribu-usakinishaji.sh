@@ -12,7 +12,7 @@
 # toleo (na picha ya ghcr) inafanya kazi baada ya kupakuliwa.
 set -u
 cd "$(dirname "$0")/.." || exit 1
-[ -x bin/swa ] || bash gharama/jenga.sh > /dev/null || exit 1
+[ -x bin/swa ] || ./msingi/mjenzi.bin gharama/jenga.mapishi > /dev/null || exit 1
 HAZINA="$(pwd)"
 TMP="$(mktemp -d /tmp/swa-usakinishaji-XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT

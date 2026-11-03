@@ -52,8 +52,8 @@ Tumia kiolezo cha **Ombi la Kipengele**. Kumbuka:
 ```sh
 git clone https://github.com/lugha-swa/swa.git
 cd swa
-bash gharama/jenga-kwanza.sh      # hujenga mbegu kutoka baiti za mkono
-bash gharama/jaribu-mnyororo.sh   # mnyororo mzima + majaribio 304
+./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> mbegu -> bin/swa
+bash gharama/jaribu-mnyororo.sh               # mnyororo mzima + majaribio
 ```
 
 ### Kujaribu Mkusanyaji
@@ -98,15 +98,17 @@ mkazo wa RELA ndani ya `gharama/jaribu-mnyororo.sh` — la kudumu.
 
 Mpangilio wa lazima:
 1. Badilisha `msingi/mbegu.swm`.
-2. `bash gharama/gandisha-mbegu.sh --muda` → mbegu ya muda (mnyororo
-   huru: kwanza.bin → maoni → lebo → kusanyiko0 → kusanyiko) → jaribu
+2. `./msingi/mjenzi.bin gharama/mbegu-mpya.mapishi` → mbegu ya muda
+   `jengo/mbegu` (mnyororo huru: kwanza.bin → maoni → lebo → kusanyiko0
+   → kusanyiko) → jaribu
    kwa chanzo KIDOGO (sio mkusanyiko mzima kwanza) na kwa mkusanyiko
    mzima.
 3. Jaribio la mkazo la wito wa mbele (angalau 1,000) — njia za RELA
    na nje zinazopigwa mara nyingi.
-4. Baada ya hapo tu: gandisha (`bash gharama/gandisha-mbegu.sh` huandika
-   `mbegu.bin` + `mbegu.hex`), thibitisha kwa
-   `bash gharama/jenga-kwanza.sh` na `bash gharama/jaribu-mnyororo-huru.sh`, na endesha
+4. Baada ya hapo tu: gandisha (`./msingi/mjenzi.bin gharama/gandisha.mapishi`
+   huandika `mbegu.bin` + `mbegu.hex` na `mjenzi.bin` + `mjenzi.hex`,
+   kisha huthibitisha mnyororo mzima), endesha
+   `bash gharama/jaribu-mnyororo-huru.sh`, na endesha
    `bash gharama/jaribu-mnyororo.sh` nzima.
 5. Tazama `hati/mipaka.md` kwa mipaka inayojulikana ya mbegu.
 

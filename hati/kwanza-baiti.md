@@ -13,7 +13,7 @@ Mnyororo:
 kwanza.hex (baiti za mkono)  →  kwanza.bin  →  mbegu.hex  →  mbegu.bin
 ```
 
-Uthibitisho: `gharama/jenga-kwanza.sh`.
+Uthibitisho: `gharama/kusanyiko.mapishi` (kwanza hujijenga yenyewe, kisha mnyororo huru) na `gharama/mnyororo.mapishi`.
 
 ## Muundo wa Baiti
 

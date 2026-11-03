@@ -26,8 +26,8 @@ if ! command -v node > /dev/null 2>&1; then
 fi
 
 # ============ 1. Mnyororo wa kwanza ============
-bash gharama/jenga-kwanza.sh > /dev/null || { echo "SHINDWA: jenga-kwanza"; exit 1; }
-MBEGU="/tmp/mbegu2.bin"
+./msingi/mjenzi.bin gharama/mnyororo.mapishi > /dev/null || { echo "SHINDWA: mnyororo.mapishi"; exit 1; }
+MBEGU="$PWD/jengo/mbegu"
 
 # ============ 2. Jenga mkusanyaji wa .swa (stage1) ============
 ZIMA="$TMP/zima.swa"
