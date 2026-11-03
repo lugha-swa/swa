@@ -69,5 +69,26 @@ x' 0 "90 90"
 kagua k0_ni 'hamisha_r9,r10' 4 ""
 kagua k0_ni '%12x' 4 ""
 
+# Hatua 4: kusanyiko0 + lebo hujenga kusanyiko (lugha ya mashine ya Swa).
+"$TMP/k0" < $M/hatua4_kusanyiko.kus > "$TMP/k4.hex2" && "$TMP/lebo" < "$TMP/k4.hex2" > "$TMP/kus"
+chmod +x "$TMP/kus"
+kus_endesha() {  # $1 jina, $2 kutoka tarajiwa, $3 towe tarajiwa
+    "$TMP/kus" < $M/majaribio/$1.swm > "$TMP/$1" || return 1
+    chmod +x "$TMP/$1"
+    local towe; towe=$("$TMP/$1"); local rc=$?
+    [ "$rc" = "$2" ] && [ "$towe" = "$3" ]
+}
+kagua kus_endesha habari 0 "habari kutoka lugha ya mashine ya Swa"
+kagua kus_endesha tawi 42 ""
+kagua kus_endesha mbali 7 ""
+# Maumbo 107 ya maagizo: msimbo lazima uwe sawa kwa baiti na matokeo
+# yaliyohifadhiwa (yalikaguliwa mara moja dhidi ya NASM kama mkaguzi).
+kus_maagizo() {
+    "$TMP/kus" < $M/majaribio/maagizo.swm > "$TMP/m.elf" || return 1
+    local csz; csz=$(od -An -tu8 -j 96 -N 8 "$TMP/m.elf" | tr -d ' ')
+    [ "$(dd if="$TMP/m.elf" bs=1 skip=4096 count="$csz" status=none | od -An -tx1 -v | tr -s ' \n' ' ' | sed 's/^ //;s/ $//')" = "$(cat $M/majaribio/maagizo.tarajiwa)" ]
+}
+kagua kus_maagizo
+
 echo "===== Matokeo ya mnyororo huru: $PASS yamefaulu, $FAIL yameshindwa ====="
 [ "$FAIL" -eq 0 ]
