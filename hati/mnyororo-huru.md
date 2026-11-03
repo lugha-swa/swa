@@ -51,5 +51,9 @@ Uthibitisho: `gharama/jaribu-mnyororo-huru.mapishi` (kwenye CI; visa vyake viko 
 | `gharama/jenga.mapishi` | yote hadi `bin/swa` |
 | `gharama/gandisha.mapishi` | gandisha mbegu na mjenzi kutoka vyanzo, kisha thibitisha |
 | `gharama/jaribu-mnyororo-asili.mapishi` | majaribio ya Swa asili (`gharama/jaribu_mnyororo.swa`) |
+| `gharama/jaribu-mnyororo.mapishi` | majaribio ya Swa asili + mkazo na semantiki (`majaribio/mkazo/`) |
+| `gharama/jaribu-mnyororo-huru.mapishi` | kila hatua ya mnyororo huru, kila kipengele na kosa (`msingi/mnyororo/majaribio/`) |
+| `gharama/jaribu-mifano.mapishi`, `jaribu-usakinishaji.mapishi` | mifano ya README; swa iliyosakinishwa nje ya hazina |
+| `gharama/jaribu-wasm.mapishi`, `jaribu-kernel.mapishi` | `--wasm` (node kama mkaguzi), `--kernel` (QEMU kama mkaguzi) |
 
-Pengo pekee la kuzaliwa lililobaki ni kuanzisha programu moja (`./msingi/mjenzi.bin ...`). Mwenye shaka anaweza kujenga mjenzi kwa mkono kutoka `msingi/kwanza.bin` na `msingi/mjenzi.hex`.
+Hakuna bash kwenye ujenzi wala kwenye majaribio ya CI: zana za nje pekee ni wakaguzi wa majaribio (node, python3 + QEMU). Pengo pekee la kuzaliwa lililobaki ni kuanzisha programu moja (`./msingi/mjenzi.bin ...`). Mwenye shaka anaweza kujenga mjenzi kwa mkono kutoka `msingi/kwanza.bin` na `msingi/mjenzi.hex`.

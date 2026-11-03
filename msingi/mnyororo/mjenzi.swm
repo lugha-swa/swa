@@ -6,11 +6,13 @@
 ; Matumizi:  ./msingi/mjenzi.bin gharama/jenga.mapishi
 ;
 ; Mapishi: amri moja kwa mstari; ';' huanzisha maoni. Maneno hutenganishwa
-; kwa nafasi (njia hazina nafasi ndani yake).
+; kwa nafasi; "maneno yenye nafasi" ni neno moja (bila alama za nukuu).
 ;
 ;   saraka NJIA                    tengeneza saraka (ikiwepo tayari ni sawa)
 ;   endesha PROG HOJA... [< NDANI] [> NJE] [2> KOSA] [@ SARAKA]
 ;                                  endesha programu; lazima itoke kwa 0.
+;                                  PROG isiyo na '/' hutafutwa kwenye PATH;
+;                                  mazingira ya mjenzi hupitishwa kwake.
 ;                                  NJE huundwa upya ikiwa inatekelezeka;
 ;                                  KOSA hupokea stderr ya programu; SARAKA
 ;                                  ni mahali pa kazi pa programu (njia za
@@ -42,6 +44,8 @@ fafanua ANDIKA_UNDA = 0x241  ; O_WRONLY | O_CREAT | O_TRUNC
 
 anza:
         r0 = n64[r4]   ; argc
+        r1 = &[r4 + r0*8 + 16]   ; envp: baada ya argv[argc] = 0
+        n64[mazingira] = r1
         linganisha r0, 2
         ruka .matumizi kama !=
         r7 = n64[r4+16]   ; argv[1]: faili la mapishi
@@ -110,6 +114,8 @@ gawa_mstari:
         ruka .nafasi kama ==
         linganisha r1, UPEO_HOJA
         ruka shindwa kama >=a
+        linganisha r0d, 0x22   ; '"'
+        ruka .nukuu kama ==
         n64[hoja + r1*8] = r7
         r1++
 .neno:
@@ -126,6 +132,18 @@ gawa_mstari:
         linganisha r0d, 13
         ruka .funga_neno kama ==
         ruka .neno
+.nukuu:
+        r7++
+        n64[hoja + r1*8] = r7
+        r1++
+.nukuu_k:
+        r0d = a8[r7]
+        pima r0d, r0d
+        ruka shindwa kama ==   ; nukuu haikufungwa
+        linganisha r0d, 0x22
+        ruka .funga_neno kama ==
+        r7++
+        ruka .nukuu_k
 .funga_neno:
         n8[r7] = 0
 .nafasi:
@@ -393,10 +411,74 @@ mtoto:
         ruka .saraka_imeshindwa kama <n
 .si_saraka:
         r7 = n64[hoja_programu]
+        r1d ^= r1d
+.ina_mkwaju:
+        r0d = a8[r7+r1]
+        pima r0d, r0d
+        ruka .tafuta_path kama ==
+        linganisha r0d, 0x2f
+        ruka .moja_kwa_moja kama ==
+        r1++
+        ruka .ina_mkwaju
+.moja_kwa_moja:
         r6 = hoja_programu
-        r2 = mazingira_tupu
+        r2 = n64[mazingira]
         r0d = 59   ; execve
         mfumo
+        ruka .ameshindwa
+; PROG bila '/': jaribu kila saraka ya PATH
+.tafuta_path:
+        r12 = path_ya_kawaida
+        r3 = n64[mazingira]
+.mazingira_k:
+        r6 = n64[r3]
+        pima r6, r6
+        ruka .path_tayari kama ==
+        linganisha n32[r6], 0x48544150   ; "PATH"
+        ruka .mazingira_ijayo kama !=
+        linganisha n8[r6+4], 0x3d   ; '='
+        ruka .mazingira_ijayo kama !=
+        r12 = &[r6+5]
+        ruka .path_tayari
+.mazingira_ijayo:
+        r3 += 8
+        ruka .mazingira_k
+.path_tayari:
+; r12 = "saraka:saraka:..."; jenga "saraka/PROG" kwenye bafa_njia
+.saraka_k:
+        linganisha n8[r12], 0
+        ruka .ameshindwa kama ==
+        r7 = bafa_njia
+.nakili_saraka:
+        r0d = a8[r12]
+        pima r0d, r0d
+        ruka .saraka_imekwisha kama ==
+        linganisha r0d, 0x3a   ; ':'
+        ruka .saraka_imekwisha kama ==
+        n8[r7] = r0b
+        r7++
+        r12++
+        ruka .nakili_saraka
+.saraka_imekwisha:
+        n8[r7] = 0x2f
+        r7++
+        r6 = n64[hoja_programu]
+.nakili_jina:
+        r0d = a8[r6]
+        n8[r7] = r0b
+        r7++
+        r6++
+        pima r0d, r0d
+        ruka .nakili_jina kama !=
+        r7 = bafa_njia
+        r6 = hoja_programu
+        r2 = n64[mazingira]
+        r0d = 59   ; execve (ikifaulu hairudi)
+        mfumo
+        linganisha n8[r12], 0
+        ruka .ameshindwa kama ==
+        r12++   ; ruka ':'
+        ruka .saraka_k
 .ameshindwa:
         r7d = 127
         r0d = 60
@@ -793,7 +875,7 @@ n64 = neno_kiungo, amri_kiungo
 n64 = neno_ina, amri_ina
 n64 = 0, 0
 
-n64 mazingira_tupu = 0
+n8 path_ya_kawaida = "/usr/local/bin:/usr/bin:/bin", 0
 
 ; ---------- tupu ----------
 n64 mahali_sasa
@@ -806,6 +888,8 @@ n64 njia_ndani
 n64 njia_nje
 n64 njia_kosa
 n64 saraka_ya_kazi
+n64 mazingira
+n8 bafa_njia[4096]
 n64 kutoka_tarajiwa
 n64 kutoka_halisi
 n32 hali_ya_mtoto

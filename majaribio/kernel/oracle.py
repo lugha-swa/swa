@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-# oracle.py -- oracle ya QEMU+KVM kwa gharama/jaribu-kernel.sh.
+# oracle.py -- oracle ya QEMU+KVM kwa gharama/jaribu-kernel.mapishi.
 #
 # Huchukua binary iliyokamilika (stub.swm + kernel_main iliyotolewa na
-# "stage1 --kernel" kupitia incbin), huianzisha kwenye QEMU (-kernel,
+# "stage1 --kernel", iliyounganishwa mwishoni mwa picha), huianzisha kwenye QEMU (-kernel,
 # hakuna BIOS/GRUB -- muundo wa a.out kludge wa Multiboot1 unaruhusu
 # hili), na kusoma HALI HALISI ya CPU/kumbukumbu kupitia monitor socket
 # (human monitor protocol) baada ya HLT -- SI "haikuanguka", ni
