@@ -2,7 +2,7 @@
 
 Hati hii ni matokeo ya ukaguzi wa kila mgawanyo wa ukumbusho wa
 ukubwa thabiti (safu, dimbwi, majedwali) kwenye mzizi wa uaminifu
-(msingi/mbegu.s) na maktaba (msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa). Kila kipengele kimoja
+(msingi/mbegu.swm) na maktaba (msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa). Kila kipengele kimoja
 kimoja na uamuzi:
 
 - **SALAMA KWA SAUTI** — ukaguzi wa mpaka unaolia (kosa + exit) kabla
@@ -18,30 +18,30 @@ baada ya kusababisha uharibifu. Kanuni ya kudumu baada ya ukaguzi
 huu: **kila mgawanyo mpya wa ukubwa thabiti lazima uwe na ukaguzi wa
 mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 
-## mbegu.s (mzizi wa uaminifu)
+## mbegu.swm (mzizi wa uaminifu)
 
 | Mgawanyo | Ukubwa | Ulinzi | Uamuzi |
 |---|---|---|---|
-| source_buf | 4 MB | sys_read(mpaka) + kosa la sauti | SALAMA KWA SAUTI |
+| bafa_chanzo | 4 MB | sys_read(mpaka) + kosa la sauti | SALAMA KWA SAUTI |
 | token_* | 262,144 | kikomo cha kitanzi + kosa la sauti (`Hitilafu: chanzo kina tokeni nyingi mno`) | SALAMA KWA SAUTI (ilirekebishwa — ukataji wa kimya umefungwa; hati/mipaka.md #3) |
 | ast_* | 262,144 | node_mpya → kosa la sauti | SALAMA KWA SAUTI |
-| str_pool | 1 MB | .str_overflow → kosa la sauti (ilikuwa kimya) | SALAMA KWA SAUTI (ilirekebishwa) |
-| text_buf | 1 MB | .overflow za waandishi → kosa la sauti (zilikuwa kimya) | SALAMA KWA SAUTI (ilirekebishwa) |
-| data_buf | 16 KB | .cr_nafasi + .global_register → sauti | SALAMA KWA SAUTI |
-| label_* | 65,536 | .skip_label → sauti | SALAMA KWA SAUTI |
-| extern_name | 65,536 | .extern_full → sauti | SALAMA KWA SAUTI |
+| dimbwi_mfuatano | 1 MB | .furika_mfuatano → kosa la sauti (ilikuwa kimya) | SALAMA KWA SAUTI (ilirekebishwa) |
+| bafa_msimbo | 1 MB | .furika za waandishi → kosa la sauti (zilikuwa kimya) | SALAMA KWA SAUTI (ilirekebishwa) |
+| bafa_data | 16 KB | .cr_nafasi + .sajili_ulimwengu → sauti | SALAMA KWA SAUTI |
+| label_* | 65,536 | .pita_lebo → sauti | SALAMA KWA SAUTI |
+| jina_nje | 65,536 | .nje_jaa → sauti | SALAMA KWA SAUTI |
 | rela_* | 65,536 | maeneo yote → sauti | SALAMA KWA SAUTI |
-| global_* | 4,096 | .global_fail_pops → sauti | SALAMA KWA SAUTI |
+| global_* | 4,096 | .vuta_shindwa_ulimwengu → sauti | SALAMA KWA SAUTI |
 | local_* | 1,024 | ukaguzi mpya → sauti (haukuwepo) | SALAMA KWA SAUTI (ilirekebishwa) |
-| loop_break_label[16] | 16 | haijatumika kamwe (mabaki) | SALAMA KWA UTHIBITISHO (haijaandikwa) |
-| break_fixup_pos | 65,536 | ulikuwa 256 kimya → sasa sauti | SALAMA KWA SAUTI (ilirekebishwa) |
-| continue_fixup_pos | 65,536 | kama hapo juu | SALAMA KWA SAUTI (ilirekebishwa) |
-| muundo_* | 64 | ilikuwa .fail kimya → sasa sauti | SALAMA KWA SAUTI (ilirekebishwa) |
-| nyuga_* | 512 | ilikuwa .fail_pop kimya → sasa sauti | SALAMA KWA SAUTI (ilirekebishwa) |
+| lebo_vunja_mzunguko[16] | 16 | haijatumika kamwe (mabaki) | SALAMA KWA UTHIBITISHO (haijaandikwa) |
+| mahali_rekebisho_vunja | 65,536 | ulikuwa 256 kimya → sasa sauti | SALAMA KWA SAUTI (ilirekebishwa) |
+| mahali_rekebisho_endelea | 65,536 | kama hapo juu | SALAMA KWA SAUTI (ilirekebishwa) |
+| muundo_* | 64 | ilikuwa .shindwa kimya → sasa sauti | SALAMA KWA SAUTI (ilirekebishwa) |
+| nyuga_* | 512 | ilikuwa .shindwa_vuta kimya → sasa sauti | SALAMA KWA SAUTI (ilirekebishwa) |
 | kazi_ret_* | 256 | ukaguzi mpya → sauti (haukuwepo) | SALAMA KWA SAUTI (ilirekebishwa) |
-| gen_label_pos | 1024 | ukaguzi mpya → sauti (haukuwepo; kikomo kilikuwa 128) | SALAMA KWA SAUTI (ilirekebishwa) |
-| gen_fixup_* | 65,536 | .overflow → sauti | SALAMA KWA SAUTI |
-| tmp_buf | 4096 | maandishi ≤ baiti 8 | SALAMA KWA UTHIBITISHO (ukubwa wa maandishi umepangwa) |
+| zalisha_lebo_mahali | 1024 | ukaguzi mpya → sauti (haukuwepo; kikomo kilikuwa 128) | SALAMA KWA SAUTI (ilirekebishwa) |
+| gen_fixup_* | 65,536 | .furika → sauti | SALAMA KWA SAUTI |
+| bafa_muda | 4096 | maandishi ≤ baiti 8 | SALAMA KWA UTHIBITISHO (ukubwa wa maandishi umepangwa) |
 
 ## msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa (maktaba) — IMEKAGULIWA KAMILI
 
@@ -69,7 +69,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 
 ## Hitimisho
 
-Ukaguzi wa bafa UMEKAMILIKA kwa mzizi wa uaminifu (mbegu.s) na
+Ukaguzi wa bafa UMEKAMILIKA kwa mzizi wa uaminifu (mbegu.swm) na
 maktaba (msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa). Kila mgawanyo wa ukubwa thabiti una ukaguzi
 unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la mdudu wa
 "ukubwa wa kukisia" limefungwa.

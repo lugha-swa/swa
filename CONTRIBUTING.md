@@ -82,7 +82,7 @@ Dereva wa zamani wa Rust/LLVM uko kwenye hazina ya kumbukumbu
 
 ## Sheria ya Mzizi wa Uaminifu
 
-`msingi/mbegu.s` na `msingi/kwanza.bin` ni MZIZI WA UAMINIFU wa
+`msingi/mbegu.swm` na `msingi/kwanza.bin` ni MZIZI WA UAMINIFU wa
 mnyororo mzima. Sheria isiyo na mbadala:
 
 **Mabadiliko ya mzizi wa uaminifu hujengwa na Kujaribiwa KABLA ya
@@ -97,13 +97,16 @@ la wito 1,000 lilikimbizwa kabla ya kugandisha. Jaribio hilo sasa ni
 mkazo wa RELA ndani ya `gharama/jaribu-mnyororo.sh` — la kudumu.
 
 Mpangilio wa lazima:
-1. Badilisha `msingi/mbegu.s`.
-2. `nasm` + `ld` → mbegu ya muda → jaribu kwa chanzo KIDOGO (sio
-   mkusanyiko mzima kwanza) na kwa mkusanyiko mzima.
+1. Badilisha `msingi/mbegu.swm`.
+2. `bash gharama/gandisha-mbegu.sh --muda` → mbegu ya muda (mnyororo
+   huru: kwanza.bin → maoni → lebo → kusanyiko0 → kusanyiko) → jaribu
+   kwa chanzo KIDOGO (sio mkusanyiko mzima kwanza) na kwa mkusanyiko
+   mzima.
 3. Jaribio la mkazo la wito wa mbele (angalau 1,000) — njia za RELA
    na nje zinazopigwa mara nyingi.
-4. Baada ya hapo tu: gandisha (`mbegu.bin` + `mbegu.hex`), thibitisha
-   kwa `bash gharama/jenga-kwanza.sh`, na endesha
+4. Baada ya hapo tu: gandisha (`bash gharama/gandisha-mbegu.sh` huandika
+   `mbegu.bin` + `mbegu.hex`), thibitisha kwa
+   `bash gharama/jenga-kwanza.sh` na `bash gharama/jaribu-mnyororo-huru.sh`, na endesha
    `bash gharama/jaribu-mnyororo.sh` nzima.
 5. Tazama `hati/mipaka.md` kwa mipaka inayojulikana ya mbegu.
 
