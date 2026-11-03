@@ -14,7 +14,7 @@ Sasa: herufi isiyojulikana inalia (`Hitilafu: herufi isiyojulikana`),
 tokeni isiyojulikana kwenye kiwango cha juu inalia (`Hitilafu:
 uliichanganuzi`), mabano yasiyofungwa (block/muundo/husisha) yanalia,
 na kitanzi cha programu kina kinga ya mipaka ya mkondo wa tokeni.
-Pia rekebisho la upande: maneno ya lexer sasa huandika token_line
+Pia rekebisho la upande: maneno ya lexer sasa huandika mstari_tokeni
 (zamani: maneno yote yalikuwa na mstari 0 — husisha C:: ilivunjika).
 
 Uthibitisho: majaribio ya kudumu kwenye jaribio_exe_kujijenga.
@@ -47,7 +47,7 @@ lakini program mbaya (JUU). Ilipimwa (kwa kikomo cha zamani cha
 
 Sasa: lexer inalia `Hitilafu: chanzo kina tokeni nyingi mno` + exit 1
 — hakuna ukataji wa kimya tena. Kikomo kiliinuliwa hadi 262,144
-(MAX_TOKENS; vikomo viliinuliwa Agosti 2026, angalia kipengee 4).
+(UPEO_TOKENI; vikomo viliinuliwa Agosti 2026, angalia kipengee 4).
 Uthibitisho: chanzo cha wito 65,600 (juu ya kikomo) kinarudisha 1
 kwa sauti; wito 65,500 (chini) inapita.
 
@@ -57,16 +57,16 @@ Kila mpaka wa jedwali ndani ya mbegu unaangalia na KULIA kwa
 sauti (`Hitilafu: ... limejaa` + exit 1) badala ya kuendelea kimya.
 Vikomo viliinuliwa Agosti 2026 (4x) ili kupunguza mzunguko:
 
-- jedwali la nje (MAX_EXTERNS 65,536) — kila wito wa mbele unachukua
+- jedwali la nje (UPEO_NJE 65,536) — kila wito wa mbele unachukua
   ingizo jipya bila dedup
-- jedwali la RELA (MAX_RELOCS 65,536) — maeneo yote: mizigo ya
+- jedwali la RELA (UPEO_HAMISHO 65,536) — maeneo yote: mizigo ya
   ulimwengu, uhifadhi wa ulimwengu, tungo, nafasi za sret, na wito
-- jedwali la fixup, la ulimwengu (MAX_GLOBALS 4096), la lebo
-  (MAX_LABELS 65,536), na la AST (MAX_AST_NODES 262,144)
-- chanzo kikubwa kuliko baiti 4,194,304 (MAX_SOURCE) — mbegu inalia
+- jedwali la fixup, la ulimwengu (UPEO_ULIMWENGU 4096), la lebo
+  (UPEO_LEBO 65,536), na la AST (UPEO_NODI_MTI 262,144)
+- chanzo kikubwa kuliko baiti 4,194,304 (UPEO_CHANZO) — mbegu inalia
   kwa sauti badala ya kusoma sehemu tu
-- tokeni (MAX_TOKENS 262,144), msimbo (TEXT_BUF_SIZE 1,048,576),
-  na bwawa la herufi (STR_POOL_SIZE 1,048,576)
+- tokeni (UPEO_TOKENI 262,144), msimbo (UKUBWA_BAFA_MSIMBO 1,048,576),
+  na bwawa la herufi (UKUBWA_DIMBWI_MFUATANO 1,048,576)
 
 Uthibitisho: vikomo hufikiwa kwa KOSA LAUTI, si uharibifu wa kimya.
 
@@ -76,7 +76,7 @@ Ilikuwa: endelea inaruka mwanzo wa kitanzi, si hatua — kitanzi
 kilizunguka milele kama hatua ndiyo njia pekee ya kuendelea.
 
 Sasa: semantiki ya C — hatua imefungwa kwenye block-mini yenye
-alama, uzalishaji_block hurekodi nafasi yake, na endelea inaruka
+alama, uzalishaji_kundi hurekodi nafasi yake, na endelea inaruka
 hapo. Uthibitisho: kwa (i=0; i<6; i=i+1) { kama (i==2) endelea; s++ }
 hutoa s=5, na kesi ya endelea-pekee inapita. Mnyororo wa .swa UMEWIWA
 tarehe 2026-08 (AST_BLOCK yenye alama -777777, lebo ya hatua
@@ -247,7 +247,7 @@ hakuna mnyororo unaoingiza faili).
 Hali ya AWALI (kabla ya rekebisho): tangu mbegu.bin kugandishwa upya
 2026-09-24 kutambua herufi ndogo za aina 6 za msingi (n8/n16/n32/n64/
 w0/d64 — angalia hali-ya-lugha.md), mnyororo wa `ukubwa(x)` (builtin
-ya sizeof, `msingi/mbegu.s`) ulichunguza jina la hoja dhidi ya majina
+ya sizeof, `msingi/mbegu.swm`) ulichunguza jina la hoja dhidi ya majina
 hayo 6 KABLA ya kutafuta jina la muundo. Athari: `ukubwa(x)` ambapo
 `x` ni jina la muundo (au kigezo) LILILO HASA `n8`/`n16`/`n32`/`n64`/
 `d64` lilirudisha 1/2/4/8/8 (ukubwa wa aina ya msingi) badala ya
@@ -279,7 +279,7 @@ ILIYOJENGWA na mbegu MPYA (baada ya rekebisho hili) BADO inarudisha 4
 kwa `ukubwa(n32)` yenye muundo `n32` wa kweli -- kwa sababu chanzo cha
 uzalishaji.swa chenyewe hakijaguswa. Hii ni kazi ya BAADAYE, tofauti
 kabisa na rekebisho hili (faili tofauti, hakuna hatari ya mzizi wa
-uaminifu -- mkusanyaji wa kawaida, si mbegu.s).
+uaminifu -- mkusanyaji wa kawaida, si mbegu.swm).
 
 ## 11. Lengwa ya WebAssembly (`stage1 --wasm`) — Awamu ya 1 pekee: N32, hakuna kumbukumbu [UKALI: KWA KUBUNI]
 

@@ -1,0 +1,129 @@
+# hatua1_maoni.hexc -- hatua ya 1 ya mnyororo huru: hex yenye maoni.
+#
+# Kama kwanza (hex -> binary), lakini ';' au '#' huanzisha maoni hadi
+# mwisho wa mstari. Imeandikwa kwa mkono: kila mstari ni baiti za agizo
+# moja na agizo lenyewe kwenye maoni, ili kila baiti ikaguliwe kwa jicho.
+# kwanza hujenga hatua1_maoni.hex (baiti zile zile bila maoni); maoni
+# iliyojengwa lazima ijijenge yenyewe sawa kwa baiti kutoka faili hili.
+#
+# rejista: r12 kielekezi cha kutoa, r13 baiti inayojengwa, r14 nusu
+# ya kwanza imeonekana, r15 ndani ya maoni, rbx/r8 kusoma bafa.
+
+# ---- kichwa cha ELF (baiti 64) ----
+7f 45 4c 46             ; ELF: alama ya uchawi \x7f E L F
+02 01 01 00             ; biti 64, little-endian, toleo 1, ABI ya System V
+00 00 00 00 00 00 00 00 ; nafasi tupu (padding)
+02 00                   ; e_type: faili linalotekelezwa (EXEC)
+3e 00                   ; e_machine: x86-64
+01 00 00 00             ; e_version: 1
+78 00 40 00 00 00 00 00 ; e_entry: 0x400078 (mara baada ya vichwa)
+40 00 00 00 00 00 00 00 ; e_phoff: kichwa cha programu kiko kwenye ofseti 64
+00 00 00 00 00 00 00 00 ; e_shoff: hakuna sehemu (sections)
+00 00 00 00             ; e_flags
+40 00                   ; e_ehsize: 64
+38 00                   ; e_phentsize: 56
+01 00                   ; e_phnum: kichwa 1 cha programu
+00 00 00 00 00 00       ; e_shentsize, e_shnum, e_shstrndx: 0
+
+# ---- kichwa cha programu (baiti 56) ----
+01 00 00 00             ; p_type: PT_LOAD
+07 00 00 00             ; p_flags: soma + andika + tekeleza
+00 00 00 00 00 00 00 00 ; p_offset: 0
+00 00 40 00 00 00 00 00 ; p_vaddr: 0x400000
+00 00 40 00 00 00 00 00 ; p_paddr: 0x400000
+90 01 00 00 00 00 00 00 ; p_filesz: 400 (baiti za faili zima)
+00 09 00 00 00 00 00 00 ; p_memsz: 0x900 -- bafa: kuingiza 0x400300 (1024), kutoa 0x400700 (512)
+00 10 00 00 00 00 00 00 ; p_align: 0x1000
+
+# ---- msimbo, unaanzia 0x400078 ----
+# _start:
+49 bc 00 07 40 00 00 00 00 00   ; 400078: movabs r12,0x400700
+45 31 ed                        ; 400082: xor    r13d,r13d
+45 31 f6                        ; 400085: xor    r14d,r14d
+45 31 ff                        ; 400088: xor    r15d,r15d
+# soma:
+31 ff                           ; 40008b: xor    edi,edi
+48 be 00 03 40 00 00 00 00 00   ; 40008d: movabs rsi,0x400300
+ba 00 04 00 00                  ; 400097: mov    edx,0x400
+b8 00 00 00 00                  ; 40009c: mov    eax,0x0
+0f 05                           ; 4000a1: syscall
+85 c0                           ; 4000a3: test   eax,eax
+0f 8e b7 00 00 00               ; 4000a5: jle    ea <mwisho>
+41 89 c0                        ; 4000ab: mov    r8d,eax
+48 89 f3                        ; 4000ae: mov    rbx,rsi
+# kitanzi:
+4d 85 c0                        ; 4000b1: test   r8,r8
+74 d5                           ; 4000b4: je     13 <soma>
+0f b6 03                        ; 4000b6: movzx  eax,BYTE PTR [rbx]
+48 ff c3                        ; 4000b9: inc    rbx
+49 ff c8                        ; 4000bc: dec    r8
+4d 85 ff                        ; 4000bf: test   r15,r15
+74 0a                           ; 4000c2: je     56 <si_maoni>
+83 f8 0a                        ; 4000c4: cmp    eax,0xa
+75 e8                           ; 4000c7: jne    39 <kitanzi>
+45 31 ff                        ; 4000c9: xor    r15d,r15d
+eb e3                           ; 4000cc: jmp    39 <kitanzi>
+# si_maoni:
+83 f8 3b                        ; 4000ce: cmp    eax,0x3b
+74 05                           ; 4000d1: je     60 <anza_maoni>
+83 f8 23                        ; 4000d3: cmp    eax,0x23
+75 08                           ; 4000d6: jne    68 <heksa>
+# anza_maoni:
+41 bf 01 00 00 00               ; 4000d8: mov    r15d,0x1
+eb d1                           ; 4000de: jmp    39 <kitanzi>
+# heksa:
+83 f8 30                        ; 4000e0: cmp    eax,0x30
+72 cc                           ; 4000e3: jb     39 <kitanzi>
+83 f8 39                        ; 4000e5: cmp    eax,0x39
+76 19                           ; 4000e8: jbe    8b <tarakimu>
+83 f8 41                        ; 4000ea: cmp    eax,0x41
+72 c2                           ; 4000ed: jb     39 <kitanzi>
+83 f8 46                        ; 4000ef: cmp    eax,0x46
+76 14                           ; 4000f2: jbe    90 <kubwa>
+83 f8 61                        ; 4000f4: cmp    eax,0x61
+72 b8                           ; 4000f7: jb     39 <kitanzi>
+83 f8 66                        ; 4000f9: cmp    eax,0x66
+77 b3                           ; 4000fc: ja     39 <kitanzi>
+83 e8 57                        ; 4000fe: sub    eax,0x57
+eb 08                           ; 400101: jmp    93 <nusu>
+# tarakimu:
+83 e8 30                        ; 400103: sub    eax,0x30
+eb 03                           ; 400106: jmp    93 <nusu>
+# kubwa:
+83 e8 37                        ; 400108: sub    eax,0x37
+# nusu:
+4d 85 f6                        ; 40010b: test   r14,r14
+75 0b                           ; 40010e: jne    a3 <ya_pili>
+49 89 c5                        ; 400110: mov    r13,rax
+41 be 01 00 00 00               ; 400113: mov    r14d,0x1
+eb 96                           ; 400119: jmp    39 <kitanzi>
+# ya_pili:
+49 c1 e5 04                     ; 40011b: shl    r13,0x4
+49 09 c5                        ; 40011f: or     r13,rax
+45 88 2c 24                     ; 400122: mov    BYTE PTR [r12],r13b
+49 ff c4                        ; 400126: inc    r12
+49 81 fc 00 09 40 00            ; 400129: cmp    r12,0x400900
+72 25                           ; 400130: jb     df <safisha>
+bf 01 00 00 00                  ; 400132: mov    edi,0x1
+48 be 00 07 40 00 00 00 00 00   ; 400137: movabs rsi,0x400700
+ba 00 02 00 00                  ; 400141: mov    edx,0x200
+b8 01 00 00 00                  ; 400146: mov    eax,0x1
+0f 05                           ; 40014b: syscall
+49 bc 00 07 40 00 00 00 00 00   ; 40014d: movabs r12,0x400700
+# safisha:
+4d 31 f6                        ; 400157: xor    r14,r14
+4d 31 ed                        ; 40015a: xor    r13,r13
+e9 4f ff ff ff                  ; 40015d: jmp    39 <kitanzi>
+# mwisho:
+4c 89 e2                        ; 400162: mov    rdx,r12
+48 81 ea 00 07 40 00            ; 400165: sub    rdx,0x400700
+48 85 d2                        ; 40016c: test   rdx,rdx
+74 16                           ; 40016f: je     10f <toka>
+bf 01 00 00 00                  ; 400171: mov    edi,0x1
+48 be 00 07 40 00 00 00 00 00   ; 400176: movabs rsi,0x400700
+b8 01 00 00 00                  ; 400180: mov    eax,0x1
+0f 05                           ; 400185: syscall
+# toka:
+b8 3c 00 00 00                  ; 400187: mov    eax,0x3c
+31 ff                           ; 40018c: xor    edi,edi
+0f 05                           ; 40018e: syscall
