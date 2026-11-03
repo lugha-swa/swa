@@ -35,7 +35,7 @@ Tumia kiolezo cha **Ombi la Kipengele**. Kumbuka:
 
 1. **Fork** repo na unda tawi lako
 2. Andika msimbo wako kwa Kiswahili
-3. Hakikisha mnyororo mzima unapita: `bash gharama/jaribu-mnyororo.sh`
+3. Hakikisha mnyororo mzima unapita: `./msingi/mjenzi.bin gharama/jaribu-mnyororo.mapishi`
 4. Tumia ujumbe wa commit kwa Kiswahili
 5. Eleza **kwa nini** unafanya mabadiliko, si **nini** tu
 
@@ -52,8 +52,8 @@ Tumia kiolezo cha **Ombi la Kipengele**. Kumbuka:
 ```sh
 git clone https://github.com/lugha-swa/swa.git
 cd swa
-bash gharama/jenga-kwanza.sh      # hujenga mbegu kutoka baiti za mkono
-bash gharama/jaribu-mnyororo.sh   # mnyororo mzima + majaribio 304
+./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> mbegu -> bin/swa
+./msingi/mjenzi.bin gharama/jaribu-mnyororo.mapishi   # mnyororo mzima + majaribio
 ```
 
 ### Kujaribu Mkusanyaji
@@ -70,7 +70,7 @@ chmod +x mfano.bin && ./mfano.bin
 |--------|---------|
 | `msingi/` | Mzizi wa uaminifu: kwanza (baiti za mkono), mbegu, bootstrap |
 | `msingi/maktaba/` | Maktaba ya kawaida ya Swa (kumbukumbu, mfuatano, orodha, ramani, hesabu, faili) |
-| `msingi/mkusanyaji/` | Mkusanyaji wa kujikusanya wa Swa (msomaji, msambazaji, mteremko, mkaguzi, uzalishaji, stage1) |
+| `msingi/mkusanyaji/` | Mkusanyaji wa kujikusanya wa Swa (msomaji, msambazaji, mkaguzi, uzalishaji, mteremko -- IR, mtafsiri, stage1) |
 | `majaribio/` | Programu za majaribio za Swa (MANIFEST.txt) |
 | `gharama/` | Zana za ujenzi na majaribio |
 | `hati/` | Nyaraka za mradi |
@@ -82,7 +82,7 @@ Dereva wa zamani wa Rust/LLVM uko kwenye hazina ya kumbukumbu
 
 ## Sheria ya Mzizi wa Uaminifu
 
-`msingi/mbegu.s` na `msingi/kwanza.bin` ni MZIZI WA UAMINIFU wa
+`msingi/mbegu.swm` na `msingi/kwanza.bin` ni MZIZI WA UAMINIFU wa
 mnyororo mzima. Sheria isiyo na mbadala:
 
 **Mabadiliko ya mzizi wa uaminifu hujengwa na Kujaribiwa KABLA ya
@@ -94,17 +94,22 @@ iliyovunjika inaweza bado kutoa fixpoint imara LAKINI mbaya
 kimya kimya. Mfano halisi: uhariri mdogo wa njia ya fixup uliwahi
 kufanya kila mkusanyiko kushindwa — ulipatikana tu kwa sababu jaribio
 la wito 1,000 lilikimbizwa kabla ya kugandisha. Jaribio hilo sasa ni
-mkazo wa RELA ndani ya `gharama/jaribu-mnyororo.sh` — la kudumu.
+mkazo wa RELA ndani ya `gharama/jaribu-mnyororo.mapishi` (`majaribio/mkazo/rela_1000.swa`) — la kudumu.
 
 Mpangilio wa lazima:
-1. Badilisha `msingi/mbegu.s`.
-2. `nasm` + `ld` → mbegu ya muda → jaribu kwa chanzo KIDOGO (sio
-   mkusanyiko mzima kwanza) na kwa mkusanyiko mzima.
+1. Badilisha `msingi/mbegu.swm`.
+2. `./msingi/mjenzi.bin gharama/mbegu-mpya.mapishi` → mbegu ya muda
+   `jengo/mbegu` (mnyororo huru: kwanza.bin → maoni → lebo → kusanyiko0
+   → kusanyiko) → jaribu
+   kwa chanzo KIDOGO (sio mkusanyiko mzima kwanza) na kwa mkusanyiko
+   mzima.
 3. Jaribio la mkazo la wito wa mbele (angalau 1,000) — njia za RELA
    na nje zinazopigwa mara nyingi.
-4. Baada ya hapo tu: gandisha (`mbegu.bin` + `mbegu.hex`), thibitisha
-   kwa `bash gharama/jenga-kwanza.sh`, na endesha
-   `bash gharama/jaribu-mnyororo.sh` nzima.
+4. Baada ya hapo tu: gandisha (`./msingi/mjenzi.bin gharama/gandisha.mapishi`
+   huandika `mbegu.bin` + `mbegu.hex` na `mjenzi.bin` + `mjenzi.hex`,
+   kisha huthibitisha mnyororo mzima), endesha
+   `./msingi/mjenzi.bin gharama/jaribu-mnyororo-huru.mapishi`, na endesha
+   `./msingi/mjenzi.bin gharama/jaribu-mnyororo.mapishi` nzima.
 5. Tazama `hati/mipaka.md` kwa mipaka inayojulikana ya mbegu.
 
 ---

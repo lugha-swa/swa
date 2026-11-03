@@ -59,8 +59,10 @@ kwenye njia ya Rust → LLVM.
 - [x] **AST_BADILI (48)** — IMEFANYIKA: kishikizi kipo katika mkaguzi
       (mkaguzi.swa) na katika uzalishaji (badili kumbukumbu → realloc)
 - [x] **Uthibitishaji wa aina za hali za `chagua`** — IMEFANYIKA: lebo za usemi au kigezo zinakataliwa kwa sauti; hasi na N64 zinalingana (T5)
-- [ ] **mteremko.swa** — towe lake ni msimbo mfu; uamuzi: kuifuta au kuikamilisha
-      kwa hatua za uboreshaji wa baadaye
+- [x] **mteremko.swa** — IMEFANYIKA (2026-11-03): imejengwa upya kuwa IR ya
+      mstari yenye aina (hati/ir.md), inatekelezwa na mtafsiri.swa
+      (`swa --tafsiri`) na kukaguliwa dhidi ya msimbo wa mashine kwenye CI
+      (programu 161 sawa kabisa). Ni msingi wa ARM64 na Mizani.
 - [x] **JIT kamili** — IMEFANYIKA: relocations za wito wa nje ndani ya
       msimbo wa JIT (thunks za jmp + jedwali la anwani) na kupitisha
       argv (uzalishaji_jit inapokea argc/argv)
@@ -108,7 +110,7 @@ asilia (mbegu/exe) — uzalishaji unakataa kwa sauti, mbegu kimya.
       kwa mkono (ELF 64 + phdr 56 + msimbo 273) hubadilisha hex hadi binary.
       Inajijenga (kwanza.hex -> kwanza.bin) na inazalisha mbegu.bin kutoka
       mbegu.hex — NASM si sehemu ya mnyororo wa uzalishaji tena.
-      Uthibitisho: gharama/jenga-kwanza.sh (pia kwenye CI).
+      Uthibitisho: gharama/mnyororo.mapishi (pia kwenye CI).
 - [x] **Kiunganishi cha kujitegemea:** bendera ya `--exe` inatoa ET_EXEC
       tuli (syscalls pekee, hakuna kichwa cha sehemu) — stage2-exe
       inajijenga yenyewe sawa kwa baiti (stage3-exe) bila ld/gcc/libc.

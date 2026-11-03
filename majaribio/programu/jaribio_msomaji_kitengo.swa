@@ -1,0 +1,114 @@
+husisha { mkusanyaji/msomaji.swa }
+
+// jaribio_msomaji_kitengo.swa -- majaribio ya kitengo ya msomaji (mtenguasamiati wa
+// mkusanyaji, msingi/mkusanyaji/msomaji.swa): madaraja ya herufi, maneno
+// muhimu, na mkondo kamili wa tokeni (aina, urefu, mstari, safu) kwa chanzo
+// chenye kitambulisho, ishara, neno muhimu, nambari, maoni, mfuatano,
+// herufi, waendeshaji wa herufi 2-3 na heksadesimali. Pia vipengele vya
+// lugha ambavyo msomaji hutegemea: kitanzi kupitia kielekezi cha muundo na
+// kupitia muundo wenyewe, na kazi inayorudisha muundo. 0 = yote sawa.
+
+n32 KISA = 0;
+
+// tokeni moja: aina, urefu, mstari, safu na herufi ya kwanza
+n32 kagua(Msomaji* m, n32 aina, n64 urefu, n32 mstari, n32 safu, n32 herufi) {
+    KISA = KISA + 1;
+    Tokeni t;
+    tokeni_inayofuata(&t, m);
+    kama (t.aina != aina) rudisha 0;
+    kama (t.urefu != urefu) rudisha 0;
+    kama (t.mstari != mstari || t.safu != safu) rudisha 0;
+    kama (urefu > 0 && t.mwanzo[0] != herufi) rudisha 0;
+    rudisha 1;
+}
+
+// kitambulisho kimoja kwa mkono, kikirudishwa kama muundo
+Tokeni soma_jina(Msomaji* m) {
+    Tokeni t;
+    t.aina = 0;
+    t.urefu = 0;
+    n8 c = m->chanzo[m->nafasi];
+    kama (ni_alfabeti(c)) {
+        n64 anza = m->nafasi;
+        wakati (msomaji_imeisha(m) == 0) {
+            n8 ch = m->chanzo[m->nafasi];
+            kama (ni_alfabeti_tarakimu(ch) == 0) { vunja; }
+            m->nafasi = m->nafasi + 1;
+            m->safu = m->safu + 1;
+        }
+        t.urefu = m->nafasi - anza;
+        t.mwanzo = m->chanzo + anza;
+        t.aina = TOKENI_KITAMBULISHO;
+    }
+    rudisha t;
+}
+
+n32 main() {
+    // madaraja ya herufi
+    kama (ni_tarakimu(48) != 1 || ni_tarakimu(57) != 1 || ni_tarakimu(97) != 0) rudisha 1;
+    kama (ni_alfabeti(65) != 1 || ni_alfabeti(122) != 1 || ni_alfabeti(95) != 0) rudisha 2;
+    kama (ni_alfabeti_tarakimu(95) != 1 || ni_alfabeti_tarakimu(55) != 1 || ni_alfabeti_tarakimu(40) != 0) rudisha 3;
+    kama (ni_nafasi(32) != 1 || ni_nafasi(9) != 1 || ni_nafasi(10) != 1 || ni_nafasi(13) != 1 || ni_nafasi(97) != 0) rudisha 4;
+    kama (ni_heksi_dijiti(70) != 1 || ni_heksi_dijiti(102) != 1 || ni_heksi_dijiti(103) != 0) rudisha 5;
+    kama (ni_oktali_dijiti(55) != 1 || ni_oktali_dijiti(56) != 0) rudisha 6;
+    kama (ni_binary_dijiti(49) != 1 || ni_binary_dijiti(50) != 0) rudisha 7;
+    kama (ni_neno_muhimu("rudisha", 7) != 1 || ni_neno_muhimu("kwa", 3) != 1) rudisha 8;
+    kama (ni_neno_muhimu("kazi", 4) != 0) rudisha 9;
+
+    // mkondo wa tokeni
+    n8* s = "n32 kazi(n8* s) { rudisha 42; } // maoni\n  \"habari\" 'a' x <<= y != 0x1f muundo";
+    Msomaji m = msomaji_mpya(s, urefu_wa_mfuatano(s));
+    kama (kagua(&m, TOKENI_KITAMBULISHO, 3, 1, 1, 110) == 0) rudisha 10 + KISA;  // n32
+    kama (kagua(&m, TOKENI_KITAMBULISHO, 4, 1, 5, 107) == 0) rudisha 10 + KISA;  // kazi
+    kama (kagua(&m, TOKENI_ISHARA, 1, 1, 9, 40) == 0) rudisha 10 + KISA;         // (
+    kama (kagua(&m, TOKENI_KITAMBULISHO, 2, 1, 10, 110) == 0) rudisha 10 + KISA; // n8
+    kama (kagua(&m, TOKENI_ISHARA, 1, 1, 12, 42) == 0) rudisha 10 + KISA;        // *
+    kama (kagua(&m, TOKENI_KITAMBULISHO, 1, 1, 14, 115) == 0) rudisha 10 + KISA; // s
+    kama (kagua(&m, TOKENI_ISHARA, 1, 1, 15, 41) == 0) rudisha 10 + KISA;        // )
+    kama (kagua(&m, TOKENI_ISHARA, 1, 1, 17, 123) == 0) rudisha 10 + KISA;       // {
+    kama (kagua(&m, TOKENI_MANENO, 7, 1, 19, 114) == 0) rudisha 10 + KISA;       // rudisha
+    kama (kagua(&m, TOKENI_NAMBARI, 2, 1, 27, 52) == 0) rudisha 10 + KISA;       // 42
+    kama (kagua(&m, TOKENI_ISHARA, 1, 1, 29, 59) == 0) rudisha 10 + KISA;        // ;
+    kama (kagua(&m, TOKENI_ISHARA, 1, 1, 31, 125) == 0) rudisha 10 + KISA;       // }
+    // maoni yanarukwa; mstari mpya
+    kama (kagua(&m, TOKENI_MFUATANO, 8, 2, 3, 34) == 0) rudisha 10 + KISA;       // "habari"
+    kama (kagua(&m, TOKENI_NAMBARI, 3, 2, 12, 39) == 0) rudisha 10 + KISA;       // 'a'
+    kama (kagua(&m, TOKENI_KITAMBULISHO, 1, 2, 16, 120) == 0) rudisha 10 + KISA; // x
+    kama (kagua(&m, TOKENI_ISHARA, 3, 2, 18, 60) == 0) rudisha 10 + KISA;        // <<=
+    kama (kagua(&m, TOKENI_KITAMBULISHO, 1, 2, 22, 121) == 0) rudisha 10 + KISA; // y
+    kama (kagua(&m, TOKENI_ISHARA, 2, 2, 24, 33) == 0) rudisha 10 + KISA;        // !=
+    kama (kagua(&m, TOKENI_NAMBARI, 4, 2, 27, 48) == 0) rudisha 10 + KISA;       // 0x1f
+    kama (kagua(&m, TOKENI_MANENO, 6, 2, 32, 109) == 0) rudisha 10 + KISA;       // muundo
+    kama (kagua(&m, TOKENI_MWISHO, 0, 2, 38, 0) == 0) rudisha 10 + KISA;
+    kama (kagua(&m, TOKENI_MWISHO, 0, 2, 38, 0) == 0) rudisha 10 + KISA;         // hubaki mwishoni
+
+    // kitanzi kupitia kielekezi cha muundo
+    n8* a = "abc def";
+    Msomaji m2 = msomaji_mpya(a, 7);
+    Msomaji* k = &m2;
+    n64 hesabu = 0;
+    wakati (msomaji_imeisha(k) == 0) {
+        kama (ni_alfabeti_tarakimu(k->chanzo[k->nafasi]) == 0) { vunja; }
+        k->nafasi = k->nafasi + 1;
+        hesabu = hesabu + 1;
+    }
+    kama (hesabu != 3 || m2.nafasi != 3) rudisha 40;
+
+    // kitanzi kupitia muundo wenyewe
+    Msomaji m3 = msomaji_mpya(a, 7);
+    hesabu = 0;
+    wakati (msomaji_imeisha(&m3) == 0) {
+        kama (ni_alfabeti_tarakimu(m3.chanzo[m3.nafasi]) == 0) { vunja; }
+        m3.nafasi = m3.nafasi + 1;
+        hesabu = hesabu + 1;
+    }
+    kama (hesabu != 3 || m3.nafasi != 3) rudisha 41;
+
+    // kazi inayorudisha muundo; kisha tokeni ya kawaida inaendelea pale pale
+    Msomaji m4 = msomaji_mpya(a, 7);
+    Tokeni t = soma_jina(&m4);
+    kama (t.aina != TOKENI_KITAMBULISHO || t.urefu != 3 || m4.nafasi != 3) rudisha 42;
+    tokeni_inayofuata(&t, &m4);
+    kama (t.urefu != 3 || t.mwanzo[0] != 100 || m4.nafasi != 7) rudisha 43;
+    rudisha 0;
+}
