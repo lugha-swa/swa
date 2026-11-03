@@ -90,3 +90,28 @@ n8  ujumbe = "kosa: chanzo kikubwa mno", 10, 0
 ```
 
 Lebo: `jina:` na za ndani `.jina:` (za wigo wa lebo iliyotangulia). Programu huanzia `anza:`. Mpangilio wa faili ni sawa na `mbegu.bin` ya sasa (msimbo 0x401000, data 0x40c000, tupu baadaye), ili msimbo ulinganishwe kwa baiti.
+
+## Picha tambarare na biti 32
+
+Kwa kianzio cha kernel (Multiboot) na programu zisizo na mfumo wa uendeshaji:
+
+| Agizo | Maana |
+|---|---|
+| `picha 0x100000` | matokeo ni baiti tupu (hakuna ELF) zinazoanzia anwani hii. Msimbo, data na tupu hufuatana kwa mpangilio wa chanzo; tupu (`n64 pml4[512]`) huwa sifuri ndani ya picha. Lazima iwe kabla ya msimbo wowote. |
+| `biti 32` / `biti 64` | usimbaji wa maagizo yanayofuata. Kwenye biti 32 `[lebo]` ni anwani kamili, hakuna REX (rejista `r8`-`r15`, upana 8 na `r4b`-`r7b` ni kosa 5), na `n32[lebo] = r0d` huchukua umbo fupi (A3). |
+| `pangilia 4096` | sogeza hadi anwani inayogawanyika kwa N (nguvu ya 2); nafasi hujazwa `0x90` (agizo tupu). |
+
+## Mfumo (ring 0)
+
+| Agizo | Maana |
+|---|---|
+| `katizo_zima` / `katizo_washa` | zima / washa katizo (cli / sti) |
+| `simama` | simamisha kichakataji hadi katizo (hlt) |
+| `soma_msr` / `andika_msr` | `r2d:r0d` = / -> MSR namba `r1d` |
+| `rudi_katizo` | rudi kutoka katizo (iretq) |
+| `cr0 = r0d`, `r3d = cr4` | rejista za udhibiti `cr0`-`cr8` (upana: `d` kwenye biti 32, kamili kwenye biti 64) |
+| `ds = r0w`, `r0w = ss` | rejista za sehemu `es cs ss ds fs gs` |
+| `pakia_gdt [x]` / `pakia_idt [x]` | pakia jedwali la sehemu / la katizo (lgdt / lidt) |
+| `ruka_mbali 8, anza64` | ruka mbali kwenda sehemu:anwani (biti 32) |
+
+`majaribio/kernel/stub.swm` ni mfano kamili: Multiboot1, kurasa, biti 32 -> 64, kisha `ita kazi_kuu`. Picha yake ni sawa kwa baiti na ya NASM iliyotangulia.

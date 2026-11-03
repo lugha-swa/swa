@@ -19,23 +19,8 @@ set -eu
 cd "$(dirname "$0")/.." || exit 1
 TMP="$(mktemp -d /tmp/swa-gandisha-XXXXXX)"
 trap 'rm -rf "$TMP"' EXIT
-M=msingi/mnyororo
 
-./msingi/kwanza.bin < $M/hatua1_maoni.hex > "$TMP/maoni"
-chmod +x "$TMP/maoni"
-"$TMP/maoni" < $M/hatua2_lebo.hexc > "$TMP/lebo"
-chmod +x "$TMP/lebo"
-"$TMP/lebo" < $M/hatua3_kusanyiko0.hex2 > "$TMP/k0"
-chmod +x "$TMP/k0"
-"$TMP/k0" < $M/hatua4_kusanyiko.kus > "$TMP/kus.hex2"
-"$TMP/lebo" < "$TMP/kus.hex2" > "$TMP/kus"
-chmod +x "$TMP/kus"
-# kusanyiko lililoandikwa kwa lugha yake, lililojengwa na lile la hatua 4,
-# lazima lijijenge lenyewe sawa kwa baiti kabla ya kutumika
-"$TMP/kus" < $M/kusanyiko.swm > "$TMP/kus2"
-chmod +x "$TMP/kus2"
-"$TMP/kus2" < $M/kusanyiko.swm | cmp -s - "$TMP/kus2" || {
-    echo "hitilafu: kusanyiko.swm halijijengi sawa" >&2; exit 1; }
+bash gharama/jenga-kusanyiko.sh "$TMP/kus2"
 "$TMP/kus2" < msingi/mbegu.swm > "$TMP/mbegu" || {
     echo "hitilafu: kusanyiko limekataa msingi/mbegu.swm" >&2; exit 1; }
 chmod +x "$TMP/mbegu"

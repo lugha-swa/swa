@@ -110,6 +110,24 @@ kus2_sawa() {  # kila jaribio: towe la kus2 == towe la kus
     [ "$?" = 1 ] && [ "$(cat "$TMP/e")" = "kosa 2:3" ]
 }
 kagua kus2_sawa
+# Picha tambarare, biti 32/64 na maagizo ya mfumo (katizo_zima, simama,
+# soma_msr, cr0 = r0d, ds = r0w, pakia_gdt, ruka_mbali, pangilia ...):
+# baiti zote sawa na matokeo yaliyohifadhiwa (yalikaguliwa mara moja dhidi
+# ya NASM). Makosa: REX kwenye biti 32 -> 5, ruka_mbali kwenye biti 64 -> 2.
+kus2_mfumo() {
+    "$TMP/kus2" < $M/majaribio/mfumo.swm > "$TMP/mf" || return 1
+    [ "$(od -An -tx1 -v "$TMP/mf" | tr -s ' \n' ' ' | sed 's/^ //;s/ $//')" = "$(cat $M/majaribio/mfumo.tarajiwa)" ]
+}
+kagua kus2_mfumo
+kus2_kosa() {  # $1 chanzo, $2 kosa tarajiwa
+    printf '%s\n' "$1" | "$TMP/kus2" > /dev/null 2> "$TMP/e"
+    [ "$?" = 1 ] && [ "$(cat "$TMP/e")" = "$2" ]
+}
+kagua kus2_kosa 'biti 32
+        r0 = r1' "kosa 2:5"
+kagua kus2_kosa 'picha 0
+        ruka_mbali 8, x
+x:' "kosa 2:2"
 
 # Hatua 5: mbegu kwa lugha ya mashine ya Swa (msingi/mbegu.swm),
 # ikikusanywa na kusanyiko, lazima iwe SAWA KWA BAITI na msingi/mbegu.bin

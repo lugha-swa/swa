@@ -9,9 +9,11 @@
 #     andika, andika_stderr, wito_wa_mfumo, tekeleza, muundo, D32/D64,
 #     chagua, kernel_main isiyo ya kwanza).
 #   - tarajiwa ya namba: "stage1 --kernel" LAZIMA ifaulu; baiti ghafi
-#     za .text zinazotokana zinaunganishwa (nasm + incbin) na
-#     majaribio/kernel/stub.s (boot stub ndogo ya Multiboot1, kioo
-#     kilichopunguzwa cha Kawira's kiini.s), zinaendeshwa QEMU+KVM
+#     za .text zinazotokana zinaunganishwa mwishoni mwa picha ya
+#     majaribio/kernel/stub.swm (kianzio kidogo cha Multiboot1, kioo
+#     kilichopunguzwa cha kiini cha Kawira, kilichojengwa na kusanyiko --
+#     lugha ya mashine ya Swa, kutoka baiti 393 za mkono; hakuna NASM),
+#     zinaendeshwa QEMU+KVM
 #     (-kernel, hakuna BIOS/linker), na oracle.py inasoma HALI HALISI
 #     ya CPU (RDI kupitia monitor socket, "info registers") na
 #     kumbukumbu ya VGA (0xB8000 kupitia "xp") kulinganisha na
@@ -27,7 +29,7 @@ trap 'rm -rf "$TMP"' EXIT
 
 PASS=0; FAIL=0
 
-for dep in qemu-system-x86_64 nasm python3; do
+for dep in qemu-system-x86_64 python3; do
     if ! command -v "$dep" > /dev/null 2>&1; then
         echo "SHINDWA: $dep haipatikani kwenye PATH -- inahitajika na oracle ya --kernel"
         exit 1
@@ -53,7 +55,12 @@ chmod +x "$TMP/msuluhishi"
 chmod +x "$TMP/stage1"
 STAGE1="$TMP/stage1"
 
-# ============ 3. Majaribio ya MANIFEST ============
+# ============ 3. Kianzio (stub.swm) kwa kusanyiko ============
+bash gharama/jenga-kusanyiko.sh "$TMP/kusanyiko" || { echo "SHINDWA: jenga kusanyiko"; exit 1; }
+"$TMP/kusanyiko" < majaribio/kernel/stub.swm > "$TMP/stub.bin" || {
+    echo "SHINDWA: kusanyiko < majaribio/kernel/stub.swm"; exit 1; }
+
+# ============ 4. Majaribio ya MANIFEST ============
 MANIFEST="majaribio/kernel/MANIFEST.txt"
 while IFS=$'\t' read -r tarajiwa jina njia vga ujumbe; do
     [ -z "$tarajiwa" ] && continue
@@ -86,11 +93,8 @@ while IFS=$'\t' read -r tarajiwa jina njia vga ujumbe; do
     fi
 
     FULL="$TMP/$jina-full.bin"
-    if ! nasm -f bin -D JARIBIO="\"$OUT\"" majaribio/kernel/stub.s -o "$FULL" 2> "$TMP/$jina.nasm.err"; then
-        echo "SHINDWA: $jina -- nasm (stub.s + incbin) kulishindwa"; cat "$TMP/$jina.nasm.err"
-        FAIL=$((FAIL+1))
-        continue
-    fi
+    # kazi_kuu ni baiti ya kwanza baada ya picha ya kianzio
+    cat "$TMP/stub.bin" "$OUT" > "$FULL"
 
     VGA_ARG=()
     if [ "$vga" != "-" ]; then VGA_ARG=("$vga"); fi
