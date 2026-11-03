@@ -92,6 +92,25 @@ kagua kus_maagizo
 
 kagua kus_endesha data2 110 ""
 
+# Hatua 4d: kusanyiko limeandikwa kwa lugha yake (msingi/mnyororo/kusanyiko.swm).
+# Kusanyiko la hatua 4 hulijenga (kus2); kus2 lazima lijijenge lenyewe sawa
+# kwa baiti (sehemu thabiti) na litoe matokeo yale yale kwa kila jaribio.
+"$TMP/kus" < $M/kusanyiko.swm > "$TMP/kus2"
+chmod +x "$TMP/kus2"
+"$TMP/kus2" < $M/kusanyiko.swm > "$TMP/kus3"
+kagua cmp -s "$TMP/kus2" "$TMP/kus3"
+kus2_sawa() {  # kila jaribio: towe la kus2 == towe la kus
+    local t
+    for t in habari tawi mbali data2 maagizo; do
+        "$TMP/kus" < $M/majaribio/$t.swm > "$TMP/a" || return 1
+        "$TMP/kus2" < $M/majaribio/$t.swm > "$TMP/b" || return 1
+        cmp -s "$TMP/a" "$TMP/b" || return 1
+    done
+    printf 'anza:\n        r0 = r99\n' | "$TMP/kus2" > /dev/null 2> "$TMP/e"
+    [ "$?" = 1 ] && [ "$(cat "$TMP/e")" = "kosa 2:3" ]
+}
+kagua kus2_sawa
+
 # Hatua 5: mbegu kwa lugha ya mashine ya Swa (msingi/mbegu.swm),
 # ikikusanywa na kusanyiko, lazima iwe SAWA KWA BAITI na msingi/mbegu.bin
 # iliyogandishwa -- faili zima, si sehemu tu. Hivyo mbegu.bin (na
@@ -101,6 +120,8 @@ kagua kus_endesha data2 110 ""
 # yalithibitishwa kuwa sawa kwa baiti na mbegu ya zamani ya NASM + ld.)
 "$TMP/kus" < msingi/mbegu.swm > "$TMP/mbegu_huru"
 kagua cmp -s "$TMP/mbegu_huru" msingi/mbegu.bin
+"$TMP/kus2" < msingi/mbegu.swm > "$TMP/mbegu_huru2"
+kagua cmp -s "$TMP/mbegu_huru2" msingi/mbegu.bin
 mbegu_hex_sawa() { ./msingi/kwanza.bin < msingi/mbegu.hex | cmp -s - msingi/mbegu.bin; }
 kagua mbegu_hex_sawa
 

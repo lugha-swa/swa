@@ -3,7 +3,8 @@
 # (hati/mnyororo-huru.md) na uigandishe kama msingi/mbegu.bin + mbegu.hex.
 #
 #   kwanza.bin (baiti 393) -> maoni -> lebo -> kusanyiko0 -> kusanyiko
-#   kusanyiko < msingi/mbegu.swm -> mbegu.bin
+#   kusanyiko < msingi/mnyororo/kusanyiko.swm -> kusanyiko2 (hujijenga lenyewe)
+#   kusanyiko2 < msingi/mbegu.swm -> mbegu.bin
 #
 # Hakuna assembler, linker wala compiler ya nje. Uthibitisho baada ya
 # kugandisha: kwanza.bin < mbegu.hex lazima itoe mbegu.bin hiyo hiyo
@@ -29,7 +30,13 @@ chmod +x "$TMP/k0"
 "$TMP/k0" < $M/hatua4_kusanyiko.kus > "$TMP/kus.hex2"
 "$TMP/lebo" < "$TMP/kus.hex2" > "$TMP/kus"
 chmod +x "$TMP/kus"
-"$TMP/kus" < msingi/mbegu.swm > "$TMP/mbegu" || {
+# kusanyiko lililoandikwa kwa lugha yake, lililojengwa na lile la hatua 4,
+# lazima lijijenge lenyewe sawa kwa baiti kabla ya kutumika
+"$TMP/kus" < $M/kusanyiko.swm > "$TMP/kus2"
+chmod +x "$TMP/kus2"
+"$TMP/kus2" < $M/kusanyiko.swm | cmp -s - "$TMP/kus2" || {
+    echo "hitilafu: kusanyiko.swm halijijengi sawa" >&2; exit 1; }
+"$TMP/kus2" < msingi/mbegu.swm > "$TMP/mbegu" || {
     echo "hitilafu: kusanyiko limekataa msingi/mbegu.swm" >&2; exit 1; }
 chmod +x "$TMP/mbegu"
 
