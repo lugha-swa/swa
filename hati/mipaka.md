@@ -247,7 +247,7 @@ hakuna mnyororo unaoingiza faili).
 Hali ya AWALI (kabla ya rekebisho): tangu mbegu.bin kugandishwa upya
 2026-09-24 kutambua herufi ndogo za aina 6 za msingi (n8/n16/n32/n64/
 w0/d64 — angalia hali-ya-lugha.md), mnyororo wa `ukubwa(x)` (builtin
-ya sizeof, `msingi/mbegu.s`) ulichunguza jina la hoja dhidi ya majina
+ya sizeof, `msingi/mbegu.swm`) ulichunguza jina la hoja dhidi ya majina
 hayo 6 KABLA ya kutafuta jina la muundo. Athari: `ukubwa(x)` ambapo
 `x` ni jina la muundo (au kigezo) LILILO HASA `n8`/`n16`/`n32`/`n64`/
 `d64` lilirudisha 1/2/4/8/8 (ukubwa wa aina ya msingi) badala ya
@@ -279,7 +279,7 @@ ILIYOJENGWA na mbegu MPYA (baada ya rekebisho hili) BADO inarudisha 4
 kwa `ukubwa(n32)` yenye muundo `n32` wa kweli -- kwa sababu chanzo cha
 uzalishaji.swa chenyewe hakijaguswa. Hii ni kazi ya BAADAYE, tofauti
 kabisa na rekebisho hili (faili tofauti, hakuna hatari ya mzizi wa
-uaminifu -- mkusanyaji wa kawaida, si mbegu.s).
+uaminifu -- mkusanyaji wa kawaida, si mbegu.swm).
 
 ## 11. Lengwa ya WebAssembly (`stage1 --wasm`) — Awamu ya 1 pekee: N32, hakuna kumbukumbu [UKALI: KWA KUBUNI]
 

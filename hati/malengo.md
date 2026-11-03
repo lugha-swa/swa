@@ -33,7 +33,8 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
       (kichwa cha ELF 64 + kichwa cha programu 56 + msimbo 273) — hubadilisha
       hex hadi binary na inajijenga yenyewe (kwanza.hex -> kwanza.bin)
 - [x] mbegu.bin inazalika kutoka mbegu.hex kupitia Kwanza — NASM
-      si sehemu ya mnyororo wa uzalishaji tena; mbegu.s ni rejea tu
+      si sehemu ya mnyororo tena; tangu 2026-11-03 mbegu.bin yenyewe hujengwa
+      kutoka mbegu.swm na mnyororo huru (hati/mnyororo-huru.md)
 - [x] Kiunganishi cha kujitegemea: bendera ya `--exe` inatoa **ET_EXEC
       tuli** (bila kichwa cha sehemu, bila PT_INTERP) — mnyororo wa
       kujikusanya wa exe ni safi kabisa: stage2-exe == stage3-exe
@@ -74,8 +75,8 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - `msingi/mkusanyaji/uzalishaji.swa` — codegen asilia (inajikusanya)
 - `msingi/mkusanyaji/mteremko.swa` — kiteremshi cha AST→IR (huitwa kwa uthibitishaji wa muundo; codegen asilia hutumia AST moja kwa moja)
 - `msingi/mkusanyaji/stage1.swa` — kiendeshi cha bootstrap
-- `msingi/mbegu.s` — mbegu ya NASM (rejea ya kihistoria; NASM imeondolewa
-  kwenye mnyororo wa uzalishaji — kwanza inachukua nafasi yake)
+- `msingi/mbegu.swm` — mbegu kwa lugha ya mashine ya Swa; hujengwa na
+  mnyororo huru kutoka kwanza.bin (baiti 393), bila NASM wala ld
 
 ## Kile Tunachofanya Sasa (Agosti 2026)
 

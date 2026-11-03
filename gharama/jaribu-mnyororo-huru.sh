@@ -92,20 +92,17 @@ kagua kus_maagizo
 
 kagua kus_endesha data2 110 ""
 
-# Hatua 5: mbegu kwa lugha ya mashine ya Swa (mbegu.swm), ikikusanywa na
-# kusanyiko, lazima itoe msimbo (.text, baiti 43209 kwenye 0x401000),
-# data (baiti 3032 kwenye 0x40c000) na mahali pa kuanzia SAWA KWA BAITI
-# na msingi/mbegu.bin -- iliyotengenezwa zamani na NASM + GNU ld.
-"$TMP/kus" < $M/mbegu.swm > "$TMP/mbegu_huru"
-mbegu_sawa() {
-    cmp -s <(dd if="$TMP/mbegu_huru" bs=1 skip=4096 count=43209 status=none) \
-           <(dd if=msingi/mbegu.bin bs=1 skip=4096 count=43209 status=none) &&
-    cmp -s <(dd if="$TMP/mbegu_huru" bs=4096 skip=12 count=1 status=none | head -c 3032) \
-           <(dd if=msingi/mbegu.bin bs=4096 skip=12 count=1 status=none | head -c 3032) &&
-    cmp -s <(dd if="$TMP/mbegu_huru" bs=1 skip=24 count=8 status=none) \
-           <(dd if=msingi/mbegu.bin bs=1 skip=24 count=8 status=none)
-}
-kagua mbegu_sawa
+# Hatua 5: mbegu kwa lugha ya mashine ya Swa (msingi/mbegu.swm),
+# ikikusanywa na kusanyiko, lazima iwe SAWA KWA BAITI na msingi/mbegu.bin
+# iliyogandishwa -- faili zima, si sehemu tu. Hivyo mbegu.bin (na
+# mbegu.hex, ambayo kwanza.bin huigeuza kuwa mbegu.bin hiyo hiyo --
+# gharama/jenga-kwanza.sh) hutoka kwenye baiti 393 za mkono pekee.
+# (Kabla ya kugandishwa upya 2026-11-03, msimbo na data ya kusanyiko
+# yalithibitishwa kuwa sawa kwa baiti na mbegu ya zamani ya NASM + ld.)
+"$TMP/kus" < msingi/mbegu.swm > "$TMP/mbegu_huru"
+kagua cmp -s "$TMP/mbegu_huru" msingi/mbegu.bin
+mbegu_hex_sawa() { ./msingi/kwanza.bin < msingi/mbegu.hex | cmp -s - msingi/mbegu.bin; }
+kagua mbegu_hex_sawa
 
 echo "===== Matokeo ya mnyororo huru: $PASS yamefaulu, $FAIL yameshindwa ====="
 [ "$FAIL" -eq 0 ]

@@ -2,7 +2,7 @@
 
 Hati hii ni matokeo ya ukaguzi wa kila mgawanyo wa ukumbusho wa
 ukubwa thabiti (safu, dimbwi, majedwali) kwenye mzizi wa uaminifu
-(msingi/mbegu.s) na maktaba (msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa). Kila kipengele kimoja
+(msingi/mbegu.swm) na maktaba (msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa). Kila kipengele kimoja
 kimoja na uamuzi:
 
 - **SALAMA KWA SAUTI** — ukaguzi wa mpaka unaolia (kosa + exit) kabla
@@ -18,7 +18,7 @@ baada ya kusababisha uharibifu. Kanuni ya kudumu baada ya ukaguzi
 huu: **kila mgawanyo mpya wa ukubwa thabiti lazima uwe na ukaguzi wa
 mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 
-## mbegu.s (mzizi wa uaminifu)
+## mbegu.swm (mzizi wa uaminifu)
 
 | Mgawanyo | Ukubwa | Ulinzi | Uamuzi |
 |---|---|---|---|
@@ -69,7 +69,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 
 ## Hitimisho
 
-Ukaguzi wa bafa UMEKAMILIKA kwa mzizi wa uaminifu (mbegu.s) na
+Ukaguzi wa bafa UMEKAMILIKA kwa mzizi wa uaminifu (mbegu.swm) na
 maktaba (msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa). Kila mgawanyo wa ukubwa thabiti una ukaguzi
 unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la mdudu wa
 "ukubwa wa kukisia" limefungwa.

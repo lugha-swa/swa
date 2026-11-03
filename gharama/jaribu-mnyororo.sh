@@ -60,7 +60,7 @@ fi
 
 # ============ 4. Program za majaribio (minyororo yote miwili) ============
 # Safu ya nne (hiari) inachagua mnyororo: "stage1" = stage1 pekee,
-# "mbegu" = mbegu pekee (mfano: jaribio la mdudu ulio KWENYE mbegu.s
+# "mbegu" = mbegu pekee (mfano: jaribio la mdudu ulio KWENYE mbegu.swm
 # yenyewe pekee, ambao uzalishaji.swa/stage1 ina toleo lake tofauti
 # -- sahihi au batili -- angalia hati/mipaka.md #10).
 # Hii inatumiwa na jaribio_chagua_* — mbegu haijui neno la chagua,

@@ -17,7 +17,7 @@
 #     kumbukumbu ya VGA (0xB8000 kupitia "xp") kulinganisha na
 #     tarajiwa -- SI "haikuanguka", ni ulinganisho wa thamani halisi.
 #
-# mbegu.bin/mbegu.s HAZIHITAJI --kernel kabisa -- ni kipengele cha
+# mbegu.bin/mbegu.swm HAZIHITAJI --kernel kabisa -- ni kipengele cha
 # stage1 pekee (angalia msingi/mkusanyaji/uzalishaji.swa, hali_exe==2).
 set -u
 
