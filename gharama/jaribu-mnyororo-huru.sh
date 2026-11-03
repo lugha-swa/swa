@@ -128,6 +128,15 @@ kagua kus2_kosa 'biti 32
 kagua kus2_kosa 'picha 0
         ruka_mbali 8, x
 x:' "kosa 2:2"
+# Bandari za I/O, & | << >> kwa mpangilio wa C, jumuisha "faili", RUKA
+# (sawa na NASM); faili lisilopatikana -> kosa 8.
+kus2_bandari() {
+    ( cd $M/majaribio && "$TMP/kus2" < bandari.swm ) > "$TMP/bd" || return 1
+    [ "$(od -An -tx1 -v "$TMP/bd" | tr -s ' \n' ' ' | sed 's/^ //;s/ $//')" = "$(cat $M/majaribio/bandari.tarajiwa)" ]
+}
+kagua kus2_bandari
+kagua kus2_kosa 'picha 0
+        jumuisha "hakuna/faili/hili"' "kosa 2:8"
 
 # Hatua 5: mbegu kwa lugha ya mashine ya Swa (msingi/mbegu.swm),
 # ikikusanywa na kusanyiko, lazima iwe SAWA KWA BAITI na msingi/mbegu.bin

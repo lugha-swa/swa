@@ -656,9 +656,72 @@ kauli_fafanua:
         ruka weka_alama
 
 ; ---------------------------------------------------------------
-; usemi: + - * ~ na (), namba, majina -> r0. Jina lisilojulikana -> 0
-; na V_HAIJATATULIWA = 1 (ni kosa kwenye pitio la kuandika).
+; usemi: namba, majina, () na waendeshaji kwa mpangilio wa C (wa juu
+; kwanza): ~ -(hasi) | * | + - | << >> | & | '|'  -> r0.
+; Jina lisilojulikana -> 0 na V_HAIJATATULIWA = 1 (kosa kwenye pitio la
+; kuandika).
 usemi:
+        ita usemi_na
+uau_k:
+        sukuma r0
+        ita tokeni
+        vuta r0
+        r7d = 0x7c   ; |
+        ita tokeni_ni_alama
+        ruka usemi_rudisha_tokeni kama !=
+        sukuma r0
+        ita usemi_na
+        vuta r1
+        r0 |= r1
+        ruka uau_k
+usemi_na:
+        ita usemi_hamisha
+una_k:
+        sukuma r0
+        ita tokeni
+        vuta r0
+        r7d = 0x26   ; &
+        ita tokeni_ni_alama
+        ruka usemi_rudisha_tokeni kama !=
+        sukuma r0
+        ita usemi_hamisha
+        vuta r1
+        r0 &= r1
+        ruka una_k
+usemi_hamisha:
+        ita usemi_jumla
+uh_k:
+        sukuma r0
+        ita tokeni
+        vuta r0
+        r7d = 0x3c3c   ; <<
+        ita tokeni_ni_alama
+        ruka uh_kushoto kama ==
+        r7d = 0x3e3e   ; >> (bila ishara)
+        ita tokeni_ni_alama
+        ruka usemi_rudisha_tokeni kama !=
+        sukuma r0
+        ita usemi_jumla
+        r1 = r0
+        vuta r0
+        r0 >>=a r1b
+        ruka uh_k
+uh_kushoto:
+        sukuma r0
+        ita usemi_jumla
+        r1 = r0
+        vuta r0
+        r0 <<= r1b
+        ruka uh_k
+; usemi_rudisha_tokeni: tokeni iliyosomwa si ya usemi huu -- irudishe
+usemi_rudisha_tokeni:
+        linganisha n64[r15+V_AINA_TOKENI], 0
+        ruka urt_m kama ==
+        r7 = n64[r15+V_ANWANI_TOKENI]
+        n64[r15+V_MAHALI_SASA] = r7
+urt_m:
+        rudi
+usemi_jumla:
         ita usemi_zidisha
 us_k:
         r7 = n64[r15+V_MAHALI_SASA]
@@ -1145,6 +1208,10 @@ ka_rejista:
         ita ni_rejista_sehemu   ; ds, es, ... = ...
         linganisha r0d, -1
         ruka agizo_kugawa kama !=
+        r6 = neno_bandari   ; bandari[N] = ...
+        ita neno_sawa
+        pima r0d, r0d
+        ruka agizo_kugawa kama !=
         r6 = n64[r15+V_ANWANI_TOKENI]   ; x0..x15 (desimali)
         linganisha n8[r6], 0x78
         ruka kosa_agizo kama !=
@@ -1363,6 +1430,13 @@ sh_si_cr:
         n64[r3+8] = r0
         ruka sh_m
 sh_si_sehemu:
+        r6 = neno_bandari
+        ita neno_sawa
+        pima r0d, r0d
+        ruka sh_si_bandari kama ==
+        ita soma_bandari
+        ruka sh_m
+sh_si_bandari:
 ; xmm: x0..x15
         r6 = n64[r15+V_ANWANI_TOKENI]
         linganisha n8[r6], 0x78
@@ -2100,6 +2174,10 @@ ag_hamisha:
         r3 = hoja_lengo
         r7 = hoja_chanzo
         r0 = n64[r7]
+        linganisha n64[r3], 10
+        ruka hm_bandari kama ==
+        linganisha r0, 10
+        ruka hm_bandari kama ==
         linganisha n64[r3], 8
         ruka hm_udhibiti kama >=a
         linganisha r0, 8
@@ -2806,6 +2884,7 @@ as_m:
 ; Ujumbe ni namba fupi ya kosa (bila maandishi ndani ya msimbo):
 ;   1 sintaksia  2 agizo halijulikani  3 lebo haijulikani
 ;   4 jina limerudiwa  5 upana haulingani  6 mapitio mengi  7 ndani
+;   8 faili la jumuisha haliwezi kusomwa
 kosa_sintaksia:
         r3d = 1
         ruka kosa
@@ -2826,6 +2905,9 @@ kosa_mapitio:
         ruka kosa
 kosa_ndani:
         r3d = 7
+        ruka kosa
+kosa_faili:
+        r3d = 8
 kosa:
 ; "kosa " + mstari + ":" + namba + "\n"
         r7 = eneo_kichwa
@@ -2974,6 +3056,10 @@ agizo_neno:
         ita neno_sawa
         pima r0d, r0d
         ruka agizo_ruka_mbali kama !=
+        r6 = neno_jumuisha
+        ita neno_sawa
+        pima r0d, r0d
+        ruka agizo_jumuisha kama !=
         rudi
 
 ; picha ANWANI: matokeo ni baiti tupu (hakuna ELF); msimbo, data na tupu
@@ -3183,6 +3269,155 @@ hmu_rm:
         r1d ^= r1d
         ruka agizo_rm
 
+; ---------------------------------------------------------------
+; bandari[N] / bandari[r2w]: bandari ya I/O (aina 10). +24 = 2 kwa r2w,
+; vinginevyo -1 na namba (0-255) kwenye +48.
+soma_bandari:
+        r7d = 0x5b
+        ita tarajia_alama
+        n64[r3] = 10
+        ita tokeni
+        ita ni_rejista
+        linganisha r0d, -1
+        ruka sb_namba kama ==
+        linganisha r0d, 2
+        ruka kosa_sintaksia kama !=
+        linganisha r1d, 2
+        ruka kosa_upana kama !=
+        n64[r3+24] = 2
+        ruka sb_funga
+sb_namba:
+        ita usemi_ya_tokeni
+        linganisha r0, 255
+        ruka kosa_upana kama >a
+        n64[r3+48] = r0
+sb_funga:
+        r7d = 0x5d
+        ruka tarajia_alama
+
+; r0b|r0w|r0d = bandari[...]: E4/E5 ib, EC/ED (66 kwa w)
+; bandari[...] = r0b|r0w|r0d: E6/E7 ib, EE/EF
+hm_bandari:
+        r13d = 0xe4   ; soma
+        r2 = r7   ; bandari
+        r6 = r3   ; rejista
+        linganisha n64[r7], 10
+        ruka hmb_hoja kama ==
+        r13d = 0xe6   ; andika
+        r2 = r3
+        r6 = r7
+hmb_hoja:
+        linganisha n64[r6], 1
+        ruka kosa_sintaksia kama !=
+        linganisha n64[r6+8], 0
+        ruka kosa_sintaksia kama !=
+        r12 = n64[r6+16]
+        linganisha r12d, 8
+        ruka kosa_upana kama ==
+        linganisha r12d, 2
+        ruka hmb_si66 kama !=
+        sukuma r2
+        r0d = 0x66
+        ita toa_baiti
+        vuta r2
+hmb_si66:
+        linganisha r12d, 1
+        ruka hmb_op kama ==
+        r13d++
+hmb_op:
+        linganisha n64[r2+24], 2
+        ruka hmb_namba kama !=
+        r0d = r13d
+        r0d += 8   ; umbo la r2w
+        ruka toa_baiti
+hmb_namba:
+        sukuma r2
+        r0d = r13d
+        ita toa_baiti
+        vuta r2
+        r0 = n64[r2+48]
+        ruka toa_baiti
+
+; jumuisha "faili" [, RUKA]: weka baiti za faili (kuanzia RUKA) kwenye
+; mkondo wa msimbo. Ukubwa hupimwa kila pitio; baiti husomwa kwenye
+; pitio la kuandika tu.
+agizo_jumuisha:
+        ita tokeni
+        linganisha n64[r15+V_AINA_TOKENI], 3
+        ruka kosa_sintaksia kama !=
+        r6 = n64[r15+V_ANWANI_TOKENI]
+        r2 = n64[r15+V_UREFU_TOKENI]
+        linganisha r2, 4000
+        ruka kosa_sintaksia kama >=a
+        r7 = eneo_jina_kazi
+        r1d ^= r1d
+aju_nakili:
+        linganisha r1, r2
+        ruka aju_nakili_m kama ==
+        r0b = n8[r6+r1]
+        n8[r7+r1] = r0b
+        r1++
+        ruka aju_nakili
+aju_nakili_m:
+        n8[r7+r1] = 0
+        r14d ^= r14d   ; baiti za kuruka
+        ita tokeni
+        linganisha n64[r15+V_AINA_TOKENI], 0
+        ruka aju_fungua kama ==
+        r7d = 0x2c
+        ita tokeni_ni_alama
+        ruka kosa_sintaksia kama !=
+        ita usemi
+        r14 = r0
+aju_fungua:
+        r7 = eneo_jina_kazi
+        r6d ^= r6d   ; soma tu
+        r0d = 2   ; open
+        mfumo
+        pima r0, r0
+        ruka kosa_faili kama <n
+        r12 = r0   ; fd
+        r7 = r12
+        r6d ^= r6d
+        r2d = 2   ; mwisho wa faili
+        r0d = 8   ; lseek
+        mfumo
+        pima r0, r0
+        ruka kosa_faili kama <n
+        r13 = r0
+        r13 -= r14   ; ukubwa wa kuweka
+        ruka kosa_faili kama <n
+        linganisha n64[r15+V_PITIO_LA_KUANDIKA], 0
+        ruka aju_funga kama ==
+        r7 = r12
+        r6 = r14
+        r2d ^= r2d   ; kutoka mwanzo
+        r0d = 8
+        mfumo
+        r14 = eneo_msimbo
+        r14 += n64[r15+V_MAHALI_MSIMBO]
+        r3 = r13   ; zilizobaki
+aju_soma:
+        pima r3, r3
+        ruka aju_funga kama ==
+        r7 = r12
+        r6 = r14
+        r2 = r3
+        r0d ^= r0d   ; read
+        mfumo
+        pima r0, r0
+        ruka kosa_faili kama <=n
+        r14 += r0
+        r3 -= r0
+        ruka aju_soma
+aju_funga:
+        n64[r15+V_MAHALI_MSIMBO] += r13
+        r7 = r12
+        r0d = 3   ; close
+        mfumo
+        r0d = 1
+        rudi
+
 ; ---------- maneno na jedwali la maagizo yasiyo na hoja ----------
 n8 neno_picha = "picha", 0
 n8 neno_biti = "biti", 0
@@ -3190,6 +3425,8 @@ n8 neno_pangilia = "pangilia", 0
 n8 neno_pakia_gdt = "pakia_gdt", 0
 n8 neno_pakia_idt = "pakia_idt", 0
 n8 neno_ruka_mbali = "ruka_mbali", 0
+n8 neno_bandari = "bandari", 0
+n8 neno_jumuisha = "jumuisha", 0
 n8 majina_ya_sehemu = "escsssdsfsgs"
 ; neno, 0, idadi ya baiti, baiti...
 n8 jedwali_maagizo = "rudi", 0, 1, 0xc3

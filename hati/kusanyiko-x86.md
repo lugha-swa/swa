@@ -114,4 +114,9 @@ Kwa kianzio cha kernel (Multiboot) na programu zisizo na mfumo wa uendeshaji:
 | `pakia_gdt [x]` / `pakia_idt [x]` | pakia jedwali la sehemu / la katizo (lgdt / lidt) |
 | `ruka_mbali 8, anza64` | ruka mbali kwenda sehemu:anwani (biti 32) |
 
+| `r0b = bandari[0x21]`, `bandari[0x20] = r0b` | bandari ya I/O (in / out); `bandari[r2w]` kwa namba ya bandari kwenye `r2w`; rejista ni `r0b`, `r0w` au `r0d` |
+| `jumuisha "faili.bin", 11` | weka baiti za faili (ukiruka 11 za kwanza) ndani ya msimbo; faili lisilosomeka ni kosa 8 |
+
+Usemi (`fafanua`, data, namba) una waendeshaji kwa mpangilio wa C: `~` na `-` (hasi), `*`, `+ -`, `<< >>` (`>>` bila ishara), `&`, `|`. Mfano wa kipengele cha IDT: `n16 = (isr_kibodi >> 16) & 0xFFFF`.
+
 `majaribio/kernel/stub.swm` ni mfano kamili: Multiboot1, kurasa, biti 32 -> 64, kisha `ita kazi_kuu`. Picha yake ni sawa kwa baiti na ya NASM iliyotangulia.
