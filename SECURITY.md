@@ -34,5 +34,7 @@ Masuala ya usalama yanayohusiana na:
 Mradi huu unafuata mazoea haya:
 - Msimbo wote unapitia ukaguzi kabla ya kuunganishwa
 - Majaribio yanaendeshwa kiotomatiki kwa kila commit
-- Hakuna utegemezi wa nje isipokuwa LLVM
+- Hakuna utegemezi wa nje: mkusanyaji hujengwa kutoka baiti 393 za mkono
+  (`msingi/kwanza.bin`), bila assembler, kiungo, libc wala bash
+  (`hati/mnyororo-huru.md`)
 - Mkusanyaji haitekelezi msimbo wa mtumiaji -- inauandaa tu
