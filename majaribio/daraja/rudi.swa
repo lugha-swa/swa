@@ -1,0 +1,46 @@
+// Daraja la mashine: msimbo wa nje unaita Swa (qsort na kazi ya
+// kulinganisha ya Swa), na wito wa nje katikati ya usemi -- rafu ikiwa
+// na thamani za muda, kipande lazima kipangilie rsp kwa baiti 16.
+husisha { kumbukumbu.swa }
+
+nje "libc.so.6" {
+    n64 urefu_wa_c(n8* s) = "strlen";
+    w0 panga(n32* safu, n64 idadi, n64 ukubwa, n8* linganisha) = "qsort";
+}
+nje "libm.so.6" {
+    d64 kosini(d64 pembe) = "cos";
+}
+
+n32 miito = 0;
+
+n32 linganisha_namba(n32* a, n32* b) {
+    miito = miito + 1;
+    n32 x = a[0];
+    n32 y = b[0];
+    kama (x < y) { rudisha -1; }
+    kama (x > y) { rudisha 1; }
+    rudisha 0;
+}
+
+d64 mara_mbili(d64 x) { rudisha x * 2.0; }
+
+n32 main() {
+    kama (urefu_wa_c("habari dunia") != 12) { rudisha 1; }
+
+    n32* safu = tenga(40);
+    n32 i = 0;
+    wakati (i < 10) { safu[i] = (i * 7) % 10; i = i + 1; }
+    panga(safu, 10, 4, &linganisha_namba);
+    i = 0;
+    wakati (i < 10) {
+        kama (safu[i] != i) { rudisha 10 + i; }
+        i = i + 1;
+    }
+    kama (miito == 0) { rudisha 30; }
+
+    d64 y = 1.0 + mara_mbili(kosini(0.0)) * 3.0 + kosini(0.0);
+    kama (y != 8.0) { rudisha 31; }
+    n32 z = 5 + urefu_wa_c("abc") * (2 + urefu_wa_c("xy"));
+    kama (z != 17) { rudisha 32; }
+    rudisha 0;
+}

@@ -9410,6 +9410,12 @@ w0 uzalishaji_exe(n32 text_size, n32 data_size, n32 bss_size, n32 main_off) {
     kichwa32[12] = 0;
     kichwa32[13] = 3670080;
     kichwa32[14] = 1;
+    // Kazi za nje: jedwali la phdr (INTERP, LOAD, DYNAMIC) liko mwishoni
+    // mwa .data; phdr ya baiti 64-119 hubaki nakala ya PT_LOAD ile ile.
+    kama (kigeni_phdr_off >= 0) {
+        kichwa32[8] = 120 + text_size + kigeni_phdr_off;
+        kichwa32[14] = 3;
+    }
     kichwa32[15] = 0;
     kichwa32[16] = 1;
     kichwa32[17] = 7;
@@ -9531,6 +9537,243 @@ n64 d64_bits_hadi_d32(n64 d64) {
         rudisha 2139095040 + alama * 2147483648;
     }
     rudisha alama * 2147483648 + e32 * 8388608 + kiga32;
+}
+
+// ==========================================================
+// DARAJA LA MASHINE (hati/daraja-la-mashine.md), awamu ya 1
+// ==========================================================
+// Kazi iliyotangazwa ndani ya `nje "<maktaba>" { ... }` haina mwili
+// wa Swa: inaishi kwenye maktaba ya mfumo. Kwa kila moja:
+//   - sloti ya baiti 8 kwenye .data (GOT), inayojazwa na kipakiaji
+//     cha mfumo (R_X86_64_GLOB_DAT);
+//   - kipande kwenye .text chenye jina la Swa, ambacho wito wa kawaida
+//     wa Swa huelekea:  push rbp; mov rbp,rsp; and rsp,-16;
+//     call [rip+sloti]; mov rsp,rbp; pop rbp; ret
+//     Kipande hupangilia rafu kwa baiti 16 (System V) bila kugusa hoja
+//     za rejesta wala matokeo (rax, xmm0).
+// Programu yenye kazi za nje huwa ELF ya kiungo-hai (PT_INTERP +
+// PT_DYNAMIC), jedwali lake likiandikwa mwishoni mwa .data. Programu
+// isiyo nazo haibadiliki hata baiti moja.
+
+n32 kigeni_kazi_sloti[1024];   // faharisi ya data_ulimwengu ya sloti ya GOT
+n32 kigeni_phdr_off = -1;      // ofseti ya jedwali la phdr ndani ya .data (-1 = ELF tuli)
+
+w0 kigeni_kosa(n8* ujumbe, n8* jina) {
+    andika_stderr("Hitilafu: kazi ya nje '%s': %s\n", jina, ujumbe);
+    wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+}
+
+// Kagua kichwa cha kazi ya nje dhidi ya mipaka ya awamu 1 (kwa sauti).
+w0 kigeni_kagua_kichwa(n32 f) {
+    n8* jina = ast_pool + ast_jina_off[ast_kushoto[f]];
+    kama (ni_muundo_enc(ast_thamani[f])) {
+        kigeni_kosa("kurudisha muundo kwa thamani hakujaungwa mkono (awamu 3)", jina);
+    }
+    n32 namba = 0;
+    n32 desimali = 0;
+    n32 pn = ast_kulia[f];
+    wakati (pn != -1) {
+        n32 enc = ast_thamani[pn];
+        kama (ni_muundo_enc(enc)) {
+            kigeni_kosa("muundo kwa thamani kama hoja haujaungwa mkono (awamu 3) -- tumia kielekezi", jina);
+        }
+        kama (ni_desimali_enc(enc)) { desimali = desimali + 1; }
+        sivyo { namba = namba + 1; }
+        pn = ast_kulia[pn];
+    }
+    kama (namba > 6) { kigeni_kosa("hoja za namba/kielekezi zaidi ya 6 (hoja za rafu ni awamu 2)", jina); }
+    kama (desimali > 8) { kigeni_kosa("hoja za desimali zaidi ya 8 (hoja za rafu ni awamu 2)", jina); }
+}
+
+// Kabla ya msimbo wowote: kagua, kisha tenga sloti ya GOT kwa kila kazi.
+w0 kigeni_andaa(n32 mzizi, n32 hali_exe) {
+    kama (kigeni_kazi_idadi == 0) { rudisha; }
+    kama (hali_exe != 1) {
+        andika_stderr("Hitilafu: kazi za nje (kizuizi cha nje) zinahitaji --exe -- kipakiaji cha mfumo hakipo kwenye hali hii\n");
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+    n32 i = 0;
+    wakati (i < kigeni_kazi_idadi) {
+        n32 f = kigeni_kazi_node[i];
+        n8* jina = ast_pool + ast_jina_off[ast_kushoto[f]];
+        kigeni_kagua_kichwa(f);
+        // Jina la Swa ni la ulimwengu: haliwezi kuwa kazi ya Swa yenye
+        // mwili, wala kutangazwa mara mbili kwenye nje.
+        n32 a = ast_kushoto[mzizi];
+        wakati (a != -1) {
+            kama (ast_aina[a] == 2 && ast_tiga[a] != -1) {
+                kama (jina_linganisha(ast_pool + ast_jina_off[ast_kushoto[a]], jina)) {
+                    kigeni_kosa("jina hili tayari ni kazi ya Swa yenye mwili", jina);
+                }
+            }
+            a = ast_nne[a];
+        }
+        n32 j = 0;
+        wakati (j < i) {
+            kama (jina_linganisha(ast_pool + ast_jina_off[ast_kushoto[kigeni_kazi_node[j]]], jina)) {
+                kigeni_kosa("imetangazwa mara mbili ndani ya nje", jina);
+            }
+            j = j + 1;
+        }
+        kama (data_ulimwengu_idadi >= 1024) {
+            andika_stderr("KOSA: jedwali la data la ulimwengu (data_ulimwengu_*) limejaa (kikomo 1024)\n");
+            wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+        }
+        // Sloti: kigezo cha ulimwengu kisicho na jina (ofseti 0 ya
+        // ast_pool ni mfuatano mtupu -- hakuna kitambulisho kinacholingana).
+        n32 g = data_ulimwengu_idadi;
+        data_ulimwengu_jina_off[g] = 0;
+        data_ulimwengu_ni_safu[g] = 0;
+        data_ulimwengu_idadi_ya_kipengele[g] = 0;
+        data_ulimwengu_enc[g] = 320;  // n64
+        data_ulimwengu_size[g] = 8;
+        data_ulimwengu_bss[g] = 0;
+        data_ulimwengu_off[g] = bafa_data_wapi;
+        andika_thamani_ya_data(0, 8);
+        data_ulimwengu_idadi = data_ulimwengu_idadi + 1;
+        kigeni_kazi_sloti[i] = g;
+        i = i + 1;
+    }
+}
+
+// Baada ya kazi zote za Swa: andika kipande cha kila kazi ya nje.
+w0 kigeni_andika_vipande() {
+    n32 i = 0;
+    wakati (i < kigeni_kazi_idadi) {
+        n32 f = kigeni_kazi_node[i];
+        lebo_hifadhi(ast_pool + ast_jina_off[ast_kushoto[f]], ast_thamani[f]);
+        andika_baiti(85);                                       // push rbp
+        andika_baiti(72); andika_baiti(137); andika_baiti(229);  // mov rbp, rsp
+        andika_baiti(72); andika_baiti(131); andika_baiti(228); andika_baiti(240);  // and rsp, -16
+        andika_baiti(255); andika_baiti(21);                    // call [rip+disp32]
+        andika_rela_ulimwengu(kigeni_kazi_sloti[i]);
+        andika_neno4(0);
+        andika_baiti(72); andika_baiti(137); andika_baiti(236);  // mov rsp, rbp
+        andika_baiti(93);                                       // pop rbp
+        andika_baiti(195);                                      // ret
+        i = i + 1;
+    }
+}
+
+w0 kigeni_pangilia_data(n32 kipimo) {
+    wakati (bafa_data_wapi % kipimo != 0) { andika_thamani_ya_data(0, 1); }
+}
+
+// Andika mfuatano wa C (na 0) kwenye .data
+w0 kigeni_andika_mfuatano(n8* s) {
+    n32 i = 0;
+    wakati (s[i] != 0) { andika_thamani_ya_data(s[i], 1); i = i + 1; }
+    andika_thamani_ya_data(0, 1);
+}
+
+w0 kigeni_andika_phdr(n32 aina, n32 bendera, n32 ofseti, n32 anwani, n32 ukubwa_faili, n32 ukubwa_kumbukumbu, n32 kipimo) {
+    andika_thamani_ya_data(aina, 4);
+    andika_thamani_ya_data(bendera, 4);
+    andika_thamani_ya_data(ofseti, 8);
+    andika_thamani_ya_data(anwani, 8);
+    andika_thamani_ya_data(anwani, 8);
+    andika_thamani_ya_data(ukubwa_faili, 8);
+    andika_thamani_ya_data(ukubwa_kumbukumbu, 8);
+    andika_thamani_ya_data(kipimo, 8);
+}
+
+// Baada ya .text kukamilika: jedwali la kiungo-hai mwishoni mwa .data.
+// Anwani zote ni za kudumu (ET_EXEC kwenye 0x400000): .data huanza
+// 0x400078 + text_size, na faili zima ni PT_LOAD moja.
+w0 kigeni_andika_jedwali(n32 text_size, n32 bss_size) {
+    kama (kigeni_kazi_idadi == 0) { rudisha; }
+    n32 data_vaddr = 4194424 + text_size;
+    n32 faili_data = 120 + text_size;
+    n32 str_maktaba[64];
+    n32 str_alama[1024];
+    n32 n = kigeni_kazi_idadi;
+
+    // Kipakiaji cha mfumo (System V x86-64)
+    kigeni_pangilia_data(8);
+    n32 o_interp = bafa_data_wapi;
+    kigeni_andika_mfuatano("/lib64/ld-linux-x86-64.so.2");
+    n32 urefu_interp = bafa_data_wapi - o_interp;
+
+    // .dynstr
+    n32 o_str = bafa_data_wapi;
+    andika_thamani_ya_data(0, 1);
+    n32 i = 0;
+    wakati (i < kigeni_maktaba_idadi) {
+        str_maktaba[i] = bafa_data_wapi - o_str;
+        kigeni_andika_mfuatano(kigeni_pool + kigeni_maktaba_off[i]);
+        i = i + 1;
+    }
+    i = 0;
+    wakati (i < n) {
+        str_alama[i] = bafa_data_wapi - o_str;
+        kigeni_andika_mfuatano(kigeni_pool + kigeni_kazi_alama_off[i]);
+        i = i + 1;
+    }
+    n32 urefu_str = bafa_data_wapi - o_str;
+
+    // .dynsym: alama tupu, kisha kila kazi (STB_GLOBAL | STT_FUNC, SHN_UNDEF)
+    kigeni_pangilia_data(8);
+    n32 o_sym = bafa_data_wapi;
+    andika_thamani_ya_data(0, 8); andika_thamani_ya_data(0, 8); andika_thamani_ya_data(0, 8);
+    i = 0;
+    wakati (i < n) {
+        andika_thamani_ya_data(str_alama[i], 4);
+        andika_thamani_ya_data(18, 1);
+        andika_thamani_ya_data(0, 1);
+        andika_thamani_ya_data(0, 2);
+        andika_thamani_ya_data(0, 8);
+        andika_thamani_ya_data(0, 8);
+        i = i + 1;
+    }
+
+    // DT_HASH: ndoo moja tupu -- programu haitoi alama yoyote kwa wengine.
+    n32 o_hash = bafa_data_wapi;
+    andika_thamani_ya_data(1, 4);
+    andika_thamani_ya_data(n + 1, 4);
+    andika_thamani_ya_data(0, 4);
+    i = 0;
+    wakati (i <= n) { andika_thamani_ya_data(0, 4); i = i + 1; }
+
+    // .rela.dyn: R_X86_64_GLOB_DAT (6) kwa kila sloti
+    kigeni_pangilia_data(8);
+    n32 o_rela = bafa_data_wapi;
+    i = 0;
+    wakati (i < n) {
+        andika_thamani_ya_data(data_vaddr + data_ulimwengu_off[kigeni_kazi_sloti[i]], 8);
+        andika_thamani_ya_data(6, 4);
+        andika_thamani_ya_data(i + 1, 4);
+        andika_thamani_ya_data(0, 8);
+        i = i + 1;
+    }
+    n32 urefu_rela = bafa_data_wapi - o_rela;
+
+    // .dynamic
+    n32 o_dyn = bafa_data_wapi;
+    i = 0;
+    wakati (i < kigeni_maktaba_idadi) {
+        andika_thamani_ya_data(1, 8); andika_thamani_ya_data(str_maktaba[i], 8);  // DT_NEEDED
+        i = i + 1;
+    }
+    andika_thamani_ya_data(4, 8); andika_thamani_ya_data(data_vaddr + o_hash, 8);   // DT_HASH
+    andika_thamani_ya_data(5, 8); andika_thamani_ya_data(data_vaddr + o_str, 8);    // DT_STRTAB
+    andika_thamani_ya_data(6, 8); andika_thamani_ya_data(data_vaddr + o_sym, 8);    // DT_SYMTAB
+    andika_thamani_ya_data(10, 8); andika_thamani_ya_data(urefu_str, 8);            // DT_STRSZ
+    andika_thamani_ya_data(11, 8); andika_thamani_ya_data(24, 8);                   // DT_SYMENT
+    andika_thamani_ya_data(7, 8); andika_thamani_ya_data(data_vaddr + o_rela, 8);   // DT_RELA
+    andika_thamani_ya_data(8, 8); andika_thamani_ya_data(urefu_rela, 8);            // DT_RELASZ
+    andika_thamani_ya_data(9, 8); andika_thamani_ya_data(24, 8);                    // DT_RELAENT
+    andika_thamani_ya_data(0, 8); andika_thamani_ya_data(0, 8);                     // DT_NULL
+    n32 urefu_dyn = bafa_data_wapi - o_dyn;
+
+    // Jedwali la phdr (baiti 56 x 3): PT_INTERP, PT_LOAD, PT_DYNAMIC.
+    // Ukubwa wa mwisho wa faili unajulikana sasa: .data inaishia
+    // baada ya jedwali hili.
+    n32 o_phdr = bafa_data_wapi;
+    n32 filesz = faili_data + o_phdr + 168;
+    kigeni_andika_phdr(3, 4, faili_data + o_interp, data_vaddr + o_interp, urefu_interp, urefu_interp, 1);
+    kigeni_andika_phdr(1, 7, 0, 4194304, filesz, filesz + bss_size, 4096);
+    kigeni_andika_phdr(2, 6, faili_data + o_dyn, data_vaddr + o_dyn, urefu_dyn, urefu_dyn, 8);
+    kigeni_phdr_off = o_phdr;
 }
 
 // -------------------------------------------------------
@@ -9827,6 +10070,9 @@ w0 uzalishaji_kuu(n32 mzizi, n32 hali_exe) {
         gn = ast_nne[gn];
     }
 
+    // 0c. Kazi za nje: kagua na tenga sloti za GOT (daraja la mashine)
+    kigeni_andaa(mzizi, hali_exe);
+
     // 1. Toa msimbo wa .text kwenye buffer
     n32 node = ast_kushoto[mzizi];
     wakati (node != -1) {
@@ -9838,6 +10084,8 @@ w0 uzalishaji_kuu(n32 mzizi, n32 hali_exe) {
         }
         node = ast_nne[node];
     }
+    // 1b. Vipande vya wito wa kazi za nje (kila kimoja na lebo ya jina la Swa)
+    kigeni_andika_vipande();
 
     // 2. Toa herufi halisi mwishoni mwa buffer ya .text
     andika_herufi_halisi();
@@ -9854,6 +10102,9 @@ w0 uzalishaji_kuu(n32 mzizi, n32 hali_exe) {
     // mwisho).
     png_safisha();
     n32 text_size = bafa_text_wapi;
+
+    // Jedwali la kiungo-hai (kazi za nje pekee) mwishoni mwa .data
+    kama (hali_exe == 1) { kigeni_andika_jedwali(text_size, bss_wapi); }
 
     // 3. Hesabu ofseti za sehemu
     // Jenga ramani ya kuondoa nje zinazofanana na lebo
@@ -10148,6 +10399,8 @@ w0 uzalishaji_kuu(n32 mzizi, n32 hali_exe) {
 // ==========================================================
 
 w0 uzalishaji_jit(n32 mzizi, n32 argc_jit, n8** argv_jit, n32 ofseti_jit) {
+    // JIT haina kipakiaji cha mfumo: kazi za nje hukataliwa kwa sauti
+    kigeni_andaa(mzizi, 3);
     bafa_text_wapi = 0;
     png_akiba_reg = -1;  // usalama tu -- angalia maelezo kwenye uzalishaji_kuu
     lebo_idadi = 0;

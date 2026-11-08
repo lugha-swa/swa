@@ -1,0 +1,40 @@
+// Daraja la mashine: kila wito wa nje lazima uanze na rsp iliyopangiliwa
+// kwa baiti 16 (System V). getcontext huhifadhi rsp ya mwitaji wake
+// (yaani rsp ndani ya kipande, kabla ya call) kwenye ucontext_t:
+// uc_mcontext.gregs[REG_RSP] iko ofseti 40 + 15*8 = 160. Wito unafanywa
+// kwenye kina tofauti cha rafu na katikati ya usemi (thamani za muda
+// zikiwa rafuni) -- bila upangiliaji wa kipande, angalau kimoja hukosea.
+husisha { kumbukumbu.swa }
+
+nje "libc.so.6" {
+    n32 hifadhi_muktadha(n8* muktadha) = "getcontext";
+}
+
+n8* muktadha = 0;
+
+n32 rsp_mabaki() {
+    n64* sloti = muktadha + 160;
+    rudisha sloti[0] % 16;
+}
+
+n32 kina(n32 n) {
+    n32 a = n;
+    kama (n > 0) { rudisha kina(n - 1) + a - a; }
+    hifadhi_muktadha(muktadha);
+    rudisha rsp_mabaki();
+}
+
+n32 main() {
+    muktadha = tenga(4096);
+    hifadhi_muktadha(muktadha);
+    kama (rsp_mabaki() != 0) { rudisha 1; }
+    n32 i = 0;
+    wakati (i < 6) {
+        kama (kina(i) != 0) { rudisha 10 + i; }
+        i = i + 1;
+    }
+    n32 x = 3 + hifadhi_muktadha(muktadha) * (1 + hifadhi_muktadha(muktadha));
+    kama (rsp_mabaki() != 0) { rudisha 20; }
+    kama (x != 3) { rudisha 21; }
+    rudisha 0;
+}
