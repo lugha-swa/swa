@@ -38,14 +38,14 @@ Toleo lililojengwa tayari (Linux x86-64) liko kwenye [matoleo](https://github.co
 docker run --rm -v "$PWD:/kazi" ghcr.io/lugha-swa/swa --exe p.swa > p
 ```
 
-Kujenga kutoka chanzo, mahitaji ni Linux ya x86-64 na `bash` pekee:
+Kujenga kutoka chanzo, mahitaji ni Linux ya x86-64 pekee -- hakuna gcc, ld, nasm, libc wala bash:
 
 ```sh
 git clone https://github.com/lugha-swa/swa && cd swa
-bash gharama/jenga.sh        # baiti za mkono -> mbegu -> stage1 -> bin/swa
+./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> mbegu -> stage1 -> bin/swa
 ```
 
-`jenga.sh` huanzia `msingi/kwanza.bin` (baiti 393 zilizoandikwa kwa mkono), huzalisha `mbegu`, kisha `stage1`, kisha `stage1` hujijenga yenyewe kuwa `bin/swa`.
+`jenga.mapishi` huanzia `msingi/kwanza.bin` (baiti 393 zilizoandikwa kwa mkono): kila hatua ya mnyororo huru hujengwa na iliyo chini yake, kisha `mbegu`, kisha `stage1`, kisha `stage1` hujijenga yenyewe kuwa `bin/swa`. `mjenzi` (kiendeshaji cha mapishi, `msingi/mnyororo/mjenzi.swm`) yenyewe ni programu ya lugha ya mashine ya Swa iliyojengwa kwa mnyororo huo huo; mapishi huthibitisha kwamba `msingi/mjenzi.bin` ni sawa kwa baiti na inayojengwa kutoka chanzo chake.
 
 </details>
 
@@ -100,7 +100,7 @@ umbali^2 = 25
 2 ni shufwa
 ```
 
-Mfano huu hukusanywa na kuendeshwa kwenye CI kila PR (`gharama/jaribu-mifano.sh`) — msimbo ulio hapa juu hauwezi kupitwa na wakati kimya.
+Mfano huu hukusanywa na kuendeshwa kwenye CI kila PR (`gharama/jaribu-mifano.mapishi`) — msimbo ulio hapa juu hauwezi kupitwa na wakati kimya.
 
 </details>
 
