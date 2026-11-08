@@ -1255,14 +1255,41 @@ n32 changanua_taarifa_ndani(Msambazaji* p) {
     rudisha -1;
 }
 
+// 1 ikiwa orodha ya vigezo iliyochanganuliwa mwisho iliishia kwa `...`
+// (hoja za ziada -- kazi za nje pekee, hati/daraja-la-mashine.md).
+n32 vigezo_vya_ziada = 0;
+// 1 wakati changanua_nje inachanganua kizuizi chake
+n32 ndani_ya_nje = 0;
+
 n32 changanua_kazi_vigezo(Msambazaji* p) {
     vigezo_kwanza_global = -1;
     vigezo_prev_global = -1;
+    vigezo_vya_ziada = 0;
 
     wakati (1 == 1) {
         n8 c0 = p->sasa.mwanzo[0];
         kama (c0 == 41) { sogeza(p); vunja; }
         kama (c0 == 44) { sogeza(p); endelea; }
+        // `...` -- lazima iwe mwisho, na ndani ya nje pekee
+        kama (c0 == 46) {
+            n32 nukta = 0;
+            wakati (p->sasa.urefu != 0 && p->sasa.mwanzo[0] == 46 && nukta < 3) {
+                nukta = nukta + p->sasa.urefu;
+                sogeza(p);
+            }
+            kama (nukta != 3 || p->sasa.mwanzo[0] != 41) {
+                andika_stderr("kosa: mstari %d: '...' lazima iwe kigezo cha mwisho\n", p->sasa.mstari);
+                p->kosa = 1;
+                rudisha -1;
+            }
+            kama (ndani_ya_nje == 0) {
+                andika_stderr("kosa: mstari %d: '...' (hoja za ziada) ni kwa kazi za nje pekee\n", p->sasa.mstari);
+                p->kosa = 1;
+                rudisha -1;
+            }
+            vigezo_vya_ziada = 1;
+            endelea;
+        }
         kama (p->sasa.urefu == 0) { p->kosa = 1; rudisha -1; }
         // Tokeni isiyo aina kwenye orodha ya vigezo ('{' n.k.) ni kosa —
         // bila ulinzi huu kitanzi hakina mwendo wala toka (hang).
@@ -2628,8 +2655,19 @@ n32 kigeni_maktaba_idadi = 0;
 n32 kigeni_kazi_node[1024];
 n32 kigeni_kazi_alama_off[1024];
 n32 kigeni_kazi_maktaba[1024];
+n32 kigeni_kazi_ya_ziada[1024];   // 1 = ina `...`
 n32 kigeni_kazi_idadi = 0;
 n32 kigeni_mwisho_node = -1;
+
+// Faharisi ya kazi ya nje yenye jina la Swa `jina`, au -1.
+n32 kigeni_kazi_kwa_jina(n8* jina) {
+    n32 i = 0;
+    wakati (i < kigeni_kazi_idadi) {
+        kama (jina_linganisha(ast_pool + ast_jina_off[ast_kushoto[kigeni_kazi_node[i]]], jina)) { rudisha i; }
+        i = i + 1;
+    }
+    rudisha -1;
+}
 
 // Nakili baiti `urefu` kuanzia `mwanzo` kwenye kigeni_pool (na 0 mwishoni).
 // Rudisha ofseti, au -1 dimbwi likijaa.
@@ -2669,6 +2707,64 @@ n32 kigeni_hifadhi_mfuatano(Msambazaji* p) {
     rudisha kigeni_hifadhi(t->mwanzo + 1, t->urefu - 2);
 }
 
+// Data ya maktaba (mf. stdout, optind): kigezo cha ulimwengu cha Swa
+// ambacho kipakiaji hukijaza kwa nakala ya thamani yake (R_X86_64_COPY),
+// na maktaba zenyewe hutumia nakala hiyo. Kianzio cha mfuatano ni jina
+// la alama, si thamani -- kinabadilishwa kuwa 0 ili kigezo kikae .data.
+n32 kigeni_data_node[256];
+n32 kigeni_data_alama_off[256];
+n32 kigeni_data_idadi = 0;
+
+n32 kigeni_ongeza_data(n32 g, n32 maktaba, n32 mstari) {
+    n32 jina_node = ast_kushoto[g];
+    n8* jina_swa = ast_pool + ast_jina_off[jina_node];
+    kama (kigeni_data_idadi >= 256) {
+        andika_stderr("kosa: mstari %d: data ya nje imezidi kikomo (256)\n", mstari);
+        rudisha -1;
+    }
+    kama (ast_tiga[g] != -1) {
+        andika_stderr("kosa: mstari %d: data ya nje '%s': safu haijaungwa mkono -- tumia kielekezi\n", mstari, jina_swa);
+        rudisha -1;
+    }
+    // Namba au kielekezi pekee: kianzio chake kinakuwa 0 (.data), na
+    // desimali/muundo zingehitaji umbo jingine la kianzio.
+    n32 enc = ast_thamani[g];
+    kama (enc < 0 && (enc / 2) * 2 == enc) {
+        andika_stderr("kosa: mstari %d: data ya nje '%s': muundo kwa thamani haujaungwa mkono -- tumia kielekezi\n", mstari, jina_swa);
+        rudisha -1;
+    }
+    kama (enc > 0 && (enc / 256) % 256 == 3 && (enc / 2) * 2 == enc) {
+        andika_stderr("kosa: mstari %d: data ya nje '%s': desimali haijaungwa mkono -- tumia kielekezi\n", mstari, jina_swa);
+        rudisha -1;
+    }
+    n32 alama = -1;
+    n32 kianzio = ast_kulia[g];
+    kama (kianzio == -1) {
+        n64 urefu_swa = 0;
+        wakati (jina_swa[urefu_swa] != 0) { urefu_swa = urefu_swa + 1; }
+        alama = kigeni_hifadhi(jina_swa, urefu_swa);
+    } sivyo {
+        n8* maandishi = ast_pool + ast_jina_off[kianzio];
+        kama (ast_aina[kianzio] != AST_KITAMBULISHO || maandishi[0] != 34) {
+            andika_stderr("kosa: mstari %d: data ya nje '%s': baada ya '=' kunatarajiwa jina la alama kama mfuatano\n", mstari, jina_swa);
+            rudisha -1;
+        }
+        n64 urefu_m = 0;
+        wakati (maandishi[urefu_m] != 0) { urefu_m = urefu_m + 1; }
+        kama (urefu_m < 3) {
+            andika_stderr("kosa: mstari %d: jina la nje haliwezi kuwa mfuatano mtupu\n", mstari);
+            rudisha -1;
+        }
+        alama = kigeni_hifadhi(maandishi + 1, urefu_m - 2);
+    }
+    kama (alama < 0) { rudisha -1; }
+    ast_kulia[g] = node_mpya(AST_NAMBARI, 0, -1, -1);
+    kigeni_data_node[kigeni_data_idadi] = g;
+    kigeni_data_alama_off[kigeni_data_idadi] = alama;
+    kigeni_data_idadi = kigeni_data_idadi + 1;
+    rudisha 0;
+}
+
 // nje "<maktaba>" { <aina> <jina>(<vigezo>) [= "<alama>"]; ... }
 // Rudisha kazi ya kwanza ya mnyororo (kigeni_mwisho_node = ya mwisho), au -1.
 n32 changanua_nje(Msambazaji* p) {
@@ -2694,13 +2790,23 @@ n32 changanua_nje(Msambazaji* p) {
     n32 iliyopita = -1;
     wakati (p->sasa.urefu != 0 && neno_ni(&p->sasa, "}") == 0) {
         n32 mstari_kazi = p->sasa.mstari;
+        ndani_ya_nje = 1;
         n32 f = changanua_kazi(p);
+        ndani_ya_nje = 0;
         kama (f == -1) {
             andika_stderr("kosa: mstari %d: ndani ya nje kunatarajiwa kichwa cha kazi\n", mstari_kazi);
             rudisha -1;
         }
+        // Kigezo cha data cha maktaba: <aina> <jina> [= "<alama>"];
+        kama (ast_aina[f] == AST_TANGAZO_ULIMWENGU) {
+            kama (kigeni_ongeza_data(f, maktaba, mstari_kazi) < 0) { rudisha -1; }
+            kama (iliyopita == -1) { kwanza = f; }
+            sivyo { ast_nne[iliyopita] = f; }
+            iliyopita = f;
+            endelea;
+        }
         kama (ast_aina[f] != AST_KAZI || ast_tiga[f] != -1) {
-            andika_stderr("kosa: mstari %d: ndani ya nje ni vichwa vya kazi pekee, bila mwili wala vigezo vya ulimwengu\n", mstari_kazi);
+            andika_stderr("kosa: mstari %d: ndani ya nje ni vichwa vya kazi na vigezo vya data pekee, bila mwili\n", mstari_kazi);
             rudisha -1;
         }
         kama (kigeni_kazi_idadi >= 1024) {
@@ -2732,6 +2838,7 @@ n32 changanua_nje(Msambazaji* p) {
             sogeza(p);
         }
 
+        kigeni_kazi_ya_ziada[kigeni_kazi_idadi] = vigezo_vya_ziada;
         kigeni_kazi_node[kigeni_kazi_idadi] = f;
         kigeni_kazi_alama_off[kigeni_kazi_idadi] = alama;
         kigeni_kazi_maktaba[kigeni_kazi_idadi] = maktaba;
@@ -2747,7 +2854,7 @@ n32 changanua_nje(Msambazaji* p) {
     }
     sogeza(p);
     kama (kwanza == -1) {
-        andika_stderr("kosa: mstari %d: kizuizi cha nje hakina kazi yoyote\n", mstari_nje);
+        andika_stderr("kosa: mstari %d: kizuizi cha nje hakina kazi wala data yoyote\n", mstari_nje);
         rudisha -1;
     }
     kigeni_mwisho_node = iliyopita;
