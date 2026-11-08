@@ -1,7 +1,7 @@
 husisha C::stdio
 husisha { mkusanyaji/msambazaji.swa }
 husisha { mkusanyaji/mkaguzi.swa }
-husisha { mkusanyaji/mteremko.swa }
+husisha { mkusanyaji/mtafsiri.swa }
 husisha { mkusanyaji/uzalishaji.swa }
 husisha { mkusanyaji/uzalishaji_wasm.swa }
 
@@ -574,6 +574,8 @@ n32 main(n32 argc, n8** argv) {
     n32 ni_exe = 0;
     n32 ni_wasm = 0;
     n32 ni_kernel = 0;
+    n32 ni_tafsiri = 0;
+    n32 ni_ir = 0;
     n32 faili_idx = 1;
     kama (argc > 1) {
         n8* a = argv[1];
@@ -597,6 +599,10 @@ n32 main(n32 argc, n8** argv) {
         kama (a[0]==45 && a[1]==45 && a[2]==107 && a[3]==101 && a[4]==114 && a[5]==110 && a[6]==101 && a[7]==108 && a[8]==0) {
             ni_kernel = 1; faili_idx = 2;
         }
+        // --tafsiri: teremsha hadi IR (mteremko.swa) na uitekeleze moja kwa
+        // moja (mtafsiri.swa) -- hakuna msimbo wa mashine. --ir: chapisha IR.
+        kama (linganisha_mfuatano(a, "--tafsiri") == 0) { ni_tafsiri = 1; faili_idx = 2; }
+        kama (linganisha_mfuatano(a, "--ir") == 0) { ni_ir = 1; faili_idx = 2; }
     }
 
     // Hali ya kujikusanya (hakuna faili la mtumiaji): tatua maktaba
@@ -608,6 +614,7 @@ n32 main(n32 argc, n8** argv) {
         tatua_husisha("mkusanyaji/msomaji.swa");
         tatua_husisha("mkusanyaji/msambazaji.swa");
         tatua_husisha("mkusanyaji/mteremko.swa");
+        tatua_husisha("mkusanyaji/mtafsiri.swa");
         tatua_husisha("mkusanyaji/mkaguzi.swa");
         tatua_husisha("mkusanyaji/uzalishaji.swa");
         tatua_husisha("mkusanyaji/uzalishaji_wasm.swa");
@@ -684,11 +691,13 @@ n32 main(n32 argc, n8** argv) {
     // sscse_boresha, msambazaji.swa).
     mzizi = sscse_boresha(mzizi);
 
-    // 3. Teremsha AST hadi IR (uthibitishaji wa muundo)
-    Mteremshi t;
-    n32 ir_mzizi = teremsha(&t, mzizi);
-    kama (t.makosa != 0) {
-        andika_stderr("; ONYO: makosa ya kuteremsha %d, inaendelea\n", t.makosa);
+    // 3. --tafsiri / --ir: teremsha AST hadi IR ya mstari (mteremko.swa);
+    // kisha itekeleze (mtafsiri.swa) au ichapishe. Kisichoungwa mkono na IR
+    // hutajwa kwa sauti na kutoka kwa 2.
+    kama (ni_tafsiri || ni_ir) {
+        kama (teremsha(mzizi) != 0) { rudisha 2; }
+        kama (ni_ir) { ir_chapisha(); rudisha 0; }
+        rudisha mtafsiri_endesha(argc - faili_idx, argv + faili_idx);
     }
 
     kama (ni_jit) { uzalishaji_jit(mzizi, argc - faili_idx, argv, faili_idx); }

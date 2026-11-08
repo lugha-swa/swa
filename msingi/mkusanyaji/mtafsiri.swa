@@ -1,0 +1,345 @@
+husisha { mkusanyaji/mteremko.swa }
+
+// ==========================================================
+// mtafsiri.swa :: Mtafsiri wa IR ya Swa (`swa --tafsiri faili.swa`)
+//
+// Hutekeleza IR ya mstari (mteremko.swa) moja kwa moja, bila kuzalisha
+// msimbo wa mashine. Kumbukumbu ni ya kweli: anwani za IR ni anwani halisi
+// (fremu kwenye mt_rafu, data kwenye ir_data, tenga kwenye lundo), hivyo
+// vielekezi, safu na mifuatano hufanya kazi kama kwenye programu asili, na
+// wito_wa_mfumo hupitishwa moja kwa moja kwa Linux.
+//
+// Kazi yake: (1) kuendesha programu bila mkusanyaji wa nyuma, (2) kuwa
+// mkaguzi huru wa CI -- programu za majaribio huendeshwa kupitia IR na
+// matokeo (namba ya kutoka na stdout) hulinganishwa na programu asili,
+// (3) kuwa rejea ya sehemu za nyuma zijazo (ARM64, Mizani).
+// ==========================================================
+
+n8 mt_rafu[67108864];        // fremu za kazi (MB 64)
+n64 mt_rafu_wapi = 0;
+n64 mt_vreg[8388608];        // rejista pepe za kila wito (MB 64)
+n64 mt_vreg_wapi = 0;
+
+// Sawazisha thamani kwa upana (baiti) na ishara
+n64 mt_sawazisha(n64 x, n32 upana, n32 ishara) {
+    kama (upana >= 8 || upana <= 0) { rudisha x; }
+    n32 biti = upana * 8;
+    n64 moja = 1;
+    n64 kinyago = (moja << biti) - 1;
+    x = x & kinyago;
+    kama (ishara) {
+        n64 juu = moja << (biti - 1);
+        kama ((x & juu) != 0) { x = x - (moja << biti); }
+    }
+    rudisha x;
+}
+
+n64 mt_pakia(n64 anwani, n32 upana, n32 ishara) {
+    n8* p = anwani;
+    n64 x = 0;
+    n32 i = upana - 1;
+    wakati (i >= 0) {
+        x = (x << 8) | (p[i] & 255);
+        i = i - 1;
+    }
+    rudisha mt_sawazisha(x, upana, ishara);
+}
+
+w0 mt_hifadhi(n64 anwani, n64 x, n32 upana) {
+    n8* p = anwani;
+    n32 i = 0;
+    wakati (i < upana) {
+        p[i] = x & 255;
+        x = x >> 8;
+        i = i + 1;
+    }
+}
+
+// Ulinganisho bila ishara: badilisha biti ya juu ili ulinganisho wenye
+// ishara utoe mpangilio wa bila ishara
+n64 mt_bila_ishara(n64 x) {
+    n64 moja = 1;
+    rudisha x ^ (moja << 63);
+}
+
+// Hamisha kulia kimantiki (bila ishara) kwa biti s (0..63)
+n64 mt_hamisha_kulia_bila_ishara(n64 x, n64 s) {
+    kama (s == 0) { rudisha x; }
+    n64 moja = 1;
+    rudisha (x >> s) & ((moja << (64 - s)) - 1);
+}
+
+// Kugawanya bila ishara kwa biti 64: hatua ya kuhamisha-na-kutoa
+n64 mt_baki_bila_ishara = 0;
+n64 mt_gawanya_bila_ishara(n64 a, n64 b) {
+    n64 q = 0;
+    n64 r = 0;
+    n32 i = 63;
+    wakati (i >= 0) {
+        r = (r << 1) | (mt_hamisha_kulia_bila_ishara(a, i) & 1);
+        kama (mt_bila_ishara(r) >= mt_bila_ishara(b)) {
+            r = r - b;
+            n64 moja = 1;
+            q = q | (moja << i);
+        }
+        i = i - 1;
+    }
+    mt_baki_bila_ishara = r;
+    rudisha q;
+}
+
+n64 mt_binari(n32 tendo, n64 a, n64 b, n32 upana, n32 ishara) {
+    n64 r = 0;
+    kama (tendo == IR_JUMLISHA) { r = a + b; }
+    kama (tendo == IR_TOFAUTI) { r = a - b; }
+    kama (tendo == IR_ZIDISHA) { r = a * b; }
+    kama (tendo == IR_GAWANYA || tendo == IR_MODULO) {
+        kama (b == 0) {
+            andika_stderr("mtafsiri: kugawanya kwa sifuri\n");
+            wito_wa_mfumo(60, 136, 0, 0, 0, 0, 0);
+        }
+        kama (ishara) {
+            kama (tendo == IR_GAWANYA) { r = a / b; } sivyo { r = a % b; }
+        } sivyo {
+            n64 q = mt_gawanya_bila_ishara(mt_sawazisha(a, upana, 0), mt_sawazisha(b, upana, 0));
+            kama (tendo == IR_GAWANYA) { r = q; } sivyo { r = mt_baki_bila_ishara; }
+        }
+    }
+    kama (tendo == IR_BIT_NA) { r = a & b; }
+    kama (tendo == IR_BIT_AU) { r = a | b; }
+    kama (tendo == IR_XOR) { r = a ^ b; }
+    kama (tendo == IR_HAMISHA_K) { r = a << (b & 63); }
+    kama (tendo == IR_HAMISHA_KULIA) {
+        kama (ishara) { r = a >> (b & 63); }
+        sivyo { r = mt_hamisha_kulia_bila_ishara(mt_sawazisha(a, upana, 0), b & 63); }
+    }
+    kama (tendo >= IR_SAWA) {
+        n64 x = a;
+        n64 y = b;
+        kama (ishara == 0) { x = mt_bila_ishara(a); y = mt_bila_ishara(b); }
+        kama (tendo == IR_SAWA) { rudisha a == b; }
+        kama (tendo == IR_TOFAUTI_SI) { rudisha a != b; }
+        kama (tendo == IR_CHINI) { rudisha x < y; }
+        kama (tendo == IR_JUU) { rudisha x > y; }
+        kama (tendo == IR_CHINI_SAWA) { rudisha x <= y; }
+        kama (tendo == IR_JUU_SAWA) { rudisha x >= y; }
+    }
+    rudisha mt_sawazisha(r, upana, ishara);
+}
+
+// ---------------------------------------------------------------
+// Kazi za asili
+// ---------------------------------------------------------------
+w0 mt_andika_baiti(n64 fd, n64 anwani, n64 urefu) {
+    n8* p = anwani;
+    wakati (urefu > 0) {
+        n64 w = wito_wa_mfumo(1, fd, p, urefu, 0, 0, 0);
+        kama (w <= 0) { rudisha; }
+        p = p + w;
+        urefu = urefu - w;
+    }
+}
+
+n8 mt_bafa_namba[32];
+w0 mt_andika_namba(n64 fd, n64 x) {
+    // tarakimu hutolewa kutoka thamani hasi ili n64 ndogo kabisa isifurike
+    n32 i = 31;
+    n32 hasi = 0;
+    n64 u = x;
+    kama (x < 0) { hasi = 1; } sivyo { u = 0 - x; }
+    kama (u == 0) { mt_bafa_namba[i] = 48; i = i - 1; }
+    wakati (u != 0) {
+        mt_bafa_namba[i] = 48 - (u % 10);
+        u = u / 10;
+        i = i - 1;
+    }
+    kama (hasi) { mt_bafa_namba[i] = 45; i = i - 1; }
+    n64 anw = mt_bafa_namba + i + 1;
+    mt_andika_baiti(fd, anw, 31 - i);
+}
+
+n64 mt_asili(n32 kazi, n64* h, n32 idadi) {
+    kama (kazi == ASILI_WITO_WA_MFUMO) {
+        n64 v[7];
+        n32 i = 0;
+        wakati (i < 7) {
+            v[i] = 0;
+            kama (i < idadi) { v[i] = h[i]; }
+            i = i + 1;
+        }
+        rudisha wito_wa_mfumo(v[0], v[1], v[2], v[3], v[4], v[5], v[6]);
+    }
+    kama (kazi == ASILI_TENGA) { rudisha tenga(h[0]); }
+    kama (kazi == ASILI_ACHILIA) { rudisha 0; }
+    kama (kazi == ASILI_ANDIKA_SEHEMU) { mt_andika_baiti(h[0], h[1], h[2]); rudisha 0; }
+    kama (kazi == ASILI_ANDIKA_NAMBA) { mt_andika_namba(h[0], h[1]); rudisha 0; }
+    kama (kazi == ASILI_ANDIKA_MFUATANO) {
+        n8* s = h[1];
+        n64 n = 0;
+        wakati (s[n] != 0) { n = n + 1; }
+        n64 anw_s = s;
+        mt_andika_baiti(h[0], anw_s, n);
+        rudisha 0;
+    }
+    kama (kazi == ASILI_ANDIKA_HERUFI) {
+        n8 b[1];
+        b[0] = h[1] & 255;
+        n64 anw_b = b;
+        mt_andika_baiti(h[0], anw_b, 1);
+        rudisha 0;
+    }
+    andika_stderr("mtafsiri: kazi ya asili haijulikani %d\n", kazi);
+    wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    rudisha 0;
+}
+
+// ---------------------------------------------------------------
+// Tekeleza kazi k hadi irudi. Wito wa ndani hautumii rafu ya mtafsiri
+// mwenyewe: kila wito husukuma rekodi kwenye mt_wito_* (kina cha
+// kujirudia hupimwa na nafasi ya rafu, si rafu ya mchakato).
+// ---------------------------------------------------------------
+n32 MT_UPEO_KINA = 1048576;
+n32 mt_wito_k[1048576];
+n32 mt_wito_pc[1048576];
+n32 mt_wito_lengo[1048576];
+n64 mt_wito_fremu[1048576];
+n64 mt_wito_v[1048576];
+n64 mt_wito_rafu[1048576];
+n64 mt_wito_vreg[1048576];
+
+// Andaa fremu na rejista za kazi k; hifadhi hoja kwenye nafasi za vigezo.
+// Rudisha anwani ya fremu; mt_v_mpya = rejista zake.
+n64 mt_v_mpya = 0;
+n64 mt_fremu_andaa(n32 k, n64* hoja, n32 idadi) {
+    n64 fremu_ukubwa = irk_fremu[k];
+    kama (mt_rafu_wapi + fremu_ukubwa > 67108864 || mt_vreg_wapi + irk_vreg[k] > 8388608) {
+        andika_stderr("mtafsiri: rafu imejaa (kujirudia kwa kina mno?)\n");
+        wito_wa_mfumo(60, 139, 0, 0, 0, 0, 0);
+    }
+    n64 fremu = mt_rafu + mt_rafu_wapi;
+    n64 z = 0;
+    wakati (z < fremu_ukubwa) { mt_rafu[mt_rafu_wapi + z] = 0; z = z + 1; }
+    mt_rafu_wapi = mt_rafu_wapi + fremu_ukubwa;
+    mt_v_mpya = mt_vreg + mt_vreg_wapi;
+    mt_vreg_wapi = mt_vreg_wapi + irk_vreg[k];
+    n32 pi = 0;
+    wakati (pi < irk_kigezo_idadi[k] && pi < idadi) {
+        n32 pk = irk_kigezo_mwanzo[k] + pi;
+        mt_hifadhi(fremu + irp_ofseti[pk], hoja[pi], irp_upana[pk]);
+        pi = pi + 1;
+    }
+    rudisha fremu;
+}
+
+n64 mt_hoja_bafa[64];
+
+n64 mt_endesha(n32 k, n64* hoja, n32 idadi) {
+    n32 kina = 0;
+    n64 rafu_mwanzo = mt_rafu_wapi;
+    n64 vreg_mwanzo = mt_vreg_wapi;
+    n64 fremu = mt_fremu_andaa(k, hoja, idadi);
+    n64* v = mt_v_mpya;
+    n32 pc = irk_mwanzo[k];
+    n64 rafu_hii = rafu_mwanzo;
+    n64 vreg_hii = vreg_mwanzo;
+    wakati (1) {
+        n32 amri = ir_amri[pc];
+        n32 lengo = ir_lengo[pc];
+        n32 a = ir_a[pc];
+        n32 b = ir_b[pc];
+        n32 c = ir_c[pc];
+        n32 upana = ir_upana[pc];
+        n32 ishara = ir_ishara[pc];
+        pc = pc + 1;
+        kama (amri == IR_NAMBA) { v[lengo] = ir_namba[pc - 1]; endelea; }
+        kama (amri == IR_NAKILI) { v[lengo] = mt_sawazisha(v[a], upana, ishara); endelea; }
+        kama (amri == IR_BINARI) { v[lengo] = mt_binari(c, v[a], v[b], upana, ishara); endelea; }
+        kama (amri == IR_PAKIA) { v[lengo] = mt_pakia(v[a], upana, ishara); endelea; }
+        kama (amri == IR_HIFADHI) { mt_hifadhi(v[a], v[b], upana); endelea; }
+        kama (amri == IR_FREMU) { v[lengo] = fremu + ir_namba[pc - 1]; endelea; }
+        kama (amri == IR_ANWANI) { v[lengo] = ir_namba[pc - 1]; endelea; }
+        kama (amri == IR_LEBO) { endelea; }
+        kama (amri == IR_RUKA) { pc = ir_lebo_mahali[a]; endelea; }
+        kama (amri == IR_RUKA_KAMA) { kama (v[a] != 0) { pc = ir_lebo_mahali[b]; } endelea; }
+        kama (amri == IR_RUKA_SIVYO) { kama (v[a] == 0) { pc = ir_lebo_mahali[b]; } endelea; }
+        kama (amri == IR_UNARI) {
+            n64 x = v[a];
+            kama (c == IR_HASI) { x = 0 - x; }
+            kama (c == IR_KINYUME) { x = ~x; }
+            kama (c == IR_SI) { kama (x == 0) { x = 1; } sivyo { x = 0; } }
+            v[lengo] = mt_sawazisha(x, upana, ishara);
+            endelea;
+        }
+        kama (amri == IR_WITO_ASILI) {
+            n32 i = 0;
+            wakati (i < c && i < 64) { mt_hoja_bafa[i] = v[ir_hoja[b + i]]; i = i + 1; }
+            n64* hb = mt_hoja_bafa;
+            v[lengo] = mt_asili(a, hb, c);
+            endelea;
+        }
+        kama (amri == IR_WITO) {
+            kama (kina + 1 >= MT_UPEO_KINA) {
+                andika_stderr("mtafsiri: kujirudia kwa kina mno\n");
+                wito_wa_mfumo(60, 139, 0, 0, 0, 0, 0);
+            }
+            n32 i2 = 0;
+            wakati (i2 < c && i2 < 64) { mt_hoja_bafa[i2] = v[ir_hoja[b + i2]]; i2 = i2 + 1; }
+            mt_wito_k[kina] = k;
+            mt_wito_pc[kina] = pc;
+            mt_wito_lengo[kina] = lengo;
+            mt_wito_fremu[kina] = fremu;
+            mt_wito_v[kina] = v;
+            mt_wito_rafu[kina] = rafu_hii;
+            mt_wito_vreg[kina] = vreg_hii;
+            kina = kina + 1;
+            k = a;
+            rafu_hii = mt_rafu_wapi;
+            vreg_hii = mt_vreg_wapi;
+            n64* hb2 = mt_hoja_bafa;
+            fremu = mt_fremu_andaa(k, hb2, c);
+            v = mt_v_mpya;
+            pc = irk_mwanzo[k];
+            endelea;
+        }
+        kama (amri == IR_RUDISHA) {
+            n64 matokeo = 0;
+            kama (a >= 0) { matokeo = v[a]; }
+            mt_rafu_wapi = rafu_hii;
+            mt_vreg_wapi = vreg_hii;
+            kama (kina == 0) { rudisha matokeo; }
+            n32 aliyeita = k;
+            kina = kina - 1;
+            k = mt_wito_k[kina];
+            pc = mt_wito_pc[kina];
+            fremu = mt_wito_fremu[kina];
+            v = mt_wito_v[kina];
+            rafu_hii = mt_wito_rafu[kina];
+            vreg_hii = mt_wito_vreg[kina];
+            v[mt_wito_lengo[kina]] = mt_sawazisha(matokeo, irk_ret_upana[aliyeita], irk_ret_ishara[aliyeita]);
+            endelea;
+        }
+        andika_stderr("mtafsiri: amri isiyojulikana %d\n", amri);
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+    rudisha 0;
+}
+
+// Endesha programu: vianzio vya ulimwengu, kisha main(argc, argv).
+// argv ni hoja za programu (argv[0] = njia ya faili la chanzo).
+n32 mtafsiri_endesha(n32 argc, n8** argv) {
+    n32 kuu = tm_kazi_tafuta("main");
+    kama (kuu < 0) {
+        andika_stderr("mtafsiri: kazi 'main' haipo\n");
+        rudisha 1;
+    }
+    n64 tupu[1];
+    n64* tp = tupu;
+    mt_endesha(ir_kazi_kianzio, tp, 0);
+    n64 h[2];
+    h[0] = argc;
+    h[1] = argv;
+    n64* hp = h;
+    n64 r = mt_endesha(kuu, hp, 2);
+    n32 r32 = r;
+    rudisha r32;
+}

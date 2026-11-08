@@ -24,7 +24,7 @@ fafanua UPEO_CHANZO = 4194304   ; 4 MB ya chanzo
 fafanua UPEO_TOKENI = 262144   ; upeo wa tokeni
 fafanua UPEO_NODI_MTI = 262144   ; upeo wa nodi za AST
 fafanua UKUBWA_BAFA_MSIMBO = 1048576   ; 1 MB ya msimbo wa .text
-fafanua UKUBWA_BAFA_DATA = 16384   ; 16 KB ya data ya ulimwengu
+fafanua UKUBWA_BAFA_DATA = 4194304   ; MB 4 ya data ya ulimwengu na mifuatano halisi
 fafanua UPEO_LEBO = 65536   ; upeo wa lebo
 fafanua UPEO_NJE = 65536   ; upeo wa alama za nje
 fafanua UPEO_HAMISHO = 65536   ; upeo wa marekebisho
@@ -140,7 +140,7 @@ n8 ujumbe_kosa_changanua = "Hitilafu: ulichanganuzi", 10, 0
 n8 ujumbe_kosa_msomaji = "Hitilafu: ulisomaji", 10, 0
 n8 ujumbe_kumbukumbu_imeisha = "Hitilafu: hakuna kumbukumbu", 10, 0
 n8 ujumbe_kosa_weka = "Hitilafu: uwekaji usiotumika", 10, 0
-n8 ujumbe_bafa_data = "Hitilafu: data_buf imejaa (sret)", 10, 0
+n8 ujumbe_bafa_data = "Hitilafu: bafa ya data imejaa (data ya ulimwengu na mifuatano halisi)", 10, 0
 n8 ujumbe_halisi64_jaa = "Hitilafu: bwawa la halisi za N64 limejaa", 10, 0
 n8 ujumbe_hoja9 = "Hitilafu: wito wenye hoja zaidi ya 9", 10, 0
 n8 ujumbe_hoja16 = "Hitilafu: wito wenye hoja zaidi ya 16", 10, 0
@@ -10167,7 +10167,19 @@ uzalishaji_kauli_ya_mbili:
         r8d = n32[mti_jina_ofseti + r12*4]   ; ofseti ya mfuatano kwenye dimbwi_mfuatano
         r9d = r15d   ; urefu wa baiti
 
-        ; Nakili mfuatano kutoka dimbwi_mfuatano hadi bafa_data
+        ; Nakili mfuatano kutoka dimbwi_mfuatano hadi bafa_data -- kwa
+        ; ukaguzi wa mpaka: bila huo, mfuatano uliozidi bafa uliandika juu
+        ; ya mahali_bafa_data (iliyo mara baada ya bafa) na nakala iliyofuata
+        ; ikaenda kwenye anwani ya takataka (poromoko bila ujumbe)
+        r1 = n64[mahali_bafa_data]
+        r1 += r9
+        linganisha r1, UKUBWA_BAFA_DATA
+        ruka .mfuatano_nafasi kama <=a
+        r7 = &[ujumbe_bafa_data]
+        ita andika_mfuatano
+        r7d = 1
+        ita mfumo_toka
+.mfuatano_nafasi:
         r1 = n64[mahali_bafa_data]
         r10d = r1d   ; hifadhi ofseti kwa addend
         r1d = r9d

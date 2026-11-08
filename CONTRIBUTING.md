@@ -70,7 +70,7 @@ chmod +x mfano.bin && ./mfano.bin
 |--------|---------|
 | `msingi/` | Mzizi wa uaminifu: kwanza (baiti za mkono), mbegu, bootstrap |
 | `msingi/maktaba/` | Maktaba ya kawaida ya Swa (kumbukumbu, mfuatano, orodha, ramani, hesabu, faili) |
-| `msingi/mkusanyaji/` | Mkusanyaji wa kujikusanya wa Swa (msomaji, msambazaji, mteremko, mkaguzi, uzalishaji, stage1) |
+| `msingi/mkusanyaji/` | Mkusanyaji wa kujikusanya wa Swa (msomaji, msambazaji, mkaguzi, uzalishaji, mteremko -- IR, mtafsiri, stage1) |
 | `majaribio/` | Programu za majaribio za Swa (MANIFEST.txt) |
 | `gharama/` | Zana za ujenzi na majaribio |
 | `hati/` | Nyaraka za mradi |

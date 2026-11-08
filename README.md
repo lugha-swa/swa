@@ -115,6 +115,7 @@ Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hat
 | Linux x86-64 | `bin/swa --exe p.swa > p` | ELF inayojitegemea |
 | WebAssembly | `bin/swa --wasm p.swa > p.wasm` | moduli ya `.wasm` kwa kivinjari; [`msingi/kivinjari/swa-kivinjari.js`](msingi/kivinjari/swa-kivinjari.js) huiunganisha na DOM na matukio (mfano: [`mifano/kivinjari/`](mifano/kivinjari/)) |
 | Ring 0 | `bin/swa --kernel p.swa > p.bin` | msimbo bapa kwa [Kawira](https://github.com/lugha-swa/kawira) (kazi ya kwanza lazima iwe `kernel_main`) |
+| IR | `bin/swa --tafsiri p.swa` / `bin/swa --ir p.swa` | tekeleza au chapisha [IR ya mstari](hati/ir.md) -- msingi wa ARM64 na Mizani |
 
 </details>
 
@@ -137,6 +138,7 @@ Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hat
 | Mkimbiaji wa majaribio wa Swa asili (bila bash) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | WebAssembly | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | `--kernel` (ring 0) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
+| IR (mtafsiri dhidi ya msimbo wa mashine) | programu 161 sawa kabisa ([hati/ir.md](hati/ir.md)) |
 | Kujikusanya | `stage2 == stage3`, sawa kwa baiti |
 | Mbegu (mzizi wa uaminifu) | hujengwa na kujaribiwa kabla ya kila kugandishwa |
 
