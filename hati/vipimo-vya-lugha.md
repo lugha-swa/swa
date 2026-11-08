@@ -613,6 +613,49 @@ muundo Nukta {
   .o), na wito wa kazi yoyote isiyofafanuliwa (hata baada ya C::)
   bado unakataliwa kwa sauti kama "kazi haijafafanuliwa".
 
+### 8.1 Kazi za nje (daraja la mashine)
+
+Kazi iliyokwisha kukusanywa kwenye maktaba ya mfumo inatangazwa kwa
+kichwa cha Swa na kuitwa kama kazi nyingine yoyote. Muundo kamili na
+awamu zake: `hati/daraja-la-mashine.md`.
+
+```
+nje "libm.so.6" {
+    d64 kosini(d64 pembe) = "cos";
+    d64 mzizi_mraba(d64 x) = "sqrt";
+}
+```
+
+- `nje "<maktaba>" { ... }` ni tangazo la ngazi ya juu. Mfuatano ni
+  jina la maktaba kama mfumo unavyoliita. `nje` SI neno muhimu:
+  linatambuliwa tu likifuatiwa na mfuatano kwenye ngazi ya juu, hivyo
+  `n8* nje` kama kigeu kinaendelea kufanya kazi.
+- Kila mstari ni kichwa cha kazi bila mwili, kikiishia kwa `;`.
+  `= "<alama>"` huunganisha jina la Swa na jina lao kwenye maktaba;
+  bila `=`, alama ni jina la Swa lenyewe. Majina ya Kiingereza ya
+  maktaba huingia kama mfuatano, si kama kitambulisho.
+- Aina ni za Swa: `int` = `n32`, `long`/`size_t` = `n64`/`a64`,
+  `double`/`float` = `d64`/`d32`, kielekezi chochote = `T*` (au `n8*`).
+- Saini inajulikana, kwa hiyo mkaguzi hukagua hoja na matokeo kama
+  wito wa kawaida (tofauti na wito kupitia kielekezi, 4.3), na matokeo
+  ya `d64` huja kwenye xmm0.
+- Makubaliano ya wito huamuliwa na lengo: `--exe` kwenye Linux x86-64
+  ni System V. Kila wito hupitia kipande kinachopangilia rsp kwa baiti
+  16. `&kazi_ya_swa` inaweza kupitishwa kwa msimbo wa nje kama kazi ya
+  kurudi (mf. `qsort`).
+- Programu yenye `nje` huwa ELF ya kiungo-hai (PT_INTERP
+  `/lib64/ld-linux-x86-64.so.2`, PT_DYNAMIC, DT_NEEDED kwa kila
+  maktaba, GOT inayojazwa na kipakiaji). Swa huiandika yenyewe --
+  hakuna kiungo. Programu isiyo na `nje` haibadiliki hata baiti moja.
+- Maktaba au alama isiyopatikana hukataliwa na kipakiaji cha mfumo
+  wakati wa kuanza (kutoka 127).
+- Mipaka ya awamu 1, yote kwa sauti: muundo kwa thamani (hoja au
+  matokeo), hoja za namba/kielekezi zaidi ya 6 au za desimali zaidi ya
+  8, `...`, na hali zisizo `--exe` (`--wasm`, `--kernel`, `--tafsiri`,
+  `--ir`, `--jit`, `.o`). Jina linalogongana na kazi ya Swa yenye mwili,
+  au kutangazwa mara mbili, ni kosa.
+- Majaribio: `gharama/jaribu-daraja.mapishi` (`majaribio/daraja/`).
+
 ## 9. Kazi za Ndani (builtins)
 
 - `wito_wa_mfumo(n64 namba, n64 a1, ..., n64 a6)` — simu ya syscall
