@@ -1,0 +1,69 @@
+// Hoja za rafu kwa System V kamili: hoja zinazozidi rejesta (namba 6,
+// desimali 8) huenda rafuni kwa mpangilio wa hoja, na hoja za rejesta
+// zinaweza kuzifuata. Zamani: n64 saba + d64 ilisoma d64 kutoka sloti
+// ya hoja ya 7 (mpigaji), na desimali ya 9+ haikusomwa kabisa (mwitwaji).
+
+muundo jozi { n64 a; n64 b; n64 c; }
+
+n64 saba_d(n64 a, n64 b, n64 c, n64 d, n64 e, n64 f, n64 g, d64 x) {
+    kama (x != 2.5) { rudisha -1; }
+    rudisha a + b * 2 + c * 3 + d * 4 + e * 5 + f * 6 + g * 7;
+}
+
+// desimali 10 (9 na 10 rafuni) zikifuatwa na namba ya rejesta
+n64 desimali_kumi(d64 a, d64 b, d64 c, d64 d, d64 e, d64 f, d64 g, d64 h, d64 i, d64 j, n64 k) {
+    d64 s = a + b * 2.0 + c * 3.0 + d * 4.0 + e * 5.0 + f * 6.0 + g * 7.0 + h * 8.0 + i * 9.0 + j * 10.0;
+    kama (s != 55.0) { rudisha -1; }
+    rudisha k;
+}
+
+// mchanganyiko (hoja 16, kikomo): rafu = g (namba ya 7) kisha x9
+// (desimali ya 9); x7 na x8 za rejesta zinafuata g
+d64 mchanganyiko(n64 a, d64 x1, n64 b, d64 x2, n64 c, d64 x3, n64 d, d64 x4,
+                 n64 e, d64 x5, n64 f, d64 x6, n64 g, d64 x7, d64 x8, d64 x9) {
+    d64 s = x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9 * 2.0;
+    n64 n = a + b * 2 + c * 3 + d * 4 + e * 5 + f * 6 + g * 7;
+    rudisha s * 1000.0 + n;
+}
+
+// d32 rafuni
+d32 d32_tisa(d32 a, d32 b, d32 c, d32 d, d32 e, d32 f, d32 g, d32 h, d32 i) {
+    rudisha a + b + c + d + e + f + g + h + i * 10.0;
+}
+
+// sret (rdi imetengwa) + namba 6 (moja rafuni) + d64 baada yake
+jozi unda_jozi(n64 a, n64 b, n64 c, n64 d, n64 e, n64 f, d64 x) {
+    jozi j;
+    j.a = a + b + c + d + e;
+    j.b = f;
+    kama (x == 1.5) { j.c = 1; } sivyo { j.c = 0; }
+    rudisha j;
+}
+
+n64 kumi(n64 a) { rudisha a * 10; }
+
+n32 main() {
+    kama (saba_d(1, 1, 1, 1, 1, 1, 1, 2.5) != 28) { rudisha 1; }
+    kama (saba_d(0, 0, 0, 0, 0, 0, 1, 2.5) != 7) { rudisha 2; }
+    kama (desimali_kumi(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 77) != 77) { rudisha 3; }
+    d64 m = mchanganyiko(1, 1.0, 1, 1.0, 1, 1.0, 1, 1.0, 1, 1.0, 1, 1.0, 1, 1.0, 1.0, 1.0);
+    kama (m != 10028.0) { rudisha 4; }
+    m = mchanganyiko(0, 0.0, 0, 0.0, 0, 0.0, 0, 0.0, 0, 0.0, 0, 0.0, 1, 0.0, 3.0, 2.0);
+    kama (m != 7007.0) { rudisha 5; }
+    kama (d32_tisa(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0) != 18.0) { rudisha 6; }
+    jozi j = unda_jozi(1, 2, 3, 4, 5, 6, 1.5);
+    kama (j.a != 15) { rudisha 7; }
+    kama (j.b != 6) { rudisha 8; }
+    kama (j.c != 1) { rudisha 9; }
+    // hoja zenye wito ndani yake
+    kama (saba_d(kumi(1), 0, 0, 0, 0, 0, kumi(1), 2.5) != 80) { rudisha 10; }
+    // ndani ya kitanzi: rafu haipaswi kuvuja
+    n32 i = 0;
+    n64 jumla = 0;
+    wakati (i < 1000) {
+        jumla = jumla + saba_d(0, 0, 0, 0, 0, 0, 1, 2.5);
+        i = i + 1;
+    }
+    kama (jumla != 7000) { rudisha 11; }
+    rudisha 0;
+}

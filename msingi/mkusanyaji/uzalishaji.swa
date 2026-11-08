@@ -4222,6 +4222,128 @@ w0 kernel_rekebisha_rela() {
     }
 }
 
+// ==========================================================
+// Hoja za wito kwa System V kamili (hoja za rafu zikichanganyika)
+// ==========================================================
+// Hoja za namba huchukua rdi, rsi, rdx, rcx, r8, r9; za desimali
+// xmm0-xmm7; zinazozidi huenda rafuni KWA MPANGILIO WA HOJA, bila
+// kujali aina. Kitanzi cha pop cha uzalishaji_wito ni sahihi tu ikiwa
+// hakuna hoja ya rejesta baada ya hoja ya rafu.
+
+n32 wito_gp_jumla = 0;
+n32 wito_xmm_jumla = 0;
+n32 wito_rafu_j[32];
+
+n32 hoja_ni_desimali(n32 msingi, n8* callee, n32 j) {
+    n32 enc = hoja_enc_bk[msingi + j];
+    n32 enc_p = mkaguzi_tafuta_param_enc(callee, j);
+    kama (enc_p > 0) { enc = enc_p; }
+    rudisha ni_desimali_enc(enc);
+}
+
+// Rudisha 1 ikiwa hoja ya rejesta inafuata hoja ya rafu. Hujaza
+// wito_gp_jumla / wito_xmm_jumla (jumla halisi, kwa usafishaji).
+n32 hoja_zimechanganyika(n32 msingi, n32 hoja_n, n8* callee, n32 gp_anza) {
+    n32 gp = gp_anza;
+    n32 xmm = 0;
+    n32 rafu_imeonekana = 0;
+    n32 imechanganyika = 0;
+    n32 j = 0;
+    wakati (j < hoja_n) {
+        kama (hoja_ni_desimali(msingi, callee, j)) {
+            kama (xmm < 8) { kama (rafu_imeonekana) { imechanganyika = 1; } }
+            sivyo { rafu_imeonekana = 1; }
+            xmm = xmm + 1;
+        } sivyo {
+            kama (gp < 6) { kama (rafu_imeonekana) { imechanganyika = 1; } }
+            sivyo { rafu_imeonekana = 1; }
+            gp = gp + 1;
+        }
+        j = j + 1;
+    }
+    wito_gp_jumla = gp;
+    wito_xmm_jumla = xmm;
+    rudisha imechanganyika;
+}
+
+// mov <rejesta ya hoja ya namba nambari>, [rsp + d32]
+w0 andika_pakia_gp_hoja_rsp(n32 nambari, n32 d) {
+    n32 rex = 72;     // 48: REX.W
+    n32 msimbo = 7;   // rdi
+    kama (nambari == 1) { msimbo = 6; }   // rsi
+    kama (nambari == 2) { msimbo = 2; }   // rdx
+    kama (nambari == 3) { msimbo = 1; }   // rcx
+    kama (nambari == 4) { rex = 76; msimbo = 0; }  // r8 (4C: REX.W|REX.R)
+    kama (nambari == 5) { rex = 76; msimbo = 1; }  // r9
+    andika_baiti(rex); andika_baiti(139);
+    andika_baiti(132 + msimbo * 8); andika_baiti(36);
+    andika_neno4(d);
+}
+
+// movsd/movss xmmN, [rsp + d32]
+w0 andika_pakia_xmm_hoja_rsp(n32 nambari, n32 baiti_8, n32 d) {
+    kama (baiti_8) { andika_baiti(242); } sivyo { andika_baiti(243); }
+    andika_baiti(15); andika_baiti(16);
+    andika_baiti(132 + nambari * 8); andika_baiti(36);
+    andika_neno4(d);
+}
+
+// Hoja zote ziko rafuni (hoja 0 juu kabisa; ikiwa arg0_moja, hoja 0 iko
+// tayari kwenye rdi/xmm0 na haimo rafuni). Pakia za rejesta kwa ofseti,
+// kisha bana za rafu ziwe juu kwa mpangilio wa hoja.
+w0 hoja_kwa_sysv(n32 msingi, n32 hoja_n, n8* callee, n32 arg0_moja, n32 gp_anza) {
+    n32 gp = gp_anza;
+    n32 xmm = 0;
+    n32 rafu = 0;
+    n32 j = 0;
+    wakati (j < hoja_n) {
+        n32 ni_d = hoja_ni_desimali(msingi, callee, j);
+        n32 sloti = j - arg0_moja;
+        kama (j == 0 && arg0_moja == 1) {
+            kama (ni_d) { xmm = xmm + 1; } sivyo { gp = gp + 1; }
+        } sivyo { kama (ni_d) {
+            kama (xmm < 8) {
+                n32 enc = hoja_enc_bk[msingi + j];
+                n32 enc_p = mkaguzi_tafuta_param_enc(callee, j);
+                kama (enc_p > 0) { enc = enc_p; }
+                andika_pakia_xmm_hoja_rsp(xmm, ukubwa_kutoka_enc(enc) >= 8, sloti * 8);
+            } sivyo {
+                wito_rafu_j[rafu] = sloti;
+                rafu = rafu + 1;
+            }
+            xmm = xmm + 1;
+        } sivyo {
+            kama (gp < 6) {
+                andika_pakia_gp_hoja_rsp(gp, sloti * 8);
+            } sivyo {
+                wito_rafu_j[rafu] = sloti;
+                rafu = rafu + 1;
+            }
+            gp = gp + 1;
+        } }
+        j = j + 1;
+    }
+    n32 sloti_zote = hoja_n - arg0_moja;
+    n32 k = rafu - 1;
+    wakati (k >= 0) {
+        n32 kutoka = wito_rafu_j[k];
+        n32 kwenda = sloti_zote - rafu + k;
+        kama (kutoka != kwenda) {
+            // mov r11, [rsp+kutoka*8]; mov [rsp+kwenda*8], r11
+            andika_baiti(76); andika_baiti(139); andika_baiti(156); andika_baiti(36);
+            andika_neno4(kutoka * 8);
+            andika_baiti(76); andika_baiti(137); andika_baiti(156); andika_baiti(36);
+            andika_neno4(kwenda * 8);
+        }
+        k = k - 1;
+    }
+    kama (sloti_zote - rafu > 0) {
+        // add rsp, imm32 -- ondoa sloti za hoja za rejesta
+        andika_baiti(72); andika_baiti(129); andika_baiti(196);
+        andika_neno4((sloti_zote - rafu) * 8);
+    }
+}
+
 w0 uzalishaji_wito(n32 node, n32 kazi_node) {
     ni_syscall_wito = 0;
     ni_tekeleza_wito = 0;
@@ -4663,6 +4785,17 @@ w0 uzalishaji_wito(n32 node, n32 kazi_node) {
     kama (callee_ni_sret) { n_gp_jumla = 1; }
 
     n32 j = 0;
+    // Hoja ya rafu ikifuatiwa na hoja ya rejesta (mf. n64 saba + d64):
+    // kuvuta (pop) kwa mpangilio hakufai -- hoja ya rafu iliyobaki juu
+    // ingesomwa kama ile ya rejesta inayofuata. Njia ya System V kamili
+    // hupakia kwa ofseti na kubana hoja za rafu (hoja_kwa_sysv). Mipangilio
+    // mingine yote hubaki na kitanzi cha pop chini, baiti zile zile.
+    kama (hoja_zimechanganyika(msingi, hoja_n, callee, gp_reg) != 0) {
+        hoja_kwa_sysv(msingi, hoja_n, callee, arg0_moja, gp_reg);
+        n_gp_jumla = wito_gp_jumla;
+        n_xmm_jumla = wito_xmm_jumla;
+        j = hoja_n;
+    }
     wakati (j < hoja_n) {
         // Aina ya hoja kama ilivyosukumwa: parameta ya d64 inabadilisha
         // hoja ya kamili hadi xmm0 — vuta kwa rejesta ya parameta.
@@ -9106,6 +9239,9 @@ w0 uzalishaji_kazi(n32 kazi_node) {
     // Kwa sret, rdi ni kielekezi cha sret, hivyo GP huanzia rsi
     n32 gp_idx = 0; n32 xmm_idx = 0;
     kama (sret_inafanya) { gp_idx = 1; }
+    // Nafasi ya hoja ya rafu inayofuata ([rbp+16+8*k]): hoja za rafu za
+    // aina ZOTE mbili hufuatana kwa mpangilio wa hoja (System V).
+    n32 rafu_idx = 0;
 
     n32 pi = 0;
     wakati (pi < n) {
@@ -9122,6 +9258,17 @@ w0 uzalishaji_kazi(n32 kazi_node) {
                     andika_movsd_rbp_off_xmm(xmm_idx, off);
                 }
                 xmm_idx = xmm_idx + 1;
+            } sivyo {
+                // Desimali ya 9 na kuendelea: iko rafuni ya mpigaji
+                n32 src_d = 16 + rafu_idx * 8;
+                kama (ukubwa_kutoka_enc(enc) < 8) {
+                    andika_baiti(139); andika_baiti(69); andika_baiti(src_d & 255);  // mov eax, [rbp+src]
+                    andika_mov_rbp_off_eax(off);
+                } sivyo {
+                    andika_mov_rax_rbp_juu(src_d);
+                    andika_mov_rbp_off_rax(off);
+                }
+                rafu_idx = rafu_idx + 1;
             }
         } sivyo {
             kama (gp_idx < 6) {
@@ -9144,7 +9291,8 @@ w0 uzalishaji_kazi(n32 kazi_node) {
             } sivyo {
                 // Hoja za rafu (ABI: hoja 7+ ziko [rbp+16], [rbp+24], ...)
                 // Nakili kutoka eneo la rafu ya mpigaji hadi kwenye fremu.
-                n32 src = 16 + (gp_idx - 6) * 8;
+                n32 src = 16 + rafu_idx * 8;
+                rafu_idx = rafu_idx + 1;
                 n32 sz = ukubwa_kutoka_enc(enc);
                 // Paramu ya rafu ambayo ni mgombea wa rejesta ya kudumu
                 // (nadra -- inahitaji kigezo cha 7+ cha jumla NA kuwa
