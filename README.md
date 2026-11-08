@@ -102,6 +102,8 @@ umbali^2 = 25
 
 Mfano huu hukusanywa na kuendeshwa kwenye CI kila PR (`gharama/jaribu-mifano.mapishi`) — msimbo ulio hapa juu hauwezi kupitwa na wakati kimya.
 
+Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hati/kusanyiko-x86.md)). Mfano wake: [`mifano/mkusanyaji_mdogo.swm`](mifano/mkusanyaji_mdogo.swm), mkusanyaji mdogo kamili (vigeu vya `n32`, `rudisha` ya `+ - *`) -- `./jengo/kusanyiko < mifano/mkusanyaji_mdogo.swm > m` baada ya `jenga.mapishi`, kisha `./m 'n32 main() { rudisha 42; }' > p`.
+
 </details>
 
 <details>

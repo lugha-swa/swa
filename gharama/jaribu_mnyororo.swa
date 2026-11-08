@@ -365,7 +365,12 @@ n32 main(n32 argc, n8** argv) {
         n8* ujumbe = "";
         kama (idadi_sehemu >= 5) { ujumbe = nafasi[4]; }
 
-        kama (linganisha_mfuatano(code, "FAIL") == 0) { endelea; }
+        // Hakuna kuruka kimya: kila mstari ni KATA au namba ya kutoka.
+        kama (linganisha_mfuatano(code, "KATA") != 0 && (code[0] < 48 || code[0] > 57)) {
+            andika_stderr("SHINDWA: MANIFEST: safu ya kwanza si KATA wala namba: %s\n", code, 0, 0, 0, 0, 0);
+            JM_FAIL = JM_FAIL + 1;
+            endelea;
+        }
 
         kama (linganisha_mfuatano(code, "KATA") == 0) {
             jm_jaribu_kata(MBEGU, "/tmp/swa-mnyororo-asili/stage1", envp, faili, mnyororo, ujumbe);
