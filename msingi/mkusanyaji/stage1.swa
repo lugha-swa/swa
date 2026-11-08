@@ -694,6 +694,13 @@ n32 main(n32 argc, n8** argv) {
     // 3. --tafsiri / --ir: teremsha AST hadi IR ya mstari (mteremko.swa);
     // kisha itekeleze (mtafsiri.swa) au ichapishe. Kisichoungwa mkono na IR
     // hutajwa kwa sauti na kutoka kwa 2.
+    // Kazi za nje (daraja la mashine) zinahitaji kipakiaji cha mfumo:
+    // mtafsiri na WASM hawana (WASM ni awamu 4, hati/daraja-la-mashine.md).
+    kama (kigeni_kazi_idadi > 0 && (ni_tafsiri || ni_ir || ni_wasm)) {
+        andika_stderr("Hitilafu: kazi za nje (kizuizi cha nje) zinahitaji --exe -- hazipatikani kwenye --tafsiri, --ir wala --wasm\n");
+        rudisha 1;
+    }
+
     kama (ni_tafsiri || ni_ir) {
         kama (teremsha(mzizi) != 0) { rudisha 2; }
         kama (ni_ir) { ir_chapisha(); rudisha 0; }
