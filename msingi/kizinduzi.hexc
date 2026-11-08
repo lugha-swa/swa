@@ -1,0 +1,254 @@
+# kizinduzi.hexc -- mbegu ya pili ya mnyororo huru: kizinduzi cha hatua.
+#
+# Imeandikwa kwa mkono kwenye lugha ya mashine ya Swa (msingi/mnyororo/kizinduzi.swm);
+# kila mstari hapa ni baiti za agizo moja, anwani yake, na agizo lenyewe kwenye
+# maoni, ili kila baiti ikaguliwe kwa jicho. Hati: hati/mnyororo-huru.md.
+# gharama/mwanzo.kizinduzi huthibitisha kwamba maoni(faili hili),
+# kwanza(msingi/kizinduzi.hex) na kusanyiko(kizinduzi.swm) ni sawa kwa baiti
+# na msingi/kizinduzi.bin.
+#
+# r15 = 0x420000 (vigezo): [r15+0] hoja[64], +512 envp, +520 njia ya <,
+# +528 njia ya >, +536 hali ya mtoto, +544 mstari unaofuata. Maandishi ya
+# orodha yako 0x410000. Bafa hizi ziko ndani ya p_memsz, si ndani ya faili.
+
+# ---- kichwa cha ELF (baiti 64) ----
+7f 45 4c 46             ; ELF: alama ya uchawi \x7f E L F
+02 01 01 00             ; biti 64, little-endian, toleo 1, ABI ya System V
+00 00 00 00 00 00 00 00 ; nafasi tupu
+02 00                   ; e_type: faili linalotekelezwa (EXEC)
+3e 00                   ; e_machine: x86-64
+01 00 00 00             ; e_version: 1
+78 00 40 00 00 00 00 00 ; e_entry: 0x400078 (anza:)
+40 00 00 00 00 00 00 00 ; e_phoff: 64
+00 00 00 00 00 00 00 00 ; e_shoff: hakuna sehemu
+00 00 00 00             ; e_flags
+40 00                   ; e_ehsize: 64
+38 00                   ; e_phentsize: 56
+01 00                   ; e_phnum: 1
+00 00 00 00 00 00       ; e_shentsize, e_shnum, e_shstrndx: 0
+
+# ---- kichwa cha programu (baiti 56) ----
+01 00 00 00             ; p_type: PT_LOAD
+07 00 00 00             ; p_flags: soma + andika + tekeleza
+00 00 00 00 00 00 00 00 ; p_offset: 0
+00 00 40 00 00 00 00 00 ; p_vaddr: 0x400000
+00 00 40 00 00 00 00 00 ; p_paddr: 0x400000
+47 03 00 00 00 00 00 00 ; p_filesz: 839 (faili zima)
+00 10 02 00 00 00 00 00 ; p_memsz: 0x21000 -- hadi mwisho wa vigezo (0x420000 + 0x1000)
+00 10 00 00 00 00 00 00 ; p_align: 0x1000
+
+# ---- msimbo, unaanzia 0x400078 ----
+# anza:
+41 bf 00 00 42 00             ; 400078: r15d = VIGEZO
+48 8b 04 24                   ; 40007e: r0 = n64[r4]                    ; argc
+48 8d 4c c4 10                ; 400082: r1 = &[r4 + r0*8 + 16]          ; envp: baada ya argv[argc] = 0
+49 89 8f 00 02 00 00          ; 400087: n64[r15 + MAZINGIRA] = r1
+48 83 f8 02                   ; 40008e: linganisha r0, 2
+0f 85 84 02 00 00             ; 400092: ruka shindwa kama !=
+48 8b 7c 24 10                ; 400098: r7 = n64[r4 + 16]               ; argv[1]
+31 f6                         ; 40009d: r6d ^= r6d                      ; O_RDONLY
+b8 02 00 00 00                ; 40009f: r0d = 2                         ; open
+0f 05                         ; 4000a4: mfumo
+48 85 c0                      ; 4000a6: pima r0, r0
+0f 88 6d 02 00 00             ; 4000a9: ruka shindwa kama hasi
+48 89 c7                      ; 4000af: r7 = r0
+be 00 00 41 00                ; 4000b2: r6d = MAANDISHI
+ba ff ff 00 00                ; 4000b7: r2d = 0xffff
+31 c0                         ; 4000bc: r0d ^= r0d                      ; read
+0f 05                         ; 4000be: mfumo
+48 85 c0                      ; 4000c0: pima r0, r0
+0f 88 53 02 00 00             ; 4000c3: ruka shindwa kama hasi
+41 bc 00 00 41 00             ; 4000c9: r12d = MAANDISHI
+41 c6 04 04 00                ; 4000cf: n8[r12 + r0] = 0                ; maandishi huishia kwa 0
+# .mstari:
+41 80 3c 24 00                ; 4000d4: linganisha n8[r12], 0
+0f 84 e8 00 00 00             ; 4000d9: ruka .mwisho kama ==
+45 31 ed                      ; 4000df: r13d ^= r13d                    ; idadi ya hoja
+4d 89 af 08 02 00 00          ; 4000e2: n64[r15 + NDANI] = r13
+4d 89 af 10 02 00 00          ; 4000e9: n64[r15 + NJE] = r13
+31 db                         ; 4000f0: r3d ^= r3d                      ; 0 neno, 1 baada ya '<', 2 baada ya '>'
+# .ruka_nafasi:
+41 0f b6 04 24                ; 4000f2: r0d = a8[r12]
+85 c0                         ; 4000f7: pima r0d, r0d
+0f 84 92 00 00 00             ; 4000f9: ruka .mwisho_wa_mstari kama ==
+83 f8 0a                      ; 4000ff: linganisha r0d, 10
+0f 84 89 00 00 00             ; 400102: ruka .mwisho_wa_mstari kama ==
+83 f8 20                      ; 400108: linganisha r0d, 0x20
+74 6b                         ; 40010b: ruka .nafasi kama ==
+83 f8 3b                      ; 40010d: linganisha r0d, 0x3b            ; ';'
+74 6e                         ; 400110: ruka .maoni kama ==
+83 f8 3c                      ; 400112: linganisha r0d, 0x3c            ; '<'
+74 38                         ; 400115: ruka .alama_ndani kama ==
+83 f8 3e                      ; 400117: linganisha r0d, 0x3e            ; '>'
+74 3a                         ; 40011a: ruka .alama_nje kama ==
+83 fb 01                      ; 40011c: linganisha r3d, 1
+74 18                         ; 40011f: ruka .ni_ndani kama ==
+83 fb 02                      ; 400121: linganisha r3d, 2
+74 1e                         ; 400124: ruka .ni_nje kama ==
+49 83 fd 3f                   ; 400126: linganisha r13, 63
+0f 84 ec 01 00 00             ; 40012a: ruka shindwa kama ==
+4f 89 24 ef                   ; 400130: n64[r15 + r13*8] = r12          ; hoja[idadi] = neno
+49 ff c5                      ; 400134: r13++
+eb 24                         ; 400137: ruka .neno
+# .ni_ndani:
+4d 89 a7 08 02 00 00          ; 400139: n64[r15 + NDANI] = r12
+31 db                         ; 400140: r3d ^= r3d
+eb 19                         ; 400142: ruka .neno
+# .ni_nje:
+4d 89 a7 10 02 00 00          ; 400144: n64[r15 + NJE] = r12
+31 db                         ; 40014b: r3d ^= r3d
+eb 0e                         ; 40014d: ruka .neno
+# .alama_ndani:
+bb 01 00 00 00                ; 40014f: r3d = 1
+eb 22                         ; 400154: ruka .nafasi
+# .alama_nje:
+bb 02 00 00 00                ; 400156: r3d = 2
+eb 1b                         ; 40015b: ruka .nafasi
+# .neno:
+49 ff c4                      ; 40015d: r12++
+41 0f b6 04 24                ; 400160: r0d = a8[r12]
+85 c0                         ; 400165: pima r0d, r0d
+74 28                         ; 400167: ruka .mwisho_wa_mstari kama ==
+83 f8 0a                      ; 400169: linganisha r0d, 10
+74 23                         ; 40016c: ruka .mwisho_wa_mstari kama ==
+83 f8 20                      ; 40016e: linganisha r0d, 0x20
+75 ea                         ; 400171: ruka .neno kama !=
+41 c6 04 24 00                ; 400173: n8[r12] = 0                     ; funga neno
+# .nafasi:
+49 ff c4                      ; 400178: r12++
+e9 72 ff ff ff                ; 40017b: ruka .ruka_nafasi
+# .maoni:
+49 ff c4                      ; 400180: r12++
+41 0f b6 04 24                ; 400183: r0d = a8[r12]
+85 c0                         ; 400188: pima r0d, r0d
+74 05                         ; 40018a: ruka .mwisho_wa_mstari kama ==
+83 f8 0a                      ; 40018c: linganisha r0d, 10
+75 ef                         ; 40018f: ruka .maoni kama !=
+# .mwisho_wa_mstari:
+41 0f b6 04 24                ; 400191: r0d = a8[r12]
+41 c6 04 24 00                ; 400196: n8[r12] = 0                     ; funga neno la mwisho
+85 c0                         ; 40019b: pima r0d, r0d
+74 03                         ; 40019d: ruka .bila_kusogeza kama ==
+49 ff c4                      ; 40019f: r12++
+# .bila_kusogeza:
+4d 89 a7 20 02 00 00          ; 4001a2: n64[r15 + UJAO] = r12
+4b c7 04 ef 00 00 00 00       ; 4001a9: n64[r15 + r13*8] = 0            ; hoja[idadi] = 0
+4d 85 ed                      ; 4001b1: pima r13, r13
+74 05                         ; 4001b4: ruka .ruka_hatua kama ==        ; mstari mtupu au maoni tu
+e8 15 00 00 00                ; 4001b6: ita tekeleza
+# .ruka_hatua:
+4d 8b a7 20 02 00 00          ; 4001bb: r12 = n64[r15 + UJAO]
+e9 0d ff ff ff                ; 4001c2: ruka .mstari
+# .mwisho:
+31 ff                         ; 4001c7: r7d ^= r7d
+b8 3c 00 00 00                ; 4001c9: r0d = 60                        ; exit(0)
+0f 05                         ; 4001ce: mfumo
+# tekeleza:
+49 8b 3f                      ; 4001d0: r7 = n64[r15]
+48 be 28 03 40 00 00 00 00 00 ; 4001d3: r6 = neno_saraka
+# .linganisha:
+0f b6 07                      ; 4001dd: r0d = a8[r7]
+3a 06                         ; 4001e0: linganisha r0b, n8[r6]
+75 33                         ; 4001e2: ruka .endesha kama !=
+48 ff c7                      ; 4001e4: r7++
+48 ff c6                      ; 4001e7: r6++
+85 c0                         ; 4001ea: pima r0d, r0d
+75 ef                         ; 4001ec: ruka .linganisha kama !=
+49 8b 7f 08                   ; 4001ee: r7 = n64[r15 + 8]
+48 85 ff                      ; 4001f2: pima r7, r7
+0f 84 cf 00 00 00             ; 4001f5: ruka shindwa_hatua kama ==
+be ed 01 00 00                ; 4001fb: r6d = 0x1ed
+b8 53 00 00 00                ; 400200: r0d = 83                        ; mkdir
+0f 05                         ; 400205: mfumo
+48 85 c0                      ; 400207: pima r0, r0
+79 0a                         ; 40020a: ruka .tayari kama si_hasi
+48 83 f8 ef                   ; 40020c: linganisha r0, -17              ; EEXIST
+0f 85 b4 00 00 00             ; 400210: ruka shindwa_hatua kama !=
+# .tayari:
+c3                            ; 400216: rudi
+# .endesha:
+b8 39 00 00 00                ; 400217: r0d = 57                        ; fork
+0f 05                         ; 40021c: mfumo
+48 85 c0                      ; 40021e: pima r0, r0
+0f 88 a3 00 00 00             ; 400221: ruka shindwa_hatua kama hasi
+74 2a                         ; 400227: ruka mtoto kama ==
+48 89 c7                      ; 400229: r7 = r0                         ; mzazi: ngoja mtoto
+49 8d b7 18 02 00 00          ; 40022c: r6 = &[r15 + HALI]
+31 d2                         ; 400233: r2d ^= r2d
+45 31 d2                      ; 400235: r10d ^= r10d
+b8 3d 00 00 00                ; 400238: r0d = 61                        ; wait4
+0f 05                         ; 40023d: mfumo
+48 85 c0                      ; 40023f: pima r0, r0
+0f 88 82 00 00 00             ; 400242: ruka shindwa_hatua kama hasi
+41 83 bf 18 02 00 00 00       ; 400248: linganisha n32[r15 + HALI], 0   ; ametoka kwa 0, si kwa ishara
+75 78                         ; 400250: ruka shindwa_hatua kama !=
+c3                            ; 400252: rudi
+# mtoto:
+49 8b bf 08 02 00 00          ; 400253: r7 = n64[r15 + NDANI]
+48 85 ff                      ; 40025a: pima r7, r7
+74 1a                         ; 40025d: ruka .si_ndani kama ==
+31 f6                         ; 40025f: r6d ^= r6d
+b8 02 00 00 00                ; 400261: r0d = 2                         ; open(ndani, O_RDONLY)
+0f 05                         ; 400266: mfumo
+48 85 c0                      ; 400268: pima r0, r0
+78 51                         ; 40026b: ruka .toka kama hasi
+48 89 c7                      ; 40026d: r7 = r0
+31 f6                         ; 400270: r6d ^= r6d
+b8 21 00 00 00                ; 400272: r0d = 33                        ; dup2(fd, 0)
+0f 05                         ; 400277: mfumo
+# .si_ndani:
+49 8b bf 10 02 00 00          ; 400279: r7 = n64[r15 + NJE]
+48 85 ff                      ; 400280: pima r7, r7
+74 25                         ; 400283: ruka .si_nje kama ==
+be 41 02 00 00                ; 400285: r6d = 0x241                     ; O_WRONLY | O_CREAT | O_TRUNC
+ba ed 01 00 00                ; 40028a: r2d = 0x1ed                     ; 0755
+b8 02 00 00 00                ; 40028f: r0d = 2                         ; open
+0f 05                         ; 400294: mfumo
+48 85 c0                      ; 400296: pima r0, r0
+78 23                         ; 400299: ruka .toka kama hasi
+48 89 c7                      ; 40029b: r7 = r0
+be 01 00 00 00                ; 40029e: r6d = 1
+b8 21 00 00 00                ; 4002a3: r0d = 33                        ; dup2(fd, 1)
+0f 05                         ; 4002a8: mfumo
+# .si_nje:
+49 8b 3f                      ; 4002aa: r7 = n64[r15]
+4c 89 fe                      ; 4002ad: r6 = r15                        ; argv = hoja
+49 8b 97 00 02 00 00          ; 4002b0: r2 = n64[r15 + MAZINGIRA]
+b8 3b 00 00 00                ; 4002b7: r0d = 59                        ; execve
+0f 05                         ; 4002bc: mfumo
+# .toka:
+bf 7f 00 00 00                ; 4002be: r7d = 127
+b8 3c 00 00 00                ; 4002c3: r0d = 60
+0f 05                         ; 4002c8: mfumo
+# shindwa_hatua:
+bf 02 00 00 00                ; 4002ca: r7d = 2
+48 be 2f 03 40 00 00 00 00 00 ; 4002cf: r6 = ujumbe
+ba 17 00 00 00                ; 4002d9: r2d = ujumbe_mwisho - ujumbe
+b8 01 00 00 00                ; 4002de: r0d = 1                         ; write(2, ujumbe)
+0f 05                         ; 4002e3: mfumo
+49 8b 37                      ; 4002e5: r6 = n64[r15]
+31 d2                         ; 4002e8: r2d ^= r2d
+# .urefu:
+80 3c 16 00                   ; 4002ea: linganisha n8[r6 + r2], 0
+74 05                         ; 4002ee: ruka .andika kama ==
+48 ff c2                      ; 4002f0: r2++
+eb f5                         ; 4002f3: ruka .urefu
+# .andika:
+bf 02 00 00 00                ; 4002f5: r7d = 2
+b8 01 00 00 00                ; 4002fa: r0d = 1                         ; write(2, PROG)
+0f 05                         ; 4002ff: mfumo
+bf 02 00 00 00                ; 400301: r7d = 2
+48 be 46 03 40 00 00 00 00 00 ; 400306: r6 = mstari_mpya
+ba 01 00 00 00                ; 400310: r2d = 1
+b8 01 00 00 00                ; 400315: r0d = 1
+0f 05                         ; 40031a: mfumo
+# shindwa:
+bf 01 00 00 00                ; 40031c: r7d = 1
+b8 3c 00 00 00                ; 400321: r0d = 60                        ; exit(1)
+0f 05                         ; 400326: mfumo
+
+# ---- data ----
+73 61 72 61 6b 61 00                            ; "saraka", 0  (neno_saraka)
+6b 69 7a 69 6e 64 75 7a 69 3a 20 69 6d 65 73 68 ; "kizinduzi: imeshindwa: "  (ujumbe)
+69 6e 64 77 61 3a 20                            ; 
+0a                                              ; 10  (mstari_mpya)
