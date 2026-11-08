@@ -9,7 +9,7 @@
 #     inayotokana LAZIMA ipite majaribio/wasm/kimbiza.js (Node:
 #     WebAssembly.validate + instantiate + main() == thamani).
 #
-# mbegu.bin/mbegu.s HAZIHITAJI --wasm kabisa — ni kipengele cha
+# mbegu.bin/mbegu.swm HAZIHITAJI --wasm kabisa — ni kipengele cha
 # stage1 pekee (angalia msingi/mkusanyaji/uzalishaji_wasm.swa).
 # Hakuna wat2wasm, hakuna wasmtime — node pekee (WebAssembly asili).
 set -u

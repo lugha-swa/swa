@@ -1,0 +1,95 @@
+; stub.swm -- kianzio kidogo cha majaribio ya "stage1 --kernel" PEKEE
+; (si kiini cha Kawira -- ni sehemu ya gharama/jaribu-kernel.sh tu).
+; Multiboot1, kisha mabadiliko ya biti 32 -> biti 64, kisha ita kazi_kuu.
+; Imepunguzwa kwa mahitaji ya jaribio: haihifadhi taarifa za Multiboot
+; wala kukagua magic (majaribio haya yanadhibitiwa na sisi wenyewe).
+;
+; Hujengwa na kusanyiko kuwa picha tambarare; jaribu-kernel.sh huunganisha
+; picha hii na baiti za "stage1 --kernel" mwishoni: kazi_kuu ni baiti ya
+; kwanza baada ya picha hii.
+
+picha 0x100000
+biti 32
+
+fafanua MB_MAGIC = 0x1BADB002
+fafanua MB_BENDERA = 0x00010000   ; biti 16: anwani ziko kwenye kichwa (a.out kludge)
+
+n32 kichwa_mb = MB_MAGIC, MB_BENDERA, -(MB_MAGIC + MB_BENDERA)
+n32 = kichwa_mb   ; header_addr
+n32 = kichwa_mb   ; load_addr: mwanzo wa faili
+n32 = 0, 0        ; load_end_addr, bss_end_addr: pakia faili lote
+n32 = anza32      ; entry_addr
+
+anza32:
+        katizo_zima
+        r4d = juu_rafu32
+
+; kurasa: PML4[0] -> PDPT[0] -> PD[0] = ukurasa mkubwa wa MB 2 kwenye 0
+        r0d = pdpt
+        r0d |= 3   ; ipo + inaandikika
+        n32[pml4] = r0d
+        n32[pml4 + 4] = 0
+        r0d = pd
+        r0d |= 3
+        n32[pdpt] = r0d
+        n32[pdpt + 4] = 0
+        r0d = 0x83   ; ipo + inaandikika + mkubwa
+        n32[pd] = r0d
+        n32[pd + 4] = 0
+
+        r0d = cr4
+        r0d |= 0x20   ; PAE
+        cr4 = r0d
+        r0d = pml4
+        cr3 = r0d
+        r1d = 0xC0000080   ; EFER
+        soma_msr
+        r0d |= 0x100   ; LME
+        andika_msr
+        r0d = cr0
+        r0d |= 0x80000000   ; PG
+        cr0 = r0d
+
+        pakia_gdt [kiashiria_gdt]
+        ruka_mbali SEHEMU_MSIMBO64, anza64
+
+biti 64
+anza64:
+        r0w = SEHEMU_DATA64
+        ds = r0w
+        es = r0w
+        fs = r0w
+        gs = r0w
+        ss = r0w
+        r4 = juu_rafu64
+        ita kazi_kuu
+; kazi_kuu hurudisha n32 kwenye r0d -- iweke kwenye r7d ili QEMU monitor
+; iisome baada ya kusimama (majaribio/kernel/oracle.py)
+        r7d = r0d
+        katizo_zima
+.simama64:
+        simama
+        ruka .simama64
+
+pangilia 8
+n64 gdt64 = 0
+n64 = 0x00209A0000000000   ; msimbo wa biti 64: P=1 DPL=0 L=1
+n64 = 0x0000920000000000   ; data: P=1 DPL=0 W=1
+n16 kiashiria_gdt = 23     ; ukubwa - 1
+n64 = gdt64
+fafanua SEHEMU_MSIMBO64 = 8
+fafanua SEHEMU_DATA64 = 16
+
+pangilia 4096
+n64 pml4[512]
+n64 pdpt[512]
+n64 pd[512]
+
+pangilia 16
+n8 rafu32[4096]
+juu_rafu32:
+pangilia 16
+n8 rafu64[16384]
+juu_rafu64:
+
+kazi_kuu:

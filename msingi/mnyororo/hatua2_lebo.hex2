@@ -1,0 +1,234 @@
+# hatua2_lebo.hex2 -- hatua ya 2 ya mnyororo huru: hex yenye lebo. (lebo hujijenga yenyewe)
+#
+#   ; au #  maoni hadi mwisho wa mstari
+#   :jina   fafanua lebo kwenye anwani ya sasa (0x400000 + ofseti)
+#   !jina   umbali wa baiti 1 hadi lebo, kutoka mwisho wa sehemu
+#   %jina   umbali wa baiti 4 hadi lebo, kutoka mwisho wa sehemu
+#   &jina   anwani kamili ya lebo, baiti 4
+#   hex     jozi za tarakimu -> baiti
+# Mapitio mawili juu ya stdin yote. Lebo haijulikani: kutoka 2; !jina
+# nje ya -128..127: kutoka 3. Rejista: rbp/r15 mwanzo/mwisho wa kuingiza,
+# r12 ofseti ya kutoa, r14 pitio (1/2), r9 mwisho wa jedwali la lebo,
+# r10/r11 baiti inayojengwa na nusu yake.
+
+# ---- kichwa cha ELF (baiti 64) ----
+7f 45 4c 46             ; ELF: alama ya uchawi
+02 01 01 00             ; biti 64, little-endian, toleo 1, System V
+00 00 00 00 00 00 00 00 ; nafasi tupu
+02 00                   ; e_type: EXEC
+3e 00                   ; e_machine: x86-64
+01 00 00 00             ; e_version: 1
+78 00 40 00 00 00 00 00 ; e_entry: 0x400078
+40 00 00 00 00 00 00 00 ; e_phoff: 64
+00 00 00 00 00 00 00 00 ; e_shoff: hakuna sehemu
+00 00 00 00             ; e_flags
+40 00                   ; e_ehsize: 64
+38 00                   ; e_phentsize: 56
+01 00                   ; e_phnum: 1
+00 00 00 00 00 00       ; e_shentsize, e_shnum, e_shstrndx: 0
+
+# ---- kichwa cha programu (baiti 56) ----
+01 00 00 00             ; p_type: PT_LOAD
+07 00 00 00             ; p_flags: soma + andika + tekeleza
+00 00 00 00 00 00 00 00 ; p_offset: 0
+00 00 40 00 00 00 00 00 ; p_vaddr: 0x400000
+00 00 40 00 00 00 00 00 ; p_paddr: 0x400000
+da 02 00 00 00 00 00 00 ; p_filesz: 730
+00 00 40 00 00 00 00 00 ; p_memsz: MB 4 -- kuingiza 0x500000, kutoa 0x600000, jedwali la lebo 0x700000
+00 10 00 00 00 00 00 00 ; p_align: 0x1000
+
+# ---- msimbo, unaanzia 0x400078 ----
+:_start
+48 bd 00 00 50 00 00 00 00 00   ; movabs rbp,0x500000
+49 89 ef                        ; mov    r15,rbp
+:soma
+31 ff                           ; xor    edi,edi
+4c 89 fe                        ; mov    rsi,r15
+ba 00 00 01 00                  ; mov    edx,0x10000
+31 c0                           ; xor    eax,eax
+0f 05                           ; syscall
+48 85 c0                        ; test   rax,rax
+7e !imesomwa                    ; jle    25 <imesomwa>
+49 01 c7                        ; add    r15,rax
+eb !soma                        ; jmp    d <soma>
+:imesomwa
+49 b9 00 00 70 00 00 00 00 00   ; movabs r9,0x700000
+41 be 01 00 00 00               ; mov    r14d,0x1
+e8 %pitio                       ; call   67 <pitio>
+41 be 02 00 00 00               ; mov    r14d,0x2
+e8 %pitio                       ; call   67 <pitio>
+bf 01 00 00 00                  ; mov    edi,0x1
+48 be 00 00 60 00 00 00 00 00   ; movabs rsi,0x600000
+4c 89 e2                        ; mov    rdx,r12
+b8 01 00 00 00                  ; mov    eax,0x1
+0f 05                           ; syscall
+31 ff                           ; xor    edi,edi
+:toka
+b8 3c 00 00 00                  ; mov    eax,0x3c
+0f 05                           ; syscall
+:pitio
+48 89 eb                        ; mov    rbx,rbp
+45 31 e4                        ; xor    r12d,r12d
+45 31 db                        ; xor    r11d,r11d
+:p_kitanzi
+4c 39 fb                        ; cmp    rbx,r15
+0f 83 %p_mwisho                 ; jae    1c9 <p_mwisho>
+0f b6 03                        ; movzx  eax,BYTE PTR [rbx]
+48 ff c3                        ; inc    rbx
+83 f8 3b                        ; cmp    eax,0x3b
+74 !p_maoni                     ; je     fc <p_maoni>
+83 f8 23                        ; cmp    eax,0x23
+74 !p_maoni                     ; je     fc <p_maoni>
+83 f8 3a                        ; cmp    eax,0x3a
+0f 84 %p_lebo                   ; je     115 <p_lebo>
+83 f8 21                        ; cmp    eax,0x21
+0f 84 %p_rel8                   ; je     140 <p_rel8>
+83 f8 25                        ; cmp    eax,0x25
+0f 84 %p_rel32                  ; je     181 <p_rel32>
+83 f8 26                        ; cmp    eax,0x26
+0f 84 %p_abs32                  ; je     1a6 <p_abs32>
+83 f8 30                        ; cmp    eax,0x30
+72 !p_kitanzi                   ; jb     70 <p_kitanzi>
+83 f8 39                        ; cmp    eax,0x39
+76 !p_tarakimu                  ; jbe    d0 <p_tarakimu>
+83 f8 41                        ; cmp    eax,0x41
+72 !p_kitanzi                   ; jb     70 <p_kitanzi>
+83 f8 46                        ; cmp    eax,0x46
+76 !p_kubwa                     ; jbe    d5 <p_kubwa>
+83 f8 61                        ; cmp    eax,0x61
+72 !p_kitanzi                   ; jb     70 <p_kitanzi>
+83 f8 66                        ; cmp    eax,0x66
+77 !p_kitanzi                   ; ja     70 <p_kitanzi>
+83 e8 57                        ; sub    eax,0x57
+eb !p_nusu                      ; jmp    d8 <p_nusu>
+:p_tarakimu
+83 e8 30                        ; sub    eax,0x30
+eb !p_nusu                      ; jmp    d8 <p_nusu>
+:p_kubwa
+83 e8 37                        ; sub    eax,0x37
+:p_nusu
+4d 85 db                        ; test   r11,r11
+75 !p_ya_pili                   ; jne    e8 <p_ya_pili>
+49 89 c2                        ; mov    r10,rax
+41 bb 01 00 00 00               ; mov    r11d,0x1
+eb !p_kitanzi                   ; jmp    70 <p_kitanzi>
+:p_ya_pili
+49 c1 e2 04                     ; shl    r10,0x4
+4c 09 d0                        ; or     rax,r10
+e8 %toa_baiti                   ; call   21d <toa_baiti>
+45 31 db                        ; xor    r11d,r11d
+e9 %p_kitanzi                   ; jmp    70 <p_kitanzi>
+:p_maoni
+4c 39 fb                        ; cmp    rbx,r15
+0f 83 %p_mwisho                 ; jae    1c9 <p_mwisho>
+0f b6 03                        ; movzx  eax,BYTE PTR [rbx]
+48 ff c3                        ; inc    rbx
+83 f8 0a                        ; cmp    eax,0xa
+75 !p_maoni                     ; jne    fc <p_maoni>
+e9 %p_kitanzi                   ; jmp    70 <p_kitanzi>
+:p_lebo
+e8 %jina                        ; call   1ca <jina>
+41 83 fe 01                     ; cmp    r14d,0x1
+0f 85 %p_kitanzi                ; jne    70 <p_kitanzi>
+49 89 31                        ; mov    QWORD PTR [r9],rsi
+49 89 51 08                     ; mov    QWORD PTR [r9+0x8],rdx
+49 8d 84 24 00 00 40 00         ; lea    rax,[r12+0x400000]
+49 89 41 10                     ; mov    QWORD PTR [r9+0x10],rax
+49 83 c1 18                     ; add    r9,0x18
+e9 %p_kitanzi                   ; jmp    70 <p_kitanzi>
+:p_rel8
+e8 %jina                        ; call   1ca <jina>
+41 83 fe 01                     ; cmp    r14d,0x1
+74 !p_rel8_ruka                 ; je     179 <p_rel8_ruka>
+e8 %tafuta                      ; call   1e6 <tafuta>
+49 8d 8c 24 01 00 40 00         ; lea    rcx,[r12+0x400001]
+48 29 c8                        ; sub    rax,rcx
+48 83 f8 80                     ; cmp    rax,0xffffffffffffff80
+0f 8c %kosa_mbali               ; jl     258 <kosa_mbali>
+48 83 f8 7f                     ; cmp    rax,0x7f
+0f 8f %kosa_mbali               ; jg     258 <kosa_mbali>
+e8 %toa_baiti                   ; call   21d <toa_baiti>
+e9 %p_kitanzi                   ; jmp    70 <p_kitanzi>
+:p_rel8_ruka
+49 ff c4                        ; inc    r12
+e9 %p_kitanzi                   ; jmp    70 <p_kitanzi>
+:p_rel32
+e8 %jina                        ; call   1ca <jina>
+41 83 fe 01                     ; cmp    r14d,0x1
+74 !p_neno_ruka                 ; je     1c0 <p_neno_ruka>
+e8 %tafuta                      ; call   1e6 <tafuta>
+49 8d 8c 24 04 00 40 00         ; lea    rcx,[r12+0x400004]
+48 29 c8                        ; sub    rax,rcx
+e8 %toa_neno4                   ; call   235 <toa_neno4>
+e9 %p_kitanzi                   ; jmp    70 <p_kitanzi>
+:p_abs32
+e8 %jina                        ; call   1ca <jina>
+41 83 fe 01                     ; cmp    r14d,0x1
+74 !p_neno_ruka                 ; je     1c0 <p_neno_ruka>
+e8 %tafuta                      ; call   1e6 <tafuta>
+e8 %toa_neno4                   ; call   235 <toa_neno4>
+e9 %p_kitanzi                   ; jmp    70 <p_kitanzi>
+:p_neno_ruka
+49 83 c4 04                     ; add    r12,0x4
+e9 %p_kitanzi                   ; jmp    70 <p_kitanzi>
+:p_mwisho
+c3                              ; ret
+:jina
+48 89 de                        ; mov    rsi,rbx
+:j_kitanzi
+4c 39 fb                        ; cmp    rbx,r15
+73 !j_mwisho                    ; jae    1df <j_mwisho>
+0f b6 03                        ; movzx  eax,BYTE PTR [rbx]
+83 f8 20                        ; cmp    eax,0x20
+76 !j_mwisho                    ; jbe    1df <j_mwisho>
+48 ff c3                        ; inc    rbx
+eb !j_kitanzi                   ; jmp    1cd <j_kitanzi>
+:j_mwisho
+48 89 da                        ; mov    rdx,rbx
+48 29 f2                        ; sub    rdx,rsi
+c3                              ; ret
+:tafuta
+49 b8 00 00 70 00 00 00 00 00   ; movabs r8,0x700000
+:t_kitanzi
+4d 39 c8                        ; cmp    r8,r9
+73 !kosa_haipo                  ; jae    24e <kosa_haipo>
+49 3b 50 08                     ; cmp    rdx,QWORD PTR [r8+0x8]
+75 !t_ijayo                     ; jne    217 <t_ijayo>
+49 8b 38                        ; mov    rdi,QWORD PTR [r8]
+31 c9                           ; xor    ecx,ecx
+:t_linganisha
+48 39 d1                        ; cmp    rcx,rdx
+73 !t_imepatikana               ; jae    212 <t_imepatikana>
+8a 04 0e                        ; mov    al,BYTE PTR [rsi+rcx*1]
+3a 04 0f                        ; cmp    al,BYTE PTR [rdi+rcx*1]
+75 !t_ijayo                     ; jne    217 <t_ijayo>
+48 ff c1                        ; inc    rcx
+eb !t_linganisha                ; jmp    200 <t_linganisha>
+:t_imepatikana
+49 8b 40 10                     ; mov    rax,QWORD PTR [r8+0x10]
+c3                              ; ret
+:t_ijayo
+49 83 c0 18                     ; add    r8,0x18
+eb !t_kitanzi                   ; jmp    1f0 <t_kitanzi>
+:toa_baiti
+41 83 fe 02                     ; cmp    r14d,0x2
+75 !tb_ruka                     ; jne    231 <tb_ruka>
+48 b9 00 00 60 00 00 00 00 00   ; movabs rcx,0x600000
+42 88 04 21                     ; mov    BYTE PTR [rcx+r12*1],al
+:tb_ruka
+49 ff c4                        ; inc    r12
+c3                              ; ret
+:toa_neno4
+41 83 fe 02                     ; cmp    r14d,0x2
+75 !tn_ruka                     ; jne    249 <tn_ruka>
+48 b9 00 00 60 00 00 00 00 00   ; movabs rcx,0x600000
+42 89 04 21                     ; mov    DWORD PTR [rcx+r12*1],eax
+:tn_ruka
+49 83 c4 04                     ; add    r12,0x4
+c3                              ; ret
+:kosa_haipo
+bf 02 00 00 00                  ; mov    edi,0x2
+e9 %toka                        ; jmp    60 <toka>
+:kosa_mbali
+bf 03 00 00 00                  ; mov    edi,0x3
+e9 %toka                        ; jmp    60 <toka>
