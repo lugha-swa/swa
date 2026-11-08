@@ -7,13 +7,16 @@
 ;     (i32 zilizotenganishwa kwa mkato), dom (mti wa dom_mock.js dhidi ya
 ;     .tarajiwa.json) -- angalia kimbiza.js.
 ;   - kilicho nje ya wigo: stage1 --wasm lazima ikatae (kutoka 1, stdout tupu).
-; Mwisho: daraja halisi la kivinjari (msingi/kivinjari/swa-kivinjari.js) kwa
-; mifano/kivinjari/kaunta.swa. Hakuna wat2wasm wala wasmtime -- node pekee.
+; Moduli zote hupakiwa kupitia daraja linalozalishwa na mkusanyaji
+; (stage1 --wasm-js), na majaribio ya DOM hupitia msingi/maktaba/kivinjari.swa.
+; Mwisho: mifano/kivinjari/kaunta.swa. Hakuna wat2wasm wala wasmtime -- node pekee.
 ; Kisa kipya huongezwa hapa.
 ;   ./msingi/mjenzi.bin gharama/jaribu-wasm.mapishi
 saraka jengo
 endesha msingi/mjenzi.bin gharama/jenga.mapishi > jengo/jenga.towe
 saraka jengo/wasm
+endesha jengo/stage1 --wasm-js > jengo/wasm/swa-js.js
+endesha node --check jengo/wasm/swa-js.js
 
 endesha jengo/stage1 --wasm majaribio/wasm/rudisha_tupu.swa > jengo/wasm/rudisha_tupu.wasm
 endesha node majaribio/wasm/kimbiza.js jengo/wasm/rudisha_tupu.wasm 42 namba
@@ -98,8 +101,17 @@ sawa jengo/wasm/nje_ya_wigo_kianzio_ulimwengu.wasm /dev/null
 endesha_kosa 1 jengo/stage1 --wasm majaribio/wasm/nje_ya_wigo_anwani_kazi_haipo.swa > jengo/wasm/nje_ya_wigo_anwani_kazi_haipo.wasm 2> jengo/wasm/nje_ya_wigo_anwani_kazi_haipo.kosa
 sawa jengo/wasm/nje_ya_wigo_anwani_kazi_haipo.wasm /dev/null
 
-; daraja la kivinjari (Awamu 4)
+; daraja la mashine awamu 4: uingizaji wa nje wa jumla na makosa yake
+endesha jengo/stage1 --wasm majaribio/wasm/jaribio_nje_js.swa > jengo/wasm/jaribio_nje_js.wasm
+endesha node majaribio/wasm/kimbiza.js jengo/wasm/jaribio_nje_js.wasm 42 namba
+endesha_kosa 1 jengo/stage1 --wasm majaribio/wasm/nje_ya_wigo_nje_desimali.swa > jengo/wasm/o.wasm 2> jengo/wasm/o.kosa
+sawa jengo/wasm/o.kosa majaribio/wasm/nje_ya_wigo_nje_desimali.kosa
+endesha_kosa 1 jengo/stage1 --wasm majaribio/wasm/nje_ya_wigo_nje_ziada.swa > jengo/wasm/o.wasm 2> jengo/wasm/o.kosa
+sawa jengo/wasm/o.kosa majaribio/wasm/nje_ya_wigo_nje_ziada.kosa
+endesha_kosa 1 jengo/stage1 --wasm majaribio/wasm/nje_ya_wigo_nje_data.swa > jengo/wasm/o.wasm 2> jengo/wasm/o.kosa
+sawa jengo/wasm/o.kosa majaribio/wasm/nje_ya_wigo_nje_data.kosa
+; daraja la kivinjari: mfano wa README
 endesha jengo/stage1 --wasm mifano/kivinjari/kaunta.swa > jengo/wasm/kaunta.wasm
-endesha node majaribio/wasm/jaribu_kivinjari.js jengo/wasm/kaunta.wasm > jengo/wasm/kivinjari.towe
+endesha node majaribio/wasm/jaribu_kivinjari.js jengo/wasm/kaunta.wasm jengo/wasm/swa-js.js > jengo/wasm/kivinjari.towe
 
 andika WASM: majaribio yote yamefaulu

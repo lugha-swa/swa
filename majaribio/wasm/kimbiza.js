@@ -27,22 +27,20 @@
 //                ni <thamani_tarajiwa> (thamani ya kisa kwenye gharama/jaribu-wasm.mapishi,
 //                si namba -- angalia majaribio/wasm/*.tarajiwa.json).
 //
-// Sehemu za Uingizaji (Awamu 3): KILA moduli sasa ina Import section
-// (kazi 8 za env.*, angalia dom_mock.js) -- importObject hutolewa
-// kwa KILA aina ya jaribio, si "dom" pekee, kwa sababu
-// WebAssembly.instantiate inakataa moduli yenye uingizaji bila
-// importObject inayolingana, hata kama uingizaji huo haitumiki
-// kamwe wakati wa kukimbia.
+// Daraja (daraja la mashine, awamu 4): moduli hupakiwa kupitia daraja
+// linalozalishwa na mkusanyaji (`stage1 --wasm-js > jengo/wasm/swa-js.js`),
+// pamoja na hati bandia ya dom_mock.js kama globalThis.document. Moduli
+// zisizo na uingizaji hupakiwa vivyo hivyo.
 //
-// Husoma faili, huthibitisha (WebAssembly.validate), huipakia
-// (WebAssembly.instantiate na importObject ya dom_mock), huita
-// instance.exports.main(), na kulinganisha na thamani tarajiwa
-// kulingana na aina. process.exit(0) kwa mafanikio, process.exit(1)
+// Husoma faili, huthibitisha (WebAssembly.validate), huipakia kwa
+// anzishaSwa (ambayo huita instance.exports.main()), na kulinganisha
+// na thamani tarajiwa kulingana na aina. process.exit(0) kwa mafanikio, process.exit(1)
 // kwa kushindwa kokote (haikubaliki, haijapakika, matokeo si sawa).
 
 const fs = require("fs");
 const path = require("path");
 const { createDomMock } = require("./dom_mock.js");
+const { anzishaSwa } = require(process.env.SWA_JS || path.join(__dirname, "../../jengo/wasm/swa-js.js"));
 
 function shindwa(ujumbe) {
     console.error("SHINDWA: " + ujumbe);
@@ -69,20 +67,11 @@ if (!WebAssembly.validate(bafa)) {
 }
 
 const dom = createDomMock();
+globalThis.document = dom.hati;
 
-WebAssembly.instantiate(bafa, dom.importObject)
+anzishaSwa(bafa, dom.mzizi)
     .then((matokeo) => {
-        const main = matokeo.instance.exports.main;
-        if (typeof main !== "function") {
-            shindwa("hakuna 'main' iliyotolewa nje kwenye moduli: " + njia);
-        }
-        if (matokeo.instance.exports.memory) {
-            dom.setMemory(matokeo.instance.exports.memory);
-        }
-        if (matokeo.instance.exports.jedwali) {
-            dom.setTable(matokeo.instance.exports.jedwali);
-        }
-        const halisi = main();
+        const halisi = matokeo.matokeo;
 
         if (aina === "dom") {
             let tarajiwa_tree;

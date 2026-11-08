@@ -1,0 +1,90 @@
+// kivinjari.swa -- DOM na console kwa programu za `swa --wasm`.
+//
+// Kivinjari hufichua kurasa kupitia JS pekee, hivyo daraja lipo -- lakini
+// ni la jumla na huandikwa na mkusanyaji (`swa --wasm-js > swa-js.js`).
+// Kila kitu hapa chini ni Swa: daraja linajua tu kupata/kuweka sifa,
+// kuita njia, na kugeuza mfuatano, namba na kazi. Kitu cha JS hushikwa
+// kwa namba (kishiko); js_achilia huachilia kishiko kisichohitajika.
+//
+//   husisha { kivinjari.swa }
+//   swa --wasm p.swa > p.wasm
+//   swa --wasm-js > swa-js.js
+//   <script src="swa-js.js"></script>  ->  anzishaSwa('p.wasm', mzizi)
+
+nje "js" {
+    n32 js_mzizi() = "mzizi";
+    n32 js_kimataifa(n8* jina) = "kimataifa";
+    n32 js_pata(n32 kitu, n8* sifa) = "pata";
+    w0 js_weka(n32 kitu, n8* sifa, n32 thamani) = "weka";
+    n32 js_ita0(n32 kitu, n8* njia) = "ita0";
+    n32 js_ita1(n32 kitu, n8* njia, n32 a) = "ita1";
+    n32 js_ita2(n32 kitu, n8* njia, n32 a, n32 b) = "ita2";
+    n32 js_ita3(n32 kitu, n8* njia, n32 a, n32 b, n32 c) = "ita3";
+    n32 js_mfuatano(n8* s) = "mfuatano";
+    n32 js_namba(n32 n) = "namba";
+    n32 js_kwa_namba(n32 kitu) = "kwa_namba";
+    n32 js_kazi(n8* kazi) = "kazi";
+    w0 js_achilia(n32 kitu) = "achilia";
+}
+
+// Nodi ambayo programu ilipewa wakati wa kuanzishwa (anzishaSwa)
+n32 dom_mzizi() {
+    rudisha js_mzizi();
+}
+
+n32 dom_unda(n8* tagi) {
+    n32 hati = js_kimataifa("document");
+    n32 t = js_mfuatano(tagi);
+    n32 nodi = js_ita1(hati, "createElement", t);
+    js_achilia(t);
+    js_achilia(hati);
+    rudisha nodi;
+}
+
+w0 dom_weka_maandishi(n32 nodi, n8* maandishi) {
+    n32 m = js_mfuatano(maandishi);
+    js_weka(nodi, "textContent", m);
+    js_achilia(m);
+}
+
+// Namba huwa maandishi kwa String() ya JS -- si kwa kutegemea DOM
+// kugeuza thamani ya textContent.
+w0 dom_weka_namba(n32 nodi, n32 n) {
+    n32 g = js_kimataifa("globalThis");
+    n32 h = js_namba(n);
+    n32 m = js_ita1(g, "String", h);
+    js_weka(nodi, "textContent", m);
+    js_achilia(m);
+    js_achilia(h);
+    js_achilia(g);
+}
+
+w0 dom_weka_sifa(n32 nodi, n8* jina, n8* thamani) {
+    n32 j = js_mfuatano(jina);
+    n32 t = js_mfuatano(thamani);
+    js_achilia(js_ita2(nodi, "setAttribute", j, t));
+    js_achilia(j);
+    js_achilia(t);
+}
+
+w0 dom_ambatanisha(n32 mzazi, n32 mtoto) {
+    js_achilia(js_ita1(mzazi, "appendChild", mtoto));
+}
+
+// kazi(tukio) huitwa kila tukio linapotokea; hoja yake ni kishiko cha
+// tukio, kinachoachiliwa kazi ikirudi.
+w0 dom_sikiliza(n32 nodi, n8* tukio, n8* kazi) {
+    n32 t = js_mfuatano(tukio);
+    n32 k = js_kazi(kazi);
+    js_achilia(js_ita2(nodi, "addEventListener", t, k));
+    js_achilia(t);
+    js_achilia(k);
+}
+
+w0 console_andika(n8* ujumbe) {
+    n32 c = js_kimataifa("console");
+    n32 m = js_mfuatano(ujumbe);
+    js_achilia(js_ita1(c, "log", m));
+    js_achilia(m);
+    js_achilia(c);
+}
