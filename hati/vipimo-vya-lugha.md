@@ -400,6 +400,10 @@ n32 main() {
   thamani).
 - `rudisha <usemi>;` kwa kazi yenye thamani; `rudisha;` kwa w0.
 - Wito wa kujirudia na wito wa mbele unasaidiwa.
+- Hoja zinazozidi rejesta (namba 6, desimali 8) huenda rafuni kwa
+  mpangilio wa hoja (System V), hata hoja za rejesta zikizifuata
+  (rekebisho la 2026-11-09; mbegu bado haina -- `jaribio_hoja_rafu_mchanganyiko`
+  ni ya stage1 pekee).
 - Kikomo cha hoja kwenye mnyororo wa uzalishaji: 16 — wito wa hoja
   zaidi ya 16 unakataliwa kwa sauti ("una hoja nyingi mno (17) —
   kikomo ni 16"); mdudu wa 2026-09-01 (hoja zaidi zilitupwa kimya)
@@ -649,11 +653,17 @@ nje "libm.so.6" {
   hakuna kiungo. Programu isiyo na `nje` haibadiliki hata baiti moja.
 - Maktaba au alama isiyopatikana hukataliwa na kipakiaji cha mfumo
   wakati wa kuanza (kutoka 127).
-- Mipaka ya awamu 1, yote kwa sauti: muundo kwa thamani (hoja au
-  matokeo), hoja za namba/kielekezi zaidi ya 6 au za desimali zaidi ya
-  8, `...`, na hali zisizo `--exe` (`--wasm`, `--kernel`, `--tafsiri`,
-  `--ir`, `--jit`, `.o`). Jina linalogongana na kazi ya Swa yenye mwili,
-  au kutangazwa mara mbili, ni kosa.
+- Hoja za rafu zinaruhusiwa (mpaka ni hoja 16, kama wito wote wa Swa).
+- `...` kama kigezo cha mwisho (ndani ya `nje` pekee) huruhusu hoja za
+  ziada: `n32 andika_kwa_umbo(n8* b, n64 u, n8* umbo, ...) = "snprintf";`.
+  Hoja ya ziada ya `d32` ni kosa -- tumia `d64`.
+- Data ya maktaba: `n8* mkondo = "stdout";` ndani ya `nje` ni kigezo cha
+  ulimwengu ambacho kipakiaji hukijaza kwa thamani ya maktaba
+  (R_X86_64_COPY). Namba au kielekezi pekee.
+- Mipaka iliyobaki, yote kwa sauti: muundo kwa thamani (hoja, matokeo,
+  au data), data ya desimali au safu, na hali zisizo `--exe` (`--wasm`,
+  `--kernel`, `--tafsiri`, `--ir`, `--jit`, `.o`). Jina linalogongana na
+  kazi ya Swa yenye mwili, au kutangazwa mara mbili, ni kosa.
 - Majaribio: `gharama/jaribu-daraja.mapishi` (`majaribio/daraja/`).
 
 ## 9. Kazi za Ndani (builtins)

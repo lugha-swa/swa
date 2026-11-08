@@ -1,0 +1,16 @@
+// Daraja la mashine, awamu 2: data ya maktaba. Kipakiaji hunakili thamani
+// (R_X86_64_COPY) kwenye kigezo chetu, na libc hutumia nakala hiyo.
+nje "libc.so.6" {
+    n32 faharisi_ya_chaguo = "optind";
+    n8* mkondo_wa_kawaida = "stdout";
+    n32 andika_mstari_c(n8* s, n8* mkondo) = "fputs";
+    n32 safisha_mkondo(n8* mkondo) = "fflush";
+}
+n32 main() {
+    // optind huanza 1 ndani ya libc: thamani hiyo lazima inakiliwe kwetu
+    kama (faharisi_ya_chaguo != 1) { rudisha 1; }
+    kama (mkondo_wa_kawaida == 0) { rudisha 2; }
+    andika_mstari_c("habari kutoka stdout ya libc\n", mkondo_wa_kawaida);
+    safisha_mkondo(mkondo_wa_kawaida);
+    rudisha 0;
+}

@@ -1,6 +1,6 @@
 # Daraja la mashine: Swa ikiita msimbo wa nje
 
-Hali: awamu 1 imetekelezwa (`gharama/jaribu-daraja.mapishi`). Vipimo vya
+Hali: awamu 1 na 2 zimetekelezwa (`gharama/jaribu-daraja.mapishi`). Vipimo vya
 lugha: `hati/vipimo-vya-lugha.md` sehemu 8.1.
 
 ## Lengo
@@ -87,14 +87,43 @@ nje utaita Swa. Swa lazima:
   Swa yenyewe:
   - PT_INTERP: kipakiaji cha mfumo (`/lib64/ld-linux-x86-64.so.2`);
   - PT_DYNAMIC: DT_NEEDED kwa kila maktaba, DT_STRTAB, DT_SYMTAB,
-    DT_HASH, DT_RELA, DF_BIND_NOW;
+    DT_HASH, DT_RELA (hakuna PLT, hivyo hakuna ufungaji wa kuchelewa);
   - GOT: sloti ya baiti 8 kwa kila alama kwenye .data, iliyojazwa na
     kipakiaji (R_X86_64_GLOB_DAT);
   - kipande kimoja kwa kila kazi kwenye .text, chenye jina la Swa:
     `push rbp; mov rbp,rsp; and rsp,-16; call [rip+sloti]; mov rsp,rbp;
     pop rbp; ret`. Wito wa Swa hauhitaji kubadilika: unaelekea kipande
     kama kazi nyingine. Hoja za rejesta na matokeo (rax, xmm0)
-    hazigusiwi; ndiyo sababu hoja za rafu ni awamu 2.
+    hazigusiwi.
+  - Hoja za rafu (awamu 2): mpigaji wa Swa huziacha juu ya rafu kwa
+    mpangilio wa System V, hivyo ndani ya kipande ziko `[rbp+16+8k]`.
+    Kipande huzinakili chini ya rsp mpya iliyopangiliwa (`push qword
+    [rbp+16+8k]`, kuanzia ya mwisho; sloti moja ya ziada ikiwa idadi ni
+    witiri). Kazi bila `...`: idadi inajulikana wakati wa kukusanya.
+  - Hoja za ziada (`...`, awamu 2): kipande hakijui idadi, hivyo mpigaji
+    huweka `r11 = sloti za rafu` na `eax = rejesta za xmm zilizotumika`
+    (al ya System V, kikomo 8) mara kabla ya `call`; kipande hunakili
+    sloti r11 kwa kitanzi. Hoja ya ziada ya `d32` ni kosa: C hupandisha
+    float kuwa double, hivyo `d64` itumike.
+  - Data ya maktaba (awamu 2): `n8* mkondo = "stdout";` ndani ya `nje`
+    ni kigezo cha ulimwengu cha Swa kwenye .data (kianzio 0). Alama yake
+    imefafanuliwa kwenye dynsym (STT_OBJECT, SHN_ABS, ukubwa wake), na
+    R_X86_64_COPY humfanya kipakiaji anakili thamani ya maktaba ndani
+    yake; maktaba zenyewe hutumia nakala hiyo (programu iko kwanza
+    kwenye utafutaji). DT_HASH ina ndoo moja na alama zote kwenye
+    mnyororo mmoja -- hash yenyewe haihitajiki. Namba na vielekezi
+    pekee; safu, desimali na muundo ni makosa.
+
+### Rekebisho la wito wa Swa wenyewe (awamu 2)
+
+Hoja za rafu zilifichua mdudu wa zamani wa Swa: mpigaji alivuta hoja
+kwa mpangilio, hivyo hoja ya rejesta iliyofuata hoja ya rafu (mf. n64
+saba + d64) ilisomwa kutoka sloti ya hoja ya rafu -- thamani ya uongo
+kimya. Mwitwaji alihesabu nafasi ya rafu kwa hoja za namba pekee, na
+desimali ya 9+ haikusomwa kabisa. Sasa mpangilio uliochanganyika
+hupakiwa kwa ofseti na hoja za rafu hubanwa (`hoja_kwa_sysv`), na
+mwitwaji ana kaunta moja ya rafu. Mipangilio iliyofanya kazi hubaki
+baiti zile zile. Jaribio: `majaribio/programu/jaribio_hoja_rafu_mchanganyiko.swa`.
   - Jedwali lote (interp, dynstr, dynsym, hash, rela, dynamic, phdr)
     huandikwa mwishoni mwa .data; e_phoff huelekeza kwenye phdr hizo,
     na phdr ya baiti 64-119 hubaki nakala ya PT_LOAD ile ile, hivyo
@@ -119,16 +148,17 @@ Windows na macOS kipakiaji cha mfumo ni lazima hata hivyo. Kwa hiyo:
 | Awamu | Kazi | Jaribio linalothibitisha |
 |---|---|---|
 | 1 (imekamilika) | `nje`, aina za namba/kielekezi/d64/d32, ELF ya kiungo-hai, ukaguzi wa aina, upangiliaji wa rafu | libm: `cos`, `pow`, `sqrt`; libc: `strlen`, `qsort` yenye kazi ya kurudi ya Swa, `getcontext` kwa upangiliaji; makosa 13 kwa ujumbe kamili; programu 460 zilizopo sawa kwa baiti (--exe na --wasm); fixpoint |
-| 2 | hoja za kubadilika (`...`, al = idadi ya xmm), alama za data | `snprintf` yenye d64 na namba |
+| 2 (imekamilika) | hoja za rafu, hoja za ziada (`...`, r11 + al), data ya maktaba (R_X86_64_COPY), rekebisho la wito wa Swa | `snprintf`: namba 9 za ziada (6 rafuni), desimali zikichanganyika, desimali 10 (2 rafuni) + namba; kichwa cha kudumu chenye sloti 3 za rafu; `optind` (thamani 1 inakiliwa) na `stdout` kwa `fputs`; makosa 19; majaribio 4 ya mabadiliko (kitanzi bila push, ofseti mbaya, COPY kama GLOB_DAT, al = 0) yote hukamatwa |
 | 3 | muundo kwa thamani (uainishaji wa System V) | maktaba yenye muundo wa baiti 16 na 24 |
 | 4 | `--wasm`: `nje "env" { ... }` huwa imports za WASM; daraja la JS huzalishwa na mkusanyaji; dom_* zilizowekwa ndani huondolewa | kaunta.swa bila swa-kivinjari.js iliyoandikwa kwa mkono |
 | 5 | Win64 + PE (Windows), kisha ARM64 + Mach-O | programu ile ile kwenye kila jukwaa |
 
 `--kernel` yenye `nje`: kosa la sauti (hakuna kipakiaji ring 0).
 
-## Mipaka ya awamu 1 (kwa sauti, si kimya)
+## Mipaka iliyobaki (kwa sauti, si kimya)
 
-- muundo kwa thamani -> kosa "muundo kwa thamani kwenye nje: awamu 3";
-- `...` -> kosa mpaka awamu 2;
+- muundo kwa thamani (hoja, matokeo, au data) -> kosa mpaka awamu 3;
+- data ya desimali au safu -> kosa (tumia kielekezi);
+- hoja 16 kwa wito (kikomo cha mkaguzi kwa wito wote wa Swa);
 - mbegu haihitaji kubadilika: stage1 haitumii `nje`, kwa hiyo hakuna
   kugandisha upya.
