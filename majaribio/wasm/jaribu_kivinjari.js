@@ -1,12 +1,12 @@
-// jaribu_kivinjari.js -- jaribio la msingi/kivinjari/swa-kivinjari.js
-// (daraja la KIVINJARI halisi, si dom_mock) bila kivinjari: hati
-// bandia yenye createElement/appendChild/setAttribute/textContent/
-// addEventListener tu -- yaani API ambazo daraja linatumia.
-// Matumizi: node jaribu_kivinjari.js <kaunta.wasm>
+// jaribu_kivinjari.js -- jaribio la mifano/kivinjari/kaunta.swa kupitia
+// daraja linalozalishwa (`swa --wasm-js`) bila kivinjari: hati bandia
+// yenye createElement/appendChild/setAttribute/textContent/
+// addEventListener tu -- yaani API ambazo kivinjari.swa inatumia.
+// Matumizi: node jaribu_kivinjari.js <kaunta.wasm> <swa-js.js>
 "use strict";
 const fs = require("fs");
 const path = require("path");
-const { anzishaSwa } = require(path.join(__dirname, "../../msingi/kivinjari/swa-kivinjari.js"));
+const { anzishaSwa } = require(path.resolve(process.argv[3]));
 
 function shindwa(u) { console.error("SHINDWA: " + u); process.exit(1); }
 
@@ -20,7 +20,8 @@ class Elementi {
 const hati = { createElement: (t) => new Elementi(t) };
 const mzizi = new Elementi("div");
 
-anzishaSwa(fs.readFileSync(process.argv[2]), mzizi, hati).then(({ matokeo }) => {
+globalThis.document = hati;
+anzishaSwa(fs.readFileSync(process.argv[2]), mzizi).then(({ matokeo }) => {
     if (matokeo !== 0) shindwa("main() ilirudisha " + matokeo);
     const [kitufe, lebo, futa] = mzizi.watoto;
     if (!kitufe || kitufe.tag !== "button" || kitufe.textContent !== "Ongeza") shindwa("kitufe hakikujengwa sawa");

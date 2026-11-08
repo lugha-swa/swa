@@ -603,6 +603,11 @@ n32 main(n32 argc, n8** argv) {
         // moja (mtafsiri.swa) -- hakuna msimbo wa mashine. --ir: chapisha IR.
         kama (linganisha_mfuatano(a, "--tafsiri") == 0) { ni_tafsiri = 1; faili_idx = 2; }
         kama (linganisha_mfuatano(a, "--ir") == 0) { ni_ir = 1; faili_idx = 2; }
+        // --wasm-js: daraja la JS la moduli za --wasm (hati/daraja-la-mashine.md)
+        kama (linganisha_mfuatano(a, "--wasm-js") == 0) {
+            wasm_andika_daraja_js();
+            rudisha 0;
+        }
     }
 
     // Hali ya kujikusanya (hakuna faili la mtumiaji): tatua maktaba
@@ -694,10 +699,10 @@ n32 main(n32 argc, n8** argv) {
     // 3. --tafsiri / --ir: teremsha AST hadi IR ya mstari (mteremko.swa);
     // kisha itekeleze (mtafsiri.swa) au ichapishe. Kisichoungwa mkono na IR
     // hutajwa kwa sauti na kutoka kwa 2.
-    // Kazi za nje (daraja la mashine) zinahitaji kipakiaji cha mfumo:
-    // mtafsiri na WASM hawana (WASM ni awamu 4, hati/daraja-la-mashine.md).
-    kama (kigeni_kazi_idadi + kigeni_data_idadi > 0 && (ni_tafsiri || ni_ir || ni_wasm)) {
-        andika_stderr("Hitilafu: kazi za nje (kizuizi cha nje) zinahitaji --exe -- hazipatikani kwenye --tafsiri, --ir wala --wasm\n");
+    // Kazi za nje (daraja la mashine) zinahitaji kipakiaji cha mfumo
+    // (--exe) au mwenyeji wa WASM (--wasm: uingizaji); mtafsiri hana.
+    kama (kigeni_kazi_idadi + kigeni_data_idadi > 0 && (ni_tafsiri || ni_ir)) {
+        andika_stderr("Hitilafu: kazi za nje (kizuizi cha nje) zinahitaji --exe au --wasm -- hazipatikani kwenye --tafsiri wala --ir\n");
         rudisha 1;
     }
 

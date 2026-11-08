@@ -88,20 +88,20 @@ n32 wasm_tenga_idx = 0;
 n32 WASM_HEAP_GLOBAL_IDX = 0;  // faharisi pekee ya WASM Global (heap pointer)
 
 // -------------------------------------------------------
-// Sehemu 0c (Awamu 3): Sehemu ya Uingizaji (Import) -- kazi 6 za JS
-// (daraja la DOM) zinazoingizwa kama (module="env", field=<jina>).
+// Sehemu 0c: Sehemu ya Uingizaji (Import) -- kazi za `nje "<moduli>"`
+// (daraja la mashine, awamu 4) huingizwa kama (moduli, alama).
 // Function index space ya WASM inaamuru: uingizaji 0..I-1 KWANZA,
-// KISHA kazi za ndani I..I+N-1 -- `wasm_import_idadi` (=6, imara)
-// ni nyongeza inayohitajika kwenye KILA mahali panapoandika faharisi
-// ya kazi ya NDANI (call/export/function-section type index) -- SI
-// kwenye wito wa kazi za uingizaji zenyewe (hizo tayari ziko 0..5).
+// KISHA kazi za ndani I..I+N-1 -- `wasm_import_idadi` (= idadi ya
+// kazi za nje) ni nyongeza inayohitajika kwenye KILA mahali
+// panapoandika faharisi ya kazi ya NDANI (call/export/function-section
+// type index) -- SI kwenye wito wa uingizaji wenyewe.
 // -------------------------------------------------------
 
 n32 wasm_import_idadi = 0;
 
 // Kioo cha wasm_op_call lakini kwa kazi za NDANI (mtumiaji/tenga) --
-// inaongeza wasm_import_idadi kiotomatiki. Kazi za uingizaji (dom_*/
-// console_andika) zinaitwa na wasm_op_call ghafi (faharisi 0..5 moja
+// inaongeza wasm_import_idadi kiotomatiki. Kazi za uingizaji (kazi za
+// nje) zinaitwa na wasm_op_call ghafi (faharisi 0..I-1 moja
 // kwa moja), SI kupitia hii.
 w0 wasm_op_call_kazi(n32 kidx) {
     wasm_op_call(kidx + wasm_import_idadi);
@@ -443,6 +443,9 @@ n32 wasm_ni_n32_enc(n32 enc) {
 n32 wasm_ni_n32_au_kielekezi_enc(n32 enc) {
     kama (wasm_ni_n32_enc(enc)) { rudisha 1; }
     kama (enc == 289) { rudisha 1; }
+    // n8* (mfuatano): anwani ya i32 kama kielekezi kingine. Kusoma baiti
+    // kupitia *p / p[i] bado kunakataliwa: aina ya kipengele ni n8.
+    kama (enc == 265) { rudisha 1; }
     rudisha 0;
 }
 
@@ -726,76 +729,17 @@ w0 wasm_usemi(n32 node, n32 kazi_node) {
             rudisha;
         }
 
-        // Awamu 3: daraja la DOM -- kazi 6 zilizoingizwa (Import
-        // section), zinazotambuliwa KWA JINA (kioo HASA cha jinsi
-        // "tenga" hapo juu inavyotambuliwa) -- hazina AST_KAZI wala
-        // tamko lolote la Swa, uzalishaji_wasm pekee unazitambua.
-        // Faharisi za uingizaji ni 0..5 HASA (imara, angalia
-        // wasm_andika_sehemu_uingizaji) -- HAZIHITAJI wasm_import_idadi.
-        kama (jina_linganisha(jina, "dom_unda")) {
-            n32 h1 = ast_kulia[node];
-            kama (h1 == -1) { andika_stderr("KOSA: wasm -- dom_unda() inahitaji hoja moja (tagPtr)\n"); wasm_kosa = 1; rudisha; }
-            wasm_usemi(h1, kazi_node);
-            wasm_op_call(0);
-            rudisha;
-        }
-        kama (jina_linganisha(jina, "dom_weka_maandishi")) {
-            n32 h1 = ast_kulia[node];
-            kama (h1 == -1 || ast_tiga[h1] == -1) { andika_stderr("KOSA: wasm -- dom_weka_maandishi() inahitaji hoja mbili (id, textPtr)\n"); wasm_kosa = 1; rudisha; }
-            wasm_usemi(h1, kazi_node);
-            wasm_usemi(ast_tiga[h1], kazi_node);
-            wasm_op_call(1);
-            rudisha;
-        }
-        kama (jina_linganisha(jina, "dom_weka_sifa")) {
-            n32 h1 = ast_kulia[node];
-            kama (h1 == -1 || ast_tiga[h1] == -1 || ast_tiga[ast_tiga[h1]] == -1) { andika_stderr("KOSA: wasm -- dom_weka_sifa() inahitaji hoja tatu (id, namePtr, valPtr)\n"); wasm_kosa = 1; rudisha; }
-            wasm_usemi(h1, kazi_node);
-            wasm_usemi(ast_tiga[h1], kazi_node);
-            wasm_usemi(ast_tiga[ast_tiga[h1]], kazi_node);
-            wasm_op_call(2);
-            rudisha;
-        }
-        kama (jina_linganisha(jina, "dom_ambatanisha")) {
-            n32 h1 = ast_kulia[node];
-            kama (h1 == -1 || ast_tiga[h1] == -1) { andika_stderr("KOSA: wasm -- dom_ambatanisha() inahitaji hoja mbili (mzaziId, mtotoId)\n"); wasm_kosa = 1; rudisha; }
-            wasm_usemi(h1, kazi_node);
-            wasm_usemi(ast_tiga[h1], kazi_node);
-            wasm_op_call(3);
-            rudisha;
-        }
-        kama (jina_linganisha(jina, "dom_mzizi")) {
-            wasm_op_call(4);
-            rudisha;
-        }
-        // Awamu 4: dom_sikiliza(id, tukioPtr, kazi) -- JS huita
-        // jedwali.get(kazi)(id) kila tukio linapotokea kwenye nodi id.
-        kama (jina_linganisha(jina, "dom_sikiliza")) {
-            n32 h1 = ast_kulia[node];
-            kama (h1 == -1 || ast_tiga[h1] == -1 || ast_tiga[ast_tiga[h1]] == -1) { andika_stderr("KOSA: wasm -- dom_sikiliza() inahitaji hoja tatu (id, tukioPtr, &kazi)\n"); wasm_kosa = 1; rudisha; }
-            wasm_usemi(h1, kazi_node);
-            wasm_usemi(ast_tiga[h1], kazi_node);
-            wasm_usemi(ast_tiga[ast_tiga[h1]], kazi_node);
-            wasm_jedwali_linatumika = 1;
-            wasm_op_call(6);
-            rudisha;
-        }
-        // Awamu 4: dom_weka_namba(id, n) -- maandishi ya nodi = n kwa
-        // desimali. WASM ya Swa bado haiandiki baiti moja moja (safu ni
-        // za n32 pekee), kwa hiyo haiwezi kujenga mfuatano wa namba.
-        kama (jina_linganisha(jina, "dom_weka_namba")) {
-            n32 h1 = ast_kulia[node];
-            kama (h1 == -1 || ast_tiga[h1] == -1) { andika_stderr("KOSA: wasm -- dom_weka_namba() inahitaji hoja mbili (id, namba)\n"); wasm_kosa = 1; rudisha; }
-            wasm_usemi(h1, kazi_node);
-            wasm_usemi(ast_tiga[h1], kazi_node);
-            wasm_op_call(7);
-            rudisha;
-        }
-        kama (jina_linganisha(jina, "console_andika")) {
-            n32 h1 = ast_kulia[node];
-            kama (h1 == -1) { andika_stderr("KOSA: wasm -- console_andika() inahitaji hoja moja (ptr)\n"); wasm_kosa = 1; rudisha; }
-            wasm_usemi(h1, kazi_node);
-            wasm_op_call(5);
+        // Kazi ya nje (daraja la mashine, awamu 4): uingizaji wa WASM.
+        // Faharisi za uingizaji ni 0..I-1 (mpangilio wa kigeni_kazi_*),
+        // hivyo wito hautumii wasm_import_idadi.
+        n32 kigeni_k = kigeni_kazi_kwa_jina(jina);
+        kama (kigeni_k >= 0) {
+            n32 hoja_k = ast_kulia[node];
+            wakati (hoja_k != -1) {
+                wasm_usemi(hoja_k, kazi_node);
+                hoja_k = ast_tiga[hoja_k];
+            }
+            wasm_op_call(kigeni_k);
             rudisha;
         }
 
@@ -1017,12 +961,12 @@ w0 wasm_taarifa(n32 node, n32 kazi_node) {
                 // hitilafu ya "unreachable" wakati wa kukimbia kwa
                 // sababu ya bug hii hii ikiwa pamoja na tatizo la
                 // sibling -- angalia jaribio_tenga_kama_taarifa.swa).
-                // Awamu 3: dom_unda/dom_mzizi NAZO zinarudisha thamani
-                // (id) KILA WAKATI, kama tenga() -- kioo HASA cha
-                // sababu ile ile (uingizaji hauko kwenye wasm_kazi_
-                // node[], hivyo wasm_tafuta_kazi ingerudisha -1 na
-                // kuruka drop KIMAKOSA, ikiacha thamani juu ya rafu).
-                kama (jina_linganisha(jina_w, "tenga") || jina_linganisha(jina_w, "dom_unda") || jina_linganisha(jina_w, "dom_mzizi")) {
+                // Kazi ya nje isiyo w0 NAYO inarudisha thamani, kama
+                // tenga() -- uingizaji hauko kwenye wasm_kazi_node[],
+                // hivyo wasm_tafuta_kazi ingerudisha -1 na kuruka drop
+                // KIMAKOSA, ikiacha thamani juu ya rafu.
+                n32 kigeni_w = kigeni_kazi_kwa_jina(jina_w);
+                kama (jina_linganisha(jina_w, "tenga") || (kigeni_w >= 0 && kigeni_ni_w0(kigeni_w) == 0)) {
                     wasm_usemi(node, kazi_node);
                     wasm_op_drop();
                 } sivyo {
@@ -1234,8 +1178,8 @@ w0 wasm_andika_global_sehemu(n32 heap_init) {
 }
 
 // Table section (id=4, Awamu 4): jedwali MOJA la funcref lenye nafasi
-// kwa kila kazi ya ndani. Linaandikwa tu likitumika (&kazi au
-// dom_sikiliza), ili moduli zisizo na matukio zibaki kama zilivyokuwa.
+// kwa kila kazi ya ndani. Linaandikwa tu likitumika (&kazi), ili
+// moduli zisizo na matukio zibaki kama zilivyokuwa.
 w0 wasm_andika_table_sehemu() {
     kama (wasm_jedwali_linatumika == 0) { rudisha; }
     wasm_bafu_sasa = 0;
@@ -1383,8 +1327,8 @@ w0 wasm_andika_sehemu_kutoka(n32 id, n32 idadi, n8* chanzo, n32 urefu_chanzo) {
 }
 
 // Function section (id=3): hesabu + [faharisi_ya_aina]* -- faharisi
-// ya aina == faharisi ya kazi (miongoni mwa za NDANI, 0..N-1) + 6
-// (Awamu 3: aina 0..5 ni za uingizaji, zilizoandikwa KWANZA kwenye
+// ya aina == faharisi ya kazi (miongoni mwa za NDANI, 0..N-1) + I
+// (aina 0..I-1 ni za uingizaji, zilizoandikwa KWANZA kwenye
 // wasm_type_buf na wasm_andika_aina_uingizaji -- angalia
 // uzalishaji_wasm_kuu). Hesabu ya kazi (wasm_kazi_idadi) YENYEWE
 // haibadiliki -- Function section inaorodhesha kazi za NDANI PEKEE,
@@ -1402,78 +1346,90 @@ w0 wasm_andika_function_sehemu() {
     wakati (i < wasm_kazi_idadi) { wasm_uleb128(i + wasm_import_idadi); i = i + 1; }
 }
 
-// Aina (Type entries) za kazi 6 zilizoingizwa (Awamu 3) -- huandikwa
-// KWANZA kwenye wasm_type_buf (kabla ya Pitio la 2 la kazi za
-// mtumiaji, angalia uzalishaji_wasm_kuu), ili ziwe faharisi 0..5
-// HASA na kazi za mtumiaji zianze kwenye faharisi 6+.
+// Aina (Type entries) za kazi za nje -- huandikwa KWANZA kwenye
+// wasm_type_buf, ili aina ya uingizaji i iwe faharisi i na kazi za
+// mtumiaji zianze baada yake. Hoja na matokeo: n32 au kielekezi
+// (i32) pekee -- wigo wa WASM wa Swa.
+n32 kigeni_ni_w0(n32 k) {
+    rudisha ast_thamani[kigeni_kazi_node[k]] == 1280;  // w0
+}
+
 w0 wasm_andika_aina_uingizaji() {
     wasm_bafu_sasa = 3;
-    // dom_unda(i32) -> i32
-    wasm_baiti(96); wasm_uleb128(1); wasm_baiti(WASM_I32); wasm_uleb128(1); wasm_baiti(WASM_I32);
-    // dom_weka_maandishi(i32, i32) -> ()
-    wasm_baiti(96); wasm_uleb128(2); wasm_baiti(WASM_I32); wasm_baiti(WASM_I32); wasm_uleb128(0);
-    // dom_weka_sifa(i32, i32, i32) -> ()
-    wasm_baiti(96); wasm_uleb128(3); wasm_baiti(WASM_I32); wasm_baiti(WASM_I32); wasm_baiti(WASM_I32); wasm_uleb128(0);
-    // dom_ambatanisha(i32, i32) -> ()
-    wasm_baiti(96); wasm_uleb128(2); wasm_baiti(WASM_I32); wasm_baiti(WASM_I32); wasm_uleb128(0);
-    // dom_mzizi() -> i32
-    wasm_baiti(96); wasm_uleb128(0); wasm_uleb128(1); wasm_baiti(WASM_I32);
-    // console_andika(i32) -> ()
-    wasm_baiti(96); wasm_uleb128(1); wasm_baiti(WASM_I32); wasm_uleb128(0);
-    // dom_sikiliza(i32, i32, i32) -> ()  (Awamu 4)
-    wasm_baiti(96); wasm_uleb128(3); wasm_baiti(WASM_I32); wasm_baiti(WASM_I32); wasm_baiti(WASM_I32); wasm_uleb128(0);
-    // dom_weka_namba(i32, i32) -> ()  (Awamu 4)
-    wasm_baiti(96); wasm_uleb128(2); wasm_baiti(WASM_I32); wasm_baiti(WASM_I32); wasm_uleb128(0);
+    n32 k = 0;
+    wakati (k < kigeni_kazi_idadi) {
+        n32 f = kigeni_kazi_node[k];
+        n8* jina = ast_pool + ast_jina_off[ast_kushoto[f]];
+        kama (kigeni_kazi_ya_ziada[k]) {
+            andika_stderr("KOSA: wasm -- kazi ya nje '%s': hoja za ziada (...) hazipo kwenye WASM\n", jina);
+            wasm_kosa = 1;
+        }
+        kama (kigeni_ni_w0(k) == 0 && wasm_ni_n32_au_kielekezi_enc(ast_thamani[f]) == 0) {
+            andika_stderr("KOSA: wasm -- kazi ya nje '%s': matokeo lazima yawe n32, kielekezi au w0\n", jina);
+            wasm_kosa = 1;
+        }
+        n32 idadi = 0;
+        n32 pn = ast_kulia[f];
+        wakati (pn != -1) {
+            kama (wasm_ni_n32_au_kielekezi_enc(ast_thamani[pn]) == 0) {
+                andika_stderr("KOSA: wasm -- kazi ya nje '%s': hoja lazima ziwe n32 au kielekezi\n", jina);
+                wasm_kosa = 1;
+            }
+            idadi = idadi + 1;
+            pn = ast_kulia[pn];
+        }
+        wasm_baiti(96);
+        wasm_uleb128(idadi);
+        n32 j = 0;
+        wakati (j < idadi) { wasm_baiti(WASM_I32); j = j + 1; }
+        kama (kigeni_ni_w0(k)) { wasm_uleb128(0); } sivyo { wasm_uleb128(1); wasm_baiti(WASM_I32); }
+        k = k + 1;
+    }
+    kama (kigeni_data_idadi > 0) {
+        andika_stderr("KOSA: wasm -- data ya nje haipo kwenye WASM (kazi za nje pekee)\n");
+        wasm_kosa = 1;
+    }
 }
 
-// Ukubwa (baiti, bila kuandika) wa entry moja ya Import section:
-// uleb128(len("env"))+"env" + uleb128(len(jina))+jina + kind(1 baiti)
-// + uleb128(faharisi_ya_aina).
-n32 wasm_uingizaji_entry_ukubwa(n8* jina, n32 type_idx) {
-    n32 jl = jina_urefu(jina);
-    rudisha wasm_uleb128_ukubwa(3) + 3 + wasm_uleb128_ukubwa(jl) + jl + 1 + wasm_uleb128_ukubwa(type_idx);
+// Entry moja ya Import section: uleb128(len(moduli)) + moduli +
+// uleb128(len(alama)) + alama + kind (func) + uleb128(faharisi_ya_aina).
+// Moduli ni mfuatano wa `nje "<moduli>"`, alama ni jina lao.
+n32 wasm_jina_ukubwa(n8* s) {
+    n32 l = jina_urefu(s);
+    rudisha wasm_uleb128_ukubwa(l) + l;
 }
 
-w0 wasm_andika_uingizaji_entry(n8* jina, n32 type_idx) {
-    n32 jl = jina_urefu(jina);
-    wasm_uleb128(3); wasm_baiti(101); wasm_baiti(110); wasm_baiti(118);  // "env"
-    wasm_uleb128(jl);
+w0 wasm_andika_jina(n8* s) {
+    n32 l = jina_urefu(s);
+    wasm_uleb128(l);
     n32 i = 0;
-    wakati (i < jl) { wasm_baiti(jina[i]); i = i + 1; }
-    wasm_baiti(0);  // kind = func
-    wasm_uleb128(type_idx);
+    wakati (i < l) { wasm_baiti(s[i]); i = i + 1; }
 }
 
-// Import section (id=2, Awamu 3): kazi 6 za JS (daraja la DOM +
-// console_andika kwa utatuzi), zote (module="env", kind=func).
-// LAZIMA iandikwe KATI ya Type(1) na Function(3) kwenye mkutano wa
-// moduli (angalia uzalishaji_wasm_kuu).
+// Import section (id=2): kila kazi ya nje. LAZIMA iandikwe KATI ya
+// Type(1) na Function(3). Haiandikwi kabisa ikiwa hakuna uingizaji.
 w0 wasm_andika_sehemu_uingizaji() {
-    n8* n0 = "dom_unda";
-    n8* n1 = "dom_weka_maandishi";
-    n8* n2 = "dom_weka_sifa";
-    n8* n3 = "dom_ambatanisha";
-    n8* n4 = "dom_mzizi";
-    n8* n5 = "console_andika";
-    n8* n6 = "dom_sikiliza";
-    n8* n7 = "dom_weka_namba";
-    n32 content = wasm_uleb128_ukubwa(8)
-        + wasm_uingizaji_entry_ukubwa(n0, 0) + wasm_uingizaji_entry_ukubwa(n1, 1)
-        + wasm_uingizaji_entry_ukubwa(n2, 2) + wasm_uingizaji_entry_ukubwa(n3, 3)
-        + wasm_uingizaji_entry_ukubwa(n4, 4) + wasm_uingizaji_entry_ukubwa(n5, 5)
-        + wasm_uingizaji_entry_ukubwa(n6, 6) + wasm_uingizaji_entry_ukubwa(n7, 7);
+    kama (kigeni_kazi_idadi == 0) { rudisha; }
+    n32 content = wasm_uleb128_ukubwa(kigeni_kazi_idadi);
+    n32 k = 0;
+    wakati (k < kigeni_kazi_idadi) {
+        content = content + wasm_jina_ukubwa(kigeni_pool + kigeni_maktaba_off[kigeni_kazi_maktaba[k]]);
+        content = content + wasm_jina_ukubwa(kigeni_pool + kigeni_kazi_alama_off[k]);
+        content = content + 1 + wasm_uleb128_ukubwa(k);
+        k = k + 1;
+    }
     wasm_bafu_sasa = 0;
     wasm_baiti(2);
     wasm_uleb128(content);
-    wasm_uleb128(8);
-    wasm_andika_uingizaji_entry(n0, 0);
-    wasm_andika_uingizaji_entry(n1, 1);
-    wasm_andika_uingizaji_entry(n2, 2);
-    wasm_andika_uingizaji_entry(n3, 3);
-    wasm_andika_uingizaji_entry(n4, 4);
-    wasm_andika_uingizaji_entry(n5, 5);
-    wasm_andika_uingizaji_entry(n6, 6);
-    wasm_andika_uingizaji_entry(n7, 7);
+    wasm_uleb128(kigeni_kazi_idadi);
+    k = 0;
+    wakati (k < kigeni_kazi_idadi) {
+        wasm_andika_jina(kigeni_pool + kigeni_maktaba_off[kigeni_kazi_maktaba[k]]);
+        wasm_andika_jina(kigeni_pool + kigeni_kazi_alama_off[k]);
+        wasm_baiti(0);  // kind = func
+        wasm_uleb128(k);
+        k = k + 1;
+    }
 }
 
 // Export section (id=7): "main" (func) NA "memory" (Awamu 2 -- ili
@@ -1524,7 +1480,7 @@ n32 uzalishaji_wasm_kuu(n32 mzizi) {
     wasm_data_wapi = 0;
     wasm_str_idadi = 0;
     wasm_tenga_kutumika = 0;
-    wasm_import_idadi = 8;
+    wasm_import_idadi = kigeni_kazi_idadi;
     wasm_ulimwengu_idadi = 0;
     wasm_jedwali_linatumika = 0;
 
@@ -1540,6 +1496,11 @@ n32 uzalishaji_wasm_kuu(n32 mzizi) {
     wasm_kazi_jina_pool = jina_pool_ndani;
     n32 gn = ast_kushoto[mzizi];
     wakati (gn != -1) {
+        // Kazi za nje ni uingizaji, si kazi za ndani
+        kama (ast_aina[gn] == AST_KAZI && kigeni_kazi_kwa_jina(ast_pool + ast_jina_off[ast_kushoto[gn]]) >= 0) {
+            gn = ast_nne[gn];
+            endelea;
+        }
         kama (ast_aina[gn] == AST_KAZI) {
             kama (wasm_kazi_idadi >= WASM_MAX_KAZI) {
                 andika_stderr("KOSA: wasm -- kazi nyingi mno (kikomo %d)\n", WASM_MAX_KAZI);
@@ -1677,4 +1638,83 @@ n32 uzalishaji_wasm_kuu(n32 mzizi) {
 
     sys_andika(1, wasm_bafu, wasm_bafu_wapi);
     rudisha 0;
+}
+
+// -------------------------------------------------------
+// --wasm-js: daraja la JS (daraja la mashine, awamu 4)
+// -------------------------------------------------------
+// Kivinjari hukubali JS na WASM pekee, hivyo daraja lenyewe ni JS --
+// lakini huandikwa na mkusanyaji, kama kichwa cha ELF, si kwa mkono.
+// Ni la jumla: shughuli 14 za kumbukumbu ya vitu (pata, weka, ita,
+// mfuatano, kazi ...). Mantiki yote ya DOM iko kwenye Swa
+// (msingi/maktaba/kivinjari.swa).
+w0 wasm_js_mstari(n8* s) {
+    sys_andika(1, s, jina_urefu(s));
+    sys_andika(1, "\n", 1);
+}
+
+w0 wasm_andika_daraja_js() {
+    wasm_js_mstari("// swa-js.js -- daraja la JS la Swa. Limetolewa na `swa --wasm-js`; usilihariri.");
+    wasm_js_mstari("// Halina mantiki ya programu: Swa hufanya kila kitu kupitia uingizaji wa");
+    wasm_js_mstari("// moduli 'js' (msingi/maktaba/kivinjari.swa). Kitu cha JS hushikwa kwa");
+    wasm_js_mstari("// namba (kishiko): 0 = tupu, 1 = mzizi.");
+    wasm_js_mstari("(function (nje) {");
+    wasm_js_mstari("    'use strict';");
+    wasm_js_mstari("    function unganisha(mzizi) {");
+    wasm_js_mstari("        const vitu = [undefined, mzizi];");
+    wasm_js_mstari("        const huru = [];");
+    wasm_js_mstari("        const msimbuaji = new TextDecoder('utf-8');");
+    wasm_js_mstari("        let kumbukumbu = null;");
+    wasm_js_mstari("        let jedwali = null;");
+    wasm_js_mstari("        function shika(x) {");
+    wasm_js_mstari("            const h = huru.length > 0 ? huru.pop() : vitu.length;");
+    wasm_js_mstari("            vitu[h] = x;");
+    wasm_js_mstari("            return h;");
+    wasm_js_mstari("        }");
+    wasm_js_mstari("        function soma(p) {");
+    wasm_js_mstari("            const b = new Uint8Array(kumbukumbu.buffer);");
+    wasm_js_mstari("            let m = p;");
+    wasm_js_mstari("            while (b[m] !== 0) { m = m + 1; }");
+    wasm_js_mstari("            return msimbuaji.decode(b.subarray(p, m));");
+    wasm_js_mstari("        }");
+    wasm_js_mstari("        function achilia(h) {");
+    wasm_js_mstari("            if (h > 1 && h < vitu.length && vitu[h] !== undefined) { vitu[h] = undefined; huru.push(h); }");
+    wasm_js_mstari("        }");
+    wasm_js_mstari("        const js = {");
+    wasm_js_mstari("            mzizi: () => 1,");
+    wasm_js_mstari("            kimataifa: (jina) => shika(globalThis[soma(jina)]),");
+    wasm_js_mstari("            pata: (h, sifa) => shika(vitu[h][soma(sifa)]),");
+    wasm_js_mstari("            weka: (h, sifa, t) => { vitu[h][soma(sifa)] = vitu[t]; },");
+    wasm_js_mstari("            ita0: (h, njia) => shika(vitu[h][soma(njia)]()),");
+    wasm_js_mstari("            ita1: (h, njia, a) => shika(vitu[h][soma(njia)](vitu[a])),");
+    wasm_js_mstari("            ita2: (h, njia, a, b) => shika(vitu[h][soma(njia)](vitu[a], vitu[b])),");
+    wasm_js_mstari("            ita3: (h, njia, a, b, c) => shika(vitu[h][soma(njia)](vitu[a], vitu[b], vitu[c])),");
+    wasm_js_mstari("            mfuatano: (p) => shika(soma(p)),");
+    wasm_js_mstari("            namba: (n) => shika(n),");
+    wasm_js_mstari("            kwa_namba: (h) => Number(vitu[h]) | 0,");
+    wasm_js_mstari("            kazi: (k) => shika(function (...hoja) {");
+    wasm_js_mstari("                const vs = hoja.map(shika);");
+    wasm_js_mstari("                try { return jedwali.get(k)(...vs); } finally { vs.forEach(achilia); }");
+    wasm_js_mstari("            }),");
+    wasm_js_mstari("            achilia: achilia,");
+    wasm_js_mstari("        };");
+    wasm_js_mstari("        function weka_moduli(exports) {");
+    wasm_js_mstari("            kumbukumbu = exports.memory;");
+    wasm_js_mstari("            jedwali = exports.jedwali || null;");
+    wasm_js_mstari("        }");
+    wasm_js_mstari("        return { js, weka_moduli, vitu };");
+    wasm_js_mstari("    }");
+    wasm_js_mstari("    async function anzishaSwa(chanzo, mzizi, ziada) {");
+    wasm_js_mstari("        const baiti = typeof chanzo === 'string' ? await (await fetch(chanzo)).arrayBuffer() : chanzo;");
+    wasm_js_mstari("        if (mzizi === undefined && globalThis.document) { mzizi = globalThis.document.body; }");
+    wasm_js_mstari("        const d = unganisha(mzizi);");
+    wasm_js_mstari("        const uingizaji = Object.assign({ js: d.js }, ziada || {});");
+    wasm_js_mstari("        const { instance } = await WebAssembly.instantiate(baiti, uingizaji);");
+    wasm_js_mstari("        d.weka_moduli(instance.exports);");
+    wasm_js_mstari("        const matokeo = instance.exports.main();");
+    wasm_js_mstari("        return { instance, matokeo, vitu: d.vitu };");
+    wasm_js_mstari("    }");
+    wasm_js_mstari("    nje.anzishaSwa = anzishaSwa;");
+    wasm_js_mstari("    if (typeof module !== 'undefined' && module.exports) { module.exports = { anzishaSwa }; }");
+    wasm_js_mstari("})(typeof globalThis !== 'undefined' ? globalThis : this);");
 }

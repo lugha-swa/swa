@@ -1,6 +1,7 @@
 # Daraja la mashine: Swa ikiita msimbo wa nje
 
-Hali: awamu 1 na 2 zimetekelezwa (`gharama/jaribu-daraja.mapishi`). Vipimo vya
+Hali: awamu 1, 2 na 4 zimetekelezwa (`gharama/jaribu-daraja.mapishi`,
+`gharama/jaribu-wasm.mapishi`). Vipimo vya
 lugha: `hati/vipimo-vya-lugha.md` sehemu 8.1.
 
 ## Lengo
@@ -150,10 +151,35 @@ Windows na macOS kipakiaji cha mfumo ni lazima hata hivyo. Kwa hiyo:
 | 1 (imekamilika) | `nje`, aina za namba/kielekezi/d64/d32, ELF ya kiungo-hai, ukaguzi wa aina, upangiliaji wa rafu | libm: `cos`, `pow`, `sqrt`; libc: `strlen`, `qsort` yenye kazi ya kurudi ya Swa, `getcontext` kwa upangiliaji; makosa 13 kwa ujumbe kamili; programu 460 zilizopo sawa kwa baiti (--exe na --wasm); fixpoint |
 | 2 (imekamilika) | hoja za rafu, hoja za ziada (`...`, r11 + al), data ya maktaba (R_X86_64_COPY), rekebisho la wito wa Swa | `snprintf`: namba 9 za ziada (6 rafuni), desimali zikichanganyika, desimali 10 (2 rafuni) + namba; kichwa cha kudumu chenye sloti 3 za rafu; `optind` (thamani 1 inakiliwa) na `stdout` kwa `fputs`; makosa 19; majaribio 4 ya mabadiliko (kitanzi bila push, ofseti mbaya, COPY kama GLOB_DAT, al = 0) yote hukamatwa |
 | 3 | muundo kwa thamani (uainishaji wa System V) | maktaba yenye muundo wa baiti 16 na 24 |
-| 4 | `--wasm`: `nje "env" { ... }` huwa imports za WASM; daraja la JS huzalishwa na mkusanyaji; dom_* zilizowekwa ndani huondolewa | kaunta.swa bila swa-kivinjari.js iliyoandikwa kwa mkono |
+| 4 (imekamilika) | `--wasm`: kila `nje "<moduli>"` huwa uingizaji wa WASM (moduli, alama); `dom_*` 8 zilizowekwa ndani ya mkusanyaji zimeondolewa; DOM ni Swa (`msingi/maktaba/kivinjari.swa`) juu ya daraja la jumla linaloandikwa na `swa --wasm-js`; `msingi/kivinjari/swa-kivinjari.js` ya mkono imefutwa | majaribio yote ya DOM na matukio hupitia mnyororo mzima (Swa -> kivinjari.swa -> swa-js.js -> hati bandia); `jaribio_nje_js` hutumia uingizaji moja kwa moja; makosa 3 (desimali, `...`, data); mabadiliko 2 (daraja lenye hoja zilizobadilishwa, `dom_unda` bila maktaba) hukamatwa |
 | 5 | Win64 + PE (Windows), kisha ARM64 + Mach-O | programu ile ile kwenye kila jukwaa |
 
 `--kernel` yenye `nje`: kosa la sauti (hakuna kipakiaji ring 0).
+
+## WASM (awamu 4)
+
+Kivinjari hukubali JS na WASM pekee, na hufichua DOM kupitia JS pekee --
+hilo ni mpaka wa usalama wa kivinjari, si jambo la kuzunguka. Kwa hiyo
+daraja lipo, lakini lina umbo la `syscall/js` ya Go na `wasm_exec.js`:
+
+- **Daraja la jumla, linaloandikwa na mkusanyaji.** `swa --wasm-js`
+  huandika `swa-js.js`: shughuli 14 juu ya vitu vya JS vinavyoshikwa kwa
+  namba (vishiko) -- `kimataifa`, `pata`, `weka`, `ita0..ita3`,
+  `mfuatano`, `namba`, `kwa_namba`, `kazi` (kazi ya Swa kama kazi ya
+  kurudi), `achilia`, `mzizi`. Halina mantiki ya programu; ni sawa kwa
+  kila programu, kama kichwa cha ELF.
+- **`nje` ni uingizaji wa WASM.** `nje "js" { n32 js_pata(n32 kitu, n8* sifa) = "pata"; }`
+  huwa uingizaji (moduli `js`, alama `pata`). Moduli nyingine yoyote
+  (mf. `wasi_snapshot_preview1`) hufanya kazi vivyo hivyo; mwenyeji
+  huitoa kupitia hoja ya tatu ya `anzishaSwa(chanzo, mzizi, ziada)`.
+- **DOM ni Swa.** `msingi/maktaba/kivinjari.swa` hujenga `dom_unda`,
+  `dom_ambatanisha`, `dom_sikiliza`, `dom_weka_namba`, `console_andika`
+  n.k. juu ya shughuli hizo. Kuongeza API mpya ya kivinjari ni kuandika
+  Swa, si kubadilisha mkusanyaji wala JS.
+- Hoja na matokeo ya uingizaji: `n32`, kielekezi au `w0` (wigo wa WASM wa
+  Swa). `n8*` sasa inakubalika kama aina ya kielekezi (anwani ya i32);
+  kusoma baiti kupitia `n8*` bado kunakataliwa. `...` na data ya nje ni
+  makosa kwenye WASM.
 
 ## Mipaka iliyobaki (kwa sauti, si kimya)
 

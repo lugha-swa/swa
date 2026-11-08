@@ -661,10 +661,15 @@ nje "libm.so.6" {
   ulimwengu ambacho kipakiaji hukijaza kwa thamani ya maktaba
   (R_X86_64_COPY). Namba au kielekezi pekee.
 - Mipaka iliyobaki, yote kwa sauti: muundo kwa thamani (hoja, matokeo,
-  au data), data ya desimali au safu, na hali zisizo `--exe` (`--wasm`,
-  `--kernel`, `--tafsiri`, `--ir`, `--jit`, `.o`). Jina linalogongana na
+  au data), data ya desimali au safu, na hali zisizo `--exe`/`--wasm`
+  (`--kernel`, `--tafsiri`, `--ir`, `--jit`, `.o`). Jina linalogongana na
   kazi ya Swa yenye mwili, au kutangazwa mara mbili, ni kosa.
-- Majaribio: `gharama/jaribu-daraja.mapishi` (`majaribio/daraja/`).
+- `--wasm`: kila `nje "<moduli>"` huwa uingizaji wa WASM (moduli,
+  alama); hoja na matokeo ni `n32`, kielekezi au `w0`. DOM hutoka
+  `msingi/maktaba/kivinjari.swa` (`husisha { kivinjari.swa }`), na
+  `swa --wasm-js` huandika daraja la jumla la JS.
+- Majaribio: `gharama/jaribu-daraja.mapishi` (`majaribio/daraja/`),
+  `gharama/jaribu-wasm.mapishi` (`majaribio/wasm/`).
 
 ## 9. Kazi za Ndani (builtins)
 
