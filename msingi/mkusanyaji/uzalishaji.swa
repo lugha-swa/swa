@@ -4933,6 +4933,10 @@ w0 uzalishaji_wito(n32 node, n32 kazi_node) {
         } sivyo { kama (ni_kielekezi) {
                 andika_call_r11();  // call r11
             } sivyo {
+                // Kazi ya nje yenye `...`: kipande hakijui idadi ya hoja za
+                // rafu wala za xmm -- mpigaji huziweka: r11 = sloti za rafu,
+                // eax = rejesta za xmm zilizotumika (al ya System V).
+                kigeni_andaa_wito_wa_ziada(callee, hoja_n, msingi, n_gp_jumla, n_xmm_jumla);
                 andika_baiti(232);  // call rel32
                 kama (ni_ndani) {
                     n32 offset = ndani_off - (bafa_text_wapi + 4);
@@ -9704,6 +9708,8 @@ n64 d64_bits_hadi_d32(n64 d64) {
 // isiyo nazo haibadiliki hata baiti moja.
 
 n32 kigeni_kazi_sloti[1024];   // faharisi ya data_ulimwengu ya sloti ya GOT
+n32 kigeni_kazi_rafu[1024];    // sloti za rafu za hoja zilizotangazwa (kazi bila `...`)
+n32 kigeni_kazi_rafu_sasa = 0;
 n32 kigeni_phdr_off = -1;      // ofseti ya jedwali la phdr ndani ya .data (-1 = ELF tuli)
 
 w0 kigeni_kosa(n8* ujumbe, n8* jina) {
@@ -9729,13 +9735,49 @@ w0 kigeni_kagua_kichwa(n32 f) {
         sivyo { namba = namba + 1; }
         pn = ast_kulia[pn];
     }
-    kama (namba > 6) { kigeni_kosa("hoja za namba/kielekezi zaidi ya 6 (hoja za rafu ni awamu 2)", jina); }
-    kama (desimali > 8) { kigeni_kosa("hoja za desimali zaidi ya 8 (hoja za rafu ni awamu 2)", jina); }
+    kigeni_kazi_rafu_sasa = kigeni_sloti_za_rafu(namba, desimali);
+}
+
+// Idadi ya vigezo vilivyotangazwa vya kazi f
+n32 kigeni_idadi_ya_vigezo(n32 f) {
+    n32 n = 0;
+    n32 pn = ast_kulia[f];
+    wakati (pn != -1) { n = n + 1; pn = ast_kulia[pn]; }
+    rudisha n;
+}
+
+// Sloti za rafu za hoja: namba zaidi ya 6, desimali zaidi ya 8
+n32 kigeni_sloti_za_rafu(n32 namba, n32 desimali) {
+    n32 k = 0;
+    kama (namba > 6) { k = k + namba - 6; }
+    kama (desimali > 8) { k = k + desimali - 8; }
+    rudisha k;
+}
+
+// Wito wa kazi ya nje yenye `...`: weka r11 na eax kabla ya call.
+w0 kigeni_andaa_wito_wa_ziada(n8* callee, n32 hoja_n, n32 msingi, n32 namba, n32 desimali) {
+    n32 k = kigeni_kazi_kwa_jina(callee);
+    kama (k < 0) { rudisha; }
+    kama (kigeni_kazi_ya_ziada[k] == 0) { rudisha; }
+    // C hupandisha float kuwa double kwenye hoja za ziada
+    n32 j = kigeni_idadi_ya_vigezo(kigeni_kazi_node[k]);
+    wakati (j < hoja_n) {
+        n32 enc = hoja_enc_bk[msingi + j];
+        kama (ni_desimali_enc(enc) && ukubwa_kutoka_enc(enc) < 8) {
+            kigeni_kosa("hoja ya ziada ya d32 -- tumia d64 (C hupandisha float kuwa double)", callee);
+        }
+        j = j + 1;
+    }
+    n32 xmm = desimali;
+    kama (xmm > 8) { xmm = 8; }
+    andika_baiti(65); andika_baiti(187);                    // mov r11d, imm32
+    andika_neno4(kigeni_sloti_za_rafu(namba, desimali));
+    andika_baiti(184); andika_neno4(xmm);                   // mov eax, imm32
 }
 
 // Kabla ya msimbo wowote: kagua, kisha tenga sloti ya GOT kwa kila kazi.
 w0 kigeni_andaa(n32 mzizi, n32 hali_exe) {
-    kama (kigeni_kazi_idadi == 0) { rudisha; }
+    kama (kigeni_kazi_idadi + kigeni_data_idadi == 0) { rudisha; }
     kama (hali_exe != 1) {
         andika_stderr("Hitilafu: kazi za nje (kizuizi cha nje) zinahitaji --exe -- kipakiaji cha mfumo hakipo kwenye hali hii\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
@@ -9745,6 +9787,7 @@ w0 kigeni_andaa(n32 mzizi, n32 hali_exe) {
         n32 f = kigeni_kazi_node[i];
         n8* jina = ast_pool + ast_jina_off[ast_kushoto[f]];
         kigeni_kagua_kichwa(f);
+        kigeni_kazi_rafu[i] = kigeni_kazi_rafu_sasa;
         // Jina la Swa ni la ulimwengu: haliwezi kuwa kazi ya Swa yenye
         // mwili, wala kutangazwa mara mbili kwenye nje.
         n32 a = ast_kushoto[mzizi];
@@ -9784,6 +9827,18 @@ w0 kigeni_andaa(n32 mzizi, n32 hali_exe) {
     }
 }
 
+// Faharisi ya data_ulimwengu ya data ya nje i (jina lile lile la dimbwi)
+n32 kigeni_data_kigezo(n32 i) {
+    n32 jina_off = ast_jina_off[ast_kushoto[kigeni_data_node[i]]];
+    n32 g = 0;
+    wakati (g < data_ulimwengu_idadi) {
+        kama (data_ulimwengu_jina_off[g] == jina_off) { rudisha g; }
+        g = g + 1;
+    }
+    kigeni_kosa("kigezo chake hakikupatikana kwenye .data", ast_pool + jina_off);
+    rudisha -1;
+}
+
 // Baada ya kazi zote za Swa: andika kipande cha kila kazi ya nje.
 w0 kigeni_andika_vipande() {
     n32 i = 0;
@@ -9793,6 +9848,28 @@ w0 kigeni_andika_vipande() {
         andika_baiti(85);                                       // push rbp
         andika_baiti(72); andika_baiti(137); andika_baiti(229);  // mov rbp, rsp
         andika_baiti(72); andika_baiti(131); andika_baiti(228); andika_baiti(240);  // and rsp, -16
+        // Hoja za rafu za mpigaji ziko [rbp+16+8k]; zinakiliwa chini ya
+        // rsp mpya iliyopangiliwa, kwa mpangilio ule ule.
+        kama (kigeni_kazi_ya_ziada[i]) {
+            // idadi iko r11 (kigeni_andaa_wito_wa_ziada)
+            andika_baiti(65); andika_baiti(246); andika_baiti(195); andika_baiti(1);    // test r11b, 1
+            andika_baiti(116); andika_baiti(4);                                         // jz +4
+            andika_baiti(72); andika_baiti(131); andika_baiti(236); andika_baiti(8);    // sub rsp, 8
+            andika_baiti(77); andika_baiti(133); andika_baiti(219);                     // test r11, r11
+            andika_baiti(116); andika_baiti(10);                                        // jz +10
+            andika_baiti(66); andika_baiti(255); andika_baiti(116); andika_baiti(221); andika_baiti(8);  // push qword [rbp+r11*8+8]
+            andika_baiti(73); andika_baiti(255); andika_baiti(203);                     // dec r11
+            andika_baiti(235); andika_baiti(241);                                       // jmp -15
+        } sivyo {
+            n32 k = kigeni_kazi_rafu[i];
+            kama (k % 2 == 1) {
+                andika_baiti(72); andika_baiti(131); andika_baiti(236); andika_baiti(8);  // sub rsp, 8
+            }
+            wakati (k > 0) {
+                k = k - 1;
+                andika_baiti(255); andika_baiti(181); andika_neno4(16 + k * 8);  // push qword [rbp+disp32]
+            }
+        }
         andika_baiti(255); andika_baiti(21);                    // call [rip+disp32]
         andika_rela_ulimwengu(kigeni_kazi_sloti[i]);
         andika_neno4(0);
@@ -9829,12 +9906,14 @@ w0 kigeni_andika_phdr(n32 aina, n32 bendera, n32 ofseti, n32 anwani, n32 ukubwa_
 // Anwani zote ni za kudumu (ET_EXEC kwenye 0x400000): .data huanza
 // 0x400078 + text_size, na faili zima ni PT_LOAD moja.
 w0 kigeni_andika_jedwali(n32 text_size, n32 bss_size) {
-    kama (kigeni_kazi_idadi == 0) { rudisha; }
+    kama (kigeni_kazi_idadi + kigeni_data_idadi == 0) { rudisha; }
     n32 data_vaddr = 4194424 + text_size;
     n32 faili_data = 120 + text_size;
     n32 str_maktaba[64];
     n32 str_alama[1024];
+    n32 str_data[256];
     n32 n = kigeni_kazi_idadi;
+    n32 d = kigeni_data_idadi;
 
     // Kipakiaji cha mfumo (System V x86-64)
     kigeni_pangilia_data(8);
@@ -9857,6 +9936,12 @@ w0 kigeni_andika_jedwali(n32 text_size, n32 bss_size) {
         kigeni_andika_mfuatano(kigeni_pool + kigeni_kazi_alama_off[i]);
         i = i + 1;
     }
+    i = 0;
+    wakati (i < d) {
+        str_data[i] = bafa_data_wapi - o_str;
+        kigeni_andika_mfuatano(kigeni_pool + kigeni_data_alama_off[i]);
+        i = i + 1;
+    }
     n32 urefu_str = bafa_data_wapi - o_str;
 
     // .dynsym: alama tupu, kisha kila kazi (STB_GLOBAL | STT_FUNC, SHN_UNDEF)
@@ -9873,14 +9958,32 @@ w0 kigeni_andika_jedwali(n32 text_size, n32 bss_size) {
         andika_thamani_ya_data(0, 8);
         i = i + 1;
     }
+    // data: STB_GLOBAL | STT_OBJECT, SHN_ABS (anwani ya kudumu), ukubwa wake
+    i = 0;
+    wakati (i < d) {
+        n32 g = kigeni_data_kigezo(i);
+        andika_thamani_ya_data(str_data[i], 4);
+        andika_thamani_ya_data(17, 1);
+        andika_thamani_ya_data(0, 1);
+        andika_thamani_ya_data(65521, 2);
+        andika_thamani_ya_data(data_vaddr + data_ulimwengu_off[g], 8);
+        andika_thamani_ya_data(data_ulimwengu_size[g], 8);
+        i = i + 1;
+    }
 
-    // DT_HASH: ndoo moja tupu -- programu haitoi alama yoyote kwa wengine.
+    // DT_HASH: ndoo moja; alama zote kwenye mnyororo mmoja. Hash yenyewe
+    // haihitajiki (h % 1 == 0) -- kipakiaji hulinganisha majina. Data ya
+    // nje lazima ipatikane hapa: maktaba hutumia nakala yetu.
     n32 o_hash = bafa_data_wapi;
     andika_thamani_ya_data(1, 4);
-    andika_thamani_ya_data(n + 1, 4);
+    andika_thamani_ya_data(n + d + 1, 4);
+    kama (n + d > 0) { andika_thamani_ya_data(1, 4); } sivyo { andika_thamani_ya_data(0, 4); }
     andika_thamani_ya_data(0, 4);
-    i = 0;
-    wakati (i <= n) { andika_thamani_ya_data(0, 4); i = i + 1; }
+    i = 1;
+    wakati (i <= n + d) {
+        kama (i < n + d) { andika_thamani_ya_data(i + 1, 4); } sivyo { andika_thamani_ya_data(0, 4); }
+        i = i + 1;
+    }
 
     // .rela.dyn: R_X86_64_GLOB_DAT (6) kwa kila sloti
     kigeni_pangilia_data(8);
@@ -9890,6 +9993,16 @@ w0 kigeni_andika_jedwali(n32 text_size, n32 bss_size) {
         andika_thamani_ya_data(data_vaddr + data_ulimwengu_off[kigeni_kazi_sloti[i]], 8);
         andika_thamani_ya_data(6, 4);
         andika_thamani_ya_data(i + 1, 4);
+        andika_thamani_ya_data(0, 8);
+        i = i + 1;
+    }
+    // R_X86_64_COPY (5): kipakiaji hunakili thamani ya maktaba kwenye kigezo chetu
+    i = 0;
+    wakati (i < d) {
+        n32 g = kigeni_data_kigezo(i);
+        andika_thamani_ya_data(data_vaddr + data_ulimwengu_off[g], 8);
+        andika_thamani_ya_data(5, 4);
+        andika_thamani_ya_data(n + 1 + i, 4);
         andika_thamani_ya_data(0, 8);
         i = i + 1;
     }
