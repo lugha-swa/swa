@@ -95,7 +95,7 @@ n64 mt_binari(n32 tendo, n64 a, n64 b, n32 upana, n32 ishara) {
     kama (tendo == IR_ZIDISHA) { r = a * b; }
     kama (tendo == IR_GAWANYA || tendo == IR_MODULO) {
         kama (b == 0) {
-            andika_stderr("mtafsiri: kugawanya kwa sifuri\n");
+            andika_kosa("mtafsiri: kugawanya kwa sifuri\n");
             wito_wa_mfumo(60, 136, 0, 0, 0, 0, 0);
         }
         kama (ishara) {
@@ -188,7 +188,7 @@ n64 mt_asili(n32 kazi, n64* h, n32 idadi) {
         mt_andika_baiti(h[0], anwani_b, 1);
         rudisha 0;
     }
-    andika_stderr("mtafsiri: kazi ya asili haijulikani %d\n", kazi);
+    andika_kosa("mtafsiri: kazi ya asili haijulikani %d\n", kazi);
     wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     rudisha 0;
 }
@@ -213,7 +213,7 @@ n64 mt_v_mpya = 0;
 n64 mt_fremu_andaa(n32 k, n64* hoja, n32 idadi) {
     n64 ukubwa_wa_fremu = kati_fremu_ya_kazi[k];
     kama (mt_mrundikano_wapi + ukubwa_wa_fremu > 67108864 || mt_rejista_pepe_wapi + kati_rejista_pepe_za_kazi[k] > 8388608) {
-        andika_stderr("mtafsiri: rafu imejaa (kujirudia kwa kina mno?)\n");
+        andika_kosa("mtafsiri: rafu imejaa (kujirudia kwa kina mno?)\n");
         wito_wa_mfumo(60, 139, 0, 0, 0, 0, 0);
     }
     n64 fremu = mt_mrundikano + mt_mrundikano_wapi;
@@ -279,7 +279,7 @@ n64 mt_endesha(n32 k, n64* hoja, n32 idadi) {
         }
         kama (amri == IR_WITO) {
             kama (kina + 1 >= MT_UPEO_KINA) {
-                andika_stderr("mtafsiri: kujirudia kwa kina mno\n");
+                andika_kosa("mtafsiri: kujirudia kwa kina mno\n");
                 wito_wa_mfumo(60, 139, 0, 0, 0, 0, 0);
             }
             n32 i2 = 0;
@@ -318,7 +318,7 @@ n64 mt_endesha(n32 k, n64* hoja, n32 idadi) {
             v[mt_wito_lengo[kina]] = mt_sawazisha(matokeo, kati_upana_wa_matokeo_ya_kazi[aliyeita], kati_ishara_ya_matokeo_ya_kazi[aliyeita]);
             endelea;
         }
-        andika_stderr("mtafsiri: amri isiyojulikana %d\n", amri);
+        andika_kosa("mtafsiri: amri isiyojulikana %d\n", amri);
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
     rudisha 0;
@@ -327,9 +327,13 @@ n64 mt_endesha(n32 k, n64* hoja, n32 idadi) {
 // Endesha programu: vianzio vya ulimwengu, kisha main(argc, argv).
 // argv ni hoja za programu (argv[0] = njia ya faili la chanzo).
 n32 mtafsiri_endesha(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
-    n32 kuu = tm_kazi_tafuta("main");
+    n32 kuu = tm_kazi_tafuta("anza");
     kama (kuu < 0) {
-        andika_stderr("mtafsiri: kazi 'main' haipo\n");
+        kuu = tm_kazi_tafuta("main");
+        kama (kuu >= 0) { onya_neno_la_zamani("main", "anza"); }
+    }
+    kama (kuu < 0) {
+        andika_kosa("mtafsiri: kazi 'anza' haipo\n");
         rudisha 1;
     }
     n64 tupu[1];

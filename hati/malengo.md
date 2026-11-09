@@ -14,7 +14,7 @@ yenyewe kupitia baiti za mkono.
 Hakuna assembly. Hakuna GNU as.
 - [x] ELF header + machine code (opcodes za x86-64)
 - [x] Inachukua nafasi ya mteremko.swa (LLVM) KABISA katika mnyororo wa kujikusanya
-- [x] `N32 main() { rudisha 42; }` -> ELF binary inayofanya kazi
+- [x] `N32 anza() { rudisha 42; }` -> ELF binary inayofanya kazi
 - [x] Mnyororo mzima unajithibitisha: stage2-exe == stage3-exe (sawa kwa baiti)
 
 ### Hatua ya 2: JIT halisi (kama HolyC) [IMEFANYIKA]

@@ -28,7 +28,7 @@ nje "libc.so.6" {
     w0 panga(w0* safu, a64 idadi, a64 ukubwa, n8* linganisha) = "qsort";
 }
 
-n32 main() {
+n32 anza() {
     d64 x = kosini(0.0);          // wito wa kawaida wa Swa
     ...
 }

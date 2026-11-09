@@ -9,7 +9,7 @@
 
 Mpango wa awali (Julai 2026) ulikuwa hatua nne za binary moja inayokua:
 mzalishaji wa ELF (`rudisha 42`), kisha nambari, kisha maneno
-(`N32 main() { rudisha <N>; }`), kisha kujikusanya. Hatua tatu za kwanza
+(`N32 anza() { rudisha <N>; }`), kisha kujikusanya. Hatua tatu za kwanza
 zilifanyika kama `msingi/bootstrap.bin` (baiti 1305: vigeu na `+ - *`),
 lakini baiti zake zilizalishwa na `bootstrap.py` -- Python, si mkono -- na
 hatua ya nne haikufikiwa kwa njia hiyo.

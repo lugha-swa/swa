@@ -24,7 +24,7 @@ n32 jendesha_na_subiri(n8* njia) {
 
     n64 kitambulisho_mchakato = mfumo_gawanyika();
     kama (kitambulisho_mchakato < 0) {
-        andika_stderr("FAIL: sys_fork() imeshindwa\n", 0, 0, 0, 0, 0, 0);
+        andika_kosa("FAIL: sys_fork() imeshindwa\n", 0, 0, 0, 0, 0, 0);
         rudisha -1;
     }
     kama (kitambulisho_mchakato == 0) {
@@ -39,20 +39,20 @@ n32 jendesha_na_subiri(n8* njia) {
     n32 hali_ya = 0;
     n64 kitambulisho_mchakato_aliyebadilika = mfumo_subiri4(kitambulisho_mchakato, &hali_ya, 0);
     kama (kitambulisho_mchakato_aliyebadilika != kitambulisho_mchakato) {
-        andika_stderr("FAIL: sys_wait4 ilirudisha pid=%d, ilitarajiwa %d\n", kitambulisho_mchakato_aliyebadilika, kitambulisho_mchakato, 0, 0, 0, 0);
+        andika_kosa("FAIL: sys_wait4 ilirudisha pid=%d, ilitarajiwa %d\n", kitambulisho_mchakato_aliyebadilika, kitambulisho_mchakato, 0, 0, 0, 0);
         rudisha -1;
     }
     kama (mfumo_subiri4_ulitoka_kwa_kawaida(hali_ya) == 0) {
-        andika_stderr("FAIL: mtoto hakutoka kwa kawaida (status=%d)\n", hali_ya, 0, 0, 0, 0, 0);
+        andika_kosa("FAIL: mtoto hakutoka kwa kawaida (status=%d)\n", hali_ya, 0, 0, 0, 0, 0);
         rudisha -1;
     }
     rudisha mfumo_subiri4_msimbo_wa_kutoka(hali_ya);
 }
 
-n32 main() {
+n32 anza() {
     n32 msimbo_kweli = jendesha_na_subiri("/usr/bin/true");
     kama (msimbo_kweli != 0) {
-        andika_stderr("FAIL: /usr/bin/true ilitoka na %d, ilitarajiwa 0\n", msimbo_kweli, 0, 0, 0, 0, 0);
+        andika_kosa("FAIL: /usr/bin/true ilitoka na %d, ilitarajiwa 0\n", msimbo_kweli, 0, 0, 0, 0, 0);
         kosa = kosa + 1;
     } sivyo {
         andika("PASS: /usr/bin/true ilitoka na 0 (fork+execve+wait4 zinafanya kazi)\n", 0, 0, 0, 0, 0, 0);
@@ -60,7 +60,7 @@ n32 main() {
 
     n32 msimbo_uwongo = jendesha_na_subiri("/usr/bin/false");
     kama (msimbo_uwongo != 1) {
-        andika_stderr("FAIL: /usr/bin/false ilitoka na %d, ilitarajiwa 1\n", msimbo_uwongo, 0, 0, 0, 0, 0);
+        andika_kosa("FAIL: /usr/bin/false ilitoka na %d, ilitarajiwa 1\n", msimbo_uwongo, 0, 0, 0, 0, 0);
         kosa = kosa + 1;
     } sivyo {
         andika("PASS: /usr/bin/false ilitoka na 1 (msimbo HALISI wa kutoka unasomwa sahihi)\n", 0, 0, 0, 0, 0, 0);

@@ -35,7 +35,7 @@ w0 jm_kagua(n64 halisi, n64 tarajiwa, n8* maelezo) {
     kama (halisi == tarajiwa) {
         JM_IMEPITA = JM_IMEPITA + 1;
     } sivyo {
-        andika_stderr("SHINDWA: %s (ilitarajiwa %d, ilipata %d)\n", maelezo, tarajiwa, halisi, 0, 0, 0);
+        andika_kosa("SHINDWA: %s (ilitarajiwa %d, ilipata %d)\n", maelezo, tarajiwa, halisi, 0, 0, 0);
         JM_SHINDWA = JM_SHINDWA + 1;
     }
 }
@@ -105,11 +105,11 @@ w0 jm_elekeza_kishikio(n64 kishikio_cha_chanzo, n8* njia) {
 // AU hitilafu nyingine ya ishara) -- msimbo_nje si sahihi katika
 // hali hii.
 // ---------------------------------------------------------------
-n32 jm_endesha_kwa_kikomo(n8* njia, n8** hoja_za_mchakato_mpya, n8** mazingira, n8* stdout_njia, n8* stderr_njia, n64 kikomo_sekunde, n32* msimbo_nje) {
+n32 jm_endesha_kwa_kikomo(n8* njia, n8** hoja_za_mchakato_mpya, n8** mazingira, n8* stdout_njia, n8* njia_ya_makosa, n64 kikomo_sekunde, n32* msimbo_nje) {
     n64 mchakato_mpya = mfumo_gawanyika();
     kama (mchakato_mpya == 0) {
         jm_elekeza_kishikio(1, stdout_njia);
-        jm_elekeza_kishikio(2, stderr_njia);
+        jm_elekeza_kishikio(2, njia_ya_makosa);
         mfumo_tekeleza_programu(njia, hoja_za_mchakato_mpya, mazingira);
         wito_wa_mfumo(60, 127, 0, 0, 0, 0, 0);
     }
@@ -135,11 +135,11 @@ n32 jm_endesha_kwa_kikomo(n8* njia, n8** hoja_za_mchakato_mpya, n8** mazingira, 
 // mlinzi -- `sys_wait4` ya moja kwa moja, kuzuia (blocking) inatosha.
 // Hurudisha msimbo wa kutoka (0 = ukusanyaji umefaulu).
 // ---------------------------------------------------------------
-n32 jm_kusanya(n8* njia_ya_kutekeleza, n8** hoja_za_mchakato_mpya, n8** mazingira, n8* stdout_njia, n8* stderr_njia) {
+n32 jm_kusanya(n8* njia_ya_kutekeleza, n8** hoja_za_mchakato_mpya, n8** mazingira, n8* stdout_njia, n8* njia_ya_makosa) {
     n64 mchakato_mpya = mfumo_gawanyika();
     kama (mchakato_mpya == 0) {
         jm_elekeza_kishikio(1, stdout_njia);
-        jm_elekeza_kishikio(2, stderr_njia);
+        jm_elekeza_kishikio(2, njia_ya_makosa);
         mfumo_tekeleza_programu(njia_ya_kutekeleza, hoja_za_mchakato_mpya, mazingira);
         wito_wa_mfumo(60, 127, 0, 0, 0, 0, 0);
     }
@@ -176,7 +176,7 @@ n32 jm_tafuta_kipande(n8* chombo, n64 urefu, n8* kipande) {
         n32 sawa = 1;
         n64 j = 0;
         wakati (j < klen) {
-            kama (chombo[i + j] != kipande[j]) { sawa = 0; vunja; }
+            kama (chombo[i + j] != kipande[j]) { sawa = 0; acha; }
             j = j + 1;
         }
         kama (sawa == 1) { rudisha 1; }
@@ -277,7 +277,7 @@ w0 jm_jaribu_moja(n8* programu, n8** mazingira, n8* faili, n64 tarajiwa, n8* jin
     n8** hoja_za_mstari = jm_hoja_mstari3(programu, "--exe", faili);
     n32 rc_kusanya = jm_kusanya(programu, hoja_za_mstari, mazingira, "/tmp/swa-mnyororo-asili/p", JM_TUPU);
     kama (rc_kusanya != 0) {
-        andika_stderr("SHINDWA: kukusanya %s kwa %s\n", faili, jina_la_mfululizo, 0, 0, 0, 0);
+        andika_kosa("SHINDWA: kukusanya %s kwa %s\n", faili, jina_la_mfululizo, 0, 0, 0, 0);
         JM_SHINDWA = JM_SHINDWA + 1;
         rudisha;
     }
@@ -289,9 +289,9 @@ w0 jm_jaribu_moja(n8* programu, n8** mazingira, n8* faili, n64 tarajiwa, n8* jin
     jm_kagua(msimbo, tarajiwa, faili);
 }
 
-n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
+n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     kama (idadi_ya_hoja_za_mstari < 3) {
-        andika_stderr("Matumizi: jaribu_mnyororo <njia-ya-mbegu> <njia-ya-msuluhishi>\n", 0, 0, 0, 0, 0, 0);
+        andika_kosa("Matumizi: jaribu_mnyororo <njia-ya-mbegu> <njia-ya-msuluhishi>\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
     n8** mazingira = jm_pata_mazingira(hoja_za_mstari);
@@ -307,13 +307,13 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     // matumizi yake ya bash (`"$MSULU" faili > zima.swa`).
     n32 rc_tatua = jm_kusanya(MSULUHISHI, hoja_mstari_msulu, mazingira, "/tmp/swa-mnyororo-asili/zima.swa", JM_TUPU);
     kama (rc_tatua != 0) {
-        andika_stderr("SHINDWA: kutatua msingi/mkusanyaji/stage1.swa\n", 0, 0, 0, 0, 0, 0);
+        andika_kosa("SHINDWA: kutatua msingi/mkusanyaji/stage1.swa\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
     n8** hoja_mstari_stage1 = jm_hoja_mstari3(MBEGU, "--exe", "/tmp/swa-mnyororo-asili/zima.swa");
     n32 rc_stage1 = jm_kusanya(MBEGU, hoja_mstari_stage1, mazingira, "/tmp/swa-mnyororo-asili/stage1", "/tmp/swa-mnyororo-asili/stage1.err");
     kama (rc_stage1 != 0) {
-        andika_stderr("SHINDWA: mbegu --exe zima.swa\n", 0, 0, 0, 0, 0, 0);
+        andika_kosa("SHINDWA: mbegu --exe zima.swa\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
     wito_wa_mfumo(90, "/tmp/swa-mnyororo-asili/stage1", 493, 0, 0, 0, 0);  // chmod +x
@@ -322,17 +322,17 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     // ============ Fixpoint: stage2 == stage3 ============
     n8** hoja_mstari_s2 = jm_hoja_mstari3("/tmp/swa-mnyororo-asili/stage1", "--exe", "/tmp/swa-mnyororo-asili/zima.swa");
     n32 rc_s2 = jm_kusanya("/tmp/swa-mnyororo-asili/stage1", hoja_mstari_s2, mazingira, "/tmp/swa-mnyororo-asili/stage2", JM_TUPU);
-    kama (rc_s2 != 0) { andika_stderr("SHINDWA: stage1 --exe\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
+    kama (rc_s2 != 0) { andika_kosa("SHINDWA: stage1 --exe\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
     wito_wa_mfumo(90, "/tmp/swa-mnyororo-asili/stage2", 493, 0, 0, 0, 0);
 
     n8** hoja_mstari_s3 = jm_hoja_mstari3("/tmp/swa-mnyororo-asili/stage2", "--exe", "/tmp/swa-mnyororo-asili/zima.swa");
     n32 rc_s3 = jm_kusanya("/tmp/swa-mnyororo-asili/stage2", hoja_mstari_s3, mazingira, "/tmp/swa-mnyororo-asili/stage3", JM_TUPU);
-    kama (rc_s3 != 0) { andika_stderr("SHINDWA: stage2 --exe\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
+    kama (rc_s3 != 0) { andika_kosa("SHINDWA: stage2 --exe\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
 
     kama (jm_mafaili_sawa("/tmp/swa-mnyororo-asili/stage2", "/tmp/swa-mnyororo-asili/stage3")) {
         JM_IMEPITA = JM_IMEPITA + 1;
     } sivyo {
-        andika_stderr("SHINDWA: fixpoint (stage2 != stage3)\n", 0, 0, 0, 0, 0, 0);
+        andika_kosa("SHINDWA: fixpoint (stage2 != stage3)\n", 0, 0, 0, 0, 0, 0);
         JM_SHINDWA = JM_SHINDWA + 1;
     }
 
@@ -342,7 +342,7 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     weka_sifuri(manifest_chombo, JM_UWEZO_MANIFEST);
     n64 urefu = faili_soma_yote("majaribio/programu/MANIFEST.txt", manifest_chombo, JM_UWEZO_MANIFEST);
     kama (urefu < 0) {
-        andika_stderr("SHINDWA: MANIFEST.txt ni kubwa mno au haifunguki\n", 0, 0, 0, 0, 0, 0);
+        andika_kosa("SHINDWA: MANIFEST.txt ni kubwa mno au haifunguki\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
 
@@ -367,7 +367,7 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
 
         // Hakuna kuruka kimya: kila mstari ni KATA au namba ya kutoka.
         kama (linganisha_mfuatano(code, "KATA") != 0 && (code[0] < 48 || code[0] > 57)) {
-            andika_stderr("SHINDWA: MANIFEST: safu ya kwanza si KATA wala namba: %s\n", code, 0, 0, 0, 0, 0);
+            andika_kosa("SHINDWA: MANIFEST: safu ya kwanza si KATA wala namba: %s\n", code, 0, 0, 0, 0, 0);
             JM_SHINDWA = JM_SHINDWA + 1;
             endelea;
         }

@@ -54,7 +54,7 @@ inayoruhusiwa kubadilika.
 | Kiingereza | Swa | Maelezo |
 |---|---|---|
 | `main` | `anza` | mlango wa programu -- sawa na `anza:` ya lugha ya mashine |
-| `andika_stderr` | `andika_kosa` | kazi ya ndani: andika kwenye mkondo wa makosa (2) |
+| `andika_kosa` | `andika_kosa` | kazi ya ndani: andika kwenye mkondo wa makosa (2) |
 | `--exe` | `--programu` | ELF inayotekelezeka |
 | `--kernel` | `--kiini` | picha ya kiini (Kawira) |
 | `--ir` | `--kati` | uwakilishi wa kati |
@@ -62,7 +62,7 @@ inayoruhusiwa kubadilika.
 | `--wasm`, `--wasm-js` | (zinabaki) | WASM na JS ni majina ya umbizo |
 | `stage1.swa` | `kiendeshaji.swa` | dereva wa mkusanyaji (hatua 1 ya mnyororo ni `hatua1_maoni`) |
 
-`main`, `andika_stderr` na `call` zinajulikana na mbegu iliyogandishwa
+`main`, `andika_kosa` na `call` zinajulikana na mbegu iliyogandishwa
 (`msingi/mbegu.swm`), kwa hiyo sehemu hii hufanywa pamoja na kugandisha
 mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 
