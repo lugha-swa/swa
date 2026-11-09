@@ -3,7 +3,7 @@
     <a href="https://lugha-swa.github.io">
       <picture>
         <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/lugha-swa/.github/main/rasilimali/mabango/swa-giza.png">
-        <img width="100%" src="https://raw.githubusercontent.com/lugha-swa/.github/main/rasilimali/mabango/swa-mwanga.png" alt="Swa — lugha ya kupanga ya Kiswahili inayojikusanya yenyewe">
+        <img width="100%" src="https://raw.githubusercontent.com/lugha-swa/.github/main/rasilimali/mabango/swa-mwanga.png" alt="Swa -- lugha ya kupanga ya Kiswahili inayojikusanya yenyewe">
       </picture>
     </a>
   </p>
@@ -20,7 +20,7 @@
 </div>
 <br>
 
-**Swa** ni lugha ya kupanga ya mifumo yenye sintaksia kamili ya Kiswahili. Mkusanyaji wake umeandikwa kwa Swa yenyewe na hutoa ELF ya x86-64 moja kwa moja — bila LLVM, bila assembler, bila kiunganishi, bila libc. Mnyororo mzima wa kujikusanya huanzia **baiti 393 za mkono** na hujifunga hadi `stage2 == stage3`, sawa kwa baiti.
+**Swa** ni lugha ya kupanga ya mifumo yenye sintaksia kamili ya Kiswahili. Mkusanyaji wake umeandikwa kwa Swa yenyewe na hutoa ELF ya x86-64 moja kwa moja -- bila LLVM, bila assembler, bila kiunganishi, bila libc. Mnyororo mzima wa kujikusanya huanzia **baiti 393 za mkono** na hujifunga hadi `stage2 == stage3`, sawa kwa baiti.
 
 Swa hiyo hiyo inakusanya pia kwenda **WebAssembly** (kivinjari) na kwenda **ring 0** ([Kawira](https://github.com/lugha-swa/kawira), kernel iliyoandikwa kwa Swa).
 
@@ -102,7 +102,7 @@ umbali^2 = 25
 2 ni shufwa
 ```
 
-Mfano huu hukusanywa na kuendeshwa kwenye CI kila PR (`gharama/jaribu-mifano.mapishi`) — msimbo ulio hapa juu hauwezi kupitwa na wakati kimya.
+Mfano huu hukusanywa na kuendeshwa kwenye CI kila PR (`gharama/jaribu-mifano.mapishi`) -- msimbo ulio hapa juu hauwezi kupitwa na wakati kimya.
 
 Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hati/kusanyiko-x86.md)). Mfano wake: [`mifano/mkusanyaji_mdogo.swm`](mifano/mkusanyaji_mdogo.swm), mkusanyaji mdogo kamili (vigeu vya `n32`, `rudisha` ya `+ - *`) -- `./jengo/kusanyiko < mifano/mkusanyaji_mdogo.swm > m` baada ya `jenga.mapishi`, kisha `./m 'n32 main() { rudisha 42; }' > p`.
 
@@ -125,11 +125,11 @@ Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hat
 
 | Kipengele | Maelezo |
 |---|---|
-| **Maneno muhimu 13** | `muundo` `rudisha` `kama` `sivyo` `wakati` `kwa` `fanya` `vunja` `endelea` `chagua` `hali` `husisha` `achilia` — mengine yote ni maktaba |
-| **Aina** | familia tano: `n` (nambari), `a` (bila ishara), `d` (desimali), `b` (mifumo ya biti), `w` (tupu) — upana 8/16/32/64, mf. `n32`, `d64`, `b8`, `w0`; pia `b1` (biti moja) |
-| **Biti** | familia `b` ni bendera na maski: `& \| ^ ~ << >> == !=` pekee — hesabu na mpangilio (`+ - * / %`, `< >`) hazina maana kwa biti na zinakataliwa kwa sauti |
-| **Kumbukumbu** | `tenga` / `achilia` / `badili` — moja kwa moja, bila ukusanyaji taka |
-| **Moduli** | `husisha { njia/ya/faili.swa }` — hutatuliwa na mkusanyaji; mzunguko hukataliwa kwa sauti |
+| **Maneno muhimu 13** | `muundo` `rudisha` `kama` `sivyo` `wakati` `kwa` `fanya` `vunja` `endelea` `chagua` `hali` `husisha` `achilia` -- mengine yote ni maktaba |
+| **Aina** | familia tano: `n` (nambari), `a` (bila ishara), `d` (desimali), `b` (mifumo ya biti), `w` (tupu) -- upana 8/16/32/64, mf. `n32`, `d64`, `b8`, `w0`; pia `b1` (biti moja) |
+| **Biti** | familia `b` ni bendera na maski: `& \| ^ ~ << >> == !=` pekee -- hesabu na mpangilio (`+ - * / %`, `< >`) hazina maana kwa biti na zinakataliwa kwa sauti |
+| **Kumbukumbu** | `tenga` / `achilia` / `badili` -- moja kwa moja, bila ukusanyaji taka |
+| **Moduli** | `husisha { njia/ya/faili.swa }` -- hutatuliwa na mkusanyaji; mzunguko hukataliwa kwa sauti |
 | **Kanuni** | programu hukusanywa sahihi **au** hukataliwa kwa sauti. Jibu baya la kimya ni mdudu |
 
 ## Hali ya mradi
@@ -150,9 +150,9 @@ Mipaka inayojulikana imeandikwa wazi kwenye [hati/mipaka.md](hati/mipaka.md); ra
 
 | Njia | Maelezo |
 |---|---|
-| [`msingi/kwanza.bin`](msingi) | baiti 393 za mkono — mwanzo wa mnyororo |
-| [`msingi/kizinduzi.bin`](msingi) | baiti 839 za mkono — mbegu ya pili: huendesha hatua za mwanzo hadi mjenzi ujengwe kutoka chanzo chake ([`kizinduzi.hexc`](msingi/kizinduzi.hexc)) |
-| [`msingi/mbegu.swm`](msingi) | mbegu — mkusanyaji mdogo uliogandishwa, kwa lugha ya mashine ya Swa; hujengwa na mnyororo huru |
+| [`msingi/kwanza.bin`](msingi) | baiti 393 za mkono -- mwanzo wa mnyororo |
+| [`msingi/kizinduzi.bin`](msingi) | baiti 839 za mkono -- mbegu ya pili: huendesha hatua za mwanzo hadi mjenzi ujengwe kutoka chanzo chake ([`kizinduzi.hexc`](msingi/kizinduzi.hexc)) |
+| [`msingi/mbegu.swm`](msingi) | mbegu -- mkusanyaji mdogo uliogandishwa, kwa lugha ya mashine ya Swa; hujengwa na mnyororo huru |
 | [`msingi/mkusanyaji/`](msingi/mkusanyaji) | msomaji, mchanganuzi, mkaguzi, uzalishaji (x86-64 na WASM) |
 | [`msingi/maktaba/`](msingi/maktaba) | kumbukumbu, mfuatano, orodha, ramani, faili, hesabu, takwimu, ... |
 | [`majaribio/`](majaribio) | majaribio ya programu, WASM na kernel |
@@ -163,15 +163,15 @@ Mipaka inayojulikana imeandikwa wazi kwenye [hati/mipaka.md](hati/mipaka.md); ra
 
 | Hazina | Maelezo |
 |---|---|
-| [lugha-swa/swa](https://github.com/lugha-swa/swa) | mkusanyaji na maktaba ya msingi — hazina hii |
-| [lugha-swa/kawira](https://github.com/lugha-swa/kawira) | Swa kwenye ring 0 — kernel inayoanzisha, iliyoandikwa kwa Swa |
+| [lugha-swa/swa](https://github.com/lugha-swa/swa) | mkusanyaji na maktaba ya msingi -- hazina hii |
+| [lugha-swa/kawira](https://github.com/lugha-swa/kawira) | Swa kwenye ring 0 -- kernel inayoanzisha, iliyoandikwa kwa Swa |
 | [lugha-swa/uchapaji-swa](https://github.com/lugha-swa/uchapaji-swa) | msomaji wa TrueType na kijazaji cha glyph, bila FreeType |
-| [lugha-swa/tree-sitter-swa](https://github.com/lugha-swa/tree-sitter-swa) | sarufi ya Tree-sitter — rangi za sintaksia kwenye vihariri |
+| [lugha-swa/tree-sitter-swa](https://github.com/lugha-swa/tree-sitter-swa) | sarufi ya Tree-sitter -- rangi za sintaksia kwenye vihariri |
 | [lugha-swa.github.io](https://github.com/lugha-swa/lugha-swa.github.io) | tovuti na mwongozo wa lugha |
 
 ## Changia
 
-Michango inakaribishwa — kila kitu kwenye mradi (msimbo, maoni, commits, PR) kiko kwa Kiswahili. Soma [CONTRIBUTING.md](CONTRIBUTING.md), kisha angalia [masuala ya waanzishaji](https://github.com/lugha-swa/swa/labels/good-first-issue). Mabadiliko yote huingia kupitia PR; `main` inalindwa na CI lazima iwe kijani.
+Michango inakaribishwa -- kila kitu kwenye mradi (msimbo, maoni, commits, PR) kiko kwa Kiswahili. Soma [CONTRIBUTING.md](CONTRIBUTING.md), kisha angalia [masuala ya waanzishaji](https://github.com/lugha-swa/swa/labels/good-first-issue). Mabadiliko yote huingia kupitia PR; `main` inalindwa na CI lazima iwe kijani.
 
 Ripoti mdudu kwenye [Issues](https://github.com/lugha-swa/swa/issues), uliza swali kwenye [Discussions](https://github.com/lugha-swa/swa/discussions). Masuala ya usalama: [SECURITY.md](SECURITY.md).
 
@@ -183,5 +183,5 @@ Kwa chaguo lako, [Apache 2.0](LICENSE-APACHE) au [MIT](LICENSE-MIT).
 <div align="center">
   <a href="https://github.com/lugha-swa"><img src="https://raw.githubusercontent.com/lugha-swa/.github/main/rasilimali/nembo/nembo-64.png" width="28" alt="lugha-swa"></a>
   <br>
-  <sub>lugha-swa · Afrika ya Mashariki</sub>
+  <sub>lugha-swa - Afrika ya Mashariki</sub>
 </div>

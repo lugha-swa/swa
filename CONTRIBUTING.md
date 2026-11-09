@@ -22,7 +22,7 @@ Tafuta lebo `good-first-issue` kwenye [ukurasa wa masuala](https://github.com/lu
 Tumia kiolezo cha **Ripoti ya Hitilafu**. Hakikisha umejumuisha:
 - Hatua za kuzalisha hitilafu
 - Matokeo halisi na yanayotarajiwa
-- Mazingira yako (OS, mnyororo uliotumika — mbegu au stage1, ukubwa wa mbegu.bin, hali ya fixpoint)
+- Mazingira yako (OS, mnyororo uliotumika -- mbegu au stage1, ukubwa wa mbegu.bin, hali ya fixpoint)
 
 ### 3. Kupendekeza Vipengele
 
@@ -86,24 +86,24 @@ Dereva wa zamani wa Rust/LLVM uko kwenye hazina ya kumbukumbu
 mnyororo mzima. Sheria isiyo na mbadala:
 
 **Mabadiliko ya mzizi wa uaminifu hujengwa na Kujaribiwa KABLA ya
-kugandishwa — hakuna ubaguzi.**
+kugandishwa -- hakuna ubaguzi.**
 
-Kwa nini: hitilafu kwenye mzizi ni ya darasa baya zaidi — mbegu
+Kwa nini: hitilafu kwenye mzizi ni ya darasa baya zaidi -- mbegu
 iliyovunjika inaweza bado kutoa fixpoint imara LAKINI mbaya
 (stage2 == stage3 == takataka), na mnyororo mzima unaweza kushindwa
 kimya kimya. Mfano halisi: uhariri mdogo wa njia ya fixup uliwahi
-kufanya kila mkusanyiko kushindwa — ulipatikana tu kwa sababu jaribio
+kufanya kila mkusanyiko kushindwa -- ulipatikana tu kwa sababu jaribio
 la wito 1,000 lilikimbizwa kabla ya kugandisha. Jaribio hilo sasa ni
-mkazo wa RELA ndani ya `gharama/jaribu-mnyororo.mapishi` (`majaribio/mkazo/rela_1000.swa`) — la kudumu.
+mkazo wa RELA ndani ya `gharama/jaribu-mnyororo.mapishi` (`majaribio/mkazo/rela_1000.swa`) -- la kudumu.
 
 Mpangilio wa lazima:
 1. Badilisha `msingi/mbegu.swm`.
-2. `./msingi/mjenzi.bin gharama/mbegu-mpya.mapishi` → mbegu ya muda
-   `jengo/mbegu` (mnyororo huru: kwanza.bin → maoni → lebo → kusanyiko0
-   → kusanyiko) → jaribu
+2. `./msingi/mjenzi.bin gharama/mbegu-mpya.mapishi` -> mbegu ya muda
+   `jengo/mbegu` (mnyororo huru: kwanza.bin -> maoni -> lebo -> kusanyiko0
+   -> kusanyiko) -> jaribu
    kwa chanzo KIDOGO (sio mkusanyiko mzima kwanza) na kwa mkusanyiko
    mzima.
-3. Jaribio la mkazo la wito wa mbele (angalau 1,000) — njia za RELA
+3. Jaribio la mkazo la wito wa mbele (angalau 1,000) -- njia za RELA
    na nje zinazopigwa mara nyingi.
 4. Baada ya hapo tu: gandisha (`./msingi/mjenzi.bin gharama/gandisha.mapishi`
    huandika `mbegu.bin` + `mbegu.hex` na `mjenzi.bin` + `mjenzi.hex`,
@@ -119,7 +119,7 @@ Mpangilio wa lazima:
 1. **Kiswahili kwanza.** Vigeu, kazi, na maoni yote kwa Kiswahili.
 2. **Rahisi.** Swa haihitaji kuwa na kila kipengele. Inalenga kuwa mbadala wa C, si C++ au Rust.
 3. **Imara.** Hakuna paniki, hakuna tabia isiyotabirika. Kila hitilafu lazima ishughulikiwe.
-4. **Inayojikusanya.** Utegemezi wa Rust na LLVM umeondolewa kabisa — mnyororo wa uzalishaji ni Swa pekee.
+4. **Inayojikusanya.** Utegemezi wa Rust na LLVM umeondolewa kabisa -- mnyororo wa uzalishaji ni Swa pekee.
 
 ---
 

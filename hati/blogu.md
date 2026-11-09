@@ -1,6 +1,6 @@
 # Mkusanyaji wa Kujikusanya wa Swa: Hatua Muhimu Ilifikiwa Baada ya Saa 18 za Kurekebisha Hitilafu
 
-KUMBUKA (2026-09-05): makala hii ni rekodi ya kihistoria — dereva wa
+KUMBUKA (2026-09-05): makala hii ni rekodi ya kihistoria -- dereva wa
 Rust/LLVM (kande) unaoelezwa hapa umehamishiwa hazina ya kumbukumbu
 lugha-swa/swa-dereva.
 
