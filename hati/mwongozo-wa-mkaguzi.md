@@ -1,0 +1,90 @@
+# Mwongozo wa mkaguzi: mzizi wa mnyororo huru
+
+Swa yote hujengwa kutoka programu mbili za mkono. Kila kinachofuata hujengwa
+na hatua iliyo chini yake, na kila hatua hujijenga yenyewe sawa kwa baiti --
+lakini hilo linathibitisha uthabiti, si uaminifu. Kitu pekee kinachothibitisha
+kwamba hakuna kilichofichwa ni **mtu kusoma baiti**. Mwongozo huu unaeleza
+nini cha kusoma, kwa mpangilio gani, na jinsi ya kukagua kila dai bila
+kuamini zana zetu.
+
+Hadi sasa hakuna mtu aliyefanya ukaguzi huu kamili. Ukiufanya, andika
+matokeo yako (hata "nimekagua X, sikuona tatizo") kwenye issue ya hazina.
+
+## Kinachohitaji kusomwa
+
+| # | Programu | Baiti | Faili la kusoma | Wito wa mfumo (strace) |
+|---|---|---|---|---|
+| 0 | `kwanza` (hex -> binary) | 393 | `hati/kwanza-baiti.md`, `msingi/kwanza.hex` | read, write, exit |
+| 0b | `kizinduzi` (kiendeshaji cha hatua) | 839 | `msingi/kizinduzi.hexc` (chanzo: `msingi/mnyororo/kizinduzi.swm`) | read, write, open, dup2, fork, wait4, execve, mkdir, exit |
+| 1 | `maoni` (hex + maoni) | 400 | `msingi/mnyororo/hatua1_maoni.hexc` | read, write, exit |
+| 2 | `lebo` (lebo na matawi) | 730 | `msingi/mnyororo/hatua2_lebo.hexc` | read, write, exit |
+| 3 | `kusanyiko0` (makro) | 1019 | `msingi/mnyororo/hatua3_kusanyiko0.hex2` | read, write, exit |
+
+Jumla: baiti 3381. Mbegu mbili (0 na 0b) ndizo binary pekee zilizogandishwa
+kwenye mzizi; hatua 1-3 hujengwa kutoka faili za maandishi wakati wa kila
+ujenzi. Baada ya hatua 3, msimbo umeandikwa kwa makro (`.kus`) na kisha kwa
+lugha ya mashine ya Swa (`.swm`) -- unasomeka kama programu, si baiti.
+
+## Mpangilio unaopendekezwa
+
+1. **`kwanza`** -- ndogo kuliko zote, na kila kitu kinaitegemea.
+   `hati/kwanza-baiti.md` inaeleza kila sehemu ya kichwa na msimbo.
+2. **`kizinduzi`** -- huendesha hatua zote za mwanzo. Kosa hapa lingeweza
+   kubadilisha matokeo ya hatua yoyote.
+3. **`maoni`, `lebo`, `kusanyiko0`** -- kila moja huongeza kipengele kimoja
+   juu ya iliyotangulia.
+
+## Kwa kila programu, kagua
+
+- **Kichwa cha ELF:** kiingilio (`e_entry`), PT_LOAD moja, `p_filesz` sawa na
+  ukubwa wa faili, `p_memsz` -- bafa zote ziko ndani yake.
+- **Kila agizo:** baiti kwenye mstari zinasimba agizo lililoandikwa kwenye
+  maoni yake (rejea: Intel SDM Juzuu 2, au disassembler yoyote kama mkaguzi).
+- **Wito wa mfumo:** kabla ya kila `syscall` (0f 05), thamani ya rax ni
+  mojawapo ya zile kwenye jedwali hapo juu -- hakuna mtandao, hakuna
+  kubadilisha ruhusa za kumbukumbu, hakuna kuandika mahali pengine.
+- **Kumbukumbu:** kila uandishi unaenda kwenye bafa iliyotangazwa kwenye
+  maoni ya kichwa, ndani ya `p_memsz`.
+- **Matawi:** kila umbali wa `ruka`/`call` unaelekea mwanzo wa agizo, si
+  katikati yake.
+- **Mwisho:** hakuna baiti baada ya msimbo na data zilizoelezwa.
+
+## Kukagua bila kuamini zana zetu
+
+Kila amri hapa chini hutumia zana za nje tu kama wakaguzi.
+
+```sh
+# baiti za faili == baiti za hex iliyoelezwa (bila programu zetu;
+# au `xxd -r -p msingi/kwanza.hex | cmp - msingi/kwanza.bin`)
+python3 -c 'import sys; print(bytes.fromhex(open(sys.argv[1]).read()) == open(sys.argv[2],"rb").read())' msingi/kwanza.hex msingi/kwanza.bin
+python3 -c 'import sys; print(bytes.fromhex(open(sys.argv[1]).read()) == open(sys.argv[2],"rb").read())' msingi/kizinduzi.hex msingi/kizinduzi.bin
+
+# disassembly huru ya msimbo (kiingilio 0x400078)
+objdump -D -b binary -m i386:x86-64 --adjust-vma=0x400000 \
+        --start-address=0x400078 msingi/kizinduzi.bin
+
+# wito wa mfumo halisi wakati wa kukimbia
+strace -o s.txt msingi/kwanza.bin < msingi/kwanza.hex > /dev/null
+```
+
+Kisha linganisha disassembly na maoni ya `.hexc` mstari kwa mstari.
+
+## Kinachothibitishwa kiotomatiki (hakuhitaji kusomwa)
+
+- `./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi`: hatua zote hujengwa
+  kutoka mbegu mbili, kisha mjenzi uliojengwa kutoka chanzo hulinganisha
+  kila binary iliyogandishwa (`mjenzi.bin`, `mbegu.bin`, `kizinduzi.bin` na
+  `.hex` zao). Hatua ya kwanza ya CI.
+- `gharama/jaribu-mnyororo-huru.mapishi`: kila hatua hujijenga yenyewe sawa
+  kwa baiti, na kila kipengele na kosa la kila hatua lina jaribio.
+
+## Mipaka ya ukaguzi huu
+
+- Mbegu haziwezi kujithibitisha zenyewe: mbegu iliyoharibiwa ndiyo
+  inayoendesha ukaguzi wake. Kinga ni ukaguzi wa jicho tu -- ndiyo sababu
+  mwongozo huu upo.
+- Mnyororo unaendeshwa juu ya kernel ya Linux na CPU ya x86-64. Hizo
+  haziko ndani ya wigo huu.
+- Baada ya hatua 3, chanzo (`hatua4_kusanyiko.kus`, `kusanyiko.swm`,
+  `mbegu.swm`, `mjenzi.swm`) ni maelfu ya mistari. Kinasomeka, lakini
+  ukaguzi wake ni kazi kubwa zaidi; anza na mzizi hapa.
