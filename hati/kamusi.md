@@ -264,7 +264,8 @@ kazi yake -- neno moja la zamani linaweza kupata maneno tofauti.
 | kaunta, selecta | kihesabu, kiteuzi | | -- (maneno yaliyoundwa kutoka hesabu, teua) |
 | mti_* (majedwali ya nodi) | aina_ya_nodi, thamani_ya_nodi, nodi_ya_kushoto/kulia, tatu_ya_nodi, nne_ya_nodi, ghala_la_majina, NODI_* | kila ingizo ni nodi moja; tiga/nne ni nafasi za jumla ambazo maudhui yake hutegemea aina ya nodi | -- (sitiari ya mti imeondolewa) |
 | ofseti | umbali (`umbali_wa_jina`, `andika_umbali32_hasi`, `umbali_wa_kigeu_chini_ya_r5`) | umbali kutoka mahali pa kuanzia | umbali: "distance" |
-| lebo_mkia | lebo_mabaki | marudio yaliyobaki baada ya uvekta | -- |
+| lebo | mahali (`mahali_pa_kutoka`, `mahali_papya`, `namba_ya_mahali`); `nodi_ya_hali` kwa thamani ya `hali`; `onyesho` kwa kipengele cha DOM kinachoonyesha | mahali palipo na jina kwenye msimbo, pa kurukia | mahali (ngeli ya PA: mahali pa, papya) |
+| lebo_mkia | mahali_pa_..._mabaki | marudio yaliyobaki baada ya uvekta | -- |
 
 `husisha` linabaki: lina maana ya kuhusisha, na ndivyo linavyofanya --
 huleta faili jingine kwenye programu. Yanayofuata kwenye PR zake: `ofseti` -> `umbali`, `lebo` -> `mahali`, `bafa` -> `chombo`,

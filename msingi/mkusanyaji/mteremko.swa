@@ -35,7 +35,7 @@ n32 IR_PAKIA = 105;        // lengo = kumbukumbu[v[a]] (upana, ishara)
 n32 IR_HIFADHI = 106;      // kumbukumbu[v[a]] = v[b] (upana)
 n32 IR_FREMU = 107;        // lengo = fremu + ir_namba
 n32 IR_ANWANI = 108;       // lengo = ir_namba (anwani halisi)
-n32 IR_LEBO = 109;         // lebo a
+n32 IR_MAHALI = 109;         // lebo a
 n32 IR_RUKA = 110;         // ruka lebo a
 n32 IR_RUKA_KAMA = 111;    // ruka lebo b kama v[a] != 0
 n32 IR_RUKA_SIVYO = 112;   // ruka lebo b kama v[a] == 0
@@ -91,8 +91,8 @@ n32 ir_idadi = 0;
 n32 ir_hoja[1048576];     // vreg za hoja za wito
 n32 ir_idadi_ya_hoja = 0;
 
-n32 ir_lebo_mahali[1048576];  // lebo -> faharisi ya amri
-n32 ir_idadi_ya_lebo = 0;
+n32 ir_nafasi_ya_mahali[1048576];  // lebo -> faharisi ya amri
+n32 ir_idadi_ya_mahali = 0;
 
 // Kazi
 n32 UPEO_KAZI_IR = 16384;
@@ -137,8 +137,8 @@ n32 irl_idadi = 0;
 n32 tm_fremu = 0;
 n32 tm_vreg = 0;
 n32 tm_kina_cha_mzunguko = 0;
-n32 tm_lebo_vunja[64];
-n32 tm_lebo_endelea[64];
+n32 tm_mahali_pa_kuvunja[64];
+n32 tm_mahali_pa_kuendelea[64];
 n32 tm_usimbaji_wa_matokeo_ya_kazi = 0;
 n32 tm_makosa = 0;
 
@@ -224,16 +224,16 @@ n32 tm_namba(n64 thamani) {
     rudisha v;
 }
 
-n32 tm_lebo_mpya() {
-    n32 l = ir_idadi_ya_lebo;
-    ir_lebo_mahali[l] = -1;
-    ir_idadi_ya_lebo = ir_idadi_ya_lebo + 1;
+n32 tm_mahali_papya() {
+    n32 l = ir_idadi_ya_mahali;
+    ir_nafasi_ya_mahali[l] = -1;
+    ir_idadi_ya_mahali = ir_idadi_ya_mahali + 1;
     rudisha l;
 }
 
-w0 tm_weka_lebo(n32 l) {
-    tm_amri(IR_LEBO, -1, l, -1, 0);
-    ir_lebo_mahali[l] = ir_idadi - 1;
+w0 tm_weka_mahali(n32 l) {
+    tm_amri(IR_MAHALI, -1, l, -1, 0);
+    ir_nafasi_ya_mahali[l] = ir_idadi - 1;
 }
 
 w0 tm_ruka(n32 l) { tm_amri(IR_RUKA, -1, l, -1, 0); }
@@ -572,8 +572,8 @@ n32 tm_usemi(n32 nodi_hii) {
     // Mantiki ya mzunguko mfupi: matokeo 0/1
     kama (aina == NODI_NA || aina == NODI_AU) {
         n32 r = tm_vreg_mpya();
-        n32 l_mwisho = tm_lebo_mpya();
-        n32 l_fupi = tm_lebo_mpya();
+        n32 l_mwisho = tm_mahali_papya();
+        n32 l_fupi = tm_mahali_papya();
         n32 a = tm_usemi(nodi_ya_kushoto[nodi_hii]);
         kama (aina == NODI_NA) { tm_amri(IR_RUKA_SIVYO, -1, a, l_fupi, 0); }
         sivyo { tm_amri(IR_RUKA_KAMA, -1, a, l_fupi, 0); }
@@ -583,28 +583,28 @@ n32 tm_usemi(n32 nodi_hii) {
         n32 i1 = tm_amri(IR_NAKILI, r, bb, -1, 0);
         ir_upana[i1] = 4; ir_ishara[i1] = 1;
         tm_ruka(l_mwisho);
-        tm_weka_lebo(l_fupi);
+        tm_weka_mahali(l_fupi);
         n32 i2 = tm_amri(IR_NAMBA, r, -1, -1, 0);
         ir_upana[i2] = 4; ir_ishara[i2] = 1;
         kama (aina == NODI_AU) { ir_namba[i2] = 1; }
-        tm_weka_lebo(l_mwisho);
+        tm_weka_mahali(l_mwisho);
         rudisha r;
     }
     kama (aina == NODI_CHAGUZI_TATU) {
         n32 r = tm_vreg_mpya();
-        n32 l_sivyo = tm_lebo_mpya();
-        n32 l_mwisho = tm_lebo_mpya();
+        n32 l_sivyo = tm_mahali_papya();
+        n32 l_mwisho = tm_mahali_papya();
         n32 c = tm_usemi(nodi_ya_kushoto[nodi_hii]);
         tm_amri(IR_RUKA_SIVYO, -1, c, l_sivyo, 0);
         n32 k = tm_usemi(nodi_ya_kulia[nodi_hii]);
         n32 i1 = tm_amri(IR_NAKILI, r, k, -1, 0);
         ir_upana[i1] = tm_upana(usimbaji); ir_ishara[i1] = tm_ishara(usimbaji);
         tm_ruka(l_mwisho);
-        tm_weka_lebo(l_sivyo);
+        tm_weka_mahali(l_sivyo);
         n32 s = tm_usemi(tatu_ya_nodi[nodi_hii]);
         n32 i2 = tm_amri(IR_NAKILI, r, s, -1, 0);
         ir_upana[i2] = tm_upana(usimbaji); ir_ishara[i2] = tm_ishara(usimbaji);
-        tm_weka_lebo(l_mwisho);
+        tm_weka_mahali(l_mwisho);
         rudisha r;
     }
     kama (aina == NODI_SI || aina == NODI_KINYUME || (aina == NODI_TOFAUTI && nodi_ya_kulia[nodi_hii] == -1)) {
@@ -842,16 +842,16 @@ w0 tm_tangazo(n32 nodi_hii) {
 }
 
 w0 tm_kama(n32 nodi_hii) {
-    n32 l_sivyo = tm_lebo_mpya();
-    n32 l_mwisho = tm_lebo_mpya();
+    n32 l_sivyo = tm_mahali_papya();
+    n32 l_mwisho = tm_mahali_papya();
     n32 c = tm_usemi(nodi_ya_kushoto[nodi_hii]);
     tm_amri(IR_RUKA_SIVYO, -1, c, l_sivyo, 0);
     tm_taarifa(nodi_ya_kulia[nodi_hii]);
     tm_ruka(l_mwisho);
-    tm_weka_lebo(l_sivyo);
+    tm_weka_mahali(l_sivyo);
     // tawi la sivyo limefungwa kwenye nodi ya AST_SIVYO (mwili ni kushoto)
     kama (tatu_ya_nodi[nodi_hii] != -1) { tm_taarifa(nodi_ya_kushoto[tatu_ya_nodi[nodi_hii]]); }
-    tm_weka_lebo(l_mwisho);
+    tm_weka_mahali(l_mwisho);
 }
 
 // wakati / kwa: kwa huwa wakati wenye kianzio (ast_tiga) na hatua mwishoni
@@ -863,20 +863,20 @@ w0 tm_wakati(n32 nodi_hii) {
         sivyo { tm_usemi(kianzio); }
     }
     kama (tm_kina_cha_mzunguko >= 64) { tm_haijaungwa("vitanzi zaidi ya 64 ndani kwa ndani", nodi_hii); rudisha; }
-    n32 l_juu = tm_lebo_mpya();
-    n32 l_hatua = tm_lebo_mpya();
-    n32 l_toka = tm_lebo_mpya();
-    tm_lebo_vunja[tm_kina_cha_mzunguko] = l_toka;
-    tm_lebo_endelea[tm_kina_cha_mzunguko] = l_hatua;
+    n32 l_juu = tm_mahali_papya();
+    n32 l_hatua = tm_mahali_papya();
+    n32 l_toka = tm_mahali_papya();
+    tm_mahali_pa_kuvunja[tm_kina_cha_mzunguko] = l_toka;
+    tm_mahali_pa_kuendelea[tm_kina_cha_mzunguko] = l_hatua;
     tm_kina_cha_mzunguko = tm_kina_cha_mzunguko + 1;
-    tm_weka_lebo(l_juu);
+    tm_weka_mahali(l_juu);
     kama (thamani_ya_nodi[nodi_hii] == -777778) {
         // fanya { mwili } wakati (sharti); -- mwili kwanza, endelea huenda kwenye sharti
         tm_taarifa(nodi_ya_kulia[nodi_hii]);
-        tm_weka_lebo(l_hatua);
+        tm_weka_mahali(l_hatua);
         n32 cf = tm_usemi(nodi_ya_kushoto[nodi_hii]);
         tm_amri(IR_RUKA_KAMA, -1, cf, l_juu, 0);
-        tm_weka_lebo(l_toka);
+        tm_weka_mahali(l_toka);
         tm_kina_cha_mzunguko = tm_kina_cha_mzunguko - 1;
         rudisha;
     }
@@ -886,9 +886,9 @@ w0 tm_wakati(n32 nodi_hii) {
     }
     tm_taarifa(nodi_ya_kulia[nodi_hii]);
     // wakati wa kawaida (bila kifungio cha hatua): endelea huja hapa
-    kama (ir_lebo_mahali[l_hatua] == -1) { tm_weka_lebo(l_hatua); }
+    kama (ir_nafasi_ya_mahali[l_hatua] == -1) { tm_weka_mahali(l_hatua); }
     tm_ruka(l_juu);
-    tm_weka_lebo(l_toka);
+    tm_weka_mahali(l_toka);
     tm_kina_cha_mzunguko = tm_kina_cha_mzunguko - 1;
 }
 
@@ -912,7 +912,7 @@ w0 tm_taarifa_moja(n32 nodi_hii) {
     kama (aina == NODI_WAKATI) { tm_wakati(nodi_hii); rudisha; }
     kama (aina == NODI_UBETI) {
         kama (nodi_ya_kulia[nodi_hii] == -777777) {
-            kama (tm_kina_cha_mzunguko > 0) { tm_weka_lebo(tm_lebo_endelea[tm_kina_cha_mzunguko - 1]); }
+            kama (tm_kina_cha_mzunguko > 0) { tm_weka_mahali(tm_mahali_pa_kuendelea[tm_kina_cha_mzunguko - 1]); }
         }
         tm_taarifa(nodi_ya_kushoto[nodi_hii]);
         rudisha;
@@ -938,8 +938,8 @@ w0 tm_taarifa(n32 nodi_hii) {
         }
         kama (aina == NODI_VUNJA || aina == NODI_ENDELEA) {
             kama (tm_kina_cha_mzunguko > 0) {
-                kama (aina == NODI_VUNJA) { tm_ruka(tm_lebo_vunja[tm_kina_cha_mzunguko - 1]); }
-                sivyo { tm_ruka(tm_lebo_endelea[tm_kina_cha_mzunguko - 1]); }
+                kama (aina == NODI_VUNJA) { tm_ruka(tm_mahali_pa_kuvunja[tm_kina_cha_mzunguko - 1]); }
+                sivyo { tm_ruka(tm_mahali_pa_kuendelea[tm_kina_cha_mzunguko - 1]); }
             }
             tm_hatua_ya_kwa_baadaye(nodi_hii);
             rudisha;
@@ -986,7 +986,7 @@ w0 tm_kazi(n32 k) {
 n32 teremsha(n32 nodi_ya_programu) {
     ir_idadi = 0;
     ir_idadi_ya_hoja = 0;
-    ir_idadi_ya_lebo = 0;
+    ir_idadi_ya_mahali = 0;
     irk_idadi = 0;
     irp_idadi = 0;
     irg_idadi = 0;
@@ -1102,7 +1102,7 @@ n8* ir_jina_la_amri(n32 a) {
     kama (a == IR_HIFADHI) { rudisha "hifadhi"; }
     kama (a == IR_FREMU) { rudisha "fremu"; }
     kama (a == IR_ANWANI) { rudisha "anwani"; }
-    kama (a == IR_LEBO) { rudisha "lebo"; }
+    kama (a == IR_MAHALI) { rudisha "lebo"; }
     kama (a == IR_RUKA) { rudisha "ruka"; }
     kama (a == IR_RUKA_KAMA) { rudisha "ruka_kama"; }
     kama (a == IR_RUKA_SIVYO) { rudisha "ruka_sivyo"; }
