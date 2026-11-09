@@ -36,5 +36,5 @@ Mradi huu unafuata mazoea haya:
 - Majaribio yanaendeshwa kiotomatiki kwa kila commit
 - Hakuna utegemezi wa nje: mkusanyaji hujengwa kutoka baiti 393 za mkono
   (`msingi/kwanza.bin`), bila assembler, kiungo, libc wala bash
-  (`hati/mnyororo-huru.md`)
+  (`hati/mfululizo-huru.md`)
 - Mkusanyaji haitekelezi msimbo wa mtumiaji -- inauandaa tu

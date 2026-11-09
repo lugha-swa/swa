@@ -45,9 +45,9 @@ git clone https://github.com/lugha-swa/swa && cd swa
 ./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> mbegu -> stage1 -> bin/swa
 ```
 
-Kwa anayetaka kuthibitisha mzizi bila kuamini `msingi/mjenzi.bin`: `./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi` hujenga mjenzi kutoka chanzo chake kwa mbegu mbili za mkono pekee (`kwanza.bin` na `kizinduzi.bin`), kisha hulinganisha kila binary iliyogandishwa ([hati/mnyororo-huru.md](hati/mnyororo-huru.md)).
+Kwa anayetaka kuthibitisha mzizi bila kuamini `msingi/mjenzi.bin`: `./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi` hujenga mjenzi kutoka chanzo chake kwa mbegu mbili za mkono pekee (`kwanza.bin` na `kizinduzi.bin`), kisha hulinganisha kila binary iliyogandishwa ([hati/mfululizo-huru.md](hati/mfululizo-huru.md)).
 
-`jenga.mapishi` huanzia `msingi/kwanza.bin` (baiti 393 zilizoandikwa kwa mkono): kila hatua ya mnyororo huru hujengwa na iliyo chini yake, kisha `mbegu`, kisha `stage1`, kisha `stage1` hujijenga yenyewe kuwa `bin/swa`. `mjenzi` (kiendeshaji cha mapishi, `msingi/mnyororo/mjenzi.swm`) yenyewe ni programu ya lugha ya mashine ya Swa iliyojengwa kwa mnyororo huo huo; mapishi huthibitisha kwamba `msingi/mjenzi.bin` ni sawa kwa baiti na inayojengwa kutoka chanzo chake.
+`jenga.mapishi` huanzia `msingi/kwanza.bin` (baiti 393 zilizoandikwa kwa mkono): kila hatua ya mnyororo huru hujengwa na iliyo chini yake, kisha `mbegu`, kisha `stage1`, kisha `stage1` hujijenga yenyewe kuwa `bin/swa`. `mjenzi` (kiendeshaji cha mapishi, `msingi/mfululizo/mjenzi.swm`) yenyewe ni programu ya lugha ya mashine ya Swa iliyojengwa kwa mnyororo huo huo; mapishi huthibitisha kwamba `msingi/mjenzi.bin` ni sawa kwa baiti na inayojengwa kutoka chanzo chake.
 
 </details>
 

@@ -110,7 +110,7 @@ asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
       kwa mkono (ELF 64 + phdr 56 + msimbo 273) hubadilisha hex hadi binary.
       Inajijenga (kwanza.hex -> kwanza.bin) na inazalisha mbegu.bin kutoka
       mbegu.hex -- NASM si sehemu ya mnyororo wa uzalishaji tena.
-      Uthibitisho: gharama/mnyororo.mapishi (pia kwenye CI).
+      Uthibitisho: gharama/mfululizo.mapishi (pia kwenye CI).
 - [x] **Kiunganishi cha kujitegemea:** bendera ya `--programu` inatoa ET_EXEC
       tuli (syscalls pekee, hakuna kichwa cha sehemu) -- stage2-exe
       inajijenga yenyewe sawa kwa baiti (stage3-exe) bila ld/gcc/libc.

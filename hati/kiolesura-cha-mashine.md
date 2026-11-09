@@ -1,6 +1,6 @@
 # Daraja la mashine: Swa ikiita msimbo wa nje
 
-Hali: awamu 1, 2, 3 na 4 zimetekelezwa (`gharama/jaribu-daraja.mapishi`,
+Hali: awamu 1, 2, 3 na 4 zimetekelezwa (`gharama/jaribu-kiolesura.mapishi`,
 `gharama/jaribu-wasm.mapishi`). Vipimo vya
 lugha: `hati/vipimo-vya-lugha.md` sehemu 8.1.
 
@@ -46,7 +46,7 @@ Kanuni:
    kama data, kamwe kama kitambulisho cha Swa.
 4. `nje` HALIWI neno muhimu: linatambuliwa tu kwenye ngazi ya juu
    likifuatiwa na mfuatano. Hivyo `n8* nje` (kigeu cha "matokeo",
-   kinachotumika kwenye gharama/jaribu_ir.swa, jaribu_mnyororo.swa,
+   kinachotumika kwenye gharama/jaribu_ir.swa, jaribu_mfululizo.swa,
    mizani/kusanyiko.swa) kinaendelea kufanya kazi.
 5. Aina ni za Swa pekee. Ramani ya kawaida:
 
@@ -71,11 +71,11 @@ Kanuni:
 `&linganisha_namba` ya Swa ikipitishwa kwa `panga` (qsort), msimbo wa
 nje utaita Swa. Swa lazima:
 
-- ihifadhi rbx, rbp, r12-r15 -- `majaribio/daraja/rudi.swa` (qsort
+- ihifadhi rbx, rbp, r12-r15 -- `majaribio/kiolesura/rudi.swa` (qsort
   ikiita kazi ya Swa mara nyingi) huthibitisha;
 - iwe na rsp iliyopangiliwa kwa baiti 16 kwenye kila wito wa nje
   (msimbo wa C hutumia movaps; rafu isiyopangiliwa huanguka). Kipande
-  cha kila kazi ya nje hupangilia; `majaribio/daraja/upangiliaji.swa`
+  cha kila kazi ya nje hupangilia; `majaribio/kiolesura/upangiliaji.swa`
   husoma rsp halisi kupitia getcontext kwenye kina tofauti na katikati
   ya usemi. Jaribio la mabadiliko: kipande bila `and rsp,-16` hushindwa
   (kutoka 20).
