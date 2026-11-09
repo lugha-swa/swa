@@ -128,19 +128,19 @@ w0 andika_ndani(n32 faili, n8* f, n64 a1, n64 a2, n64 a3, n64 a4, n64 a5, n64 a6
     wakati (1 == 1) {
         kama (f[p] == 0) { vunja; }  // mwisho wa mfuatano (null terminator)
         kama (f[p] == 37) {  // '%'
-            n8 sp = f[p + 1];
+            n8 juu_ya_mrundikano = f[p + 1];
             p = p + 2;
-            kama (sp == 100) {  // %d
+            kama (juu_ya_mrundikano == 100) {  // %d
                 kama (na == 0) { andika_n64(faili, a1); } sivyo { kama (na == 1) { andika_n64(faili, a2); }
                     sivyo { kama (na == 2) { andika_n64(faili, a3); } sivyo { kama (na == 3) { andika_n64(faili, a4); }
                             sivyo { kama (na == 4) { andika_n64(faili, a5); } sivyo { andika_n64(faili, a6); } } } } }
                 na = na + 1;
-            } sivyo { kama (sp == 115) {  // %s
+            } sivyo { kama (juu_ya_mrundikano == 115) {  // %s
                     kama (na == 0) { andika_mfuatano(faili, kielekezi_kutoka_hoja(a1)); } sivyo { kama (na == 1) { andika_mfuatano(faili, kielekezi_kutoka_hoja(a2)); }
                         sivyo { kama (na == 2) { andika_mfuatano(faili, kielekezi_kutoka_hoja(a3)); } sivyo { kama (na == 3) { andika_mfuatano(faili, kielekezi_kutoka_hoja(a4)); }
                                 sivyo { kama (na == 4) { andika_mfuatano(faili, kielekezi_kutoka_hoja(a5)); } sivyo { andika_mfuatano(faili, kielekezi_kutoka_hoja(a6)); } } } } }
                     na = na + 1;
-                } sivyo { kama (sp == 99) {  // %c
+                } sivyo { kama (juu_ya_mrundikano == 99) {  // %c
                         kama (na == 0) { andika_herufi(faili, a1); } sivyo { kama (na == 1) { andika_herufi(faili, a2); }
                             sivyo { kama (na == 2) { andika_herufi(faili, a3); } sivyo { kama (na == 3) { andika_herufi(faili, a4); }
                                     sivyo { kama (na == 4) { andika_herufi(faili, a5); } sivyo { andika_herufi(faili, a6); } } } } }
@@ -252,21 +252,21 @@ n64 p2_kwa(n32 kubwa) {
 // KUMBUKA: bits_ya_d64_swa imegawanywa katika kazi mbili kwa sababu
 // mbegu ilikusanya vibaya kazi ndefu sana (FPE) -- sehemu ndogo
 // zinakusanywa kwa usahihi. API haijabadilika.
-n64 biti_ya_d64_swa(n8* ch, n32 u) {
+n64 biti_ya_d64_swa(n8* herufi, n32 u) {
     n64 alama = 0;
     n32 fasi = 0;
-    kama (ch[fasi] == 45) { alama = 1; fasi = fasi + 1; }
+    kama (herufi[fasi] == 45) { alama = 1; fasi = fasi + 1; }
     n64 nzima = 0;
-    wakati (fasi < u && ch[fasi] != 46) {
-        nzima = nzima * 10 + (ch[fasi] - 48);
+    wakati (fasi < u && herufi[fasi] != 46) {
+        nzima = nzima * 10 + (herufi[fasi] - 48);
         fasi = fasi + 1;
     }
     n64 kasoro = 0;
     n64 idadi_k = 0;
-    kama (fasi < u && ch[fasi] == 46) {
+    kama (fasi < u && herufi[fasi] == 46) {
         fasi = fasi + 1;
         wakati (fasi < u) {
-            kasoro = kasoro * 10 + (ch[fasi] - 48);
+            kasoro = kasoro * 10 + (herufi[fasi] - 48);
             idadi_k = idadi_k + 1;
             fasi = fasi + 1;
         }
@@ -340,18 +340,18 @@ n64 kamilisha_biti_swa(n64 hesabu, n64 nene, n64 kizio, n64 d, n64 alama) {
 n64 soma_mstari(n32 faili, n8* chombo, n64 upeo) {
     n64 n = 0;
     wakati (n + 1 < upeo) {
-        n8 ch = 0;
-        n64 r = mfumo_soma(faili, &ch, 1);
+        n8 herufi = 0;
+        n64 r = mfumo_soma(faili, &herufi, 1);
         kama (r <= 0) {
             kama (n == 0) {
                 rudisha -1;
             }
             rudisha n;
         }
-        kama (ch == 10) {
+        kama (herufi == 10) {
             rudisha n;
         }
-        chombo[n] = ch;
+        chombo[n] = herufi;
         n = n + 1;
     }
     rudisha n;

@@ -139,7 +139,7 @@ n32 ni_oktali_dijiti(n32 c) {
     rudisha 0;
 }
 
-n32 ni_binary_dijiti(n32 c) {
+n32 ni_tarakimu_ya_msingi_mbili(n32 c) {
     kama (c == 48) {
         rudisha 1;
     }
@@ -385,8 +385,8 @@ w0 ruka_nafasi_na_maelezo(Msomaji* m) {
                         n32 kina = 1;
                         wakati (kina > 0) {
                             kama (msomaji_imeisha(m) != 0) { vunja; }
-                            n8 ch = m->chanzo[m->nafasi];
-                            kama (ch == 47) {
+                            n8 herufi = m->chanzo[m->nafasi];
+                            kama (herufi == 47) {
                                 kama (m->nafasi + 1 < m->urefu) {
                                     kama (m->chanzo[m->nafasi + 1] == 42) {
                                         m->nafasi = m->nafasi + 2;
@@ -396,7 +396,7 @@ w0 ruka_nafasi_na_maelezo(Msomaji* m) {
                                     }
                                 }
                             }
-                            kama (ch == 42) {
+                            kama (herufi == 42) {
                                 kama (m->nafasi + 1 < m->urefu) {
                                     kama (m->chanzo[m->nafasi + 1] == 47) {
                                         m->nafasi = m->nafasi + 2;
@@ -406,7 +406,7 @@ w0 ruka_nafasi_na_maelezo(Msomaji* m) {
                                     }
                                 }
                             }
-                            kama (ch == 10) {
+                            kama (herufi == 10) {
                                 m->mstari = m->mstari + 1;
                                 m->safu = 0;
                             }
@@ -431,15 +431,15 @@ w0 tokeni_soma_mfuatano(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo) {
     m->nafasi = m->nafasi + 1;
     m->safu = m->safu + 1;
     wakati (msomaji_imeisha(m) == 0) {
-        n8 ch = m->chanzo[m->nafasi];
+        n8 herufi = m->chanzo[m->nafasi];
         // Kutoroka kwa kufyeka: shughulikia mfuatano wa utorokaji.
-        kama (ch == 92) {
+        kama (herufi == 92) {
             m->nafasi = m->nafasi + 1;
             m->safu = m->safu + 1;
             kama (msomaji_imeisha(m) == 0) {
-                n8 esc = m->chanzo[m->nafasi];
+                n8 herufi_baada_ya_mkwaju = m->chanzo[m->nafasi];
                 // \xNN: ruka herufi mbili za ziada za heksadesimali
-                kama (esc == 120) {
+                kama (herufi_baada_ya_mkwaju == 120) {
                     m->nafasi = m->nafasi + 1;
                     m->safu = m->safu + 1;
                     kama (msomaji_imeisha(m) == 0) {
@@ -462,11 +462,11 @@ w0 tokeni_soma_mfuatano(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo) {
             }
             endelea;
         }
-        kama (ch == 10) {
+        kama (herufi == 10) {
             m->mstari = m->mstari + 1;
             m->safu = 0;
         }
-        kama (ch == 34) {
+        kama (herufi == 34) {
             m->nafasi = m->nafasi + 1;
             m->safu = m->safu + 1;
             vunja;
@@ -533,8 +533,8 @@ w0 tokeni_soma_herufi(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo) {
 w0 tokeni_soma_kitambulisho(Tokeni* t, Msomaji* m) {
     n64 anza = m->nafasi;
     wakati (msomaji_imeisha(m) == 0) {
-        n8 ch2 = m->chanzo[m->nafasi];
-        kama (ni_alfabeti_tarakimu(ch2) == 0) { vunja; }
+        n8 herufi2 = m->chanzo[m->nafasi];
+        kama (ni_alfabeti_tarakimu(herufi2) == 0) { vunja; }
         m->nafasi = m->nafasi + 1;
         m->safu = m->safu + 1;
     }
@@ -575,8 +575,8 @@ w0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo) {
         m->nafasi = m->nafasi + 2;
         m->safu = m->safu + 2;
         wakati (msomaji_imeisha(m) == 0) {
-            n8 ch2 = m->chanzo[m->nafasi];
-            kama (ni_heksi_dijiti(ch2) == 0) { vunja; }
+            n8 herufi2 = m->chanzo[m->nafasi];
+            kama (ni_heksi_dijiti(herufi2) == 0) { vunja; }
             m->nafasi = m->nafasi + 1;
             m->safu = m->safu + 1;
         }
@@ -585,8 +585,8 @@ w0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo) {
             m->nafasi = m->nafasi + 2;
             m->safu = m->safu + 2;
             wakati (msomaji_imeisha(m) == 0) {
-                n8 ch2 = m->chanzo[m->nafasi];
-                kama (ni_oktali_dijiti(ch2) == 0) { vunja; }
+                n8 herufi2 = m->chanzo[m->nafasi];
+                kama (ni_oktali_dijiti(herufi2) == 0) { vunja; }
                 m->nafasi = m->nafasi + 1;
                 m->safu = m->safu + 1;
             }
@@ -595,16 +595,16 @@ w0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo) {
                 m->nafasi = m->nafasi + 2;
                 m->safu = m->safu + 2;
                 wakati (msomaji_imeisha(m) == 0) {
-                    n8 ch2 = m->chanzo[m->nafasi];
-                    kama (ni_binary_dijiti(ch2) == 0) { vunja; }
+                    n8 herufi2 = m->chanzo[m->nafasi];
+                    kama (ni_tarakimu_ya_msingi_mbili(herufi2) == 0) { vunja; }
                     m->nafasi = m->nafasi + 1;
                     m->safu = m->safu + 1;
                 }
             } sivyo {
                 // Desimali (pasipo kiambishi) au '0' pekee
                 wakati (msomaji_imeisha(m) == 0) {
-                    n8 ch2 = m->chanzo[m->nafasi];
-                    kama (ni_tarakimu(ch2) == 0) { vunja; }
+                    n8 herufi2 = m->chanzo[m->nafasi];
+                    kama (ni_tarakimu(herufi2) == 0) { vunja; }
                     m->nafasi = m->nafasi + 1;
                     m->safu = m->safu + 1;
                 }
@@ -616,8 +616,8 @@ w0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo) {
                                 m->nafasi = m->nafasi + 1;
                                 m->safu = m->safu + 1;
                                 wakati (msomaji_imeisha(m) == 0) {
-                                    n8 ch2 = m->chanzo[m->nafasi];
-                                    kama (ni_tarakimu(ch2) == 0) { vunja; }
+                                    n8 herufi2 = m->chanzo[m->nafasi];
+                                    kama (ni_tarakimu(herufi2) == 0) { vunja; }
                                     m->nafasi = m->nafasi + 1;
                                     m->safu = m->safu + 1;
                                 }
@@ -631,20 +631,20 @@ w0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo) {
                 // mchanganuzi aikatae kwa sauti (zamani kipeo kilimezwa
                 // kimya kama kitambulisho na halisi ikasomwa 1.5).
                 kama (msomaji_imeisha(m) == 0) {
-                    n8 ch3 = m->chanzo[m->nafasi];
-                    kama (ch3 == 101 || ch3 == 69) {
+                    n8 herufi3 = m->chanzo[m->nafasi];
+                    kama (herufi3 == 101 || herufi3 == 69) {
                         m->nafasi = m->nafasi + 1;
                         m->safu = m->safu + 1;
                         kama (msomaji_imeisha(m) == 0) {
-                            n8 ch4 = m->chanzo[m->nafasi];
-                            kama (ch4 == 43 || ch4 == 45) {
+                            n8 herufi4 = m->chanzo[m->nafasi];
+                            kama (herufi4 == 43 || herufi4 == 45) {
                                 m->nafasi = m->nafasi + 1;
                                 m->safu = m->safu + 1;
                             }
                         }
                         wakati (msomaji_imeisha(m) == 0) {
-                            n8 ch5 = m->chanzo[m->nafasi];
-                            kama (ni_tarakimu(ch5) == 0) { vunja; }
+                            n8 herufi5 = m->chanzo[m->nafasi];
+                            kama (ni_tarakimu(herufi5) == 0) { vunja; }
                             m->nafasi = m->nafasi + 1;
                             m->safu = m->safu + 1;
                         }

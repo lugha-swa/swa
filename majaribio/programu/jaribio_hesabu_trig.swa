@@ -100,7 +100,7 @@ d64 cos_hesabu(d64 x) {
     rudisha jumla;
 }
 
-d64 atan_ndogo_hesabu(d64 t) {
+d64 arctan_ndogo_hesabu(d64 t) {
     d64 u1 = t / (1.0 + mzizi_hesabu(1.0 + t * t));
     d64 u2 = u1 / (1.0 + mzizi_hesabu(1.0 + u1 * u1));
     d64 u3 = u2 / (1.0 + mzizi_hesabu(1.0 + u2 * u2));
@@ -119,23 +119,23 @@ d64 atan_ndogo_hesabu(d64 t) {
     rudisha jumla * 8.0;
 }
 
-d64 atan_hesabu(d64 t) {
+d64 arctan_hesabu(d64 t) {
     n32 hasi = 0;
     d64 tt = t;
     kama (tt < 0.0) { hasi = 1; tt = 0.0 - tt; }
-    d64 matokeo = atan_ndogo_hesabu(tt);
+    d64 matokeo = arctan_ndogo_hesabu(tt);
     kama (tt > 1.0) {
-        matokeo = (pi_hesabu() / 2.0) - atan_ndogo_hesabu(1.0 / tt);
+        matokeo = (pi_hesabu() / 2.0) - arctan_ndogo_hesabu(1.0 / tt);
     }
     kama (hasi == 1) { matokeo = 0.0 - matokeo; }
     rudisha matokeo;
 }
 
-d64 atan2_hesabu(d64 y, d64 x) {
-    kama (x > 0.0) { rudisha atan_hesabu(y / x); }
+d64 arctan2_hesabu(d64 y, d64 x) {
+    kama (x > 0.0) { rudisha arctan_hesabu(y / x); }
     kama (x < 0.0) {
-        kama (y >= 0.0) { rudisha atan_hesabu(y / x) + pi_hesabu(); }
-        rudisha atan_hesabu(y / x) - pi_hesabu();
+        kama (y >= 0.0) { rudisha arctan_hesabu(y / x) + pi_hesabu(); }
+        rudisha arctan_hesabu(y / x) - pi_hesabu();
     }
     kama (y > 0.0) { rudisha pi_hesabu() / 2.0; }
     kama (y < 0.0) { rudisha 0.0 - (pi_hesabu() / 2.0); }
@@ -180,13 +180,13 @@ n32 main() {
     kama (karibu(kuinua_hesabu(2.0, 10.0), 1024.0, 0.01) == 0) { rudisha 20; }
     kama (karibu(kuinua_hesabu(3.0, 2.0), 9.0, 0.001) == 0) { rudisha 21; }
 
-    kama (karibu(atan_hesabu(1.0), pi/4.0, 0.0001) == 0) { rudisha 22; }
-    kama (karibu(atan2_hesabu(1.0, 1.0), pi/4.0, 0.0001) == 0) { rudisha 23; }
-    kama (karibu(atan2_hesabu(1.0, 0.0 - 1.0), pi * 3.0/4.0, 0.0001) == 0) { rudisha 24; }
-    kama (karibu(atan2_hesabu(0.0 - 1.0, 0.0 - 1.0), 0.0 - (pi * 3.0/4.0), 0.0001) == 0) { rudisha 25; }
-    kama (karibu(atan2_hesabu(0.0 - 1.0, 1.0), 0.0 - (pi/4.0), 0.0001) == 0) { rudisha 26; }
-    kama (karibu(atan2_hesabu(1.0, 0.0), pi/2.0, 0.0001) == 0) { rudisha 27; }
-    kama (karibu(atan2_hesabu(0.0 - 1.0, 0.0), 0.0 - (pi/2.0), 0.0001) == 0) { rudisha 28; }
+    kama (karibu(arctan_hesabu(1.0), pi/4.0, 0.0001) == 0) { rudisha 22; }
+    kama (karibu(arctan2_hesabu(1.0, 1.0), pi/4.0, 0.0001) == 0) { rudisha 23; }
+    kama (karibu(arctan2_hesabu(1.0, 0.0 - 1.0), pi * 3.0/4.0, 0.0001) == 0) { rudisha 24; }
+    kama (karibu(arctan2_hesabu(0.0 - 1.0, 0.0 - 1.0), 0.0 - (pi * 3.0/4.0), 0.0001) == 0) { rudisha 25; }
+    kama (karibu(arctan2_hesabu(0.0 - 1.0, 1.0), 0.0 - (pi/4.0), 0.0001) == 0) { rudisha 26; }
+    kama (karibu(arctan2_hesabu(1.0, 0.0), pi/2.0, 0.0001) == 0) { rudisha 27; }
+    kama (karibu(arctan2_hesabu(0.0 - 1.0, 0.0), 0.0 - (pi/2.0), 0.0001) == 0) { rudisha 28; }
 
     rudisha 0;
 }

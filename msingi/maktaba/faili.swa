@@ -46,9 +46,9 @@ n64 machaguo_ya_kufungua(n8* namna) {
 
 // Fungua faili. Hurudisha kishikio (n8*) au 0 kwa kushindwa.
 n8* faili_fungua(n8* njia, n8* namna) {
-    n64 fd = mfumo_fungua(njia, machaguo_ya_kufungua(namna), faili_ruhusa);
-    kama (fd < 0) { rudisha 0; }
-    rudisha fd;  // n8* lenye thamani ya fd (si kielekezi halisi)
+    n64 kishikio = mfumo_fungua(njia, machaguo_ya_kufungua(namna), faili_ruhusa);
+    kama (kishikio < 0) { rudisha 0; }
+    rudisha kishikio;  // n8* lenye thamani ya fd (si kielekezi halisi)
 }
 
 // Kishikio cha faili (fd) kutoka kwa kielekezi: faili_fungua hurudisha
@@ -103,16 +103,16 @@ n64 faili_andika(n8* chombo, n64 ukubwa, n64 idadi, n8* f) {
 n64 faili_soma_yote(n8* njia, n8* chombo, n64 uwezo) {
     n8* f = faili_fungua(njia, "r");
     kama (f == 0) { rudisha -1; }
-    n32 fd = kishikio_kutoka_hoja(f);
-    n64 ukubwa = mfumo_tafuta_nafasi(fd, 0, 2);  // SEEK_END -- ukubwa halisi wa faili
+    n32 kishikio = kishikio_kutoka_hoja(f);
+    n64 ukubwa = mfumo_tafuta_nafasi(kishikio, 0, 2);  // SEEK_END -- ukubwa halisi wa faili
     kama (ukubwa < 0 || ukubwa + 1 > uwezo) {
         faili_funga(f);
         rudisha -1;  // kikubwa mno (au lseek imeshindwa) -- usiendelee kimya
     }
-    mfumo_tafuta_nafasi(fd, 0, 0);  // SEEK_SET -- rudi mwanzo kabla ya kusoma
+    mfumo_tafuta_nafasi(kishikio, 0, 0);  // SEEK_SET -- rudi mwanzo kabla ya kusoma
     n64 n = 0;
     wakati (n < ukubwa) {
-        n64 r = mfumo_soma(fd, chombo + n, ukubwa - n);
+        n64 r = mfumo_soma(kishikio, chombo + n, ukubwa - n);
         kama (r <= 0) { vunja; }
         n = n + r;
     }

@@ -17,8 +17,8 @@ husisha { mkusanyaji/mteremko.swa }
 
 n8 mt_mrundikano[67108864];        // fremu za kazi (MB 64)
 n64 mt_mrundikano_wapi = 0;
-n64 mt_vreg[8388608];        // rejista pepe za kila wito (MB 64)
-n64 mt_vreg_wapi = 0;
+n64 mt_rejista_pepe[8388608];        // rejista pepe za kila wito (MB 64)
+n64 mt_rejista_pepe_wapi = 0;
 
 // Sawazisha thamani kwa upana (baiti) na ishara
 n64 mt_sawazisha(n64 x, n32 upana, n32 ishara) {
@@ -130,10 +130,10 @@ n64 mt_binari(n32 tendo, n64 a, n64 b, n32 upana, n32 ishara) {
 // ---------------------------------------------------------------
 // Kazi za asili
 // ---------------------------------------------------------------
-w0 mt_andika_baiti(n64 fd, n64 anwani, n64 urefu) {
+w0 mt_andika_baiti(n64 kishikio, n64 anwani, n64 urefu) {
     n8* p = anwani;
     wakati (urefu > 0) {
-        n64 w = wito_wa_mfumo(1, fd, p, urefu, 0, 0, 0);
+        n64 w = wito_wa_mfumo(1, kishikio, p, urefu, 0, 0, 0);
         kama (w <= 0) { rudisha; }
         p = p + w;
         urefu = urefu - w;
@@ -141,7 +141,7 @@ w0 mt_andika_baiti(n64 fd, n64 anwani, n64 urefu) {
 }
 
 n8 mt_chombo_cha_namba[32];
-w0 mt_andika_namba(n64 fd, n64 x) {
+w0 mt_andika_namba(n64 kishikio, n64 x) {
     // tarakimu hutolewa kutoka thamani hasi ili n64 ndogo kabisa isifurike
     n32 i = 31;
     n32 hasi = 0;
@@ -154,8 +154,8 @@ w0 mt_andika_namba(n64 fd, n64 x) {
         i = i - 1;
     }
     kama (hasi) { mt_chombo_cha_namba[i] = 45; i = i - 1; }
-    n64 anw = mt_chombo_cha_namba + i + 1;
-    mt_andika_baiti(fd, anw, 31 - i);
+    n64 anwani_ya_namba = mt_chombo_cha_namba + i + 1;
+    mt_andika_baiti(kishikio, anwani_ya_namba, 31 - i);
 }
 
 n64 mt_asili(n32 kazi, n64* h, n32 idadi) {
@@ -177,15 +177,15 @@ n64 mt_asili(n32 kazi, n64* h, n32 idadi) {
         n8* s = h[1];
         n64 n = 0;
         wakati (s[n] != 0) { n = n + 1; }
-        n64 anw_s = s;
-        mt_andika_baiti(h[0], anw_s, n);
+        n64 anwani_s = s;
+        mt_andika_baiti(h[0], anwani_s, n);
         rudisha 0;
     }
     kama (kazi == ASILI_ANDIKA_HERUFI) {
         n8 b[1];
         b[0] = h[1] & 255;
-        n64 anw_b = b;
-        mt_andika_baiti(h[0], anw_b, 1);
+        n64 anwani_b = b;
+        mt_andika_baiti(h[0], anwani_b, 1);
         rudisha 0;
     }
     andika_stderr("mtafsiri: kazi ya asili haijulikani %d\n", kazi);
@@ -200,19 +200,19 @@ n64 mt_asili(n32 kazi, n64* h, n32 idadi) {
 // ---------------------------------------------------------------
 n32 MT_UPEO_KINA = 1048576;
 n32 mt_wito_k[1048576];
-n32 mt_wito_pc[1048576];
+n32 mt_agizo_la_kurudi[1048576];
 n32 mt_wito_lengo[1048576];
 n64 mt_wito_fremu[1048576];
 n64 mt_wito_v[1048576];
 n64 mt_mrundikano_wa_wito[1048576];
-n64 mt_wito_vreg[1048576];
+n64 mt_rejista_pepe_za_wito[1048576];
 
 // Andaa fremu na rejista za kazi k; hifadhi hoja kwenye nafasi za vigezo.
 // Rudisha anwani ya fremu; mt_v_mpya = rejista zake.
 n64 mt_v_mpya = 0;
 n64 mt_fremu_andaa(n32 k, n64* hoja, n32 idadi) {
-    n64 ukubwa_wa_fremu = irk_fremu[k];
-    kama (mt_mrundikano_wapi + ukubwa_wa_fremu > 67108864 || mt_vreg_wapi + irk_vreg[k] > 8388608) {
+    n64 ukubwa_wa_fremu = kati_fremu_ya_kazi[k];
+    kama (mt_mrundikano_wapi + ukubwa_wa_fremu > 67108864 || mt_rejista_pepe_wapi + kati_rejista_pepe_za_kazi[k] > 8388608) {
         andika_stderr("mtafsiri: rafu imejaa (kujirudia kwa kina mno?)\n");
         wito_wa_mfumo(60, 139, 0, 0, 0, 0, 0);
     }
@@ -220,12 +220,12 @@ n64 mt_fremu_andaa(n32 k, n64* hoja, n32 idadi) {
     n64 z = 0;
     wakati (z < ukubwa_wa_fremu) { mt_mrundikano[mt_mrundikano_wapi + z] = 0; z = z + 1; }
     mt_mrundikano_wapi = mt_mrundikano_wapi + ukubwa_wa_fremu;
-    mt_v_mpya = mt_vreg + mt_vreg_wapi;
-    mt_vreg_wapi = mt_vreg_wapi + irk_vreg[k];
+    mt_v_mpya = mt_rejista_pepe + mt_rejista_pepe_wapi;
+    mt_rejista_pepe_wapi = mt_rejista_pepe_wapi + kati_rejista_pepe_za_kazi[k];
     n32 pi = 0;
-    wakati (pi < irk_idadi_ya_vigezo[k] && pi < idadi) {
-        n32 pk = irk_mwanzo_wa_kigezo[k] + pi;
-        mt_hifadhi(fremu + irp_umbali[pk], hoja[pi], irp_upana[pk]);
+    wakati (pi < kati_idadi_ya_vigezo_vya_kazi[k] && pi < idadi) {
+        n32 pk = kati_mwanzo_wa_vigezo_vya_kazi[k] + pi;
+        mt_hifadhi(fremu + kati_umbali_wa_kigezo[pk], hoja[pi], kati_upana_wa_kigezo[pk]);
         pi = pi + 1;
     }
     rudisha fremu;
@@ -236,32 +236,32 @@ n64 mt_chombo_cha_hoja[64];
 n64 mt_endesha(n32 k, n64* hoja, n32 idadi) {
     n32 kina = 0;
     n64 mwanzo_wa_mrundikano = mt_mrundikano_wapi;
-    n64 vreg_mwanzo = mt_vreg_wapi;
+    n64 mwanzo_wa_rejista_pepe = mt_rejista_pepe_wapi;
     n64 fremu = mt_fremu_andaa(k, hoja, idadi);
     n64* v = mt_v_mpya;
-    n32 pc = irk_mwanzo[k];
+    n32 agizo_la_sasa = kati_mwanzo_wa_kazi[k];
     n64 mrundikano_huu = mwanzo_wa_mrundikano;
-    n64 vreg_hii = vreg_mwanzo;
+    n64 rejista_pepe_hii = mwanzo_wa_rejista_pepe;
     wakati (1) {
-        n32 amri = ir_amri[pc];
-        n32 lengo = ir_lengo[pc];
-        n32 a = ir_a[pc];
-        n32 b = ir_b[pc];
-        n32 c = ir_c[pc];
-        n32 upana = ir_upana[pc];
-        n32 ishara = ir_ishara[pc];
-        pc = pc + 1;
-        kama (amri == IR_NAMBA) { v[lengo] = ir_namba[pc - 1]; endelea; }
+        n32 amri = ir_amri[agizo_la_sasa];
+        n32 lengo = ir_lengo[agizo_la_sasa];
+        n32 a = ir_a[agizo_la_sasa];
+        n32 b = ir_b[agizo_la_sasa];
+        n32 c = ir_c[agizo_la_sasa];
+        n32 upana = ir_upana[agizo_la_sasa];
+        n32 ishara = ir_ishara[agizo_la_sasa];
+        agizo_la_sasa = agizo_la_sasa + 1;
+        kama (amri == IR_NAMBA) { v[lengo] = ir_namba[agizo_la_sasa - 1]; endelea; }
         kama (amri == IR_NAKILI) { v[lengo] = mt_sawazisha(v[a], upana, ishara); endelea; }
         kama (amri == IR_BINARI) { v[lengo] = mt_binari(c, v[a], v[b], upana, ishara); endelea; }
         kama (amri == IR_PAKIA) { v[lengo] = mt_pakia(v[a], upana, ishara); endelea; }
         kama (amri == IR_HIFADHI) { mt_hifadhi(v[a], v[b], upana); endelea; }
-        kama (amri == IR_FREMU) { v[lengo] = fremu + ir_namba[pc - 1]; endelea; }
-        kama (amri == IR_ANWANI) { v[lengo] = ir_namba[pc - 1]; endelea; }
+        kama (amri == IR_FREMU) { v[lengo] = fremu + ir_namba[agizo_la_sasa - 1]; endelea; }
+        kama (amri == IR_ANWANI) { v[lengo] = ir_namba[agizo_la_sasa - 1]; endelea; }
         kama (amri == IR_MAHALI) { endelea; }
-        kama (amri == IR_RUKA) { pc = ir_nafasi_ya_mahali[a]; endelea; }
-        kama (amri == IR_RUKA_KAMA) { kama (v[a] != 0) { pc = ir_nafasi_ya_mahali[b]; } endelea; }
-        kama (amri == IR_RUKA_SIVYO) { kama (v[a] == 0) { pc = ir_nafasi_ya_mahali[b]; } endelea; }
+        kama (amri == IR_RUKA) { agizo_la_sasa = ir_nafasi_ya_mahali[a]; endelea; }
+        kama (amri == IR_RUKA_KAMA) { kama (v[a] != 0) { agizo_la_sasa = ir_nafasi_ya_mahali[b]; } endelea; }
+        kama (amri == IR_RUKA_SIVYO) { kama (v[a] == 0) { agizo_la_sasa = ir_nafasi_ya_mahali[b]; } endelea; }
         kama (amri == IR_UNARI) {
             n64 x = v[a];
             kama (c == IR_HASI) { x = 0 - x; }
@@ -285,37 +285,37 @@ n64 mt_endesha(n32 k, n64* hoja, n32 idadi) {
             n32 i2 = 0;
             wakati (i2 < c && i2 < 64) { mt_chombo_cha_hoja[i2] = v[ir_hoja[b + i2]]; i2 = i2 + 1; }
             mt_wito_k[kina] = k;
-            mt_wito_pc[kina] = pc;
+            mt_agizo_la_kurudi[kina] = agizo_la_sasa;
             mt_wito_lengo[kina] = lengo;
             mt_wito_fremu[kina] = fremu;
             mt_wito_v[kina] = v;
             mt_mrundikano_wa_wito[kina] = mrundikano_huu;
-            mt_wito_vreg[kina] = vreg_hii;
+            mt_rejista_pepe_za_wito[kina] = rejista_pepe_hii;
             kina = kina + 1;
             k = a;
             mrundikano_huu = mt_mrundikano_wapi;
-            vreg_hii = mt_vreg_wapi;
+            rejista_pepe_hii = mt_rejista_pepe_wapi;
             n64* hb2 = mt_chombo_cha_hoja;
             fremu = mt_fremu_andaa(k, hb2, c);
             v = mt_v_mpya;
-            pc = irk_mwanzo[k];
+            agizo_la_sasa = kati_mwanzo_wa_kazi[k];
             endelea;
         }
         kama (amri == IR_RUDISHA) {
             n64 matokeo = 0;
             kama (a >= 0) { matokeo = v[a]; }
             mt_mrundikano_wapi = mrundikano_huu;
-            mt_vreg_wapi = vreg_hii;
+            mt_rejista_pepe_wapi = rejista_pepe_hii;
             kama (kina == 0) { rudisha matokeo; }
             n32 aliyeita = k;
             kina = kina - 1;
             k = mt_wito_k[kina];
-            pc = mt_wito_pc[kina];
+            agizo_la_sasa = mt_agizo_la_kurudi[kina];
             fremu = mt_wito_fremu[kina];
             v = mt_wito_v[kina];
             mrundikano_huu = mt_mrundikano_wa_wito[kina];
-            vreg_hii = mt_wito_vreg[kina];
-            v[mt_wito_lengo[kina]] = mt_sawazisha(matokeo, irk_upana_wa_matokeo[aliyeita], irk_ishara_ya_matokeo[aliyeita]);
+            rejista_pepe_hii = mt_rejista_pepe_za_wito[kina];
+            v[mt_wito_lengo[kina]] = mt_sawazisha(matokeo, kati_upana_wa_matokeo_ya_kazi[aliyeita], kati_ishara_ya_matokeo_ya_kazi[aliyeita]);
             endelea;
         }
         andika_stderr("mtafsiri: amri isiyojulikana %d\n", amri);
