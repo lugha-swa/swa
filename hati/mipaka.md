@@ -265,7 +265,7 @@ msingi kama zamani. Imethibitishwa: `ukubwa(n32)` (bila muundo wa
 jina hilo) bado inarudisha 4; miundo ya kawaida (isiyogongana)
 bado inarudisha ukubwa wao sahihi; freeze imefuata utaratibu KAMILI
 wa CONTRIBUTING.md (nasm+ld, majaribio ya chanzo kidogo, mnyororo
-mzima, mkazo wa RELA, KISHA kugandisha, jaribu-mnyororo.sh 439/439 +
+mzima, mkazo wa RELA, KISHA kugandisha, jaribu-mfululizo.sh 439/439 +
 jaribu-wasm.sh 25/25).
 
 **PENGO LA ANALOGIA LILILOPATIKANA (halijarekebishwa, NJE ya wigo wa

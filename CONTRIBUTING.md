@@ -35,7 +35,7 @@ Tumia kiolezo cha **Ombi la Kipengele**. Kumbuka:
 
 1. **Fork** repo na unda tawi lako
 2. Andika msimbo wako kwa Kiswahili
-3. Hakikisha mnyororo mzima unapita: `./msingi/mjenzi.bin gharama/jaribu-mnyororo.mapishi`
+3. Hakikisha mnyororo mzima unapita: `./msingi/mjenzi.bin gharama/jaribu-mfululizo.mapishi`
 4. Tumia ujumbe wa commit kwa Kiswahili
 5. Eleza **kwa nini** unafanya mabadiliko, si **nini** tu
 
@@ -53,7 +53,7 @@ Tumia kiolezo cha **Ombi la Kipengele**. Kumbuka:
 git clone https://github.com/lugha-swa/swa.git
 cd swa
 ./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> mbegu -> bin/swa
-./msingi/mjenzi.bin gharama/jaribu-mnyororo.mapishi   # mnyororo mzima + majaribio
+./msingi/mjenzi.bin gharama/jaribu-mfululizo.mapishi   # mnyororo mzima + majaribio
 ```
 
 ### Kujaribu Mkusanyaji
@@ -94,7 +94,7 @@ iliyovunjika inaweza bado kutoa fixpoint imara LAKINI mbaya
 kimya kimya. Mfano halisi: uhariri mdogo wa njia ya fixup uliwahi
 kufanya kila mkusanyiko kushindwa -- ulipatikana tu kwa sababu jaribio
 la wito 1,000 lilikimbizwa kabla ya kugandisha. Jaribio hilo sasa ni
-mkazo wa RELA ndani ya `gharama/jaribu-mnyororo.mapishi` (`majaribio/mkazo/rela_1000.swa`) -- la kudumu.
+mkazo wa RELA ndani ya `gharama/jaribu-mfululizo.mapishi` (`majaribio/mkazo/rela_1000.swa`) -- la kudumu.
 
 Mpangilio wa lazima:
 1. Badilisha `msingi/mbegu.swm`.
@@ -108,8 +108,8 @@ Mpangilio wa lazima:
 4. Baada ya hapo tu: gandisha (`./msingi/mjenzi.bin gharama/gandisha.mapishi`
    huandika `mbegu.bin` + `mbegu.hex` na `mjenzi.bin` + `mjenzi.hex`,
    kisha huthibitisha mnyororo mzima), endesha
-   `./msingi/mjenzi.bin gharama/jaribu-mnyororo-huru.mapishi`, na endesha
-   `./msingi/mjenzi.bin gharama/jaribu-mnyororo.mapishi` nzima.
+   `./msingi/mjenzi.bin gharama/jaribu-mfululizo-huru.mapishi`, na endesha
+   `./msingi/mjenzi.bin gharama/jaribu-mfululizo.mapishi` nzima.
 5. Tazama `hati/mipaka.md` kwa mipaka inayojulikana ya mbegu.
 
 ---

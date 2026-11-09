@@ -34,7 +34,7 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
       hex hadi binary na inajijenga yenyewe (kwanza.hex -> kwanza.bin)
 - [x] mbegu.bin inazalika kutoka mbegu.hex kupitia Kwanza -- NASM
       si sehemu ya mnyororo tena; tangu 2026-11-03 mbegu.bin yenyewe hujengwa
-      kutoka mbegu.swm na mnyororo huru (hati/mnyororo-huru.md)
+      kutoka mbegu.swm na mnyororo huru (hati/mfululizo-huru.md)
 - [x] Kiunganishi cha kujitegemea: bendera ya `--programu` inatoa **ET_EXEC
       tuli** (bila kichwa cha sehemu, bila PT_INTERP) -- mnyororo wa
       kujikusanya wa exe ni safi kabisa: stage2-exe == stage3-exe

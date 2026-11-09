@@ -627,7 +627,7 @@ muundo Nukta {
 
 Kazi iliyokwisha kukusanywa kwenye maktaba ya mfumo inatangazwa kwa
 kichwa cha Swa na kuitwa kama kazi nyingine yoyote. Muundo kamili na
-awamu zake: `hati/daraja-la-mashine.md`.
+awamu zake: `hati/kiolesura-cha-mashine.md`.
 
 ```
 nje "libm.so.6" {
@@ -680,7 +680,7 @@ nje "libm.so.6" {
   alama); hoja na matokeo ni `n32`, kielekezi au `w0`. DOM hutoka
   `msingi/maktaba/kivinjari.swa` (`husisha { kivinjari.swa }`), na
   `swa --wasm-js` huandika daraja la jumla la JS.
-- Majaribio: `gharama/jaribu-daraja.mapishi` (`majaribio/daraja/`),
+- Majaribio: `gharama/jaribu-kiolesura.mapishi` (`majaribio/kiolesura/`),
   `gharama/jaribu-wasm.mapishi` (`majaribio/wasm/`).
 
 ## 9. Kazi za Ndani (builtins)

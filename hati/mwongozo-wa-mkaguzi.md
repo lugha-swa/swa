@@ -15,10 +15,10 @@ matokeo yako (hata "nimekagua X, sikuona tatizo") kwenye issue ya hazina.
 | # | Programu | Baiti | Faili la kusoma | Wito wa mfumo (strace) |
 |---|---|---|---|---|
 | 0 | `kwanza` (hex -> binary) | 393 | `hati/kwanza-baiti.md`, `msingi/kwanza.hex` | read, write, exit |
-| 0b | `kizinduzi` (kiendeshaji cha hatua) | 839 | `msingi/kizinduzi.hexc` (chanzo: `msingi/mnyororo/kizinduzi.swm`) | read, write, open, dup2, fork, wait4, execve, mkdir, exit |
-| 1 | `maoni` (hex + maoni) | 400 | `msingi/mnyororo/hatua1_maoni.hexc` | read, write, exit |
-| 2 | `lebo` (lebo na matawi) | 730 | `msingi/mnyororo/hatua2_lebo.hexc` | read, write, exit |
-| 3 | `kusanyiko0` (makro) | 1019 | `msingi/mnyororo/hatua3_kusanyiko0.hex2` | read, write, exit |
+| 0b | `kizinduzi` (kiendeshaji cha hatua) | 839 | `msingi/kizinduzi.hexc` (chanzo: `msingi/mfululizo/kizinduzi.swm`) | read, write, open, dup2, fork, wait4, execve, mkdir, exit |
+| 1 | `maoni` (hex + maoni) | 400 | `msingi/mfululizo/hatua1_maoni.hexc` | read, write, exit |
+| 2 | `lebo` (lebo na matawi) | 730 | `msingi/mfululizo/hatua2_lebo.hexc` | read, write, exit |
+| 3 | `kusanyiko0` (makro) | 1019 | `msingi/mfululizo/hatua3_kusanyiko0.hex2` | read, write, exit |
 
 Jumla: baiti 3381. Mbegu mbili (0 na 0b) ndizo binary pekee zilizogandishwa
 kwenye mzizi; hatua 1-3 hujengwa kutoka faili za maandishi wakati wa kila
@@ -75,7 +75,7 @@ Kisha linganisha disassembly na maoni ya `.hexc` mstari kwa mstari.
   kutoka mbegu mbili, kisha mjenzi uliojengwa kutoka chanzo hulinganisha
   kila binary iliyogandishwa (`mjenzi.bin`, `mbegu.bin`, `kizinduzi.bin` na
   `.hex` zao). Hatua ya kwanza ya CI.
-- `gharama/jaribu-mnyororo-huru.mapishi`: kila hatua hujijenga yenyewe sawa
+- `gharama/jaribu-mfululizo-huru.mapishi`: kila hatua hujijenga yenyewe sawa
   kwa baiti, na kila kipengele na kosa la kila hatua lina jaribio.
 
 ## Mipaka ya ukaguzi huu
