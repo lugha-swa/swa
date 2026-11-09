@@ -223,12 +223,12 @@ daraja lipo, lakini lina umbo la `syscall/js` ya Go na `wasm_exec.js`:
   huandika `swa-js.js`: shughuli 14 juu ya vitu vya JS vinavyoshikwa kwa
   namba (vishiko) -- `kimataifa`, `pata`, `weka`, `ita0..ita3`,
   `mfuatano`, `namba`, `kwa_namba`, `kazi` (kazi ya Swa kama kazi ya
-  kurudi), `achilia`, `mzizi`. Halina mantiki ya programu; ni sawa kwa
+  kurudi), `achilia`, `nodi_kuu`. Halina mantiki ya programu; ni sawa kwa
   kila programu, kama kichwa cha ELF.
 - **`nje` ni uingizaji wa WASM.** `nje "js" { n32 js_pata(n32 kitu, n8* sifa) = "pata"; }`
   huwa uingizaji (moduli `js`, alama `pata`). Moduli nyingine yoyote
   (mf. `wasi_snapshot_preview1`) hufanya kazi vivyo hivyo; mwenyeji
-  huitoa kupitia hoja ya tatu ya `anzishaSwa(chanzo, mzizi, ziada)`.
+  huitoa kupitia hoja ya tatu ya `anzishaSwa(chanzo, nodi_kuu, ziada)`.
 - **DOM ni Swa.** `msingi/maktaba/kivinjari.swa` hujenga `dom_unda`,
   `dom_ambatanisha`, `dom_sikiliza`, `dom_weka_namba`, `console_andika`
   n.k. juu ya shughuli hizo. Kuongeza API mpya ya kivinjari ni kuandika

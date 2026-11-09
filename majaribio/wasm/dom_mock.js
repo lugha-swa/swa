@@ -8,12 +8,12 @@
 // addEventListener. Mock hii hutoa API hizo pekee -- hivyo majaribio
 // hupima mnyororo mzima: Swa -> kivinjari.swa -> swa-js.js -> DOM.
 //
-// Nodi hupewa namba kwa mpangilio wa kuundwa (mzizi = 0), kama mti
+// Nodi hupewa namba kwa mpangilio wa kuundwa (nodi kuu = 0), kama mti
 // tarajiwa wa majaribio/wasm/*.tarajiwa.json unavyozitaja.
 //
 //   const dom = createDomMock();
 //   globalThis.document = dom.hati;
-//   await anzishaSwa(baiti, dom.mzizi);
+//   await anzishaSwa(baiti, dom.nodi_kuu);
 //   dom.chochea(1, "click");
 //   dom.getTree();
 
@@ -32,7 +32,7 @@ class Elementi {
 }
 
 function createDomMock() {
-    const nodi = [new Elementi("#mzizi", 0)];
+    const nodi = [new Elementi("#nodi_kuu", 0)];
     const hati = {
         createElement: (tag) => {
             const e = new Elementi(tag, nodi.length);
@@ -62,7 +62,7 @@ function createDomMock() {
         return panuaMti(nodi[0]);
     }
 
-    return { hati, mzizi: nodi[0], chochea, getTree };
+    return { hati, nodi_kuu: nodi[0], chochea, getTree };
 }
 
 module.exports = { createDomMock };
