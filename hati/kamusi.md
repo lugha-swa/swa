@@ -1,0 +1,225 @@
+# Kamusi ya istilahi za Swa
+
+Swa ni Kiswahili kote: lugha, mkusanyaji, maktaba, majaribio, mifano, hati.
+Kamusi hii huamua neno moja la Kiswahili kwa kila dhana ya kiufundi, ili
+kila faili litumie neno lile lile. Ubadilishaji wa majina hufuata kamusi
+hii kwa mashine (kitambulisho kwa kitambulisho, nje ya mifuatano na
+maoni), na kila hatua huthibitishwa kwa:
+
+- fixpoint ya mkusanyaji (stage2 == stage3);
+- kila programu ya majaribio na mifano, `--exe` na `--wasm`, sawa kwa
+  baiti na mkusanyaji wa kabla ya kubadilisha;
+- vipimo vyote vya `gharama/`.
+
+Kubadilisha jina hakubadilishi maana -- kwa hiyo hakuna baiti ya matokeo
+inayoruhusiwa kubadilika.
+
+## Kanuni
+
+1. **Majina yetu ni ya Kiswahili; majina yao ni data.** Jina lililofafanuliwa
+   na mtu mwingine -- alama ya maktaba (`cos`, `snprintf`), syscall ya Linux
+   (`mmap`), sehemu ya ELF (`.strtab`, `e_phoff`), agizo la WASM
+   (`i32.const`), njia ya DOM (`createElement`) -- huingia kama mfuatano
+   au kwenye maoni kama marejeo, kamwe kama kitambulisho chetu.
+2. **Majina ya umbizo ni majina halisi.** ELF, WASM, JS, DOM, x86, GOT,
+   System V ni majina ya viwango, kama "Linux" -- yanabaki. Lakini
+   **dhana** za Kiingereza (AST, IR, buffer, offset, immediate) hutafsiriwa.
+3. **Rejista na maagizo hutumia lugha ya mashine ya Swa**
+   (`hati/kusanyiko-x86.md`): `r0`-`r15` na upana `d`/`w`/`b`
+   (`rax` = `r0`, `eax` = `r0d`, `al` = `r0b`, `rcx` = `r1`, `rdx` = `r2`,
+   `rbx` = `r3`, `rsp` = `r4`, `rbp` = `r5`, `rsi` = `r6`, `rdi` = `r7`),
+   `x0`-`x15` kwa desimali. Jina la Intel hubaki kwenye maoni ya baiti
+   (`// 48 89 C7  mov rdi, rax`) -- hiyo ni marejeo ya mwongozo wa Intel,
+   si jina letu.
+4. **Vifupisho vya herufi moja au mbili** (`p`, `k`, `i`, `j`) si maneno --
+   vinabaki. Kifupisho cha neno la Kiingereza (`idx`, `buf`, `tmp`,
+   `ptr`) si kifupisho tena: hutumia neno kamili la Kiswahili au kifupisho
+   chake kilichoamuliwa hapa.
+
+## Lugha yenyewe
+
+| Kiingereza | Swa | Maelezo |
+|---|---|---|
+| `main` | `anza` | mlango wa programu -- sawa na `anza:` ya lugha ya mashine |
+| `andika_stderr` | `andika_kosa` | kazi ya ndani: andika kwenye mkondo wa makosa (2) |
+| `--exe` | `--programu` | ELF inayotekelezeka |
+| `--kernel` | `--kiini` | picha ya kiini (Kawira) |
+| `--ir` | `--kati` | uwakilishi wa kati |
+| `--jit` | `--papo` | tekeleza papo hapo |
+| `--wasm`, `--wasm-js` | (zinabaki) | WASM na JS ni majina ya umbizo |
+| `stage1.swa` | `kiendeshaji.swa` | dereva wa mkusanyaji (hatua 1 ya mnyororo ni `hatua1_maoni`) |
+
+`main`, `andika_stderr` na `call` zinajulikana na mbegu iliyogandishwa
+(`msingi/mbegu.swm`), kwa hiyo sehemu hii hufanywa pamoja na kugandisha
+mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
+
+## Dhana za mkusanyaji
+
+| Kiingereza | Swa |
+|---|---|
+| AST (`ast_`) | `mti_` (mti wa sintaksia) |
+| node | `nodi` |
+| IR | `kati` |
+| enc / encoding | `usimbaji` (kifupisho `usb`) |
+| offset / off | `ofseti` |
+| buffer / buf | `bafa` |
+| pool | `dimbwi` |
+| index / idx | `faharasa` (kifupisho `fah`) |
+| position / pos | `nafasi` |
+| register / reg | `rejista` |
+| virtual register / vreg | `rejista_pepe` |
+| temporary / tmp | `muda` |
+| value / val | `thamani` |
+| pointer / ptr | `kielekezi` |
+| length / len | `urefu` |
+| size / sz | `ukubwa` |
+| count | `idadi` |
+| max / min | `upeo` / `chini` |
+| prev / next / nxt | `iliyotangulia` / `inayofuata` |
+| first / last | `kwanza` / `mwisho` |
+| start / end | `mwanzo` / `mwisho` |
+| old / new | `zamani` / `mpya` |
+| lhs / rhs | `kushoto` / `kulia` |
+| operand | `hoja` |
+| op / operator | `kitendo` |
+| expr / expression | `usemi` |
+| stmt / statement | `taarifa` |
+| cond / condition | `sharti` |
+| body | `mwili` |
+| then / else | `basi` / `sivyo` |
+| default | `chaguo_msingi` |
+| block | `kizuizi` |
+| init / initializer | `kianzio` |
+| decl / declaration | `tangazo` |
+| param / parm / arg / args | `kigezo` / `vigezo` (tangazo); `hoja` (wito) |
+| field | `sehemu` |
+| struct | `muundo` |
+| element / elem | `kipengele` |
+| array / arr | `safu` |
+| string / str | `mfuatano` |
+| char / ch | `herufi` |
+| text / txt | `maandishi` (sehemu ya ELF `.text`: `msimbo`) |
+| literal / lit | `halisi` |
+| constant / const | `kisichobadilika` |
+| global | `ulimwengu` |
+| local / locals | `ndani` / `vya_ndani` |
+| stack | `rafu` |
+| heap | `lundo` |
+| slot | `sloti` |
+| label | `lebo` |
+| fixup / relocation | `urekebishaji` |
+| target / tgt | `lengo` |
+| source / src | `chanzo` |
+| scratch | `rasimu` |
+| flags | `bendera` |
+| mask | `kinyago` |
+| bits | `biti` |
+| bytes | `baiti` |
+| raw | `ghafi` |
+| content | `maudhui` |
+| status | `hali` (kama kitambulisho: `hali_ya`) |
+| kind / type | `aina` |
+| list | `orodha` |
+| map | `ramani` |
+| hash | `heshi` |
+| entry / entries | `ingizo` / `maingizo` |
+| visited | `imetembelewa` |
+| pass (kipitishi) | `kipitishi` |
+| scan | `chunguza` |
+| check / chk | `kagua` |
+| fail / bail | `shindwa` / `acha` |
+| reset | `weka_upya` |
+| copy | `nakala` |
+| get / set | `pata` / `weka` |
+| load / store | `pakia` / `hifadhi` |
+| drop | `tupa` |
+| tail | `mkia` |
+| ternary | `chaguzi_tatu` |
+| binary op / binop | `kitendo_cha_pande_mbili` |
+| primary | `msingi` |
+| helper | `msaidizi` |
+| registry | `sajili` |
+| thunk | `kipande` |
+| LICM (licm) | `pandisha` (kupandisha kisichobadilika nje ya kitanzi) |
+| CSE (cse) | `rudufu` (kuondoa usemi uliorudiwa) |
+| inline (inl) | `pachika` |
+| sret | `matokeo_ya_muundo` (kifupisho `mm`) |
+| SIMD (simd) | `sambamba` |
+| syscall / sys_ | `mfumo` / `mfumo_` (mf. `sys_fork` -> `mfumo_gawanyika`) |
+| argc / argv / envp | `idadi_ya_hoja` / `hoja_za_mstari` / `mazingira` |
+| fd | `kifafanuzi` (cha faili) |
+| pid | `kitambulisho_cha_mchakato` |
+
+## Usimbaji wa maagizo (mkusanyaji)
+
+Kazi za kuandika baiti za maagizo hufuata lugha ya mashine:
+`andika_<tendo>_<lengo>_<chanzo>`.
+
+| Agizo la Intel | Tendo la Swa |
+|---|---|
+| mov (rejista <- rejista) | `nakili` |
+| mov (rejista <- namba) | `weka` |
+| mov (rejista <- kumbukumbu) | `soma` |
+| mov (kumbukumbu <- rejista) | `hifadhi` |
+| movzx / movsx / movsxd | `soma_a` / `soma_n` (panua kwa sifuri / kwa ishara) |
+| lea | `anwani` |
+| push / pop | `sukuma` / `vuta` |
+| call / ret | `ita` / `rudi` |
+| jmp / jcc | `ruka` / `ruka_kama` |
+| cmp / test | `linganisha` / `pima` |
+| add / sub | `jumlisha` / `toa` |
+| imul / mul | `zidisha_n` / `zidisha_a` |
+| idiv / div | `gawanya_n` / `gawanya_a` |
+| cdq | `panua` |
+| and / or / xor / not | `na` / `au` / `au_pekee` / `geuza` |
+| neg | `hasi` |
+| shl / shr / sar | `sogeza_kushoto` / `sogeza_kulia_a` / `sogeza_kulia_n` |
+| setcc | `weka_kama` |
+| rep movsb | `nakili_baiti` |
+| syscall | `mfumo` |
+| movsd / movss / movapd / movupd / movd / movq | `soma_d64` / `soma_d32` / `nakili_x` / ... (kwa upana) |
+| addsd subsd mulsd divsd (na ss, pd) | `jumlisha_d64` `toa_d64` `zidisha_d64` `gawanya_d64` (`_d32`, `_d64x2`) |
+| comisd / comiss | `linganisha_d64` / `linganisha_d32` |
+| cvtsi2sd / cvtsi2ss | `geuza_kuwa_d64` / `geuza_kuwa_d32` |
+| imm (namba ndani ya agizo) | `namba` (`imm32` -> `namba32`) |
+| disp (ofseti ya anwani) | `ofseti` |
+| ModRM / SIB / REX | `modrm` / `sib` / `rex` -- majina ya baiti za Intel, kama data |
+| rip-relative | `jirani` |
+
+Mfano: `andika_mov_rax_rbp_off` -> `andika_soma_r0_r5_ofseti`;
+`andika_push_rax` -> `andika_sukuma_r0`; `andika_xor_eax_eax` ->
+`andika_au_pekee_r0d_r0d`.
+
+## ELF na WASM
+
+Sehemu za viwango hivi hupewa majina ya Kiswahili kwa maana, na jina la
+kiwango kwenye maoni pale linapofafanuliwa:
+
+| Kiwango | Swa |
+|---|---|
+| phdr / shdr | `kichwa_cha_kipande` / `kichwa_cha_sehemu` |
+| strtab / shstrtab | `jedwali_la_majina` / `jedwali_la_majina_ya_sehemu` |
+| symtab / sym | `jedwali_la_alama` / `alama` |
+| vaddr / filesz / memsz | `anwani_pepe` / `ukubwa_faili` / `ukubwa_kumbukumbu` |
+| bss | `tupu` (kama lugha ya mashine) |
+| interp / dyn | `kipakiaji` / `kiungo_hai` |
+| WASM import / export | `uingizaji` / `uhamishaji` |
+| WASM function / element / memory | `kazi` / `kipengele` / `kumbukumbu` |
+| WASM local.get / local.set | majina ya maagizo -- mfuatano/maoni; kitambulisho `wasm_kitendo_pata_ndani` |
+| LEB128 (uleb, sleb) | `leb_a` / `leb_n` |
+
+## Hatua za kazi
+
+1. Kamusi hii.
+2. Vitambulisho vya ndani vya `msingi/` (si vile vinavyojulikana na mbegu),
+   faili kwa faili -- matokeo sawa kwa baiti.
+3. Maktaba (`msingi/maktaba/`), majaribio, mifano.
+4. Lugha: `anza`, `andika_kosa`, bendera, `kiendeshaji.swa` -- pamoja na
+   kugandisha mbegu upya.
+5. Maoni, hati, faili za CI (`ci.yml` -> `ukaguzi.yml`), `dom_mock.js` ->
+   `hati_bandia.js`. Faili zinazotakiwa na GitHub kwa jina hilo
+   (`README.md`, `LICENSE-*`, `SECURITY.md`, `CONTRIBUTING.md`,
+   `.github/ISSUE_TEMPLATE`, `pull_request_template.md`, `FUNDING.yml`)
+   hubaki kwa jina -- yaliyomo ni Kiswahili.
+
+Hakuna toleo jipya kabla hatua hizi zote hazijakamilika.
