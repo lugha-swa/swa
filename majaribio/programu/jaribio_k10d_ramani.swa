@@ -44,16 +44,16 @@ n64 mfumo_andika(n32 faili, n8* bafa, n64 urefu) {
     rudisha wito_wa_mfumo(1, faili, bafa, urefu, 0, 0, 0);
 }
 
-n64 mfumo_fungua(n8* njia, n64 bendera) {
-    rudisha wito_wa_mfumo(2, njia, bendera, 0, 0, 0, 0);
+n64 mfumo_fungua(n8* njia, n64 machaguo) {
+    rudisha wito_wa_mfumo(2, njia, machaguo, 0, 0, 0, 0);
 }
 
 n64 mfumo_funga(n32 faili) {
     rudisha wito_wa_mfumo(3, faili, 0, 0, 0, 0, 0);
 }
 
-n64 mfumo_ramani_kumbukumbu(n8* anwani, n64 urefu, n64 ulinzi, n64 bendera, n64 faili) {
-    rudisha wito_wa_mfumo(9, anwani, urefu, ulinzi, bendera, faili, 0);
+n64 mfumo_ramani_kumbukumbu(n8* anwani, n64 urefu, n64 ulinzi, n64 machaguo, n64 faili) {
+    rudisha wito_wa_mfumo(9, anwani, urefu, ulinzi, machaguo, faili, 0);
 }
 
 n64 mfumo_ondoa_ramani_kumbukumbu(n8* anwani, n64 urefu) {
@@ -273,8 +273,8 @@ n64 biti_ya_d64_swa(n8* ch, n32 u) {
     }
     // nene = 10^idadi_k
     n64 nene = 1;
-    n32 kaunta = 0;
-    wakati (kaunta < idadi_k) { nene = nene * 10; kaunta = kaunta + 1; }
+    n32 kihesabu = 0;
+    wakati (kihesabu < idadi_k) { nene = nene * 10; kihesabu = kihesabu + 1; }
     // hesabu = nzima * nene + kasoro  (thamani = hesabu / nene)
     n64 hesabu = nzima * nene + kasoro;
     kama (hesabu == 0) { rudisha 0; }
@@ -384,19 +384,19 @@ w0 ramani_weka(Ramani* r, n32 funguo, n32 thamani) {
         rudisha;
     }
     n32 faharasa = funguo % r->uwezo;
-    n32 kaburi = -1;
+    n32 alama_ya_kufutwa = -1;
     n32 hatua = 0;
     wakati (hatua < r->uwezo) {
         kama (r->funguo[faharasa] == funguo) {
             r->thamani[faharasa] = thamani;
             rudisha;
         }
-        kama (r->funguo[faharasa] == -2 && kaburi == -1) {
-            kaburi = faharasa;
+        kama (r->funguo[faharasa] == -2 && alama_ya_kufutwa == -1) {
+            alama_ya_kufutwa = faharasa;
         }
         kama (r->funguo[faharasa] == -1) {
-            kama (kaburi != -1) {
-                faharasa = kaburi;
+            kama (alama_ya_kufutwa != -1) {
+                faharasa = alama_ya_kufutwa;
             }
             r->funguo[faharasa] = funguo;
             r->thamani[faharasa] = thamani;
@@ -406,9 +406,9 @@ w0 ramani_weka(Ramani* r, n32 funguo, n32 thamani) {
         faharasa = (faharasa + 1) % r->uwezo;
         hatua = hatua + 1;
     }
-    kama (kaburi != -1) {
-        r->funguo[kaburi] = funguo;
-        r->thamani[kaburi] = thamani;
+    kama (alama_ya_kufutwa != -1) {
+        r->funguo[alama_ya_kufutwa] = funguo;
+        r->thamani[alama_ya_kufutwa] = thamani;
         r->idadi = r->idadi + 1;
     }
 }

@@ -46,8 +46,8 @@ n32 KIPANDE = 128;
 // Rafu ya njia ya sasa (kwa kutambua mizunguko) na orodha ya
 // zilizotatuliwa (kwa kutofanya marudio) — zote ni faharisi
 // za hifadhi ya majina
-n32 rafu[4096];
-n32 rafu_kiasi = 0;
+n32 mrundikano[4096];
+n32 urefu_wa_mrundikano = 0;
 n32 zilizotatuliwa[4096];
 n32 idadi_zilizotatuliwa = 0;
 
@@ -158,14 +158,14 @@ w0 chapisha_mzunguko(n32 mwanzo) {
     andika_stderr("; KOSA: mzunguko wa husisha umegunduliwa:\n");
     andika_stderr(";   ");
     n32 k = mwanzo;
-    wakati (k < rafu_kiasi) {
-        andika_stderr("%s", majina + rafu[k] * KIPANDE);
+    wakati (k < urefu_wa_mrundikano) {
+        andika_stderr("%s", majina + mrundikano[k] * KIPANDE);
         k = k + 1;
-        kama (k < rafu_kiasi) {
+        kama (k < urefu_wa_mrundikano) {
             andika_stderr(" -> ");
         }
     }
-    andika_stderr(" -> %s\n", majina + rafu[mwanzo] * KIPANDE);
+    andika_stderr(" -> %s\n", majina + mrundikano[mwanzo] * KIPANDE);
 }
 
 // tatua — tafuta faili kwa mpangilio wa utafutaji, usome, na
@@ -183,8 +183,8 @@ w0 tatua(n8* jina) {
             nakili_mfuatano(bafa_ya_njia, jina);
             kama (faili_ipo(bafa_ya_njia) == 0) {
                 andika_stderr("; KOSA: faili la husisha halipatikani: %s\n", jina);
-                kama (rafu_kiasi > 0) {
-                    andika_stderr(";   Ilitajwa kutoka: %s\n", majina + rafu[rafu_kiasi - 1] * KIPANDE);
+                kama (urefu_wa_mrundikano > 0) {
+                    andika_stderr(";   Ilitajwa kutoka: %s\n", majina + mrundikano[urefu_wa_mrundikano - 1] * KIPANDE);
                 }
                 andika_stderr(";   Utafutaji: msingi/%s, msingi/maktaba/%s, %s\n", jina, jina, jina);
                 kosa = 1;
@@ -194,8 +194,8 @@ w0 tatua(n8* jina) {
     }
     // Mzunguko? — faili liko tayari kwenye rafu ya sasa
     n32 k = 0;
-    wakati (k < rafu_kiasi) {
-        kama (linganisha_mfuatano(bafa_ya_njia, majina + rafu[k] * KIPANDE) == 0) {
+    wakati (k < urefu_wa_mrundikano) {
+        kama (linganisha_mfuatano(bafa_ya_njia, majina + mrundikano[k] * KIPANDE) == 0) {
             chapisha_mzunguko(k);
             kosa = 1;
             rudisha;
@@ -210,7 +210,7 @@ w0 tatua(n8* jina) {
         }
         k = k + 1;
     }
-    kama (rafu_kiasi >= 4095) {
+    kama (urefu_wa_mrundikano >= 4095) {
         andika_stderr("; KOSA: utegemezi ni mrefu mno (zaidi ya 4095)\n");
         kosa = 1;
         rudisha;
@@ -230,12 +230,12 @@ w0 tatua(n8* jina) {
     // Andika njia kwenye hifadhi; sukuma kwenye rafu
     n32 faharisi = ongeza_jina(bafa_ya_njia);
     kama (kosa) { rudisha; }
-    rafu[rafu_kiasi] = faharisi;
-    rafu_kiasi = rafu_kiasi + 1;
+    mrundikano[urefu_wa_mrundikano] = faharisi;
+    urefu_wa_mrundikano = urefu_wa_mrundikano + 1;
     // Changanua mistari yake kwa kujirudia
     changanua(bafa_chanzo, urefu, 0);
     // Toa kwenye rafu; kamilisha faili hili
-    rafu_kiasi = rafu_kiasi - 1;
+    urefu_wa_mrundikano = urefu_wa_mrundikano - 1;
     kama (kosa == 0) {
         zilizotatuliwa[idadi_zilizotatuliwa] = faharisi;
         idadi_zilizotatuliwa = idadi_zilizotatuliwa + 1;
@@ -267,7 +267,7 @@ w0 changanua(n8* b, n64 urefu, n32 ni_kuu) {
                 kama (ni_kuu == 0 && kosa == 0) {
                     // bafa ya chanzo imeharibiwa — isome upya njia
                     // ya sasa (juu ya rafu)
-                    n8* njia_sasa = majina + rafu[rafu_kiasi - 1] * KIPANDE;
+                    n8* njia_sasa = majina + mrundikano[urefu_wa_mrundikano - 1] * KIPANDE;
                     n64 m2 = faili_soma_yote(njia_sasa, bafa_chanzo, 16777216);
                     kama (m2 != urefu) {
                         andika_stderr("; KOSA: faili lilibadilika wakati wa kutatua: %s\n", njia_sasa);
@@ -300,8 +300,8 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         // unaorudi kwenye chanzo kikuu hugunduliwa
         n32 faharisi = ongeza_jina(njia_kuu);
         kama (kosa) { rudisha 1; }
-        rafu[0] = faharisi;
-        rafu_kiasi = 1;
+        mrundikano[0] = faharisi;
+        urefu_wa_mrundikano = 1;
     } sivyo {
         // Chanzo kikuu kutoka kituo cha kuingiza
         wakati (1 == 1) {

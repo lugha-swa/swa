@@ -228,6 +228,48 @@ kiwango kwenye maoni pale linapofafanuliwa:
 | WASM local.get / local.set | majina ya maagizo -- mfuatano/maoni; kitambulisho `wasm_kitendo_pata_ndani` |
 | LEB128 (uleb, sleb) | `leb_a` / `leb_n` |
 
+## Maneno ya sitiari yaliyobadilishwa kwa maana
+
+Kanuni ya mwanzilishi: hakuna tafsiri ya neno-kwa-neno ya sitiari ya
+Kiingereza (`mdudu` <- "bug" ni kosa). Jina hufuata kazi halisi ya kitu.
+Kila neno jipya limethibitishwa kwenye kamusi (Wiktionary ya Kiswahili,
+inayotokana na TUKI na Johnson), na kila kitambulisho kilikaguliwa kwa
+kazi yake -- neno moja la zamani linaweza kupata maneno tofauti.
+
+| Zamani | Sasa | Kazi kwenye msimbo | Kamusi |
+|---|---|---|---|
+| kitanzi | mzunguko | msimbo unaorudiwa | mzunguko: "cycle, circuit"; kitanzi: "noose" |
+| rafu | mrundikano | mwisho-kuingia-kwanza-kutoka | "vitu vilivyowekwa juu ya vingine kwa utaratibu"; rafu: "shelf" |
+| sloti | nafasi | nafasi ya thamani moja | nafasi: "space" |
+| dimbwi | ghala | hifadhi ya majina | ghala: "storeroom"; dimbwi: pond |
+| mnyororo | mfululizo | hatua zinazofuatana | mfululizo: "series" (mlolongo = "queueing" -- imekataliwa) |
+| daraja | kiolesura | mawasiliano na msimbo uliokusanywa | "inayowezesha mawasiliano kati ya programu" |
+| kinyago | kichujio | huchagua biti | kichujio: "(computing) filter" |
+| bendera | machaguo / sifa | jinsi ya kufungua au kupanga / kipande cha ELF ni nini | chaguo: "choice"; sifa: "trait, quality" |
+| jani | moja_kwa_moja | hoja isiyohitaji hesabu | -- (sitiari ya mti imeondolewa) |
+| kizuizi, bloku | ubeti | kundi la taarifa linalounda kitu kimoja | ubeti (ushairi): kundi la mishororo linaloleta wazo moja |
+| kichwa | utangulizi / mwanzo / tangazo | kichwa cha faili / mwanzo wa orodha / tangazo la kazi ya nje | utangulizi: "introduction" |
+| mwili | maudhui | taarifa zilizomo kwenye kazi au mzunguko | maudhui: "content" |
+| lala | subiri | kusimama kwa muda | subiri: "to wait" |
+| ua | batilisha / tuma_ishara / upana | thamani zisizo halali tena / ishara kwa mchakato / upana wa biti | batilisha: "make invalid" |
+| kaburi | alama_ya_kufutwa | nafasi iliyofutwa kwenye ramani | alama: "mark, sign" |
+| kandida | mgombea | vigeu vinavyoshindania rejista | mgombea: "candidate, contestant" |
+| mzizi | nodi_ya_programu / saraka_ya_swa / nodi_kuu | nodi ya programu nzima / saraka ya usakinishaji / nodi ya ukurasa | (mzizi wa mraba wa hisabati unabaki) |
+| pandisha | hamisha_nje | hesabu isiyobadilika hutolewa nje ya mzunguko | -- |
+| jirani | kutoka_agizo | anwani huhesabiwa kutoka agizo la sasa | -- |
+| tawi | upande | upande mmoja wa && / \|\| | -- |
+| sikiliza | itikia | kazi huitwa tukio linapotokea | kuitikia: kujibu unapoitwa |
+| kizazi | zamu | duru ya kutembelea nodi | -- |
+| mtoto, mzazi | nodi_iliyomo, nodi_inayoibeba (mchakato_mpya kwa fork) | nodi ndani ya nodi / mchakato mpya | -- |
+| kaunta, selecta | kihesabu, kiteuzi | | -- (maneno yaliyoundwa kutoka hesabu, teua) |
+| lebo_mkia | lebo_mabaki | marudio yaliyobaki baada ya uvekta | -- |
+
+`husisha` linabaki: lina maana ya kuhusisha, na ndivyo linavyofanya --
+huleta faili jingine kwenye programu. Yanayofuata kwenye PR zake: `mti`
+-> `nodi`, `ofseti` -> `umbali`, `lebo` -> `mahali`, `bafa` -> `chombo`,
+neno muhimu `vunja` -> `acha`, `mbegu` -> mkusanyaji wa awali, na majina
+ya faili (`mende`/`mdudu` -> `hitilafu`).
+
 ## Hatua za kazi
 
 1. Kamusi hii.

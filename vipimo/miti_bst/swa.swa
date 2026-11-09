@@ -26,15 +26,15 @@ n32 nasibu_ijayo() {
 // mti unaweza kuwa hauna usawa (unbalanced) kutegemea mfuatano wa
 // nasibu, hivyo kina chake si sharti kiwe log(N); kujirudia
 // kungeweza kuvunja rafu ya wito kwa mti mrefu sana.
-Nodi* ingiza(Nodi* mzizi, n32 v) {
-    kama (mzizi == 0) {
+Nodi* ingiza(Nodi* nodi_ya_programu, n32 v) {
+    kama (nodi_ya_programu == 0) {
         Nodi* n = tenga(ukubwa(Nodi));
         n->thamani = v;
         n->kushoto = 0;
         n->kulia = 0;
         rudisha n;
     }
-    Nodi* sasa = mzizi;
+    Nodi* sasa = nodi_ya_programu;
     wakati (1) {
         kama (v < sasa->thamani) {
             kama (sasa->kushoto == 0) {
@@ -43,7 +43,7 @@ Nodi* ingiza(Nodi* mzizi, n32 v) {
                 n->kushoto = 0;
                 n->kulia = 0;
                 sasa->kushoto = n;
-                rudisha mzizi;
+                rudisha nodi_ya_programu;
             }
             sasa = sasa->kushoto;
         } sivyo {
@@ -53,12 +53,12 @@ Nodi* ingiza(Nodi* mzizi, n32 v) {
                 n->kushoto = 0;
                 n->kulia = 0;
                 sasa->kulia = n;
-                rudisha mzizi;
+                rudisha nodi_ya_programu;
             }
             sasa = sasa->kulia;
         }
     }
-    rudisha mzizi;
+    rudisha nodi_ya_programu;
 }
 
 // Tafuta v ndani ya mti, ukirudisha idadi ya nodi zilizotembelewa
@@ -68,8 +68,8 @@ Nodi* ingiza(Nodi* mzizi, n32 v) {
 // Checksum kuu inajumuisha hatua halisi, si tu "imepatikana", ili
 // kuhakikisha kazi halisi ya pointer-chase inafanyika (si kukatwa
 // mapema na mkusanyaji).
-n32 tafuta(Nodi* mzizi, n32 v) {
-    Nodi* sasa = mzizi;
+n32 tafuta(Nodi* nodi_ya_programu, n32 v) {
+    Nodi* sasa = nodi_ya_programu;
     n32 h = 0;
     wakati (sasa != 0) {
         h = h + 1;
@@ -86,11 +86,11 @@ n32 tafuta(Nodi* mzizi, n32 v) {
 }
 
 n32 main() {
-    Nodi* mzizi = 0;
+    Nodi* nodi_ya_programu = 0;
     n32 i = 0;
     wakati (i < N_INGIZA) {
         n32 v = nasibu_ijayo() % 20000000;
-        mzizi = ingiza(mzizi, v);
+        nodi_ya_programu = ingiza(nodi_ya_programu, v);
         i = i + 1;
     }
 
@@ -99,7 +99,7 @@ n32 main() {
     i = 0;
     wakati (i < N_TAFUTA) {
         n32 v = nasibu_ijayo() % 20000000;
-        n32 r = tafuta(mzizi, v);
+        n32 r = tafuta(nodi_ya_programu, v);
         kama (r > 0) {
             idadi_patikana = idadi_patikana + 1;
             hatua_jumla = hatua_jumla + r;

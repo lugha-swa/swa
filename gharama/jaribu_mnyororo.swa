@@ -105,23 +105,23 @@ w0 jm_elekeza_fd(n64 fd_chanzo, n8* njia) {
 // AU hitilafu nyingine ya ishara) -- msimbo_nje si sahihi katika
 // hali hii.
 // ---------------------------------------------------------------
-n32 jm_endesha_kwa_kikomo(n8* njia, n8** hoja_mstari_mtoto, n8** mazingira, n8* stdout_njia, n8* stderr_njia, n64 kikomo_sekunde, n32* msimbo_nje) {
-    n64 mtoto = mfumo_gawanyika();
-    kama (mtoto == 0) {
+n32 jm_endesha_kwa_kikomo(n8* njia, n8** hoja_za_mchakato_mpya, n8** mazingira, n8* stdout_njia, n8* stderr_njia, n64 kikomo_sekunde, n32* msimbo_nje) {
+    n64 mchakato_mpya = mfumo_gawanyika();
+    kama (mchakato_mpya == 0) {
         jm_elekeza_fd(1, stdout_njia);
         jm_elekeza_fd(2, stderr_njia);
-        mfumo_execve(njia, hoja_mstari_mtoto, mazingira);
+        mfumo_execve(njia, hoja_za_mchakato_mpya, mazingira);
         wito_wa_mfumo(60, 127, 0, 0, 0, 0, 0);
     }
     n64 mlinzi = mfumo_gawanyika();
     kama (mlinzi == 0) {
-        mfumo_lala_nano_sekunde(kikomo_sekunde);
-        mfumo_ua(mtoto, 9);
+        mfumo_subiri_nano_sekunde(kikomo_sekunde);
+        mfumo_tuma_ishara(mchakato_mpya, 9);
         wito_wa_mfumo(60, 0, 0, 0, 0, 0, 0);
     }
     n32 hali_ya = 0;
-    mfumo_subiri4(mtoto, &hali_ya, 0);
-    mfumo_ua(mlinzi, 9);
+    mfumo_subiri4(mchakato_mpya, &hali_ya, 0);
+    mfumo_tuma_ishara(mlinzi, 9);
     n32 hali_ya_mlinzi = 0;
     mfumo_subiri4(mlinzi, &hali_ya_mlinzi, 0);
     *msimbo_nje = mfumo_subiri4_msimbo_wa_kutoka(hali_ya);
@@ -135,16 +135,16 @@ n32 jm_endesha_kwa_kikomo(n8* njia, n8** hoja_mstari_mtoto, n8** mazingira, n8* 
 // mlinzi -- `sys_wait4` ya moja kwa moja, kuzuia (blocking) inatosha.
 // Hurudisha msimbo wa kutoka (0 = ukusanyaji umefaulu).
 // ---------------------------------------------------------------
-n32 jm_kusanya(n8* njia_ya_kutekeleza, n8** hoja_mstari_mtoto, n8** mazingira, n8* stdout_njia, n8* stderr_njia) {
-    n64 mtoto = mfumo_gawanyika();
-    kama (mtoto == 0) {
+n32 jm_kusanya(n8* njia_ya_kutekeleza, n8** hoja_za_mchakato_mpya, n8** mazingira, n8* stdout_njia, n8* stderr_njia) {
+    n64 mchakato_mpya = mfumo_gawanyika();
+    kama (mchakato_mpya == 0) {
         jm_elekeza_fd(1, stdout_njia);
         jm_elekeza_fd(2, stderr_njia);
-        mfumo_execve(njia_ya_kutekeleza, hoja_mstari_mtoto, mazingira);
+        mfumo_execve(njia_ya_kutekeleza, hoja_za_mchakato_mpya, mazingira);
         wito_wa_mfumo(60, 127, 0, 0, 0, 0, 0);
     }
     n32 hali_ya = 0;
-    mfumo_subiri4(mtoto, &hali_ya, 0);
+    mfumo_subiri4(mchakato_mpya, &hali_ya, 0);
     rudisha mfumo_subiri4_msimbo_wa_kutoka(hali_ya);
 }
 
@@ -259,11 +259,11 @@ n32 jm_mgawanyo_mstari(n8* mstari, n8** nje) {
 // zikigawanywa kwa `mnyororo` (""=zote mbili, "stage1"=hiyo pekee,
 // "mbegu"=hiyo pekee) -- kioo cha mzunguko wa bash.
 // ---------------------------------------------------------------
-w0 jm_jaribu_kata(n8* MBEGU, n8* STAGE1, n8** mazingira, n8* faili, n8* mnyororo, n8* ujumbe) {
+w0 jm_jaribu_kata(n8* MBEGU, n8* STAGE1, n8** mazingira, n8* faili, n8* mfululizo, n8* ujumbe) {
     n8* kipande = ujumbe;
     kama (urefu_wa_mfuatano(kipande) == 0) { kipande = "jina la aina"; }
     n8* binary = MBEGU;
-    kama (linganisha_mfuatano(mnyororo, "stage1") == 0) { binary = STAGE1; }
+    kama (linganisha_mfuatano(mfululizo, "stage1") == 0) { binary = STAGE1; }
     n8** hoja_za_mstari = jm_hoja_mstari3(binary, "--exe", faili);
     n32 rc = jm_kusanya(binary, hoja_za_mstari, mazingira, "/tmp/swa-mnyororo-asili/p", "/tmp/swa-mnyororo-asili/p.err");
     n32 ni_ujumbe = jm_mafaili_mawili_yana_kipande("/tmp/swa-mnyororo-asili/p", "/tmp/swa-mnyororo-asili/p.err", kipande);
@@ -273,11 +273,11 @@ w0 jm_jaribu_kata(n8* MBEGU, n8* STAGE1, n8** mazingira, n8* faili, n8* mnyororo
     jm_kagua(sahihi, 1, "kukataa (KATA)");
 }
 
-w0 jm_jaribu_moja(n8* binary, n8** mazingira, n8* faili, n64 tarajiwa, n8* jina_mnyororo) {
+w0 jm_jaribu_moja(n8* binary, n8** mazingira, n8* faili, n64 tarajiwa, n8* jina_la_mfululizo) {
     n8** hoja_za_mstari = jm_hoja_mstari3(binary, "--exe", faili);
     n32 rc_kusanya = jm_kusanya(binary, hoja_za_mstari, mazingira, "/tmp/swa-mnyororo-asili/p", JM_TUPU);
     kama (rc_kusanya != 0) {
-        andika_stderr("SHINDWA: kukusanya %s kwa %s\n", faili, jina_mnyororo, 0, 0, 0, 0);
+        andika_stderr("SHINDWA: kukusanya %s kwa %s\n", faili, jina_la_mfululizo, 0, 0, 0, 0);
         JM_SHINDWA = JM_SHINDWA + 1;
         rudisha;
     }
@@ -360,8 +360,8 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         n32 idadi_ya_sehemu = jm_mgawanyo_mstari(mstari, nafasi);
         n8* code = nafasi[0];
         n8* faili = nafasi[2];
-        n8* mnyororo = "";
-        kama (idadi_ya_sehemu >= 4) { mnyororo = nafasi[3]; }
+        n8* mfululizo = "";
+        kama (idadi_ya_sehemu >= 4) { mfululizo = nafasi[3]; }
         n8* ujumbe = "";
         kama (idadi_ya_sehemu >= 5) { ujumbe = nafasi[4]; }
 
@@ -373,14 +373,14 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         }
 
         kama (linganisha_mfuatano(code, "KATA") == 0) {
-            jm_jaribu_kata(MBEGU, "/tmp/swa-mnyororo-asili/stage1", mazingira, faili, mnyororo, ujumbe);
+            jm_jaribu_kata(MBEGU, "/tmp/swa-mnyororo-asili/stage1", mazingira, faili, mfululizo, ujumbe);
             endelea;
         }
 
         n64 tarajiwa = mfuatano_hadi_n64(code);
-        kama (linganisha_mfuatano(mnyororo, "stage1") == 0) {
+        kama (linganisha_mfuatano(mfululizo, "stage1") == 0) {
             jm_jaribu_moja("/tmp/swa-mnyororo-asili/stage1", mazingira, faili, tarajiwa, "stage1");
-        } sivyo { kama (linganisha_mfuatano(mnyororo, "mbegu") == 0) {
+        } sivyo { kama (linganisha_mfuatano(mfululizo, "mbegu") == 0) {
             jm_jaribu_moja(MBEGU, mazingira, faili, tarajiwa, "mbegu");
         } sivyo {
             jm_jaribu_moja(MBEGU, mazingira, faili, tarajiwa, "mbegu");
