@@ -709,7 +709,7 @@ nje "libm.so.6" {
 |---|---|
 | `kumbukumbu.swa` | nakili, weka_sifuri, linganisha_kumbukumbu, tenga/badili/achilia_arena (arena ya mmap), sys_soma/sys_andika/sys_fungua/sys_funga, andika, soma_mstari |
 | `mfuatano.swa` | urefu_wa_mfuatano, linganisha_mfuatano, nakili_mfuatano, unganisha_mfuatano, tafuta_herufi, tafuta_mfuatano, kata_nafasi, nambari_kwa_mfuatano, mfuatano_hadi_n32/n64 |
-| `hesabu.swa` | hesabu_kamili/kubwa, hesabu_ndogo/dogo, neneo_n32/n64, gcd_hesabu, pow_kamili, isqrt_hesabu, fibonacci_hesabu |
+| `hesabu.swa` | hesabu_kamili/kubwa, hesabu_ndogo/dogo, neneo_n32/n64, kigawo_kikuu_cha_shirika, kipeo_kamili, kipeuo_kamili, fibonacci_hesabu |
 | `orodha.swa` | Orodha (orodha_mpya huchukua uwezo wa awali kama hoja; UKUAJI unafanya kazi -- orodha_ongeza zaidi ya uwezo inaongeza mara mbili kwa badili; kilichopimwa 2026-09-04: kujaza 30 kwenye uwezo wa 10 kunafanya kazi kwenye minyororo yote miwili): orodha_mpya, orodha_ongeza, orodha_pata, orodha_futa_mwisho, orodha_urefu, orodha_huru |
 | `mpangilio.swa` | pangilia_n32, pangilia_n32_kushuka, pangilia_n64, pangilia_n64_kushuka |
 | `ramani.swa` | Ramani ya funguo za n32 hadi thamani (inafanya kazi kwenye minyororo yote miwili -- weka+pata kwa funguo kamili; kilichopimwa 2026-09-04, jibu baya la zamani la mbegu halipo) |

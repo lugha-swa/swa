@@ -95,7 +95,7 @@ n64 mfumo_gawanyika() {
 // safu hizi zinavyojengwa kwa mkono: hakuna safu za kielekezi
 // zinazokua [growable] bado, idadi ya hoja/env LAZIMA ijulikane
 // wakati wa kuandika msimbo).
-n64 mfumo_execve(n8* njia, n8** hoja_za_mstari, n8** mazingira) {
+n64 mfumo_tekeleza_programu(n8* njia, n8** hoja_za_mstari, n8** mazingira) {
     rudisha wito_wa_mfumo(59, njia, hoja_za_mstari, mazingira, 0, 0, 0);
 }
 
@@ -312,35 +312,35 @@ w0 andika_ndani(n32 faili, n8* f, n64 a1, n64 a2, n64 a3, n64 a4, n64 a5, n64 a6
     wakati (1 == 1) {
         kama (f[p] == 0) { vunja; }  // mwisho wa mfuatano (null terminator)
         kama (f[p] == 37) {  // '%'
-            n8 sp = f[p + 1];
-            kama (sp == 0) {  // '%' mwishoni mwa mfuatano -- chapisha kama herufi
+            n8 herufi_ya_umbizo = f[p + 1];
+            kama (herufi_ya_umbizo == 0) {  // '%' mwishoni mwa mfuatano -- chapisha kama herufi
                 andika_herufi(faili, 37);
                 p = p + 1;
                 endelea;
             }
             p = p + 2;
-            kama (sp == 100) {  // %d
+            kama (herufi_ya_umbizo == 100) {  // %d
                 andika_n64(faili, hoja_kwa_na(a1, a2, a3, a4, a5, a6, na));
                 na = na + 1;
-            } sivyo { kama (sp == 117) {  // %u
+            } sivyo { kama (herufi_ya_umbizo == 117) {  // %u
                     andika_u64(faili, hoja_kwa_na(a1, a2, a3, a4, a5, a6, na));
                     na = na + 1;
-                } sivyo { kama (sp == 120) {  // %x
+                } sivyo { kama (herufi_ya_umbizo == 120) {  // %x
                         andika_heksa(faili, hoja_kwa_na(a1, a2, a3, a4, a5, a6, na));
                         na = na + 1;
-                    } sivyo { kama (sp == 115) {  // %s
+                    } sivyo { kama (herufi_ya_umbizo == 115) {  // %s
                             andika_mfuatano(faili, kielekezi_kutoka_hoja(hoja_kwa_na(a1, a2, a3, a4, a5, a6, na)));
                             na = na + 1;
-                        } sivyo { kama (sp == 99) {  // %c
+                        } sivyo { kama (herufi_ya_umbizo == 99) {  // %c
                                 andika_herufi(faili, hoja_kwa_na(a1, a2, a3, a4, a5, a6, na));
                                 na = na + 1;
-                            } sivyo { kama (sp == 37) {  // %%
+                            } sivyo { kama (herufi_ya_umbizo == 37) {  // %%
                                     andika_herufi(faili, 37);  // haina hoja
                                 } sivyo {
                                     // Visivyosaidiwa (%f, %l, %n, ...) -- chapisha
                                     // kama herufi halisi, bila kutumia hoja.
                                     andika_herufi(faili, 37);
-                                    andika_herufi(faili, sp);
+                                    andika_herufi(faili, herufi_ya_umbizo);
                                 } } } } } }
             endelea;
         }
@@ -509,18 +509,18 @@ n64 p2_kwa(n32 kubwa) {
     rudisha thamani;
 }
 
-n64 biti_ya_d64_swa(n8* ch, n32 u) {
+n64 biti_ya_d64_swa(n8* herufi, n32 u) {
     n64 alama = 0;
     n32 fasi = 0;
-    kama (ch[fasi] == 45) { alama = 1; fasi = fasi + 1; }
+    kama (herufi[fasi] == 45) { alama = 1; fasi = fasi + 1; }
     n64 nzima = 0;
-    wakati (fasi < u && ch[fasi] != 46) {
-        nzima = nzima * 10 + (ch[fasi] - 48);
+    wakati (fasi < u && herufi[fasi] != 46) {
+        nzima = nzima * 10 + (herufi[fasi] - 48);
         fasi = fasi + 1;
     }
     n64 kasoro = 0;
     n64 idadi_k = 0;
-    kama (fasi < u && ch[fasi] == 46) {
+    kama (fasi < u && herufi[fasi] == 46) {
         fasi = fasi + 1;
         wakati (fasi < u) {
             // lugha-swa/swa#188: tarakimu za ziada zaidi ya kikomo
@@ -529,7 +529,7 @@ n64 biti_ya_d64_swa(n8* ch, n32 u) {
             // hazihesabiwi) badala ya kuruhusu kasoro/nene kuzidi
             // n64 kimya -- angalia maelezo kamili juu ya faili hili.
             kama (idadi_k < BITI_D64_KASORO_KIKOMO) {
-                kasoro = kasoro * 10 + (ch[fasi] - 48);
+                kasoro = kasoro * 10 + (herufi[fasi] - 48);
                 idadi_k = idadi_k + 1;
             }
             fasi = fasi + 1;
@@ -604,18 +604,18 @@ n64 biti_ya_d64_swa(n8* ch, n32 u) {
 n64 soma_mstari(n32 faili, n8* chombo, n64 upeo) {
     n64 n = 0;
     wakati (n + 1 < upeo) {
-        n8 ch = 0;
-        n64 r = mfumo_soma(faili, &ch, 1);
+        n8 herufi = 0;
+        n64 r = mfumo_soma(faili, &herufi, 1);
         kama (r <= 0) {
             kama (n == 0) {
                 rudisha -1;
             }
             rudisha n;
         }
-        kama (ch == 10) {
+        kama (herufi == 10) {
             rudisha n;
         }
-        chombo[n] = ch;
+        chombo[n] = herufi;
         n = n + 1;
     }
     rudisha n;

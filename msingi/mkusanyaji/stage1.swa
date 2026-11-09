@@ -570,17 +570,17 @@ w0 changanua_husisha(n8* b, n64 urefu, n32 ni_kuu) {
 
 n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     swa_hoja_mstari0 = hoja_za_mstari[0];
-    n32 ni_jit = 0;
+    n32 ni_papo = 0;
     n32 ni_exe = 0;
     n32 ni_wasm = 0;
-    n32 ni_kernel = 0;
+    n32 ni_kiini = 0;
     n32 ni_tafsiri = 0;
     n32 ni_ir = 0;
     n32 faharasa_ya_faili = 1;
     kama (idadi_ya_hoja_za_mstari > 1) {
         n8* a = hoja_za_mstari[1];
         kama (a[0]==45 && a[1]==45 && a[2]==106 && a[3]==105 && a[4]==116 && a[5]==0) {
-            ni_jit = 1; faharasa_ya_faili = 2;
+            ni_papo = 1; faharasa_ya_faili = 2;
         }
         kama (a[0]==45 && a[1]==45 && a[2]==101 && a[3]==120 && a[4]==101 && a[5]==0) {
             ni_exe = 1; faharasa_ya_faili = 2;
@@ -597,7 +597,7 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         // stage1 pekee (angalia uzalishaji_kuu, uzalishaji.swa,
         // hali_exe==2).
         kama (a[0]==45 && a[1]==45 && a[2]==107 && a[3]==101 && a[4]==114 && a[5]==110 && a[6]==101 && a[7]==108 && a[8]==0) {
-            ni_kernel = 1; faharasa_ya_faili = 2;
+            ni_kiini = 1; faharasa_ya_faili = 2;
         }
         // --tafsiri: teremsha hadi IR (mteremko.swa) na uitekeleze moja kwa
         // moja (mtafsiri.swa) -- hakuna msimbo wa mashine. --ir: chapisha IR.
@@ -712,7 +712,7 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         rudisha mtafsiri_endesha(idadi_ya_hoja_za_mstari - faharasa_ya_faili, hoja_za_mstari + faharasa_ya_faili);
     }
 
-    kama (ni_jit) { uzalishaji_jit(nodi_ya_programu, idadi_ya_hoja_za_mstari - faharasa_ya_faili, hoja_za_mstari, faharasa_ya_faili); }
+    kama (ni_papo) { uzalishaji_papo(nodi_ya_programu, idadi_ya_hoja_za_mstari - faharasa_ya_faili, hoja_za_mstari, faharasa_ya_faili); }
     sivyo { kama (ni_wasm) {
             // uzalishaji_wasm_kuu inarudisha 1 kwa ujenzi ulio nje ya
             // wigo wa Awamu 1 (angalia uzalishaji_wasm.swa) -- lazima
@@ -721,7 +721,7 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
             // tupu lakini mchakato ungeonekana kufaulu.
             n32 matokeo_wasm = uzalishaji_wasm_kuu(nodi_ya_programu);
             kama (matokeo_wasm != 0) { rudisha 1; }
-        } sivyo { kama (ni_kernel) {
+        } sivyo { kama (ni_kiini) {
                 // hali_exe==2: --kernel (Kawira). Ukaguzi wa wigo
                 // (kernel_kagua_wigo) na makosa mengine ndani ya
                 // uzalishaji_kuu/uzalishaji_wito hutoka moja kwa moja

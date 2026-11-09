@@ -266,6 +266,12 @@ kazi yake -- neno moja la zamani linaweza kupata maneno tofauti.
 | ofseti | umbali (`umbali_wa_jina`, `andika_umbali32_hasi`, `umbali_wa_kigeu_chini_ya_r5`) | umbali kutoka mahali pa kuanzia | umbali: "distance" |
 | ELF: strtab, symtab, shstrtab, phdr, shdr, vaddr, filesz, memsz, bss, .text, rela | jedwali_la_majina, jedwali_la_alama, jedwali_la_majina_ya_sehemu, maelezo_ya_kipande, maelezo_ya_sehemu, anwani_pepe, ukubwa_kwenye_faili, ukubwa_kwenye_kumbukumbu, tupu, msimbo, urekebishaji | sehemu za faili la ELF kwa kazi yake | -- |
 | WASM: local.get/set/tee, br/br_if, i32.const, eqz, drop, memory.grow; sehemu type/import/function/table/memory/export | pata_ndani/weka_ndani/weka_ndani_na_baki, ruka/ruka_kama, i32_namba, ni_sifuri, tupa, panua_kumbukumbu; aina/uingizaji/kazi/jedwali/kumbukumbu/uhamishaji | maagizo na sehemu kwa kitendo chake; LEB128 ni jina la umbizo (leb_a/leb_n) | -- |
+| reg / gp / xmm / vreg | rejista; rejista_ya_namba / rejista_ya_desimali (familia mbili za rejista za hoja); rejista_pepe | | -- |
+| pc, sp, fd, id, name, size, base, callee | agizo_la_sasa, juu_ya_mrundikano (au herufi_ya_umbizo kwenye umbizo), kishikio, kitambulisho, jina, ukubwa, msingi, mwitwa | kila kimoja kwa kazi yake | -- |
+| ir (irk/irg/irl/irp) | kati_ (kazi / vya ulimwengu / vya ndani / vigezo) | uwakilishi wa kati | -- |
+| lvalue, pass, case, default | kipokezi, duru, hali, chaguo_msingi | | -- |
+| gcd, lcm, pow, isqrt | kigawo_kikuu_cha_shirika, kigawe_kidogo_cha_shirika, kipeo_kamili, kipeuo_kamili | (sin/cos/tan/ln/log/exp/arctan ni alama za kimataifa -- zinabaki) | -- |
+| kernel, jit | kiini, papo | | kiini: "the core" |
 | bafa | chombo (`chombo_cha_jina`, `chombo_cha_msimbo` kwa .text, `chombo_cha_faili_la_sasa`) | kumbukumbu inayoshikilia baiti kwa muda | chombo: "vessel, container" |
 | lebo | mahali (`mahali_pa_kutoka`, `mahali_papya`, `namba_ya_mahali`); `nodi_ya_hali` kwa thamani ya `hali`; `onyesho` kwa kipengele cha DOM kinachoonyesha | mahali palipo na jina kwenye msimbo, pa kurukia | mahali (ngeli ya PA: mahali pa, papya) |
 | lebo_mkia | mahali_pa_..._mabaki | marudio yaliyobaki baada ya uvekta | -- |

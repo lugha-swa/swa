@@ -230,7 +230,7 @@ daraja lipo, lakini lina umbo la `syscall/js` ya Go na `wasm_exec.js`:
   (mf. `wasi_snapshot_preview1`) hufanya kazi vivyo hivyo; mwenyeji
   huitoa kupitia hoja ya tatu ya `anzishaSwa(chanzo, nodi_kuu, ziada)`.
 - **DOM ni Swa.** `msingi/maktaba/kivinjari.swa` hujenga `dom_unda`,
-  `dom_ambatanisha`, `dom_sikiliza`, `dom_weka_namba`, `console_andika`
+  `dom_ambatanisha`, `dom_sikiliza`, `dom_weka_namba`, `andika_ujumbe_wa_kivinjari`
   n.k. juu ya shughuli hizo. Kuongeza API mpya ya kivinjari ni kuandika
   Swa, si kubadilisha mkusanyaji wala JS.
 - Hoja na matokeo ya uingizaji: `n32`, kielekezi au `w0` (wigo wa WASM wa

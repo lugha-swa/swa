@@ -103,8 +103,8 @@ n32 wasm_idadi_ya_uingizaji = 0;
 // inaongeza wasm_import_idadi kiotomatiki. Kazi za uingizaji (kazi za
 // nje) zinaitwa na wasm_op_call ghafi (faharisi 0..I-1 moja
 // kwa moja), SI kupitia hii.
-w0 wasm_kitendo_ita_kazi(n32 kidx) {
-    wasm_kitendo_ita(kidx + wasm_idadi_ya_uingizaji);
+w0 wasm_kitendo_ita_kazi(n32 faharasa_ya_kazi) {
+    wasm_kitendo_ita(faharasa_ya_kazi + wasm_idadi_ya_uingizaji);
 }
 
 // Kusanya herufi halisi (mfuatano) kwenye wasm_data_buf -- kioo cha
@@ -165,16 +165,16 @@ n32 wasm_ongeza_mfuatano(n8* ghafi) {
         rudisha WASM_DATA_MSINGI;
     }
 
-    n32 mem_umbali = WASM_DATA_MSINGI + wasm_data_wapi;
+    n32 umbali_wa_kumbukumbu = WASM_DATA_MSINGI + wasm_data_wapi;
     n32 k2 = 0;
     wakati (k2 <= urefu) {
         wasm_chombo_cha_data[wasm_data_wapi] = muda[k2];
         wasm_data_wapi = wasm_data_wapi + 1;
         k2 = k2 + 1;
     }
-    wasm_umbali_wa_mfuatano[wasm_idadi_ya_mifuatano] = mem_umbali;
+    wasm_umbali_wa_mfuatano[wasm_idadi_ya_mifuatano] = umbali_wa_kumbukumbu;
     wasm_idadi_ya_mifuatano = wasm_idadi_ya_mifuatano + 1;
-    rudisha mem_umbali;
+    rudisha umbali_wa_kumbukumbu;
 }
 
 // Alama ya kosa la nje ya wigo (Awamu 1) -- imewekwa mahali popote
@@ -343,8 +343,8 @@ n32 wasm_ghala_la_majina_ya_kazi_wapi = 1;
 // "drop" baada yake -- WASM inakataa "drop" bila thamani kwenye rafu
 // (imepatikana kwa jaribio halisi: kazi_tupu(5) kama taarifa ilitoa
 // "not enough arguments on the stack for drop").
-n32 wasm_kazi_ni_w0(n32 kidx) {
-    rudisha wasm_ni_w0_usimbaji(thamani_ya_nodi[wasm_nodi_ya_kazi[kidx]]);
+n32 wasm_kazi_ni_w0(n32 faharasa_ya_kazi) {
+    rudisha wasm_ni_w0_usimbaji(thamani_ya_nodi[wasm_nodi_ya_kazi[faharasa_ya_kazi]]);
 }
 
 // -------------------------------------------------------
@@ -541,9 +541,9 @@ w0 wasm_taja_anwani(n32 nodi, n32 nodi_ya_kazi) {
         wasm_kosa = 1;
         rudisha;
     }
-    n32 base = nodi_ya_kushoto[nodi];
+    n32 msingi_wake = nodi_ya_kushoto[nodi];
     n32 faharasa = nodi_ya_kulia[nodi];
-    wasm_usemi(base, nodi_ya_kazi);
+    wasm_usemi(msingi_wake, nodi_ya_kazi);
     kama (faharasa != -1) {
         wasm_usemi(faharasa, nodi_ya_kazi);
         wasm_kitendo_i32_namba(4);
@@ -638,8 +638,8 @@ w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi) {
         // uzalishaji_kitambulisho (uzalishaji.swa). Kigeu na mfuatano
         // ZOTE ni AST_KITAMBULISHO -- hakuna nodi tofauti ya AST.
         kama (jina[0] == 34) {
-            n32 mem_umbali = wasm_ongeza_mfuatano(jina);
-            wasm_kitendo_i32_namba(mem_umbali);
+            n32 umbali_wa_kumbukumbu = wasm_ongeza_mfuatano(jina);
+            wasm_kitendo_i32_namba(umbali_wa_kumbukumbu);
             rudisha;
         }
 
@@ -743,8 +743,8 @@ w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi) {
             rudisha;
         }
 
-        n32 kidx = wasm_tafuta_kazi(jina);
-        kama (kidx < 0) {
+        n32 faharasa_ya_kazi = wasm_tafuta_kazi(jina);
+        kama (faharasa_ya_kazi < 0) {
             andika_stderr("KOSA: wasm -- kazi haitumiki (nje ya wigo, au haijulikani): %s\n", jina);
             wasm_kosa = 1;
             rudisha;
@@ -758,7 +758,7 @@ w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi) {
             wasm_usemi(hoja, nodi_ya_kazi);
             hoja = tatu_ya_nodi[hoja];
         }
-        wasm_kitendo_ita_kazi(kidx);
+        wasm_kitendo_ita_kazi(faharasa_ya_kazi);
         rudisha;
     }
 
@@ -970,12 +970,12 @@ w0 wasm_taarifa(n32 nodi, n32 nodi_ya_kazi) {
                     wasm_usemi(nodi, nodi_ya_kazi);
                     wasm_kitendo_tupa();
                 } sivyo {
-                    n32 kidx_w = wasm_tafuta_kazi(jina_w);
+                    n32 faharasa_ya_kazi_w = wasm_tafuta_kazi(jina_w);
                     wasm_usemi(nodi, nodi_ya_kazi);
                     // Tupa matokeo ya wito kama taarifa -- LAKINI PEKEE
                     // kama kazi inarudisha thamani (si w0), la sivyo
                     // hakuna kilicho kwenye rafu ya kutupa.
-                    kama (kidx_w >= 0 && wasm_kazi_ni_w0(kidx_w) == 0) {
+                    kama (faharasa_ya_kazi_w >= 0 && wasm_kazi_ni_w0(faharasa_ya_kazi_w) == 0) {
                         wasm_kitendo_tupa();
                     }
                 }
@@ -1226,8 +1226,8 @@ w0 wasm_andika_data_sehemu() {
     wasm_chombo_sasa = 0;
     wasm_baiti(11);
     n32 umbali_usemi_ukubwa = 1 + wasm_ukubwa_wa_leb_n(WASM_DATA_MSINGI) + 1;
-    n32 seg_ukubwa = wasm_ukubwa_wa_leb_a(0) + umbali_usemi_ukubwa + wasm_ukubwa_wa_leb_a(wasm_data_wapi) + wasm_data_wapi;
-    n32 maudhui = wasm_ukubwa_wa_leb_a(1) + seg_ukubwa;
+    n32 ukubwa_wa_kipande = wasm_ukubwa_wa_leb_a(0) + umbali_usemi_ukubwa + wasm_ukubwa_wa_leb_a(wasm_data_wapi) + wasm_data_wapi;
+    n32 maudhui = wasm_ukubwa_wa_leb_a(1) + ukubwa_wa_kipande;
     wasm_leb_a(maudhui);
     wasm_leb_a(1);
     wasm_leb_a(0);  // memidx = 0 (segment amilifu)
@@ -1316,9 +1316,9 @@ w0 wasm_jenga_tenga_msaidizi() {
 // chanzo) kuingia MODULI YA MWISHO. Hutumika kwa Type (id=1, chanzo=
 // wasm_type_buf) na Code (id=10, chanzo=wasm_sec_buf) -- zote mbili
 // zina umbo lile lile: hesabu(uleb128) + entries.
-w0 wasm_andika_sehemu_kutoka(n32 id, n32 idadi, n8* chanzo, n32 urefu_chanzo) {
+w0 wasm_andika_sehemu_kutoka(n32 kitambulisho, n32 idadi, n8* chanzo, n32 urefu_chanzo) {
     wasm_chombo_sasa = 0;
-    wasm_baiti(id);
+    wasm_baiti(kitambulisho);
     n32 jumla = wasm_ukubwa_wa_leb_a(idadi) + urefu_chanzo;
     wasm_leb_a(jumla);
     wasm_leb_a(idadi);
