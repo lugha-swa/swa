@@ -413,7 +413,7 @@ kwenye minyororo yote miwili katika kipindi cha 2026-09.
 ### 8.3 ZOTE MBILI -- parameta ya W0 inakubali thamani kimya (uvunjaji wa hati 3)
 
 ```swa
-W0 f(W0 x) { } N32 main() { f(5); rudisha 0; }
+W0 f(W0 x) { } N32 anza() { f(5); rudisha 0; }
 ```
 
 - Kilichoonekana (zote mbili): inakusanya na kuendesha kimya --
@@ -425,7 +425,7 @@ W0 f(W0 x) { } N32 main() { f(5); rudisha 0; }
 ### 8.9 ZOTE MBILI -- *(p + n) ni hesabu ya BAITI (t75, b02, b06, c03)
 
 ```swa
-N32 main() { N32 a[4]; a[1] = 7; N32* p = a; rudisha *(p + 1); }
+N32 anza() { N32 a[4]; a[1] = 7; N32* p = a; rudisha *(p + 1); }
 ```
 
 - Kilichoonekana (zote mbili): rc=0 -- `p + 1` husogea baiti moja,
@@ -439,7 +439,7 @@ N32 main() { N32 a[4]; a[1] = 7; N32* p = a; rudisha *(p + 1); }
 ### 8.19 MBEGU -- `N32;` (taarifa ya jina la aina pekee) inakubaliwa kimya
 
 ```swa
-N32 main() { N32; rudisha 0; }
+N32 anza() { N32; rudisha 0; }
 ```
 
 - Kilichoonekana (mbegu): inakusanya na kuendesha kimya -- taarifa

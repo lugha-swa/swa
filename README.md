@@ -71,7 +71,7 @@ n32 umbali_mraba(Nukta* a, Nukta* b) {
     rudisha dx * dx + dy * dy;
 }
 
-n32 main() {
+n32 anza() {
     Nukta* a = tenga(ukubwa(Nukta));
     Nukta* b = tenga(ukubwa(Nukta));
     a->x = 1;  a->y = 2;
@@ -104,7 +104,7 @@ umbali^2 = 25
 
 Mfano huu hukusanywa na kuendeshwa kwenye CI kila PR (`gharama/jaribu-mifano.mapishi`) -- msimbo ulio hapa juu hauwezi kupitwa na wakati kimya.
 
-Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hati/kusanyiko-x86.md)). Mfano wake: [`mifano/mkusanyaji_mdogo.swm`](mifano/mkusanyaji_mdogo.swm), mkusanyaji mdogo kamili (vigeu vya `n32`, `rudisha` ya `+ - *`) -- `./jengo/kusanyiko < mifano/mkusanyaji_mdogo.swm > m` baada ya `jenga.mapishi`, kisha `./m 'n32 main() { rudisha 42; }' > p`.
+Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hati/kusanyiko-x86.md)). Mfano wake: [`mifano/mkusanyaji_mdogo.swm`](mifano/mkusanyaji_mdogo.swm), mkusanyaji mdogo kamili (vigeu vya `n32`, `rudisha` ya `+ - *`) -- `./jengo/kusanyiko < mifano/mkusanyaji_mdogo.swm > m` baada ya `jenga.mapishi`, kisha `./m 'n32 anza() { rudisha 42; }' > p`.
 
 </details>
 

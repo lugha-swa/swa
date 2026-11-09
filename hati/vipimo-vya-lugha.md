@@ -32,7 +32,7 @@ Programu ya Swa ni mfuatano wa tangazo la kiwango cha juu:
   mstari kimya. Kiungo cha C ni `husisha C::stdio`
 
 Sehemu ya kuingia ni kazi `main`. Katika hali ya `--exe`, sahihi ni
-`n32 main()` au `n32 main(n32 argc, n8** argv)`.
+`n32 anza()` au `n32 anza(n32 argc, n8** argv)`.
 
 Kila faili huchanganuliwa kwa mpangilio wa juu-chini; wito wa mbele
 unaruhusiwa (kazi inaweza kuitwa kabla ya kutangazwa).
@@ -48,7 +48,13 @@ Kiswahili kwa mkongwe.
 ### 2.2 Maneno Muhimu
 
 `muundo`, `rudisha`, `kama`, `sivyo`, `wakati`, `kwa`, `fanya`,
-`vunja`, `endelea`, `chagua`, `hali`, `husisha`, `achilia`.
+`acha`, `endelea`, `chagua`, `hali`, `husisha`, `achilia`.
+
+Kiingilio cha programu ni kazi `anza` (kama `anza:` ya lugha ya
+mashine), na kazi ya ndani ya kuandika kwenye mkondo wa makosa ni
+`andika_kosa`. Maneno ya zamani `vunja`, `main` na `andika_stderr`
+bado yanakusanywa na stage1 kwa toleo moja, kwa onyo, ili miradi
+mingine ihamie; mbegu inajua maneno mapya pekee.
 
 Maneno muhimu hayawezi kutumika kama majina ya vitambulisho.
 `tenga` si neno muhimu -- ni kazi ya kawaida ya maktaba (sehemu 10):
@@ -385,7 +391,7 @@ n32 nyongeza(n32 x) { rudisha x + 1; }
 n32 endesha(n8* kazi, n32 thamani) {
     rudisha kazi(thamani) + kazi(thamani);   // 21 + 21
 }
-n32 main() {
+n32 anza() {
     rudisha endesha(&nyongeza, 20) - 42;     // 0
 }
 ```
@@ -412,7 +418,7 @@ n32 main() {
 - Kielekezi na namba hazichanganyiki kwenye hoja: kielekezi kwa
   kigezo cha namba -- au namba kwa kigezo cha kielekezi -- ni kosa
   la aina (mdudu wa 2026-09-01: kilikubaliwa kimya na kuanguka
-  SEGV wakati wa kukimbia). `andika`/`andika_stderr` na mkia wao
+  SEGV wakati wa kukimbia). `andika`/`andika_kosa` na mkia wao
   (pamoja na `andika_ndani` a1..a6) ni za kutofautiana: mkia hupita
   kwa rejesta za n64 iwe thamani au kielekezi.
 
@@ -522,7 +528,7 @@ jaribio_mende_kata_vunja_ndani_ya_chagua_nje.
 
 ### 6.7 Vunja na endelea
 
-- `vunja;` -- toka nje ya mzunguko wa ndani (wakati, kwa, au
+- `acha;` -- toka nje ya mzunguko wa ndani (wakati, kwa, au
   fanya -- 6.8).
 - `endelea;` -- ruka hadi mwisho wa mwili na uendelee; kwa
   `fanya`, "mwisho wa mwili" ni sharti (6.8).

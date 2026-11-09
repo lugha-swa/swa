@@ -106,7 +106,7 @@ n64 soma_faili(n8* njia, n8* chombo, n64 upeo) {
 // ongeza_chanzo -- ongeza baiti kwenye pato la mwisho (chanzo_buf)
 n32 ongeza_chanzo(n8* data, n64 urefu) {
     kama (chanzo_urefu + urefu > 16777216) {
-        andika_stderr("; KOSA: chanzo cha mkusanyaji ni kikubwa mno\n");
+        andika_kosa("; KOSA: chanzo cha mkusanyaji ni kikubwa mno\n");
         kosa = 1;
         rudisha -1;
     }
@@ -163,7 +163,7 @@ n32 toa_jina(n8* b, n64 p, n64 urefu) {
         j = j + 1;
     }
     kama (j >= p + urefu) {
-        andika_stderr("; KOSA: husisha { ... } bila '}' ya kufunga\n");
+        andika_kosa("; KOSA: husisha { ... } bila '}' ya kufunga\n");
         kosa = 1;
         rudisha -1;
     }
@@ -172,13 +172,13 @@ n32 toa_jina(n8* b, n64 p, n64 urefu) {
         mwisho = mwisho - 1;
     }
     kama (mwanzo == mwisho) {
-        andika_stderr("; KOSA: husisha { } bila jina la faili\n");
+        andika_kosa("; KOSA: husisha { } bila jina la faili\n");
         kosa = 1;
         rudisha -1;
     }
     n64 n = mwisho - mwanzo;
     kama (n >= 500) {
-        andika_stderr("; KOSA: jina la faili ni refu mno\n");
+        andika_kosa("; KOSA: jina la faili ni refu mno\n");
         kosa = 1;
         rudisha -1;
     }
@@ -202,12 +202,12 @@ n32 ongeza_jina(n8* jina) {
         k = k + 1;
     }
     kama (idadi_ya_majina >= 511) {
-        andika_stderr("; KOSA: hifadhi ya majina imejaa\n");
+        andika_kosa("; KOSA: hifadhi ya majina imejaa\n");
         kosa = 1;
         rudisha 0;
     }
     kama (urefu_wa_mfuatano(jina) >= KIPANDE) {
-        andika_stderr("; KOSA: njia ni ndefu mno: %s\n", jina);
+        andika_kosa("; KOSA: njia ni ndefu mno: %s\n", jina);
         kosa = 1;
         rudisha 0;
     }
@@ -332,7 +332,7 @@ n32 tafuta_katika(n8* b, n64 mwanzo, n64 mwisho, n8* data, n64 urefu) {
         n64 k = 0;
         wakati (k < urefu) {
             kama (b[i + k] != data[k]) {
-                vunja;
+                acha;
             }
             k = k + 1;
         }
@@ -434,17 +434,17 @@ n32 maudhui_yapo(n8* jina, n8* b, n64 p, n64 urefu) {
 // chapisha_mzunguko -- chapisha mzunguko kuanzia rafu[mwanzo]
 // hadi mwisho wa rafu, kisha kurudi kwenye rafu[mwanzo] tena
 w0 chapisha_mzunguko(n32 mwanzo) {
-    andika_stderr("; KOSA: mzunguko wa husisha umegunduliwa:\n");
-    andika_stderr(";   ");
+    andika_kosa("; KOSA: mzunguko wa husisha umegunduliwa:\n");
+    andika_kosa(";   ");
     n32 k = mwanzo;
     wakati (k < urefu_wa_mrundikano) {
-        andika_stderr("%s", majina_husisha + mrundikano_wa_husisha[k] * KIPANDE);
+        andika_kosa("%s", majina_husisha + mrundikano_wa_husisha[k] * KIPANDE);
         k = k + 1;
         kama (k < urefu_wa_mrundikano) {
-            andika_stderr(" -> ");
+            andika_kosa(" -> ");
         }
     }
-    andika_stderr(" -> %s\n", majina_husisha + mrundikano_wa_husisha[mwanzo] * KIPANDE);
+    andika_kosa(" -> %s\n", majina_husisha + mrundikano_wa_husisha[mwanzo] * KIPANDE);
 }
 
 // Tangazo la mbele -- tatua_husisha na changanua_husisha
@@ -462,13 +462,13 @@ w0 tatua_husisha(n8* jina) {
     }
     // Pata njia ya kwanza iliyopo kwa mpangilio wa utafutaji
     kama (pata_njia(jina) == 0) {
-        andika_stderr("; KOSA: faili la husisha halipatikani: %s\n", jina);
+        andika_kosa("; KOSA: faili la husisha halipatikani: %s\n", jina);
         kama (urefu_wa_mrundikano > 0) {
-            andika_stderr(";   Ilitajwa kutoka: %s\n", majina_husisha + mrundikano_wa_husisha[urefu_wa_mrundikano - 1] * KIPANDE);
+            andika_kosa(";   Ilitajwa kutoka: %s\n", majina_husisha + mrundikano_wa_husisha[urefu_wa_mrundikano - 1] * KIPANDE);
         }
-        andika_stderr(";   Utafutaji: msingi/%s, msingi/maktaba/%s, %s\n", jina, jina, jina);
+        andika_kosa(";   Utafutaji: msingi/%s, msingi/maktaba/%s, %s\n", jina, jina, jina);
         kama (saraka_ya_swa_tafuta() == 1) {
-            andika_stderr(";   kisha chini ya usakinishaji: %s/msingi/, %s/msingi/maktaba/, %s/\n", saraka_ya_swa, saraka_ya_swa, saraka_ya_swa);
+            andika_kosa(";   kisha chini ya usakinishaji: %s/msingi/, %s/msingi/maktaba/, %s/\n", saraka_ya_swa, saraka_ya_swa, saraka_ya_swa);
         }
         kosa = 1;
         rudisha;
@@ -492,19 +492,19 @@ w0 tatua_husisha(n8* jina) {
         k = k + 1;
     }
     kama (urefu_wa_mrundikano >= 511) {
-        andika_stderr("; KOSA: utegemezi ni mrefu mno\n");
+        andika_kosa("; KOSA: utegemezi ni mrefu mno\n");
         kosa = 1;
         rudisha;
     }
     // Soma faili lote
     n64 urefu = soma_faili(chombo_cha_njia, chombo_cha_faili_la_sasa, 16777216);
     kama (urefu < 0) {
-        andika_stderr("; KOSA: faili halisomeki: %s\n", chombo_cha_njia);
+        andika_kosa("; KOSA: faili halisomeki: %s\n", chombo_cha_njia);
         kosa = 1;
         rudisha;
     }
     kama (urefu >= 16777215) {
-        andika_stderr("; KOSA: faili ni kubwa mno kwa mkusanyaji: %s\n", chombo_cha_njia);
+        andika_kosa("; KOSA: faili ni kubwa mno kwa mkusanyaji: %s\n", chombo_cha_njia);
         kosa = 1;
         rudisha;
     }
@@ -543,7 +543,7 @@ w0 changanua_husisha(n8* b, n64 urefu, n32 ni_kuu) {
         kama (mwisho < urefu) { baada = mwisho + 1; }
         n32 aina = tambua_mstari(b, p, mwisho - p);
         kama (aina == 2) {
-            andika_stderr("; KOSA: husisha isiyo sahihi -- muundo pekee ni 'husisha { faili.swa }' (Swa haina kiungo cha C wala libc)\n");
+            andika_kosa("; KOSA: husisha isiyo sahihi -- muundo pekee ni 'husisha { faili.swa }' (Swa haina kiungo cha C wala libc)\n");
             kosa = 1;
         } sivyo { kama (aina == 1) {
             kama (toa_jina(b, p, mwisho - p) == 0) {
@@ -555,7 +555,7 @@ w0 changanua_husisha(n8* b, n64 urefu, n32 ni_kuu) {
                         n8* njia_sasa = majina_husisha + mrundikano_wa_husisha[urefu_wa_mrundikano - 1] * KIPANDE;
                         n64 m2 = soma_faili(njia_sasa, chombo_cha_faili_la_sasa, 16777216);
                         kama (m2 != urefu) {
-                            andika_stderr("; KOSA: faili lilibadilika wakati wa kutatua: %s\n", njia_sasa);
+                            andika_kosa("; KOSA: faili lilibadilika wakati wa kutatua: %s\n", njia_sasa);
                             kosa = 1;
                         }
                     }
@@ -568,7 +568,7 @@ w0 changanua_husisha(n8* b, n64 urefu, n32 ni_kuu) {
     }
 }
 
-n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
+n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     swa_hoja_mstari0 = hoja_za_mstari[0];
     n32 ni_papo = 0;
     n32 ni_exe = 0;
@@ -631,11 +631,11 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     kama (faharasa_ya_faili < idadi_ya_hoja_za_mstari) {
         n64 n = soma_faili(hoja_za_mstari[faharasa_ya_faili], chombo_cha_faili_kuu, 16777216);
         kama (n < 0) {
-            andika_stderr("; KOSA: faili la chanzo halifunguki: %s\n", hoja_za_mstari[faharasa_ya_faili]);
+            andika_kosa("; KOSA: faili la chanzo halifunguki: %s\n", hoja_za_mstari[faharasa_ya_faili]);
             rudisha 1;
         }
         kama (n >= 16777215) {
-            andika_stderr("; KOSA: faili la chanzo ni kubwa mno: %s\n", hoja_za_mstari[faharasa_ya_faili]);
+            andika_kosa("; KOSA: faili la chanzo ni kubwa mno: %s\n", hoja_za_mstari[faharasa_ya_faili]);
             rudisha 1;
         }
         // Njia kuu iko kwenye rafu kuanzia mwanzo -- mzunguko
@@ -659,7 +659,7 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     Msambazaji p = msambazaji_mpya(chombo_cha_chanzo_kamili, chanzo_urefu);
     n32 nodi_ya_programu = changanua(&p);
     kama (p.kosa != 0) {
-        andika_stderr("; KOSA: %d\n", p.kosa);
+        andika_kosa("; KOSA: %d\n", p.kosa);
         rudisha 1;
     }
 
@@ -676,7 +676,7 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     // (ona hati/uthibitisho-wa-lugha.md, kipengele J10).
     n32 makosa = mkaguzi_angalia(nodi_ya_programu);
     kama (makosa != 0) {
-        andika_stderr("Hitilafu: makosa %d ya aina yalipatikana; hakuna msimbo uliotolewa\n", makosa);
+        andika_kosa("Hitilafu: makosa %d ya aina yalipatikana; hakuna msimbo uliotolewa\n", makosa);
         rudisha 1;
     }
 
@@ -702,7 +702,7 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     // Kazi za nje (daraja la mashine) zinahitaji kipakiaji cha mfumo
     // (--exe) au mwenyeji wa WASM (--wasm: uingizaji); mtafsiri hana.
     kama (kigeni_idadi_ya_kazi + kigeni_idadi_ya_data > 0 && (ni_tafsiri || ni_ir)) {
-        andika_stderr("Hitilafu: kazi za nje (kizuizi cha nje) zinahitaji --exe au --wasm -- hazipatikani kwenye --tafsiri wala --ir\n");
+        andika_kosa("Hitilafu: kazi za nje (kizuizi cha nje) zinahitaji --exe au --wasm -- hazipatikani kwenye --tafsiri wala --ir\n");
         rudisha 1;
     }
 
@@ -727,7 +727,7 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
                 // uzalishaji_kuu/uzalishaji_wito hutoka moja kwa moja
                 // (wito_wa_mfumo(60,1,...)) -- kioo cha jinsi makosa
                 // mengine ya kufa ya uzalishaji.swa yanavyofanya kazi
-                // tayari (mfano "kazi 'main' haipo"), hivyo hakuna
+                // tayari (mfano "kazi 'anza' haipo"), hivyo hakuna
                 // ukaguzi wa ziada wa msimbo wa kutoka unaohitajika
                 // hapa (tofauti na --wasm, ambayo inarudi 1 badala ya
                 // kutoka moja kwa moja).
@@ -755,7 +755,7 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     // uchunguzi wa Dominion jaribio_mchezo_kamili.swa uliogundua
     // hitilafu hii baada ya #301).
     kama (msimbo_umefurika != 0) {
-        andika_stderr("KOSA: uzalishaji wa msimbo umefurika bafa ya ndani (bafa_text au jedwali linalohusiana) -- msimbo uliotolewa ni HARIBIKA, usiutumie\n");
+        andika_kosa("KOSA: uzalishaji wa msimbo umefurika bafa ya ndani (bafa_text au jedwali linalohusiana) -- msimbo uliotolewa ni HARIBIKA, usiutumie\n");
         rudisha 1;
     }
 

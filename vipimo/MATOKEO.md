@@ -1156,7 +1156,7 @@ hoja za xmm bila kuchunguza aina zake wakati wa kukimbia.
 
 Lugha hii haina FFI (hakuna njia ya kuita kazi halisi ya nje yenye
 varargs). Kila lengwa la wito ni mojawapo ya: kazi ya Swa yenye idadi
-thabiti ya hoja (ikiwemo `andika`/`andika_stderr` pale njia ya haraka
+thabiti ya hoja (ikiwemo `andika`/`andika_kosa` pale njia ya haraka
 haipo), wito wa kielekezi (kielekezi hakiwezi kuundwa isipokuwa
 kupitia `&jina_la_kazi`, hivyo lengwa ni kazi ya Swa ile ile), syscall
 ya moja kwa moja (agizo la `syscall` halisi haliangalii AL kamwe), au

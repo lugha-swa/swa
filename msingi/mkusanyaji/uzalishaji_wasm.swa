@@ -121,7 +121,7 @@ n32 wasm_ongeza_mfuatano(n8* ghafi) {
     n32 mwisho_ = mwanzo;
     wakati (ghafi[mwisho_] != 0) {
         kama (ghafi[mwisho_] == 92) { mwisho_ = mwisho_ + 2; endelea; }
-        kama (ghafi[mwisho_] == 34) { vunja; }
+        kama (ghafi[mwisho_] == 34) { acha; }
         mwisho_ = mwisho_ + 1;
     }
 
@@ -152,7 +152,7 @@ n32 wasm_ongeza_mfuatano(n8* ghafi) {
         n32 sawa = 1;
         n32 k = 0;
         wakati (k <= urefu) {
-            kama (wasm_chombo_cha_data[o + k] != muda[k]) { sawa = 0; vunja; }
+            kama (wasm_chombo_cha_data[o + k] != muda[k]) { sawa = 0; acha; }
             k = k + 1;
         }
         kama (sawa) { rudisha wasm_umbali_wa_mfuatano[i]; }
@@ -160,7 +160,7 @@ n32 wasm_ongeza_mfuatano(n8* ghafi) {
     }
 
     kama (wasm_idadi_ya_mifuatano >= WASM_UPEO_MFUATANO || wasm_data_wapi + urefu + 1 >= 65536) {
-        andika_stderr("KOSA: wasm -- jedwali la mfuatano halisi (Awamu 2) limejaa\n");
+        andika_kosa("KOSA: wasm -- jedwali la mfuatano halisi (Awamu 2) limejaa\n");
         wasm_kosa = 1;
         rudisha WASM_DATA_MSINGI;
     }
@@ -188,7 +188,7 @@ w0 wasm_baiti(n32 b) {
             wasm_chombo_cha_kazi[wasm_kazi_wapi] = b & 255;
             wasm_kazi_wapi = wasm_kazi_wapi + 1;
         } sivyo {
-            andika_stderr("KOSA: wasm_fn_buf imefurika\n");
+            andika_kosa("KOSA: wasm_fn_buf imefurika\n");
             wasm_kosa = 1;
         }
         rudisha;
@@ -198,7 +198,7 @@ w0 wasm_baiti(n32 b) {
             wasm_chombo_cha_sehemu[wasm_sehemu_wapi] = b & 255;
             wasm_sehemu_wapi = wasm_sehemu_wapi + 1;
         } sivyo {
-            andika_stderr("KOSA: wasm_sec_buf imefurika\n");
+            andika_kosa("KOSA: wasm_sec_buf imefurika\n");
             wasm_kosa = 1;
         }
         rudisha;
@@ -208,7 +208,7 @@ w0 wasm_baiti(n32 b) {
             wasm_chombo_cha_aina[wasm_aina_wapi] = b & 255;
             wasm_aina_wapi = wasm_aina_wapi + 1;
         } sivyo {
-            andika_stderr("KOSA: wasm_type_buf imefurika\n");
+            andika_kosa("KOSA: wasm_type_buf imefurika\n");
             wasm_kosa = 1;
         }
         rudisha;
@@ -217,7 +217,7 @@ w0 wasm_baiti(n32 b) {
         wasm_chombo[wasm_chombo_wapi] = b & 255;
         wasm_chombo_wapi = wasm_chombo_wapi + 1;
     } sivyo {
-        andika_stderr("KOSA: wasm_bafu imefurika\n");
+        andika_kosa("KOSA: wasm_bafu imefurika\n");
         wasm_kosa = 1;
     }
 }
@@ -411,7 +411,7 @@ n32 wasm_ongeza_cha_ndani(n8* jina) {
     n32 iliyopo = wasm_tafuta_cha_ndani(jina);
     kama (iliyopo >= 0) { rudisha iliyopo; }
     kama (wasm_idadi_ya_vya_ndani >= WASM_UPEO_WA_VYA_NDANI) {
-        andika_stderr("KOSA: wasm -- vigezo vingi mno kwenye kazi moja (kikomo %d)\n", WASM_UPEO_WA_VYA_NDANI);
+        andika_kosa("KOSA: wasm -- vigezo vingi mno kwenye kazi moja (kikomo %d)\n", WASM_UPEO_WA_VYA_NDANI);
         wasm_kosa = 1;
         rudisha 0;
     }
@@ -468,7 +468,7 @@ n32 wasm_ni_w0_usimbaji(n32 usimbaji) {
 // -- imepatikana kwenye ukaguzi wa Kandemark, PR #260.
 w0 wasm_kagua_usimbaji_kigezo(n8* jina, n32 usimbaji, n32 idadi_ya_safu) {
     kama (wasm_ni_n32_au_kielekezi_usimbaji(usimbaji) == 0 || idadi_ya_safu > 0) {
-        andika_stderr("KOSA: wasm -- aina ya kigezo '%s' iko nje ya wigo wa Awamu 2 (n32 na n32* pekee vinaungwa mkono -- hakuna safu ya ndani ya ukubwa maalum/d64/d32/muundo/upana mwingine/kielekezi-cha-kielekezi)\n", jina);
+        andika_kosa("KOSA: wasm -- aina ya kigezo '%s' iko nje ya wigo wa Awamu 2 (n32 na n32* pekee vinaungwa mkono -- hakuna safu ya ndani ya ukubwa maalum/d64/d32/muundo/upana mwingine/kielekezi-cha-kielekezi)\n", jina);
         wasm_kosa = 1;
     }
 }
@@ -517,7 +517,7 @@ n32 wasm_kina = 0;  // idadi ya block/loop/if zilizo WAZI sasa
 
 n32 WASM_UPEO_KIOTA_MZUNGUKO = 16;
 n32 wasm_mzunguko_undani = 0;
-n32 wasm_vunja_kina[16];     // kina KILIPOFUNGULIWA block ya "vunja"
+n32 wasm_kina_cha_acha[16];     // kina KILIPOFUNGULIWA block ya "acha"
 n32 wasm_endelea_kina[16];   // kina KILIPOFUNGULIWA lengwa la "endelea"
 n32 wasm_ina_hatua[16];      // 1 = kwa yenye hatua (block ya ziada ya endelea bado wazi)
 
@@ -537,7 +537,7 @@ w0 wasm_taja_anwani(n32 nodi, n32 nodi_ya_kazi);
 // hakuna aina nyingine ya ukubwa inayoungwa mkono.
 w0 wasm_taja_anwani(n32 nodi, n32 nodi_ya_kazi) {
     kama (wasm_ni_n32_au_kielekezi_usimbaji(thamani_ya_nodi[nodi]) == 0) {
-        andika_stderr("KOSA: wasm -- kipengele/nyoosha hii iko nje ya wigo wa Awamu 2 (kipengele cha n32 pekee)\n");
+        andika_kosa("KOSA: wasm -- kipengele/nyoosha hii iko nje ya wigo wa Awamu 2 (kipengele cha n32 pekee)\n");
         wasm_kosa = 1;
         rudisha;
     }
@@ -578,7 +578,7 @@ w0 wasm_zalisha_ulinganisho(n32 nodi) {
 // if/else inaweza kubeba aina ya matokeo moja kwa moja.
 w0 wasm_sharti(n32 nodi) {
     kama (nodi == -1) {
-        andika_stderr("KOSA: wasm -- sharti tupu halikubaliki\n");
+        andika_kosa("KOSA: wasm -- sharti tupu halikubaliki\n");
         wasm_kosa = 1;
         rudisha;
     }
@@ -623,7 +623,7 @@ w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi) {
 
     kama (aina == NODI_NAMBARI) {
         kama (nodi_ya_kulia[nodi] == 1) {
-            andika_stderr("KOSA: wasm -- namba halisi ya n64 kubwa haitumiki bado (Awamu 1: n32 pekee)\n");
+            andika_kosa("KOSA: wasm -- namba halisi ya n64 kubwa haitumiki bado (Awamu 1: n32 pekee)\n");
             wasm_kosa = 1;
             rudisha;
         }
@@ -650,7 +650,7 @@ w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi) {
                 wasm_kitendo_pata_ulimwengu(1 + g);
                 rudisha;
             }
-            andika_stderr("KOSA: wasm -- kigezo kisichojulikana au nje ya wigo: %s\n", jina);
+            andika_kosa("KOSA: wasm -- kigezo kisichojulikana au nje ya wigo: %s\n", jina);
             wasm_kosa = 1;
             rudisha;
         }
@@ -675,7 +675,7 @@ w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi) {
             }
         }
         kama (hoja_ya_agizo == -1 || aina_ya_nodi[hoja_ya_agizo] != NODI_TAJA) {
-            andika_stderr("KOSA: wasm -- '&' inaungwa mkono TU kwa &arr[idx]/&*ptr kwenye Awamu 2 (si '&kigezo' cha ndani -- WASM 'locals' hazina anwani ya kumbukumbu, tofauti na rbp-offset za x86-64)\n");
+            andika_kosa("KOSA: wasm -- '&' inaungwa mkono TU kwa &arr[idx]/&*ptr kwenye Awamu 2 (si '&kigezo' cha ndani -- WASM 'locals' hazina anwani ya kumbukumbu, tofauti na rbp-offset za x86-64)\n");
             wasm_kosa = 1;
             rudisha;
         }
@@ -719,7 +719,7 @@ w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi) {
         kama (jina_linganisha(jina, "tenga")) {
             n32 hoja_t = nodi_ya_kulia[nodi];
             kama (hoja_t == -1) {
-                andika_stderr("KOSA: wasm -- tenga() inahitaji hoja moja (ukubwa wa baiti)\n");
+                andika_kosa("KOSA: wasm -- tenga() inahitaji hoja moja (ukubwa wa baiti)\n");
                 wasm_kosa = 1;
                 rudisha;
             }
@@ -745,7 +745,7 @@ w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi) {
 
         n32 faharasa_ya_kazi = wasm_tafuta_kazi(jina);
         kama (faharasa_ya_kazi < 0) {
-            andika_stderr("KOSA: wasm -- kazi haitumiki (nje ya wigo, au haijulikani): %s\n", jina);
+            andika_kosa("KOSA: wasm -- kazi haitumiki (nje ya wigo, au haijulikani): %s\n", jina);
             wasm_kosa = 1;
             rudisha;
         }
@@ -762,7 +762,7 @@ w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi) {
         rudisha;
     }
 
-    andika_stderr("KOSA: wasm -- usemi huu haukubaliki kwenye Awamu 1 (aina ya AST=%d)\n", aina);
+    andika_kosa("KOSA: wasm -- usemi huu haukubaliki kwenye Awamu 1 (aina ya AST=%d)\n", aina);
     wasm_kosa = 1;
 }
 
@@ -796,7 +796,7 @@ w0 wasm_wakati(n32 nodi, n32 nodi_ya_kazi) {
     }
 
     kama (wasm_mzunguko_undani >= WASM_UPEO_KIOTA_MZUNGUKO) {
-        andika_stderr("KOSA: wasm -- vitanzi vilivyopachikwa mno (kikomo %d)\n", WASM_UPEO_KIOTA_MZUNGUKO);
+        andika_kosa("KOSA: wasm -- vitanzi vilivyopachikwa mno (kikomo %d)\n", WASM_UPEO_KIOTA_MZUNGUKO);
         wasm_kosa = 1;
         rudisha;
     }
@@ -809,7 +809,7 @@ w0 wasm_wakati(n32 nodi, n32 nodi_ya_kazi) {
     //   <mwili>                       <-- kama HAINA hatua
     //   br (kwenda $juu) } }
     wasm_kitendo_ubeti(WASM_UBETI_TUPU); wasm_kina = wasm_kina + 1;
-    wasm_vunja_kina[faharasa_ya_mzunguko] = wasm_kina;
+    wasm_kina_cha_acha[faharasa_ya_mzunguko] = wasm_kina;
 
     wasm_kitendo_mzunguko(WASM_UBETI_TUPU); wasm_kina = wasm_kina + 1;
     n32 juu_kina = wasm_kina;
@@ -818,7 +818,7 @@ w0 wasm_wakati(n32 nodi, n32 nodi_ya_kazi) {
     kama (sharti != -1) {
         wasm_sharti(sharti);
         wasm_kitendo_i32_ni_sifuri();
-        wasm_kitendo_ruka_kama(wasm_kina - wasm_vunja_kina[faharasa_ya_mzunguko]);
+        wasm_kitendo_ruka_kama(wasm_kina - wasm_kina_cha_acha[faharasa_ya_mzunguko]);
     }
 
     kama (ina_hatua) {
@@ -873,10 +873,10 @@ w0 wasm_taarifa(n32 nodi, n32 nodi_ya_kazi) {
         rudisha;  // hakuna ndugu -- msururu unaisha
     }
 
-    kama (aina == NODI_VUNJA) {
+    kama (aina == NODI_ACHA) {
         kama (wasm_mzunguko_undani > 0) {
             n32 faharasa = wasm_mzunguko_undani - 1;
-            wasm_kitendo_ruka(wasm_kina - wasm_vunja_kina[faharasa]);
+            wasm_kitendo_ruka(wasm_kina - wasm_kina_cha_acha[faharasa]);
         }
         rudisha;
     }
@@ -926,7 +926,7 @@ w0 wasm_taarifa(n32 nodi, n32 nodi_ya_kazi) {
             }
 
             kama (aina_ya_nodi[kushoto] != NODI_KITAMBULISHO) {
-                andika_stderr("KOSA: wasm -- ugawaji huu haukubaliki kwenye Awamu 2 (muundo/aina nyingine)\n");
+                andika_kosa("KOSA: wasm -- ugawaji huu haukubaliki kwenye Awamu 2 (muundo/aina nyingine)\n");
                 wasm_kosa = 1;
                 rudisha;
             }
@@ -935,7 +935,7 @@ w0 wasm_taarifa(n32 nodi, n32 nodi_ya_kazi) {
             kama (faharasa2 < 0) {
                 n32 g2 = wasm_tafuta_ulimwengu(jina2);
                 kama (g2 < 0) {
-                    andika_stderr("KOSA: wasm -- kigezo kisichojulikana: %s\n", jina2);
+                    andika_kosa("KOSA: wasm -- kigezo kisichojulikana: %s\n", jina2);
                     wasm_kosa = 1;
                     rudisha;
                 }
@@ -1000,7 +1000,7 @@ w0 wasm_taarifa(n32 nodi, n32 nodi_ya_kazi) {
                             }
                             wasm_taarifa(nodi_ya_kushoto[nodi], nodi_ya_kazi);
                         } sivyo {
-                            andika_stderr("KOSA: wasm -- taarifa hii haikubaliki kwenye Awamu 1 (aina ya AST=%d)\n", aina);
+                            andika_kosa("KOSA: wasm -- taarifa hii haikubaliki kwenye Awamu 1 (aina ya AST=%d)\n", aina);
                             wasm_kosa = 1;
                         } } } } } }
 
@@ -1041,7 +1041,7 @@ w0 wasm_jenga_kazi(n32 nodi_ya_kazi) {
     n32 usimbaji_wa_matokeo = thamani_ya_nodi[nodi_ya_kazi];
     n32 ni_w0 = wasm_ni_w0_usimbaji(usimbaji_wa_matokeo);
     kama (ni_w0 == 0 && wasm_ni_n32_usimbaji(usimbaji_wa_matokeo) == 0) {
-        andika_stderr("KOSA: wasm -- aina ya matokeo iko nje ya wigo wa Awamu 1 (n32 au w0 pekee zinaungwa mkono)\n");
+        andika_kosa("KOSA: wasm -- aina ya matokeo iko nje ya wigo wa Awamu 1 (n32 au w0 pekee zinaungwa mkono)\n");
         wasm_kosa = 1;
     }
     wasm_chombo_sasa = 3;
@@ -1361,18 +1361,18 @@ w0 wasm_andika_aina_uingizaji() {
         n32 f = kigeni_nodi_ya_kazi[k];
         n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[f]];
         kama (kigeni_kazi_ya_ziada[k]) {
-            andika_stderr("KOSA: wasm -- kazi ya nje '%s': hoja za ziada (...) hazipo kwenye WASM\n", jina);
+            andika_kosa("KOSA: wasm -- kazi ya nje '%s': hoja za ziada (...) hazipo kwenye WASM\n", jina);
             wasm_kosa = 1;
         }
         kama (kigeni_ni_w0(k) == 0 && wasm_ni_n32_au_kielekezi_usimbaji(thamani_ya_nodi[f]) == 0) {
-            andika_stderr("KOSA: wasm -- kazi ya nje '%s': matokeo lazima yawe n32, kielekezi au w0\n", jina);
+            andika_kosa("KOSA: wasm -- kazi ya nje '%s': matokeo lazima yawe n32, kielekezi au w0\n", jina);
             wasm_kosa = 1;
         }
         n32 idadi = 0;
         n32 pn = nodi_ya_kulia[f];
         wakati (pn != -1) {
             kama (wasm_ni_n32_au_kielekezi_usimbaji(thamani_ya_nodi[pn]) == 0) {
-                andika_stderr("KOSA: wasm -- kazi ya nje '%s': hoja lazima ziwe n32 au kielekezi\n", jina);
+                andika_kosa("KOSA: wasm -- kazi ya nje '%s': hoja lazima ziwe n32 au kielekezi\n", jina);
                 wasm_kosa = 1;
             }
             idadi = idadi + 1;
@@ -1386,7 +1386,7 @@ w0 wasm_andika_aina_uingizaji() {
         k = k + 1;
     }
     kama (kigeni_idadi_ya_data > 0) {
-        andika_stderr("KOSA: wasm -- data ya nje haipo kwenye WASM (kazi za nje pekee)\n");
+        andika_kosa("KOSA: wasm -- data ya nje haipo kwenye WASM (kazi za nje pekee)\n");
         wasm_kosa = 1;
     }
 }
@@ -1432,12 +1432,12 @@ w0 wasm_andika_sehemu_uingizaji() {
     }
 }
 
-// Export section (id=7): "main" (func) NA "memory" (Awamu 2 -- ili
+// Export section (id=7): "anza" (func) NA "memory" (Awamu 2 -- ili
 // majaribio yaweze kusoma instance.exports.memory.buffer moja kwa
 // moja kutoka Node).
-w0 wasm_andika_sehemu_ya_uhamishaji(n32 main_faharasa) {
-    n32 ukubwa_wa_faharasa = wasm_ukubwa_wa_leb_a(main_faharasa);
-    n32 jina_ukubwa1 = wasm_ukubwa_wa_leb_a(4) + 4;  // "main"
+w0 wasm_andika_sehemu_ya_uhamishaji(n32 faharasa_ya_kazi_ya_anza) {
+    n32 ukubwa_wa_faharasa = wasm_ukubwa_wa_leb_a(faharasa_ya_kazi_ya_anza);
+    n32 jina_ukubwa1 = wasm_ukubwa_wa_leb_a(4) + 4;  // "anza"
     n32 ingizo1 = jina_ukubwa1 + 1 + ukubwa_wa_faharasa;
     n32 jina_ukubwa2 = wasm_ukubwa_wa_leb_a(6) + 6;  // "memory"
     n32 ingizo2 = jina_ukubwa2 + 1 + wasm_ukubwa_wa_leb_a(0);
@@ -1453,9 +1453,9 @@ w0 wasm_andika_sehemu_ya_uhamishaji(n32 main_faharasa) {
     wasm_leb_a(ukubwa_wa_maudhui);
     wasm_leb_a(hesabu);
     wasm_leb_a(4);
-    wasm_baiti(109); wasm_baiti(97); wasm_baiti(105); wasm_baiti(110);  // "main"
+    wasm_baiti(97); wasm_baiti(110); wasm_baiti(122); wasm_baiti(97);  // "anza"
     wasm_baiti(0);  // aina = func
-    wasm_leb_a(main_faharasa);
+    wasm_leb_a(faharasa_ya_kazi_ya_anza);
     wasm_leb_a(6);
     wasm_baiti(109); wasm_baiti(101); wasm_baiti(109); wasm_baiti(111); wasm_baiti(114); wasm_baiti(121);  // "memory"
     wasm_baiti(2);  // aina = memtype
@@ -1503,7 +1503,7 @@ n32 uzalishaji_wasm_kuu(n32 nodi_ya_programu) {
         }
         kama (aina_ya_nodi[gn] == NODI_KAZI) {
             kama (wasm_idadi_ya_kazi >= WASM_UPEO_KAZI) {
-                andika_stderr("KOSA: wasm -- kazi nyingi mno (kikomo %d)\n", WASM_UPEO_KAZI);
+                andika_kosa("KOSA: wasm -- kazi nyingi mno (kikomo %d)\n", WASM_UPEO_KAZI);
                 rudisha 1;
             }
             n32 jina_la_nodi = nodi_ya_kushoto[gn];
@@ -1527,15 +1527,15 @@ n32 uzalishaji_wasm_kuu(n32 nodi_ya_programu) {
                 n8* gjina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[gn]];
                 n32 kianzio_cha_ulimwengu = nodi_ya_kulia[gn];
                 kama (wasm_ni_n32_au_kielekezi_usimbaji(thamani_ya_nodi[gn]) == 0) {
-                    andika_stderr("KOSA: wasm -- kigezo cha ulimwengu '%s': n32 au kielekezi pekee kwenye Awamu 4\n", gjina);
+                    andika_kosa("KOSA: wasm -- kigezo cha ulimwengu '%s': n32 au kielekezi pekee kwenye Awamu 4\n", gjina);
                     rudisha 1;
                 }
                 kama (tatu_ya_nodi[gn] != -1) {
-                    andika_stderr("KOSA: wasm -- safu ya ulimwengu '%s' haiko kwenye wigo wa Awamu 4\n", gjina);
+                    andika_kosa("KOSA: wasm -- safu ya ulimwengu '%s' haiko kwenye wigo wa Awamu 4\n", gjina);
                     rudisha 1;
                 }
                 kama (wasm_idadi_ya_vigeu_vya_ulimwengu >= WASM_UPEO_ULIMWENGU) {
-                    andika_stderr("KOSA: wasm -- vigezo vya ulimwengu vingi mno (kikomo %d)\n", WASM_UPEO_ULIMWENGU);
+                    andika_kosa("KOSA: wasm -- vigezo vya ulimwengu vingi mno (kikomo %d)\n", WASM_UPEO_ULIMWENGU);
                     rudisha 1;
                 }
                 n32 thamani_g = 0;
@@ -1546,7 +1546,7 @@ n32 uzalishaji_wasm_kuu(n32 nodi_ya_programu) {
                     } sivyo { kama (aina_ya_nodi[kianzio_cha_ulimwengu] == NODI_KITAMBULISHO && gtxt[0] == 34) {
                             thamani_g = wasm_ongeza_mfuatano(gtxt);
                         } sivyo {
-                            andika_stderr("KOSA: wasm -- kianzio cha kigezo cha ulimwengu '%s' lazima kiwe namba halisi au mfuatano halisi\n", gjina);
+                            andika_kosa("KOSA: wasm -- kianzio cha kigezo cha ulimwengu '%s' lazima kiwe namba halisi au mfuatano halisi\n", gjina);
                             rudisha 1;
                         } }
                 }
@@ -1554,20 +1554,24 @@ n32 uzalishaji_wasm_kuu(n32 nodi_ya_programu) {
                 wasm_kianzio_cha_ulimwengu[wasm_idadi_ya_vigeu_vya_ulimwengu] = thamani_g;
                 wasm_idadi_ya_vigeu_vya_ulimwengu = wasm_idadi_ya_vigeu_vya_ulimwengu + 1;
             } sivyo { kama (aina_ya_nodi[gn] != NODI_MUUNDO) {
-                andika_stderr("KOSA: wasm -- ujenzi wa ngazi ya juu haukubaliki (aina ya AST=%d)\n", aina_ya_nodi[gn]);
+                andika_kosa("KOSA: wasm -- ujenzi wa ngazi ya juu haukubaliki (aina ya AST=%d)\n", aina_ya_nodi[gn]);
                 rudisha 1;
             } } }
         gn = nne_ya_nodi[gn];
     }
 
-    n32 main_faharasa = wasm_tafuta_kazi("main");
-    kama (main_faharasa < 0) {
-        andika_stderr("KOSA: wasm -- hakuna kazi 'main'\n");
+    n32 faharasa_ya_kazi_ya_anza = wasm_tafuta_kazi("anza");
+    kama (faharasa_ya_kazi_ya_anza < 0) {
+        faharasa_ya_kazi_ya_anza = wasm_tafuta_kazi("main");
+        kama (faharasa_ya_kazi_ya_anza >= 0) { onya_neno_la_zamani("main", "anza"); }
+    }
+    kama (faharasa_ya_kazi_ya_anza < 0) {
+        andika_kosa("KOSA: wasm -- hakuna kazi 'anza'\n");
         rudisha 1;
     }
     // Awamu 3: export inahitaji faharisi ya function-index-space
     // KAMILI (baada ya kazi 6 za uingizaji), si faharisi ya ndani tu.
-    main_faharasa = main_faharasa + wasm_idadi_ya_uingizaji;
+    faharasa_ya_kazi_ya_anza = faharasa_ya_kazi_ya_anza + wasm_idadi_ya_uingizaji;
 
     // Faharisi ya helper ya tenga() imewekwa SASA (mara tu baada ya
     // Pitio la 1, idadi ya kazi za mtumiaji ikiwa imekamilika kikamilifu)
@@ -1629,7 +1633,7 @@ n32 uzalishaji_wasm_kuu(n32 nodi_ya_programu) {
     wasm_andika_sehemu_ya_jedwali();
     wasm_andika_sehemu_ya_kumbukumbu(kiwango_cha_chini_cha_kurasa);
     wasm_andika_ulimwengu_sehemu(kianzio_cha_akiba);
-    wasm_andika_sehemu_ya_uhamishaji(main_faharasa);
+    wasm_andika_sehemu_ya_uhamishaji(faharasa_ya_kazi_ya_anza);
     wasm_andika_kipengele_sehemu();
     wasm_andika_sehemu_kutoka(10, wasm_idadi_ya_kazi, wasm_chombo_cha_sehemu, wasm_sehemu_wapi);
     wasm_andika_data_sehemu();
@@ -1711,7 +1715,7 @@ w0 wasm_andika_kiolesura_js() {
     wasm_js_mstari("        const uingizaji = Object.assign({ js: d.js }, ziada || {});");
     wasm_js_mstari("        const { instance } = await WebAssembly.instantiate(baiti, uingizaji);");
     wasm_js_mstari("        d.weka_moduli(instance.exports);");
-    wasm_js_mstari("        const matokeo = instance.exports.main();");
+    wasm_js_mstari("        const matokeo = instance.exports.anza();");
     wasm_js_mstari("        return { instance, matokeo, vitu: d.vitu };");
     wasm_js_mstari("    }");
     wasm_js_mstari("    nje.anzishaSwa = anzishaSwa;");
