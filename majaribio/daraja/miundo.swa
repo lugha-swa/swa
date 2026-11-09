@@ -1,0 +1,93 @@
+// Daraja la mashine, awamu 3: muundo kwa thamani (uainishaji wa System V).
+// Kila kazi hapa ni ya maktaba halisi ya mfumo, yenye kichwa chake halisi:
+//   div / ldiv         -- matokeo INTEGER (baiti 8: rax; baiti 16: rax:rdx)
+//   cabs, csqrt, cpow  -- `double complex` ni muundo { d64; d64 } kwa C:
+//                         SSE,SSE -- hoja xmm0:xmm1 (na xmm2:xmm3), matokeo xmm0:xmm1
+//   cabsf, csqrtf      -- `float complex` ni { d32; d32 }, baiti-8 moja ya SSE:
+//                         Swa huipitisha kwenye rejesta ya GP, C huitarajia xmm0
+//   inet_ntoa          -- `struct in_addr` { n32 } kama hoja INTEGER
+// Kutoka 0 = kila ukaguzi umepita; namba nyingine inataja ukaguzi ulioshindwa.
+husisha { kumbukumbu.swa }
+
+muundo Mgawo { n32 sehemu; n32 baki; }
+muundo MgawoMrefu { n64 sehemu; n64 baki; }
+muundo Tata { d64 halisi; d64 kufikirika; }
+muundo TataF { d32 halisi; d32 kufikirika; }
+muundo Anwani { n32 thamani; }
+
+nje "libc.so.6" {
+    Mgawo gawanya(n32 a, n32 b) = "div";
+    MgawoMrefu gawanya_mrefu(n64 a, n64 b) = "ldiv";
+    n8* anwani_kwa_maandishi(Anwani a) = "inet_ntoa";
+    n32 linganisha_c(n8* a, n8* b) = "strcmp";
+}
+
+nje "libm.so.6" {
+    d64 ukubwa_tata(Tata z) = "cabs";
+    Tata kipeuo_tata(Tata z) = "csqrt";
+    Tata kipeo_tata(Tata z, Tata w) = "cpow";
+    d32 ukubwa_tata_f(TataF z) = "cabsf";
+    TataF kipeuo_tata_f(TataF z) = "csqrtf";
+}
+
+n32 karibu(d64 a, d64 b) {
+    d64 t = a - b;
+    kama (t < 0.0) { t = 0.0 - t; }
+    kama (t < 0.000000001) { rudisha 1; }
+    rudisha 0;
+}
+
+n32 main() {
+    Mgawo m = gawanya(17, 5);
+    kama (m.sehemu != 3) { rudisha 1; }
+    kama (m.baki != 2) { rudisha 2; }
+    m = gawanya(-17, 5);
+    kama (m.sehemu != -3 || m.baki != -2) { rudisha 3; }
+
+    MgawoMrefu mm = gawanya_mrefu(10000000000, 7);
+    kama (mm.sehemu != 1428571428) { rudisha 4; }
+    kama (mm.baki != 4) { rudisha 5; }
+
+    Tata z;
+    z.halisi = 3.0;
+    z.kufikirika = 4.0;
+    kama (karibu(ukubwa_tata(z), 5.0) == 0) { rudisha 6; }
+
+    // sqrt(-4) = 0 + 2i
+    z.halisi = -4.0;
+    z.kufikirika = 0.0;
+    Tata r = kipeuo_tata(z);
+    kama (karibu(r.halisi, 0.0) == 0) { rudisha 7; }
+    kama (karibu(r.kufikirika, 2.0) == 0) { rudisha 8; }
+
+    // (1+i)^2 = 2i -- hoja mbili za muundo: xmm0..xmm3
+    Tata a;
+    a.halisi = 1.0;
+    a.kufikirika = 1.0;
+    Tata w;
+    w.halisi = 2.0;
+    w.kufikirika = 0.0;
+    Tata p = kipeo_tata(a, w);
+    kama (karibu(p.halisi, 0.0) == 0) { rudisha 9; }
+    kama (karibu(p.kufikirika, 2.0) == 0) { rudisha 10; }
+
+    // Matokeo ya muundo kama hoja ya wito mwingine: |sqrt(-4)| = 2
+    kama (karibu(ukubwa_tata(kipeuo_tata(z)), 2.0) == 0) { rudisha 11; }
+
+    TataF f;
+    f.halisi = 6.0;
+    f.kufikirika = 8.0;
+    d32 uf = ukubwa_tata_f(f);
+    kama (uf != 10.0) { rudisha 12; }
+    f.halisi = -9.0;
+    f.kufikirika = 0.0;
+    TataF rf = kipeuo_tata_f(f);
+    kama (rf.halisi != 0.0) { rudisha 13; }
+    kama (rf.kufikirika != 3.0) { rudisha 14; }
+
+    // 127.0.0.1 kwa mpangilio wa mtandao (baiti ya kwanza ni 127)
+    Anwani an;
+    an.thamani = 16777343;
+    kama (linganisha_c(anwani_kwa_maandishi(an), "127.0.0.1") != 0) { rudisha 15; }
+    rudisha 0;
+}

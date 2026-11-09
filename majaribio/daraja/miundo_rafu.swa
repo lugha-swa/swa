@@ -1,0 +1,102 @@
+// Daraja la mashine, awamu 3: muundo kwenye rafu na mipaka ya rejesta.
+// snprintf husoma hoja zake za ziada kutoka rejesta kisha rafu kwa
+// mpangilio wa System V, hivyo maandishi yake yanaonyesha hasa kila
+// baiti-8 ilipowekwa. Vichwa ni vya kudumu (bila `...`); al huwekwa na
+// kipande kwa idadi ya xmm zilizotumika.
+husisha { kumbukumbu.swa }
+
+muundo Tatu { n64 a; n64 b; n64 c; }          // baiti 24: MEMORY
+muundo Jozi { n64 a; n64 b; }                 // INTEGER, INTEGER
+muundo Mchanganyiko { n64 a; d64 b; }         // INTEGER, SSE
+muundo Pamoja { n32 a; d32 b; }               // baiti-8 moja: INTEGER hushinda
+muundo PamojaD { d32 a; n32 b; }              // vivyo hivyo, desimali ikiwa kwanza
+muundo Tata { d64 x; d64 y; }                 // SSE, SSE
+muundo Ndogo { n32 a; n32 b; }                // INTEGER, baiti 8
+muundo Ndani { d64 x; }
+muundo Kiota { Ndani n; n64 z; }              // SSE (kupitia muundo wa ndani), INTEGER
+
+nje "libc.so.6" {
+    n32 andika_tatu(n8* b, n64 n, n8* f, n64 x, n64 y, n64 z, Tatu t) = "snprintf";
+    n32 andika_jozi(n8* b, n64 n, n8* f, n64 x, n64 y, Jozi j, n64 z) = "snprintf";
+    n32 andika_mch(n8* b, n64 n, n8* f, Mchanganyiko m) = "snprintf";
+    n32 andika_pamoja(n8* b, n64 n, n8* f, Pamoja p) = "snprintf";
+    n32 andika_tata(n8* b, n64 n, n8* f, d64 a1, d64 a2, d64 a3, d64 a4, d64 a5, d64 a6, d64 a7, d64 a8, Tata t) = "snprintf";
+    n32 andika_swa_rafu(n8* b, n64 n, n8* f, n64 x, n64 y, n64 z, n64 w, Jozi j, Ndogo d) = "snprintf";
+    n32 andika_pamoja_d(n8* b, n64 n, n8* f, PamojaD p, n64 x) = "snprintf";
+    Tatu nakili_tatu(Tatu* chanzo, n64 n) = "memcpy";
+    n32 andika_tatu_kwanza(n8* b, n64 n, n8* f, Tatu t, n64 x, n64 y, n64 z) = "snprintf";
+    n32 andika_tata_tisa(n8* b, n64 n, n8* f, d64 a1, d64 a2, d64 a3, d64 a4, d64 a5, d64 a6, d64 a7, d64 a8, Tata t, d64 a9) = "snprintf";
+    n32 andika_kiota(n8* b, n64 n, n8* f, Kiota k) = "snprintf";
+    n32 linganisha_c(n8* a, n8* b) = "strcmp";
+}
+
+n32 main() {
+    n8* b = tenga(256);
+
+    // MEMORY: nakala ya baiti 24 rafuni baada ya rcx, r8, r9
+    Tatu t;
+    t.a = 4; t.b = 5; t.c = 6;
+    andika_tatu(b, 256, "%ld %ld %ld %ld %ld %ld", 1, 2, 3, t);
+    kama (linganisha_c(b, "1 2 3 4 5 6") != 0) { andika("[%s]\n", b); rudisha 1; }
+
+    // Jozi inahitaji GP 2, imebaki 1 (r9): muundo mzima rafuni,
+    // lakini z inayofuata bado inapata r9.
+    Jozi j;
+    j.a = 40; j.b = 50;
+    andika_jozi(b, 256, "%ld %ld %ld %ld %ld", 10, 20, j, 30);
+    kama (linganisha_c(b, "10 20 30 40 50") != 0) { andika("[%s]\n", b); rudisha 2; }
+
+    // INTEGER + SSE: a kwenye rcx, b kwenye xmm0
+    Mchanganyiko m;
+    m.a = 7; m.b = 2.5;
+    andika_mch(b, 256, "%ld %.1f", m);
+    kama (linganisha_c(b, "7 2.5") != 0) { andika("[%s]\n", b); rudisha 3; }
+
+    // n32 + d32 ndani ya baiti-8 moja: INTEGER (1.0f = 0x3f800000)
+    Pamoja p;
+    p.a = 1; p.b = 1.0;
+    andika_pamoja(b, 256, "%lx", p);
+    kama (linganisha_c(b, "3f80000000000001") != 0) { andika("[%s]\n", b); rudisha 4; }
+
+    PamojaD pd;
+    pd.a = 1.0; pd.b = 1;
+    // x baada yake: darasa la SSE lingeweka x kwenye rcx
+    andika_pamoja_d(b, 256, "%lx %ld", pd, 77);
+    kama (linganisha_c(b, "13f800000 77") != 0) { andika("[%s]\n", b); rudisha 8; }
+
+    // MEMORY hata rejesta zikiwa wazi: t rafuni, x y z kwenye rcx r8 r9
+    andika_tatu_kwanza(b, 256, "%ld %ld %ld %ld %ld %ld", t, 1, 2, 3);
+    kama (linganisha_c(b, "1 2 3 4 5 6") != 0) { andika("[%s]\n", b); rudisha 9; }
+
+    // Matokeo MEMORY (baiti 24): kielekezi kilichofichwa ni rdi ya
+    // System V na hoja husogea rsi, rdx -- memcpy(lengwa, chanzo, n)
+    // ina umbo hilo hasa, na hurudisha lengwa kwenye rax.
+    Tatu tn = nakili_tatu(&t, 24);
+    kama (tn.a != 4 || tn.b != 5 || tn.c != 6) { rudisha 11; }
+
+    // xmm 8 zimejaa: Tata yote rafuni
+    Tata tt;
+    tt.x = 9.0; tt.y = 10.0;
+    andika_tata(b, 256, "%.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f", 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, tt);
+    kama (linganisha_c(b, "1 2 3 4 5 6 7 8 9 10") != 0) { andika("[%s]\n", b); rudisha 5; }
+
+    // Desimali ya 9 inafika kutoka rafu ya Swa; sloti 3 za System V
+    // (witiri) pamoja na al = 8 -- movaps ya snprintf inahitaji rafu
+    // iliyopangiliwa kwa 16.
+    andika_tata_tisa(b, 256, "%.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f", 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, tt, 11.0);
+    kama (linganisha_c(b, "1 2 3 4 5 6 7 8 9 10 11") != 0) { andika("[%s]\n", b); rudisha 10; }
+
+    // Miundo inayofika kutoka rafu ya Swa: Jozi (kielekezi rafuni) na
+    // Ndogo (baiti zake rafuni) -- kwa System V zote mbili ni rafuni.
+    Ndogo d;
+    d.a = 1; d.b = 2;
+    andika_swa_rafu(b, 256, "%ld %ld %ld %ld %ld %ld %lx", 1, 2, 3, 4, j, d);
+    kama (linganisha_c(b, "1 2 3 4 40 50 200000001") != 0) { andika("[%s]\n", b); rudisha 6; }
+
+    // Muundo ndani ya muundo: darasa hufuata sehemu za ndani
+    Kiota k;
+    k.n.x = 2.5; k.z = 9;
+    andika_kiota(b, 256, "%.1f %ld", k);
+    kama (linganisha_c(b, "2.5 9") != 0) { andika("[%s]\n", b); rudisha 7; }
+    rudisha 0;
+}
