@@ -4114,7 +4114,13 @@ w0 kiini_kagua_wigo(n32 nodi_ya_programu) {
                 kama (kwanza_kazi_imeonekana == 0) {
                     kwanza_kazi_imeonekana = 1;
                     n8* jkwanza = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[nodi]];
-                    kama (jina_linganisha(jkwanza, "kernel_main")) { kwanza_kazi_jina_sawa = 1; }
+                    // Kiingilio cha kiini ni anza, kama programu yoyote ya Swa;
+                    // kernel_main ya zamani inakubalika kwa toleo moja, kwa onyo.
+                    kama (jina_linganisha(jkwanza, "anza")) { kwanza_kazi_jina_sawa = 1; }
+                    kama (jina_linganisha(jkwanza, "kernel_main")) {
+                        onya_neno_la_zamani("kernel_main", "anza");
+                        kwanza_kazi_jina_sawa = 1;
+                    }
                 }
                 kiini_kagua_maudhui_ya_kazi(nodi);
             }
@@ -4128,11 +4134,11 @@ w0 kiini_kagua_wigo(n32 nodi_ya_programu) {
         nodi = nne_ya_nodi[nodi];
     }
     kama (kwanza_kazi_imeonekana == 0) {
-        andika_kosa("KOSA: --kiini -- hakuna kazi 'kernel_main'\n");
+        andika_kosa("KOSA: --kiini -- hakuna kazi 'anza'\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
     kama (kwanza_kazi_jina_sawa == 0) {
-        andika_kosa("KOSA: --kiini -- 'kernel_main' LAZIMA iwe kazi ya KWANZA iliyotangazwa kwenye chanzo (angalia hati/mipaka.md ya Kawira)\n");
+        andika_kosa("KOSA: --kiini -- 'anza' LAZIMA iwe kazi ya KWANZA iliyotangazwa kwenye chanzo (angalia hati/mipaka.md ya Kawira)\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
 }
@@ -4367,7 +4373,8 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
             uzalishaji_vga_herufi(nodi, nodi_ya_kazi);
             rudisha;
         }
-        kama (jina_linganisha(mwitwa, "kbd_scancode")) {
+        kama (jina_linganisha(mwitwa, "msimbo_wa_kitufe") || jina_linganisha(mwitwa, "kbd_scancode")) {
+            kama (jina_linganisha(mwitwa, "kbd_scancode")) { onya_neno_la_zamani("kbd_scancode", "msimbo_wa_kitufe"); }
             uzalishaji_msimbo_wa_kitufe(nodi, nodi_ya_kazi);
             rudisha;
         }
