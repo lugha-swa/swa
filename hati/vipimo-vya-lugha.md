@@ -721,7 +721,7 @@ za maktaba, si maneno muhimu (2.2):
 Kila kazi imejitosheleza; maktaba inaweza kuunganishwa kwa mkono
 (`cat`) kwa matumizi na mbegu.
 
-## 11. Mipaka ya 1.0
+## 11. Mipaka
 
 Tazama `hati/mipaka.md` kwa orodha kamili yenye viwango vya ukali.
 Muhtasari wa kilichopimwa 2026-09-04 kwenye minyororo yote miwili
@@ -741,16 +741,16 @@ Muhtasari wa kilichopimwa 2026-09-04 kwenye minyororo yote miwili
   zimefungwa kwenye mnyororo wa uzalishaji lakini mbegu bado
   inakubali kimya (inarekebishwa — mgandisho ujao); na `5.`
   inaangusha mbegu (inarekebishwa).
-- Mwisho wa LLVM wa dereva wa Rust ni wa MAJARIBIO (mnyororo wa
-  uzalishaji ni mbegu/exe pekee), na upeo wa tokeni 262,144 unalia
-  kwa sauti.
+- Upeo wa tokeni 262,144 unalia kwa sauti.
 
 ## 12. Uthibitisho
 
-Kila kanuni katika hati hii ina mwenzake kwenye majaribio ya
-ujumuishaji (`majaribio/integration.rs`) au kwenye mnyororo wa
-kujikusanya (fixpoint: stage2-exe == stage3-exe sawa kwa baiti).
-Majaribio yote: 146 ya maktaba + 80 ya ujumuishaji + 1 ya nyaraka.
+Kila kanuni katika hati hii ina mwenzake kwenye majaribio
+yanayoendeshwa na CI (`gharama/*.mapishi`: mnyororo huru, programu
+za `majaribio/programu/MANIFEST.txt` kwenye minyororo yote miwili,
+mkazo, mifano, usakinishaji, IR, daraja la mashine, WASM, kernel)
+au kwenye fixpoint ya kujikusanya (stage2-exe == stage3-exe sawa
+kwa baiti).
 
 Kumbuka kilichopimwa (2026-08-27): fixpoint inathibitisha
 kujikusanya, si usahihi wa semantiki. Uthibitisho kamili wa tabia
