@@ -21,7 +21,7 @@
 //                kulinganishwa moja kwa moja.
 //   dom       -- (Awamu 3) main() haihitaji thamani ya kurudi maalum
 //                (inaweza kuwa 0/w0) -- baada ya kuiendesha, mti wa
-//                dom_mock.js (kuanzia mzizi, id=0) unalinganishwa
+//                dom_mock.js (kuanzia nodi kuu, id=0) unalinganishwa
 //                (JSON.stringify iliyopangwa) na muundo tarajiwa
 //                uliohifadhiwa kwenye FAILI la JSON ambalo NJIA yake
 //                ni <thamani_tarajiwa> (thamani ya kisa kwenye gharama/jaribu-wasm.mapishi,
@@ -69,7 +69,7 @@ if (!WebAssembly.validate(bafa)) {
 const dom = createDomMock();
 globalThis.document = dom.hati;
 
-anzishaSwa(bafa, dom.mzizi)
+anzishaSwa(bafa, dom.nodi_kuu)
     .then((matokeo) => {
         const halisi = matokeo.matokeo;
 
