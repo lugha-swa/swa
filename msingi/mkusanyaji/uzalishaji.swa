@@ -496,10 +496,10 @@ w0 panua_ishara_ndogo(n32 nodi) {
     // enc==0 haipitishi sharti la "enc > 0" chini -- njia hiyo TAYARI
     // haikuwa ikitoa cdqe kabla ya rekebisho hili, hivyo hakuna
     // mabadiliko ya tabia kwa kesi hizo.
-    kama (mti_aina[nodi] == 8) { rudisha; }
-    n32 usimbaji = mti_thamani[nodi];
-    kama (mti_aina[nodi] == 4) { usimbaji = mti_nne[nodi]; }  // halisi kamili: enc iko ast_nne
-    kama (mti_aina[nodi] == 45) { rudisha; }  // d64: thamani iko xmm0
+    kama (aina_ya_nodi[nodi] == 8) { rudisha; }
+    n32 usimbaji = thamani_ya_nodi[nodi];
+    kama (aina_ya_nodi[nodi] == 4) { usimbaji = nne_ya_nodi[nodi]; }  // halisi kamili: enc iko ast_nne
+    kama (aina_ya_nodi[nodi] == 45) { rudisha; }  // d64: thamani iko xmm0
     kama (usimbaji > 0) {
         kama (ukubwa_kutoka_usimbaji(usimbaji) < 8) {
             kama (ni_bila_ishara_usimbaji(usimbaji) == 0) {
@@ -1254,13 +1254,13 @@ w0 andika_kata_d32_r0_x0() { andika_baiti(243); andika_baiti(72); andika_baiti(1
 // d64; wito unarudisha aina ya kazi kwenye jedwali la mkaguzi.
 n32 aina_ya_usemi(n32 nodi) {
     kama (nodi == -1) { rudisha 0; }
-    n32 a = mti_aina[nodi];
-    kama (a == 4) { rudisha mti_nne[nodi]; }  // halisi kamili: enc iko ast_nne
-    kama (a == 45) { rudisha mti_nne[nodi]; }  // desimali halisi: d64 (832)
+    n32 a = aina_ya_nodi[nodi];
+    kama (a == 4) { rudisha nne_ya_nodi[nodi]; }  // halisi kamili: enc iko ast_nne
+    kama (a == 45) { rudisha nne_ya_nodi[nodi]; }  // desimali halisi: d64 (832)
     kama (a >= 20) { kama (a <= 25) { rudisha USIMBAJI_ULINGANISHI; } }  // ulinganishi: 0/1 kwenye eax
     kama (a == 8) {
         // Wito: aina ya kurudi ya kazi iliyosajiliwa na mkaguzi
-        n8* jina = mti_ghala + mti_ofseti_ya_jina[mti_kushoto[nodi]];
+        n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[nodi]];
         n32 j = 0;
         wakati (j < idadi_ya_matokeo_ya_kazi) {
             // TAHADHARI: mkaguzi huandika majina kwenye kazi_jina_pool
@@ -1271,7 +1271,7 @@ n32 aina_ya_usemi(n32 nodi) {
             j = j + 1;
         }
     }
-    rudisha mti_thamani[nodi];
+    rudisha thamani_ya_nodi[nodi];
 }
 
 // Badilisha thamani ya usemi (kwenye eax/rax au xmm0) hadi aina ya
@@ -1365,11 +1365,11 @@ w0 badili_mpaka_wa_desimali(n32 nodi, n32 usimbaji_lengwa) {
 // operesheni zenyewe kupitia aina_ya_usemi, si enc ya nodi: ulinganishi
 // wa d64 una enc ya d64 lakini tokeo lake ni B1 kwenye eax.
 w0 kataa_operesheni_ya_desimali(n32 nodi) {
-    kama (ni_desimali_usimbaji(aina_ya_usemi(mti_kushoto[nodi]))) {
+    kama (ni_desimali_usimbaji(aina_ya_usemi(nodi_ya_kushoto[nodi]))) {
         andika_stderr("Hitilafu: operesheni hii haifanyi kazi kwa desimali\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
-    kama (ni_desimali_usimbaji(aina_ya_usemi(mti_kulia[nodi]))) {
+    kama (ni_desimali_usimbaji(aina_ya_usemi(nodi_ya_kulia[nodi]))) {
         andika_stderr("Hitilafu: operesheni hii haifanyi kazi kwa desimali\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
@@ -2458,37 +2458,37 @@ w0 tambua_tangazo_pass(n32 nodi) {
     kama (nodi >= 1048576) { rudisha; }
     kama (kvn_imetembelewa[nodi] == kvn_zamu) { rudisha; }
     kvn_imetembelewa[nodi] = kvn_zamu;
-    n32 aina = mti_aina[nodi];
+    n32 aina = aina_ya_nodi[nodi];
 
     kama (aina == 50) {  // AST_BLOCK
-        tambua_tangazo_pass(mti_kushoto[nodi]);
-        tambua_tangazo_pass(mti_nne[nodi]);
+        tambua_tangazo_pass(nodi_ya_kushoto[nodi]);
+        tambua_tangazo_pass(nne_ya_nodi[nodi]);
         rudisha;
     }
 
     kama (aina == 11) {  // AST_TANGAZO
-        n32 nodi_ya_kigeu = mti_kushoto[nodi];
-        n32 usimbaji = mti_thamani[nodi_ya_kigeu];
-        kama (usimbaji == 0) { usimbaji = mti_thamani[nodi]; }
+        n32 nodi_ya_kigeu = nodi_ya_kushoto[nodi];
+        n32 usimbaji = thamani_ya_nodi[nodi_ya_kigeu];
+        kama (usimbaji == 0) { usimbaji = thamani_ya_nodi[nodi]; }
         n32 ni_safu = 0;
-        kama (mti_tiga[nodi] > 0) { ni_safu = 1; }
+        kama (tatu_ya_nodi[nodi] > 0) { ni_safu = 1; }
         kama (ni_safu == 0 && ni_mgombea_rejista(usimbaji)) {
             kama (rega_idadi_ya_wagombea < 16) {
-                n8* jina = mti_ghala + mti_ofseti_ya_jina[nodi_ya_kigeu];
+                n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kigeu];
                 rega_jina_la_mgombea[rega_idadi_ya_wagombea] = jina;
                 rega_mgombea_haramu[rega_idadi_ya_wagombea] = 0;
                 rega_idadi_ya_wagombea = rega_idadi_ya_wagombea + 1;
             }
         }
-        tambua_tangazo_pass(mti_kulia[nodi]);
-        tambua_tangazo_pass(mti_nne[nodi]);
+        tambua_tangazo_pass(nodi_ya_kulia[nodi]);
+        tambua_tangazo_pass(nne_ya_nodi[nodi]);
         rudisha;
     }
 
     kama (aina == 4) { rudisha; }  // NAMBARI -- si nodi halisi kwenye tiga/nne
 
-    tambua_tangazo_pass(mti_kushoto[nodi]);
-    tambua_tangazo_pass(mti_kulia[nodi]);
+    tambua_tangazo_pass(nodi_ya_kushoto[nodi]);
+    tambua_tangazo_pass(nodi_ya_kulia[nodi]);
     n32 ruka_tiga = 0;
     kama (aina >= 6) { kama (aina <= 25) { ruka_tiga = 1; } }
     kama (aina >= 31) { kama (aina <= 32) { ruka_tiga = 1; } }
@@ -2497,14 +2497,14 @@ w0 tambua_tangazo_pass(n32 nodi) {
     kama (aina == 29) { ruka_tiga = 1; }
     kama (aina == 5) { ruka_tiga = 1; }
     kama (aina == 33 || aina == 34 || aina == 35 || aina == 44) { ruka_tiga = 1; }
-    kama (ruka_tiga == 0) { tambua_tangazo_pass(mti_tiga[nodi]); }
+    kama (ruka_tiga == 0) { tambua_tangazo_pass(tatu_ya_nodi[nodi]); }
     n32 ruka_nne = 0;
     kama (aina == 33 || aina == 34) { ruka_nne = 1; }
     kama (aina == 45) { ruka_nne = 1; }
     kama (aina == 4) { ruka_nne = 1; }
-    kama (ruka_nne == 0) { tambua_tangazo_pass(mti_nne[nodi]); }
+    kama (ruka_nne == 0) { tambua_tangazo_pass(nne_ya_nodi[nodi]); }
     kama (aina == 15) {
-        n32 tv = mti_thamani[nodi];
+        n32 tv = thamani_ya_nodi[nodi];
         kama (tv != -1) { kama (tv != 0) { tambua_tangazo_pass(tv); } }
     }
 }
@@ -2518,12 +2518,12 @@ w0 tambua_anwani_pass(n32 nodi) {
     kama (nodi >= 1048576) { rudisha; }
     kama (kvn_imetembelewa[nodi] == kvn_zamu) { rudisha; }
     kvn_imetembelewa[nodi] = kvn_zamu;
-    n32 aina = mti_aina[nodi];
+    n32 aina = aina_ya_nodi[nodi];
 
     kama (aina == 30) {  // AST_KUMBUKA -- &usemi
-        n32 hoja = mti_kushoto[nodi];
-        kama (hoja != -1 && mti_aina[hoja] == 5) {
-            n8* opjina = mti_ghala + mti_ofseti_ya_jina[hoja];
+        n32 hoja = nodi_ya_kushoto[nodi];
+        kama (hoja != -1 && aina_ya_nodi[hoja] == 5) {
+            n8* opjina = ghala_la_majina + umbali_wa_jina_la_nodi[hoja];
             n32 ci = 0;
             wakati (ci < rega_idadi_ya_wagombea) {
                 kama (jina_linganisha(rega_jina_la_mgombea[ci], opjina)) {
@@ -2535,13 +2535,13 @@ w0 tambua_anwani_pass(n32 nodi) {
     }
 
     kama (aina == 50) {
-        tambua_anwani_pass(mti_kushoto[nodi]);
-        tambua_anwani_pass(mti_nne[nodi]);
+        tambua_anwani_pass(nodi_ya_kushoto[nodi]);
+        tambua_anwani_pass(nne_ya_nodi[nodi]);
         rudisha;
     }
     kama (aina == 11) {
-        tambua_anwani_pass(mti_kulia[nodi]);
-        tambua_anwani_pass(mti_nne[nodi]);
+        tambua_anwani_pass(nodi_ya_kulia[nodi]);
+        tambua_anwani_pass(nne_ya_nodi[nodi]);
         rudisha;
     }
     kama (aina == 4) { rudisha; }
@@ -2564,11 +2564,11 @@ w0 tambua_anwani_pass(n32 nodi) {
     // ya sys_andika, bb ilipewa rejesta kimakosa, ikaandika baiti za
     // takataka badala ya herufi halisi).
     kama (aina == 8) {
-        tambua_anwani_pass(mti_kushoto[nodi]);  // callee (kwa wito usio wa moja kwa moja, nadra)
-        n32 a_w = mti_kulia[nodi];
+        tambua_anwani_pass(nodi_ya_kushoto[nodi]);  // callee (kwa wito usio wa moja kwa moja, nadra)
+        n32 a_w = nodi_ya_kulia[nodi];
         wakati (a_w != -1) {
-            n32 a_w_ijayo = mti_tiga[a_w];  // hifadhi kiungo KABLA ya kujirudia
-            kama (a_w >= 0 && a_w < 1048576 && mti_aina[a_w] == 30) {
+            n32 a_w_ijayo = tatu_ya_nodi[a_w];  // hifadhi kiungo KABLA ya kujirudia
+            kama (a_w >= 0 && a_w < 1048576 && aina_ya_nodi[a_w] == 30) {
                 // &hoja moja kwa moja: shughulikia HAPA moja kwa moja
                 // (SI kwa kuiita tambua_anwani_pass(a_w) upya -- aina==30
                 // haiko kwenye orodha ya ruka_tiga, hivyo ingejaribu
@@ -2576,9 +2576,9 @@ w0 tambua_anwani_pass(n32 nodi) {
                 // kiungo cha hoja inayofuata, ikichanganya mnyororo).
                 kama (kvn_imetembelewa[a_w] != kvn_zamu) {
                     kvn_imetembelewa[a_w] = kvn_zamu;
-                    n32 hoja = mti_kushoto[a_w];
-                    kama (hoja != -1 && mti_aina[hoja] == 5) {
-                        n8* opjina2 = mti_ghala + mti_ofseti_ya_jina[hoja];
+                    n32 hoja = nodi_ya_kushoto[a_w];
+                    kama (hoja != -1 && aina_ya_nodi[hoja] == 5) {
+                        n8* opjina2 = ghala_la_majina + umbali_wa_jina_la_nodi[hoja];
                         n32 ci2 = 0;
                         wakati (ci2 < rega_idadi_ya_wagombea) {
                             kama (jina_linganisha(rega_jina_la_mgombea[ci2], opjina2)) {
@@ -2618,12 +2618,12 @@ w0 tambua_anwani_pass(n32 nodi) {
         // (si taarifa ya block moja kwa moja), ast_nne[node] ni -1 hapa,
         // na tambua_anwani_pass(-1) ni kitendo tulivu (rudisha ya papo
         // hapo) -- salama bila masharti.
-        tambua_anwani_pass(mti_nne[nodi]);
+        tambua_anwani_pass(nne_ya_nodi[nodi]);
         rudisha;
     }
 
-    tambua_anwani_pass(mti_kushoto[nodi]);
-    tambua_anwani_pass(mti_kulia[nodi]);
+    tambua_anwani_pass(nodi_ya_kushoto[nodi]);
+    tambua_anwani_pass(nodi_ya_kulia[nodi]);
     n32 ruka_tiga = 0;
     kama (aina >= 6) { kama (aina <= 25) { ruka_tiga = 1; } }
     kama (aina >= 31) { kama (aina <= 32) { ruka_tiga = 1; } }
@@ -2632,14 +2632,14 @@ w0 tambua_anwani_pass(n32 nodi) {
     kama (aina == 29) { ruka_tiga = 1; }
     kama (aina == 5) { ruka_tiga = 1; }
     kama (aina == 33 || aina == 34 || aina == 35 || aina == 44) { ruka_tiga = 1; }
-    kama (ruka_tiga == 0) { tambua_anwani_pass(mti_tiga[nodi]); }
+    kama (ruka_tiga == 0) { tambua_anwani_pass(tatu_ya_nodi[nodi]); }
     n32 ruka_nne = 0;
     kama (aina == 33 || aina == 34) { ruka_nne = 1; }
     kama (aina == 45) { ruka_nne = 1; }
     kama (aina == 4) { ruka_nne = 1; }
-    kama (ruka_nne == 0) { tambua_anwani_pass(mti_nne[nodi]); }
+    kama (ruka_nne == 0) { tambua_anwani_pass(nne_ya_nodi[nodi]); }
     kama (aina == 15) {
-        n32 tv = mti_thamani[nodi];
+        n32 tv = thamani_ya_nodi[nodi];
         kama (tv != -1) { kama (tv != 0) { tambua_anwani_pass(tv); } }
     }
 }
@@ -2898,7 +2898,7 @@ n32 ukubwa_kutoka_usimbaji(n32 usimbaji) {
     // Aina za miundo -- encoding hasi ina kianzio cha jina kwenye dimbwi
     kama (usimbaji < 0) {
         n32 name_ofseti = ((-usimbaji) / 2) - 1;
-        rudisha ukubwa_wa_muundo_kwa_jina(mti_ghala + name_ofseti);
+        rudisha ukubwa_wa_muundo_kwa_jina(ghala_la_majina + name_ofseti);
     }
     n32 familia = (usimbaji / 256) % 256;
     n32 upana = usimbaji - (familia * 256);  // upana_bits + biti za mshale (0, 1, au 2)
@@ -2927,7 +2927,7 @@ n32 ukubwa_wa_kipengele(n32 usimbaji) {
                 saizi = 8;
             } sivyo {
                 n32 name_ofseti_1 = ((0 - (usimbaji - 1)) / 2) - 1;
-                saizi = ukubwa_wa_muundo_kwa_jina(mti_ghala + name_ofseti_1);
+                saizi = ukubwa_wa_muundo_kwa_jina(ghala_la_majina + name_ofseti_1);
             }
         }
     }
@@ -3121,9 +3121,9 @@ n32 kusanya_herufi(n8* ghafi) {
 // kazi ya baadaye kuungan[isha] na hizo pia, nje ya wigo wa sasa).
 n32 ni_ulinganisho_moja_kwa_moja(n32 nodi) {
     kama (nodi == -1) { rudisha 0; }
-    n32 a = mti_aina[nodi];
-    rudisha (a == MTI_SAWA || a == MTI_TOFAUTI_SI || a == MTI_CHINI ||
-             a == MTI_JUU || a == MTI_CHINI_SAWA || a == MTI_JUU_SAWA);
+    n32 a = aina_ya_nodi[nodi];
+    rudisha (a == NODI_SAWA || a == NODI_TOFAUTI_SI || a == NODI_CHINI ||
+             a == NODI_JUU || a == NODI_CHINI_SAWA || a == NODI_JUU_SAWA);
 }
 
 // Toa uzalishaji wa PANDE ZOTE MBILI za nodi ya ulinganishi na cmp/
@@ -3132,7 +3132,7 @@ n32 ni_ulinganisho_moja_kwa_moja(n32 nodi) {
 // kwa njia ya jumla). Baada ya kazi hii kurudi, bendera za CPU
 // tayari zimewekwa sahihi kwa jcc inayolingana na aina ya nodi.
 w0 zalisha_ulinganisho(n32 nodi, n32 nodi_ya_kazi) {
-    n32 usimbaji = mti_thamani[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     zalisha_linganisha_pande_mbili(nodi, nodi_ya_kazi, usimbaji);
 }
 
@@ -3182,21 +3182,21 @@ w0 zalisha_ruka_kama_juu_sawa_a_lebo(n32 lebo_id) { zalisha_ruka_kama_lebo(131, 
 //   AST_CHINI_SAWA  -> jle (0F 8E)         / jbe (0F 86)
 //   AST_JUU_SAWA    -> jge (0F 8D)         / jae (0F 83)
 w0 zalisha_ruka_kama_moja_kwa_moja_lebo(n32 nodi, n32 lebo_id) {
-    n32 aina = mti_aina[nodi];
-    n32 usimbaji = mti_thamani[nodi];
+    n32 aina = aina_ya_nodi[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     n32 bila_ishara = (ni_desimali_usimbaji(usimbaji) || ni_bila_ishara_usimbaji(usimbaji));
-    kama (aina == MTI_SAWA) { zalisha_ruka_kama_sawa_lebo(lebo_id); rudisha; }
-    kama (aina == MTI_TOFAUTI_SI) { zalisha_ruka_kama_si_sawa_lebo(lebo_id); rudisha; }
+    kama (aina == NODI_SAWA) { zalisha_ruka_kama_sawa_lebo(lebo_id); rudisha; }
+    kama (aina == NODI_TOFAUTI_SI) { zalisha_ruka_kama_si_sawa_lebo(lebo_id); rudisha; }
     kama (bila_ishara) {
-        kama (aina == MTI_CHINI) { zalisha_ruka_kama_chini_a_lebo(lebo_id); rudisha; }
-        kama (aina == MTI_JUU) { zalisha_ruka_kama_juu_a_lebo(lebo_id); rudisha; }
-        kama (aina == MTI_CHINI_SAWA) { zalisha_ruka_kama_chini_sawa_a_lebo(lebo_id); rudisha; }
+        kama (aina == NODI_CHINI) { zalisha_ruka_kama_chini_a_lebo(lebo_id); rudisha; }
+        kama (aina == NODI_JUU) { zalisha_ruka_kama_juu_a_lebo(lebo_id); rudisha; }
+        kama (aina == NODI_CHINI_SAWA) { zalisha_ruka_kama_chini_sawa_a_lebo(lebo_id); rudisha; }
         zalisha_ruka_kama_juu_sawa_a_lebo(lebo_id);  // AST_JUU_SAWA
         rudisha;
     }
-    kama (aina == MTI_CHINI) { zalisha_ruka_kama_chini_n_lebo(lebo_id); rudisha; }
-    kama (aina == MTI_JUU) { zalisha_ruka_kama_juu_n_lebo(lebo_id); rudisha; }
-    kama (aina == MTI_CHINI_SAWA) { zalisha_ruka_kama_chini_sawa_n_lebo(lebo_id); rudisha; }
+    kama (aina == NODI_CHINI) { zalisha_ruka_kama_chini_n_lebo(lebo_id); rudisha; }
+    kama (aina == NODI_JUU) { zalisha_ruka_kama_juu_n_lebo(lebo_id); rudisha; }
+    kama (aina == NODI_CHINI_SAWA) { zalisha_ruka_kama_chini_sawa_n_lebo(lebo_id); rudisha; }
     zalisha_ruka_kama_juu_sawa_n_lebo(lebo_id);  // AST_JUU_SAWA
 }
 
@@ -3213,21 +3213,21 @@ w0 zalisha_ruka_kama_moja_kwa_moja_lebo(n32 nodi, n32 lebo_id) {
 //   AST_CHINI_SAWA  -> jg  (0F 8F) / ja  (0F 87)   [kinyume cha <=/jbe]
 //   AST_JUU_SAWA    -> jl  (0F 8C) / jb  (0F 82)   [kinyume cha >=/jae]
 w0 zalisha_ruka_kama_kinyume_lebo(n32 nodi, n32 lebo_id) {
-    n32 aina = mti_aina[nodi];
-    n32 usimbaji = mti_thamani[nodi];
+    n32 aina = aina_ya_nodi[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     n32 bila_ishara = (ni_desimali_usimbaji(usimbaji) || ni_bila_ishara_usimbaji(usimbaji));
-    kama (aina == MTI_SAWA) { zalisha_ruka_kama_si_sawa_lebo(lebo_id); rudisha; }
-    kama (aina == MTI_TOFAUTI_SI) { zalisha_ruka_kama_sawa_lebo(lebo_id); rudisha; }
+    kama (aina == NODI_SAWA) { zalisha_ruka_kama_si_sawa_lebo(lebo_id); rudisha; }
+    kama (aina == NODI_TOFAUTI_SI) { zalisha_ruka_kama_sawa_lebo(lebo_id); rudisha; }
     kama (bila_ishara) {
-        kama (aina == MTI_CHINI) { zalisha_ruka_kama_juu_sawa_a_lebo(lebo_id); rudisha; }
-        kama (aina == MTI_JUU) { zalisha_ruka_kama_chini_sawa_a_lebo(lebo_id); rudisha; }
-        kama (aina == MTI_CHINI_SAWA) { zalisha_ruka_kama_juu_a_lebo(lebo_id); rudisha; }
+        kama (aina == NODI_CHINI) { zalisha_ruka_kama_juu_sawa_a_lebo(lebo_id); rudisha; }
+        kama (aina == NODI_JUU) { zalisha_ruka_kama_chini_sawa_a_lebo(lebo_id); rudisha; }
+        kama (aina == NODI_CHINI_SAWA) { zalisha_ruka_kama_juu_a_lebo(lebo_id); rudisha; }
         zalisha_ruka_kama_chini_a_lebo(lebo_id);  // AST_JUU_SAWA
         rudisha;
     }
-    kama (aina == MTI_CHINI) { zalisha_ruka_kama_juu_sawa_n_lebo(lebo_id); rudisha; }
-    kama (aina == MTI_JUU) { zalisha_ruka_kama_chini_sawa_n_lebo(lebo_id); rudisha; }
-    kama (aina == MTI_CHINI_SAWA) { zalisha_ruka_kama_juu_n_lebo(lebo_id); rudisha; }
+    kama (aina == NODI_CHINI) { zalisha_ruka_kama_juu_sawa_n_lebo(lebo_id); rudisha; }
+    kama (aina == NODI_JUU) { zalisha_ruka_kama_chini_sawa_n_lebo(lebo_id); rudisha; }
+    kama (aina == NODI_CHINI_SAWA) { zalisha_ruka_kama_juu_n_lebo(lebo_id); rudisha; }
     zalisha_ruka_kama_chini_n_lebo(lebo_id);  // AST_JUU_SAWA
 }
 
@@ -3294,12 +3294,12 @@ w0 zalisha_upande_au_kweli(n32 leg, n32 lebo_kweli, n32 nodi_ya_kazi) {
 }
 
 w0 uzalishaji_kama(n32 nodi, n32 nodi_ya_kazi) {
-    n32 sharti = mti_kushoto[nodi];
-    n32 maudhui_ya_basi = mti_kulia[nodi];
+    n32 sharti = nodi_ya_kushoto[nodi];
+    n32 maudhui_ya_basi = nodi_ya_kulia[nodi];
     n32 maudhui_ya_sivyo = -1;
-    n32 sivyo_nodi = mti_tiga[nodi];
+    n32 sivyo_nodi = tatu_ya_nodi[nodi];
     kama (sivyo_nodi != -1) {
-        maudhui_ya_sivyo = mti_kushoto[sivyo_nodi];
+        maudhui_ya_sivyo = nodi_ya_kushoto[sivyo_nodi];
     }
 
     n32 lebo_else = bafa_ya_lebo_mpya();
@@ -3308,21 +3308,21 @@ w0 uzalishaji_kama(n32 nodi, n32 nodi_ya_kazi) {
     kama (maudhui_ya_sivyo != -1) { lebo_sivyo_kweli = lebo_else; }
 
     n32 aina_ya_sharti = -1;
-    kama (sharti != -1) { aina_ya_sharti = mti_aina[sharti]; }
+    kama (sharti != -1) { aina_ya_sharti = aina_ya_nodi[sharti]; }
 
     kama (ni_ulinganisho_moja_kwa_moja(sharti)) {
         zalisha_ulinganisho(sharti, nodi_ya_kazi);
         zalisha_ruka_kama_kinyume_lebo(sharti, lebo_sivyo_kweli);
-    } sivyo { kama (aina_ya_sharti == MTI_NA) {
+    } sivyo { kama (aina_ya_sharti == NODI_NA) {
             // A && B (angalia maelezo kamili juu ya toa_leg_na_shindwa):
             // kila leg ikiruka kwenda lebo_sivyo_kweli ikiwa ni SIVYO --
             // B haitathminiwi kabisa ikiwa A tayari ni sivyo (mzunguko
             // mfupi). Zote mbili zikiwa kweli, tunaanguka moja kwa
             // moja kwenye mwili wa then (sawa kabisa na muundo wa
             // asili wa kama).
-            zalisha_upande_na_shindwa(mti_kushoto[sharti], lebo_sivyo_kweli, nodi_ya_kazi);
-            zalisha_upande_na_shindwa(mti_kulia[sharti], lebo_sivyo_kweli, nodi_ya_kazi);
-        } sivyo { kama (aina_ya_sharti == MTI_AU) {
+            zalisha_upande_na_shindwa(nodi_ya_kushoto[sharti], lebo_sivyo_kweli, nodi_ya_kazi);
+            zalisha_upande_na_shindwa(nodi_ya_kulia[sharti], lebo_sivyo_kweli, nodi_ya_kazi);
+        } sivyo { kama (aina_ya_sharti == NODI_AU) {
             // A || B (angalia maelezo kamili juu ya toa_leg_au_kweli):
             // A ikiwa kweli inaruka moja kwa moja kwenda
             // lebo_kweli_mapema (lebo MPYA, iliyowekwa mbele kabisa ya
@@ -3333,8 +3333,8 @@ w0 uzalishaji_kama(n32 nodi, n32 nodi_ya_kazi) {
             // moja kwa moja kwenye lebo_kweli_mapema (iko mstari
             // mmoja tu chini).
             n32 lebo_kweli_mapema = bafa_ya_lebo_mpya();
-            zalisha_upande_au_kweli(mti_kushoto[sharti], lebo_kweli_mapema, nodi_ya_kazi);
-            zalisha_upande_na_shindwa(mti_kulia[sharti], lebo_sivyo_kweli, nodi_ya_kazi);
+            zalisha_upande_au_kweli(nodi_ya_kushoto[sharti], lebo_kweli_mapema, nodi_ya_kazi);
+            zalisha_upande_na_shindwa(nodi_ya_kulia[sharti], lebo_sivyo_kweli, nodi_ya_kazi);
             weka_lebo(lebo_kweli_mapema);
         } sivyo {
             uzalishaji_usemi(sharti, nodi_ya_kazi);
@@ -3451,8 +3451,8 @@ n8* sambamba_jina_mpya() {
 // Rudisha 1 ikiwa nodi ni kitambulisho chenye jina sawa na `jina`.
 n32 sambamba_ni_kitambulisho_jina(n32 nodi, n8* jina) {
     kama (nodi == -1) { rudisha 0; }
-    kama (mti_aina[nodi] != 5) { rudisha 0; }  // AST_KITAMBULISHO
-    rudisha jina_linganisha(mti_ghala + mti_ofseti_ya_jina[nodi], jina);
+    kama (aina_ya_nodi[nodi] != 5) { rudisha 0; }  // AST_KITAMBULISHO
+    rudisha jina_linganisha(ghala_la_majina + umbali_wa_jina_la_nodi[nodi], jina);
 }
 
 // Toa msimbo wa kitanzi kilichovektishwa. Inaitwa TU baada ya
@@ -3547,26 +3547,26 @@ w0 sambamba_zalisha(n32 nodi, n32 bound_nodi, n32 ctr_nodi, n32 lv, n32 a_nodi,
 // hapo). Vinginevyo hurudisha 0 bila kutoa BAITI YOYOTE -- njia ya
 // kawaida ya scalar inaendelea bila kubadilika kabisa.
 n32 sambamba_jaribu_mzunguko(n32 nodi, n32 nodi_ya_kazi) {
-    kama (mti_tiga[nodi] != -1) { rudisha 0; }        // kianzio cha kwa
-    kama (mti_thamani[nodi] == -777777) { rudisha 0; }  // hatua ya kwa
-    kama (mti_thamani[nodi] == -777778) { rudisha 0; }  // fanya (do-while)
+    kama (tatu_ya_nodi[nodi] != -1) { rudisha 0; }        // kianzio cha kwa
+    kama (thamani_ya_nodi[nodi] == -777777) { rudisha 0; }  // hatua ya kwa
+    kama (thamani_ya_nodi[nodi] == -777778) { rudisha 0; }  // fanya (do-while)
 
-    n32 sharti = mti_kushoto[nodi];
-    n32 maudhui = mti_kulia[nodi];
+    n32 sharti = nodi_ya_kushoto[nodi];
+    n32 maudhui = nodi_ya_kulia[nodi];
     kama (sharti == -1 || maudhui == -1) { rudisha 0; }
-    kama (mti_aina[sharti] != 22) { rudisha 0; }  // AST_CHINI (<) pekee
+    kama (aina_ya_nodi[sharti] != 22) { rudisha 0; }  // AST_CHINI (<) pekee
 
-    n32 ctr_nodi = mti_kushoto[sharti];
-    n32 bound_nodi = mti_kulia[sharti];
+    n32 ctr_nodi = nodi_ya_kushoto[sharti];
+    n32 bound_nodi = nodi_ya_kulia[sharti];
     kama (ctr_nodi == -1 || bound_nodi == -1) { rudisha 0; }
-    kama (mti_aina[ctr_nodi] != 5) { rudisha 0; }  // i ni kitambulisho
-    n32 aina_bound = mti_aina[bound_nodi];
+    kama (aina_ya_nodi[ctr_nodi] != 5) { rudisha 0; }  // i ni kitambulisho
+    n32 aina_bound = aina_ya_nodi[bound_nodi];
     kama (aina_bound != 5 && aina_bound != 4) { rudisha 0; }  // kigezo au namba halisi
 
-    n32 usimbaji_wa_ulinganisho = mti_thamani[sharti];
+    n32 usimbaji_wa_ulinganisho = thamani_ya_nodi[sharti];
     kama (usimbaji_wa_ulinganisho != 288) { rudisha 0; }  // i (na hivyo aina ya ulinganishi) ni n32 hasa
 
-    n8* ctr_jina = mti_ghala + mti_ofseti_ya_jina[ctr_nodi];
+    n8* ctr_jina = ghala_la_majina + umbali_wa_jina_la_nodi[ctr_nodi];
 
     // MUHIMU: mwili wa kitanzi HAUFUNGWI kwenye AST_BLOCK -- kama
     // changanua_bloku (msambazaji.swa) inavyoonyesha, taarifa za {}
@@ -3575,54 +3575,54 @@ n32 sambamba_jaribu_mzunguko(n32 nodi, n32 nodi_ya_kazi) {
     // "taarifa mbili hasa" ni: stmt1 = body, stmt2 = ast_nne[stmt1],
     // na ast_nne[stmt2] == -1 (hakuna ya tatu).
     n32 taarifa1 = maudhui;
-    kama (mti_aina[taarifa1] == 50) { rudisha 0; }  // AST_BLOCK == mwili tupu
-    n32 taarifa2 = mti_nne[taarifa1];
+    kama (aina_ya_nodi[taarifa1] == 50) { rudisha 0; }  // AST_BLOCK == mwili tupu
+    n32 taarifa2 = nne_ya_nodi[taarifa1];
     kama (taarifa2 == -1) { rudisha 0; }
-    kama (mti_nne[taarifa2] != -1) { rudisha 0; }   // TAARIFA MBILI hasa, si zaidi
+    kama (nne_ya_nodi[taarifa2] != -1) { rudisha 0; }   // TAARIFA MBILI hasa, si zaidi
 
     // stmt2 lazima iwe "i = i + 1" hasa
-    kama (mti_aina[taarifa2] != 37) { rudisha 0; }  // AST_ASIMILIA
-    n32 s2l = mti_kushoto[taarifa2];
-    n32 s2r = mti_kulia[taarifa2];
+    kama (aina_ya_nodi[taarifa2] != 37) { rudisha 0; }  // AST_ASIMILIA
+    n32 s2l = nodi_ya_kushoto[taarifa2];
+    n32 s2r = nodi_ya_kulia[taarifa2];
     kama (sambamba_ni_kitambulisho_jina(s2l, ctr_jina) == 0) { rudisha 0; }
-    kama (s2r == -1 || mti_aina[s2r] != 6) { rudisha 0; }  // AST_JUMLISHA
-    n32 incl = mti_kushoto[s2r];
-    n32 ongezeko = mti_kulia[s2r];
+    kama (s2r == -1 || aina_ya_nodi[s2r] != 6) { rudisha 0; }  // AST_JUMLISHA
+    n32 incl = nodi_ya_kushoto[s2r];
+    n32 ongezeko = nodi_ya_kulia[s2r];
     kama (sambamba_ni_kitambulisho_jina(incl, ctr_jina) == 0) { rudisha 0; }
-    kama (ongezeko == -1 || mti_aina[ongezeko] != 4) { rudisha 0; }  // namba halisi
-    kama (mti_kulia[ongezeko] == 1) { rudisha 0; }  // namba ya n64 kwenye dimbwi -- kataa
-    kama (mti_thamani[ongezeko] != 1) { rudisha 0; }  // lazima iwe hasa 1
+    kama (ongezeko == -1 || aina_ya_nodi[ongezeko] != 4) { rudisha 0; }  // namba halisi
+    kama (nodi_ya_kulia[ongezeko] == 1) { rudisha 0; }  // namba ya n64 kwenye dimbwi -- kataa
+    kama (thamani_ya_nodi[ongezeko] != 1) { rudisha 0; }  // lazima iwe hasa 1
 
     // stmt1 lazima iwe "c[i] = a[i] OP b[i]"
-    kama (mti_aina[taarifa1] != 37) { rudisha 0; }  // AST_ASIMILIA
-    n32 lv = mti_kushoto[taarifa1];
-    n32 rv = mti_kulia[taarifa1];
+    kama (aina_ya_nodi[taarifa1] != 37) { rudisha 0; }  // AST_ASIMILIA
+    n32 lv = nodi_ya_kushoto[taarifa1];
+    n32 rv = nodi_ya_kulia[taarifa1];
     kama (lv == -1 || rv == -1) { rudisha 0; }
-    kama (mti_aina[lv] != 29) { rudisha 0; }  // AST_TAJA
-    n32 c_faharasa = mti_kulia[lv];
+    kama (aina_ya_nodi[lv] != 29) { rudisha 0; }  // AST_TAJA
+    n32 c_faharasa = nodi_ya_kulia[lv];
     kama (sambamba_ni_kitambulisho_jina(c_faharasa, ctr_jina) == 0) { rudisha 0; }
-    n32 c_base = mti_kushoto[lv];
-    kama (c_base == -1 || mti_aina[c_base] != 5) { rudisha 0; }
-    n32 lv_usimbaji = mti_thamani[lv];
+    n32 c_base = nodi_ya_kushoto[lv];
+    kama (c_base == -1 || aina_ya_nodi[c_base] != 5) { rudisha 0; }
+    n32 lv_usimbaji = thamani_ya_nodi[lv];
     kama (ni_desimali_usimbaji(lv_usimbaji) == 0) { rudisha 0; }
     kama (ukubwa_kutoka_usimbaji(lv_usimbaji) != 8) { rudisha 0; }  // d64 pekee, si D32
 
-    n32 aina_ya_kitendo = mti_aina[rv];
+    n32 aina_ya_kitendo = aina_ya_nodi[rv];
     kama (aina_ya_kitendo != 6 && aina_ya_kitendo != 7 && aina_ya_kitendo != 31) { rudisha 0; }  // +, -, *
-    n32 a_nodi = mti_kushoto[rv];
-    n32 b_nodi = mti_kulia[rv];
+    n32 a_nodi = nodi_ya_kushoto[rv];
+    n32 b_nodi = nodi_ya_kulia[rv];
     kama (a_nodi == -1 || b_nodi == -1) { rudisha 0; }
-    kama (mti_aina[a_nodi] != 29 || mti_aina[b_nodi] != 29) { rudisha 0; }  // AST_TAJA zote mbili
-    n32 a_faharasa = mti_kulia[a_nodi];
-    n32 b_faharasa = mti_kulia[b_nodi];
+    kama (aina_ya_nodi[a_nodi] != 29 || aina_ya_nodi[b_nodi] != 29) { rudisha 0; }  // AST_TAJA zote mbili
+    n32 a_faharasa = nodi_ya_kulia[a_nodi];
+    n32 b_faharasa = nodi_ya_kulia[b_nodi];
     kama (sambamba_ni_kitambulisho_jina(a_faharasa, ctr_jina) == 0) { rudisha 0; }
     kama (sambamba_ni_kitambulisho_jina(b_faharasa, ctr_jina) == 0) { rudisha 0; }
-    n32 a_base = mti_kushoto[a_nodi];
-    n32 b_base = mti_kushoto[b_nodi];
-    kama (a_base == -1 || mti_aina[a_base] != 5) { rudisha 0; }
-    kama (b_base == -1 || mti_aina[b_base] != 5) { rudisha 0; }
-    n32 a_usimbaji = mti_thamani[a_nodi];
-    n32 b_usimbaji = mti_thamani[b_nodi];
+    n32 a_base = nodi_ya_kushoto[a_nodi];
+    n32 b_base = nodi_ya_kushoto[b_nodi];
+    kama (a_base == -1 || aina_ya_nodi[a_base] != 5) { rudisha 0; }
+    kama (b_base == -1 || aina_ya_nodi[b_base] != 5) { rudisha 0; }
+    n32 a_usimbaji = thamani_ya_nodi[a_nodi];
+    n32 b_usimbaji = thamani_ya_nodi[b_nodi];
     kama (ni_desimali_usimbaji(a_usimbaji) == 0 || ukubwa_kutoka_usimbaji(a_usimbaji) != 8) { rudisha 0; }
     kama (ni_desimali_usimbaji(b_usimbaji) == 0 || ukubwa_kutoka_usimbaji(b_usimbaji) != 8) { rudisha 0; }
 
@@ -3638,27 +3638,27 @@ n32 sambamba_jaribu_mzunguko(n32 nodi, n32 nodi_ya_kazi) {
 
 // Uzalishaji wa wakati (while) -- AST_WAKATI (10)
 w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
-    n32 sharti = mti_kushoto[nodi];
-    n32 maudhui = mti_kulia[nodi];
-    n32 kianzio = mti_tiga[nodi];  // kwa (for) loop init, ikiwa ipo
+    n32 sharti = nodi_ya_kushoto[nodi];
+    n32 maudhui = nodi_ya_kulia[nodi];
+    n32 kianzio = tatu_ya_nodi[nodi];  // kwa (for) loop init, ikiwa ipo
 
     kama (sambamba_jaribu_mzunguko(nodi, nodi_ya_kazi)) { rudisha; }
 
     // Toa msimbo wa anzisha (kwa ajili ya kwa loop)
     // Init inatekelezwa mara moja kabla ya kitanzi
     kama (kianzio != -1) {
-        n32 aina_ya_kianzio = mti_aina[kianzio];
+        n32 aina_ya_kianzio = aina_ya_nodi[kianzio];
         kama (aina_ya_kianzio == 11) {  // AST_TANGAZO
-            n32 nodi_ya_kigeu = mti_kushoto[kianzio];
-            n32 thamani_ya_kianzio = mti_kulia[kianzio];
-            n8* jina_la_kigeu = mti_ghala + mti_ofseti_ya_jina[nodi_ya_kigeu];
-            n32 saizi = ukubwa_kutoka_usimbaji(mti_thamani[nodi_ya_kigeu]);
-            kama (mti_tiga[kianzio] > 0) { saizi = saizi * mti_tiga[kianzio]; }
-            n32 thamani_ya_usimbaji_wa_kigeu = mti_thamani[nodi_ya_kigeu];
+            n32 nodi_ya_kigeu = nodi_ya_kushoto[kianzio];
+            n32 thamani_ya_kianzio = nodi_ya_kulia[kianzio];
+            n8* jina_la_kigeu = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kigeu];
+            n32 saizi = ukubwa_kutoka_usimbaji(thamani_ya_nodi[nodi_ya_kigeu]);
+            kama (tatu_ya_nodi[kianzio] > 0) { saizi = saizi * tatu_ya_nodi[kianzio]; }
+            n32 thamani_ya_usimbaji_wa_kigeu = thamani_ya_nodi[nodi_ya_kigeu];
             n32 vidx = pata_au_unda_kigeu_ukubwa(jina_la_kigeu, saizi, thamani_ya_usimbaji_wa_kigeu);
             kama (vidx >= 0) {
                 n32 ofseti = kigeu_r5_ofseti[vidx];
-                kama (mti_tiga[kianzio] > 0) {
+                kama (tatu_ya_nodi[kianzio] > 0) {
                     // Safu ya ndani ndani ya kitanzi-cha-kwa
                     kigeu_ni_safu[vidx] = 1;
                 } sivyo { kama (thamani_ya_kianzio != -1) {
@@ -3720,8 +3720,8 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
         // awali hadi sharti (kuweka-lebo kwa mwili ni kuingilia).
         // endelea ndani ya fanya inaruka hadi SHARTI (semantiki ya
         // C ya do-while) -- lebo_cond hapa chini.
-        n32 ina_hatua = (mti_thamani[nodi] == -777777);
-        ni_fanya = (mti_thamani[nodi] == -777778);
+        n32 ina_hatua = (thamani_ya_nodi[nodi] == -777777);
+        ni_fanya = (thamani_ya_nodi[nodi] == -777778);
         mzunguko_lebo_hatua[mzunguko_undani] = bafa_ya_lebo_mpya();
         kama (ina_hatua) {
             mzunguko_lebo_endelea[mzunguko_undani] = mzunguko_lebo_hatua[mzunguko_undani];
@@ -3751,7 +3751,7 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
         andika_pima_r0d_r0d();
         zalisha_ruka_kama_si_sawa_lebo(lebo_ya_maudhui);
     } sivyo {
-        n32 sharti_aina2 = mti_aina[sharti];
+        n32 sharti_aina2 = aina_ya_nodi[sharti];
         kama (ni_ulinganisho_moja_kwa_moja(sharti)) {
             // Sharti la wakati/kwa/fanya LENYEWE ni ulinganishi moja
             // kwa moja -- ruka moja kwa moja kwa cmp/comisd+jcc badala
@@ -3759,7 +3759,7 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
             // ya ni_ulinganisho_moja_kwa_moja, kabla ya uzalishaji_kama).
             zalisha_ulinganisho(sharti, nodi_ya_kazi);
             zalisha_ruka_kama_moja_kwa_moja_lebo(sharti, lebo_ya_maudhui);
-        } sivyo { kama (sharti_aina2 == MTI_NA) {
+        } sivyo { kama (sharti_aina2 == NODI_NA) {
                 // A && B (angalia maelezo juu ya toa_leg_na_shindwa/
                 // toa_leg_au_kweli, kabla ya uzalishaji_kama): A ikiwa
                 // sivyo, jumla ni sivyo mara moja -- ruka moja kwa
@@ -3769,15 +3769,15 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
                 // lebo_body; ikiwa B ni sivyo, anguka moja kwa moja
                 // kwenye lebo_exit (weka_lebo yake iko mara moja chini
                 // ya kizuizi hiki).
-                zalisha_upande_na_shindwa(mti_kushoto[sharti], lebo_toka, nodi_ya_kazi);
-                zalisha_upande_au_kweli(mti_kulia[sharti], lebo_ya_maudhui, nodi_ya_kazi);
-            } sivyo { kama (sharti_aina2 == MTI_AU) {
+                zalisha_upande_na_shindwa(nodi_ya_kushoto[sharti], lebo_toka, nodi_ya_kazi);
+                zalisha_upande_au_kweli(nodi_ya_kulia[sharti], lebo_ya_maudhui, nodi_ya_kazi);
+            } sivyo { kama (sharti_aina2 == NODI_AU) {
                 // A || B: leg YOYOTE ikiwa kweli inaruka moja kwa moja
                 // kwenda lebo_body (mzunguko mfupi -- B haitathminiwi
                 // ikiwa A tayari ni kweli). Zote mbili zikiwa sivyo,
                 // tunaanguka moja kwa moja kwenye lebo_exit.
-                zalisha_upande_au_kweli(mti_kushoto[sharti], lebo_ya_maudhui, nodi_ya_kazi);
-                zalisha_upande_au_kweli(mti_kulia[sharti], lebo_ya_maudhui, nodi_ya_kazi);
+                zalisha_upande_au_kweli(nodi_ya_kushoto[sharti], lebo_ya_maudhui, nodi_ya_kazi);
+                zalisha_upande_au_kweli(nodi_ya_kulia[sharti], lebo_ya_maudhui, nodi_ya_kazi);
             } sivyo {
                 uzalishaji_usemi(sharti, nodi_ya_kazi);
                 andika_pima_r0d_r0d();
@@ -3802,26 +3802,26 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
 w0 uzalishaji_lebo_ya_hali(n32 nodi_ya_lebo, n32 nodi_ya_kazi) {
     n32 ni_hasi = 0;
     n32 halisi = nodi_ya_lebo;
-    kama (mti_aina[nodi_ya_lebo] == 7) {  // toa-unari: -N
-        kama (mti_kushoto[nodi_ya_lebo] == -1) {
+    kama (aina_ya_nodi[nodi_ya_lebo] == 7) {  // toa-unari: -N
+        kama (nodi_ya_kushoto[nodi_ya_lebo] == -1) {
             ni_hasi = 1;
-            halisi = mti_kulia[nodi_ya_lebo];
+            halisi = nodi_ya_kulia[nodi_ya_lebo];
         }
     }
-    kama (mti_aina[halisi] == 4) {
-        kama (mti_kulia[halisi] == 1) {
+    kama (aina_ya_nodi[halisi] == 4) {
+        kama (nodi_ya_kulia[halisi] == 1) {
             // n64 halisi: baiti 8 kwenye dimbwi -- mov rax, imm64
-            n32 ofseti = mti_thamani[halisi];
+            n32 ofseti = thamani_ya_nodi[halisi];
             andika_baiti(72);  // 0x48 -- REX.W
             andika_baiti(184);  // 0xB8 -- mov rax, imm64
             n32 bi = 0;
             wakati (bi < 8) {
-                andika_baiti(mti_ghala[ofseti + bi]);
+                andika_baiti(ghala_la_majina[ofseti + bi]);
                 bi = bi + 1;
             }
             kama (ni_hasi) { andika_hasi_r0(); }
         } sivyo {
-            andika_weka_r0d(mti_thamani[halisi]);
+            andika_weka_r0d(thamani_ya_nodi[halisi]);
             kama (ni_hasi) { andika_hasi_r0d(); }
         }
         rudisha;
@@ -3831,9 +3831,9 @@ w0 uzalishaji_lebo_ya_hali(n32 nodi_ya_lebo, n32 nodi_ya_kazi) {
 }
 
 w0 uzalishaji_chagua(n32 nodi, n32 nodi_ya_kazi) {
-    n32 imepimwa_nodi = mti_kushoto[nodi];
-    n32 hali_ya_orodha = mti_kulia[nodi];
-    n32 maudhui_ya_chaguo_msingi = mti_tiga[nodi];  // mwili wa sivyo (chaguo-msingi)
+    n32 imepimwa_nodi = nodi_ya_kushoto[nodi];
+    n32 hali_ya_orodha = nodi_ya_kulia[nodi];
+    n32 maudhui_ya_chaguo_msingi = tatu_ya_nodi[nodi];  // mwili wa sivyo (chaguo-msingi)
 
     // Tathmini thamani ya skrutini
     uzalishaji_usemi(imepimwa_nodi, nodi_ya_kazi);
@@ -3856,8 +3856,8 @@ w0 uzalishaji_chagua(n32 nodi, n32 nodi_ya_kazi) {
     // Tembea kila hali
     n32 ukaguzi = hali_ya_orodha;
     wakati (ukaguzi != -1) {
-        n32 nodi_ya_lebo = mti_kushoto[ukaguzi];
-        n32 maudhui_ya_hali = mti_kulia[ukaguzi];
+        n32 nodi_ya_lebo = nodi_ya_kushoto[ukaguzi];
+        n32 maudhui_ya_hali = nodi_ya_kulia[ukaguzi];
 
         // Tathmini thamani ya lebo kwenye rax (halisi au toa-unari)
         uzalishaji_lebo_ya_hali(nodi_ya_lebo, nodi_ya_kazi);
@@ -3885,7 +3885,7 @@ w0 uzalishaji_chagua(n32 nodi, n32 nodi_ya_kazi) {
 
         weka_lebo(lebo_kesi);  // lebo ya kulinganisha inayofuata
 
-        ukaguzi = mti_nne[ukaguzi];
+        ukaguzi = nne_ya_nodi[ukaguzi];
     }
 
     // Chaguo-msingi: mwili wa sivyo (kama upo). Hapa hufikiwa tu
@@ -4006,7 +4006,7 @@ w0 kernel_vga_andika_herufi_rt() {
 // inahitaji mfuatano halisi pekee, haiwezi kuandika herufi
 // iliyokokotolewa wakati wa kukimbia).
 w0 uzalishaji_vga_herufi(n32 nodi, n32 nodi_ya_kazi) {
-    n32 a0 = mti_kulia[nodi];
+    n32 a0 = nodi_ya_kulia[nodi];
     kama (a0 == -1) {
         andika_stderr("KOSA: --kernel -- vga_herufi() inahitaji hoja moja (usemi)\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
@@ -4067,12 +4067,12 @@ w0 kernel_vga_andika_mstari_mpya() {
 // halisi) -- nyingine yoyote inatolewa kama herufi iliyofuata
 // backslash moja kwa moja (backslash yenyewe inaruka).
 w0 uzalishaji_vga_andika(n32 nodi, n32 nodi_ya_kazi) {
-    n32 a0 = mti_kulia[nodi];
-    kama (a0 == -1 || mti_aina[a0] != 5) {
+    n32 a0 = nodi_ya_kulia[nodi];
+    kama (a0 == -1 || aina_ya_nodi[a0] != 5) {
         andika_stderr("KOSA: --kernel -- vga_andika() inahitaji hoja moja ya mfuatano halisi (si kigezo)\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
-    n8* umbo = mti_ghala + mti_ofseti_ya_jina[a0];
+    n8* umbo = ghala_la_majina + umbali_wa_jina_la_nodi[a0];
     kama (umbo[0] != 34) {
         andika_stderr("KOSA: --kernel -- vga_andika() inahitaji mfuatano halisi (kuanzia na nukuu)\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
@@ -4107,25 +4107,25 @@ w0 uzalishaji_vga_andika(n32 nodi, n32 nodi_ya_kazi) {
 w0 kernel_kagua_wigo(n32 nodi_ya_programu) {
     n32 kwanza_kazi_jina_sawa = 0;
     n32 kwanza_kazi_imeonekana = 0;
-    n32 nodi = mti_kushoto[nodi_ya_programu];
+    n32 nodi = nodi_ya_kushoto[nodi_ya_programu];
     wakati (nodi != -1) {
-        kama (mti_aina[nodi] == MTI_KAZI) {
-            kama (mti_tiga[nodi] != -1) {  // ina mwili (si tamko la mbele)
+        kama (aina_ya_nodi[nodi] == NODI_KAZI) {
+            kama (tatu_ya_nodi[nodi] != -1) {  // ina mwili (si tamko la mbele)
                 kama (kwanza_kazi_imeonekana == 0) {
                     kwanza_kazi_imeonekana = 1;
-                    n8* jkwanza = mti_ghala + mti_ofseti_ya_jina[mti_kushoto[nodi]];
+                    n8* jkwanza = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[nodi]];
                     kama (jina_linganisha(jkwanza, "kernel_main")) { kwanza_kazi_jina_sawa = 1; }
                 }
                 kernel_kagua_maudhui_ya_kazi(nodi);
             }
-        } sivyo { kama (mti_aina[nodi] == MTI_MUUNDO) {
+        } sivyo { kama (aina_ya_nodi[nodi] == NODI_MUUNDO) {
                 andika_stderr("KOSA: --kernel -- miundo (muundo) yako nje ya wigo (hakuna kumbukumbu inayosimamiwa bado)\n");
                 wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
-            } sivyo { kama (mti_aina[nodi] == MTI_TANGAZO_ULIMWENGU) {
+            } sivyo { kama (aina_ya_nodi[nodi] == NODI_TANGAZO_ULIMWENGU) {
                     andika_stderr("KOSA: --kernel -- vigezo vya ulimwengu (global) viko nje ya wigo\n");
                     wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
                 } } }
-        nodi = mti_nne[nodi];
+        nodi = nne_ya_nodi[nodi];
     }
     kama (kwanza_kazi_imeonekana == 0) {
         andika_stderr("KOSA: --kernel -- hakuna kazi 'kernel_main'\n");
@@ -4141,56 +4141,56 @@ w0 kernel_kagua_wigo(n32 nodi_ya_programu) {
 // popote zinapoonekana (miundo/globals tayari zimekaguliwa ngazi ya
 // juu na kernel_kagua_wigo).
 w0 kernel_kagua_maudhui_ya_kazi(n32 nodi_ya_kazi) {
-    n32 usimbaji_wa_matokeo = mti_thamani[nodi_ya_kazi];
+    n32 usimbaji_wa_matokeo = thamani_ya_nodi[nodi_ya_kazi];
     kama (ni_desimali_usimbaji(usimbaji_wa_matokeo)) {
         andika_stderr("KOSA: --kernel -- d32/d64 ziko nje ya wigo (aina ya kurudi)\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
-    n32 pn = mti_kulia[nodi_ya_kazi];
+    n32 pn = nodi_ya_kulia[nodi_ya_kazi];
     wakati (pn != -1) {
-        kama (ni_desimali_usimbaji(mti_thamani[pn])) {
+        kama (ni_desimali_usimbaji(thamani_ya_nodi[pn])) {
             andika_stderr("KOSA: --kernel -- d32/d64 ziko nje ya wigo (aina ya hoja)\n");
             wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
         }
-        pn = mti_nne[pn];
+        pn = nne_ya_nodi[pn];
     }
-    kernel_kagua_taarifa(mti_tiga[nodi_ya_kazi]);
+    kernel_kagua_taarifa(tatu_ya_nodi[nodi_ya_kazi]);
 }
 
 w0 kernel_kagua_taarifa(n32 nodi) {
     kama (nodi == -1) { rudisha; }
-    n32 aina = mti_aina[nodi];
-    kama (aina == MTI_CHAGUA) {
+    n32 aina = aina_ya_nodi[nodi];
+    kama (aina == NODI_CHAGUA) {
         andika_stderr("KOSA: --kernel -- 'chagua' iko nje ya wigo\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
-    kama (aina == MTI_TANGAZO && ni_desimali_usimbaji(mti_thamani[mti_kushoto[nodi]])) {
+    kama (aina == NODI_TANGAZO && ni_desimali_usimbaji(thamani_ya_nodi[nodi_ya_kushoto[nodi]])) {
         andika_stderr("KOSA: --kernel -- d32/d64 ziko nje ya wigo (tangazo la ndani)\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
-    kama (aina == MTI_KAMA) {
+    kama (aina == NODI_KAMA) {
         // Muundo (uzalishaji_kama, karibu na mstari 3196): cond=
         // ast_kushoto, then_body=ast_kulia, "sivyo" wrapper node
         // (ikiwa ipo) = ast_tiga, else_body = ast_kushoto[sivyo_node].
-        kernel_kagua_taarifa(mti_kulia[nodi]);
-        n32 sivyo_nodi = mti_tiga[nodi];
+        kernel_kagua_taarifa(nodi_ya_kulia[nodi]);
+        n32 sivyo_nodi = tatu_ya_nodi[nodi];
         kama (sivyo_nodi != -1) {
-            kernel_kagua_taarifa(mti_kushoto[sivyo_nodi]);
+            kernel_kagua_taarifa(nodi_ya_kushoto[sivyo_nodi]);
         }
     }
-    kama (aina == MTI_WAKATI) {
+    kama (aina == NODI_WAKATI) {
         // Muundo (uzalishaji_wakati, karibu na mstari 3540): cond=
         // ast_kushoto, body=ast_kulia, init (kwa "kwa"-loop)=ast_tiga.
-        n32 kianzio = mti_tiga[nodi];
+        n32 kianzio = tatu_ya_nodi[nodi];
         kama (kianzio != -1) { kernel_kagua_taarifa(kianzio); }
-        kernel_kagua_taarifa(mti_kulia[nodi]);
+        kernel_kagua_taarifa(nodi_ya_kulia[nodi]);
     }
-    kama (aina == MTI_UBETI) {
+    kama (aina == NODI_UBETI) {
         // Kioo cha wasm_taarifa (uzalishaji_wasm.swa): mwili wa block
         // (hatua ya "kwa") uko ast_kushoto.
-        kernel_kagua_taarifa(mti_kushoto[nodi]);
+        kernel_kagua_taarifa(nodi_ya_kushoto[nodi]);
     }
-    kernel_kagua_taarifa(mti_nne[nodi]);  // ndugu inayofuata
+    kernel_kagua_taarifa(nne_ya_nodi[nodi]);  // ndugu inayofuata
 }
 
 // Kazi TOFAUTI (si sehemu ya uzalishaji_kuu moja kwa moja) kwa
@@ -4348,8 +4348,8 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     ni_mfumo_wito = 0;
     ni_tekeleza_wito = 0;
     ni_andika_nje = 0;
-    n32 callee_nodi = mti_kushoto[nodi];
-    n8* callee = mti_ghala + mti_ofseti_ya_jina[callee_nodi];
+    n32 callee_nodi = nodi_ya_kushoto[nodi];
+    n8* callee = ghala_la_majina + umbali_wa_jina_la_nodi[callee_nodi];
 
     // --kernel (hali_exe_sasa==2, Kawira): I/O ya Linux (syscalls,
     // andika, tekeleza) HAIPO -- hakuna kernel ya chini kuipokea.
@@ -4380,9 +4380,9 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     // Wito maalum wa ukubwa(aina) -- kokotoa ukubwa wakati wa kukusanya
     // (sizeof). Hoja ni jina la aina; hatutoi wito wa kweli.
     kama (jina_linganisha(callee, "ukubwa")) {
-        n32 a0 = mti_kulia[nodi];
-        kama (a0 != -1 && mti_aina[a0] == 5) {  // KITAMBULISHO -- jina la aina au kigeu
-            andika_weka_r0d(ukubwa_wa_jina(mti_ghala + mti_ofseti_ya_jina[a0]));
+        n32 a0 = nodi_ya_kulia[nodi];
+        kama (a0 != -1 && aina_ya_nodi[a0] == 5) {  // KITAMBULISHO -- jina la aina au kigeu
+            andika_weka_r0d(ukubwa_wa_jina(ghala_la_majina + umbali_wa_jina_la_nodi[a0]));
             rudisha;
         }
     }
@@ -4398,13 +4398,13 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     // namba mbili zilizowekwa kwa mkono zisizoendana; kipengele hiki
     // kipya lazima kisianzishe aina mpya ya uharibifu wa kimya.
     kama (jina_linganisha(callee, "urefu")) {
-        n32 a0 = mti_kulia[nodi];
-        kama (a0 != -1 && mti_aina[a0] == 5) {  // KITAMBULISHO
-            n8* jina_a = mti_ghala + mti_ofseti_ya_jina[a0];
+        n32 a0 = nodi_ya_kulia[nodi];
+        kama (a0 != -1 && aina_ya_nodi[a0] == 5) {  // KITAMBULISHO
+            n8* jina_a = ghala_la_majina + umbali_wa_jina_la_nodi[a0];
             n32 gi = 0;
             n32 imepatikana = 0;
             wakati (gi < idadi_ya_data_ya_ulimwengu) {
-                n8* gjina = mti_ghala + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
+                n8* gjina = ghala_la_majina + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
                 kama (jina_linganisha(gjina, jina_a) && data_ulimwengu_ni_safu[gi] == 1) {
                     andika_weka_r0d(data_ulimwengu_idadi_ya_kipengele[gi]);
                     imepatikana = 1;
@@ -4441,12 +4441,12 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     // Codegen inachanganua muundo na kutoa wito wa kazi za ndani za
     // kuchapisha (andika_sehemu, andika_n64, andika_mfuatano, andika_baiti).
     kama (jina_linganisha(callee, "andika") || jina_linganisha(callee, "andika_stderr")) {
-        n32 a0 = mti_kulia[nodi];
+        n32 a0 = nodi_ya_kulia[nodi];
         // Kama kazi za kuchapisha za ndani hazipo (program ya mtumiaji
         // bila maktaba), angukia kwenye wito wa nje wa C (andika ya muda).
         kama (kazi_nafasi_kwa_jina("andika_sehemu") < 0) { ni_andika_nje = 1; }
-        kama (a0 != -1 && mti_aina[a0] == 5 && ni_andika_nje == 0) {
-            n8* umbo = mti_ghala + mti_ofseti_ya_jina[a0];
+        kama (a0 != -1 && aina_ya_nodi[a0] == 5 && ni_andika_nje == 0) {
+            n8* umbo = ghala_la_majina + umbali_wa_jina_la_nodi[a0];
             // Njia ya kukusanya-wakati inatumika kwa halisi ya kamba
             // PEKEE (mwanzo wake ni nukuu ya mwanzo). Kigeu kama umbo
             // (mf. andika(bafa)) kinapaswa kuingia kwenye wito wa
@@ -4458,7 +4458,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
                 n32 fd = 1;
                 kama (jina_linganisha(callee, "andika_stderr")) { fd = 2; }
                 n32 urefu_m = urefu_wa_jina(umbo);
-                n32 h = mti_tiga[a0];
+                n32 h = tatu_ya_nodi[a0];
                 n32 p = 1;  // baada ya nukuu ya mwanzo
                 n32 mwanzo_wa_sehemu = 1;
                 wakati (p < urefu_m) {
@@ -4516,7 +4516,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
                                             uzalishaji_usemi(h, nodi_ya_kazi);
                                             andika_wito_baiti(fd);
                                         } } }
-                                h = mti_tiga[h];
+                                h = tatu_ya_nodi[h];
                             } }
                         p = p + 2;
                         mwanzo_wa_sehemu = p;
@@ -4546,7 +4546,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
                 kama (callee_matokeo_usimbaji < 0) {
                     n32 name_ofseti = ((-callee_matokeo_usimbaji) / 2) - 1;
                     kama ((callee_matokeo_usimbaji / 2) * 2 != callee_matokeo_usimbaji) { name_ofseti = name_ofseti + 1; }
-                    ukubwa_wa_matokeo_ya_muundo = ukubwa_wa_muundo_kwa_jina(mti_ghala + name_ofseti);
+                    ukubwa_wa_matokeo_ya_muundo = ukubwa_wa_muundo_kwa_jina(ghala_la_majina + name_ofseti);
                 }
                 kama (ukubwa_wa_matokeo_ya_muundo == 0) { ukubwa_wa_matokeo_ya_muundo = 8; }
                 // Panga kwa 16
@@ -4563,7 +4563,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     kama (ni_ndani == 0) {
         n32 kg_k = kigeni_kazi_kwa_jina(callee);
         kama (kg_k >= 0) {
-            n32 kg_matokeo = mti_thamani[kigeni_nodi_ya_kazi[kg_k]];
+            n32 kg_matokeo = thamani_ya_nodi[kigeni_nodi_ya_kazi[kg_k]];
             kama (ni_muundo_usimbaji(kg_matokeo)) {
                 mwitwa_anarudisha_muundo = 1;
                 ukubwa_wa_matokeo_ya_muundo = ukubwa_kutoka_usimbaji(kg_matokeo);
@@ -4594,7 +4594,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     kama (ni_kielekezi == 0) {
         n32 gi = 0;
         wakati (gi < idadi_ya_data_ya_ulimwengu) {
-            n8* gjina = mti_ghala + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
+            n8* gjina = ghala_la_majina + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
             kama (jina_linganisha(gjina, callee)) {
                 ni_kielekezi = 1;
                 vunja;
@@ -4606,13 +4606,13 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     // Kusanya hoja kwenye safu (tumia bafa ya ulimwengu)
     // Hoja zimefungwa kupitia ast_tiga katika mchanganuzi wa Swa
     idadi_ya_hoja = 0;
-    n32 a = mti_kulia[nodi];
+    n32 a = nodi_ya_kulia[nodi];
     wakati (a != -1) {
         kama (idadi_ya_hoja < 32) {
             nodi_ya_hoja[idadi_ya_hoja] = a;
-            usimbaji_wa_hoja[idadi_ya_hoja] = mti_thamani[a];
-            kama (mti_aina[a] == 45) { usimbaji_wa_hoja[idadi_ya_hoja] = mti_nne[a]; }  // HALISI_D: enc iko ast_nne
-            kama (mti_aina[a] == 4) { usimbaji_wa_hoja[idadi_ya_hoja] = mti_nne[a]; }  // AST_NAMBARI: enc iko ast_nne (thamani iko ast_thamani)
+            usimbaji_wa_hoja[idadi_ya_hoja] = thamani_ya_nodi[a];
+            kama (aina_ya_nodi[a] == 45) { usimbaji_wa_hoja[idadi_ya_hoja] = nne_ya_nodi[a]; }  // HALISI_D: enc iko ast_nne
+            kama (aina_ya_nodi[a] == 4) { usimbaji_wa_hoja[idadi_ya_hoja] = nne_ya_nodi[a]; }  // AST_NAMBARI: enc iko ast_nne (thamani iko ast_thamani)
             // lugha-swa/swa#295 -- AST_SAWA..AST_JUU_SAWA (20-25,
             // ulinganishi == != < > <= >=): ast_thamani ya nodi hizi
             // ni aina ya OPERANDI zilizolinganishwa (angalia
@@ -4631,7 +4631,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
             // zilizofuata (hoja ya mfuatano ikaishia kwenye rejesta
             // isiyo sahihi, ikisoma thamani ya zamani isiyohusiana --
             // "anwani za string literal zinazochanganyikiwa" ya #295).
-            kama (mti_aina[a] >= 20 && mti_aina[a] <= 25) { usimbaji_wa_hoja[idadi_ya_hoja] = USIMBAJI_ULINGANISHI; }
+            kama (aina_ya_nodi[a] >= 20 && aina_ya_nodi[a] <= 25) { usimbaji_wa_hoja[idadi_ya_hoja] = USIMBAJI_ULINGANISHI; }
             idadi_ya_hoja = idadi_ya_hoja + 1;
         } sivyo {
             // Ulinzi wa ziada: mkaguzi.swa tayari inakataa wito wenye
@@ -4641,7 +4641,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
             andika_stderr("KOSA: bafa ya hoja za wito (hoja_nodes/hoja_enc) imejaa (kikomo 32) -- hii haipaswi kutokea, mkaguzi anapaswa kuwa amekataa wito huu tayari\n");
             wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
         }
-        a = mti_tiga[a];  // hoja inayofuata kupitia ast_tiga
+        a = tatu_ya_nodi[a];  // hoja inayofuata kupitia ast_tiga
     }
 
     // Nakili meza ya hoja kwenye chelezo: wito wa ndani wakati wa tathmini
@@ -4691,7 +4691,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
                 // Muundo mkubwa: sukuma anwani sasa; nakili kwenye bafa
                 // ya muda inafanyika baada ya hoja zote (tathmini za
                 // wito wa ndani zisiharishe bafa)
-                kama (mti_aina[hoja_nodi_bk[msingi + i]] == 8) {
+                kama (aina_ya_nodi[hoja_nodi_bk[msingi + i]] == 8) {
                     // Wito unaorudisha muundo (sret): nakili MARA MOJA
                     // kwenye bafa ya sret-hoja -- bafa ya sret ya pamoja
                     // inaweza kuandikwa tena na wito unaofuata wa hoja
@@ -4743,7 +4743,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     wakati (j_w < hoja_n) {
         n32 ukubwa_w = hoja_muundo_bk[msingi + j_w];
         kama (ukubwa_w != 0) {
-            kama (mti_aina[hoja_nodi_bk[msingi + j_w]] == 8) {
+            kama (aina_ya_nodi[hoja_nodi_bk[msingi + j_w]] == 8) {
                 // Wito unaorudisha muundo (sret): nakala yake tayari
                 // imefanywa mara moja kwenye bafa ya sret-hoja (bafa
                 // ya sret ya pamoja inaweza kuandikwa tena na wito
@@ -5021,15 +5021,15 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
 // mahali pasipo lebo (kitanzi kisichoisha -- jibu la kimya la mwendo
 // wa muda usio na mwisho). Taarifa zisizofikiwa katikati hazijalishi.
 w0 kusanya_hatua_ya_kwa(n32 nodi, n32 nodi_ya_kazi) {
-    n32 nd = mti_nne[nodi];
+    n32 nd = nne_ya_nodi[nodi];
     wakati (nd != -1) {
-        kama (mti_aina[nd] == 50) {
-            kama (mti_kulia[nd] == -777777) {
+        kama (aina_ya_nodi[nd] == 50) {
+            kama (nodi_ya_kulia[nd] == -777777) {
                 uzalishaji_taarifa(nd, nodi_ya_kazi);
                 rudisha;
             }
         }
-        nd = mti_nne[nd];
+        nd = nne_ya_nodi[nd];
     }
 }
 
@@ -5039,20 +5039,20 @@ w0 kusanya_hatua_ya_kwa(n32 nodi, n32 nodi_ya_kazi) {
 w0 uzalishaji_taarifa(n32 nodi, n32 nodi_ya_kazi) {
     kama (nodi == -1) { rudisha; }
 
-    n32 aina = mti_aina[nodi];
+    n32 aina = aina_ya_nodi[nodi];
 
     // Taarifa zinazomaliza: rudisha, vunja, endelea
     // Hizi hazina ndugu mwishoni (msururu wa taarifa huisha hapa)
     kama (aina == 3) {  // AST_RUDISHA
-        n32 usemi = mti_kushoto[nodi];
+        n32 usemi = nodi_ya_kushoto[nodi];
         kama (kazi_inarudisha_muundo) {
             // Sret: rudisha muundo kupitia kielekezi kilichofichwa
             kama (usemi != -1) {
                 // 1. Pata anwani ya chanzo cha muundo
-                n32 aina_ya_usemi_huu = mti_aina[usemi];
+                n32 aina_ya_usemi_huu = aina_ya_nodi[usemi];
                 kama (aina_ya_usemi_huu == 5) {
                     // Kitambulisho -- tumia LEA kupata anwani ya kigeu
-                    n8* jina = mti_ghala + mti_ofseti_ya_jina[usemi];
+                    n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[usemi];
                     n32 i = 0; n32 kupatikana = 0;
                     wakati (i < idadi_ya_vigeu) {
                         kama (jina_linganisha(ghala_la_vigeu + ofseti_ya_jina_la_kigeu[i], jina)) {
@@ -5072,7 +5072,7 @@ w0 uzalishaji_taarifa(n32 nodi, n32 nodi_ya_kazi) {
                     kama (kupatikana == 0) {
                         n32 gi = 0;
                         wakati (gi < idadi_ya_data_ya_ulimwengu) {
-                            n8* gjina = mti_ghala + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
+                            n8* gjina = ghala_la_majina + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
                             kama (jina_linganisha(gjina, jina)) {
                                 andika_anwani_r0_kutoka_agizo(gi);
                                 kupatikana = 1; vunja;
@@ -5095,12 +5095,12 @@ w0 uzalishaji_taarifa(n32 nodi, n32 nodi_ya_kazi) {
                 andika_hamisha_r7_r0();  // mov rdi, rax  (lengwa)
 
                 // 3. Hesabu ukubwa wa muundo kutoka kwenye encoding
-                n32 usimbaji_wa_matokeo = mti_thamani[nodi_ya_kazi];
+                n32 usimbaji_wa_matokeo = thamani_ya_nodi[nodi_ya_kazi];
                 n32 ukubwa = 8;  // chaguo-msingi
                 kama (usimbaji_wa_matokeo < 0) {
                     // Jina la muundo liko kwenye dimbwi
                     n32 name_ofseti = ((-usimbaji_wa_matokeo) / 2) - 1;
-                    ukubwa = ukubwa_wa_muundo_kwa_jina(mti_ghala + name_ofseti);
+                    ukubwa = ukubwa_wa_muundo_kwa_jina(ghala_la_majina + name_ofseti);
                 }
                 andika_weka_r1d_namba32(ukubwa);
 
@@ -5116,7 +5116,7 @@ w0 uzalishaji_taarifa(n32 nodi, n32 nodi_ya_kazi) {
                 // Mpaka wa kamili/desimali kwenye kurudi: d64 inakatwa
                 // hadi sifuri kwa kazi ya n32; kamili inapandishwa hadi
                 // d64 kwa kazi ya d64 (C-semantiki).
-                badili_mpaka_wa_desimali(usemi, mti_thamani[nodi_ya_kazi]);
+                badili_mpaka_wa_desimali(usemi, thamani_ya_nodi[nodi_ya_kazi]);
             }
         }
         // Rudisha (pop) rejesta za kudumu KABLA ya leave -- kinyume
@@ -5159,11 +5159,11 @@ w0 uzalishaji_taarifa(n32 nodi, n32 nodi_ya_kazi) {
 
     // Taarifa zisizomaliza: zinaendelea na ndugu baada ya kushughulikiwa
     kama (aina == 11) {  // AST_TANGAZO
-        n32 nodi_ya_kigeu = mti_kushoto[nodi];
-        n32 nodi_ya_kianzio = mti_kulia[nodi];
-        n8* jina_la_kigeu = mti_ghala + mti_ofseti_ya_jina[nodi_ya_kigeu];
-        n32 thamani_ya_usimbaji_wa_kigeu = mti_thamani[nodi_ya_kigeu];
-        n32 idadi_ya_safu = mti_tiga[nodi];  // > 0 = tangazo la safu ya ndani
+        n32 nodi_ya_kigeu = nodi_ya_kushoto[nodi];
+        n32 nodi_ya_kianzio = nodi_ya_kulia[nodi];
+        n8* jina_la_kigeu = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kigeu];
+        n32 thamani_ya_usimbaji_wa_kigeu = thamani_ya_nodi[nodi_ya_kigeu];
+        n32 idadi_ya_safu = tatu_ya_nodi[nodi];  // > 0 = tangazo la safu ya ndani
         n32 saizi = ukubwa_kutoka_usimbaji(thamani_ya_usimbaji_wa_kigeu);
         kama (idadi_ya_safu > 0) { saizi = saizi * idadi_ya_safu; }
         n32 vidx = pata_au_unda_kigeu_ukubwa(jina_la_kigeu, saizi, thamani_ya_usimbaji_wa_kigeu);
@@ -5259,16 +5259,16 @@ w0 uzalishaji_taarifa(n32 nodi, n32 nodi_ya_kazi) {
                                 // Kama kifungio hiki ni hatua ya kitanzi cha kwa (alama -777777
                                 // kwenye ast_kulia), weka lebo ya hatua HAPA -- endelea inaruka
                                 // kwenye lebo hii (semantiki ya C).
-                                kama (mti_kulia[nodi] == -777777) {
+                                kama (nodi_ya_kulia[nodi] == -777777) {
                                     kama (mzunguko_undani > 0) {
                                         weka_lebo(mzunguko_lebo_hatua[mzunguko_undani - 1]);
                                     }
                                 }
-                                uzalishaji_taarifa(mti_kushoto[nodi], nodi_ya_kazi);
+                                uzalishaji_taarifa(nodi_ya_kushoto[nodi], nodi_ya_kazi);
                             } } } } } } }
 
     // Endelea na ndugu (kwa taarifa zisizomaliza)
-    uzalishaji_taarifa(mti_nne[nodi], nodi_ya_kazi);
+    uzalishaji_taarifa(nne_ya_nodi[nodi], nodi_ya_kazi);
 }
 
 // -------------------------------------------------------
@@ -5281,20 +5281,20 @@ w0 uzalishaji_taarifa(n32 nodi, n32 nodi_ya_kazi) {
 w0 uzalishaji_nambari(n32 nodi, n32 nodi_ya_kazi) {
     // Alama ya n64 iko ast_kulia (ast_tiga ni kiungo cha mnyororo
     // wa hoja kwenye wito -- haijulikani wakati wa uzalishaji).
-    kama (mti_kulia[nodi] == 1) {
+    kama (nodi_ya_kulia[nodi] == 1) {
         // n64 halisi: baiti 8 zimehifadhiwa kwenye dimbwi la AST
         // (ast_thamani = ofseti). Toa mov rax, imm64 (48 B8 + baiti 8).
-        n32 ofseti = mti_thamani[nodi];
+        n32 ofseti = thamani_ya_nodi[nodi];
         andika_baiti(72);   // 0x48 -- REX.W
         andika_baiti(184);  // 0xB8 -- mov rax, imm64
         n32 bi = 0;
         wakati (bi < 8) {
-            andika_baiti(mti_ghala[ofseti + bi]);
+            andika_baiti(ghala_la_majina[ofseti + bi]);
             bi = bi + 1;
         }
         rudisha;
     }
-    n32 thamani = mti_thamani[nodi];
+    n32 thamani = thamani_ya_nodi[nodi];
     andika_weka_r0d(thamani);
 }
 
@@ -5315,7 +5315,7 @@ w0 andika_soma_n_r0_r5_ofseti(n32 ofseti) {
 // ili uzalishaji_usemi isirudie cdqe), 0 kama sivyo.
 n32 jr_panua_ruka = 0;
 n32 jr_pakia_panua_n(n32 nodi, n32 usimbaji_wa_kigeu, n32 reg_id, n32 ofseti) {
-    n32 en = mti_thamani[nodi];
+    n32 en = thamani_ya_nodi[nodi];
     kama (en <= 0 || ni_desimali_usimbaji(en) || ni_bila_ishara_usimbaji(en)) { rudisha 0; }
     kama (ukubwa_kutoka_usimbaji(en) != 4) { rudisha 0; }
     kama (usimbaji_wa_kigeu <= 0 || ni_desimali_usimbaji(usimbaji_wa_kigeu) || ni_bila_ishara_usimbaji(usimbaji_wa_kigeu)) { rudisha 0; }
@@ -5336,7 +5336,7 @@ n32 jr_pakia_panua_n(n32 nodi, n32 usimbaji_wa_kigeu, n32 reg_id, n32 ofseti) {
 
 // AST_KITAMBULISHO (5) -- kitambulisho (kigeu au herufi halisi)
 w0 uzalishaji_kitambulisho(n32 nodi, n32 nodi_ya_kazi) {
-    n8* jina = mti_ghala + mti_ofseti_ya_jina[nodi];
+    n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi];
 
     // Angalia kama hii ni herufi halisi (inaanza na ")
     kama (jina[0] == 34) {
@@ -5387,7 +5387,7 @@ w0 uzalishaji_kitambulisho(n32 nodi, n32 nodi_ya_kazi) {
     // Tafuta kigezo cha ulimwengu
     n32 gi = 0;
     wakati (gi < idadi_ya_data_ya_ulimwengu) {
-        n8* gjina = mti_ghala + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
+        n8* gjina = ghala_la_majina + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
         kama (jina_linganisha(gjina, jina)) {
             n32 usimbaji = usimbaji_wa_data_ya_ulimwengu[gi];
             kama (data_ulimwengu_ni_safu[gi] == 1) {
@@ -5476,7 +5476,7 @@ w0 andika_ongea_kielekezi_kipengele(n32 usimbaji_wa_kielekezi, n32 usimbaji_wa_n
 // sawa (ENC_ULINGANISHI) lakini thamani yake ni namba.
 n32 usemi_ni_kielekezi(n32 nodi) {
     kama (nodi == -1) { rudisha 0; }
-    n32 a = mti_aina[nodi];
+    n32 a = aina_ya_nodi[nodi];
     kama (a >= 20) { kama (a <= 25) { rudisha 0; } }
     kama (a == 4) { rudisha 0; }
     kama (a == 45) { rudisha 0; }
@@ -5590,19 +5590,19 @@ n32 su_ni_kushughulikiwa(n32 nodi) {
     // sasa zinahifadhiwa rasmi), NA inaepuka gharama ya kuhifadhi/
     // kurudisha kwa kila usemi mmoja mmoja (ambayo ingekuwa sawa kabisa
     // na gharama ya push/pop ya asili -- bila faida yoyote ya kweli).
-    n32 aina = mti_aina[nodi];
-    kama (aina != MTI_JUMLISHA && aina != MTI_TOFAUTI && aina != MTI_ZIDISHA) { rudisha 0; }
-    n32 usimbaji = mti_thamani[nodi];
+    n32 aina = aina_ya_nodi[nodi];
+    kama (aina != NODI_JUMLISHA && aina != NODI_TOFAUTI && aina != NODI_ZIDISHA) { rudisha 0; }
+    n32 usimbaji = thamani_ya_nodi[nodi];
     kama (ni_desimali_usimbaji(usimbaji)) { rudisha 0; }
-    kama (aina == MTI_TOFAUTI) {
-        kama (mti_kushoto[nodi] == -1) { rudisha 0; }  // toa ya kipekee (-x)
+    kama (aina == NODI_TOFAUTI) {
+        kama (nodi_ya_kushoto[nodi] == -1) { rudisha 0; }  // toa ya kipekee (-x)
     }
-    kama (aina == MTI_JUMLISHA || aina == MTI_TOFAUTI) {
+    kama (aina == NODI_JUMLISHA || aina == NODI_TOFAUTI) {
         kama ((usimbaji / 2) * 2 != usimbaji) { rudisha 0; }  // hesabu ya kielekezi
     }
-    kama (aina == MTI_ZIDISHA) {
-        kama (nguvu_kamili_ya_pili(mti_kulia[nodi]) != -1) { rudisha 0; }
-        kama (nguvu_kamili_ya_pili(mti_kushoto[nodi]) != -1) { rudisha 0; }
+    kama (aina == NODI_ZIDISHA) {
+        kama (nguvu_kamili_ya_pili(nodi_ya_kulia[nodi]) != -1) { rudisha 0; }
+        kama (nguvu_kamili_ya_pili(nodi_ya_kushoto[nodi]) != -1) { rudisha 0; }
     }
     rudisha 1;
 }
@@ -5652,8 +5652,8 @@ n32 su_ni_kushughulikiwa(n32 nodi) {
 // iliyoshikwa tayari.
 n32 su_haja_rejista(n32 nodi) {
     kama (su_ni_kushughulikiwa(nodi) == 0) { rudisha 0; }
-    n32 nr = su_haja_rejista(mti_kulia[nodi]);
-    n32 nl = su_haja_rejista(mti_kushoto[nodi]);
+    n32 nr = su_haja_rejista(nodi_ya_kulia[nodi]);
+    n32 nl = su_haja_rejista(nodi_ya_kushoto[nodi]);
     n32 nl_na_kushikwa = nl + 1;
     kama (nr >= nl_na_kushikwa) { rudisha nr; }
     rudisha nl_na_kushikwa;
@@ -5792,11 +5792,11 @@ w0 su_zalisha_ndani(n32 nodi, n32 nodi_ya_kazi) {
         uzalishaji_usemi(nodi, nodi_ya_kazi);
         rudisha;
     }
-    n32 aina = mti_aina[nodi];
-    n32 usimbaji = mti_thamani[nodi];
+    n32 aina = aina_ya_nodi[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     n32 saizi = ukubwa_kutoka_usimbaji(usimbaji);
-    n32 l = mti_kushoto[nodi];
-    n32 r = mti_kulia[nodi];
+    n32 l = nodi_ya_kushoto[nodi];
+    n32 r = nodi_ya_kulia[nodi];
 
     // KULIA KWANZA -- rejesta zote zinapatikana bado (hakuna
     // kinachoshikiliwa na mzazi huyu bado).
@@ -5822,10 +5822,10 @@ w0 su_zalisha_ndani(n32 nodi, n32 nodi_ya_kazi) {
     // ilikuwa ikitumia vuta_thamani_rcx kuleta thamani ya kulia
     // kutoka rafuni hadi rcx hapa hapa -- sisi tunaileta kutoka
     // rejesta ya kudumu badala yake).
-    kama (aina == MTI_JUMLISHA) {
+    kama (aina == NODI_JUMLISHA) {
         andika_hamisha_r1_rejista64(rasimu_halisi);
         kama (saizi >= 8) { andika_jumlisha_r0_r1(); } sivyo { andika_jumlisha_r0d_r1d(); }
-    } sivyo { kama (aina == MTI_ZIDISHA) {
+    } sivyo { kama (aina == NODI_ZIDISHA) {
             andika_hamisha_r1_rejista64(rasimu_halisi);
             kama (saizi >= 8) { andika_zidisha_n_r0_r1(); } sivyo { andika_zidisha_n_r0d_r1d(); }
         } sivyo {
@@ -5878,8 +5878,8 @@ n32 jr_kigeu_reg = -1;
 n32 jr_ofseti_ya_kigeu = 0;
 n32 jr_usimbaji_wa_kigeu = 0;
 n32 jr_tafuta_kigeu(n32 nodi, n32 nodi_ya_kazi) {
-    kama (mti_aina[nodi] != MTI_KITAMBULISHO) { rudisha 0; }
-    n8* jina = mti_ghala + mti_ofseti_ya_jina[nodi];
+    kama (aina_ya_nodi[nodi] != NODI_KITAMBULISHO) { rudisha 0; }
+    n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi];
     kama (jina[0] == 34) { rudisha 0; }   // herufi halisi ("...")
     n32 i = 0;
     wakati (i < idadi_ya_vigeu) {
@@ -5893,20 +5893,20 @@ n32 jr_tafuta_kigeu(n32 nodi, n32 nodi_ya_kazi) {
         i = i + 1;
     }
     kama (nodi_ya_kazi < 0) { rudisha 0; }
-    n32 kigezo = mti_kulia[nodi_ya_kazi];
+    n32 kigezo = nodi_ya_kulia[nodi_ya_kazi];
     n32 sasa_ofseti = 0;
     wakati (kigezo != -1) {
-        n32 usimbaji = mti_thamani[kigezo];
+        n32 usimbaji = thamani_ya_nodi[kigezo];
         n32 ukubwa_huu = ukubwa_kutoka_usimbaji(usimbaji);
         kama (ukubwa_huu == 0) { ukubwa_huu = 4; }
         sasa_ofseti = sasa_ofseti + ukubwa_huu;
-        kama (linganisha_mfuatano(mti_ghala + mti_ofseti_ya_jina[kigezo], jina) == 0) {
+        kama (linganisha_mfuatano(ghala_la_majina + umbali_wa_jina_la_nodi[kigezo], jina) == 0) {
             jr_kigeu_reg = -1;
             jr_ofseti_ya_kigeu = sasa_ofseti;
             jr_usimbaji_wa_kigeu = usimbaji;
             rudisha 1;
         }
-        kigezo = mti_kulia[kigezo];
+        kigezo = nodi_ya_kulia[kigezo];
     }
     rudisha 0;
 }
@@ -5918,13 +5918,13 @@ n32 jr_tafuta_kigeu(n32 nodi, n32 nodi_ya_kazi) {
 // isiyoorodheshwa inakataliwa (salama: tunapoteza uboreshaji tu).
 n32 jr_ni_salama(n32 nodi) {
     kama (nodi == -1) { rudisha 1; }
-    n32 a = mti_aina[nodi];
-    kama (a == MTI_NAMBARI || a == MTI_HALISI_D || a == MTI_KITAMBULISHO) { rudisha 1; }
-    kama (a == MTI_TAJA || a == MTI_JUMLISHA || a == MTI_TOFAUTI || a == MTI_ZIDISHA ||
-          a == MTI_GAWANYA || a == MTI_MODULO || a == MTI_BITI_AU || a == MTI_BITI_NA ||
-          a == MTI_AU_PEKEE || a == MTI_HAMISHA_KUSHOTO || a == MTI_HAMISHA_KULIA) {
-        kama (jr_ni_salama(mti_kushoto[nodi]) == 0) { rudisha 0; }
-        rudisha jr_ni_salama(mti_kulia[nodi]);
+    n32 a = aina_ya_nodi[nodi];
+    kama (a == NODI_NAMBARI || a == NODI_HALISI_D || a == NODI_KITAMBULISHO) { rudisha 1; }
+    kama (a == NODI_TAJA || a == NODI_JUMLISHA || a == NODI_TOFAUTI || a == NODI_ZIDISHA ||
+          a == NODI_GAWANYA || a == NODI_BAKI || a == NODI_BITI_AU || a == NODI_BITI_NA ||
+          a == NODI_AU_PEKEE || a == NODI_SOGEZA_KUSHOTO || a == NODI_SOGEZA_KULIA) {
+        kama (jr_ni_salama(nodi_ya_kushoto[nodi]) == 0) { rudisha 0; }
+        rudisha jr_ni_salama(nodi_ya_kulia[nodi]);
     }
     rudisha 0;
 }
@@ -5933,8 +5933,8 @@ n32 jr_ni_salama(n32 nodi) {
 // yanayogusa rax/xmm0 PEKEE (bila rcx, xmm1, wala rafu)?
 n32 jr_ni_moja_kwa_moja(n32 nodi) {
     kama (nodi == -1) { rudisha 0; }
-    n32 a = mti_aina[nodi];
-    rudisha (a == MTI_NAMBARI || a == MTI_HALISI_D || a == MTI_KITAMBULISHO);
+    n32 a = aina_ya_nodi[nodi];
+    rudisha (a == NODI_NAMBARI || a == NODI_HALISI_D || a == NODI_KITAMBULISHO);
 }
 
 // mov ecx/rcx, [rbp - off]  (8B /r; REX.W kwa baiti 8)
@@ -5954,12 +5954,12 @@ w0 andika_soma_r1_r5_ofseti_kwa_ukubwa(n32 ofseti, n32 saizi) {
 n32 jr_moja_kwa_moja_r1(n32 nodi, n32 nodi_ya_kazi, n32 saizi_kitendo) {
     kama (nodi == -1) { rudisha 0; }
     kama (saizi_kitendo != 4 && saizi_kitendo != 8) { rudisha 0; }
-    kama (mti_aina[nodi] == MTI_NAMBARI) {
-        kama (mti_kulia[nodi] == 1) { rudisha 0; }
+    kama (aina_ya_nodi[nodi] == NODI_NAMBARI) {
+        kama (nodi_ya_kulia[nodi] == 1) { rudisha 0; }
         // Upana 8: uzalishaji_usemi hupanua ishara ya namba hasi (mov eax +
         // cdqe, mfano "0 - 10000" iliyokunjwa), lakini mov ecx hupanua kwa
         // sifuri -- kwa hiyo namba hasi hazikubaliwi hapa.
-        kama (saizi_kitendo == 8 && mti_thamani[nodi] < 0) { rudisha 0; }
+        kama (saizi_kitendo == 8 && thamani_ya_nodi[nodi] < 0) { rudisha 0; }
         rudisha 1;
     }
     kama (jr_tafuta_kigeu(nodi, nodi_ya_kazi) == 0) { rudisha 0; }
@@ -5971,7 +5971,7 @@ n32 jr_moja_kwa_moja_r1(n32 nodi, n32 nodi_ya_kazi, n32 saizi_kitendo) {
 
 // Pakia jani lililokubaliwa na jr_jani_rcx kwenye rcx/ecx.
 w0 jr_pakia_moja_kwa_moja_r1(n32 nodi, n32 nodi_ya_kazi, n32 saizi_kitendo) {
-    kama (mti_aina[nodi] == MTI_NAMBARI) { andika_weka_r1d_namba32(mti_thamani[nodi]); rudisha; }
+    kama (aina_ya_nodi[nodi] == NODI_NAMBARI) { andika_weka_r1d_namba32(thamani_ya_nodi[nodi]); rudisha; }
     jr_tafuta_kigeu(nodi, nodi_ya_kazi);
     kama (jr_kigeu_reg >= 0) { andika_hamisha_r1_rejista64(regista_halisi_kwa_id(jr_kigeu_reg)); rudisha; }
     andika_soma_r1_r5_ofseti_kwa_ukubwa(jr_ofseti_ya_kigeu, saizi_kitendo);
@@ -5998,14 +5998,14 @@ w0 andika_hamisha_x_x1_x0() {
 // n.k.): kushoto -> rax/xmm0, kulia -> rcx/xmm1. `enc` ni enc ya
 // operesheni (ast_thamani[node]).
 w0 zalisha_pande_mbili(n32 nodi, n32 nodi_ya_kazi, n32 usimbaji) {
-    n32 kushoto = mti_kushoto[nodi];
-    n32 kulia = mti_kulia[nodi];
+    n32 kushoto = nodi_ya_kushoto[nodi];
+    n32 kulia = nodi_ya_kulia[nodi];
     n32 saizi = ukubwa_kutoka_usimbaji(usimbaji);
 
     kama (ni_desimali_usimbaji(usimbaji) == 0) {
         // B: kulia ni jani
         kama (jr_moja_kwa_moja_r1(kulia, nodi_ya_kazi, saizi)) {
-            kama (mti_aina[kulia] == MTI_NAMBARI || jr_ni_salama(kushoto)) {
+            kama (aina_ya_nodi[kulia] == NODI_NAMBARI || jr_ni_salama(kushoto)) {
                 uzalishaji_usemi(kushoto, nodi_ya_kazi);
                 badili_mpaka_wa_desimali(kushoto, usimbaji);
                 jr_pakia_moja_kwa_moja_r1(kulia, nodi_ya_kazi, saizi);
@@ -6109,16 +6109,16 @@ n32 jr_linganisha_moja_kwa_moja(n32 nodi, n32 nodi_ya_kazi, n32 usimbaji) {
     kama (ni_desimali_usimbaji(usimbaji)) { rudisha 0; }
     n32 saizi = ukubwa_kutoka_usimbaji(usimbaji);
     kama (saizi != 4 && saizi != 8) { rudisha 0; }
-    n32 kushoto = mti_kushoto[nodi];
-    n32 kulia = mti_kulia[nodi];
+    n32 kushoto = nodi_ya_kushoto[nodi];
+    n32 kulia = nodi_ya_kulia[nodi];
     n32 lk = 0; n32 la = 0;
     kama (jr_namba_ya_kigeu(kushoto, nodi_ya_kazi, saizi)) {
         kama (jr_kigeu_reg >= 0) { lk = 1; la = regista_halisi_kwa_id(jr_kigeu_reg); }
         sivyo { lk = 2; la = jr_ofseti_ya_kigeu; }
     }
     n32 rk = 0; n32 ra = 0;
-    kama (mti_aina[kulia] == MTI_NAMBARI) {
-        kama (jr_moja_kwa_moja_r1(kulia, nodi_ya_kazi, saizi)) { rk = 3; ra = mti_thamani[kulia]; }
+    kama (aina_ya_nodi[kulia] == NODI_NAMBARI) {
+        kama (jr_moja_kwa_moja_r1(kulia, nodi_ya_kazi, saizi)) { rk = 3; ra = thamani_ya_nodi[kulia]; }
     } sivyo { kama (jr_namba_ya_kigeu(kulia, nodi_ya_kazi, saizi)) {
             kama (jr_kigeu_reg >= 0) { rk = 1; ra = regista_halisi_kwa_id(jr_kigeu_reg); }
             sivyo { rk = 2; ra = jr_ofseti_ya_kigeu; }
@@ -6180,8 +6180,8 @@ w0 zalisha_linganisha_pande_mbili(n32 nodi, n32 nodi_ya_kazi, n32 usimbaji) {
 n32 jr_msingi_ofseti = 0;
 n32 jr_msingi_aina(n32 nodi, n32 nodi_ya_kazi) {
     kama (jr_moja_kwa_moja_r1(nodi, nodi_ya_kazi, 8)) { rudisha 1; }
-    kama (mti_aina[nodi] != MTI_KITAMBULISHO) { rudisha 0; }
-    n8* jina_s = mti_ghala + mti_ofseti_ya_jina[nodi];
+    kama (aina_ya_nodi[nodi] != NODI_KITAMBULISHO) { rudisha 0; }
+    n8* jina_s = ghala_la_majina + umbali_wa_jina_la_nodi[nodi];
     kama (jina_s[0] == 34) { rudisha 0; }
     n32 si = 0;
     wakati (si < idadi_ya_vigeu) {
@@ -6317,10 +6317,10 @@ n32 uzalishaji_hifadhi_safu_sib(n32 faharasa_ya_nodi, n32 nodi_ya_kielekezi, n32
     // Panua faharasa kwa usahihi -- kioo cha uzalishaji_nyoosha (SIB
     // ya kusoma, #251): n32 yenye ishara tayari imepanuliwa na
     // panua_ishara_ndogo; nyingine (A32/n64) zinahitaji cdqe hapa.
-    n32 ie = mti_thamani[faharasa_ya_nodi];
-    kama (mti_aina[faharasa_ya_nodi] == 4) { ie = mti_nne[faharasa_ya_nodi]; }
+    n32 ie = thamani_ya_nodi[faharasa_ya_nodi];
+    kama (aina_ya_nodi[faharasa_ya_nodi] == 4) { ie = nne_ya_nodi[faharasa_ya_nodi]; }
     n32 tayari = 0;
-    kama (mti_aina[faharasa_ya_nodi] != 45 && ie > 0 && ukubwa_kutoka_usimbaji(ie) < 8 && ni_bila_ishara_usimbaji(ie) == 0 && ni_desimali_usimbaji(ie) == 0) { tayari = 1; }
+    kama (aina_ya_nodi[faharasa_ya_nodi] != 45 && ie > 0 && ukubwa_kutoka_usimbaji(ie) < 8 && ni_bila_ishara_usimbaji(ie) == 0 && ni_desimali_usimbaji(ie) == 0) { tayari = 1; }
     kama (tayari == 0) { andika_cdqe(); }
     andika_hamisha_r8_r0();
     jr_pakia_msingi_r1(ma, nodi_ya_kielekezi, nodi_ya_kazi);
@@ -6436,14 +6436,14 @@ n32 uzalishaji_hifadhi_mshale_sib(n32 nodi_ya_kielekezi, n32 ofseti, n32 kulia, 
 // aendelee na njia ya kawaida). `i` = faharisi ya kigezo kwenye var_*,
 // `rhs` = upande wa kulia wa ugawaji.
 n32 jr_kigezo_ongeza_namba(n32 i, n32 kulia) {
-    n32 a = mti_aina[kulia];
-    kama (a != MTI_JUMLISHA && a != MTI_TOFAUTI) { rudisha 0; }
-    n32 l = mti_kushoto[kulia];
-    n32 r = mti_kulia[kulia];
+    n32 a = aina_ya_nodi[kulia];
+    kama (a != NODI_JUMLISHA && a != NODI_TOFAUTI) { rudisha 0; }
+    n32 l = nodi_ya_kushoto[kulia];
+    n32 r = nodi_ya_kulia[kulia];
     kama (l == -1 || r == -1) { rudisha 0; }
-    kama (mti_aina[l] != MTI_KITAMBULISHO || mti_aina[r] != MTI_NAMBARI) { rudisha 0; }
-    kama (mti_kulia[r] == 1) { rudisha 0; }   // n64 halisi
-    n32 usimbaji_wa_kitendo = mti_thamani[kulia];
+    kama (aina_ya_nodi[l] != NODI_KITAMBULISHO || aina_ya_nodi[r] != NODI_NAMBARI) { rudisha 0; }
+    kama (nodi_ya_kulia[r] == 1) { rudisha 0; }   // n64 halisi
+    n32 usimbaji_wa_kitendo = thamani_ya_nodi[kulia];
     kama (ni_desimali_usimbaji(usimbaji_wa_kitendo)) { rudisha 0; }
     kama ((usimbaji_wa_kitendo / 2) * 2 != usimbaji_wa_kitendo) { rudisha 0; }   // hesabu ya kielekezi
     kama (ukubwa_kutoka_usimbaji(usimbaji_wa_kitendo) != 4) { rudisha 0; }
@@ -6454,16 +6454,16 @@ n32 jr_kigezo_ongeza_namba(n32 i, n32 kulia) {
     kama (ukubwa_kutoka_usimbaji(e) != 4) { rudisha 0; }
     kama (kigeu_ni_safu[i] == 1 || kigeu_kwa_rejea[i] == 1) { rudisha 0; }
     // Kitambulisho cha kushoto lazima kiwe KIGEZO HICHO HICHO
-    n8* jl = mti_ghala + mti_ofseti_ya_jina[l];
+    n8* jl = ghala_la_majina + umbali_wa_jina_la_nodi[l];
     kama (jl[0] == 34) { rudisha 0; }
     kama (jina_linganisha(ghala_la_vigeu + ofseti_ya_jina_la_kigeu[i], jl) == 0) { rudisha 0; }
-    n32 v = mti_thamani[r];
+    n32 v = thamani_ya_nodi[r];
     kama (kigeu_reg[i] >= 0) {
         n32 reg = regista_halisi_kwa_id(kigeu_reg[i]);
         n32 reg7 = reg - ((reg / 8) * 8);
         kama (reg >= 8) { andika_baiti(65); }
         andika_baiti(129);   // 81 /0 (add) au /5 (sub)
-        kama (a == MTI_JUMLISHA) { andika_baiti(192 + reg7); } sivyo { andika_baiti(232 + reg7); }
+        kama (a == NODI_JUMLISHA) { andika_baiti(192 + reg7); } sivyo { andika_baiti(232 + reg7); }
         andika_neno4(v);
         // movsxd r64, r32
         kama (reg >= 8) { andika_baiti(77); } sivyo { andika_baiti(72); }
@@ -6475,10 +6475,10 @@ n32 jr_kigezo_ongeza_namba(n32 i, n32 kulia) {
     n32 ofseti = kigeu_r5_ofseti[i];
     andika_baiti(129);   // add/sub dword [rbp-off], imm32
     kama (ofseti < 128) {
-        kama (a == MTI_JUMLISHA) { andika_baiti(69); } sivyo { andika_baiti(109); }
+        kama (a == NODI_JUMLISHA) { andika_baiti(69); } sivyo { andika_baiti(109); }
         andika_baiti((256 - ofseti) & 255);
     } sivyo {
-        kama (a == MTI_JUMLISHA) { andika_baiti(133); } sivyo { andika_baiti(173); }
+        kama (a == NODI_JUMLISHA) { andika_baiti(133); } sivyo { andika_baiti(173); }
         andika_umbali32_ya_ofseti(ofseti);
     }
     andika_neno4(v);
@@ -6488,9 +6488,9 @@ n32 jr_kigezo_ongeza_namba(n32 i, n32 kulia) {
 
 // AST_JUMLISHA (6) -- ongeza
 w0 uzalishaji_jumlisha(n32 nodi, n32 nodi_ya_kazi) {
-    n32 kushoto = mti_kushoto[nodi];
-    n32 kulia = mti_kulia[nodi];
-    n32 usimbaji = mti_thamani[nodi];
+    n32 kushoto = nodi_ya_kushoto[nodi];
+    n32 kulia = nodi_ya_kulia[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     // Ukubwa hukokotolewa kutoka enc -- ast_tiga ya hoja ya wito
     // hubadilishwa na mkaguzi kuwa kiungo cha mnyororo.
     n32 saizi = ukubwa_kutoka_usimbaji(usimbaji);
@@ -6525,8 +6525,8 @@ w0 uzalishaji_jumlisha(n32 nodi, n32 nodi_ya_kazi) {
 // kujumlishwa. p + p haina maana -- mkaguzi anakataa kwa sauti;
 // kinga ya pili hapa inalinda njia zisizopitia ukaguzi.
 w0 uzalishaji_jumlisha_kielekezi(n32 nodi, n32 nodi_ya_kazi, n32 usimbaji) {
-    n32 kushoto = mti_kushoto[nodi];
-    n32 kulia = mti_kulia[nodi];
+    n32 kushoto = nodi_ya_kushoto[nodi];
+    n32 kulia = nodi_ya_kulia[nodi];
     n32 kushoto_k = usemi_ni_kielekezi(kushoto);
     n32 kulia_k = usemi_ni_kielekezi(kulia);
     kama (kushoto_k) {
@@ -6555,13 +6555,13 @@ w0 uzalishaji_jumlisha_kielekezi(n32 nodi, n32 nodi_ya_kazi, n32 usimbaji) {
 
 // AST_TOFAUTI (7) -- toa
 w0 uzalishaji_tofauti(n32 nodi, n32 nodi_ya_kazi) {
-    n32 kushoto = mti_kushoto[nodi];
-    n32 usimbaji = mti_thamani[nodi];
+    n32 kushoto = nodi_ya_kushoto[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     n32 saizi = ukubwa_kutoka_usimbaji(usimbaji);
     n32 ni_d = ni_desimali_usimbaji(usimbaji);
 
     kama (kushoto == -1) {
-        uzalishaji_usemi(mti_kulia[nodi], nodi_ya_kazi);
+        uzalishaji_usemi(nodi_ya_kulia[nodi], nodi_ya_kazi);
         kama (ni_d) {
             // Matokeo ya usemi wa desimali yuko xmm0: 0.0 - xmm0
             kama (saizi >= 8) {
@@ -6587,7 +6587,7 @@ w0 uzalishaji_tofauti(n32 nodi, n32 nodi_ya_kazi) {
             }
         }
     } sivyo {
-        n32 kulia = mti_kulia[nodi];
+        n32 kulia = nodi_ya_kulia[nodi];
         // Hesabu ya anwani (C-semantiki): p - n inahamisha kwa vipengele
         // vya n, si baiti (rekodi 8.9). p - p na n - p hazina maana --
         // mkaguzi anakataa kwa sauti; kinga ya pili hapa inalinda njia
@@ -6641,7 +6641,7 @@ w0 uzalishaji_tofauti(n32 nodi, n32 nodi_ya_kazi) {
 
 // AST_ACHILIA (19) -- achilia kumbukumbu (free)
 w0 uzalishaji_achilia(n32 nodi, n32 nodi_ya_kazi) {
-    uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
+    uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
     n32 nje_id = pata_au_unda_nje("free");
     andika_sukuma_r0();
     andika_baiti(232);
@@ -6659,9 +6659,9 @@ w0 uzalishaji_achilia(n32 nodi, n32 nodi_ya_kazi) {
 // AST_BADILI (48) -- badili kumbukumbu (realloc)
 w0 uzalishaji_badili(n32 nodi, n32 nodi_ya_kazi) {
     // Tathmini size (kulia), kisha ptr (kushoto) -- kulia kwenda kushoto kwa rafu
-    uzalishaji_usemi(mti_kulia[nodi], nodi_ya_kazi);
+    uzalishaji_usemi(nodi_ya_kulia[nodi], nodi_ya_kazi);
     andika_sukuma_r0();
-    uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
+    uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
     andika_sukuma_r0();
     // Pop kwenye rejista za x86-64 System V: rdi (ptr), rsi (size)
     andika_vuta_r7();
@@ -6722,7 +6722,7 @@ w0 vuta_thamani_r1(n32 usimbaji) {
 
 // AST_SAWA (20) -- linganisha (==)
 w0 uzalishaji_sawa(n32 nodi, n32 nodi_ya_kazi) {
-    n32 usimbaji = mti_thamani[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     n32 ni_d = ni_desimali_usimbaji(usimbaji);
 
     zalisha_linganisha_pande_mbili(nodi, nodi_ya_kazi, usimbaji);
@@ -6732,7 +6732,7 @@ w0 uzalishaji_sawa(n32 nodi, n32 nodi_ya_kazi) {
 
 // AST_TOFAUTI_SI (21) -- si sawa (!=)
 w0 uzalishaji_tofauti_si(n32 nodi, n32 nodi_ya_kazi) {
-    n32 usimbaji = mti_thamani[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     n32 ni_d = ni_desimali_usimbaji(usimbaji);
 
     zalisha_linganisha_pande_mbili(nodi, nodi_ya_kazi, usimbaji);
@@ -6742,7 +6742,7 @@ w0 uzalishaji_tofauti_si(n32 nodi, n32 nodi_ya_kazi) {
 
 // AST_CHINI (22) -- chini (<)
 w0 uzalishaji_chini(n32 nodi, n32 nodi_ya_kazi) {
-    n32 usimbaji = mti_thamani[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     n32 ni_d = ni_desimali_usimbaji(usimbaji);
 
     zalisha_linganisha_pande_mbili(nodi, nodi_ya_kazi, usimbaji);
@@ -6752,7 +6752,7 @@ w0 uzalishaji_chini(n32 nodi, n32 nodi_ya_kazi) {
 
 // AST_JUU (23) -- juu (>)
 w0 uzalishaji_juu(n32 nodi, n32 nodi_ya_kazi) {
-    n32 usimbaji = mti_thamani[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     n32 ni_d = ni_desimali_usimbaji(usimbaji);
 
     zalisha_linganisha_pande_mbili(nodi, nodi_ya_kazi, usimbaji);
@@ -6762,7 +6762,7 @@ w0 uzalishaji_juu(n32 nodi, n32 nodi_ya_kazi) {
 
 // AST_CHINI_SAWA (24) -- chini au sawa (<=)
 w0 uzalishaji_chini_sawa(n32 nodi, n32 nodi_ya_kazi) {
-    n32 usimbaji = mti_thamani[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     n32 ni_d = ni_desimali_usimbaji(usimbaji);
 
     zalisha_linganisha_pande_mbili(nodi, nodi_ya_kazi, usimbaji);
@@ -6772,7 +6772,7 @@ w0 uzalishaji_chini_sawa(n32 nodi, n32 nodi_ya_kazi) {
 
 // AST_JUU_SAWA (25) -- juu au sawa (>=)
 w0 uzalishaji_juu_sawa(n32 nodi, n32 nodi_ya_kazi) {
-    n32 usimbaji = mti_thamani[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     n32 ni_d = ni_desimali_usimbaji(usimbaji);
 
     zalisha_linganisha_pande_mbili(nodi, nodi_ya_kazi, usimbaji);
@@ -6782,8 +6782,8 @@ w0 uzalishaji_juu_sawa(n32 nodi, n32 nodi_ya_kazi) {
 
 // AST_NA (26) -- na la mantiki (&&)
 w0 uzalishaji_na(n32 nodi, n32 nodi_ya_kazi) {
-    n32 kushoto = mti_kushoto[nodi];
-    n32 kulia = mti_kulia[nodi];
+    n32 kushoto = nodi_ya_kushoto[nodi];
+    n32 kulia = nodi_ya_kulia[nodi];
     n32 lebo_si_kweli = bafa_ya_lebo_mpya();
     kataa_operesheni_ya_desimali(nodi);
 
@@ -6808,8 +6808,8 @@ w0 uzalishaji_na(n32 nodi, n32 nodi_ya_kazi) {
 
 // AST_AU (27) -- au la mantiki (||)
 w0 uzalishaji_au(n32 nodi, n32 nodi_ya_kazi) {
-    n32 kushoto = mti_kushoto[nodi];
-    n32 kulia = mti_kulia[nodi];
+    n32 kushoto = nodi_ya_kushoto[nodi];
+    n32 kulia = nodi_ya_kulia[nodi];
     n32 lebo_kweli = bafa_ya_lebo_mpya();
     kataa_operesheni_ya_desimali(nodi);
 
@@ -6836,8 +6836,8 @@ w0 uzalishaji_au(n32 nodi, n32 nodi_ya_kazi) {
 // Thamani za n64 hujaribiwa kwa 64-bit: 2^32 ina nusu ya chini
 // sifuri -- test eax pekee ingerudisha 1 kwa jibu lisilo sahihi.
 w0 uzalishaji_si(n32 nodi, n32 nodi_ya_kazi) {
-    n32 saizi = ukubwa_kutoka_usimbaji(mti_thamani[nodi]);
-    uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
+    n32 saizi = ukubwa_kutoka_usimbaji(thamani_ya_nodi[nodi]);
+    uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
     kama (saizi >= 8) { andika_pima_r0_r0(); }
     sivyo { andika_pima_r0d_r0d(); }
     andika_weka_kama_sawa_r0b();
@@ -6851,9 +6851,9 @@ w0 uzalishaji_si(n32 nodi, n32 nodi_ya_kazi) {
 // muhimu kwa uboreshaji huu (upana wa vitendo vya kudumu vidogo
 // pekee ndio vinafaidika kiutendaji hapa).
 n32 nguvu_kamili_ya_pili(n32 nodi) {
-    kama (mti_aina[nodi] != 4) { rudisha -1; }  // si AST_NAMBARI
-    kama (mti_kulia[nodi] == 1) { rudisha -1; }  // n64 kubwa (dimbwi)
-    n32 v = mti_thamani[nodi];
+    kama (aina_ya_nodi[nodi] != 4) { rudisha -1; }  // si AST_NAMBARI
+    kama (nodi_ya_kulia[nodi] == 1) { rudisha -1; }  // n64 kubwa (dimbwi)
+    n32 v = thamani_ya_nodi[nodi];
     kama (v <= 1) { rudisha -1; }  // 0/1/hasi -- si nguvu ya manufaa
     n32 kipeo = 0;
     n32 x = v;
@@ -6877,24 +6877,24 @@ n32 nguvu_kamili_ya_pili(n32 nodi) {
 // mzunguko usiyofanana na shr rahisi). Zidisho kwa desimali (d64/D32)
 // haliguswi -- shl haina maana kwa desimali kabisa.
 w0 uzalishaji_zidisha(n32 nodi, n32 nodi_ya_kazi) {
-    n32 usimbaji = mti_thamani[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     n32 saizi = ukubwa_kutoka_usimbaji(usimbaji);
     n32 ni_d = ni_desimali_usimbaji(usimbaji);
 
     kama (ni_d == 0) {
-        n32 kipeo_kulia = nguvu_kamili_ya_pili(mti_kulia[nodi]);
+        n32 kipeo_kulia = nguvu_kamili_ya_pili(nodi_ya_kulia[nodi]);
         kama (kipeo_kulia != -1) {
-            uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
-            badili_mpaka_wa_desimali(mti_kushoto[nodi], usimbaji);
+            uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
+            badili_mpaka_wa_desimali(nodi_ya_kushoto[nodi], usimbaji);
             andika_weka_r1d_namba32(kipeo_kulia);
             kama (saizi >= 8) { andika_sogeza_kushoto_r0_r1b(); }
             sivyo { andika_sogeza_kushoto_r0d_r1b(); }
             rudisha;
         }
-        n32 kipeo_kushoto = nguvu_kamili_ya_pili(mti_kushoto[nodi]);
+        n32 kipeo_kushoto = nguvu_kamili_ya_pili(nodi_ya_kushoto[nodi]);
         kama (kipeo_kushoto != -1) {
-            uzalishaji_usemi(mti_kulia[nodi], nodi_ya_kazi);
-            badili_mpaka_wa_desimali(mti_kulia[nodi], usimbaji);
+            uzalishaji_usemi(nodi_ya_kulia[nodi], nodi_ya_kazi);
+            badili_mpaka_wa_desimali(nodi_ya_kulia[nodi], usimbaji);
             andika_weka_r1d_namba32(kipeo_kushoto);
             kama (saizi >= 8) { andika_sogeza_kushoto_r0_r1b(); }
             sivyo { andika_sogeza_kushoto_r0d_r1b(); }
@@ -6972,7 +6972,7 @@ w0 uzalishaji_zidisha(n32 nodi, n32 nodi_ya_kazi) {
 // kukusanya. Desimali (d64/D32) HAIGUSWI KABISA -- uwanja huu ni
 // NAMBA KAMILI TU (ni_d imeshughulikiwa kando, angalia chini).
 n32 gwm_kipeo_kulia(n32 nodi) {
-    rudisha nguvu_kamili_ya_pili(mti_kulia[nodi]);
+    rudisha nguvu_kamili_ya_pili(nodi_ya_kulia[nodi]);
 }
 
 // -------------------------------------------------------
@@ -7041,9 +7041,9 @@ n32 gwm_uchawi_hasi_m = 0;
 // Je, nodi hii ni namba halisi ya moja kwa moja KUDUMU, isiyo n64
 // kubwa (dimbwi), yenye thamani 2..65536? Rudisha thamani au -1.
 n32 gwm_thamani_kudumu_ndogo(n32 nodi) {
-    kama (mti_aina[nodi] != 4) { rudisha -1; }  // si AST_NAMBARI
-    kama (mti_kulia[nodi] == 1) { rudisha -1; }  // n64 kubwa (dimbwi)
-    n32 v = mti_thamani[nodi];
+    kama (aina_ya_nodi[nodi] != 4) { rudisha -1; }  // si AST_NAMBARI
+    kama (nodi_ya_kulia[nodi] == 1) { rudisha -1; }  // n64 kubwa (dimbwi)
+    n32 v = thamani_ya_nodi[nodi];
     kama (v < 2 || v > 65536) { rudisha -1; }
     rudisha v;
 }
@@ -7156,9 +7156,9 @@ n32 gwm64_hi = 0;
 // Kigawanyaji cha kudumu cha n64: namba halisi ya moja kwa moja (si dimbwi)
 // yenye thamani 3..2147483647 (imm32 ya imul), au -1.
 n32 gwm64_thamani_kudumu(n32 nodi) {
-    kama (mti_aina[nodi] != 4) { rudisha -1; }
-    kama (mti_kulia[nodi] == 1) { rudisha -1; }
-    n32 v = mti_thamani[nodi];
+    kama (aina_ya_nodi[nodi] != 4) { rudisha -1; }
+    kama (nodi_ya_kulia[nodi] == 1) { rudisha -1; }
+    n32 v = thamani_ya_nodi[nodi];
     kama (v < 3) { rudisha -1; }
     rudisha v;
 }
@@ -7267,7 +7267,7 @@ w0 gwm64_toa_q() {
 
 // AST_GAWANYA (32) -- gawanya
 w0 uzalishaji_gawanya(n32 nodi, n32 nodi_ya_kazi) {
-    n32 usimbaji = mti_thamani[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     n32 saizi = ukubwa_kutoka_usimbaji(usimbaji);
     n32 ni_d = ni_desimali_usimbaji(usimbaji);
     n32 ni_b = ni_bila_ishara_usimbaji(usimbaji);
@@ -7275,15 +7275,15 @@ w0 uzalishaji_gawanya(n32 nodi, n32 nodi_ya_kazi) {
     kama (ni_d == 0) {
         n32 kipeo = gwm_kipeo_kulia(nodi);
         kama (kipeo != -1) {
-            uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
-            badili_mpaka_wa_desimali(mti_kushoto[nodi], usimbaji);
+            uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
+            badili_mpaka_wa_desimali(nodi_ya_kushoto[nodi], usimbaji);
             kama (ni_b) {
                 // Bila ishara: SHR (logical) moja kwa moja, hakuna
                 // upendeleo unaohitajika -- angalia maelezo makuu juu.
                 andika_weka_r1d_namba32(kipeo);
                 kama (saizi >= 8) { andika_sogeza_kulia_a_r0_r1b(); } sivyo { andika_sogeza_kulia_a_r0d_r1b(); }
             } sivyo {
-                n32 d_thamani = mti_thamani[mti_kulia[nodi]];
+                n32 d_thamani = thamani_ya_nodi[nodi_ya_kulia[nodi]];
                 kama (saizi >= 8) {
                     andika_sukuma_r0();                      // hifadhi x
                     andika_weka_r1d_namba32(63);
@@ -7311,11 +7311,11 @@ w0 uzalishaji_gawanya(n32 nodi, n32 nodi_ya_kazi) {
 
         // n64 yenye ishara: zidisho na uchawi kutoka jedwali (angalia gwm64_tafuta)
         kama (saizi >= 8 && ni_b == 0) {
-            n32 d64 = gwm64_thamani_kudumu(mti_kulia[nodi]);
+            n32 d64 = gwm64_thamani_kudumu(nodi_ya_kulia[nodi]);
             kama (d64 != -1) {
                 kama (gwm64_tafuta(d64)) {
-                    uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
-                    badili_mpaka_wa_desimali(mti_kushoto[nodi], usimbaji);
+                    uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
+                    badili_mpaka_wa_desimali(nodi_ya_kushoto[nodi], usimbaji);
                     // Tafuta tena: kushoto inaweza kuwa na mgawanyo/modulo mwingine (mfano x / 10 / 100)
                     // ulioandika juu ya gwm_uchawi_* / gwm64_* wakati wa kutathminiwa.
                     gwm64_tafuta(d64);
@@ -7330,12 +7330,12 @@ w0 uzalishaji_gawanya(n32 nodi, n32 nodi_ya_kazi) {
         // gwm_uchawi_M/gwm_tafuta_uchawi_*. n32 TU (saizi<8) -- n64
         // haiguswi kabisa (angalia WIGO #1 kwenye maelezo makuu).
         kama (saizi < 8) {
-            n32 d_kudumu = gwm_thamani_kudumu_ndogo(mti_kulia[nodi]);
+            n32 d_kudumu = gwm_thamani_kudumu_ndogo(nodi_ya_kulia[nodi]);
             kama (d_kudumu != -1) {
                 kama (ni_b) {
                     kama (gwm_tafuta_uchawi_bila_ishara(d_kudumu)) {
-                        uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
-                        badili_mpaka_wa_desimali(mti_kushoto[nodi], usimbaji);
+                        uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
+                        badili_mpaka_wa_desimali(nodi_ya_kushoto[nodi], usimbaji);
                         // Tafuta tena: kushoto inaweza kuwa na mgawanyo/modulo mwingine (mfano x / 10 / 100)
                         // ulioandika juu ya gwm_uchawi_* / gwm64_* wakati wa kutathminiwa.
                         gwm_tafuta_uchawi_bila_ishara(d_kudumu);
@@ -7350,8 +7350,8 @@ w0 uzalishaji_gawanya(n32 nodi, n32 nodi_ya_kazi) {
                     }
                 } sivyo {
                     kama (gwm_tafuta_uchawi_ishara(d_kudumu)) {
-                        uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
-                        badili_mpaka_wa_desimali(mti_kushoto[nodi], usimbaji);
+                        uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
+                        badili_mpaka_wa_desimali(nodi_ya_kushoto[nodi], usimbaji);
                         // Tafuta tena: kushoto inaweza kuwa na mgawanyo/modulo mwingine (mfano x / 10 / 100)
                         // ulioandika juu ya gwm_uchawi_* / gwm64_* wakati wa kutathminiwa.
                         gwm_tafuta_uchawi_ishara(d_kudumu);
@@ -7384,11 +7384,11 @@ w0 uzalishaji_gawanya(n32 nodi, n32 nodi_ya_kazi) {
     }
 
     kama (ni_d) {
-        uzalishaji_usemi(mti_kulia[nodi], nodi_ya_kazi);
-        badili_mpaka_wa_desimali(mti_kulia[nodi], usimbaji);
+        uzalishaji_usemi(nodi_ya_kulia[nodi], nodi_ya_kazi);
+        badili_mpaka_wa_desimali(nodi_ya_kulia[nodi], usimbaji);
         sukuma_thamani(usimbaji);
-        uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
-        badili_mpaka_wa_desimali(mti_kushoto[nodi], usimbaji);
+        uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
+        badili_mpaka_wa_desimali(nodi_ya_kushoto[nodi], usimbaji);
         vuta_thamani_r1(usimbaji);
         kama (saizi >= 8) { andika_gawanya_d64_x0_x1(); }
         sivyo { andika_gawanya_d32_x0_x1(); }
@@ -7415,7 +7415,7 @@ w0 uzalishaji_gawanya(n32 nodi, n32 nodi_ya_kazi) {
 
 // AST_MODULO (49) -- asilimia
 w0 uzalishaji_modulo(n32 nodi, n32 nodi_ya_kazi) {
-    n32 usimbaji = mti_thamani[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     kataa_operesheni_ya_desimali(nodi);
 
     n32 saizi = ukubwa_kutoka_usimbaji(usimbaji);
@@ -7432,13 +7432,13 @@ w0 uzalishaji_modulo(n32 nodi, n32 nodi_ya_kazi) {
     // iliyopo tayari badala ya kuandika upya kuzidisha.
     n32 mod_kipeo = gwm_kipeo_kulia(nodi);
     kama (mod_kipeo != -1) {
-        uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
-        badili_mpaka_wa_desimali(mti_kushoto[nodi], usimbaji);
+        uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
+        badili_mpaka_wa_desimali(nodi_ya_kushoto[nodi], usimbaji);
         kama (ni_b) {
-            andika_weka_r1d_namba32(mti_thamani[mti_kulia[nodi]] - 1);
+            andika_weka_r1d_namba32(thamani_ya_nodi[nodi_ya_kulia[nodi]] - 1);
             kama (saizi >= 8) { andika_na_r0_r1(); } sivyo { andika_na_r0d_r1d(); }
         } sivyo {
-            n32 mod_d = mti_thamani[mti_kulia[nodi]];
+            n32 mod_d = thamani_ya_nodi[nodi_ya_kulia[nodi]];
             kama (saizi >= 8) {
                 andika_sukuma_r0();                      // [x]  -- nakala ya NJE (kutoa mwishoni)
                 andika_sukuma_r0();                      // [x,x] -- nakala ya NDANI (upendeleo)
@@ -7485,11 +7485,11 @@ w0 uzalishaji_modulo(n32 nodi, n32 nodi_ya_kazi) {
     // fomula ya msingi ya mgawanyo (x = q*d + r). n32 TU (saizi<8).
     // n64 yenye ishara: zidisho na uchawi kutoka jedwali (angalia gwm64_tafuta)
     kama (saizi >= 8 && ni_b == 0) {
-        n32 mod_d64 = gwm64_thamani_kudumu(mti_kulia[nodi]);
+        n32 mod_d64 = gwm64_thamani_kudumu(nodi_ya_kulia[nodi]);
         kama (mod_d64 != -1) {
             kama (gwm64_tafuta(mod_d64)) {
-                uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
-                badili_mpaka_wa_desimali(mti_kushoto[nodi], usimbaji);
+                uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
+                badili_mpaka_wa_desimali(nodi_ya_kushoto[nodi], usimbaji);
                 // Tafuta tena: kushoto inaweza kuwa na mgawanyo/modulo mwingine (mfano x / 10 / 100)
                 // ulioandika juu ya gwm_uchawi_* / gwm64_* wakati wa kutathminiwa.
                 gwm64_tafuta(mod_d64);
@@ -7504,12 +7504,12 @@ w0 uzalishaji_modulo(n32 nodi, n32 nodi_ya_kazi) {
     }
 
     kama (saizi < 8) {
-        n32 mod_d_kudumu = gwm_thamani_kudumu_ndogo(mti_kulia[nodi]);
+        n32 mod_d_kudumu = gwm_thamani_kudumu_ndogo(nodi_ya_kulia[nodi]);
         kama (mod_d_kudumu != -1) {
             kama (ni_b) {
                 kama (gwm_tafuta_uchawi_bila_ishara(mod_d_kudumu)) {
-                    uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
-                    badili_mpaka_wa_desimali(mti_kushoto[nodi], usimbaji);
+                    uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
+                    badili_mpaka_wa_desimali(nodi_ya_kushoto[nodi], usimbaji);
                     // Tafuta tena: kushoto inaweza kuwa na mgawanyo/modulo mwingine (mfano x / 10 / 100)
                     // ulioandika juu ya gwm_uchawi_* / gwm64_* wakati wa kutathminiwa.
                     gwm_tafuta_uchawi_bila_ishara(mod_d_kudumu);
@@ -7531,8 +7531,8 @@ w0 uzalishaji_modulo(n32 nodi, n32 nodi_ya_kazi) {
                 }
             } sivyo {
                 kama (gwm_tafuta_uchawi_ishara(mod_d_kudumu)) {
-                    uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
-                    badili_mpaka_wa_desimali(mti_kushoto[nodi], usimbaji);
+                    uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
+                    badili_mpaka_wa_desimali(nodi_ya_kushoto[nodi], usimbaji);
                     // Tafuta tena: kushoto inaweza kuwa na mgawanyo/modulo mwingine (mfano x / 10 / 100)
                     // ulioandika juu ya gwm_uchawi_* / gwm64_* wakati wa kutathminiwa.
                     gwm_tafuta_uchawi_ishara(mod_d_kudumu);
@@ -7593,10 +7593,10 @@ w0 uzalishaji_modulo(n32 nodi, n32 nodi_ya_kazi) {
 
 // AST_HAMISHA_KUSHOTO (39) -- hamisha kushoto (<<)
 w0 uzalishaji_hamisha_kushoto(n32 nodi, n32 nodi_ya_kazi) {
-    n32 saizi = ukubwa_kutoka_usimbaji(mti_thamani[nodi]);
+    n32 saizi = ukubwa_kutoka_usimbaji(thamani_ya_nodi[nodi]);
     kataa_operesheni_ya_desimali(nodi);
 
-    zalisha_pande_mbili(nodi, nodi_ya_kazi, mti_thamani[nodi]);
+    zalisha_pande_mbili(nodi, nodi_ya_kazi, thamani_ya_nodi[nodi]);
     kama (saizi >= 8) { andika_sogeza_kushoto_r0_r1b(); }
     sivyo { andika_sogeza_kushoto_r0d_r1b(); }
 }
@@ -7604,12 +7604,12 @@ w0 uzalishaji_hamisha_kushoto(n32 nodi, n32 nodi_ya_kazi) {
 // AST_HAMISHA_KULIA (41) -- hamisha kulia (>>)
 // Zenye ishara -> sar (arithmetic), bila ishara -> shr (logical)
 w0 uzalishaji_hamisha_kulia(n32 nodi, n32 nodi_ya_kazi) {
-    n32 usimbaji = mti_thamani[nodi];
+    n32 usimbaji = thamani_ya_nodi[nodi];
     kataa_operesheni_ya_desimali(nodi);
 
     n32 saizi = ukubwa_kutoka_usimbaji(usimbaji);
     n32 ni_b = ni_bila_ishara_usimbaji(usimbaji);
-    zalisha_pande_mbili(nodi, nodi_ya_kazi, mti_thamani[nodi]);
+    zalisha_pande_mbili(nodi, nodi_ya_kazi, thamani_ya_nodi[nodi]);
     kama (saizi >= 8) {
         kama (ni_b) { andika_sogeza_kulia_a_r0_r1b(); }
         sivyo { andika_sogeza_kulia_n_r0_r1b(); }
@@ -7621,47 +7621,47 @@ w0 uzalishaji_hamisha_kulia(n32 nodi, n32 nodi_ya_kazi) {
 
 // AST_BIT_AU (42) -- AU ya biti (|)
 w0 uzalishaji_biti_au(n32 nodi, n32 nodi_ya_kazi) {
-    n32 saizi = ukubwa_kutoka_usimbaji(mti_thamani[nodi]);
+    n32 saizi = ukubwa_kutoka_usimbaji(thamani_ya_nodi[nodi]);
     kataa_operesheni_ya_desimali(nodi);
 
-    zalisha_pande_mbili(nodi, nodi_ya_kazi, mti_thamani[nodi]);
+    zalisha_pande_mbili(nodi, nodi_ya_kazi, thamani_ya_nodi[nodi]);
     kama (saizi >= 8) { andika_au_r0_r1(); }
     sivyo { andika_au_r0d_r1d(); }
 }
 
 // AST_BIT_NA (43) -- NA ya biti (&)
 w0 uzalishaji_biti_na(n32 nodi, n32 nodi_ya_kazi) {
-    n32 saizi = ukubwa_kutoka_usimbaji(mti_thamani[nodi]);
+    n32 saizi = ukubwa_kutoka_usimbaji(thamani_ya_nodi[nodi]);
     kataa_operesheni_ya_desimali(nodi);
 
-    zalisha_pande_mbili(nodi, nodi_ya_kazi, mti_thamani[nodi]);
+    zalisha_pande_mbili(nodi, nodi_ya_kazi, thamani_ya_nodi[nodi]);
     kama (saizi >= 8) { andika_na_r0_r1(); }
     sivyo { andika_na_r0d_r1d(); }
 }
 
 // AST_XOR (46) -- AU ya biti za kipekee (^)
 w0 uzalishaji_biti_au_pekee(n32 nodi, n32 nodi_ya_kazi) {
-    n32 saizi = ukubwa_kutoka_usimbaji(mti_thamani[nodi]);
+    n32 saizi = ukubwa_kutoka_usimbaji(thamani_ya_nodi[nodi]);
     kataa_operesheni_ya_desimali(nodi);
 
-    zalisha_pande_mbili(nodi, nodi_ya_kazi, mti_thamani[nodi]);
+    zalisha_pande_mbili(nodi, nodi_ya_kazi, thamani_ya_nodi[nodi]);
     kama (saizi >= 8) { andika_au_pekee_r0_r1(); }
     sivyo { andika_au_pekee_r0d_r1d(); }
 }
 
 // AST_KINYUME (47) -- kanusha biti (~)
 w0 uzalishaji_kinyume(n32 nodi, n32 nodi_ya_kazi) {
-    n32 saizi = ukubwa_kutoka_usimbaji(mti_thamani[nodi]);
+    n32 saizi = ukubwa_kutoka_usimbaji(thamani_ya_nodi[nodi]);
 
-    uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
+    uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
     kama (saizi >= 8) { andika_geuza_r0(); }
     sivyo { andika_geuza_r0d(); }
 }
 
 // AST_TERNARY (44) -- ? :
 w0 uzalishaji_chaguzi_tatu(n32 nodi, n32 nodi_ya_kazi) {
-    n32 c2 = mti_kushoto[nodi]; n32 k2 = mti_kulia[nodi]; n32 s2 = mti_nne[nodi];
-    n32 usimbaji_t = mti_thamani[nodi];
+    n32 c2 = nodi_ya_kushoto[nodi]; n32 k2 = nodi_ya_kulia[nodi]; n32 s2 = nne_ya_nodi[nodi];
+    n32 usimbaji_t = thamani_ya_nodi[nodi];
     n32 lb = bafa_ya_lebo_mpya(); n32 lm = bafa_ya_lebo_mpya();
     uzalishaji_usemi(c2, nodi_ya_kazi); andika_pima_r0d_r0d();
     zalisha_ruka_kama_sawa_lebo(lb); uzalishaji_usemi(k2, nodi_ya_kazi);
@@ -7680,8 +7680,8 @@ w0 andika_hamisha_r7_r1() { andika_baiti(72); andika_baiti(137); andika_baiti(20
 // (sret), rax ni kielekezi cha bafa ya muda -- nakili muundo hadi kwenye
 // anwani ya sehemu (iliyo juu ya rafu). Vinginevyo, andika thamani kawaida.
 n32 kulia_ni_matokeo_ya_muundo(n32 kulia) {
-    kama (mti_aina[kulia] == 8) {
-        n8* callee_jina = mti_ghala + mti_ofseti_ya_jina[mti_kushoto[kulia]];
+    kama (aina_ya_nodi[kulia] == 8) {
+        n8* callee_jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[kulia]];
         n32 l2 = 0;
         wakati (l2 < idadi_ya_lebo) {
             kama (jina_linganisha(jina_la_lebo[l2], callee_jina)) {
@@ -7696,7 +7696,7 @@ n32 kulia_ni_matokeo_ya_muundo(n32 kulia) {
 
 w0 andika_hifadhi_hoja(n32 kulia, n32 fenc) {
     kama (kulia_ni_matokeo_ya_muundo(kulia)) {
-        n8* callee_jina = mti_ghala + mti_ofseti_ya_jina[mti_kushoto[kulia]];
+        n8* callee_jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[kulia]];
         n32 l2 = 0;
         n32 ukubwa = 8;
         wakati (l2 < idadi_ya_lebo) {
@@ -7746,18 +7746,18 @@ w0 andika_hifadhi_hoja(n32 kulia, n32 fenc) {
 // kawaida (mfano i*n+j) bila kuhitaji uchambuzi wa alias wowote.
 n32 keq_usemi(n32 a, n32 b) {
     kama (a == -1 || b == -1) { rudisha (a == b); }
-    kama (mti_aina[a] != mti_aina[b]) { rudisha 0; }
-    n32 t = mti_aina[a];
+    kama (aina_ya_nodi[a] != aina_ya_nodi[b]) { rudisha 0; }
+    n32 t = aina_ya_nodi[a];
     kama (t == 5) {  // AST_KITAMBULISHO
-        rudisha jina_linganisha(mti_ghala + mti_ofseti_ya_jina[a], mti_ghala + mti_ofseti_ya_jina[b]);
+        rudisha jina_linganisha(ghala_la_majina + umbali_wa_jina_la_nodi[a], ghala_la_majina + umbali_wa_jina_la_nodi[b]);
     }
     kama (t == 4) {  // namba halisi
-        kama (mti_thamani[a] != mti_thamani[b]) { rudisha 0; }
-        rudisha (mti_kulia[a] == mti_kulia[b]);  // bendera ya dimbwi la n64
+        kama (thamani_ya_nodi[a] != thamani_ya_nodi[b]) { rudisha 0; }
+        rudisha (nodi_ya_kulia[a] == nodi_ya_kulia[b]);  // bendera ya dimbwi la n64
     }
-    kama (t == MTI_JUMLISHA || t == MTI_TOFAUTI || t == MTI_ZIDISHA) {
-        kama (keq_usemi(mti_kushoto[a], mti_kushoto[b]) == 0) { rudisha 0; }
-        rudisha keq_usemi(mti_kulia[a], mti_kulia[b]);
+    kama (t == NODI_JUMLISHA || t == NODI_TOFAUTI || t == NODI_ZIDISHA) {
+        kama (keq_usemi(nodi_ya_kushoto[a], nodi_ya_kushoto[b]) == 0) { rudisha 0; }
+        rudisha keq_usemi(nodi_ya_kulia[a], nodi_ya_kulia[b]);
     }
     rudisha 0;
 }
@@ -7772,12 +7772,12 @@ n32 keq_usemi(n32 a, n32 b) {
 // tofauti na njia ya asili ya kiwanja (x += y) ambayo hutumia TENA
 // nodi ile ile.
 n32 keq_taja_sawa(n32 a, n32 b) {
-    kama (mti_aina[a] != 29 || mti_aina[b] != 29) { rudisha 0; }
-    n32 abase = mti_kushoto[a]; n32 bbase = mti_kushoto[b];
+    kama (aina_ya_nodi[a] != 29 || aina_ya_nodi[b] != 29) { rudisha 0; }
+    n32 abase = nodi_ya_kushoto[a]; n32 bbase = nodi_ya_kushoto[b];
     kama (abase == -1 || bbase == -1) { rudisha 0; }
-    kama (mti_aina[abase] != 5 || mti_aina[bbase] != 5) { rudisha 0; }
-    kama (jina_linganisha(mti_ghala + mti_ofseti_ya_jina[abase], mti_ghala + mti_ofseti_ya_jina[bbase]) == 0) { rudisha 0; }
-    n32 aidx = mti_kulia[a]; n32 bidx = mti_kulia[b];
+    kama (aina_ya_nodi[abase] != 5 || aina_ya_nodi[bbase] != 5) { rudisha 0; }
+    kama (jina_linganisha(ghala_la_majina + umbali_wa_jina_la_nodi[abase], ghala_la_majina + umbali_wa_jina_la_nodi[bbase]) == 0) { rudisha 0; }
+    n32 aidx = nodi_ya_kulia[a]; n32 bidx = nodi_ya_kulia[b];
     kama (aidx == -1 && bidx == -1) { rudisha 1; }
     kama (aidx == -1 || bidx == -1) { rudisha 0; }
     rudisha keq_usemi(aidx, bidx);
@@ -7878,17 +7878,17 @@ w0 uzalishaji_asimilia_kiwanja_mkia(n32 kitendo, n32 kulia_nodi, n32 kushoto_usi
         }
     }
     kama (kushoto_d) {
-        kama (kitendo == MTI_JUMLISHA) {
+        kama (kitendo == NODI_JUMLISHA) {
             kama (saizi_kitendo >= 8) { andika_jumlisha_d64_x0_x1(); } sivyo { andika_jumlisha_d32_x0_x1(); }
-        } sivyo { kama (kitendo == MTI_TOFAUTI) {
+        } sivyo { kama (kitendo == NODI_TOFAUTI) {
             kama (saizi_kitendo >= 8) { andika_toa_d64_x0_x1(); } sivyo { andika_toa_d32_x0_x1(); }
         } sivyo {
             kama (saizi_kitendo >= 8) { andika_zidisha_d64_x0_x1(); } sivyo { andika_zidisha_d32_x0_x1(); }
         } }
     } sivyo {
-        kama (kitendo == MTI_JUMLISHA) {
+        kama (kitendo == NODI_JUMLISHA) {
             kama (saizi_kitendo >= 8) { andika_jumlisha_r0_r1(); } sivyo { andika_jumlisha_r0d_r1d(); }
-        } sivyo { kama (kitendo == MTI_TOFAUTI) {
+        } sivyo { kama (kitendo == NODI_TOFAUTI) {
             kama (saizi_kitendo >= 8) { andika_toa_r0_r1(); } sivyo { andika_toa_r0d_r1d(); }
         } sivyo {
             kama (saizi_kitendo >= 8) { andika_zidisha_n_r0_r1(); } sivyo { andika_zidisha_n_r0d_r1d(); }
@@ -7899,13 +7899,13 @@ w0 uzalishaji_asimilia_kiwanja_mkia(n32 kitendo, n32 kulia_nodi, n32 kushoto_usi
 }
 
 w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
-    n32 kushoto = mti_kushoto[nodi];
-    n32 kulia = mti_kulia[nodi];
-    n32 aina_kushoto = mti_aina[kushoto];
+    n32 kushoto = nodi_ya_kushoto[nodi];
+    n32 kulia = nodi_ya_kulia[nodi];
+    n32 aina_kushoto = aina_ya_nodi[kushoto];
 
     // Kigeu cha kawaida: x = thamani
     kama (aina_kushoto == 5) {
-        n8* jina = mti_ghala + mti_ofseti_ya_jina[kushoto];
+        n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[kushoto];
         n32 i = 0;
         wakati (i < idadi_ya_vigeu) {
             n8* vjina = ghala_la_vigeu + ofseti_ya_jina_la_kigeu[i];
@@ -7945,7 +7945,7 @@ w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
         // Kigezo cha ulimwengu: x = thamani
         n32 gi = 0;
         wakati (gi < idadi_ya_data_ya_ulimwengu) {
-            n8* gjina = mti_ghala + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
+            n8* gjina = ghala_la_majina + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
             kama (jina_linganisha(gjina, jina)) {
                 n32 usimbaji_u = usimbaji_wa_data_ya_ulimwengu[gi];
                 kama (ni_muundo_usimbaji(usimbaji_u)) {
@@ -7972,11 +7972,11 @@ w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
 
     // Sehemu ya muundo kwa nukta: kigeu.sehemu = thamani
     kama (aina_kushoto == 33) {
-        n32 struct_nodi = mti_kushoto[kushoto];
-        n32 ofseti = mti_nne[kushoto];
+        n32 struct_nodi = nodi_ya_kushoto[kushoto];
+        n32 ofseti = nne_ya_nodi[kushoto];
         // Kama msingi ni kitambulisho, tumia LEA kupata anwani ya muundo
-        kama (mti_aina[struct_nodi] == 5) {
-            n8* jina = mti_ghala + mti_ofseti_ya_jina[struct_nodi];
+        kama (aina_ya_nodi[struct_nodi] == 5) {
+            n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[struct_nodi];
             n32 i = 0;
             wakati (i < idadi_ya_vigeu) {
                 kama (jina_linganisha(ghala_la_vigeu + ofseti_ya_jina_la_kigeu[i], jina)) {
@@ -7987,12 +7987,12 @@ w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
                     }
                     kama (ofseti != -1) { andika_jumlisha_r0_namba32(ofseti); }
                     andika_sukuma_r0();
-                    kama (ni_muundo_usimbaji(mti_thamani[kushoto])) {
+                    kama (ni_muundo_usimbaji(thamani_ya_nodi[kushoto])) {
                         uzalishaji_anwani_ya_usemi(kulia, nodi_ya_kazi);
                     } sivyo {
                         uzalishaji_usemi(kulia, nodi_ya_kazi);
                     }
-                    andika_hifadhi_hoja(kulia, mti_thamani[kushoto]);
+                    andika_hifadhi_hoja(kulia, thamani_ya_nodi[kushoto]);
                     rudisha;
                 }
                 i = i + 1;
@@ -8001,17 +8001,17 @@ w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
             // kusoma baiti za kwanza kama thamani kungeanguka (SEGV)
             n32 gi = 0;
             wakati (gi < idadi_ya_data_ya_ulimwengu) {
-                n8* gjina = mti_ghala + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
+                n8* gjina = ghala_la_majina + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
                 kama (jina_linganisha(gjina, jina)) {
                     andika_anwani_r0_kutoka_agizo(gi);
                     kama (ofseti != -1) { andika_jumlisha_r0_namba32(ofseti); }
                     andika_sukuma_r0();
-                    kama (ni_muundo_usimbaji(mti_thamani[kushoto])) {
+                    kama (ni_muundo_usimbaji(thamani_ya_nodi[kushoto])) {
                         uzalishaji_anwani_ya_usemi(kulia, nodi_ya_kazi);
                     } sivyo {
                         uzalishaji_usemi(kulia, nodi_ya_kazi);
                     }
-                    andika_hifadhi_hoja(kulia, mti_thamani[kushoto]);
+                    andika_hifadhi_hoja(kulia, thamani_ya_nodi[kushoto]);
                     rudisha;
                 }
                 gi = gi + 1;
@@ -8021,19 +8021,19 @@ w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
         uzalishaji_usemi(struct_nodi, nodi_ya_kazi);  // eax = anwani ya muundo
         kama (ofseti != -1) { andika_jumlisha_r0_namba32(ofseti); }
         andika_sukuma_r0();  // hifadhi anwani ya sehemu
-        kama (ni_muundo_usimbaji(mti_thamani[kushoto])) {
+        kama (ni_muundo_usimbaji(thamani_ya_nodi[kushoto])) {
             uzalishaji_anwani_ya_usemi(kulia, nodi_ya_kazi);  // eax = anwani ya chanzo
         } sivyo {
             uzalishaji_usemi(kulia, nodi_ya_kazi);  // eax = thamani
         }
-        andika_hifadhi_hoja(kulia, mti_thamani[kushoto]);
+        andika_hifadhi_hoja(kulia, thamani_ya_nodi[kushoto]);
         rudisha;
     }
 
     // Sehemu ya muundo kwa mshale: kielekezi->sehemu = thamani
     kama (aina_kushoto == 34) {
-        n32 nodi_ya_kielekezi = mti_kushoto[kushoto];
-        n32 ofseti = mti_nne[kushoto];
+        n32 nodi_ya_kielekezi = nodi_ya_kushoto[kushoto];
+        n32 ofseti = nne_ya_nodi[kushoto];
         // Njia ya haraka: r9 inashikilia kielekezi (kama uzalishaji_
         // hifadhi_ptr_sib), ofseti ya sehemu ikiandikwa moja kwa moja
         // ndani ya ModRM/disp -- angalia uzalishaji_hifadhi_mshale_sib.
@@ -8041,14 +8041,14 @@ w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
         // hujitokeza kama RHS inayosoma SEHEMU_MSHALE ile ile, ambayo
         // haiko kwenye orodha ya jr_ni_salama -- inarudi njia ya asili
         // moja kwa moja bila hundi ya ziada hapa).
-        kama (mti_thamani[kushoto] > 0) {
-            kama (uzalishaji_hifadhi_mshale_sib(nodi_ya_kielekezi, ofseti, kulia, mti_thamani[kushoto], nodi_ya_kazi)) {
+        kama (thamani_ya_nodi[kushoto] > 0) {
+            kama (uzalishaji_hifadhi_mshale_sib(nodi_ya_kielekezi, ofseti, kulia, thamani_ya_nodi[kushoto], nodi_ya_kazi)) {
                 rudisha;
             }
         }
         // Kama msingi ni kitambulisho na si kielekezi (safu), tumia LEA
-        kama (mti_aina[nodi_ya_kielekezi] == 5) {
-            n8* jina = mti_ghala + mti_ofseti_ya_jina[nodi_ya_kielekezi];
+        kama (aina_ya_nodi[nodi_ya_kielekezi] == 5) {
+            n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kielekezi];
             n32 i = 0;
             wakati (i < idadi_ya_vigeu) {
                 kama (jina_linganisha(ghala_la_vigeu + ofseti_ya_jina_la_kigeu[i], jina)) {
@@ -8061,12 +8061,12 @@ w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
                     }
                     kama (ofseti != -1) { andika_jumlisha_r0_namba32(ofseti); }
                     andika_sukuma_r0();
-                    kama (ni_muundo_usimbaji(mti_thamani[kushoto])) {
+                    kama (ni_muundo_usimbaji(thamani_ya_nodi[kushoto])) {
                         uzalishaji_anwani_ya_usemi(kulia, nodi_ya_kazi);
                     } sivyo {
                         uzalishaji_usemi(kulia, nodi_ya_kazi);
                     }
-                    andika_hifadhi_hoja(kulia, mti_thamani[kushoto]);
+                    andika_hifadhi_hoja(kulia, thamani_ya_nodi[kushoto]);
                     rudisha;
                 }
                 i = i + 1;
@@ -8075,19 +8075,19 @@ w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
         uzalishaji_usemi(nodi_ya_kielekezi, nodi_ya_kazi);  // eax = kielekezi
         kama (ofseti != -1) { andika_jumlisha_r0_namba32(ofseti); }
         andika_sukuma_r0();  // hifadhi anwani ya sehemu
-        kama (ni_muundo_usimbaji(mti_thamani[kushoto])) {
+        kama (ni_muundo_usimbaji(thamani_ya_nodi[kushoto])) {
             uzalishaji_anwani_ya_usemi(kulia, nodi_ya_kazi);  // eax = anwani ya chanzo
         } sivyo {
             uzalishaji_usemi(kulia, nodi_ya_kazi);  // eax = thamani (au bafa ya muundo)
         }
-        andika_hifadhi_hoja(kulia, mti_thamani[kushoto]);
+        andika_hifadhi_hoja(kulia, thamani_ya_nodi[kushoto]);
         rudisha;
     }
 
     // Nyoosha: *ptr = thamani
     kama (aina_kushoto == 29) {
-        n32 nodi_ya_kielekezi = mti_kushoto[kushoto];
-        n32 faharasa_ya_nodi = mti_kulia[kushoto];
+        n32 nodi_ya_kielekezi = nodi_ya_kushoto[kushoto];
+        n32 faharasa_ya_nodi = nodi_ya_kulia[kushoto];
 
         // Ugunduzi wa njia ya haraka ya ugawaji wa kiwanja (angalia
         // maelezo kamili juu ya uzalishaji_asimilia_kiwanja_tail) --
@@ -8097,17 +8097,17 @@ w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
         n32 kiwanja_kitendo = -1;
         n32 kiwanja_kulia = -1;
         n32 kiwanja_kulia_usimbaji = 0;
-        kama (mti_thamani[kushoto] >= 0) {
-            kama (ni_desimali_usimbaji(mti_thamani[kushoto]) == 0) {
-                kama ((mti_thamani[kushoto] / 2) * 2 == mti_thamani[kushoto]) {
-                    n32 kulia_aina_kw = mti_aina[kulia];
-                    kama (kulia_aina_kw == MTI_JUMLISHA || kulia_aina_kw == MTI_TOFAUTI) {
-                        kama (mti_kushoto[kulia] == kushoto) {
-                            n32 kulia_usimbaji_kw = mti_thamani[kulia];
+        kama (thamani_ya_nodi[kushoto] >= 0) {
+            kama (ni_desimali_usimbaji(thamani_ya_nodi[kushoto]) == 0) {
+                kama ((thamani_ya_nodi[kushoto] / 2) * 2 == thamani_ya_nodi[kushoto]) {
+                    n32 kulia_aina_kw = aina_ya_nodi[kulia];
+                    kama (kulia_aina_kw == NODI_JUMLISHA || kulia_aina_kw == NODI_TOFAUTI) {
+                        kama (nodi_ya_kushoto[kulia] == kushoto) {
+                            n32 kulia_usimbaji_kw = thamani_ya_nodi[kulia];
                             kama (ni_desimali_usimbaji(kulia_usimbaji_kw) == 0) {
                                 kiwanja_salama = 1;
                                 kiwanja_kitendo = kulia_aina_kw;
-                                kiwanja_kulia = mti_kulia[kulia];
+                                kiwanja_kulia = nodi_ya_kulia[kulia];
                                 kiwanja_kulia_usimbaji = kulia_usimbaji_kw;
                             }
                         }
@@ -8128,21 +8128,21 @@ w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
         // kamili juu ya kazi hiyo). Inajaribiwa TU kama ugunduzi wa
         // kwanza haukupata kitu -- haugusi tabia ya awali hata kidogo.
         kama (kiwanja_salama == 0) {
-            kama (mti_thamani[kushoto] >= 0) {
-                kama ((mti_thamani[kushoto] / 2) * 2 == mti_thamani[kushoto]) {
-                    n32 kulia_aina_kw2 = mti_aina[kulia];
-                    kama (kulia_aina_kw2 == MTI_JUMLISHA || kulia_aina_kw2 == MTI_TOFAUTI || kulia_aina_kw2 == MTI_ZIDISHA) {
-                        n32 kulia_l2 = mti_kushoto[kulia];
-                        kama (kulia_l2 != -1 && mti_aina[kulia_l2] == 29) {
+            kama (thamani_ya_nodi[kushoto] >= 0) {
+                kama ((thamani_ya_nodi[kushoto] / 2) * 2 == thamani_ya_nodi[kushoto]) {
+                    n32 kulia_aina_kw2 = aina_ya_nodi[kulia];
+                    kama (kulia_aina_kw2 == NODI_JUMLISHA || kulia_aina_kw2 == NODI_TOFAUTI || kulia_aina_kw2 == NODI_ZIDISHA) {
+                        n32 kulia_l2 = nodi_ya_kushoto[kulia];
+                        kama (kulia_l2 != -1 && aina_ya_nodi[kulia_l2] == 29) {
                             kama (keq_taja_sawa(kushoto, kulia_l2)) {
-                                n32 kulia_usimbaji_kw2 = mti_thamani[kulia];
+                                n32 kulia_usimbaji_kw2 = thamani_ya_nodi[kulia];
                                 // Aina lazima zifanane HASA (upana na
                                 // desimali/namba-kamili) -- kuepuka
                                 // mchanganyiko wa aina usio salama.
-                                kama (kulia_usimbaji_kw2 == mti_thamani[kushoto]) {
+                                kama (kulia_usimbaji_kw2 == thamani_ya_nodi[kushoto]) {
                                     kiwanja_salama = 1;
                                     kiwanja_kitendo = kulia_aina_kw2;
-                                    kiwanja_kulia = mti_kulia[kulia];
+                                    kiwanja_kulia = nodi_ya_kulia[kulia];
                                     kiwanja_kulia_usimbaji = kulia_usimbaji_kw2;
                                 }
                             }
@@ -8158,22 +8158,22 @@ w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
             // msingi ni jani na RHS haina wito -- angalia
             // uzalishaji_hifadhi_safu_sib. Haitumiki kwa kiwanja
             // (+=/-=) wala muundo (hizo zinabaki na njia ya asili).
-            kama (kiwanja_salama == 0 && mti_thamani[kushoto] > 0) {
-                kama (uzalishaji_hifadhi_safu_sib(faharasa_ya_nodi, nodi_ya_kielekezi, kulia, mti_thamani[kushoto], nodi_ya_kazi)) {
+            kama (kiwanja_salama == 0 && thamani_ya_nodi[kushoto] > 0) {
+                kama (uzalishaji_hifadhi_safu_sib(faharasa_ya_nodi, nodi_ya_kielekezi, kulia, thamani_ya_nodi[kushoto], nodi_ya_kazi)) {
                     rudisha;
                 }
             }
-            n32 saizi = ukubwa_wa_kipengele(mti_thamani[kushoto]);
+            n32 saizi = ukubwa_wa_kipengele(thamani_ya_nodi[kushoto]);
             kama (saizi == 0) { saizi = 4; }
             uzalishaji_usemi(faharasa_ya_nodi, nodi_ya_kazi);  // eax = idx
             andika_ongea_kipengele_kwa_saizi(saizi);  // eax = idx * saizi (ishara-extension)
             zalisha_ongeza_msingi(nodi_ya_kielekezi, nodi_ya_kazi);
             kama (kiwanja_salama) {
-                uzalishaji_asimilia_kiwanja_mkia(kiwanja_kitendo, kiwanja_kulia, mti_thamani[kushoto], kiwanja_kulia_usimbaji, nodi_ya_kazi);
+                uzalishaji_asimilia_kiwanja_mkia(kiwanja_kitendo, kiwanja_kulia, thamani_ya_nodi[kushoto], kiwanja_kulia_usimbaji, nodi_ya_kazi);
                 rudisha;
             }
             andika_sukuma_r0();  // hifadhi anwani
-            kama (mti_thamani[kushoto] < 0) {
+            kama (thamani_ya_nodi[kushoto] < 0) {
                 // Kipengele cha muundo: nakili muundo mzima -- RHS lazima
                 // itoe ANWANI ya chanzo (muundo unatathminiwa kuwa anwani)
                 uzalishaji_anwani_ya_usemi(kulia, nodi_ya_kazi);
@@ -8184,29 +8184,29 @@ w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
                 andika_nakili_baiti();
             } sivyo {
                 uzalishaji_usemi(kulia, nodi_ya_kazi);  // eax = thamani
-                badili_mpaka_wa_desimali(kulia, mti_thamani[kushoto]);
+                badili_mpaka_wa_desimali(kulia, thamani_ya_nodi[kushoto]);
                 andika_vuta_r1();  // ecx = anwani
-                andika_hifadhi_anwani_kwa_usimbaji(mti_thamani[kushoto]);  // [ecx] = thamani kwa aina sahihi
+                andika_hifadhi_anwani_kwa_usimbaji(thamani_ya_nodi[kushoto]);  // [ecx] = thamani kwa aina sahihi
             }
         } sivyo {
             // Nyoosha tu: *ptr = thamani
             // Njia ya haraka: r9 inashikilia kielekezi (angalia
             // uzalishaji_hifadhi_ptr_sib) -- haitumiki kwa kiwanja wala
             // muundo (hizo zinabaki na njia ya asili chini).
-            kama (kiwanja_salama == 0 && mti_thamani[kushoto] > 0) {
-                kama (uzalishaji_hifadhi_kielekezi_sib(nodi_ya_kielekezi, kulia, mti_thamani[kushoto], nodi_ya_kazi)) {
+            kama (kiwanja_salama == 0 && thamani_ya_nodi[kushoto] > 0) {
+                kama (uzalishaji_hifadhi_kielekezi_sib(nodi_ya_kielekezi, kulia, thamani_ya_nodi[kushoto], nodi_ya_kazi)) {
                     rudisha;
                 }
             }
-            n32 ukubwa_wa_kipengele_hiki = ukubwa_kutoka_usimbaji(mti_thamani[kushoto]);
+            n32 ukubwa_wa_kipengele_hiki = ukubwa_kutoka_usimbaji(thamani_ya_nodi[kushoto]);
             kama (ukubwa_wa_kipengele_hiki == 0) { ukubwa_wa_kipengele_hiki = 4; }
             uzalishaji_usemi(nodi_ya_kielekezi, nodi_ya_kazi);  // eax = kielekezi
             kama (kiwanja_salama) {
-                uzalishaji_asimilia_kiwanja_mkia(kiwanja_kitendo, kiwanja_kulia, mti_thamani[kushoto], kiwanja_kulia_usimbaji, nodi_ya_kazi);
+                uzalishaji_asimilia_kiwanja_mkia(kiwanja_kitendo, kiwanja_kulia, thamani_ya_nodi[kushoto], kiwanja_kulia_usimbaji, nodi_ya_kazi);
                 rudisha;
             }
             andika_sukuma_r0();  // hifadhi anwani
-            kama (mti_thamani[kushoto] < 0) {
+            kama (thamani_ya_nodi[kushoto] < 0) {
                 // *ptr = muundo: nakili muundo mzima
                 uzalishaji_anwani_ya_usemi(kulia, nodi_ya_kazi);
                 andika_vuta_r1();  // ecx = anwani ya lengo
@@ -8216,9 +8216,9 @@ w0 uzalishaji_asimilia(n32 nodi, n32 nodi_ya_kazi) {
                 andika_nakili_baiti();
             } sivyo {
                 uzalishaji_usemi(kulia, nodi_ya_kazi);  // eax = thamani
-                badili_mpaka_wa_desimali(kulia, mti_thamani[kushoto]);
+                badili_mpaka_wa_desimali(kulia, thamani_ya_nodi[kushoto]);
                 andika_vuta_r1();  // ecx = anwani
-                andika_hifadhi_anwani_kwa_usimbaji(mti_thamani[kushoto]);  // [ecx] = thamani kwa aina sahihi
+                andika_hifadhi_anwani_kwa_usimbaji(thamani_ya_nodi[kushoto]);  // [ecx] = thamani kwa aina sahihi
             }
         }
         rudisha;
@@ -8278,11 +8278,11 @@ w0 uzalishaji_usemi_kati_b(n32 nodi, n32 nodi_ya_kazi, n32 aina) {
 // Desimali -- jumlisha kwa D32 (ongezeko la msingi la kuelea)
 w0 uzalishaji_desimali_jumlisha(n32 nodi, n32 nodi_ya_kazi) {
     // Tathmini RHS -> eax, badili hadi xmm0
-    uzalishaji_usemi(mti_kulia[nodi], nodi_ya_kazi);
+    uzalishaji_usemi(nodi_ya_kulia[nodi], nodi_ya_kazi);
     andika_geuza_kuwa_d32_x0_r0d();
     andika_sukuma_x0_d32();
     // Tathmini LHS -> eax, badili hadi xmm0
-    uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
+    uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
     andika_geuza_kuwa_d32_x0_r0d();
     andika_vuta_x1_d32();
     andika_jumlisha_d32_x0_x1();
@@ -8294,18 +8294,18 @@ w0 uzalishaji_desimali_jumlisha(n32 nodi, n32 nodi_ya_kazi) {
 // AST_TAJA ina watoto wawili: msingi (kushoto) na faharasa (kulia).
 // Kama faharasa != -1, ni arr[idx]; sivyo, ni *ptr.
 w0 uzalishaji_nyoosha(n32 nodi, n32 nodi_ya_kazi) {
-    n32 nodi_ya_kielekezi = mti_kushoto[nodi];
+    n32 nodi_ya_kielekezi = nodi_ya_kushoto[nodi];
     kama (nodi_ya_kielekezi == -1) { rudisha; }
 
-    n32 faharasa_ya_nodi = mti_kulia[nodi];
+    n32 faharasa_ya_nodi = nodi_ya_kulia[nodi];
     kama (faharasa_ya_nodi != -1) {
         // Uandikishaji wa safu: arr[idx] -> *(msingi + idx * saizi_ya_elementi)
         // Saizi inakokotolewa kutoka enc (ast_thamani) -- si ast_tiga,
         // kwa kuwa mkaguzi wa wito huandika kiungo cha mnyororo juu ya
         // ast_tiga ya hoja baada ya kukagua.
-        n32 saizi = ukubwa_wa_kipengele(mti_thamani[nodi]);
+        n32 saizi = ukubwa_wa_kipengele(thamani_ya_nodi[nodi]);
         kama (saizi == 0) { saizi = 4; }  // chaguo-msingi
-        n32 usimbaji_k = mti_thamani[nodi];
+        n32 usimbaji_k = thamani_ya_nodi[nodi];
         n32 ma_k = 0;
         kama (usimbaji_k > 0 && (saizi == 1 || saizi == 2 || saizi == 4 || saizi == 8)) {
             kama (ukubwa_kutoka_usimbaji(usimbaji_k) == saizi) { ma_k = jr_msingi_aina(nodi_ya_kielekezi, nodi_ya_kazi); }
@@ -8317,10 +8317,10 @@ w0 uzalishaji_nyoosha(n32 nodi, n32 nodi_ya_kazi) {
             // n32 yenye ishara tayari imepanuliwa na panua_ishara_ndogo (mwisho wa
             // uzalishaji_usemi); aina nyingine (A32, n64 -- ilipunguzwa kwa biti 32
             // na shl+cdqe ya njia ya asili) inahitaji cdqe hapa kwa matokeo yale yale.
-            n32 ie = mti_thamani[faharasa_ya_nodi];
-            kama (mti_aina[faharasa_ya_nodi] == 4) { ie = mti_nne[faharasa_ya_nodi]; }
+            n32 ie = thamani_ya_nodi[faharasa_ya_nodi];
+            kama (aina_ya_nodi[faharasa_ya_nodi] == 4) { ie = nne_ya_nodi[faharasa_ya_nodi]; }
             n32 tayari = 0;
-            kama (mti_aina[faharasa_ya_nodi] != 45 && ie > 0 && ukubwa_kutoka_usimbaji(ie) < 8 && ni_bila_ishara_usimbaji(ie) == 0 && ni_desimali_usimbaji(ie) == 0) { tayari = 1; }
+            kama (aina_ya_nodi[faharasa_ya_nodi] != 45 && ie > 0 && ukubwa_kutoka_usimbaji(ie) < 8 && ni_bila_ishara_usimbaji(ie) == 0 && ni_desimali_usimbaji(ie) == 0) { tayari = 1; }
             kama (tayari == 0) { andika_cdqe(); }
             jr_pakia_msingi_r1(ma_k, nodi_ya_kielekezi, nodi_ya_kazi);
             andika_pakia_sib_kwa_usimbaji(usimbaji_k, saizi);
@@ -8331,24 +8331,24 @@ w0 uzalishaji_nyoosha(n32 nodi, n32 nodi_ya_kazi) {
         zalisha_ongeza_msingi(nodi_ya_kielekezi, nodi_ya_kazi);  // rax = msingi + ofseti
         // Pakia kipengele: movsx/movzx kwa n8/n16, upana mwingine kama
         // kawaida; kipengele cha muundo (enc hasi) hubakia anwani.
-        andika_pakia_anwani_kwa_usimbaji(mti_thamani[nodi]);
+        andika_pakia_anwani_kwa_usimbaji(thamani_ya_nodi[nodi]);
     } sivyo {
         // Nyoosha tu: *ptr
         uzalishaji_usemi(nodi_ya_kielekezi, nodi_ya_kazi);
-        andika_pakia_anwani_kwa_usimbaji(mti_thamani[nodi]);
+        andika_pakia_anwani_kwa_usimbaji(thamani_ya_nodi[nodi]);
     }
 }
 
 // Anwani-ya (&expr) -- chukua anwani ya usemi
 w0 uzalishaji_anwani_ya(n32 nodi, n32 nodi_ya_kazi) {
-    n32 nodi_ya_kigeu = mti_kushoto[nodi];
+    n32 nodi_ya_kigeu = nodi_ya_kushoto[nodi];
     kama (nodi_ya_kigeu == -1) { andika_au_pekee_r0d_r0d(); rudisha; }
 
-    n32 aina_ya_kigeu = mti_aina[nodi_ya_kigeu];
+    n32 aina_ya_kigeu = aina_ya_nodi[nodi_ya_kigeu];
 
     // &kigeu -- anwani ya kigeu cha ndani
     kama (aina_ya_kigeu == 5) {
-        n8* jina = mti_ghala + mti_ofseti_ya_jina[nodi_ya_kigeu];
+        n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kigeu];
         n32 i = 0;
         wakati (i < idadi_ya_vigeu) {
             n8* vjina = ghala_la_vigeu + ofseti_ya_jina_la_kigeu[i];
@@ -8361,7 +8361,7 @@ w0 uzalishaji_anwani_ya(n32 nodi, n32 nodi_ya_kazi) {
         // &kigeu cha ulimwengu -- anwani ya kimataifa
         n32 gi = 0;
         wakati (gi < idadi_ya_data_ya_ulimwengu) {
-            n8* gjina = mti_ghala + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
+            n8* gjina = ghala_la_majina + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
             kama (jina_linganisha(gjina, jina)) {
                 andika_anwani_r0_kutoka_agizo(gi);
                 rudisha;
@@ -8390,11 +8390,11 @@ w0 uzalishaji_anwani_ya(n32 nodi, n32 nodi_ya_kazi) {
 
     // &kigeu.sehemu -- anwani ya sehemu ya muundo
     kama (aina_ya_kigeu == 33) {
-        n32 struct_nodi = mti_kushoto[nodi_ya_kigeu];
-        n32 ofseti = mti_nne[nodi_ya_kigeu];
+        n32 struct_nodi = nodi_ya_kushoto[nodi_ya_kigeu];
+        n32 ofseti = nne_ya_nodi[nodi_ya_kigeu];
         // Kama msingi ni kitambulisho, tumia LEA kupata anwani ya muundo
-        kama (mti_aina[struct_nodi] == 5) {
-            n8* jina = mti_ghala + mti_ofseti_ya_jina[struct_nodi];
+        kama (aina_ya_nodi[struct_nodi] == 5) {
+            n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[struct_nodi];
             n32 i = 0;
             wakati (i < idadi_ya_vigeu) {
                 kama (jina_linganisha(ghala_la_vigeu + ofseti_ya_jina_la_kigeu[i], jina)) {
@@ -8416,11 +8416,11 @@ w0 uzalishaji_anwani_ya(n32 nodi, n32 nodi_ya_kazi) {
 
     // &kielekezi->sehemu -- anwani kupitia kielekezi
     kama (aina_ya_kigeu == 34) {
-        n32 nodi_ya_kielekezi = mti_kushoto[nodi_ya_kigeu];
-        n32 ofseti = mti_nne[nodi_ya_kigeu];
+        n32 nodi_ya_kielekezi = nodi_ya_kushoto[nodi_ya_kigeu];
+        n32 ofseti = nne_ya_nodi[nodi_ya_kigeu];
         // Kama msingi ni kitambulisho na si kielekezi (safu), tumia LEA
-        kama (mti_aina[nodi_ya_kielekezi] == 5) {
-            n8* jina = mti_ghala + mti_ofseti_ya_jina[nodi_ya_kielekezi];
+        kama (aina_ya_nodi[nodi_ya_kielekezi] == 5) {
+            n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kielekezi];
             n32 i = 0;
             wakati (i < idadi_ya_vigeu) {
                 kama (jina_linganisha(ghala_la_vigeu + ofseti_ya_jina_la_kigeu[i], jina)) {
@@ -8444,11 +8444,11 @@ w0 uzalishaji_anwani_ya(n32 nodi, n32 nodi_ya_kazi) {
 
     // &*ptr au &arr[idx] -- anwani ya elementi iliyonyooshwa
     kama (aina_ya_kigeu == 29) {
-        n32 base = mti_kushoto[nodi_ya_kigeu];
-        n32 faharasa = mti_kulia[nodi_ya_kigeu];
+        n32 base = nodi_ya_kushoto[nodi_ya_kigeu];
+        n32 faharasa = nodi_ya_kulia[nodi_ya_kigeu];
         kama (faharasa != -1) {
             // &arr[idx] -- anwani = msingi + idx * saizi
-            n32 saizi = ukubwa_wa_kipengele(mti_thamani[nodi_ya_kigeu]);
+            n32 saizi = ukubwa_wa_kipengele(thamani_ya_nodi[nodi_ya_kigeu]);
             kama (saizi == 0) { saizi = 4; }
             uzalishaji_usemi(faharasa, nodi_ya_kazi);
             andika_ongea_kipengele_kwa_saizi(saizi);
@@ -8471,11 +8471,11 @@ w0 uzalishaji_anwani_ya(n32 nodi, n32 nodi_ya_kazi) {
 // -------------------------------------------------------
 w0 uzalishaji_anwani_ya_usemi(n32 nodi, n32 nodi_ya_kazi) {
     kama (nodi == -1) { andika_au_pekee_r0d_r0d(); rudisha; }
-    n32 aina = mti_aina[nodi];
+    n32 aina = aina_ya_nodi[nodi];
 
     // Kigeu: anwani ya rafu (au kielekezi kwa paramu ya muundo mkubwa)
     kama (aina == 5) {
-        n8* jina = mti_ghala + mti_ofseti_ya_jina[nodi];
+        n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi];
         n32 i = 0;
         wakati (i < idadi_ya_vigeu) {
             n8* vjina = ghala_la_vigeu + ofseti_ya_jina_la_kigeu[i];
@@ -8491,7 +8491,7 @@ w0 uzalishaji_anwani_ya_usemi(n32 nodi, n32 nodi_ya_kazi) {
         }
         n32 gi = 0;
         wakati (gi < idadi_ya_data_ya_ulimwengu) {
-            n8* gjina = mti_ghala + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
+            n8* gjina = ghala_la_majina + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
             kama (jina_linganisha(gjina, jina)) {
                 andika_anwani_r0_kutoka_agizo(gi);
                 rudisha;
@@ -8507,17 +8507,17 @@ w0 uzalishaji_anwani_ya_usemi(n32 nodi, n32 nodi_ya_kazi) {
 
     // arr[idx]: anwani = msingi + idx * saizi (bila kupakia)
     kama (aina == 29) {
-        n32 faharasa = mti_kulia[nodi];
+        n32 faharasa = nodi_ya_kulia[nodi];
         kama (faharasa != -1) {
-            n32 saizi = ukubwa_wa_kipengele(mti_thamani[nodi]);
+            n32 saizi = ukubwa_wa_kipengele(thamani_ya_nodi[nodi]);
             kama (saizi == 0) { saizi = 4; }
             uzalishaji_usemi(faharasa, nodi_ya_kazi);
             andika_ongea_kipengele_kwa_saizi(saizi);
-            zalisha_ongeza_msingi(mti_kushoto[nodi], nodi_ya_kazi);
+            zalisha_ongeza_msingi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
             rudisha;
         }
         // *p: thamani ya p ndiyo anwani
-        uzalishaji_usemi(mti_kushoto[nodi], nodi_ya_kazi);
+        uzalishaji_usemi(nodi_ya_kushoto[nodi], nodi_ya_kazi);
         rudisha;
     }
 
@@ -8535,16 +8535,16 @@ w0 uzalishaji_anwani_ya_usemi(n32 nodi, n32 nodi_ya_kazi) {
 // Inatumia ast_tiga iliyohifadhiwa wakati wa uchanganuzi wa muundo
 n32 pata_ofseti_ya_sehemu_kwa_jina(n8* jina_la_sehemu) {
     n32 si = 0;
-    wakati (si < mti_idadi) {
-        kama (mti_aina[si] == 12) {  // AST_MUUNDO
-            n32 kazi_hii = mti_kulia[si];
+    wakati (si < idadi_ya_nodi) {
+        kama (aina_ya_nodi[si] == 12) {  // AST_MUUNDO
+            n32 kazi_hii = nodi_ya_kulia[si];
             wakati (kazi_hii != -1) {
-                n32 fname_nodi = mti_kushoto[kazi_hii];
-                n8* sn = mti_ghala + mti_ofseti_ya_jina[fname_nodi];
+                n32 fname_nodi = nodi_ya_kushoto[kazi_hii];
+                n8* sn = ghala_la_majina + umbali_wa_jina_la_nodi[fname_nodi];
                 kama (jina_linganisha(sn, jina_la_sehemu)) {
-                    rudisha mti_tiga[fname_nodi];  // ofseti iliyohifadhiwa
+                    rudisha tatu_ya_nodi[fname_nodi];  // ofseti iliyohifadhiwa
                 }
-                kazi_hii = mti_kulia[kazi_hii];
+                kazi_hii = nodi_ya_kulia[kazi_hii];
             }
         }
         si = si + 1;
@@ -8589,11 +8589,11 @@ w0 andika_pakia_anwani_kwa_usimbaji_sehemu(n32 usimbaji) {
 }
 
 w0 uzalishaji_sehemu_dot(n32 nodi, n32 nodi_ya_kazi) {
-    n32 struct_nodi = mti_kushoto[nodi];
-    n32 ofseti = mti_nne[nodi];
+    n32 struct_nodi = nodi_ya_kushoto[nodi];
+    n32 ofseti = nne_ya_nodi[nodi];
     // Kama msingi ni kitambulisho, tumia LEA kupata anwani ya muundo
-    kama (mti_aina[struct_nodi] == 5) {
-        n8* jina = mti_ghala + mti_ofseti_ya_jina[struct_nodi];
+    kama (aina_ya_nodi[struct_nodi] == 5) {
+        n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[struct_nodi];
         n32 i = 0;
         wakati (i < idadi_ya_vigeu) {
             kama (jina_linganisha(ghala_la_vigeu + ofseti_ya_jina_la_kigeu[i], jina)) {
@@ -8604,7 +8604,7 @@ w0 uzalishaji_sehemu_dot(n32 nodi, n32 nodi_ya_kazi) {
                     andika_anwani_r0_r5_ofseti(kigeu_r5_ofseti[i]);
                 }
                 kama (ofseti != -1) { andika_jumlisha_r0_namba32(ofseti); }
-                andika_pakia_anwani_kwa_usimbaji_sehemu(mti_thamani[nodi]);
+                andika_pakia_anwani_kwa_usimbaji_sehemu(thamani_ya_nodi[nodi]);
                 rudisha;
             }
             i = i + 1;
@@ -8613,11 +8613,11 @@ w0 uzalishaji_sehemu_dot(n32 nodi, n32 nodi_ya_kazi) {
         // kusoma baiti za kwanza kama thamani kungeanguka (SEGV)
         n32 gi = 0;
         wakati (gi < idadi_ya_data_ya_ulimwengu) {
-            n8* gjina = mti_ghala + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
+            n8* gjina = ghala_la_majina + ofseti_ya_jina_la_data_ya_ulimwengu[gi];
             kama (jina_linganisha(gjina, jina)) {
                 andika_anwani_r0_kutoka_agizo(gi);
                 kama (ofseti != -1) { andika_jumlisha_r0_namba32(ofseti); }
-                andika_pakia_anwani_kwa_usimbaji_sehemu(mti_thamani[nodi]);
+                andika_pakia_anwani_kwa_usimbaji_sehemu(thamani_ya_nodi[nodi]);
                 rudisha;
             }
             gi = gi + 1;
@@ -8626,17 +8626,17 @@ w0 uzalishaji_sehemu_dot(n32 nodi, n32 nodi_ya_kazi) {
     // Vinginevyo, tumia thamani ya usemi kama anwani
     uzalishaji_usemi(struct_nodi, nodi_ya_kazi);
     kama (ofseti != -1) { andika_jumlisha_r0_namba32(ofseti); }
-    andika_pakia_anwani_kwa_usimbaji_sehemu(mti_thamani[nodi]);
+    andika_pakia_anwani_kwa_usimbaji_sehemu(thamani_ya_nodi[nodi]);
 }
 
 // Sehemu ya muundo kwa mshale: ptr->field  (AST_SEHEMU_MSHALE = 34)
 // Ofseti ya baiti imehifadhiwa na mkaguzi katika ast_tiga[node]
 w0 uzalishaji_sehemu_mshale(n32 nodi, n32 nodi_ya_kazi) {
-    n32 nodi_ya_kielekezi = mti_kushoto[nodi];
-    n32 ofseti = mti_nne[nodi];
+    n32 nodi_ya_kielekezi = nodi_ya_kushoto[nodi];
+    n32 ofseti = nne_ya_nodi[nodi];
     // Kama msingi ni kitambulisho na si kielekezi (safu), tumia LEA
-    kama (mti_aina[nodi_ya_kielekezi] == 5) {
-        n8* jina = mti_ghala + mti_ofseti_ya_jina[nodi_ya_kielekezi];
+    kama (aina_ya_nodi[nodi_ya_kielekezi] == 5) {
+        n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kielekezi];
         n32 i = 0;
         wakati (i < idadi_ya_vigeu) {
             kama (jina_linganisha(ghala_la_vigeu + ofseti_ya_jina_la_kigeu[i], jina)) {
@@ -8648,7 +8648,7 @@ w0 uzalishaji_sehemu_mshale(n32 nodi, n32 nodi_ya_kazi) {
                     andika_anwani_r0_r5_ofseti(kigeu_r5_ofseti[i]);
                 }
                 kama (ofseti != -1) { andika_jumlisha_r0_namba32(ofseti); }
-                andika_pakia_anwani_kwa_usimbaji_sehemu(mti_thamani[nodi]);
+                andika_pakia_anwani_kwa_usimbaji_sehemu(thamani_ya_nodi[nodi]);
                 rudisha;
             }
             i = i + 1;
@@ -8658,7 +8658,7 @@ w0 uzalishaji_sehemu_mshale(n32 nodi, n32 nodi_ya_kazi) {
     kama (ofseti != -1) {
         andika_jumlisha_r0_namba32(ofseti);  // ongeza ofseti kwenye kielekezi
     }
-    andika_pakia_anwani_kwa_usimbaji_sehemu(mti_thamani[nodi]);
+    andika_pakia_anwani_kwa_usimbaji_sehemu(thamani_ya_nodi[nodi]);
 }
 
 // Vishikizi vya aina 33-44: sehemu, asimilia, bit, ternary
@@ -8680,7 +8680,7 @@ w0 uzalishaji_usemi_juu_a(n32 nodi, n32 nodi_ya_kazi, n32 aina) {
 // -------------------------------------------------------
 w0 uzalishaji_usemi(n32 nodi, n32 nodi_ya_kazi) {
     kama (nodi == -1) { rudisha; }
-    n32 aina = mti_aina[nodi];
+    n32 aina = aina_ya_nodi[nodi];
     kama (aina <= 8) { uzalishaji_usemi_chini(nodi, nodi_ya_kazi, aina); }
     sivyo { kama (aina <= 21) { uzalishaji_usemi_kati_a1(nodi, nodi_ya_kazi, aina); }
         sivyo { kama (aina <= 25) { uzalishaji_usemi_kati_a2(nodi, nodi_ya_kazi, aina); }
@@ -8700,12 +8700,12 @@ w0 uzalishaji_usemi(n32 nodi, n32 nodi_ya_kazi) {
 // PAKIA KIGEZO CHA KAZI
 n32 pakia_kigezo_ikiwa_ni_paramu(n32 nodi, n8* jina, n32 nodi_ya_kazi) {
     kama (nodi_ya_kazi < 0) { rudisha 0; }
-    n32 kigezo = mti_kulia[nodi_ya_kazi];
+    n32 kigezo = nodi_ya_kulia[nodi_ya_kazi];
     n32 sasa_ofseti = 0;
     wakati (kigezo != -1) {
-        n8* pjina = mti_ghala + mti_ofseti_ya_jina[kigezo];
+        n8* pjina = ghala_la_majina + umbali_wa_jina_la_nodi[kigezo];
         // Kokotoa ukubwa wa kigezo hiki
-        n32 usimbaji = mti_thamani[kigezo];
+        n32 usimbaji = thamani_ya_nodi[kigezo];
         n32 ukubwa_huu = ukubwa_kutoka_usimbaji(usimbaji);
         kama (ukubwa_huu == 0) { ukubwa_huu = 4; }
         sasa_ofseti = sasa_ofseti + ukubwa_huu;  // ofseti kutoka rbp
@@ -8713,7 +8713,7 @@ n32 pakia_kigezo_ikiwa_ni_paramu(n32 nodi, n8* jina, n32 nodi_ya_kazi) {
             andika_pakia_kigeu_kwa_usimbaji(usimbaji, sasa_ofseti);
             rudisha 1;
         }
-        kigezo = mti_kulia[kigezo];
+        kigezo = nodi_ya_kulia[kigezo];
     }
     rudisha 0;
 }
@@ -8721,20 +8721,20 @@ n32 pakia_kigezo_ikiwa_ni_paramu(n32 nodi, n8* jina, n32 nodi_ya_kazi) {
 // Inatumiwa na kipitishi cha awali kuamua ikiwa wito unahitaji
 // bafa ya sret -- kazi zote zinajulikana, hata za mbele.
 n32 kazi_matokeo_usimbaji_kwa_jina(n8* jina) {
-    n32 gn = mti_kushoto[uzalishaji_nodi_ya_programu];
+    n32 gn = nodi_ya_kushoto[uzalishaji_nodi_ya_programu];
     wakati (gn != -1) {
-        kama (mti_aina[gn] == 2) {  // AST_KAZI
-            n32 name_n = mti_kushoto[gn];
+        kama (aina_ya_nodi[gn] == 2) {  // AST_KAZI
+            n32 name_n = nodi_ya_kushoto[gn];
             kama (name_n != -1) {
-                kama (jina_linganisha(mti_ghala + mti_ofseti_ya_jina[name_n], jina)) {
-                    rudisha mti_thamani[gn];
+                kama (jina_linganisha(ghala_la_majina + umbali_wa_jina_la_nodi[name_n], jina)) {
+                    rudisha thamani_ya_nodi[gn];
                 }
             }
         }
-        gn = mti_nne[gn];
+        gn = nne_ya_nodi[gn];
     }
     n32 kg_k = kigeni_kazi_kwa_jina(jina);
-    kama (kg_k >= 0) { rudisha mti_thamani[kigeni_nodi_ya_kazi[kg_k]]; }
+    kama (kg_k >= 0) { rudisha thamani_ya_nodi[kigeni_nodi_ya_kazi[kg_k]]; }
     rudisha 0;
 }
 
@@ -8764,7 +8764,7 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
     kama (nodi >= 1048576) { rudisha; }  // kinga ya ziada
     kama (kvn_imetembelewa[nodi] == kvn_zamu) { rudisha; }
     kvn_imetembelewa[nodi] = kvn_zamu;
-    n32 aina = mti_aina[nodi];
+    n32 aina = aina_ya_nodi[nodi];
 
     // Pitio la awali la ugawaji wa rejesta za SU (angalia maelezo
     // kamili karibu na tangazo la su_max_haja_kazi, karibu na
@@ -8809,7 +8809,7 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
     // (wakati/kwa) kinachozunguka nodi hii -- usemi wa SU nje ya
     // kitanzi chochote (su_kina_kitanzi==0) HAUCHANGII su_max_haja_kazi
     // KABISA, hata kama haja yake ni kubwa.
-    kama (aina == MTI_JUMLISHA || aina == MTI_TOFAUTI || aina == MTI_ZIDISHA) {
+    kama (aina == NODI_JUMLISHA || aina == NODI_TOFAUTI || aina == NODI_ZIDISHA) {
         kama (su_kina_cha_mzunguko > 0) {
             n32 su_h = su_haja_rejista(nodi);
             kama (su_h >= 2) {
@@ -8818,7 +8818,7 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
         }
     }
 
-    kama (aina == MTI_WAKATI) {  // 10 -- wakati/kwa (kianzio kiko ast_tiga)
+    kama (aina == NODI_WAKATI) {  // 10 -- wakati/kwa (kianzio kiko ast_tiga)
         // Kina cha kitanzi kinaongezwa TU kuzunguka sharti (kushoto)
         // na mwili (kulia) -- HIVI ndivyo vinavyorudiwa kwa kila
         // mzunguko. ast_tiga (kianzio cha kwa, kama kipo) na ast_nne
@@ -8829,57 +8829,57 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
         // ikirukwa na usafiri wa jumla kabla ya tawi hili -- tabia hii
         // haijabadilika hapa, ni sawa kabisa).
         su_kina_cha_mzunguko = su_kina_cha_mzunguko + 1;
-        kusanya_vigeu_vya_ndani(mti_kushoto[nodi]);
-        kusanya_vigeu_vya_ndani(mti_kulia[nodi]);
+        kusanya_vigeu_vya_ndani(nodi_ya_kushoto[nodi]);
+        kusanya_vigeu_vya_ndani(nodi_ya_kulia[nodi]);
         su_kina_cha_mzunguko = su_kina_cha_mzunguko - 1;
-        kusanya_vigeu_vya_ndani(mti_nne[nodi]);
+        kusanya_vigeu_vya_ndani(nne_ya_nodi[nodi]);
         rudisha;
     }
 
     kama (aina == 50) {  // AST_BLOCK -- kulia ni alama (-777777), si nodi
-        kusanya_vigeu_vya_ndani(mti_kushoto[nodi]);
-        kusanya_vigeu_vya_ndani(mti_nne[nodi]);
+        kusanya_vigeu_vya_ndani(nodi_ya_kushoto[nodi]);
+        kusanya_vigeu_vya_ndani(nne_ya_nodi[nodi]);
         rudisha;
     }
 
     kama (aina == 11) {  // AST_TANGAZO
-        n32 nodi_ya_kigeu = mti_kushoto[nodi];
-        n8* jina = mti_ghala + mti_ofseti_ya_jina[nodi_ya_kigeu];
-        n32 usimbaji = mti_thamani[nodi_ya_kigeu];
-        kama (usimbaji == 0) { usimbaji = mti_thamani[nodi]; }
+        n32 nodi_ya_kigeu = nodi_ya_kushoto[nodi];
+        n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kigeu];
+        n32 usimbaji = thamani_ya_nodi[nodi_ya_kigeu];
+        kama (usimbaji == 0) { usimbaji = thamani_ya_nodi[nodi]; }
         n32 ukubwa_huu = ukubwa_kutoka_usimbaji(usimbaji);
         kama (ukubwa_huu == 0) { ukubwa_huu = 4; }
         // Safu ya ndani: ukubwa wa safu uko kwenye ast_tiga kama namba halisi
-        kama (mti_tiga[nodi] > 0) { ukubwa_huu = ukubwa_huu * mti_tiga[nodi]; }
+        kama (tatu_ya_nodi[nodi] > 0) { ukubwa_huu = ukubwa_huu * tatu_ya_nodi[nodi]; }
         // Sajiri kigeu mapema (kabla ya kutoa utangulizi)
         pata_au_unda_kigeu_ukubwa(jina, ukubwa_huu, usimbaji);
         // Tembelea kianzio: wito wa sret na hoja za miundo vinaweza
         // kuwemo (mf. `Msambazaji p = msambazaji_mpya(...)`). Bila hii,
         // bafa za sret/wito za kazi zisizo na vianzio katika mwili
         // zingekosa -- poromoko la rafu kwa sret.
-        kusanya_vigeu_vya_ndani(mti_kulia[nodi]);
+        kusanya_vigeu_vya_ndani(nodi_ya_kulia[nodi]);
         // Tembelea ndugu (mfululizo wa matangazo kwenye block) --
         // vinginevyo matangazo yaliyofuata yangesajiliwa baada ya
         // bafa ya sret kupata ofseti za juu (>= 256).
-        kusanya_vigeu_vya_ndani(mti_nne[nodi]);
+        kusanya_vigeu_vya_ndani(nne_ya_nodi[nodi]);
         rudisha;
     }
 
     kama (aina == 8) {  // AST_WITO -- pima haja ya bafa ya nakala za miundo
         n32 jumla_w = 0;
         n32 jumla_sa = 0;
-        n32 a_w = mti_kulia[nodi];
+        n32 a_w = nodi_ya_kulia[nodi];
         wakati (a_w != -1) {
-            kama (ni_muundo_usimbaji(mti_thamani[a_w])) {
-                n32 ukubwa_w = ukubwa_kutoka_usimbaji(mti_thamani[a_w]);
+            kama (ni_muundo_usimbaji(thamani_ya_nodi[a_w])) {
+                n32 ukubwa_w = ukubwa_kutoka_usimbaji(thamani_ya_nodi[a_w]);
                 kama (ukubwa_w > 8) {
                     jumla_w = jumla_w + ukubwa_w;
                     // Matokeo ya wito (sret) kama hoja hunakiliwa mara
                     // moja kwenye bafa ya sret-hoja -- pima haja yake.
-                    kama (mti_aina[a_w] == 8) { jumla_sa = jumla_sa + ukubwa_w; }
+                    kama (aina_ya_nodi[a_w] == 8) { jumla_sa = jumla_sa + ukubwa_w; }
                 }
             }
-            a_w = mti_tiga[a_w];
+            a_w = tatu_ya_nodi[a_w];
         }
         kama (jumla_w > wito_bafa_haja) { wito_bafa_haja = jumla_w; }
         kama (jumla_sa > haja_ya_bafa_ya_matokeo_kama_hoja) { haja_ya_bafa_ya_matokeo_kama_hoja = jumla_sa; }
@@ -8893,20 +8893,20 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
         // iliandika muundo wake juu ya kigeu cha mwisho cha fremu (hapa
         // paramu `i` ya kazi iliyounganishwa) -- thamani mbaya kimya au
         // SEGV. kvn_visited inazuia kutembelea nodi mara mbili.
-        n32 a_v = mti_kulia[nodi];
+        n32 a_v = nodi_ya_kulia[nodi];
         wakati (a_v != -1) {
             kusanya_vigeu_vya_ndani(a_v);
-            a_v = mti_tiga[a_v];
+            a_v = tatu_ya_nodi[a_v];
         }
         // Bafa ya sret inahitajika tu kama wito wowote unalenga kazi
         // inayorudisha muundo (kielekezi cha sret hutumia bafa ya
         // MPIGAJI). Bila hii, kila fremu ingetumia baiti 256 bure --
         // kurudia kirefu kungeanguka rafu mapema.
         kama (wito_unahitaji_bafa_ya_matokeo == 0) {
-            n32 cn = mti_kushoto[nodi];
+            n32 cn = nodi_ya_kushoto[nodi];
             kama (cn != -1) {
-                kama (mti_aina[cn] == 5) {  // KITAMBULISHO -- jina la kazi
-                    n32 cre = kazi_matokeo_usimbaji_kwa_jina(mti_ghala + mti_ofseti_ya_jina[cn]);
+                kama (aina_ya_nodi[cn] == 5) {  // KITAMBULISHO -- jina la kazi
+                    n32 cre = kazi_matokeo_usimbaji_kwa_jina(ghala_la_majina + umbali_wa_jina_la_nodi[cn]);
                     kama (cre != 0) {
                         kama ((cre / 256) % 256 == 6) { wito_unahitaji_bafa_ya_matokeo = 1; }
                         kama (cre < 0 && (cre / 2) * 2 == cre) { wito_unahitaji_bafa_ya_matokeo = 1; }
@@ -8923,8 +8923,8 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
     kama (aina == 4) { rudisha; }
 
     // Tembelea watoto kwa kujirudia
-    kusanya_vigeu_vya_ndani(mti_kushoto[nodi]);
-    kusanya_vigeu_vya_ndani(mti_kulia[nodi]);
+    kusanya_vigeu_vya_ndani(nodi_ya_kushoto[nodi]);
+    kusanya_vigeu_vya_ndani(nodi_ya_kulia[nodi]);
     // ast_tiga ina maana tofauti kulingana na aina ya nodi.
     // Kwa shughuli za hesabu/linganisho/biti (6-25,31-32,39-43,49),
     //   hubeba kiungo cha hoja cha mnyororo wa wito au -1.
@@ -8944,7 +8944,7 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
     kama (aina == 5) { ruka_tiga = 1; }  // KITAMBULISHO: ofseti za sehemu au -1
     kama (aina == 33 || aina == 34 || aina == 35 || aina == 44) { ruka_tiga = 1; }
     kama (ruka_tiga == 0) {
-        kusanya_vigeu_vya_ndani(mti_tiga[nodi]);
+        kusanya_vigeu_vya_ndani(tatu_ya_nodi[nodi]);
     }
     // SEHEMU_DOT/MSHALE: ast_nne ina ofseti ya baiti (sio nodi)
     n32 ruka_nne = 0;
@@ -8952,11 +8952,11 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
     kama (aina == 45) { ruka_nne = 1; }  // HALISI_D: ast_nne ina enc, ast_tiga baiti
     kama (aina == 4) { ruka_nne = 1; }  // NAMBARI: mkaguzi huweka enc (288/320) kwenye ast_nne -- SI nodi
     kama (ruka_nne == 0) {
-        kusanya_vigeu_vya_ndani(mti_nne[nodi]);
+        kusanya_vigeu_vya_ndani(nne_ya_nodi[nodi]);
     }
     // Kwa KIPINDI, thamani ina sharti (lakini si 0 -- thamani halisi)
     kama (aina == 15) {
-        n32 tv = mti_thamani[nodi];
+        n32 tv = thamani_ya_nodi[nodi];
         kama (tv != -1) { kama (tv != 0) { kusanya_vigeu_vya_ndani(tv); } }
     }
 }
@@ -9009,11 +9009,11 @@ n32 ni_muundo_usimbaji(n32 usimbaji) {
 // kujua KWA UHAKIKA kama jina fulani lililokisiwa lipo kabisa.
 n32 muundo_jina_ipo(n8* jina) {
     n32 si = 0;
-    wakati (si < mti_idadi) {
-        kama (mti_aina[si] == 12) {  // AST_MUUNDO
-            n32 name_nodi = mti_kushoto[si];
+    wakati (si < idadi_ya_nodi) {
+        kama (aina_ya_nodi[si] == 12) {  // AST_MUUNDO
+            n32 name_nodi = nodi_ya_kushoto[si];
             kama (name_nodi != -1) {
-                n8* sn = mti_ghala + mti_ofseti_ya_jina[name_nodi];
+                n8* sn = ghala_la_majina + umbali_wa_jina_la_nodi[name_nodi];
                 kama (jina_linganisha(sn, jina)) { rudisha 1; }
             }
         }
@@ -9031,7 +9031,7 @@ n32 muundo_jina_ipo(n8* jina) {
 // dimbwi la miundo, ni mshale=3 (kielekezi cha pili).
 n32 usimbaji_hasi_ni_mshale_wa_pili(n32 usimbaji) {
     n32 name_ofseti_1 = ((0 - (usimbaji - 1)) / 2) - 1;
-    n8* jina_1 = mti_ghala + name_ofseti_1;
+    n8* jina_1 = ghala_la_majina + name_ofseti_1;
     kama (muundo_jina_ipo(jina_1)) { rudisha 0; }
     rudisha 1;
 }
@@ -9061,9 +9061,9 @@ n32 ukubwa_wa_jina(n8* jina) {
         rudisha (upana + 7) / 8;
     }
     n32 si = 0;
-    wakati (si < mti_idadi) {
-        kama (mti_aina[si] == 12 && mti_kushoto[si] != -1) {  // AST_MUUNDO
-            kama (jina_linganisha(mti_ghala + mti_ofseti_ya_jina[mti_kushoto[si]], jina)) { rudisha mti_thamani[si]; }
+    wakati (si < idadi_ya_nodi) {
+        kama (aina_ya_nodi[si] == 12 && nodi_ya_kushoto[si] != -1) {  // AST_MUUNDO
+            kama (jina_linganisha(ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[si]], jina)) { rudisha thamani_ya_nodi[si]; }
         }
         si = si + 1;
     }
@@ -9074,7 +9074,7 @@ n32 ukubwa_wa_jina(n8* jina) {
     }
     n32 gi = 0;
     wakati (gi < idadi_ya_data_ya_ulimwengu) {
-        kama (jina_linganisha(mti_ghala + ofseti_ya_jina_la_data_ya_ulimwengu[gi], jina)) { rudisha data_ulimwengu_size[gi]; }
+        kama (jina_linganisha(ghala_la_majina + ofseti_ya_jina_la_data_ya_ulimwengu[gi], jina)) { rudisha data_ulimwengu_size[gi]; }
         gi = gi + 1;
     }
     andika_stderr("Hitilafu: ukubwa(%s) -- '%s' si aina, muundo, wala kigeu kinachojulikana\n", jina, jina);
@@ -9084,14 +9084,14 @@ n32 ukubwa_wa_jina(n8* jina) {
 
 n32 ukubwa_wa_muundo_kwa_jina(n8* jina) {
     n32 si = 0;
-    wakati (si < mti_idadi) {
-        kama (mti_aina[si] == 12) {  // AST_MUUNDO
-            n32 name_nodi = mti_kushoto[si];
+    wakati (si < idadi_ya_nodi) {
+        kama (aina_ya_nodi[si] == 12) {  // AST_MUUNDO
+            n32 name_nodi = nodi_ya_kushoto[si];
             kama (name_nodi != -1) {
-                n8* sn = mti_ghala + mti_ofseti_ya_jina[name_nodi];
+                n8* sn = ghala_la_majina + umbali_wa_jina_la_nodi[name_nodi];
                 kama (jina_linganisha(sn, jina)) {
                     // Ukubwa ulihifadhiwa na msambazaji (changanua_muundo)
-                    n32 ukubwa = mti_thamani[si];
+                    n32 ukubwa = thamani_ya_nodi[si];
                     kama (ukubwa == 0) { ukubwa = 4; }
                     rudisha ukubwa;
                 }
@@ -9106,8 +9106,8 @@ n32 ukubwa_wa_muundo_kwa_jina(n8* jina) {
 // Kitoa kazi kama machine code
 // -------------------------------------------------------
 w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
-    n32 usimbaji_wa_matokeo = mti_thamani[nodi_ya_kazi];
-    lebo_hifadhi(mti_ghala + mti_ofseti_ya_jina[mti_kushoto[nodi_ya_kazi]], usimbaji_wa_matokeo);
+    n32 usimbaji_wa_matokeo = thamani_ya_nodi[nodi_ya_kazi];
+    lebo_hifadhi(ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[nodi_ya_kazi]], usimbaji_wa_matokeo);
     idadi_ya_vigeu = 0; ukubwa_wa_mrundikano_wa_vigeu = 0; ghala_la_vigeu_wapi = 1;
     // USIWEKE UPYA lebo_buf_idadi/fixup_idadi hapa: tungo zinahitaji
     // fixups zake kuishi hadi andika_herufi_halisi mwishoni mwa
@@ -9127,7 +9127,7 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
     su_kina_cha_mzunguko = 0;
 
     // Tambua ikiwa kazi inarudisha muundo (sret)
-    kazi_ya_sasa_jina = mti_ghala + mti_ofseti_ya_jina[mti_kushoto[nodi_ya_kazi]];
+    kazi_ya_sasa_jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[nodi_ya_kazi]];
     kazi_inarudisha_muundo = ni_muundo_usimbaji(usimbaji_wa_matokeo);
     ofseti_ya_kielekezi_cha_matokeo = 0;
 
@@ -9139,10 +9139,10 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
     n32 n = 0;
     n32 kigezo_cha_mrundikano = 0;
     // Ikiwa sret, rdi ni kielekezi kilichofichwa, si hoja ya kawaida
-    n32 pn = mti_kulia[nodi_ya_kazi];
+    n32 pn = nodi_ya_kulia[nodi_ya_kazi];
     wakati (pn != -1) {
         kama (n >= 16) { vunja; }
-        n32 usimbaji = mti_thamani[pn];
+        n32 usimbaji = thamani_ya_nodi[pn];
         n32 ukubwa_huu = ukubwa_kutoka_usimbaji(usimbaji);
         kama (ukubwa_huu == 0) { ukubwa_huu = 4; }
         ofseti_ya_kigezo[n] = kigezo_cha_mrundikano + ukubwa_huu;
@@ -9151,7 +9151,7 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
         // Bila hii, indices za paramu hubaki na data ya zamani na
         // pata_au_unda_kigeu_ukubwa inaweza kufananisha jina la kigeu
         // kipya na mzimu (jina la zamani) -- kurudisha off isiyo sahihi.
-        n32 vidx_kigezo = pata_au_unda_kigeu_ukubwa(mti_ghala + mti_ofseti_ya_jina[pn], ukubwa_huu, usimbaji);
+        n32 vidx_kigezo = pata_au_unda_kigeu_ukubwa(ghala_la_majina + umbali_wa_jina_la_nodi[pn], ukubwa_huu, usimbaji);
         // Muundo mkubwa (> 8B) hupitishwa KWA REJEA: sloti ina kielekezi
         kama (vidx_kigezo >= 0 && ukubwa_huu > 8 && ni_muundo_usimbaji(usimbaji)) {
             kigeu_kwa_rejea[vidx_kigezo] = 1;
@@ -9168,7 +9168,7 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
         // kigezo cha ndani).
         kama (ni_mgombea_rejista(usimbaji)) {
             kama (rega_idadi_ya_wagombea < 16) {
-                n8* jina_p = mti_ghala + mti_ofseti_ya_jina[pn];
+                n8* jina_p = ghala_la_majina + umbali_wa_jina_la_nodi[pn];
                 rega_jina_la_mgombea[rega_idadi_ya_wagombea] = jina_p;
                 rega_mgombea_haramu[rega_idadi_ya_wagombea] = 0;
                 rega_idadi_ya_wagombea = rega_idadi_ya_wagombea + 1;
@@ -9176,7 +9176,7 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
         }
         kigezo_cha_mrundikano = kigezo_cha_mrundikano + ukubwa_huu;
         n = n + 1;
-        pn = mti_kulia[pn];
+        pn = nodi_ya_kulia[pn];
     }
     // Hifadhi nafasi ya sret_ptr ikiwa inahitajika
     kama (kazi_inarudisha_muundo) {
@@ -9190,7 +9190,7 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
     wito_bafa_haja = 0;
     wito_unahitaji_bafa_ya_matokeo = 0;
     haja_ya_bafa_ya_matokeo_kama_hoja = 0;
-    n32 maudhui = mti_tiga[nodi_ya_kazi];
+    n32 maudhui = tatu_ya_nodi[nodi_ya_kazi];
     kama (maudhui != -1) { kusanya_vigeu_vya_ndani(maudhui); }
     // Ugawaji wa rejesta: pitio mbili za pekee (angalia maelezo kamili
     // karibu na tangazo la var_reg[64]) -- LAZIMA zifanyike BAADA ya
@@ -9427,7 +9427,7 @@ w0 zalisha_soma_d64_x0_kwa_lebo(n32 lebo_id) {
 
 // AST_HALISI_D (45) -- desimali halisi: pakia constant kwenye xmm0
 w0 uzalishaji_halisi_d(n32 nodi, n32 nodi_ya_kazi) {
-    n32 lebo_id = desimali_halisi_hifadhi(mti_thamani[nodi]);
+    n32 lebo_id = desimali_halisi_hifadhi(thamani_ya_nodi[nodi]);
     zalisha_soma_d64_x0_kwa_lebo(lebo_id);
 }
 
@@ -9439,7 +9439,7 @@ w0 andika_desimali_halisi() {
         n32 ofseti = ofseti_ya_desimali[i];
         n32 bdi = 0;
         wakati (bdi < 8) {
-            andika_baiti(mti_ghala[ofseti + bdi]);
+            andika_baiti(ghala_la_majina[ofseti + bdi]);
             bdi = bdi + 1;
         }
         i = i + 1;
@@ -9453,31 +9453,31 @@ w0 andika_desimali_halisi() {
 // ya dimbwi ikihesabiwa kama thamani).
 n64 thamani_isiyobadilika(n32 nodi) {
     kama (nodi == -1) { rudisha 0; }
-    n32 aina = mti_aina[nodi];
+    n32 aina = aina_ya_nodi[nodi];
     kama (aina == 4) {  // AST_NAMBARI
         // n64 halisi: baiti 8 zimehifadhiwa kwenye dimbwi la AST
         // (ast_thamani = ofseti, si thamani -- thamani yenyewe
         // haiingii kwenye n32). Jenga n64 kwa kuzidisha kwa 256
         // (mbegu ina hitilafu katika >> za n64).
-        kama (mti_kulia[nodi] == 1) {
-            n32 ofseti_n = mti_thamani[nodi];
+        kama (nodi_ya_kulia[nodi] == 1) {
+            n32 ofseti_n = thamani_ya_nodi[nodi];
             n64 th_n = 0;
             n32 bvi_n = 7;
             wakati (bvi_n >= 0) {
                 // Usomaji bila ishara: n8 ni yenye ishara -- kipande
                 // cha 255 kinahakikisha baiti ya 0x80+ ni 128..255,
                 // si hasi, kabla ya hesabu.
-                n32 bv_n = mti_ghala[ofseti_n + bvi_n] & 255;
+                n32 bv_n = ghala_la_majina[ofseti_n + bvi_n] & 255;
                 th_n = th_n * 256 + bv_n;
                 bvi_n = bvi_n - 1;
             }
             rudisha th_n;
         }
-        rudisha mti_thamani[nodi];
+        rudisha thamani_ya_nodi[nodi];
     }
     kama (aina == 7) {  // AST_TOFAUTI: pamoja na unari minus
-        kama (mti_kushoto[nodi] == -1) { rudisha 0 - thamani_isiyobadilika(mti_kulia[nodi]); }
-        rudisha thamani_isiyobadilika(mti_kushoto[nodi]) - thamani_isiyobadilika(mti_kulia[nodi]);
+        kama (nodi_ya_kushoto[nodi] == -1) { rudisha 0 - thamani_isiyobadilika(nodi_ya_kulia[nodi]); }
+        rudisha thamani_isiyobadilika(nodi_ya_kushoto[nodi]) - thamani_isiyobadilika(nodi_ya_kulia[nodi]);
     }
     rudisha 0;
 }
@@ -9631,19 +9631,19 @@ w0 uzalishaji_exe(n32 text_size, n32 data_size, n32 bss_size, n32 main_ofseti) {
 // hii ndiyo hatari kubwa zaidi. Sasa marudio yanalia kwa sauti,
 // kama kazi isiyofafanuliwa (utatuzi wa RELA).
 w0 hakiki_marudio_ya_ngazi_ya_juu(n32 nodi_ya_programu) {
-    n32 a = mti_kushoto[nodi_ya_programu];
+    n32 a = nodi_ya_kushoto[nodi_ya_programu];
     wakati (a != -1) {
-        n32 aina_a = mti_aina[a];
+        n32 aina_a = aina_ya_nodi[a];
         // 2 = AST_KAZI, 35 = AST_TANGAZO_ULIMWENGU, 12 = AST_MUUNDO
         kama (aina_a == 2 || aina_a == 35 || aina_a == 12) {
             // Tangazo la mbele la kazi (mwili -1) si ufafanuzi -- si marudio
-            kama (aina_a == 2 && mti_tiga[a] == -1) { a = mti_nne[a]; endelea; }
-            n8* jina_a = mti_ghala + mti_ofseti_ya_jina[mti_kushoto[a]];
-            n32 b = mti_kushoto[nodi_ya_programu];
+            kama (aina_a == 2 && tatu_ya_nodi[a] == -1) { a = nne_ya_nodi[a]; endelea; }
+            n8* jina_a = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[a]];
+            n32 b = nodi_ya_kushoto[nodi_ya_programu];
             wakati (b != a) {
-                kama (mti_aina[b] == aina_a) {
-                    kama (mti_aina[b] == 2 && mti_tiga[b] == -1) { b = mti_nne[b]; endelea; }
-                    n8* jina_b = mti_ghala + mti_ofseti_ya_jina[mti_kushoto[b]];
+                kama (aina_ya_nodi[b] == aina_a) {
+                    kama (aina_ya_nodi[b] == 2 && tatu_ya_nodi[b] == -1) { b = nne_ya_nodi[b]; endelea; }
+                    n8* jina_b = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[b]];
                     kama (jina_linganisha(jina_a, jina_b)) {
                         kama (aina_a == 2) {
                             andika_stderr("Hitilafu: kazi '%s' imeshafafanuliwa\n", jina_a);
@@ -9655,10 +9655,10 @@ w0 hakiki_marudio_ya_ngazi_ya_juu(n32 nodi_ya_programu) {
                         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
                     }
                 }
-                b = mti_nne[b];
+                b = nne_ya_nodi[b];
             }
         }
-        a = mti_nne[a];
+        a = nne_ya_nodi[a];
     }
 }
 
@@ -9764,9 +9764,9 @@ n8* kg_kitu() {
 // Nodi ya AST_MUUNDO kwa jina, au -1
 n32 kigeni_nodi_ya_muundo(n8* jina) {
     n32 si = 0;
-    wakati (si < mti_idadi) {
-        kama (mti_aina[si] == 12 && mti_kushoto[si] != -1) {
-            kama (jina_linganisha(mti_ghala + mti_ofseti_ya_jina[mti_kushoto[si]], jina)) { rudisha si; }
+    wakati (si < idadi_ya_nodi) {
+        kama (aina_ya_nodi[si] == 12 && nodi_ya_kushoto[si] != -1) {
+            kama (jina_linganisha(ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[si]], jina)) { rudisha si; }
         }
         si = si + 1;
     }
@@ -9774,7 +9774,7 @@ n32 kigeni_nodi_ya_muundo(n8* jina) {
 }
 
 n8* kigeni_jina_la_muundo_usimbaji(n32 usimbaji) {
-    rudisha mti_ghala + (((0 - usimbaji) / 2) - 1);
+    rudisha ghala_la_majina + (((0 - usimbaji) / 2) - 1);
 }
 
 // Upangiliaji wa C wa aina (baiti)
@@ -9783,11 +9783,11 @@ n32 kigeni_mpangilio_wa_usimbaji(n32 usimbaji) {
         n32 m = kigeni_nodi_ya_muundo(kigeni_jina_la_muundo_usimbaji(usimbaji));
         n32 kubwa = 1;
         kama (m == -1) { rudisha 1; }
-        n32 s = mti_kulia[m];
+        n32 s = nodi_ya_kulia[m];
         wakati (s != -1) {
-            n32 a = kigeni_mpangilio_wa_usimbaji(mti_thamani[mti_kushoto[s]]);
+            n32 a = kigeni_mpangilio_wa_usimbaji(thamani_ya_nodi[nodi_ya_kushoto[s]]);
             kama (a > kubwa) { kubwa = a; }
-            s = mti_kulia[s];
+            s = nodi_ya_kulia[s];
         }
         rudisha kubwa;
     }
@@ -9803,14 +9803,14 @@ w0 kigeni_ainisha(n32 usimbaji, n32 msingi, n8* kazi) {
         andika_stderr("Hitilafu: %s ya nje '%s': muundo '%s' haujafafanuliwa\n", kg_kitu(), kazi, jina_m);
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
-    n32 s = mti_kulia[m];
+    n32 s = nodi_ya_kulia[m];
     wakati (s != -1) {
-        n32 fname = mti_kushoto[s];
-        n32 fenc = mti_thamani[fname];
-        n32 ofseti = mti_tiga[fname];
+        n32 fname = nodi_ya_kushoto[s];
+        n32 fenc = thamani_ya_nodi[fname];
+        n32 ofseti = tatu_ya_nodi[fname];
         n32 a = kigeni_mpangilio_wa_usimbaji(fenc);
         kama (ofseti % a != 0) {
-            andika_stderr("Hitilafu: %s ya nje '%s': muundo '%s': sehemu '%s' iko kwenye ofseti %d, si kizidisho cha %d -- C hupangilia sehemu, Swa haiongezi kujaza kimya: ongeza sehemu ya kujaza ya baiti %d kabla yake\n", kg_kitu(), kazi, jina_m, mti_ghala + mti_ofseti_ya_jina[fname], ofseti, a, a - ofseti % a);
+            andika_stderr("Hitilafu: %s ya nje '%s': muundo '%s': sehemu '%s' iko kwenye ofseti %d, si kizidisho cha %d -- C hupangilia sehemu, Swa haiongezi kujaza kimya: ongeza sehemu ya kujaza ya baiti %d kabla yake\n", kg_kitu(), kazi, jina_m, ghala_la_majina + umbali_wa_jina_la_nodi[fname], ofseti, a, a - ofseti % a);
             wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
         }
         kama (ni_muundo_usimbaji(fenc)) {
@@ -9825,9 +9825,9 @@ w0 kigeni_ainisha(n32 usimbaji, n32 msingi, n8* kazi) {
                 }
             }
         }
-        s = mti_kulia[s];
+        s = nodi_ya_kulia[s];
     }
-    n32 ukubwa = mti_thamani[m];
+    n32 ukubwa = thamani_ya_nodi[m];
     n32 ma = kigeni_mpangilio_wa_usimbaji(usimbaji);
     kama (ukubwa % ma != 0) {
         andika_stderr("Hitilafu: %s ya nje '%s': muundo '%s' una baiti %d, si kizidisho cha %d -- C huongeza kujaza mwishoni: ongeza sehemu ya kujaza ya baiti %d\n", kg_kitu(), kazi, jina_m, ukubwa, ma, ma - ukubwa % ma);
@@ -9840,7 +9840,7 @@ n32 kigeni_ainisha_muundo(n32 usimbaji, n8* kazi) {
     kg_darasa[0] = 0; kg_darasa[1] = 0;
     kigeni_ainisha(usimbaji, 0, kazi);
     // Ukubwa halisi kutoka nodi (ukubwa_kutoka_enc huripoti 4 kwa muundo mtupu)
-    n32 ukubwa = mti_thamani[kigeni_nodi_ya_muundo(kigeni_jina_la_muundo_usimbaji(usimbaji))];
+    n32 ukubwa = thamani_ya_nodi[kigeni_nodi_ya_muundo(kigeni_jina_la_muundo_usimbaji(usimbaji))];
     kama (ukubwa == 0) {
         andika_stderr("Hitilafu: %s ya nje '%s': muundo '%s' hauna sehemu -- hauwezi kuvuka daraja\n", kg_kitu(), kazi, kigeni_jina_la_muundo_usimbaji(usimbaji));
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
@@ -9850,24 +9850,24 @@ n32 kigeni_ainisha_muundo(n32 usimbaji, n8* kazi) {
 
 // Kagua kichwa cha kazi ya nje dhidi ya mipaka (kwa sauti).
 w0 kigeni_kagua_tangazo(n32 f) {
-    n8* jina = mti_ghala + mti_ofseti_ya_jina[mti_kushoto[f]];
+    n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[f]];
     kigeni_kazi_ina_muundo_sasa = 0;
-    kama (ni_muundo_usimbaji(mti_thamani[f])) {
-        kigeni_ainisha_muundo(mti_thamani[f], jina);
+    kama (ni_muundo_usimbaji(thamani_ya_nodi[f])) {
+        kigeni_ainisha_muundo(thamani_ya_nodi[f], jina);
         kigeni_kazi_ina_muundo_sasa = 1;
     }
     n32 namba = 0;
     n32 desimali = 0;
-    n32 pn = mti_kulia[f];
+    n32 pn = nodi_ya_kulia[f];
     wakati (pn != -1) {
-        n32 usimbaji = mti_thamani[pn];
+        n32 usimbaji = thamani_ya_nodi[pn];
         kama (ni_muundo_usimbaji(usimbaji)) {
             kigeni_ainisha_muundo(usimbaji, jina);
             kigeni_kazi_ina_muundo_sasa = 1;
         }
         kama (ni_desimali_usimbaji(usimbaji)) { desimali = desimali + 1; }
         sivyo { namba = namba + 1; }
-        pn = mti_kulia[pn];
+        pn = nodi_ya_kulia[pn];
     }
     kigeni_mrundikano_wa_kazi_sasa = kigeni_nafasi_za_mrundikano(namba, desimali);
 }
@@ -9902,11 +9902,11 @@ w0 km_ongeza(n32 aina, n32 lengo, n32 chanzo, n32 kupitia, n32 ofseti, n8* kazi)
 }
 
 w0 kigeni_mpango(n32 f) {
-    n8* jina = mti_ghala + mti_ofseti_ya_jina[mti_kushoto[f]];
+    n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[f]];
     km_idadi = 0; km_nafasi_za_mrundikano = 0; km_rudi = 0;
     n32 gp_in = 0; n32 x_in = 0; n32 mrundikano_unaoingia = 0;
     n32 gp_out = 0; n32 x_out = 0;
-    n32 matokeo = mti_thamani[f];
+    n32 matokeo = thamani_ya_nodi[f];
     kama (ni_muundo_usimbaji(matokeo)) {
         gp_in = 1;  // rdi ya Swa = bafa ya matokeo
         n32 r = kigeni_ainisha_muundo(matokeo, jina);
@@ -9921,9 +9921,9 @@ w0 kigeni_mpango(n32 f) {
             kama (r > 8) { km_rudi_darasa[1] = kg_darasa[1]; }
         }
     }
-    n32 pn = mti_kulia[f];
+    n32 pn = nodi_ya_kulia[f];
     wakati (pn != -1) {
-        n32 usimbaji = mti_thamani[pn];
+        n32 usimbaji = thamani_ya_nodi[pn];
         n32 ni_d = ni_desimali_usimbaji(usimbaji);
         // Mahali hoja ilipo upande wa Swa
         n32 chanzo = 0;
@@ -9978,7 +9978,7 @@ w0 kigeni_mpango(n32 f) {
             kama (gp_out < 6) { km_ongeza(0, gp_out, chanzo, 0, 0, jina); gp_out = gp_out + 1; }
             sivyo { km_ongeza(2, km_nafasi_za_mrundikano, chanzo, 0, 0, jina); km_nafasi_za_mrundikano = km_nafasi_za_mrundikano + 1; }
         } }
-        pn = mti_kulia[pn];
+        pn = nodi_ya_kulia[pn];
     }
     km_x = x_out;
 }
@@ -10113,8 +10113,8 @@ w0 kigeni_andika_kipande_cha_muundo(n32 i) {
 // Idadi ya vigezo vilivyotangazwa vya kazi f
 n32 kigeni_idadi_ya_vigezo(n32 f) {
     n32 n = 0;
-    n32 pn = mti_kulia[f];
-    wakati (pn != -1) { n = n + 1; pn = mti_kulia[pn]; }
+    n32 pn = nodi_ya_kulia[f];
+    wakati (pn != -1) { n = n + 1; pn = nodi_ya_kulia[pn]; }
     rudisha n;
 }
 
@@ -10160,7 +10160,7 @@ w0 kigeni_andaa(n32 nodi_ya_programu, n32 hali_exe) {
     n32 i = 0;
     wakati (i < kigeni_idadi_ya_kazi) {
         n32 f = kigeni_nodi_ya_kazi[i];
-        n8* jina = mti_ghala + mti_ofseti_ya_jina[mti_kushoto[f]];
+        n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[f]];
         kigeni_kagua_tangazo(f);
         kigeni_mrundikano_wa_kazi[i] = kigeni_mrundikano_wa_kazi_sasa;
         kigeni_kazi_ina_muundo[i] = kigeni_kazi_ina_muundo_sasa;
@@ -10169,18 +10169,18 @@ w0 kigeni_andaa(n32 nodi_ya_programu, n32 hali_exe) {
         }
         // Jina la Swa ni la ulimwengu: haliwezi kuwa kazi ya Swa yenye
         // mwili, wala kutangazwa mara mbili kwenye nje.
-        n32 a = mti_kushoto[nodi_ya_programu];
+        n32 a = nodi_ya_kushoto[nodi_ya_programu];
         wakati (a != -1) {
-            kama (mti_aina[a] == 2 && mti_tiga[a] != -1) {
-                kama (jina_linganisha(mti_ghala + mti_ofseti_ya_jina[mti_kushoto[a]], jina)) {
+            kama (aina_ya_nodi[a] == 2 && tatu_ya_nodi[a] != -1) {
+                kama (jina_linganisha(ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[a]], jina)) {
                     kigeni_kosa("jina hili tayari ni kazi ya Swa yenye mwili", jina);
                 }
             }
-            a = mti_nne[a];
+            a = nne_ya_nodi[a];
         }
         n32 j = 0;
         wakati (j < i) {
-            kama (jina_linganisha(mti_ghala + mti_ofseti_ya_jina[mti_kushoto[kigeni_nodi_ya_kazi[j]]], jina)) {
+            kama (jina_linganisha(ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[kigeni_nodi_ya_kazi[j]]], jina)) {
                 kigeni_kosa("imetangazwa mara mbili ndani ya nje", jina);
             }
             j = j + 1;
@@ -10208,9 +10208,9 @@ w0 kigeni_andaa(n32 nodi_ya_programu, n32 hali_exe) {
     n32 di = 0;
     wakati (di < kigeni_idadi_ya_data) {
         n32 dg = kigeni_nodi_ya_data[di];
-        kama (ni_muundo_usimbaji(mti_thamani[dg])) {
+        kama (ni_muundo_usimbaji(thamani_ya_nodi[dg])) {
             kg_ni_data = 1;
-            kigeni_ainisha_muundo(mti_thamani[dg], mti_ghala + mti_ofseti_ya_jina[mti_kushoto[dg]]);
+            kigeni_ainisha_muundo(thamani_ya_nodi[dg], ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[dg]]);
         }
         di = di + 1;
     }
@@ -10218,13 +10218,13 @@ w0 kigeni_andaa(n32 nodi_ya_programu, n32 hali_exe) {
 
 // Faharisi ya data_ulimwengu ya data ya nje i (jina lile lile la dimbwi)
 n32 kigeni_kigezo_cha_data(n32 i) {
-    n32 ofseti_ya_jina = mti_ofseti_ya_jina[mti_kushoto[kigeni_nodi_ya_data[i]]];
+    n32 ofseti_ya_jina = umbali_wa_jina_la_nodi[nodi_ya_kushoto[kigeni_nodi_ya_data[i]]];
     n32 g = 0;
     wakati (g < idadi_ya_data_ya_ulimwengu) {
         kama (ofseti_ya_jina_la_data_ya_ulimwengu[g] == ofseti_ya_jina) { rudisha g; }
         g = g + 1;
     }
-    kigeni_kosa("kigezo chake hakikupatikana kwenye .data", mti_ghala + ofseti_ya_jina);
+    kigeni_kosa("kigezo chake hakikupatikana kwenye .data", ghala_la_majina + ofseti_ya_jina);
     rudisha -1;
 }
 
@@ -10233,7 +10233,7 @@ w0 kigeni_andika_vipande() {
     n32 i = 0;
     wakati (i < kigeni_idadi_ya_kazi) {
         n32 f = kigeni_nodi_ya_kazi[i];
-        lebo_hifadhi(mti_ghala + mti_ofseti_ya_jina[mti_kushoto[f]], mti_thamani[f]);
+        lebo_hifadhi(ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[f]], thamani_ya_nodi[f]);
         kama (kigeni_kazi_ina_muundo[i]) {
             kigeni_andika_kipande_cha_muundo(i);
             i = i + 1;
@@ -10521,9 +10521,9 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
     bafa_ya_data_wapi = 0; idadi_ya_data_ya_ulimwengu = 0; bss_wapi = 0;
 
     // 0b. Kusanya vigezo vya ulimwengu (pre-scan)
-    n32 gn = mti_kushoto[nodi_ya_programu];
+    n32 gn = nodi_ya_kushoto[nodi_ya_programu];
     wakati (gn != -1) {
-        kama (mti_aina[gn] == 35 && idadi_ya_data_ya_ulimwengu >= 1024) {  // AST_TANGAZO_ULIMWENGU
+        kama (aina_ya_nodi[gn] == 35 && idadi_ya_data_ya_ulimwengu >= 1024) {  // AST_TANGAZO_ULIMWENGU
             // lugha-swa/swa#298 -- kuendelea kimya hapa kungeacha
             // kigezo hiki cha ulimwengu bila kutolewa KABISA (hakuna
             // nafasi ya .data/.bss), huku matumizi yake kwenye msimbo
@@ -10532,17 +10532,17 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
             andika_stderr("KOSA: jedwali la data la ulimwengu (data_ulimwengu_*) limejaa (kikomo 1024)\n");
             wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
         }
-        kama (mti_aina[gn] == 35 && idadi_ya_data_ya_ulimwengu < 1024) {  // AST_TANGAZO_ULIMWENGU
-            n32 name_n = mti_kushoto[gn];
-            n32 usimbaji = mti_thamani[gn];  // usimbaji wa aina (sasa umejaa!)
+        kama (aina_ya_nodi[gn] == 35 && idadi_ya_data_ya_ulimwengu < 1024) {  // AST_TANGAZO_ULIMWENGU
+            n32 name_n = nodi_ya_kushoto[gn];
+            n32 usimbaji = thamani_ya_nodi[gn];  // usimbaji wa aina (sasa umejaa!)
             // Ukubwa wa kipengele unakokotolewa KABLA ya kuongeza mshale
             n32 ukubwa_wa_kipengele_hiki = ukubwa_kutoka_usimbaji(usimbaji);
             kama (ukubwa_wa_kipengele_hiki == 0) { ukubwa_wa_kipengele_hiki = 4; }
             n32 ukubwa_huu = ukubwa_wa_kipengele_hiki;
-            ofseti_ya_jina_la_data_ya_ulimwengu[idadi_ya_data_ya_ulimwengu] = mti_ofseti_ya_jina[name_n];
+            ofseti_ya_jina_la_data_ya_ulimwengu[idadi_ya_data_ya_ulimwengu] = umbali_wa_jina_la_nodi[name_n];
             // Safu: usemi unapaswa kuiona kama kielekezi (anwani ya msingi)
-            kama (mti_tiga[gn] != -1) {
-                n32 idadi = mti_thamani[mti_tiga[gn]];
+            kama (tatu_ya_nodi[gn] != -1) {
+                n32 idadi = thamani_ya_nodi[tatu_ya_nodi[gn]];
                 kama (idadi > 0) { ukubwa_huu = ukubwa_wa_kipengele_hiki * idadi; }
                 usimbaji = usimbaji + 1;
                 data_ulimwengu_ni_safu[idadi_ya_data_ya_ulimwengu] = 1;
@@ -10553,7 +10553,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
             }
             usimbaji_wa_data_ya_ulimwengu[idadi_ya_data_ya_ulimwengu] = usimbaji;
             data_ulimwengu_size[idadi_ya_data_ya_ulimwengu] = ukubwa_huu;
-            kama (mti_kulia[gn] == -1) {
+            kama (nodi_ya_kulia[gn] == -1) {
                 // Hakuna kianzio: kwenda .bss (SHT_NOBITS)
                 data_ulimwengu_bss[idadi_ya_data_ya_ulimwengu] = 1;
                 ofseti_ya_data_ya_ulimwengu[idadi_ya_data_ya_ulimwengu] = bss_wapi;
@@ -10562,8 +10562,8 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
                 // Tathmini kianzio kisichobadilika
                 data_ulimwengu_bss[idadi_ya_data_ya_ulimwengu] = 0;
                 ofseti_ya_data_ya_ulimwengu[idadi_ya_data_ya_ulimwengu] = bafa_ya_data_wapi;
-                n32 nodi_ya_kianzio = mti_kulia[gn];
-                kama (ni_desimali_usimbaji(mti_thamani[gn])) {
+                n32 nodi_ya_kianzio = nodi_ya_kulia[gn];
+                kama (ni_desimali_usimbaji(thamani_ya_nodi[gn])) {
                     // Ulimwengu wa desimali: kianzio lazima kiwe halisi ya
                     // desimali (baiti ziko kwenye dimbwi la AST) -- vinginevyo
                     // baiti za thamani ya kamili zingeandikwa kama desimali
@@ -10572,11 +10572,11 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
                         andika_stderr("Hitilafu: kianzio cha ulimwengu wa d64 lazima kiwe halisi ya desimali\n");
                         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
                     }
-                    kama (mti_aina[nodi_ya_kianzio] != 45) {
+                    kama (aina_ya_nodi[nodi_ya_kianzio] != 45) {
                         andika_stderr("Hitilafu: kianzio cha ulimwengu wa d64 lazima kiwe halisi ya desimali\n");
                         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
                     }
-                    n32 ofseti8 = mti_thamani[nodi_ya_kianzio];
+                    n32 ofseti8 = thamani_ya_nodi[nodi_ya_kianzio];
                     n32 k = 0;
                     // D32 inahitaji baiti 4 za FLOAT, si 8 za double --
                     // vinginevyo nusu ya kwanza ya double (sifuri kwa
@@ -10584,7 +10584,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
                     kama (ukubwa_wa_kipengele_hiki >= 8) {
                         wakati (k < 8) {
                             kama (bafa_ya_data_wapi < 2097152) {
-                                bafa_ya_data[bafa_ya_data_wapi] = mti_ghala[ofseti8 + k];
+                                bafa_ya_data[bafa_ya_data_wapi] = ghala_la_majina[ofseti8 + k];
                                 bafa_ya_data_wapi = bafa_ya_data_wapi + 1;
                             } sivyo {
                                 andika_stderr("KOSA: bafa_data imefurika (kikomo cha baiti 2097152)\n");
@@ -10606,7 +10606,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
                         n64 biti64 = 0;
                         k = 7;
                         wakati (k >= 0) {
-                            n64 baiti = mti_ghala[ofseti8 + k] & 255;
+                            n64 baiti = ghala_la_majina[ofseti8 + k] & 255;
                             biti64 = biti64 * 256 + baiti;
                             k = k - 1;
                         }
@@ -10624,15 +10624,15 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
                             k = k + 1;
                         }
                     }
-                } sivyo { kama (nodi_ya_kianzio != -1 && mti_aina[nodi_ya_kianzio] == 4 && mti_kulia[nodi_ya_kianzio] == 1) {
+                } sivyo { kama (nodi_ya_kianzio != -1 && aina_ya_nodi[nodi_ya_kianzio] == 4 && nodi_ya_kulia[nodi_ya_kianzio] == 1) {
                     // n64 halisi: alama iko ast_kulia (ast_tiga ni kiungo
                     // cha mnyororo wa hoja). ast_thamani ni ofseti ya
                     // dimbwi, si thamani -- nakili baiti 8 moja kwa moja.
-                    n32 ofseti8 = mti_thamani[nodi_ya_kianzio];
+                    n32 ofseti8 = thamani_ya_nodi[nodi_ya_kianzio];
                     n32 k = 0;
                     wakati (k < 8) {
                         kama (bafa_ya_data_wapi < 2097152) {
-                            bafa_ya_data[bafa_ya_data_wapi] = mti_ghala[ofseti8 + k];
+                            bafa_ya_data[bafa_ya_data_wapi] = ghala_la_majina[ofseti8 + k];
                             bafa_ya_data_wapi = bafa_ya_data_wapi + 1;
                         } sivyo {
                             andika_stderr("KOSA: bafa_data imefurika (kikomo cha baiti 2097152)\n");
@@ -10640,7 +10640,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
                         }
                         k = k + 1;
                     }
-                } sivyo { kama (nodi_ya_kianzio != -1 && mti_aina[nodi_ya_kianzio] == 30) {
+                } sivyo { kama (nodi_ya_kianzio != -1 && aina_ya_nodi[nodi_ya_kianzio] == 30) {
                     // Kianzio cha anwani ya kazi: &jina_la_kazi katika
                     // kigezo cha ulimwengu (hati 4.3). Baiti 8 za sifuri
                     // zinaandikwa hapa; rekebisha_anwani_za_data huweka
@@ -10651,11 +10651,11 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
                     // KUMBUKA: val/ni_halali/k wanatumia tena viwango
                     // vya matawi ya ndugu -- ukomo wa 64 wa vigeu vya
                     // ndani wa uzalishaji_kuu haupaswi kuvukwa.
-                    n32 thamani = mti_kushoto[nodi_ya_kianzio];
+                    n32 thamani = nodi_ya_kushoto[nodi_ya_kianzio];
                     n32 ni_halali = 0;
                     kama (thamani != -1) {
-                        kama (mti_aina[thamani] == 5) {  // KITAMBULISHO
-                            kama (mti_tiga[gn] == -1) {  // si safu
+                        kama (aina_ya_nodi[thamani] == 5) {  // KITAMBULISHO
+                            kama (tatu_ya_nodi[gn] == -1) {  // si safu
                                 kama (hali_exe_sasa == 1) {
                                     kama (usimbaji >= 0) {
                                         kama (ni_desimali_usimbaji(usimbaji) == 0) {
@@ -10672,7 +10672,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
                     }
                     kama (idadi_ya_anwani_za_data < 512) {
                         nafasi_ya_anwani_ya_data[idadi_ya_anwani_za_data] = bafa_ya_data_wapi;
-                        jina_la_anwani_ya_data[idadi_ya_anwani_za_data] = mti_ghala + mti_ofseti_ya_jina[thamani];
+                        jina_la_anwani_ya_data[idadi_ya_anwani_za_data] = ghala_la_majina + umbali_wa_jina_la_nodi[thamani];
                         idadi_ya_anwani_za_data = idadi_ya_anwani_za_data + 1;
                     } sivyo {
                         andika_stderr("KOSA: jedwali la anwani za data (anwani_data_*) limejaa (kikomo 512)\n");
@@ -10696,11 +10696,11 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
                     // kukubali kimya kungehifadhi 0 au baiti za takataka.
                     n32 ni_halali = 0;
                     kama (nodi_ya_kianzio != -1) {
-                        kama (mti_aina[nodi_ya_kianzio] == 4) { ni_halali = 1; }
+                        kama (aina_ya_nodi[nodi_ya_kianzio] == 4) { ni_halali = 1; }
                         sivyo {
-                            kama (mti_aina[nodi_ya_kianzio] == 7) {  // toa-unari -N
-                                kama (mti_kushoto[nodi_ya_kianzio] == -1) {
-                                    kama (mti_aina[mti_kulia[nodi_ya_kianzio]] == 4) { ni_halali = 1; }
+                            kama (aina_ya_nodi[nodi_ya_kianzio] == 7) {  // toa-unari -N
+                                kama (nodi_ya_kushoto[nodi_ya_kianzio] == -1) {
+                                    kama (aina_ya_nodi[nodi_ya_kulia[nodi_ya_kianzio]] == 4) { ni_halali = 1; }
                                 }
                             }
                         }
@@ -10722,22 +10722,22 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
             }
             idadi_ya_data_ya_ulimwengu = idadi_ya_data_ya_ulimwengu + 1;
         }
-        gn = mti_nne[gn];
+        gn = nne_ya_nodi[gn];
     }
 
     // 0c. Kazi za nje: kagua na tenga sloti za GOT (daraja la mashine)
     kigeni_andaa(nodi_ya_programu, hali_exe);
 
     // 1. Toa msimbo wa .text kwenye buffer
-    n32 nodi = mti_kushoto[nodi_ya_programu];
+    n32 nodi = nodi_ya_kushoto[nodi_ya_programu];
     wakati (nodi != -1) {
-        kama (mti_aina[nodi] == 2) {  // AST_KAZI
+        kama (aina_ya_nodi[nodi] == 2) {  // AST_KAZI
             // Ruka matamko ya mbele (hayana mwili)
-            kama (mti_tiga[nodi] != -1) {
+            kama (tatu_ya_nodi[nodi] != -1) {
                 uzalishaji_kazi(nodi);
             }
         }
-        nodi = mti_nne[nodi];
+        nodi = nne_ya_nodi[nodi];
     }
     // 1b. Vipande vya wito wa kazi za nje (kila kimoja na lebo ya jina la Swa)
     kigeni_andika_vipande();
@@ -10791,7 +10791,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
     si = 0;
     wakati (si < idadi_ya_data_ya_ulimwengu) {
         data_strtab_ofseti[si] = strtab_hesabu;
-        n8* gjina = mti_ghala + ofseti_ya_jina_la_data_ya_ulimwengu[si];
+        n8* gjina = ghala_la_majina + ofseti_ya_jina_la_data_ya_ulimwengu[si];
         strtab_hesabu = strtab_hesabu + urefu_wa_jina(gjina) + 1;
         si = si + 1;
     }
@@ -10977,7 +10977,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
     // Majina ya vigeu vya ulimwengu
     i = 0;
     wakati (i < idadi_ya_data_ya_ulimwengu) {
-        n8* gjina = mti_ghala + ofseti_ya_jina_la_data_ya_ulimwengu[i];
+        n8* gjina = ghala_la_majina + ofseti_ya_jina_la_data_ya_ulimwengu[i];
         n32 j = 0;
         wakati (gjina[j] != 0) { andika_baiti_moja_kwa_moja(gjina[j]); j = j + 1; }
         andika_baiti_moja_kwa_moja(0);
@@ -11084,15 +11084,15 @@ w0 uzalishaji_jit(n32 nodi_ya_programu, n32 idadi_hoja_jit, n8** hoja_mstari_jit
     andika_baiti(233);  // jmp rel32
     andika_neno4(0);
 
-    n32 nodi = mti_kushoto[nodi_ya_programu];
+    n32 nodi = nodi_ya_kushoto[nodi_ya_programu];
     wakati (nodi != -1) {
-        kama (mti_aina[nodi] == 2) {
+        kama (aina_ya_nodi[nodi] == 2) {
             // Ruka matamko ya mbele (hayana mwili) -- sawa na mnyororo
             // wa exe. Zamani tangazo lilipata lebo yake ya tupu na
             // wito ukaelekea hiyo badala ya ufafanuzi halisi.
-            kama (mti_tiga[nodi] != -1) { uzalishaji_kazi(nodi); }
+            kama (tatu_ya_nodi[nodi] != -1) { uzalishaji_kazi(nodi); }
         }
-        nodi = mti_nne[nodi];
+        nodi = nne_ya_nodi[nodi];
     }
 
     // Ongeza tungo mwishoni mwa msimbo na uweke lebo zao --

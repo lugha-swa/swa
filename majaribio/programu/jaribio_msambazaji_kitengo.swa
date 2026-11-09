@@ -40,11 +40,11 @@ n32 main() {
     kama (n32_ == n64_ || n8k == n8_ || n32_ == n8_) rudisha 11;
 
     // dimbwi la majina
-    n32 nodi = nodi_mpya(MTI_KITAMBULISHO, 0, -1, -1);
-    kama (mti_aina[nodi] != MTI_KITAMBULISHO) rudisha 12;
+    n32 nodi = nodi_mpya(NODI_KITAMBULISHO, 0, -1, -1);
+    kama (aina_ya_nodi[nodi] != NODI_KITAMBULISHO) rudisha 12;
     hifadhi_jina(nodi, "jaribu_jina", 11);
-    kama (jina_linganisha(mti_ghala + mti_ofseti_ya_jina[nodi], "jaribu_jina") != 1) rudisha 13;
-    kama (tafuta_jina_dimbeni("jaribu_jina", 11) != mti_ofseti_ya_jina[nodi]) rudisha 14;
+    kama (jina_linganisha(ghala_la_majina + umbali_wa_jina_la_nodi[nodi], "jaribu_jina") != 1) rudisha 13;
+    kama (tafuta_jina_dimbeni("jaribu_jina", 11) != umbali_wa_jina_la_nodi[nodi]) rudisha 14;
     kama (tafuta_jina_dimbeni("hakuna_jina_hili", 16) != -1) rudisha 15;
 
     // AST ya kazi: PROGRAMU -> KAZI -> mwili: RUDISHA(JUMLISHA(a, 6));
@@ -52,28 +52,28 @@ n32 main() {
     Msambazaji k = mpya("n32 f(n32 a) { rudisha a + 2 * 3; }");
     n32 nodi_ya_programu = changanua(&k);
     kama (k.kosa != 0) rudisha 16;
-    kama (mti_aina[nodi_ya_programu] != MTI_PROGRAMU) rudisha 17;
-    n32 kazi = mti_kushoto[nodi_ya_programu];
-    kama (mti_aina[kazi] != MTI_KAZI) rudisha 18;
-    n32 rud = mti_tiga[kazi];
-    kama (mti_aina[rud] != MTI_RUDISHA) rudisha 19;
-    n32 jum = mti_kushoto[rud];
-    kama (mti_aina[jum] != MTI_JUMLISHA) rudisha 20;
-    kama (mti_aina[mti_kushoto[jum]] != MTI_KITAMBULISHO) rudisha 21;
-    kama (mti_aina[mti_kulia[jum]] != MTI_NAMBARI || mti_thamani[mti_kulia[jum]] != 6) rudisha 22;
+    kama (aina_ya_nodi[nodi_ya_programu] != NODI_PROGRAMU) rudisha 17;
+    n32 kazi = nodi_ya_kushoto[nodi_ya_programu];
+    kama (aina_ya_nodi[kazi] != NODI_KAZI) rudisha 18;
+    n32 rud = tatu_ya_nodi[kazi];
+    kama (aina_ya_nodi[rud] != NODI_RUDISHA) rudisha 19;
+    n32 jum = nodi_ya_kushoto[rud];
+    kama (aina_ya_nodi[jum] != NODI_JUMLISHA) rudisha 20;
+    kama (aina_ya_nodi[nodi_ya_kushoto[jum]] != NODI_KITAMBULISHO) rudisha 21;
+    kama (aina_ya_nodi[nodi_ya_kulia[jum]] != NODI_NAMBARI || thamani_ya_nodi[nodi_ya_kulia[jum]] != 6) rudisha 22;
 
     // bila namba za kukunja: a + b * c -> JUMLISHA(a, ZIDISHA(b, c))
     Msambazaji z = mpya("n32 g(n32 a, n32 b, n32 c) { rudisha a + b * c; }");
     nodi_ya_programu = changanua(&z);
     kama (z.kosa != 0) rudisha 23;
-    jum = mti_kushoto[mti_tiga[mti_kushoto[nodi_ya_programu]]];
-    kama (mti_aina[jum] != MTI_JUMLISHA || mti_aina[mti_kulia[jum]] != MTI_ZIDISHA) rudisha 24;
+    jum = nodi_ya_kushoto[tatu_ya_nodi[nodi_ya_kushoto[nodi_ya_programu]]];
+    kama (aina_ya_nodi[jum] != NODI_JUMLISHA || aina_ya_nodi[nodi_ya_kulia[jum]] != NODI_ZIDISHA) rudisha 24;
 
     // mtiririko na muundo vinachanganuliwa bila kosa
     Msambazaji m = mpya("muundo P { n32 x; n32 y; }; n32 h(n32 i) { kama (i > 0) { rudisha 1; } sivyo { rudisha 2; } wakati (i < 3) { i = i + 1; kama (i == 2) { vunja; } } kwa (i = 0; i < 2; i = i + 1) { endelea; } rudisha 0; }");
     nodi_ya_programu = changanua(&m);
     kama (m.kosa != 0) rudisha 25;
-    kama (mti_aina[mti_kushoto[nodi_ya_programu]] != MTI_MUUNDO) rudisha 26;
+    kama (aina_ya_nodi[nodi_ya_kushoto[nodi_ya_programu]] != NODI_MUUNDO) rudisha 26;
 
     // kosa la sintaksia linaonekana
     Msambazaji b = mpya("n32 h( { rudisha; } ) ]");
