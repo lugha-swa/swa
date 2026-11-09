@@ -262,11 +262,11 @@ kazi yake -- neno moja la zamani linaweza kupata maneno tofauti.
 | kizazi | zamu | duru ya kutembelea nodi | -- |
 | mtoto, mzazi | nodi_iliyomo, nodi_inayoibeba (mchakato_mpya kwa fork) | nodi ndani ya nodi / mchakato mpya | -- |
 | kaunta, selecta | kihesabu, kiteuzi | | -- (maneno yaliyoundwa kutoka hesabu, teua) |
+| mti_* (majedwali ya nodi) | aina_ya_nodi, thamani_ya_nodi, nodi_ya_kushoto/kulia, tatu_ya_nodi, nne_ya_nodi, ghala_la_majina, NODI_* | kila ingizo ni nodi moja; tiga/nne ni nafasi za jumla ambazo maudhui yake hutegemea aina ya nodi | -- (sitiari ya mti imeondolewa) |
 | lebo_mkia | lebo_mabaki | marudio yaliyobaki baada ya uvekta | -- |
 
 `husisha` linabaki: lina maana ya kuhusisha, na ndivyo linavyofanya --
-huleta faili jingine kwenye programu. Yanayofuata kwenye PR zake: `mti`
--> `nodi`, `ofseti` -> `umbali`, `lebo` -> `mahali`, `bafa` -> `chombo`,
+huleta faili jingine kwenye programu. Yanayofuata kwenye PR zake: `ofseti` -> `umbali`, `lebo` -> `mahali`, `bafa` -> `chombo`,
 neno muhimu `vunja` -> `acha`, `mbegu` -> mkusanyaji wa awali, na majina
 ya faili (`mende`/`mdudu` -> `hitilafu`).
 
