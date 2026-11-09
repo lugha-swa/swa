@@ -60,10 +60,10 @@ inayoruhusiwa kubadilika.
 | `--kati` | `--kati` | uwakilishi wa kati |
 | `--papo` | `--papo` | tekeleza papo hapo |
 | `--wasm`, `--wasm-js` | (zinabaki) | WASM na JS ni majina ya umbizo |
-| `stage1.swa` | `kiendeshaji.swa` | dereva wa mkusanyaji (hatua 1 ya mnyororo ni `hatua1_maoni`) |
+| `kiendeshaji.swa` | `kiendeshaji.swa` | dereva wa mkusanyaji (hatua 1 ya mnyororo ni `hatua1_maoni`) |
 
 `main`, `andika_kosa` na `call` zinajulikana na mbegu iliyogandishwa
-(`msingi/mbegu.swm`), kwa hiyo sehemu hii hufanywa pamoja na kugandisha
+(`msingi/awali.swm`), kwa hiyo sehemu hii hufanywa pamoja na kugandisha
 mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 
 ## Dhana za mkusanyaji

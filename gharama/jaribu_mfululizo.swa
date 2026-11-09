@@ -3,9 +3,9 @@ husisha { msingi/maktaba/mfuatano.swa }
 husisha { msingi/maktaba/faili.swa }
 
 // jaribu_mfululizo.swa -- mkimbiaji wa majaribio wa Swa ASILIA: ujenzi wa
-// stage1, fixpoint (stage2 == stage3), na kila programu ya
+// kamili, fixpoint (stage2 == stage3), na kila programu ya
 // majaribio/programu/MANIFEST.txt kwa minyororo yote miwili, ukiendesha
-// michakato mingine (mbegu/stage1/programu za majaribio) kupitia
+// michakato mingine (mbegu/kamili/programu za majaribio) kupitia
 // sys_fork/sys_execve/sys_wait4 (msingi/maktaba/kumbukumbu.swa) badala ya
 // bash. Majaribio ya mkazo na semantiki (wito 1,000 wa mbele, kwa/endelea,
 // desimali, mzunguko mfupi, bomba la stdin, ABI ya xmm, umbizaji, #232)
@@ -130,7 +130,7 @@ n32 jm_endesha_kwa_kikomo(n8* njia, n8** hoja_za_mchakato_mpya, n8** mazingira, 
 
 // ---------------------------------------------------------------
 // jm_kusanya -- toleo rahisi la jm_endesha_kwa_kikomo kwa KAZI ZA
-// KUKUSANYA (mbegu/stage1/msuluhishi) -- HAZIHITAJI kikomo cha
+// KUKUSANYA (mbegu/kamili/msuluhishi) -- HAZIHITAJI kikomo cha
 // muda (hazijawahi kunasa, zinajulikana kumaliza haraka) wala
 // mlinzi -- `sys_wait4` ya moja kwa moja, kuzuia (blocking) inatosha.
 // Hurudisha msimbo wa kutoka (0 = ukusanyaji umefaulu).
@@ -256,14 +256,14 @@ n32 jm_mgawanyo_mstari(n8* mstari, n8** nje) {
 
 // ---------------------------------------------------------------
 // Sehemu MOJA ya mzunguko wa MANIFEST (KATA au namba-ya-kutoka),
-// zikigawanywa kwa `mnyororo` (""=zote mbili, "stage1"=hiyo pekee,
-// "mbegu"=hiyo pekee) -- kioo cha mzunguko wa bash.
+// zikigawanywa kwa `mnyororo` (""=zote mbili, "kamili"=hiyo pekee,
+// "awali"=hiyo pekee) -- kioo cha mzunguko wa bash.
 // ---------------------------------------------------------------
-w0 jm_jaribu_kata(n8* MBEGU, n8* STAGE1, n8** mazingira, n8* faili, n8* mfululizo, n8* ujumbe) {
+w0 jm_jaribu_kata(n8* AWALI, n8* KAMILI, n8** mazingira, n8* faili, n8* mfululizo, n8* ujumbe) {
     n8* kipande = ujumbe;
     kama (urefu_wa_mfuatano(kipande) == 0) { kipande = "jina la aina"; }
-    n8* programu = MBEGU;
-    kama (linganisha_mfuatano(mfululizo, "stage1") == 0) { programu = STAGE1; }
+    n8* programu = AWALI;
+    kama (linganisha_mfuatano(mfululizo, "kamili") == 0) { programu = KAMILI; }
     n8** hoja_za_mstari = jm_hoja_mstari3(programu, "--programu", faili);
     n32 rc = jm_kusanya(programu, hoja_za_mstari, mazingira, "/tmp/swa-mnyororo-asili/p", "/tmp/swa-mnyororo-asili/p.err");
     n32 ni_ujumbe = jm_mafaili_mawili_yana_kipande("/tmp/swa-mnyororo-asili/p", "/tmp/swa-mnyororo-asili/p.err", kipande);
@@ -295,34 +295,34 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         rudisha 1;
     }
     n8** mazingira = jm_pata_mazingira(hoja_za_mstari);
-    n8* MBEGU = hoja_za_mstari[1];
+    n8* AWALI = hoja_za_mstari[1];
     n8* MSULUHISHI = hoja_za_mstari[2];
 
     mfumo_unda_saraka("/tmp/swa-mnyororo-asili", 493);
 
-    // ============ Jenga mkusanyaji wa .swa (stage1) ============
-    n8** hoja_mstari_msulu = jm_hoja_mstari2(MSULUHISHI, "msingi/mkusanyaji/stage1.swa");
+    // ============ Jenga mkusanyaji wa .swa (kamili) ============
+    n8** hoja_mstari_msulu = jm_hoja_mstari2(MSULUHISHI, "msingi/mkusanyaji/kiendeshaji.swa");
     // MSULUHISHI huandika matokeo (chanzo kimoja kilichotatuliwa)
     // kwenye STDOUT YAKE, SIO kwenye hoja ya pili -- kioo HASA cha
     // matumizi yake ya bash (`"$MSULU" faili > zima.swa`).
     n32 rc_tatua = jm_kusanya(MSULUHISHI, hoja_mstari_msulu, mazingira, "/tmp/swa-mnyororo-asili/zima.swa", JM_TUPU);
     kama (rc_tatua != 0) {
-        andika_kosa("SHINDWA: kutatua msingi/mkusanyaji/stage1.swa\n", 0, 0, 0, 0, 0, 0);
+        andika_kosa("SHINDWA: kutatua msingi/mkusanyaji/kiendeshaji.swa\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
-    n8** hoja_mstari_stage1 = jm_hoja_mstari3(MBEGU, "--programu", "/tmp/swa-mnyororo-asili/zima.swa");
-    n32 rc_stage1 = jm_kusanya(MBEGU, hoja_mstari_stage1, mazingira, "/tmp/swa-mnyororo-asili/stage1", "/tmp/swa-mnyororo-asili/stage1.err");
-    kama (rc_stage1 != 0) {
+    n8** hoja_mstari_kamili = jm_hoja_mstari3(AWALI, "--programu", "/tmp/swa-mnyororo-asili/zima.swa");
+    n32 rc_kamili = jm_kusanya(AWALI, hoja_mstari_kamili, mazingira, "/tmp/swa-mnyororo-asili/kamili", "/tmp/swa-mnyororo-asili/kamili.err");
+    kama (rc_kamili != 0) {
         andika_kosa("SHINDWA: mbegu --programu zima.swa\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
-    wito_wa_mfumo(90, "/tmp/swa-mnyororo-asili/stage1", 493, 0, 0, 0, 0);  // chmod +x
-    JM_IMEPITA = JM_IMEPITA + 1;  // ujenzi wa stage1
+    wito_wa_mfumo(90, "/tmp/swa-mnyororo-asili/kamili", 493, 0, 0, 0, 0);  // chmod +x
+    JM_IMEPITA = JM_IMEPITA + 1;  // ujenzi wa kamili
 
     // ============ Fixpoint: stage2 == stage3 ============
-    n8** hoja_mstari_s2 = jm_hoja_mstari3("/tmp/swa-mnyororo-asili/stage1", "--programu", "/tmp/swa-mnyororo-asili/zima.swa");
-    n32 rc_s2 = jm_kusanya("/tmp/swa-mnyororo-asili/stage1", hoja_mstari_s2, mazingira, "/tmp/swa-mnyororo-asili/stage2", JM_TUPU);
-    kama (rc_s2 != 0) { andika_kosa("SHINDWA: stage1 --programu\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
+    n8** hoja_mstari_s2 = jm_hoja_mstari3("/tmp/swa-mnyororo-asili/kamili", "--programu", "/tmp/swa-mnyororo-asili/zima.swa");
+    n32 rc_s2 = jm_kusanya("/tmp/swa-mnyororo-asili/kamili", hoja_mstari_s2, mazingira, "/tmp/swa-mnyororo-asili/stage2", JM_TUPU);
+    kama (rc_s2 != 0) { andika_kosa("SHINDWA: kamili --programu\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
     wito_wa_mfumo(90, "/tmp/swa-mnyororo-asili/stage2", 493, 0, 0, 0, 0);
 
     n8** hoja_mstari_s3 = jm_hoja_mstari3("/tmp/swa-mnyororo-asili/stage2", "--programu", "/tmp/swa-mnyororo-asili/zima.swa");
@@ -373,18 +373,18 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         }
 
         kama (linganisha_mfuatano(code, "KATA") == 0) {
-            jm_jaribu_kata(MBEGU, "/tmp/swa-mnyororo-asili/stage1", mazingira, faili, mfululizo, ujumbe);
+            jm_jaribu_kata(AWALI, "/tmp/swa-mnyororo-asili/kamili", mazingira, faili, mfululizo, ujumbe);
             endelea;
         }
 
         n64 tarajiwa = mfuatano_hadi_n64(code);
-        kama (linganisha_mfuatano(mfululizo, "stage1") == 0) {
-            jm_jaribu_moja("/tmp/swa-mnyororo-asili/stage1", mazingira, faili, tarajiwa, "stage1");
-        } sivyo { kama (linganisha_mfuatano(mfululizo, "mbegu") == 0) {
-            jm_jaribu_moja(MBEGU, mazingira, faili, tarajiwa, "mbegu");
+        kama (linganisha_mfuatano(mfululizo, "kamili") == 0) {
+            jm_jaribu_moja("/tmp/swa-mnyororo-asili/kamili", mazingira, faili, tarajiwa, "kamili");
+        } sivyo { kama (linganisha_mfuatano(mfululizo, "awali") == 0) {
+            jm_jaribu_moja(AWALI, mazingira, faili, tarajiwa, "awali");
         } sivyo {
-            jm_jaribu_moja(MBEGU, mazingira, faili, tarajiwa, "mbegu");
-            jm_jaribu_moja("/tmp/swa-mnyororo-asili/stage1", mazingira, faili, tarajiwa, "stage1");
+            jm_jaribu_moja(AWALI, mazingira, faili, tarajiwa, "awali");
+            jm_jaribu_moja("/tmp/swa-mnyororo-asili/kamili", mazingira, faili, tarajiwa, "kamili");
         } }
     }
 

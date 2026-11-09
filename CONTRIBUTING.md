@@ -58,7 +58,7 @@ cd swa
 
 ### Kujaribu Mkusanyaji
 ```sh
-./msingi/mbegu.bin --programu mfano.swa > mfano.bin
+./msingi/awali.bin --programu mfano.swa > mfano.bin
 chmod +x mfano.bin && ./mfano.bin
 ```
 
@@ -82,7 +82,7 @@ Dereva wa zamani wa Rust/LLVM uko kwenye hazina ya kumbukumbu
 
 ## Sheria ya Mzizi wa Uaminifu
 
-`msingi/mbegu.swm` na `msingi/kwanza.bin` ni MZIZI WA UAMINIFU wa
+`msingi/awali.swm` na `msingi/kwanza.bin` ni MZIZI WA UAMINIFU wa
 mnyororo mzima. Sheria isiyo na mbadala:
 
 **Mabadiliko ya mzizi wa uaminifu hujengwa na Kujaribiwa KABLA ya
@@ -97,9 +97,9 @@ la wito 1,000 lilikimbizwa kabla ya kugandisha. Jaribio hilo sasa ni
 mkazo wa RELA ndani ya `gharama/jaribu-mfululizo.mapishi` (`majaribio/mkazo/rela_1000.swa`) -- la kudumu.
 
 Mpangilio wa lazima:
-1. Badilisha `msingi/mbegu.swm`.
-2. `./msingi/mjenzi.bin gharama/mbegu-mpya.mapishi` -> mbegu ya muda
-   `jengo/mbegu` (mnyororo huru: kwanza.bin -> maoni -> lebo -> kusanyiko0
+1. Badilisha `msingi/awali.swm`.
+2. `./msingi/mjenzi.bin gharama/awali-mpya.mapishi` -> mbegu ya muda
+   `jengo/awali` (mnyororo huru: kwanza.bin -> maoni -> lebo -> kusanyiko0
    -> kusanyiko) -> jaribu
    kwa chanzo KIDOGO (sio mkusanyiko mzima kwanza) na kwa mkusanyiko
    mzima.

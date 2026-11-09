@@ -18,7 +18,7 @@ Zana inayogeuza chanzo cha mbegu kuwa `mbegu.bin` lazima ijengwe kutoka `kwanza.
 | 3 | `kusanyiko0` | hex yenye lebo | makro: majina ya maagizo |
 | 4 | `kusanyiko` | kusanyiko0 | lugha ya mashine ya Swa (`hati/kusanyiko-x86.md`): husimba x86-64 na kuandika ELF |
 | 4d | `kusanyiko` (kujijenga) | kusanyiko la hatua 4 (`msingi/mfululizo/kusanyiko.swm`) | assembler imeandikwa kwa lugha yake; hujijenga lenyewe sawa kwa baiti |
-| 5 | `mbegu.bin` | kusanyiko (`msingi/mbegu.swm`) | mkusanyaji wa Swa -- msimbo na data sawa kwa baiti na mbegu ya zamani ya NASM |
+| 5 | `mbegu.bin` | kusanyiko (`msingi/awali.swm`) | mkusanyaji wa Swa -- msimbo na data sawa kwa baiti na mbegu ya zamani ya NASM |
 
 ## Kanuni
 
@@ -33,7 +33,7 @@ Zana inayogeuza chanzo cha mbegu kuwa `mbegu.bin` lazima ijengwe kutoka `kwanza.
 - [x] Hatua 3: `msingi/mfululizo/hatua3_kusanyiko0.hex2` (hujengwa na lebo) + `.kus` (chanzo chake kwa lugha yake: makro 138 za maagizo kwa **majina ya Kiswahili**, rejista `r0`-`r15`). Baiti 1019. `FAFANUA jina baiti`, namba `!N %N ^N`, mifuatano `"..."`, lebo zinapitishwa; tokeni isiyojulikana -> kutoka 4. Hujijenga yenyewe sawa kwa baiti (.kus -> kusanyiko0 -> lebo).
 - [x] Hatua 4: `msingi/mfululizo/hatua4_kusanyiko.kus` (hujengwa na kusanyiko0 + lebo; makro 774, baiti 9131). Lugha ya mashine ya Swa kwa maana, si tafsiri ya majina ya Intel: `r0 = r3`, `r0d += 5`, `n32[jedwali + r12*4] = r0d`, `linganisha r1d, 0` / `ruka .x kama ==`, `r0d = a r0b`, `x0 = n r3`, data kama Swa (`n8 ujumbe = "habari", 0`). Mapitio hadi kutulia; ukubwa wa matawi kwa sheria ile ile ya NASM. Majaribio: programu 4 zinaendeshwa, maumbo 107 ya maagizo sawa kwa baiti na NASM (`majaribio/maagizo.hex`).
 - [x] Hatua 4d: `msingi/mfululizo/kusanyiko.swm` (mistari 2,832) -- kusanyiko limeandikwa kwa lugha yake lenyewe. Kusanyiko la hatua 4 hulijenga (`kusanyiko2`), na `kusanyiko2` hujijenga lenyewe sawa kwa baiti; hutoa matokeo sawa kwa baiti na la hatua 4 kwa kila jaribio, maumbo yote 107 ya maagizo, kila kosa, na `mbegu.bin` nzima. `gandisha-mbegu.sh` hujenga mbegu kwa `kusanyiko2`. Kuanzia sasa assembler hubadilishwa kwenye `kusanyiko.swm`; `hatua4_kusanyiko.kus` hubaki kama daraja la kuanzia tu (zana za nje hazihitajiki tena hata kwa uandishi).
-- [x] Hatua 5: `msingi/mbegu.swm` (mistari 15,492 -- mbegu yote kwa lugha ya mashine ya Swa). Kusanyiko likiikusanya: msimbo baiti 43,209, data baiti 3,032, mahali pa kuanzia 0x40ab65 -- **sawa kwa baiti** na mbegu ya NASM + ld (sha256 c2b38fba...a249209). Mbegu hiyo ndiyo `msingi/mbegu.bin` sasa (baiti 52,184, sha256 6f1d0df0...daf3e0e388; ELF ya kusanyiko -- bila sehemu wala symtab za ld), na `mbegu.hex` imegandishwa upya kutoka kwake (`gharama/gandisha-mbegu.sh`). `msingi/mbegu.s` imeondolewa. Mbegu mpya hupita majaribio yote: mnyororo 470, mnyororo asili 453, WASM 42, --kiini 15, usakinishaji 5; stage2 == stage3.
+- [x] Hatua 5: `msingi/awali.swm` (mistari 15,492 -- mbegu yote kwa lugha ya mashine ya Swa). Kusanyiko likiikusanya: msimbo baiti 43,209, data baiti 3,032, mahali pa kuanzia 0x40ab65 -- **sawa kwa baiti** na mbegu ya NASM + ld (sha256 c2b38fba...a249209). Mbegu hiyo ndiyo `msingi/awali.bin` sasa (baiti 52,184, sha256 6f1d0df0...daf3e0e388; ELF ya kusanyiko -- bila sehemu wala symtab za ld), na `mbegu.hex` imegandishwa upya kutoka kwake (`gharama/gandisha-mbegu.sh`). `msingi/awali.s` imeondolewa. Mbegu mpya hupita majaribio yote: mnyororo 470, mnyororo asili 453, WASM 42, --kiini 15, usakinishaji 5; stage2 == stage3.
 
 - [x] NASM imeondolewa kila mahali: kusanyiko lina `picha`, `biti 32`, maagizo ya ring 0, `bandari`, `jumuisha` (hati/kusanyiko-x86.md). `majaribio/kernel/stub.swm` (jaribio la --kiini) na kiini cha Kawira (lugha-swa/kawira `kiini.swm`) hujengwa nalo; picha zote mbili ni sawa kwa baiti na za NASM.
 
@@ -45,9 +45,9 @@ Uthibitisho: `gharama/jaribu-mfululizo-huru.mapishi` (kwenye CI; visa vyake viko
 
 | Mapishi | Kazi |
 |---|---|
-| `gharama/mwanzo.kizinduzi` | mbegu mbili pekee -> mjenzi, mbegu na kizinduzi kutoka vyanzo; mjenzi huo hulinganisha vilivyogandishwa (`gharama/thibitisha-mbegu.mapishi`) |
+| `gharama/mwanzo.kizinduzi` | mbegu mbili pekee -> mjenzi, mbegu na kizinduzi kutoka vyanzo; mjenzi huo hulinganisha vilivyogandishwa (`gharama/thibitisha-awali.mapishi`) |
 | `gharama/kusanyiko.mapishi` | baiti 393 -> maoni -> lebo -> kusanyiko0 -> kusanyiko, kila hatua ikijijenga; `jengo/kusanyiko` |
-| `gharama/mbegu-mpya.mapishi` | `jengo/mbegu`, `jengo/mjenzi` kutoka vyanzo vyao (kujaribu kabla ya kugandisha) |
+| `gharama/awali-mpya.mapishi` | `jengo/awali`, `jengo/mjenzi` kutoka vyanzo vyao (kujaribu kabla ya kugandisha) |
 | `gharama/mfululizo.mapishi` | vilivyogandishwa (`mbegu.bin`, `mjenzi.bin`, `.hex` zao) == vinavyojengwa |
 | `gharama/jenga.mapishi` | yote hadi `bin/swa` |
 | `gharama/gandisha.mapishi` | gandisha mbegu na mjenzi kutoka vyanzo, kisha thibitisha |
@@ -70,6 +70,6 @@ Sasa mnyororo huanza na mbegu mbili zinazosomeka baiti kwa baiti, kama hex0 na k
 | `msingi/kwanza.bin` | 393 | hex -> binary | `hati/kwanza-baiti.md` |
 | `msingi/kizinduzi.bin` | 839 | huendesha orodha ya hatua (`PROG HOJA [< NDANI] [> NJE]`, `saraka`, maoni `;`) na husimama kwa kosa la kwanza | `msingi/kizinduzi.hexc`: kila agizo na baiti zake, anwani, na mstari wake wa `msingi/mfululizo/kizinduzi.swm` |
 
-`./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi` hujenga maoni, lebo, kusanyiko0 na kusanyiko kutoka mbegu hizo, kisha **mjenzi, mbegu na kizinduzi kutoka vyanzo vyao**. Mjenzi huo uliojengwa -- si `msingi/mjenzi.bin` -- huendesha `gharama/thibitisha-mbegu.mapishi`, inayolinganisha kila binary iliyogandishwa (`kwanza`, `kizinduzi` kwa njia tatu: hex, hexc, swm; `mjenzi`, `mbegu` na `.hex` zao) na inayojengwa. strace: programu zinazoendeshwa ni mbegu mbili na zilizojengwa kutoka kwake pekee; `msingi/mjenzi.bin` haiendeshwi kamwe. Baiti moja ikibadilishwa kwenye `mjenzi.bin`, `mbegu.bin` au `kizinduzi.bin`, mwanzo hushindwa. Hii ni hatua ya kwanza ya CI.
+`./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi` hujenga maoni, lebo, kusanyiko0 na kusanyiko kutoka mbegu hizo, kisha **mjenzi, mbegu na kizinduzi kutoka vyanzo vyao**. Mjenzi huo uliojengwa -- si `msingi/mjenzi.bin` -- huendesha `gharama/thibitisha-awali.mapishi`, inayolinganisha kila binary iliyogandishwa (`kwanza`, `kizinduzi` kwa njia tatu: hex, hexc, swm; `mjenzi`, `mbegu` na `.hex` zao) na inayojengwa. strace: programu zinazoendeshwa ni mbegu mbili na zilizojengwa kutoka kwake pekee; `msingi/mjenzi.bin` haiendeshwi kamwe. Baiti moja ikibadilishwa kwenye `mjenzi.bin`, `mbegu.bin` au `kizinduzi.bin`, mwanzo hushindwa. Hii ni hatua ya kwanza ya CI.
 
 Mzizi wa kuaminiwa ni baiti 393 + 839, zote zimeelezwa. Jinsi ya kuukagua kwa jicho, hatua kwa hatua: `hati/mwongozo-wa-mkaguzi.md`. Kama kwanza, kizinduzi hakiwezi kujithibitisha chenyewe (kizinduzi kilichoharibiwa ndicho kinachoendesha ukaguzi wake); kinga yake ni ukaguzi wa jicho wa `kizinduzi.hexc`, na faili hilo lazima liwe sawa kwa baiti na `kizinduzi.swm` (CI hukataa tofauti). `kizinduzi.swm` ndicho chanzo; ukikibadilisha, sasisha `kizinduzi.hexc` na `kizinduzi.hex` pamoja nacho.

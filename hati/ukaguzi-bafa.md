@@ -2,7 +2,7 @@
 
 Hati hii ni matokeo ya ukaguzi wa kila mgawanyo wa ukumbusho wa
 ukubwa thabiti (safu, dimbwi, majedwali) kwenye mzizi wa uaminifu
-(msingi/mbegu.swm) na maktaba (msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa). Kila kipengele kimoja
+(msingi/awali.swm) na maktaba (msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa). Kila kipengele kimoja
 kimoja na uamuzi:
 
 - **SALAMA KWA SAUTI** -- ukaguzi wa mpaka unaolia (kosa + exit) kabla

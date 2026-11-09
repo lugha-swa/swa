@@ -74,8 +74,8 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - `hati/mipaka.md` -- mipaka inayojulikana (kwa ukali)
 - `msingi/mkusanyaji/uzalishaji.swa` -- codegen asilia (inajikusanya)
 - `msingi/mkusanyaji/mteremko.swa` -- kiteremshi cha AST->IR ya mstari (hati/ir.md); `mtafsiri.swa` huitekeleza (`swa --tafsiri`), na ndiyo msingi wa sehemu za nyuma zijazo
-- `msingi/mkusanyaji/stage1.swa` -- kiendeshi cha bootstrap
-- `msingi/mbegu.swm` -- mbegu kwa lugha ya mashine ya Swa; hujengwa na
+- `msingi/mkusanyaji/kiendeshaji.swa` -- kiendeshi cha bootstrap
+- `msingi/awali.swm` -- mbegu kwa lugha ya mashine ya Swa; hujengwa na
   mnyororo huru kutoka kwanza.bin (baiti 393), bila NASM wala ld
 
 ## Kile Tunachofanya Sasa (Agosti 2026)
