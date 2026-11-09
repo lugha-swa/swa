@@ -1,0 +1,67 @@
+; jaribu-msuluhishi.mapishi -- msuluhishi wa husisha (gharama/msuluhishi.swa):
+; hujengwa na mbegu, hutatua grafu kamili ya stage1, na hukataa kwa sauti
+; mzunguko, faili lisilopo, `husisha C::` na `husisha {` bila '}'.
+; Visa viko majaribio/msuluhishi/.
+;   ./msingi/mjenzi.bin gharama/jaribu-msuluhishi.mapishi
+saraka jengo
+saraka jengo/ms
+
+; msuluhishi kwa mbegu, kisha stage1 kutoka grafu iliyotatuliwa
+unganisha jengo/ms/zima-msuluhishi.swa msingi/maktaba/kumbukumbu.swa msingi/maktaba/mfuatano.swa msingi/maktaba/faili.swa gharama/msuluhishi.swa
+endesha msingi/mbegu.bin --exe jengo/ms/zima-msuluhishi.swa > jengo/ms/msuluhishi
+endesha jengo/ms/msuluhishi msingi/mkusanyaji/stage1.swa > jengo/ms/zima.swa
+endesha msingi/mbegu.bin --exe jengo/ms/zima.swa > jengo/ms/stage1
+
+; programu ndogo kwa mbegu na kwa stage1
+endesha jengo/ms/msuluhishi majaribio/msuluhishi/dogo.swa > jengo/ms/dogo-towe.swa
+endesha msingi/mbegu.bin --exe jengo/ms/dogo-towe.swa > jengo/ms/dogo-mbegu
+endesha jengo/ms/dogo-mbegu
+endesha jengo/ms/stage1 --exe jengo/ms/dogo-towe.swa > jengo/ms/dogo-stage1
+endesha jengo/ms/dogo-stage1
+
+; mnyororo wa ngazi 3 (a -> b -> c), njia za jamaa kwa saraka ya kazi
+endesha ../../jengo/ms/msuluhishi a.swa > jengo/ms/towe-a.swa @ majaribio/msuluhishi
+ina jengo/ms/towe-a.swa kazi_c
+ina jengo/ms/towe-a.swa kazi_b
+endesha msingi/mbegu.bin --exe jengo/ms/towe-a.swa > jengo/ms/exe-a
+endesha jengo/ms/exe-a
+
+; mzunguko unakataliwa kwa sauti, na ujumbe unautaja
+endesha_kosa 1 ../../jengo/ms/msuluhishi x.swa > jengo/ms/o 2> jengo/ms/mz.txt @ majaribio/msuluhishi
+ina jengo/ms/mz.txt "x.swa -> y.swa -> x.swa"
+
+; uhakika wa pato: mara mbili kwa njia, mara moja kwa stdin
+endesha jengo/ms/msuluhishi majaribio/msuluhishi/dogo.swa > jengo/ms/h1
+endesha jengo/ms/msuluhishi majaribio/msuluhishi/dogo.swa > jengo/ms/h2
+endesha jengo/ms/msuluhishi < majaribio/msuluhishi/dogo.swa > jengo/ms/h3
+sawa jengo/ms/h1 jengo/ms/h2
+sawa jengo/ms/h1 jengo/ms/h3
+
+; grafu kamili: kutatua tena hakubadilishi kitu (hakuna husisha iliyobaki),
+; na stage2 == stage3
+endesha jengo/ms/msuluhishi msingi/mkusanyaji/stage1.swa > jengo/ms/gurafu.swa
+endesha jengo/ms/msuluhishi jengo/ms/gurafu.swa > jengo/ms/gurafu2.swa
+sawa jengo/ms/gurafu.swa jengo/ms/gurafu2.swa
+endesha msingi/mbegu.bin --exe jengo/ms/gurafu.swa > jengo/ms/stage1-k
+endesha jengo/ms/stage1-k --exe jengo/ms/gurafu.swa > jengo/ms/stage2-k
+endesha jengo/ms/stage2-k --exe jengo/ms/gurafu.swa > jengo/ms/stage3-k
+sawa jengo/ms/stage2-k jengo/ms/stage3-k
+endesha jengo/ms/stage1-k --exe jengo/ms/dogo-towe.swa > jengo/ms/dogo-k
+endesha jengo/ms/dogo-k
+
+; kujitatua: msuluhishi aliyetatuliwa na yeye mwenyewe ni binari ile ile
+endesha jengo/ms/msuluhishi gharama/msuluhishi.swa > jengo/ms/kujitatua.swa
+endesha msingi/mbegu.bin --exe jengo/ms/kujitatua.swa > jengo/ms/kujitatua.bin
+sawa jengo/ms/kujitatua.bin jengo/ms/msuluhishi
+endesha jengo/ms/msuluhishi jengo/ms/kujitatua.swa > jengo/ms/kutoathirika.swa
+sawa jengo/ms/kutoathirika.swa jengo/ms/kujitatua.swa
+
+; makosa ya sauti
+endesha_kosa 1 jengo/ms/msuluhishi majaribio/msuluhishi/kiungo_c.swa > jengo/ms/o 2> jengo/ms/k.txt
+ina jengo/ms/k.txt "husisha isiyo sahihi"
+endesha_kosa 1 jengo/ms/msuluhishi majaribio/msuluhishi/haipo.swa > jengo/ms/o 2> jengo/ms/k.txt
+ina jengo/ms/k.txt halipatikani
+endesha_kosa 1 jengo/ms/msuluhishi majaribio/msuluhishi/bila_kufunga.swa > jengo/ms/o 2> jengo/ms/k.txt
+ina jengo/ms/k.txt kufunga
+
+andika msuluhishi: yote yamefaulu

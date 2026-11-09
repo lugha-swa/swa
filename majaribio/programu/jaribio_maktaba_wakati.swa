@@ -1,0 +1,16 @@
+// maktaba/wakati.swa: syscalls za Linux pekee (zamani iliita time()
+// ya C, ambayo haipo -- haikukusanyika kabisa). Wakati halisi lazima
+// uwe baada ya 2024 (1704067200); saa ya monotonic haiendi nyuma.
+husisha { msingi/maktaba/kumbukumbu.swa }
+husisha { msingi/maktaba/wakati.swa }
+n32 main() {
+    kama (wakati_sasa() < 1704067200) { rudisha 1; }
+    n64 a = wakati_nanosekunde();
+    n64 jumla = 0;
+    n32 i = 0;
+    wakati (i < 100000) { jumla = jumla + i; i = i + 1; }
+    n64 b = wakati_nanosekunde();
+    kama (b < a) { rudisha 2; }
+    kama (jumla != 4999950000) { rudisha 3; }
+    rudisha 0;
+}

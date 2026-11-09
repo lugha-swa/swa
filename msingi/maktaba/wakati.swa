@@ -1,12 +1,25 @@
-husisha C::stdlib
-
-// wakati.swa — Shughuli za wakati wa mfumo
+// wakati.swa -- wakati wa mfumo, kwa syscalls za Linux (bila libc).
 //
-// Hutoa kazi za kupata wakati wa sasa kutoka mfumo.
-// Inazungushia time() ya maktaba ya C.
+// clock_gettime(2) = syscall 228: hujaza { sekunde, nanosekunde }.
+//   saa 0 (CLOCK_REALTIME)  -- wakati halisi tangu 1970-01-01
+//   saa 1 (CLOCK_MONOTONIC) -- hauendi nyuma; kwa kupima muda
 
-// Pata wakati wa sasa wa UNIX (sekunde tangu 1970-01-01).
-// Hurudisha n64 yenye timestamp.
+n64 wakati_saa(n64 saa, n64* nanosekunde) {
+    n64* ts = tenga(16);
+    wito_wa_mfumo(228, saa, ts, 0, 0, 0, 0);
+    kama (nanosekunde != 0) { *nanosekunde = ts[1]; }
+    rudisha ts[0];
+}
+
+// Sekunde tangu 1970-01-01 (UNIX).
 n64 wakati_sasa() {
-    rudisha time(0);
+    rudisha wakati_saa(0, 0);
+}
+
+// Nanosekunde za saa isiyoenda nyuma -- kwa kupima muda kati ya
+// vipimo viwili (tofauti yake), si wakati wa siku.
+n64 wakati_nanosekunde() {
+    n64 ns = 0;
+    n64 s = wakati_saa(1, &ns);
+    rudisha s * 1000000000 + ns;
 }
