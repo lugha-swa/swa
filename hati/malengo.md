@@ -24,30 +24,30 @@ Hakuna faili. Hakuna binary. Hakuna OS kati.
 - [x] Stub ya `jmp main` na tungo mwishoni mwa bafa
 - [x] Thamani ya kurudi inarudi kwa usahihi (vipimo 5/5 vya JIT)
 - [x] Wito wa kazi za ndani ndani ya msimbo wa JIT (jedwali la anwani
-      la exe — anwani_ya_kazi ya ndani + tekeleza kama builtin) na
+      la exe -- anwani_ya_kazi ya ndani + tekeleza kama builtin) na
       kupitisha argv; exe haina alama za nje kabisa
 
 ### Hatua ya 3: Kuziba pengo la bootstrap [IMEFANYIKA KWA MBEGU]
 Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - [x] Kwanza (msingi/kwanza.bin): baiti 393 zilizoandikwa kwa mkono
-      (kichwa cha ELF 64 + kichwa cha programu 56 + msimbo 273) — hubadilisha
+      (kichwa cha ELF 64 + kichwa cha programu 56 + msimbo 273) -- hubadilisha
       hex hadi binary na inajijenga yenyewe (kwanza.hex -> kwanza.bin)
-- [x] mbegu.bin inazalika kutoka mbegu.hex kupitia Kwanza — NASM
+- [x] mbegu.bin inazalika kutoka mbegu.hex kupitia Kwanza -- NASM
       si sehemu ya mnyororo tena; tangu 2026-11-03 mbegu.bin yenyewe hujengwa
       kutoka mbegu.swm na mnyororo huru (hati/mnyororo-huru.md)
 - [x] Kiunganishi cha kujitegemea: bendera ya `--exe` inatoa **ET_EXEC
-      tuli** (bila kichwa cha sehemu, bila PT_INTERP) — mnyororo wa
+      tuli** (bila kichwa cha sehemu, bila PT_INTERP) -- mnyororo wa
       kujikusanya wa exe ni safi kabisa: stage2-exe == stage3-exe
       (sawa kwa baiti) bila ld, gcc, wala libc.
-- [x] Runtime ya syscalls: mkusanyaji hautekelezi kupitia libc tena —
+- [x] Runtime ya syscalls: mkusanyaji hautekelezi kupitia libc tena --
       sys_open/sys_read/sys_write/sys_mmap kupitia wito_wa_mfumo;
       undefined za nje za stage2-exe ni mbili tu (daraja za JIT).
-- [x] 0% bootstrap gap — mbegu inatoa ET_EXEC tuli moja kwa moja
+- [x] 0% bootstrap gap -- mbegu inatoa ET_EXEC tuli moja kwa moja
       (`--exe`): kichwa + phdr + stub ya `_start` + urekebishaji wa
       RELA wa ndani. Hakuna gcc, ld, clang, muda.c, wala libc popote
-      kwenye mnyororo: kwanza → mbegu → stage1-exe → stage2-exe →
+      kwenye mnyororo: kwanza -> mbegu -> stage1-exe -> stage2-exe ->
       stage3-exe (stage2-exe == stage3-exe, sawa kwa baiti).
-      Kumbuka: hili linahusu mnyororo wa uzalishaji pekee — uthabiti
+      Kumbuka: hili linahusu mnyororo wa uzalishaji pekee -- uthabiti
       wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti, bado
       wazi (angalia hati/mipaka.md).
 
@@ -68,47 +68,47 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 
 ## Machapisho Muhimu
 
-- `readme.md` — ukurasa wa kwanza
-- `hati/ramani.md` — ramani ya mradi
-- `hati/malengo.md` — huu hapa (lengo letu halisi)
-- `hati/mipaka.md` — mipaka inayojulikana (kwa ukali)
-- `msingi/mkusanyaji/uzalishaji.swa` — codegen asilia (inajikusanya)
-- `msingi/mkusanyaji/mteremko.swa` — kiteremshi cha AST→IR ya mstari (hati/ir.md); `mtafsiri.swa` huitekeleza (`swa --tafsiri`), na ndiyo msingi wa sehemu za nyuma zijazo
-- `msingi/mkusanyaji/stage1.swa` — kiendeshi cha bootstrap
-- `msingi/mbegu.swm` — mbegu kwa lugha ya mashine ya Swa; hujengwa na
+- `readme.md` -- ukurasa wa kwanza
+- `hati/ramani.md` -- ramani ya mradi
+- `hati/malengo.md` -- huu hapa (lengo letu halisi)
+- `hati/mipaka.md` -- mipaka inayojulikana (kwa ukali)
+- `msingi/mkusanyaji/uzalishaji.swa` -- codegen asilia (inajikusanya)
+- `msingi/mkusanyaji/mteremko.swa` -- kiteremshi cha AST->IR ya mstari (hati/ir.md); `mtafsiri.swa` huitekeleza (`swa --tafsiri`), na ndiyo msingi wa sehemu za nyuma zijazo
+- `msingi/mkusanyaji/stage1.swa` -- kiendeshi cha bootstrap
+- `msingi/mbegu.swm` -- mbegu kwa lugha ya mashine ya Swa; hujengwa na
   mnyororo huru kutoka kwanza.bin (baiti 393), bila NASM wala ld
 
 ## Kile Tunachofanya Sasa (Agosti 2026)
 
 Lengo kuu limefikiwa: mnyororo wa kujikusanya umefungwa kikamilifu na
-**hakuna lugha nyingine** — baiti za mkono (kwanza, 393) → mbegu →
-stage1-exe → stage2-exe == stage3-exe, bila gcc/ld/clang/libc popote.
+**hakuna lugha nyingine** -- baiti za mkono (kwanza, 393) -> mbegu ->
+stage1-exe -> stage2-exe == stage3-exe, bila gcc/ld/clang/libc popote.
 (0% gap ni mhimili wa mnyororo wa uzalishaji; uthabiti wa makosa ni
-mhimili tofauti — hati/mipaka.md.)
+mhimili tofauti -- hati/mipaka.md.)
 
 Hali ya Agosti 2026 (kuelekea 1.0):
 
-1. **Uthabiti wa makosa ya mchanganuzi — IMEKAMILIKA** — ingizo baya
+1. **Uthabiti wa makosa ya mchanganuzi -- IMEKAMILIKA** -- ingizo baya
    linalia kwa sauti (mipaka.md 1-3, 8), kusoma bomba hadi EOF,
    mzunguko mfupi wa && na ||, na kazi isiyofafanuliwa inalia.
-2. **Maktaba ya kawaida — IMEKAMILIKA** — hesabu (gcd, pow, isqrt,
+2. **Maktaba ya kawaida -- IMEKAMILIKA** -- hesabu (gcd, pow, isqrt,
    fibonacci), mifuatano kamili (tafuta, kata), I/O (soma_mstari),
-   sort — jaribio_maktaba_mbegu_exe.
-3. **Vipimo rasmi vya lugha — IMEKAMILIKA** — hati/vipimo-vya-lugha.md.
-4. **Uamuzi wa mteremko.swa/LLVM — IMEFANYIKA** — mwisho wa LLVM ni
+   sort -- jaribio_maktaba_mbegu_exe.
+3. **Vipimo rasmi vya lugha -- IMEKAMILIKA** -- hati/vipimo-vya-lugha.md.
+4. **Uamuzi wa mteremko.swa/LLVM -- IMEFANYIKA** -- mwisho wa LLVM ni
    wa MAJARIBIO; mnyororo wa uzalishaji ni mbegu/exe pekee (mipaka.md 6).
    Dereva wa Rust/LLVM umehamishiwa hazina ya kumbukumbu
    lugha-swa/swa-dereva (2026-09-05); hazina kuu ina Swa pekee.
-5. **ABI ya wito wa kazi za D64** — IMEFANYIKA kwenye minyororo
+5. **ABI ya wito wa kazi za D64** -- IMEFANYIKA kwenye minyororo
    yote miwili (mbegu inatumia uhamisho wa GP; kilichopimwa
-   2026-08-27 — mipaka.md 4c imerekebishwa). Mpaka wa D64 na
+   2026-08-27 -- mipaka.md 4c imerekebishwa). Mpaka wa D64 na
    nambari kamili umefunga (T2c), na D32 sasa inafanya kazi
-   kikamilifu kwenye uzalishaji (T4/T8) — hakuwezi kuorodheshwa
+   kikamilifu kwenye uzalishaji (T4/T8) -- hakuwezi kuorodheshwa
    kama kilichobaki tena.
-6. **Mfumo wa moduli** — IMEFANYIKA (2026-09) — husisha ni kiungo
+6. **Mfumo wa moduli** -- IMEFANYIKA (2026-09) -- husisha ni kiungo
    halisi ndani ya mkusanyaji; msingi/maktaba/ na msingi/mkusanyaji/
    ndizo rafu mbili za maktaba moja.
-7. **Uzingatiaji uliopimwa** — rekodi kamili (hati/
+7. **Uzingatiaji uliopimwa** -- rekodi kamili (hati/
    uthibitisho-wa-lugha.md) inahesabu kila kipengele kilichojaribiwa;
    majibu mabaya ya kimya ya uzalishaji yamepungua kutoka 96 hadi
    wachache walioorodheshwa na kirejeshi chao.
@@ -117,10 +117,10 @@ Hali ya Agosti 2026 (kuelekea 1.0):
 
 1.0 si mwisho wa mende. Ni AHADI: kuanzia siku hiyo, program
 zilizoandikwa dhidi ya vipimo hivi zinaendelea kufanya kazi.
-Ahadi hiyo haifanywi kwa skani safi — inafanywa wakati kuna watumiaji
+Ahadi hiyo haifanywi kwa skani safi -- inafanywa wakati kuna watumiaji
 wanaostahili kupewa ahadi. V (vlang) bado ni 0.4 baada ya miaka sita,
 na ahadi za mapema za 1.0 ziliumiza sifa yake kuliko mende zozote.
 
 Njia ya Swa: 0.0.x kwa marekebisho, 0.1.0 kuanzia mfumo wa moduli na
 vielekezi vya kazi, na 1.0.0 siku ambayo watumiaji wa kweli
-wameandika program za kweli — si mapema.
+wameandika program za kweli -- si mapema.

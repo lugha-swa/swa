@@ -1,4 +1,4 @@
-// kimbiza.js — kikaguzi cha Node kisicho na tegemezi la nje (hakuna
+// kimbiza.js -- kikaguzi cha Node kisicho na tegemezi la nje (hakuna
 // npm package) kwa moduli za WASM zinazozalishwa na "stage1 --wasm".
 // Matumizi: node kimbiza.js <faili.wasm> <thamani_tarajiwa> [aina]
 //

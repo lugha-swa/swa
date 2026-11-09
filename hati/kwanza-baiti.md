@@ -1,16 +1,16 @@
-# Kwanza — Baiti za Mkono
+# Kwanza -- Baiti za Mkono
 
 Kwanza ni mkusanyaji wa kwanza wa Swa: program ya **baiti za mkono**
-(bila NASM, bila lugha nyingine) inayobadilisha hex → binary. Ukubwa:
+(bila NASM, bila lugha nyingine) inayobadilisha hex -> binary. Ukubwa:
 **baiti 393** (kichwa cha ELF 64 + kichwa cha programu 56 + msimbo 273).
 
 Kwanza inajijenga yenyewe na inazalisha `mbegu.bin` kutoka `mbegu.hex`.
 Hii inafunga pengo la bootstrap: **hakuna zana ya nje inayohitajika
-kuzalisha mbegu.bin tena** — baiti za mkono pekee.
+kuzalisha mbegu.bin tena** -- baiti za mkono pekee.
 
 Mnyororo:
 ```
-kwanza.hex (baiti za mkono)  →  kwanza.bin  →  mbegu.hex  →  mbegu.bin
+kwanza.hex (baiti za mkono)  ->  kwanza.bin  ->  mbegu.hex  ->  mbegu.bin
 ```
 
 Uthibitisho: `gharama/kusanyiko.mapishi` (kwanza hujijenga yenyewe, kisha mnyororo huru) na `gharama/mnyororo.mapishi`.
@@ -43,8 +43,8 @@ Uthibitisho: `gharama/kusanyiko.mapishi` (kwanza hujijenga yenyewe, kisha mnyoro
 | 40-47 | 00 09 00 00 | kumbukumbu yote: 0x900 (inajumuisha bafa) |
 
 Kumbukumbu baada ya msimbo ni bafa iliyoandikwa sifuri:
-- `0x400300-0x4006ff` — bafa ya kusoma (baiti 1024)
-- `0x400700-0x4008ff` — bafa ya kuandika (baiti 512)
+- `0x400300-0x4006ff` -- bafa ya kusoma (baiti 1024)
+- `0x400700-0x4008ff` -- bafa ya kuandika (baiti 512)
 
 ### Msimbo (baiti 273, kuanzia 0x400078)
 
@@ -52,8 +52,8 @@ Msimbo unasoma hex kutoka stdin, unaruka herufi zisizo hex
 (nafasi, mistari mipya), unachanganya nibble mbili kuwa baiti moja,
 na unaandika matokeo kwenye stdout.
 
-Rejesta: `r12` — kielekezi cha bafa ya kuandika; `r13` — nibble ya
-kwanza; `r14` — hali ya nibble. (`rcx` na `r11` hazitumiki: syscall
+Rejesta: `r12` -- kielekezi cha bafa ya kuandika; `r13` -- nibble ya
+kwanza; `r14` -- hali ya nibble. (`rcx` na `r11` hazitumiki: syscall
 huwaharibu.)
 
 | Baiti | Maana |
@@ -78,17 +78,17 @@ huwaharibu.)
 | 48 ff c3 | rbx++ |
 | 49 ff c8 | r8-- |
 | 3d 30 00 00 00 | linganisha na 48 ('0') |
-| 72 xx | chini — ruka (si hex) |
+| 72 xx | chini -- ruka (si hex) |
 | 3d 39 00 00 00 | linganisha na 57 ('9') |
-| 76 xx | chini au sawa — tarakimu |
+| 76 xx | chini au sawa -- tarakimu |
 | 3d 41 00 00 00 | linganisha na 65 ('A') |
-| 72 xx | chini — ruka |
+| 72 xx | chini -- ruka |
 | 3d 46 00 00 00 | linganisha na 70 ('F') |
-| 76 xx | chini au sawa — herufi kubwa |
+| 76 xx | chini au sawa -- herufi kubwa |
 | 3d 61 00 00 00 | linganisha na 97 ('a') |
-| 72 xx | chini — ruka |
+| 72 xx | chini -- ruka |
 | 3d 66 00 00 00 | linganisha na 102 ('f') |
-| 77 xx | juu — ruka |
+| 77 xx | juu -- ruka |
 | 2d 57 00 00 00 | eax -= 87 (a=10) |
 | eb xx | ruka hadi nibble |
 | 2d 30 00 00 00 | eax -= 48 (0=0) |
@@ -104,7 +104,7 @@ huwaharibu.)
 | 45 88 2c 24 | [r12] = r13b (toa baiti kamili) |
 | 49 ff c4 | r12++ |
 | 49 81 fc 00 09 40 00 | linganisha r12 na mwisho wa bafa |
-| 72 xx | chini — endelea |
+| 72 xx | chini -- endelea |
 | bf 01 00 00 00 | edi = 1 (stdout) |
 | 48 be 00 07 40 00 00 00 00 00 | rsi = 0x400700 |
 | ba 00 02 00 00 | edx = 512 (ukubwa wa kuandika) |
@@ -127,16 +127,16 @@ huwaharibu.)
 | 0f 05 | syscall |
 
 Kuruka zenye `xx` ni displacements zinazokokotolewa kutoka nafasi za
-lebo za ndani — zinaonekana kwenye `kwanza.hex`.
+lebo za ndani -- zinaonekana kwenye `kwanza.hex`.
 
 ## Historia ya Hitilafu Zilizopatikana Wakati wa Kuandika
 
-1. `syscall` huharibu `rcx` na `r11` — rejesta za hali zilihamishwa
+1. `syscall` huharibu `rcx` na `r11` -- rejesta za hali zilihamishwa
    hadi `r12/r13/r14`.
-2. `mov r14d, imm32` inahitaji modrm `be` (si `ba` — hiyo ni edx).
+2. `mov r14d, imm32` inahitaji modrm `be` (si `ba` -- hiyo ni edx).
 3. Kuruka kwa masharti juu ya `jmp rel32` inahitaji skip ya **baiti 5**
    (si 2): `jg 05; jmp ...`.
-4. Uanzishaji wa bafa ya kuandika ufanyike **mara moja tu** — katika
+4. Uanzishaji wa bafa ya kuandika ufanyike **mara moja tu** -- katika
    kila mzunguko wa kusoma ulikuwa unafuta pato lililojazwa.
 5. Maoni katika faili la hex hayaruhusiwi kuwa na tarakimu au herufi
-   a-f — yangechakatwa kama nibbles. Kwanza.hex ni hex safi.
+   a-f -- yangechakatwa kama nibbles. Kwanza.hex ni hex safi.
