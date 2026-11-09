@@ -64,33 +64,33 @@ n32 tafuta_herufi(n8* s, n8 c) {
     }
     rudisha -1;
 }
-n32 nambari_kwa_mfuatano(n32 n, n8* buf) {
+n32 nambari_kwa_mfuatano(n32 n, n8* bafa) {
     kama (n == 0) {
-        buf[0] = 48;
-        buf[1] = 0;
+        bafa[0] = 48;
+        bafa[1] = 0;
         rudisha 1;
     }
     n32 hasi = 0;
-    n32 val = n;
+    n32 thamani = n;
     kama (n < 0) {
-        buf[0] = 45;
+        bafa[0] = 45;
         hasi = 1;
-        val = 0 - n;
+        thamani = 0 - n;
     }
-    n32 len = 0;
-    n32 tmp = val;
-    wakati (tmp > 0) {
-        len = len + 1;
-        tmp = tmp / 10;
+    n32 urefu = 0;
+    n32 muda = thamani;
+    wakati (muda > 0) {
+        urefu = urefu + 1;
+        muda = muda / 10;
     }
-    n32 pos = hasi + len;
-    buf[pos] = 0;
-    wakati (pos > hasi) {
-        pos = pos - 1;
-        buf[pos] = 48 + (val - (val / 10) * 10);
-        val = val / 10;
+    n32 nafasi = hasi + urefu;
+    bafa[nafasi] = 0;
+    wakati (nafasi > hasi) {
+        nafasi = nafasi - 1;
+        bafa[nafasi] = 48 + (thamani - (thamani / 10) * 10);
+        thamani = thamani / 10;
     }
-    rudisha hasi + len;
+    rudisha hasi + urefu;
 }
 n32 linganisha_mfuatano_n(n8* a, n8* b, n64 n) {
     n64 i = 0;
@@ -187,33 +187,33 @@ n64 mfuatano_hadi_n64(n8* s) {
 // Umbizaji wa nambari hadi mfuatano.
 
 // Badilisha n64 hadi mfuatano. Hurudisha urefu wa mfuatano ulioandikwa.
-n32 nambari_kwa_mfuatano_n64(n64 n, n8* buf) {
+n32 nambari_kwa_mfuatano_n64(n64 n, n8* bafa) {
     kama (n == 0) {
-        buf[0] = 48;
-        buf[1] = 0;
+        bafa[0] = 48;
+        bafa[1] = 0;
         rudisha 1;
     }
     n32 hasi = 0;
-    n64 val = n;
+    n64 thamani = n;
     kama (n < 0) {
-        buf[0] = 45;
+        bafa[0] = 45;
         hasi = 1;
-        val = 0 - n;
+        thamani = 0 - n;
     }
-    n32 len = 0;
-    n64 tmp = val;
-    wakati (tmp > 0) {
-        len = len + 1;
-        tmp = tmp / 10;
+    n32 urefu = 0;
+    n64 muda = thamani;
+    wakati (muda > 0) {
+        urefu = urefu + 1;
+        muda = muda / 10;
     }
-    n32 pos = hasi + len;
-    buf[pos] = 0;
-    wakati (pos > hasi) {
-        pos = pos - 1;
-        buf[pos] = 48 + (val - (val / 10) * 10);
-        val = val / 10;
+    n32 nafasi = hasi + urefu;
+    bafa[nafasi] = 0;
+    wakati (nafasi > hasi) {
+        nafasi = nafasi - 1;
+        bafa[nafasi] = 48 + (thamani - (thamani / 10) * 10);
+        thamani = thamani / 10;
     }
-    rudisha hasi + len;
+    rudisha hasi + urefu;
 }
 
 // tafuta_mfuatano — pata nafasi ya kwanza ya mfuatano mdogo ndani
@@ -337,31 +337,31 @@ n32 idadi_ya_herufi(n8* s, n8 c) {
 
 // nambari_kwa_mfuatano_heksa — badilisha n32 hadi mfuatano wa heksadesimali
 // (herufi ndogo). Hurudisha urefu ulioandikwa.
-n32 nambari_kwa_mfuatano_heksa(n32 n, n8* buf) {
+n32 nambari_kwa_mfuatano_heksa(n32 n, n8* bafa) {
     n8 tarakimu[16];
     n32 i = 0;
     n32 i2 = 0;
     wakati (i2 < 16) { tarakimu[i2] = 0; i2 = i2 + 1; }
-    n32 val = n;
-    kama (val == 0) {
-        buf[0] = 48;
-        buf[1] = 0;
+    n32 thamani = n;
+    kama (thamani == 0) {
+        bafa[0] = 48;
+        bafa[1] = 0;
         rudisha 1;
     }
-    wakati (val != 0) {
-        n32 d = val % 16;
+    wakati (thamani != 0) {
+        n32 d = thamani % 16;
         kama (d < 10) { tarakimu[i] = 48 + d; }
         sivyo { tarakimu[i] = 87 + d; }
-        val = val / 16;
+        thamani = thamani / 16;
         i = i + 1;
     }
     n32 j = 0;
     wakati (i > 0) {
         i = i - 1;
-        buf[j] = tarakimu[i];
+        bafa[j] = tarakimu[i];
         j = j + 1;
     }
-    buf[j] = 0;
+    bafa[j] = 0;
     rudisha j;
 }
 
@@ -411,21 +411,21 @@ w0 bafa_mfuatano(n8* bafa, n64 uwezo, n64* nafasi, n8* s) {
 }
 
 w0 bafa_n64(n8* bafa, n64 uwezo, n64* nafasi, n64 v) {
-    n32 tmp[32];
+    n32 muda[32];
     n32 n = 0;
     kama (v < 0) {
         bafa_herufi(bafa, uwezo, nafasi, 45);
         v = 0 - v;
     }
     wakati (1 == 1) {
-        tmp[n] = v - ((v / 10) * 10);
+        muda[n] = v - ((v / 10) * 10);
         n = n + 1;
         v = v / 10;
         kama (v == 0) { vunja; }
     }
     wakati (n > 0) {
         n = n - 1;
-        bafa_herufi(bafa, uwezo, nafasi, 48 + tmp[n]);
+        bafa_herufi(bafa, uwezo, nafasi, 48 + muda[n]);
     }
 }
 
@@ -433,27 +433,27 @@ w0 bafa_n64(n8* bafa, n64 uwezo, n64* nafasi, n64 v) {
 // (kumbukumbu.swa): thamani hasi huonyeshwa kama mfuatano kamili wa
 // bits 64, sio kama nambari yenye alama.
 w0 bafa_u64(n8* bafa, n64 uwezo, n64* nafasi, n64 v) {
-    n32 tmp[32];
+    n32 muda[32];
     n32 n = 0;
     kama (v < 0) {
         n64 u = v + 6;
         n64 d = u % 10;
         n32 ni_hasi_x = 0;
         kama (d < 0) { d = d + 10; ni_hasi_x = 1; }
-        tmp[n] = d;
+        muda[n] = d;
         n = n + 1;
         v = 1844674407370955161 + u / 10;
         kama (ni_hasi_x) { v = v - 1; }
     }
     wakati (1 == 1) {
-        tmp[n] = v - ((v / 10) * 10);
+        muda[n] = v - ((v / 10) * 10);
         n = n + 1;
         v = v / 10;
         kama (v == 0) { vunja; }
     }
     wakati (n > 0) {
         n = n - 1;
-        bafa_herufi(bafa, uwezo, nafasi, 48 + tmp[n]);
+        bafa_herufi(bafa, uwezo, nafasi, 48 + muda[n]);
     }
 }
 

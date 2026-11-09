@@ -16,37 +16,37 @@ husisha { msingi/maktaba/kumbukumbu.swa }
 n32 kosa = 0;
 
 n32 jendesha_na_subiri(n8* njia) {
-    n8** argv = tenga(16);
-    argv[0] = njia;
-    argv[1] = 0;
-    n8** envp = tenga(8);
-    envp[0] = 0;
+    n8** hoja_mstari = tenga(16);
+    hoja_mstari[0] = njia;
+    hoja_mstari[1] = 0;
+    n8** mazingira = tenga(8);
+    mazingira[0] = 0;
 
-    n64 pid = sys_fork();
-    kama (pid < 0) {
+    n64 kitambulisho_mchakato = mfumo_gawanyika();
+    kama (kitambulisho_mchakato < 0) {
         andika_stderr("FAIL: sys_fork() imeshindwa\n", 0, 0, 0, 0, 0, 0);
         rudisha -1;
     }
-    kama (pid == 0) {
+    kama (kitambulisho_mchakato == 0) {
         // Mchakato MTOTO -- badilisha picha, HAIRUDI ikiwa imefaulu.
-        sys_execve(njia, argv, envp);
+        mfumo_execve(njia, hoja_mstari, mazingira);
         // Ikifika hapa, execve imeshindwa -- toka papo hapo (SI
         // kurudi kwenye mantiki ya mzazi, ambayo ingezalisha
         // mchakato wa PILI usiotarajiwa).
         wito_wa_mfumo(60, 127, 0, 0, 0, 0, 0);
     }
     // Mchakato MZAZI
-    n32 status = 0;
-    n64 pid_aliyebadilika = sys_wait4(pid, &status, 0);
-    kama (pid_aliyebadilika != pid) {
-        andika_stderr("FAIL: sys_wait4 ilirudisha pid=%d, ilitarajiwa %d\n", pid_aliyebadilika, pid, 0, 0, 0, 0);
+    n32 hali_ya = 0;
+    n64 kitambulisho_mchakato_aliyebadilika = mfumo_subiri4(kitambulisho_mchakato, &hali_ya, 0);
+    kama (kitambulisho_mchakato_aliyebadilika != kitambulisho_mchakato) {
+        andika_stderr("FAIL: sys_wait4 ilirudisha pid=%d, ilitarajiwa %d\n", kitambulisho_mchakato_aliyebadilika, kitambulisho_mchakato, 0, 0, 0, 0);
         rudisha -1;
     }
-    kama (sys_wait4_ulitoka_kwa_kawaida(status) == 0) {
-        andika_stderr("FAIL: mtoto hakutoka kwa kawaida (status=%d)\n", status, 0, 0, 0, 0, 0);
+    kama (mfumo_subiri4_ulitoka_kwa_kawaida(hali_ya) == 0) {
+        andika_stderr("FAIL: mtoto hakutoka kwa kawaida (status=%d)\n", hali_ya, 0, 0, 0, 0, 0);
         rudisha -1;
     }
-    rudisha sys_wait4_msimbo_wa_kutoka(status);
+    rudisha mfumo_subiri4_msimbo_wa_kutoka(hali_ya);
 }
 
 n32 main() {

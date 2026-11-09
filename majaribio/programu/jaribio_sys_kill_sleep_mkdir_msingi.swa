@@ -13,30 +13,30 @@ husisha { msingi/maktaba/kumbukumbu.swa }
 // kabla ya muda kamili.
 
 n32 main() {
-    n64 pid = sys_fork();
-    kama (pid == 0) {
-        sys_nanosleep_sekunde(10);
+    n64 kitambulisho_mchakato = mfumo_gawanyika();
+    kama (kitambulisho_mchakato == 0) {
+        mfumo_lala_nano_sekunde(10);
         wito_wa_mfumo(60, 0, 0, 0, 0, 0, 0);
     }
-    sys_nanosleep_sekunde(1);
-    n64 rc_kill = sys_kill(pid, 9);
-    n32 status = 0;
-    sys_wait4(pid, &status, 0);
-    kama (rc_kill < 0) {
+    mfumo_lala_nano_sekunde(1);
+    n64 rc_ua = mfumo_ua(kitambulisho_mchakato, 9);
+    n32 hali_ya = 0;
+    mfumo_subiri4(kitambulisho_mchakato, &hali_ya, 0);
+    kama (rc_ua < 0) {
         andika_stderr("FAIL: sys_kill ilishindwa\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
-    kama (sys_wait4_ulitoka_kwa_kawaida(status) == 1) {
+    kama (mfumo_subiri4_ulitoka_kwa_kawaida(hali_ya) == 1) {
         andika_stderr("FAIL: mtoto alitarajiwa kuuawa na ishara, si kutoka kwa kawaida\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
     andika("PASS: sys_kill + sys_nanosleep_sekunde zinafanya kazi (mtoto aliuawa kabla ya sekunde 10)\n", 0, 0, 0, 0, 0, 0);
 
-    n64 rc_mkdir = sys_mkdir("/tmp/jaribio-swa-mkdir-msingi", 493);
-    kama (rc_mkdir < 0 && rc_mkdir != (0 - 17)) {
-        andika_stderr("FAIL: sys_mkdir ilishindwa rc=%d\n", rc_mkdir, 0, 0, 0, 0, 0);
+    n64 rc_unda_saraka = mfumo_unda_saraka("/tmp/jaribio-swa-mkdir-msingi", 493);
+    kama (rc_unda_saraka < 0 && rc_unda_saraka != (0 - 17)) {
+        andika_stderr("FAIL: sys_mkdir ilishindwa rc=%d\n", rc_unda_saraka, 0, 0, 0, 0, 0);
         rudisha 1;
     }
-    andika("PASS: sys_mkdir inafanya kazi (rc=%d, -17=tayari ipo ni sawa)\n", rc_mkdir, 0, 0, 0, 0, 0);
+    andika("PASS: sys_mkdir inafanya kazi (rc=%d, -17=tayari ipo ni sawa)\n", rc_unda_saraka, 0, 0, 0, 0, 0);
     rudisha 0;
 }

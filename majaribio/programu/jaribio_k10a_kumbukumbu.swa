@@ -36,27 +36,27 @@ n32 linganisha_kumbukumbu(n8* a, n8* b, n64 n) {
 // na daraja la C kwa mbegu. Haina tangazo la .swa: kila mkaguzi
 // (wa mbegu na wa stage1) hujenga saini kutoka hoja halisi za wito.
 
-n64 sys_soma(n32 faili, n8* bafa, n64 urefu) {
+n64 mfumo_soma(n32 faili, n8* bafa, n64 urefu) {
     rudisha wito_wa_mfumo(0, faili, bafa, urefu, 0, 0, 0);
 }
 
-n64 sys_andika(n32 faili, n8* bafa, n64 urefu) {
+n64 mfumo_andika(n32 faili, n8* bafa, n64 urefu) {
     rudisha wito_wa_mfumo(1, faili, bafa, urefu, 0, 0, 0);
 }
 
-n64 sys_fungua(n8* njia, n64 bendera) {
+n64 mfumo_fungua(n8* njia, n64 bendera) {
     rudisha wito_wa_mfumo(2, njia, bendera, 0, 0, 0, 0);
 }
 
-n64 sys_funga(n32 faili) {
+n64 mfumo_funga(n32 faili) {
     rudisha wito_wa_mfumo(3, faili, 0, 0, 0, 0, 0);
 }
 
-n64 sys_mmap(n8* anwani, n64 urefu, n64 ulinzi, n64 bendera, n64 faili) {
+n64 mfumo_ramani_kumbukumbu(n8* anwani, n64 urefu, n64 ulinzi, n64 bendera, n64 faili) {
     rudisha wito_wa_mfumo(9, anwani, urefu, ulinzi, bendera, faili, 0);
 }
 
-n64 sys_munmap(n8* anwani, n64 urefu) {
+n64 mfumo_ondoa_ramani_kumbukumbu(n8* anwani, n64 urefu) {
     rudisha wito_wa_mfumo(11, anwani, urefu, 0, 0, 0, 0);
 }
 
@@ -95,16 +95,16 @@ w0 andika_mfuatano(n32 faili, n8* s) {
     wakati (s[u] != 0) {
         u = u + 1;
     }
-    sys_andika(faili, s, u);
+    mfumo_andika(faili, s, u);
 }
 
 w0 andika_herufi(n32 faili, n64 b) {
     n8 bb = b;
-    sys_andika(faili, &bb, 1);
+    mfumo_andika(faili, &bb, 1);
 }
 
 w0 andika_sehemu(n32 faili, n8* s, n64 urefu) {
-    sys_andika(faili, s, urefu);
+    mfumo_andika(faili, s, urefu);
 }
 
 // ==========================================================
@@ -189,7 +189,7 @@ n8* tenga(n64 ukubwa) {
         // Halisi 0 kwa kigezo cha kielekezi inakataliwa na ukaguzi
         // wa 2026-09-01 — tumia kielekezi cha sifuri wazi.
         n8* anwani_sifuri = 0;
-        arena_anwani = sys_mmap(anwani_sifuri, 1048576, 3, 34, 0 - 1);
+        arena_anwani = mfumo_ramani_kumbukumbu(anwani_sifuri, 1048576, 3, 34, 0 - 1);
         kama (arena_anwani == 0 - 1) { rudisha 0; }
     }
     kama (ukubwa == 0) { ukubwa = 8; }
@@ -252,7 +252,7 @@ n64 p2_kwa(n32 kubwa) {
 // KUMBUKA: bits_ya_d64_swa imegawanywa katika kazi mbili kwa sababu
 // mbegu ilikusanya vibaya kazi ndefu sana (FPE) — sehemu ndogo
 // zinakusanywa kwa usahihi. API haijabadilika.
-n64 bits_ya_d64_swa(n8* ch, n32 u) {
+n64 biti_ya_d64_swa(n8* ch, n32 u) {
     n64 alama = 0;
     n32 fasi = 0;
     kama (ch[fasi] == 45) { alama = 1; fasi = fasi + 1; }
@@ -307,10 +307,10 @@ n64 bits_ya_d64_swa(n8* ch, n32 u) {
 
     // pacha = (hesabu/nene - 2^(kizio+d)) * 2^(52-kizio-d)
     //       = hesabu * 2^(52-kizio-d) / nene - 2^52
-    rudisha kamilisha_bits_swa(hesabu, nene, kizio, d, alama);
+    rudisha kamilisha_biti_swa(hesabu, nene, kizio, d, alama);
 }
 
-n64 kamilisha_bits_swa(n64 hesabu, n64 nene, n64 kizio, n64 d, n64 alama) {
+n64 kamilisha_biti_swa(n64 hesabu, n64 nene, n64 kizio, n64 d, n64 alama) {
     n64 hamisha = 52 - (kizio + d);
     kama (hamisha < 0) { hamisha = 0; }
     kama (hamisha > 52) { hamisha = 52; }
@@ -341,7 +341,7 @@ n64 soma_mstari(n32 faili, n8* bafa, n64 upeo) {
     n64 n = 0;
     wakati (n + 1 < upeo) {
         n8 ch = 0;
-        n64 r = sys_soma(faili, &ch, 1);
+        n64 r = mfumo_soma(faili, &ch, 1);
         kama (r <= 0) {
             kama (n == 0) {
                 rudisha -1;
@@ -358,17 +358,17 @@ n64 soma_mstari(n32 faili, n8* bafa, n64 upeo) {
 }
 
 n32 main() {
-    n8 buf1[10];
-    n8 buf2[10];
-    weka_sifuri(buf1, 10);
-    weka_sifuri(buf2, 10);
-    buf1[0] = 65;
-    buf1[1] = 66;
-    nakili(buf2, buf1, 10);
-    kama (buf2[0] != 65) rudisha 1;
-    kama (buf2[1] != 66) rudisha 2;
-    kama (linganisha_kumbukumbu(buf1, buf2, 10) != 0) rudisha 3;
-    buf2[0] = 64;
-    kama (linganisha_kumbukumbu(buf1, buf2, 10) == 0) rudisha 4;
+    n8 bafa1[10];
+    n8 bafa2[10];
+    weka_sifuri(bafa1, 10);
+    weka_sifuri(bafa2, 10);
+    bafa1[0] = 65;
+    bafa1[1] = 66;
+    nakili(bafa2, bafa1, 10);
+    kama (bafa2[0] != 65) rudisha 1;
+    kama (bafa2[1] != 66) rudisha 2;
+    kama (linganisha_kumbukumbu(bafa1, bafa2, 10) != 0) rudisha 3;
+    bafa2[0] = 64;
+    kama (linganisha_kumbukumbu(bafa1, bafa2, 10) == 0) rudisha 4;
     rudisha 0;
 }

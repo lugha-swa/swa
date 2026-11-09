@@ -105,8 +105,8 @@ n64 mt_binari(n32 tendo, n64 a, n64 b, n32 upana, n32 ishara) {
             kama (tendo == IR_GAWANYA) { r = q; } sivyo { r = mt_baki_bila_ishara; }
         }
     }
-    kama (tendo == IR_BIT_NA) { r = a & b; }
-    kama (tendo == IR_BIT_AU) { r = a | b; }
+    kama (tendo == IR_BITI_NA) { r = a & b; }
+    kama (tendo == IR_BITI_AU) { r = a | b; }
     kama (tendo == IR_XOR) { r = a ^ b; }
     kama (tendo == IR_HAMISHA_K) { r = a << (b & 63); }
     kama (tendo == IR_HAMISHA_KULIA) {
@@ -315,7 +315,7 @@ n64 mt_endesha(n32 k, n64* hoja, n32 idadi) {
             v = mt_wito_v[kina];
             rafu_hii = mt_wito_rafu[kina];
             vreg_hii = mt_wito_vreg[kina];
-            v[mt_wito_lengo[kina]] = mt_sawazisha(matokeo, irk_ret_upana[aliyeita], irk_ret_ishara[aliyeita]);
+            v[mt_wito_lengo[kina]] = mt_sawazisha(matokeo, irk_matokeo_upana[aliyeita], irk_matokeo_ishara[aliyeita]);
             endelea;
         }
         andika_stderr("mtafsiri: amri isiyojulikana %d\n", amri);
@@ -326,7 +326,7 @@ n64 mt_endesha(n32 k, n64* hoja, n32 idadi) {
 
 // Endesha programu: vianzio vya ulimwengu, kisha main(argc, argv).
 // argv ni hoja za programu (argv[0] = njia ya faili la chanzo).
-n32 mtafsiri_endesha(n32 argc, n8** argv) {
+n32 mtafsiri_endesha(n32 idadi_hoja, n8** hoja_mstari) {
     n32 kuu = tm_kazi_tafuta("main");
     kama (kuu < 0) {
         andika_stderr("mtafsiri: kazi 'main' haipo\n");
@@ -336,8 +336,8 @@ n32 mtafsiri_endesha(n32 argc, n8** argv) {
     n64* tp = tupu;
     mt_endesha(ir_kazi_kianzio, tp, 0);
     n64 h[2];
-    h[0] = argc;
-    h[1] = argv;
+    h[0] = idadi_hoja;
+    h[1] = hoja_mstari;
     n64* hp = h;
     n64 r = mt_endesha(kuu, hp, 2);
     n32 r32 = r;
