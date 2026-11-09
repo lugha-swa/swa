@@ -195,8 +195,8 @@ unavikataa kwa sauti ("kosa: '++' haitekelezwi; andika
 Operanda ya kulia iliyopotea kwenye kiendeshi chochote binari
 (mf. `x = x + ;`) pia inakataliwa kwa sauti na mchanganuzi
 ("operanda ya kulia haipo"). Majaribio:
-jaribio_mende_kata_ongezaji, jaribio_mende_kata_punguzaji,
-jaribio_mende_kata_operanda_iliyopotea.
+jaribio_hitilafu_kata_ongezaji, jaribio_hitilafu_kata_punguzaji,
+jaribio_hitilafu_kata_operanda_iliyopotea.
 
 ## 3. Aina
 
@@ -480,9 +480,9 @@ kwenye mnyororo wa uzalishaji. Zamani mnyororo ulikwama kwenye
 `endelea` wa mwisho (kitanzi kisichoisha, msimbo wa kutoka 124 --
 kosa lililoelezwa kwenye hati/uthibitisho-wa-lugha.md 4.2 namba
 16), na hali iliyoachwa ilichukuliwa kama uongo (mwili haukutekelezwa
-kamwe). Majaribio: jaribio_mende_endelea_moja_kwa_moja,
-jaribio_mende_kwa_hali_tupu, jaribio_mende_kwa_mabano_matupu,
-jaribio_mende_endelea_na_vunja_mwisho.
+kamwe). Majaribio: jaribio_hitilafu_endelea_moja_kwa_moja,
+jaribio_hitilafu_kwa_hali_tupu, jaribio_hitilafu_kwa_mabano_matupu,
+jaribio_hitilafu_endelea_na_acha_mwisho.
 
 ### 6.6 Chagua (switch)
 
@@ -522,9 +522,9 @@ awali havikutaja mwanguko wowote; mwanguko wa C ni chanzo cha
 makosa ya kawaida; na lugha hii haina njia ya kusimamisha mkono
 moja kwa moja (`vunja` ni ya vitanzi pekee) -- kukubali mwanguko
 bila njia ya kuusimamisha kungeacha tabia isiyo na udhibiti.
-Majaribio: jaribio_mende_chagua_bila_mwanguko,
-jaribio_mende_chagua_vunja_ndani_ya_kitanzi,
-jaribio_mende_kata_vunja_ndani_ya_chagua_nje.
+Majaribio: jaribio_hitilafu_chagua_bila_mwanguko,
+jaribio_hitilafu_chagua_acha_ndani_ya_kitanzi,
+jaribio_hitilafu_kata_acha_ndani_ya_chagua_nje.
 
 ### 6.7 Vunja na endelea
 
@@ -556,7 +556,7 @@ zinahesabiwa kama zilivyo ndani ya wakati kwa ukaguzi wa
 
 Majaribio: jaribio_fanya_hukimbia_mara_moja,
 jaribio_fanya_hali_ya_uwongo, jaribio_fanya_endelea,
-jaribio_fanya_vunja, na jaribio_fanya_kama_jina_la_kigezo (KATA --
+jaribio_fanya_acha, na jaribio_fanya_kama_jina_la_kigezo (KATA --
 neno muhimu kama jina linakataliwa, 2.2). Kilichopimwa
 (2026-09-04): fanya inafanya kazi kwenye minyororo YOTE MIWILI --
 mbegu iliyogandishwa 2026-09-04 ina kitanzi cha fanya (mwili
