@@ -40,7 +40,7 @@ n32 jaribu_aina_zote() {
     rudisha 0;
 }
 
-n32 jaribu_rhs_salama_na_isiyo_salama() {
+n32 jaribu_kulia_salama_na_isiyo_salama() {
     n32* p = tenga(ukubwa(n32) * 16);
     n32 i = 0;
     wakati (i < 16) { p[i] = i; i = i + 1; }
@@ -77,41 +77,41 @@ n32 jaribu_kiwanja_bado_sahihi() {
 }
 
 n32 jaribu_muundo_bado_sahihi() {
-    Jozi* arr = tenga(ukubwa(Jozi) * 4);
+    Jozi* safu = tenga(ukubwa(Jozi) * 4);
     Jozi z;
     z.a = 7; z.b = 8;
-    arr[1] = z;   // ugawaji wa muundo mzima -- lazima ubaki njia ya asili
-    kama (arr[1].a != 7 || arr[1].b != 8) { rudisha 1; }
+    safu[1] = z;   // ugawaji wa muundo mzima -- lazima ubaki njia ya asili
+    kama (safu[1].a != 7 || safu[1].b != 8) { rudisha 1; }
     rudisha 0;
 }
 
 n32 jaribu_fahirisi_kubwa() {
     // idx*saizi > 2^31 (angalia rekebisho la #252) -- lazima libaki
     // sahihi kupitia njia mpya ya SIB pia
-    n64 idx = 600000000;
-    n64* p = tenga(ukubwa(n64) * (idx + 2));
-    p[idx] = 999888777;
-    kama (p[idx] != 999888777) { rudisha 1; }
-    n64 anwani = kama_n64(&p[idx]);
-    n64 tarajiwa = kama_n64(p) + (idx * 8);
+    n64 faharasa = 600000000;
+    n64* p = tenga(ukubwa(n64) * (faharasa + 2));
+    p[faharasa] = 999888777;
+    kama (p[faharasa] != 999888777) { rudisha 1; }
+    n64 anwani = kama_n64(&p[faharasa]);
+    n64 tarajiwa = kama_n64(p) + (faharasa * 8);
     kama (anwani != tarajiwa) { rudisha 2; }
     rudisha 0;
 }
 
 // Msingi ni safu ya ndani (si tenga()) -- lea rcx/r9 badala ya mov
 n32 jaribu_safu_ya_ndani() {
-    n32 arr[10];
+    n32 safu[10];
     n32 i = 0;
-    wakati (i < 10) { arr[i] = i * i; i = i + 1; }
-    kama (arr[5] != 25) { rudisha 1; }
-    kama (arr[9] != 81) { rudisha 2; }
+    wakati (i < 10) { safu[i] = i * i; i = i + 1; }
+    kama (safu[5] != 25) { rudisha 1; }
+    kama (safu[9] != 81) { rudisha 2; }
     rudisha 0;
 }
 
 n32 main() {
     n32 r = jaribu_aina_zote();
     kama (r != 0) { rudisha 10 + r; }
-    r = jaribu_rhs_salama_na_isiyo_salama();
+    r = jaribu_kulia_salama_na_isiyo_salama();
     kama (r != 0) { rudisha 20 + r; }
     r = jaribu_kiwanja_bado_sahihi();
     kama (r != 0) { rudisha 30 + r; }

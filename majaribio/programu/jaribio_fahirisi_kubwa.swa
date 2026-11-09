@@ -14,58 +14,58 @@ n64 kama_n64(n8* p) { rudisha p; }
 
 n32 jaribu_n64_saizi8() {
     // idx*8 > 2^32 kwa idx > 536870912
-    n64 idx = 600000000;
-    n64* p = tenga(ukubwa(n64) * (idx + 8));
+    n64 faharasa = 600000000;
+    n64* p = tenga(ukubwa(n64) * (faharasa + 8));
     n64 msingi = kama_n64(p);
-    p[idx] = 123456789;
-    kama (p[idx] != 123456789) { rudisha 1; }
-    n64 anwani_halisi = kama_n64(&p[idx]);
-    n64 anwani_tarajiwa = msingi + (idx * 8);
+    p[faharasa] = 123456789;
+    kama (p[faharasa] != 123456789) { rudisha 1; }
+    n64 anwani_halisi = kama_n64(&p[faharasa]);
+    n64 anwani_tarajiwa = msingi + (faharasa * 8);
     kama (anwani_halisi != anwani_tarajiwa) { rudisha 2; }
     // jirani (idx+1, idx-1) hazipaswi kuguswa
-    kama (p[idx + 1] != 0) { rudisha 3; }
-    kama (p[idx - 1] != 0) { rudisha 4; }
-    p[idx + 1] = 999;
-    kama (p[idx] != 123456789) { rudisha 5; }
+    kama (p[faharasa + 1] != 0) { rudisha 3; }
+    kama (p[faharasa - 1] != 0) { rudisha 4; }
+    p[faharasa + 1] = 999;
+    kama (p[faharasa] != 123456789) { rudisha 5; }
     rudisha 0;
 }
 
 n32 jaribu_d64_saizi8() {
-    n64 idx = 550000000;
-    d64* p = tenga(ukubwa(d64) * (idx + 4));
+    n64 faharasa = 550000000;
+    d64* p = tenga(ukubwa(d64) * (faharasa + 4));
     n64 msingi = kama_n64(p);
-    p[idx] = 3.5;
-    kama (p[idx] != 3.5) { rudisha 1; }
-    n64 anwani_halisi = kama_n64(&p[idx]);
-    kama (anwani_halisi != msingi + (idx * 8)) { rudisha 2; }
+    p[faharasa] = 3.5;
+    kama (p[faharasa] != 3.5) { rudisha 1; }
+    n64 anwani_halisi = kama_n64(&p[faharasa]);
+    kama (anwani_halisi != msingi + (faharasa * 8)) { rudisha 2; }
     rudisha 0;
 }
 
 n32 jaribu_n32_saizi4() {
     // idx*4 > 2^32 kwa idx > 1073741824
-    n64 idx = 1100000000;
-    n32* p = tenga(ukubwa(n32) * (idx + 8));
+    n64 faharasa = 1100000000;
+    n32* p = tenga(ukubwa(n32) * (faharasa + 8));
     n64 msingi = kama_n64(p);
-    p[idx] = 42;
-    kama (p[idx] != 42) { rudisha 1; }
-    n64 anwani_halisi = kama_n64(&p[idx]);
-    kama (anwani_halisi != msingi + (idx * 4)) { rudisha 2; }
-    kama (p[idx - 5] != 0) { rudisha 3; }
+    p[faharasa] = 42;
+    kama (p[faharasa] != 42) { rudisha 1; }
+    n64 anwani_halisi = kama_n64(&p[faharasa]);
+    kama (anwani_halisi != msingi + (faharasa * 4)) { rudisha 2; }
+    kama (p[faharasa - 5] != 0) { rudisha 3; }
     rudisha 0;
 }
 
-n32 jaribu_nyoosha_ptr() {
+n32 jaribu_nyoosha_kielekezi() {
     // *(ptr + n) kwa n kubwa (uzalishaji_jumlisha_kielekezi hutumia
     // andika_ongea_kielekezi_kipengele -- tayari sahihi, lakini
     // tunathibitisha hapa pia kwa ukamilifu wa jaribio)
-    n64 idx = 700000000;
-    n64* p = tenga(ukubwa(n64) * (idx + 4));
-    n64* q = p + idx;
+    n64 faharasa = 700000000;
+    n64* p = tenga(ukubwa(n64) * (faharasa + 4));
+    n64* q = p + faharasa;
     n64 msingi = kama_n64(p);
     *q = 777;
     kama (*q != 777) { rudisha 1; }
-    kama (p[idx] != 777) { rudisha 2; }
-    kama (kama_n64(q) != msingi + (idx * 8)) { rudisha 3; }
+    kama (p[faharasa] != 777) { rudisha 2; }
+    kama (kama_n64(q) != msingi + (faharasa * 8)) { rudisha 3; }
     rudisha 0;
 }
 
@@ -93,7 +93,7 @@ n32 main() {
     kama (r != 0) { rudisha 20 + r; }
     r = jaribu_n32_saizi4();
     kama (r != 0) { rudisha 30 + r; }
-    r = jaribu_nyoosha_ptr();
+    r = jaribu_nyoosha_kielekezi();
     kama (r != 0) { rudisha 40 + r; }
     r = jaribu_ndogo_bado_sahihi();
     kama (r != 0) { rudisha 50 + r; }
