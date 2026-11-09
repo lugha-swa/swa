@@ -166,7 +166,7 @@ n32 jm_faili_lipo_na_lina_ukubwa(n8* njia) {
     rudisha 0;
 }
 
-n32 jm_tafuta_kipande(n8* bafa, n64 urefu, n8* kipande) {
+n32 jm_tafuta_kipande(n8* chombo, n64 urefu, n8* kipande) {
     n64 klen = urefu_wa_mfuatano(kipande);
     kama (klen == 0) { rudisha 1; }
     kama (klen > urefu) { rudisha 0; }
@@ -176,7 +176,7 @@ n32 jm_tafuta_kipande(n8* bafa, n64 urefu, n8* kipande) {
         n32 sawa = 1;
         n64 j = 0;
         wakati (j < klen) {
-            kama (bafa[i + j] != kipande[j]) { sawa = 0; vunja; }
+            kama (chombo[i + j] != kipande[j]) { sawa = 0; vunja; }
             j = j + 1;
         }
         kama (sawa == 1) { rudisha 1; }
@@ -192,11 +192,11 @@ n32 jm_tafuta_kipande(n8* bafa, n64 urefu, n8* kipande) {
 n64 JM_UWEZO_UJUMBE = 65536;
 
 n32 jm_faili_lina_kipande(n8* njia, n8* kipande) {
-    n8* bafa_ya_kusoma = tenga(JM_UWEZO_UJUMBE);
-    weka_sifuri(bafa_ya_kusoma, JM_UWEZO_UJUMBE);
-    n64 n = faili_soma_yote(njia, bafa_ya_kusoma, JM_UWEZO_UJUMBE);
+    n8* chombo_cha_kusoma = tenga(JM_UWEZO_UJUMBE);
+    weka_sifuri(chombo_cha_kusoma, JM_UWEZO_UJUMBE);
+    n64 n = faili_soma_yote(njia, chombo_cha_kusoma, JM_UWEZO_UJUMBE);
     kama (n < 0) { rudisha 0; }
-    rudisha jm_tafuta_kipande(bafa_ya_kusoma, n, kipande);
+    rudisha jm_tafuta_kipande(chombo_cha_kusoma, n, kipande);
 }
 
 n32 jm_mafaili_mawili_yana_kipande(n8* njia_a, n8* njia_b, n8* kipande) {
@@ -338,9 +338,9 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
 
     // ============ Mzunguko wa MANIFEST.txt ============
     n64 JM_UWEZO_MANIFEST = 1048576;
-    n8* manifest_bafa = tenga(JM_UWEZO_MANIFEST);
-    weka_sifuri(manifest_bafa, JM_UWEZO_MANIFEST);
-    n64 urefu = faili_soma_yote("majaribio/programu/MANIFEST.txt", manifest_bafa, JM_UWEZO_MANIFEST);
+    n8* manifest_chombo = tenga(JM_UWEZO_MANIFEST);
+    weka_sifuri(manifest_chombo, JM_UWEZO_MANIFEST);
+    n64 urefu = faili_soma_yote("majaribio/programu/MANIFEST.txt", manifest_chombo, JM_UWEZO_MANIFEST);
     kama (urefu < 0) {
         andika_stderr("SHINDWA: MANIFEST.txt ni kubwa mno au haifunguki\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
@@ -350,10 +350,10 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     n64 i = 0;
     wakati (i < urefu) {
         n64 mwanzo = i;
-        wakati (i < urefu && manifest_bafa[i] != 10) { i = i + 1; }
-        manifest_bafa[i] = 0;
+        wakati (i < urefu && manifest_chombo[i] != 10) { i = i + 1; }
+        manifest_chombo[i] = 0;
         i = i + 1;
-        n8* mstari = manifest_bafa + mwanzo;
+        n8* mstari = manifest_chombo + mwanzo;
 
         kama (urefu_wa_mfuatano(mstari) == 0) { endelea; }
 

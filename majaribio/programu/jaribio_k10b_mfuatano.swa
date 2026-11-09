@@ -36,12 +36,12 @@ n32 linganisha_kumbukumbu(n8* a, n8* b, n64 n) {
 // na daraja la C kwa mbegu. Haina tangazo la .swa: kila mkaguzi
 // (wa mbegu na wa stage1) hujenga saini kutoka hoja halisi za wito.
 
-n64 mfumo_soma(n32 faili, n8* bafa, n64 urefu) {
-    rudisha wito_wa_mfumo(0, faili, bafa, urefu, 0, 0, 0);
+n64 mfumo_soma(n32 faili, n8* chombo, n64 urefu) {
+    rudisha wito_wa_mfumo(0, faili, chombo, urefu, 0, 0, 0);
 }
 
-n64 mfumo_andika(n32 faili, n8* bafa, n64 urefu) {
-    rudisha wito_wa_mfumo(1, faili, bafa, urefu, 0, 0, 0);
+n64 mfumo_andika(n32 faili, n8* chombo, n64 urefu) {
+    rudisha wito_wa_mfumo(1, faili, chombo, urefu, 0, 0, 0);
 }
 
 n64 mfumo_fungua(n8* njia, n64 machaguo) {
@@ -69,14 +69,14 @@ w0 andika_n64(n32 faili, n64 v) {
     // Bafa ya n32, si n8 -- mbegu hutoa maandishi ya safu ya n8
     // kwa mizani ya baiti 4, hivyo tumia n32 na uchapishe tarakimu
     // moja kwa moja kupitia andika_herufi.
-    n32 bafa[32];
+    n32 chombo[32];
     n32 n = 0;
     kama (v < 0) {
         andika_herufi(faili, 45);  // '-'
         v = 0 - v;
     }
     wakati (1 == 1) {
-        bafa[n] = v - ((v / 10) * 10);
+        chombo[n] = v - ((v / 10) * 10);
         n = n + 1;
         v = v / 10;
         kama (v == 0) { vunja; }
@@ -84,7 +84,7 @@ w0 andika_n64(n32 faili, n64 v) {
     // Chapisha tarakimu kwa mpangilio wa nyuma
     wakati (n > 0) {
         n = n - 1;
-        andika_herufi(faili, 48 + bafa[n]);
+        andika_herufi(faili, 48 + chombo[n]);
     }
 }
 
@@ -337,7 +337,7 @@ n64 kamilisha_biti_swa(n64 hesabu, n64 nene, n64 kizio, n64 d, n64 alama) {
 // soma_mstari -- soma mstari mmoja kutoka faili hadi bafa.
 // Inasimama kwa '\n' (isiyojumuishwa) au EOF. Rudisha idadi ya
 // baiti zilizosomwa, au -1 ikiwa EOF mara moja bila baiti.
-n64 soma_mstari(n32 faili, n8* bafa, n64 upeo) {
+n64 soma_mstari(n32 faili, n8* chombo, n64 upeo) {
     n64 n = 0;
     wakati (n + 1 < upeo) {
         n8 ch = 0;
@@ -351,7 +351,7 @@ n64 soma_mstari(n32 faili, n8* bafa, n64 upeo) {
         kama (ch == 10) {
             rudisha n;
         }
-        bafa[n] = ch;
+        chombo[n] = ch;
         n = n + 1;
     }
     rudisha n;
@@ -422,16 +422,16 @@ n32 tafuta_herufi(n8* s, n8 c) {
     }
     rudisha -1;
 }
-n32 nambari_kwa_mfuatano(n32 n, n8* bafa_ya_jaribio) {
+n32 nambari_kwa_mfuatano(n32 n, n8* chombo_cha_jaribio) {
     kama (n == 0) {
-        bafa_ya_jaribio[0] = 48;
-        bafa_ya_jaribio[1] = 0;
+        chombo_cha_jaribio[0] = 48;
+        chombo_cha_jaribio[1] = 0;
         rudisha 1;
     }
     n32 hasi = 0;
     n32 thamani = n;
     kama (n < 0) {
-        bafa_ya_jaribio[0] = 45;
+        chombo_cha_jaribio[0] = 45;
         hasi = 1;
         thamani = 0 - n;
     }
@@ -442,10 +442,10 @@ n32 nambari_kwa_mfuatano(n32 n, n8* bafa_ya_jaribio) {
         muda = muda / 10;
     }
     n32 nafasi = hasi + urefu;
-    bafa_ya_jaribio[nafasi] = 0;
+    chombo_cha_jaribio[nafasi] = 0;
     wakati (nafasi > hasi) {
         nafasi = nafasi - 1;
-        bafa_ya_jaribio[nafasi] = 48 + (thamani - (thamani / 10) * 10);
+        chombo_cha_jaribio[nafasi] = 48 + (thamani - (thamani / 10) * 10);
         thamani = thamani / 10;
     }
     rudisha hasi + urefu;
@@ -545,16 +545,16 @@ n64 mfuatano_hadi_n64(n8* s) {
 // Umbizaji wa nambari hadi mfuatano.
 
 // Badilisha n64 hadi mfuatano. Hurudisha urefu wa mfuatano ulioandikwa.
-n32 nambari_kwa_mfuatano_n64(n64 n, n8* bafa_ya_jaribio) {
+n32 nambari_kwa_mfuatano_n64(n64 n, n8* chombo_cha_jaribio) {
     kama (n == 0) {
-        bafa_ya_jaribio[0] = 48;
-        bafa_ya_jaribio[1] = 0;
+        chombo_cha_jaribio[0] = 48;
+        chombo_cha_jaribio[1] = 0;
         rudisha 1;
     }
     n32 hasi = 0;
     n64 thamani = n;
     kama (n < 0) {
-        bafa_ya_jaribio[0] = 45;
+        chombo_cha_jaribio[0] = 45;
         hasi = 1;
         thamani = 0 - n;
     }
@@ -565,10 +565,10 @@ n32 nambari_kwa_mfuatano_n64(n64 n, n8* bafa_ya_jaribio) {
         muda = muda / 10;
     }
     n32 nafasi = hasi + urefu;
-    bafa_ya_jaribio[nafasi] = 0;
+    chombo_cha_jaribio[nafasi] = 0;
     wakati (nafasi > hasi) {
         nafasi = nafasi - 1;
-        bafa_ya_jaribio[nafasi] = 48 + (thamani - (thamani / 10) * 10);
+        chombo_cha_jaribio[nafasi] = 48 + (thamani - (thamani / 10) * 10);
         thamani = thamani / 10;
     }
     rudisha hasi + urefu;
@@ -625,9 +625,9 @@ n32 main() {
     kama (linganisha_mfuatano(s1, s3) == 0) rudisha 2;
 
     // nakili_mfuatano -- inanakili mfuatano
-    n8 bafa_ya_jaribio[32];
-    nakili_mfuatano(bafa_ya_jaribio, s1);
-    kama (linganisha_mfuatano(bafa_ya_jaribio, s1) != 0) rudisha 3;
+    n8 chombo_cha_jaribio[32];
+    nakili_mfuatano(chombo_cha_jaribio, s1);
+    kama (linganisha_mfuatano(chombo_cha_jaribio, s1) != 0) rudisha 3;
 
     // mfuatano_hadi_n32 -- ubadilishaji mfuatano->namba
     n8 namba1[3]; namba1[0] = 52; namba1[1] = 50; namba1[2] = 0;  // "42"

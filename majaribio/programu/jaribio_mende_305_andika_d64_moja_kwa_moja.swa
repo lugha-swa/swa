@@ -51,12 +51,12 @@ d64 rudisha_3500() {
 // jm305_soma_n64_kutoka_maandishi -- changanua tarakimu za kwanza
 // (mfuatano wa nambari chanya) kutoka `buf`, kuanzia `mwanzo`.
 // Haitegemei sprintf/atoi za nje -- uchanganuzi rahisi wa tarakimu.
-n64 jm305_soma_n64_kutoka_maandishi(n8* bafa, n64 mwanzo, n64 urefu) {
+n64 jm305_soma_n64_kutoka_maandishi(n8* chombo, n64 mwanzo, n64 urefu) {
     n64 v = 0;
     n64 i = mwanzo;
     n32 imeanza = 0;
     wakati (i < urefu) {
-        n8 c = bafa[i];
+        n8 c = chombo[i];
         kama (c >= 48 && c <= 57) {
             v = (v * 10) + (c - 48);
             imeanza = 1;
@@ -69,14 +69,14 @@ n64 jm305_soma_n64_kutoka_maandishi(n8* bafa, n64 mwanzo, n64 urefu) {
 // jm305_funga_bafa_na_soma -- rudisha fd 1 kwenda stdout halisi
 // (kutoka fd 500), funga faili la muda, kisha soma na urudishe
 // namba ya KWANZA iliyoandikwa.
-n64 jm305_funga_bafa_na_soma(n8* f) {
+n64 jm305_funga_chombo_na_soma(n8* f) {
     wito_wa_mfumo(33, 500, 1, 0, 0, 0, 0);  // dup2(500, 1) -- rudisha stdout halisi
     wito_wa_mfumo(3, 500, 0, 0, 0, 0, 0);   // close(500)
     faili_funga(f);
-    n8 soma_bafa[64];
-    weka_sifuri(soma_bafa, 64);
-    faili_soma_yote("/tmp/jaribio_mende_305_tokeo.txt", soma_bafa, 63);
-    rudisha jm305_soma_n64_kutoka_maandishi(soma_bafa, 0, 64);
+    n8 soma_chombo[64];
+    weka_sifuri(soma_chombo, 64);
+    faili_soma_yote("/tmp/jaribio_mende_305_tokeo.txt", soma_chombo, 63);
+    rudisha jm305_soma_n64_kutoka_maandishi(soma_chombo, 0, 64);
 }
 
 n64 jm305_chapisha_moja_kwa_moja_a(d64 a) {
@@ -85,7 +85,7 @@ n64 jm305_chapisha_moja_kwa_moja_a(d64 a) {
     wito_wa_mfumo(33, 1, 500, 0, 0, 0, 0);       // dup2(1, 500) -- hifadhi stdout halisi
     wito_wa_mfumo(33, fd_faili, 1, 0, 0, 0, 0);  // dup2(fd_faili, 1) -- elekeza fd 1 kwenye faili
     andika("%d\n", a * 1000.0, 0, 0, 0, 0, 0);
-    rudisha jm305_funga_bafa_na_soma(f);
+    rudisha jm305_funga_chombo_na_soma(f);
 }
 
 n64 jm305_chapisha_moja_kwa_moja_wito_kazi() {
@@ -94,7 +94,7 @@ n64 jm305_chapisha_moja_kwa_moja_wito_kazi() {
     wito_wa_mfumo(33, 1, 500, 0, 0, 0, 0);
     wito_wa_mfumo(33, fd_faili, 1, 0, 0, 0, 0);
     andika("%d\n", rudisha_3500() * 1000.0, 0, 0, 0, 0, 0);
-    rudisha jm305_funga_bafa_na_soma(f);
+    rudisha jm305_funga_chombo_na_soma(f);
 }
 
 n32 main() {
