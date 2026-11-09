@@ -15,7 +15,7 @@ HEAD 7399e97.
 
 Minyororo iliyopimwa:
 
-- **mbegu** -- `msingi/mbegu.bin`, mkusanyaji wa bootstrap. Kipimo cha
+- **mbegu** -- `msingi/awali.bin`, mkusanyaji wa bootstrap. Kipimo cha
   awali kilitumia gandisho f12e134 (2026-09-01 12:03); kundi la
   marekebisho f13416d (2026-09-02) lilifunga vipengee vya mbegu
   vilivyoorodheshwa katika sehemu ya 8 na 9, na mbegu iligandishwa
@@ -72,15 +72,15 @@ mbegu (mnyororo wa kujikusanya):
 
 ```bash
 cd /home/kandemark/Projects/compilers/swa
-cat msingi/maktaba/{kumbukumbu,mfuatano}.swa msingi/mkusanyaji/{msomaji,msambazaji,mteremko,mkaguzi,uzalishaji}.swa msingi/maktaba/{orodha,ramani}.swa msingi/mkusanyaji/stage1.swa > /tmp/zima.swa
-msingi/mbegu.bin --programu /tmp/zima.swa > /tmp/stage1.bin
+cat msingi/maktaba/{kumbukumbu,mfuatano}.swa msingi/mkusanyaji/{msomaji,msambazaji,mteremko,mkaguzi,uzalishaji}.swa msingi/maktaba/{orodha,ramani}.swa msingi/mkusanyaji/kiendeshaji.swa > /tmp/zima.swa
+msingi/awali.bin --programu /tmp/zima.swa > /tmp/stage1.bin
 chmod +x /tmp/stage1.bin
 ```
 
 Kila kesi inakusanywa na kuendeshwa kwenye minyororo yote miwili:
 
 ```bash
-msingi/mbegu.bin --programu kesi.swa > matokeo.bin 2> makosa.txt
+msingi/awali.bin --programu kesi.swa > matokeo.bin 2> makosa.txt
 chmod +x matokeo.bin
 ./matokeo.bin; echo $?
 
@@ -726,7 +726,7 @@ na linabaki kama hivyo, kwa maelezo ya 8.14.
   _n2/_n3 (8.18), _halisi63 (SAWA zote mbili), na kiunganishi cha
   kande (10.5: kinashindwa).
 - Mbegu haijabadilika tangu skani (commit f12e134 ndio gandisho
-  la mwisho la `msingi/mbegu.bin`); hesabu zake zinasimama kama
+  la mwisho la `msingi/awali.bin`); hesabu zake zinasimama kama
   zilivyopimwa. Tofauti moja ya mbinu: kesi t99 (muundo wa nguvu
   %u) katika skani ya udhibiti ililinganishwa dhidi ya pato la
   mbegu lenyewe (fomu ya biti 32) na kuhesabiwa SAWA; kipimo cha

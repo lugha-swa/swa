@@ -214,7 +214,7 @@ kuunganisha ulikuwa ukitulia kimya kwa anwani 0 -- mchakato
 ulivunjika SEGV wakati wa utekelezaji. Sasa toa_exe inachapisha
 `Hitilafu: kazi haijafafanuliwa: <jina>` na kutoka kwa msimbo 1
 kwenye mnyororo wa uzalishaji (jaribio la kurejesha:
-jaribio_mbegu_kazi_kukosa). Mbegu inakataa kimya katika kesi
+jaribio_awali_kazi_kukosa). Mbegu inakataa kimya katika kesi
 kadhaa (tazama sehemu ya 1).
 
 KILICHOPIMWA 2026-08-27 (hati/uthibitisho-wa-lugha.md): mnyororo
@@ -247,7 +247,7 @@ hakuna mnyororo unaoingiza faili).
 Hali ya AWALI (kabla ya rekebisho): tangu mbegu.bin kugandishwa upya
 2026-09-24 kutambua herufi ndogo za aina 6 za msingi (n8/n16/n32/n64/
 w0/d64 -- angalia hali-ya-lugha.md), mnyororo wa `ukubwa(x)` (builtin
-ya sizeof, `msingi/mbegu.swm`) ulichunguza jina la hoja dhidi ya majina
+ya sizeof, `msingi/awali.swm`) ulichunguza jina la hoja dhidi ya majina
 hayo 6 KABLA ya kutafuta jina la muundo. Athari: `ukubwa(x)` ambapo
 `x` ni jina la muundo (au kigezo) LILILO HASA `n8`/`n16`/`n32`/`n64`/
 `d64` lilirudisha 1/2/4/8/8 (ukubwa wa aina ya msingi) badala ya

@@ -152,7 +152,7 @@ Mipaka inayojulikana imeandikwa wazi kwenye [hati/mipaka.md](hati/mipaka.md); ra
 |---|---|
 | [`msingi/kwanza.bin`](msingi) | baiti 393 za mkono -- mwanzo wa mnyororo |
 | [`msingi/kizinduzi.bin`](msingi) | baiti 839 za mkono -- mbegu ya pili: huendesha hatua za mwanzo hadi mjenzi ujengwe kutoka chanzo chake ([`kizinduzi.hexc`](msingi/kizinduzi.hexc)) |
-| [`msingi/mbegu.swm`](msingi) | mbegu -- mkusanyaji mdogo uliogandishwa, kwa lugha ya mashine ya Swa; hujengwa na mnyororo huru |
+| [`msingi/awali.swm`](msingi) | mbegu -- mkusanyaji mdogo uliogandishwa, kwa lugha ya mashine ya Swa; hujengwa na mnyororo huru |
 | [`msingi/mkusanyaji/`](msingi/mkusanyaji) | msomaji, mchanganuzi, mkaguzi, uzalishaji (x86-64 na WASM) |
 | [`msingi/maktaba/`](msingi/maktaba) | kumbukumbu, mfuatano, orodha, ramani, faili, hesabu, takwimu, ... |
 | [`majaribio/`](majaribio) | majaribio ya programu, WASM na kernel |

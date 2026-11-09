@@ -287,7 +287,7 @@ ulirudisha operanda ya kushoto pekee (jibu baya) na tangu
 Hii inaruhusu `j >= 0 && a[j] == x` bila kusoma nje ya mipaka.
 Rekebisho la 2026-08: mbegu ilikuwa inatathmini pande zote mbili
 (kinyume na uzalishaji.swa) -- imewianishwa; majaribio ya kurejesha
-ni `jaribio_mbegu_mzunguko_mfupi`.
+ni `jaribio_awali_mzunguko_mfupi`.
 
 ### 4.2 Hesabu ya kielekezi
 

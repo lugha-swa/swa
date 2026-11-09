@@ -24,7 +24,7 @@ Sehemu za kujikusanya zimeandikwa kwa Swa yenyewe (takriban mistari 4,100 katika
 - `mkaguzi.swa` -- mkaguzi wa kisemantiki
 - `kumbukumbu.swa` -- usimamizi wa kumbukumbu
 - `mfuatano.swa` -- shughuli za mifuatano
-- `stage1.swa` -- kiendeshi cha bootstrap
+- `kiendeshaji.swa` -- kiendeshi cha bootstrap
 
 ## Kipindi cha Saa 18 cha Kurekebisha Hitilafu
 
@@ -139,7 +139,7 @@ Binary ya kujikusanya:
 ### Faili Zilizobadilishwa
 - `src/ir/lower.rs` -- mistari 150+ iliyobadilishwa (kiini cha marekebisho ya codegen)
 - `msingi/mkusanyaji/msambazaji.swa` -- mistari 40+ iliyobadilishwa (marekebisho ya mchanganuzi)
-- `stage1.swa` -- mistari 20 iliyobadilishwa (uboreshaji wa kasi)
+- `kiendeshaji.swa` -- mistari 20 iliyobadilishwa (uboreshaji wa kasi)
 - `src/parser/mod.rs` -- mistari 2 (mpangilio wa AST ya kitanzi cha kwa)
 - `hati/*.md` -- masasisho ya nyaraka
 

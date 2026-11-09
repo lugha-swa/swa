@@ -1,5 +1,5 @@
 // kimbiza.js -- kikaguzi cha Node kisicho na tegemezi la nje (hakuna
-// npm package) kwa moduli za WASM zinazozalishwa na "stage1 --wasm".
+// npm package) kwa moduli za WASM zinazozalishwa na "kamili --wasm".
 // Matumizi: node kimbiza.js <faili.wasm> <thamani_tarajiwa> [aina]
 //
 // aina (hiari, chaguo-msingi "namba"):
@@ -28,7 +28,7 @@
 //                si namba -- angalia majaribio/wasm/*.tarajiwa.json).
 //
 // Daraja (daraja la mashine, awamu 4): moduli hupakiwa kupitia daraja
-// linalozalishwa na mkusanyaji (`stage1 --wasm-js > jengo/wasm/swa-js.js`),
+// linalozalishwa na mkusanyaji (`kamili --wasm-js > jengo/wasm/swa-js.js`),
 // pamoja na hati bandia ya dom_mock.js kama globalThis.document. Moduli
 // zisizo na uingizaji hupakiwa vivyo hivyo.
 //

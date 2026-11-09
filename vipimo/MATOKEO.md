@@ -12,7 +12,7 @@ kupima kazi yoyote ijayo ya utendaji, si kujengwa upya kila wakati.
 Ujenzi wa `stage1` ulithibitishwa dhidi ya suti kamili KABLA ya
 kupima (329/329 yamefaulu). Mkusanyaji HAUNA bendera yoyote ya
 uboreshaji (`-O` na kadhalika) -- `--programu` na `--papo` PEKEE
-zinakubaliwa (imethibitishwa kwa kusoma `stage1.swa` moja kwa moja,
+zinakubaliwa (imethibitishwa kwa kusoma `kiendeshaji.swa` moja kwa moja,
 si kudhani).
 
 ## Maunzi
@@ -450,7 +450,7 @@ wigo wa PR hii kabisa) -- imefuatiliwa kwa uhakika kamili hadi
 inakosea kuzalisha msimbo kwa muundo maalum wa "N64 = safu ya N32
 [fahirisi]; ...; mgawanyo" (imethibitishwa kwa kuunda upya muundo huo
 kama programu huru na kuikusanya MOJA KWA MOJA na mbegu.bin). Kwa
-kuwa `jaribu_kunja_namba` ipo ndani ya stage1.swa (chanzo cha
+kuwa `jaribu_kunja_namba` ipo ndani ya kiendeshaji.swa (chanzo cha
 mkusanyaji mwenyewe), hitilafu hii inaingia kwenye kizazi cha KWANZA
 (gen1/stage1, kilichojengwa NA mbegu.bin moja kwa moja) -- LAKINI
 INAJIPONYA (self-heals) KABISA kwenye kizazi cha PILI (gen2/stage2,
