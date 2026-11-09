@@ -1,0 +1,271 @@
+; =============================================================================
+; kizinduzi.swm -- mbegu ya pili ya mnyororo huru: kizinduzi cha hatua.
+;
+; Mnyororo mzima huanza na programu mbili za mkono zinazosomeka baiti kwa
+; baiti: msingi/kwanza.bin (hex -> binary) na msingi/kizinduzi.bin (hii).
+; Kizinduzi huendesha orodha ya hatua (gharama/mwanzo.kizinduzi) ili mjenzi
+; ujengwe kutoka chanzo chake (msingi/mnyororo/mjenzi.swm) badala ya
+; kuaminiwa kama msingi/mjenzi.bin iliyogandishwa. Hati: hati/mnyororo-huru.md.
+;
+; Matumizi:  ./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi
+;
+; Mstari mmoja ni hatua moja; maneno hutenganishwa kwa nafasi; ';' ni maoni.
+;   PROG HOJA... [< NDANI] [> NJE]   endesha PROG; lazima itoke kwa 0.
+;                                    PROG ni njia (hakuna PATH); NJE huundwa
+;                                    upya ikiwa inatekelezeka (0755).
+;   saraka NJIA                      tengeneza saraka (ikiwepo ni sawa)
+; Kosa lolote: "kizinduzi: imeshindwa: PROG" kwenye stderr, kutoka 1.
+;
+; Faili ni ELF moja ya PT_LOAD (kama kwanza.bin): kichwa kimeandikwa hapa
+; kama data. Bafa ziko baada ya faili, ndani ya p_memsz -- hazimo kwenye
+; faili. r15 hushika msingi wa bafa za vigezo kwa muda wote.
+; =============================================================================
+
+picha 0x400000
+
+fafanua MAANDISHI = 0x410000     ; maandishi ya orodha (KB 64)
+fafanua VIGEZO = 0x420000        ; r15: msingi wa vigezo hapa chini
+fafanua HOJA = 0                 ; [r15 + 0]   hoja[64] za programu (baiti 512)
+fafanua MAZINGIRA = 512          ; [r15 + 512] envp
+fafanua NDANI = 520              ; [r15 + 520] njia ya < (0 = hakuna)
+fafanua NJE = 528                ; [r15 + 528] njia ya > (0 = hakuna)
+fafanua HALI = 536               ; [r15 + 536] hali ya mtoto (wait4)
+fafanua UJAO = 544               ; [r15 + 544] mstari unaofuata
+
+; ---- kichwa cha ELF (baiti 64) ----
+n8  = 0x7f, 0x45, 0x4c, 0x46, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0
+n16 = 2, 0x3e                    ; ET_EXEC, x86-64
+n32 = 1
+n64 = anza, 64, 0                ; kiingilio, phdr baiti 64, hakuna sehemu
+n32 = 0
+n16 = 64, 56, 1, 0, 0, 0         ; ehsize, phentsize, phnum = 1
+; ---- kichwa cha programu (baiti 56): PT_LOAD, RWX ----
+n32 = 1, 7
+n64 = 0, 0x400000, 0x400000
+n64 = mwisho - 0x400000          ; p_filesz: faili lote
+n64 = 0x21000                    ; p_memsz: hadi mwisho wa vigezo
+n64 = 0x1000
+
+anza:
+        r15d = VIGEZO
+        r0 = n64[r4]                    ; argc
+        r1 = &[r4 + r0*8 + 16]          ; envp: baada ya argv[argc] = 0
+        n64[r15 + MAZINGIRA] = r1
+        linganisha r0, 2
+        ruka shindwa kama !=
+        r7 = n64[r4 + 16]               ; argv[1]
+        r6d ^= r6d                      ; O_RDONLY
+        r0d = 2                         ; open
+        mfumo
+        pima r0, r0
+        ruka shindwa kama hasi
+        r7 = r0
+        r6d = MAANDISHI
+        r2d = 0xffff
+        r0d ^= r0d                      ; read
+        mfumo
+        pima r0, r0
+        ruka shindwa kama hasi
+        r12d = MAANDISHI
+        n8[r12 + r0] = 0                ; maandishi huishia kwa 0
+
+; ---- kila mstari: gawa maneno mahali pake ----
+.mstari:
+        linganisha n8[r12], 0
+        ruka .mwisho kama ==
+        r13d ^= r13d                    ; idadi ya hoja
+        n64[r15 + NDANI] = r13
+        n64[r15 + NJE] = r13
+        r3d ^= r3d                      ; 0 neno, 1 baada ya '<', 2 baada ya '>'
+.ruka_nafasi:
+        r0d = a8[r12]
+        pima r0d, r0d
+        ruka .mwisho_wa_mstari kama ==
+        linganisha r0d, 10
+        ruka .mwisho_wa_mstari kama ==
+        linganisha r0d, 0x20
+        ruka .nafasi kama ==
+        linganisha r0d, 0x3b            ; ';'
+        ruka .maoni kama ==
+        linganisha r0d, 0x3c            ; '<'
+        ruka .alama_ndani kama ==
+        linganisha r0d, 0x3e            ; '>'
+        ruka .alama_nje kama ==
+        linganisha r3d, 1
+        ruka .ni_ndani kama ==
+        linganisha r3d, 2
+        ruka .ni_nje kama ==
+        linganisha r13, 63
+        ruka shindwa kama ==
+        n64[r15 + r13*8] = r12          ; hoja[idadi] = neno
+        r13++
+        ruka .neno
+.ni_ndani:
+        n64[r15 + NDANI] = r12
+        r3d ^= r3d
+        ruka .neno
+.ni_nje:
+        n64[r15 + NJE] = r12
+        r3d ^= r3d
+        ruka .neno
+.alama_ndani:
+        r3d = 1
+        ruka .nafasi
+.alama_nje:
+        r3d = 2
+        ruka .nafasi
+.neno:
+        r12++
+        r0d = a8[r12]
+        pima r0d, r0d
+        ruka .mwisho_wa_mstari kama ==
+        linganisha r0d, 10
+        ruka .mwisho_wa_mstari kama ==
+        linganisha r0d, 0x20
+        ruka .neno kama !=
+        n8[r12] = 0                     ; funga neno
+.nafasi:
+        r12++
+        ruka .ruka_nafasi
+.maoni:
+        r12++
+        r0d = a8[r12]
+        pima r0d, r0d
+        ruka .mwisho_wa_mstari kama ==
+        linganisha r0d, 10
+        ruka .maoni kama !=
+.mwisho_wa_mstari:
+        r0d = a8[r12]
+        n8[r12] = 0                     ; funga neno la mwisho
+        pima r0d, r0d
+        ruka .bila_kusogeza kama ==
+        r12++
+.bila_kusogeza:
+        n64[r15 + UJAO] = r12
+        n64[r15 + r13*8] = 0            ; hoja[idadi] = 0
+        pima r13, r13
+        ruka .ruka_hatua kama ==        ; mstari mtupu au maoni tu
+        ita tekeleza
+.ruka_hatua:
+        r12 = n64[r15 + UJAO]
+        ruka .mstari
+.mwisho:
+        r7d ^= r7d
+        r0d = 60                        ; exit(0)
+        mfumo
+
+; ---- tekeleza: hoja[0..] tayari ----
+tekeleza:
+        r7 = n64[r15]
+        r6 = neno_saraka
+.linganisha:
+        r0d = a8[r7]
+        linganisha r0b, n8[r6]
+        ruka .endesha kama !=
+        r7++
+        r6++
+        pima r0d, r0d
+        ruka .linganisha kama !=
+        ; saraka NJIA
+        r7 = n64[r15 + 8]
+        pima r7, r7
+        ruka shindwa_hatua kama ==
+        r6d = 0x1ed
+        r0d = 83                        ; mkdir
+        mfumo
+        pima r0, r0
+        ruka .tayari kama si_hasi
+        linganisha r0, -17              ; EEXIST
+        ruka shindwa_hatua kama !=
+.tayari:
+        rudi
+.endesha:
+        r0d = 57                        ; fork
+        mfumo
+        pima r0, r0
+        ruka shindwa_hatua kama hasi
+        ruka mtoto kama ==
+        r7 = r0                         ; mzazi: ngoja mtoto
+        r6 = &[r15 + HALI]
+        r2d ^= r2d
+        r10d ^= r10d
+        r0d = 61                        ; wait4
+        mfumo
+        pima r0, r0
+        ruka shindwa_hatua kama hasi
+        linganisha n32[r15 + HALI], 0   ; ametoka kwa 0, si kwa ishara
+        ruka shindwa_hatua kama !=
+        rudi
+
+; mtoto: elekeza stdin/stdout, kisha execve
+mtoto:
+        r7 = n64[r15 + NDANI]
+        pima r7, r7
+        ruka .si_ndani kama ==
+        r6d ^= r6d
+        r0d = 2                         ; open(ndani, O_RDONLY)
+        mfumo
+        pima r0, r0
+        ruka .toka kama hasi
+        r7 = r0
+        r6d ^= r6d
+        r0d = 33                        ; dup2(fd, 0)
+        mfumo
+.si_ndani:
+        r7 = n64[r15 + NJE]
+        pima r7, r7
+        ruka .si_nje kama ==
+        r6d = 0x241                     ; O_WRONLY | O_CREAT | O_TRUNC
+        r2d = 0x1ed                     ; 0755
+        r0d = 2                         ; open
+        mfumo
+        pima r0, r0
+        ruka .toka kama hasi
+        r7 = r0
+        r6d = 1
+        r0d = 33                        ; dup2(fd, 1)
+        mfumo
+.si_nje:
+        r7 = n64[r15]
+        r6 = r15                        ; argv = hoja
+        r2 = n64[r15 + MAZINGIRA]
+        r0d = 59                        ; execve
+        mfumo
+.toka:
+        r7d = 127
+        r0d = 60
+        mfumo
+
+; ---- makosa ----
+shindwa_hatua:
+        r7d = 2
+        r6 = ujumbe
+        r2d = ujumbe_mwisho - ujumbe
+        r0d = 1                         ; write(2, ujumbe)
+        mfumo
+        r6 = n64[r15]
+        r2d ^= r2d
+.urefu:
+        linganisha n8[r6 + r2], 0
+        ruka .andika kama ==
+        r2++
+        ruka .urefu
+.andika:
+        r7d = 2
+        r0d = 1                         ; write(2, PROG)
+        mfumo
+        r7d = 2
+        r6 = mstari_mpya
+        r2d = 1
+        r0d = 1
+        mfumo
+shindwa:
+        r7d = 1
+        r0d = 60                        ; exit(1)
+        mfumo
+
+n8 neno_saraka = "saraka", 0
+n8 ujumbe = "kizinduzi: imeshindwa: "
+ujumbe_mwisho:
+n8 mstari_mpya = 10
+mwisho:

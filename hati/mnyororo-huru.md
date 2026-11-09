@@ -45,6 +45,7 @@ Uthibitisho: `gharama/jaribu-mnyororo-huru.mapishi` (kwenye CI; visa vyake viko 
 
 | Mapishi | Kazi |
 |---|---|
+| `gharama/mwanzo.kizinduzi` | mbegu mbili pekee -> mjenzi, mbegu na kizinduzi kutoka vyanzo; mjenzi huo hulinganisha vilivyogandishwa (`gharama/thibitisha-mbegu.mapishi`) |
 | `gharama/kusanyiko.mapishi` | baiti 393 -> maoni -> lebo -> kusanyiko0 -> kusanyiko, kila hatua ikijijenga; `jengo/kusanyiko` |
 | `gharama/mbegu-mpya.mapishi` | `jengo/mbegu`, `jengo/mjenzi` kutoka vyanzo vyao (kujaribu kabla ya kugandisha) |
 | `gharama/mnyororo.mapishi` | vilivyogandishwa (`mbegu.bin`, `mjenzi.bin`, `.hex` zao) == vinavyojengwa |
@@ -56,4 +57,19 @@ Uthibitisho: `gharama/jaribu-mnyororo-huru.mapishi` (kwenye CI; visa vyake viko 
 | `gharama/jaribu-mifano.mapishi`, `jaribu-usakinishaji.mapishi` | mifano ya README; swa iliyosakinishwa nje ya hazina |
 | `gharama/jaribu-wasm.mapishi`, `jaribu-kernel.mapishi` | `--wasm` (node kama mkaguzi), `--kernel` (QEMU kama mkaguzi) |
 
-Hakuna bash kwenye ujenzi wala kwenye majaribio ya CI: zana za nje pekee ni wakaguzi wa majaribio (node, python3 + QEMU). Pengo pekee la kuzaliwa lililobaki ni kuanzisha programu moja (`./msingi/mjenzi.bin ...`). Mwenye shaka anaweza kujenga mjenzi kwa mkono kutoka `msingi/kwanza.bin` na `msingi/mjenzi.hex`.
+Hakuna bash kwenye ujenzi wala kwenye majaribio ya CI: zana za nje pekee ni wakaguzi wa majaribio (node, python3 + QEMU).
+
+## Mbegu mbili: kwanza na kizinduzi
+
+Kabla ya hili, mnyororo uliendeshwa na `msingi/mjenzi.bin` (baiti 8559, hex bila maoni) -- binary iliyoendesha kila hatua NA kufanya kila ulinganisho `sawa`, ikijithibitisha yenyewe. Kuendesha `kwanza.bin` kwa mkono kungehitaji programu nyingine ya kuelekeza stdin/stdout (shell) -- programu ya nje.
+
+Sasa mnyororo huanza na mbegu mbili zinazosomeka baiti kwa baiti, kama hex0 na kaem-optional-seed za stage0:
+
+| Mbegu | Baiti | Kazi | Maelezo |
+|---|---|---|---|
+| `msingi/kwanza.bin` | 393 | hex -> binary | `hati/kwanza-baiti.md` |
+| `msingi/kizinduzi.bin` | 839 | huendesha orodha ya hatua (`PROG HOJA [< NDANI] [> NJE]`, `saraka`, maoni `;`) na husimama kwa kosa la kwanza | `msingi/kizinduzi.hexc`: kila agizo na baiti zake, anwani, na mstari wake wa `msingi/mnyororo/kizinduzi.swm` |
+
+`./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi` hujenga maoni, lebo, kusanyiko0 na kusanyiko kutoka mbegu hizo, kisha **mjenzi, mbegu na kizinduzi kutoka vyanzo vyao**. Mjenzi huo uliojengwa -- si `msingi/mjenzi.bin` -- huendesha `gharama/thibitisha-mbegu.mapishi`, inayolinganisha kila binary iliyogandishwa (`kwanza`, `kizinduzi` kwa njia tatu: hex, hexc, swm; `mjenzi`, `mbegu` na `.hex` zao) na inayojengwa. strace: programu zinazoendeshwa ni mbegu mbili na zilizojengwa kutoka kwake pekee; `msingi/mjenzi.bin` haiendeshwi kamwe. Baiti moja ikibadilishwa kwenye `mjenzi.bin`, `mbegu.bin` au `kizinduzi.bin`, mwanzo hushindwa. Hii ni hatua ya kwanza ya CI.
+
+Mzizi wa kuaminiwa ni baiti 393 + 839, zote zimeelezwa. Kama kwanza, kizinduzi hakiwezi kujithibitisha chenyewe (kizinduzi kilichoharibiwa ndicho kinachoendesha ukaguzi wake); kinga yake ni ukaguzi wa jicho wa `kizinduzi.hexc`, na faili hilo lazima liwe sawa kwa baiti na `kizinduzi.swm` (CI hukataa tofauti). `kizinduzi.swm` ndicho chanzo; ukikibadilisha, sasisha `kizinduzi.hexc` na `kizinduzi.hex` pamoja nacho.
