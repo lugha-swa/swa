@@ -36,12 +36,12 @@ n32 linganisha_kumbukumbu(n8* a, n8* b, n64 n) {
 // na daraja la C kwa mbegu. Haina tangazo la .swa: kila mkaguzi
 // (wa mbegu na wa stage1) hujenga saini kutoka hoja halisi za wito.
 
-n64 mfumo_soma(n32 faili, n8* bafa, n64 urefu) {
-    rudisha wito_wa_mfumo(0, faili, bafa, urefu, 0, 0, 0);
+n64 mfumo_soma(n32 faili, n8* chombo, n64 urefu) {
+    rudisha wito_wa_mfumo(0, faili, chombo, urefu, 0, 0, 0);
 }
 
-n64 mfumo_andika(n32 faili, n8* bafa, n64 urefu) {
-    rudisha wito_wa_mfumo(1, faili, bafa, urefu, 0, 0, 0);
+n64 mfumo_andika(n32 faili, n8* chombo, n64 urefu) {
+    rudisha wito_wa_mfumo(1, faili, chombo, urefu, 0, 0, 0);
 }
 
 n64 mfumo_fungua(n8* njia, n64 machaguo, n64 ruhusa) {
@@ -73,14 +73,14 @@ w0 andika_n64(n32 faili, n64 v) {
     // Bafa ya n32, si n8 -- mbegu hutoa maandishi ya safu ya n8
     // kwa mizani ya baiti 4, hivyo tumia n32 na uchapishe tarakimu
     // moja kwa moja kupitia andika_herufi.
-    n32 bafa[32];
+    n32 chombo[32];
     n32 n = 0;
     kama (v < 0) {
         andika_herufi(faili, 45);  // '-'
         v = 0 - v;
     }
     wakati (1 == 1) {
-        bafa[n] = v - ((v / 10) * 10);
+        chombo[n] = v - ((v / 10) * 10);
         n = n + 1;
         v = v / 10;
         kama (v == 0) { vunja; }
@@ -88,7 +88,7 @@ w0 andika_n64(n32 faili, n64 v) {
     // Chapisha tarakimu kwa mpangilio wa nyuma
     wakati (n > 0) {
         n = n - 1;
-        andika_herufi(faili, 48 + bafa[n]);
+        andika_herufi(faili, 48 + chombo[n]);
     }
 }
 
@@ -146,17 +146,17 @@ n64 hoja_kwa_na(n64 a1, n64 a2, n64 a3, n64 a4, n64 a5, n64 a6, n32 na) {
 // bila alama ya kutoa). Thamani hasi inaonyeshwa kama mfuatano
 // kamili wa bits: -1 -> 18446744073709551615.
 w0 andika_u64(n32 faili, n64 v) {
-    n32 bafa[32];
+    n32 chombo[32];
     n32 n = 0;
     wakati (1 == 1) {
-        bafa[n] = v - ((v / 10) * 10);
+        chombo[n] = v - ((v / 10) * 10);
         n = n + 1;
         v = v / 10;
         kama (v == 0) { vunja; }
     }
     wakati (n > 0) {
         n = n - 1;
-        andika_herufi(faili, 48 + bafa[n]);
+        andika_herufi(faili, 48 + chombo[n]);
     }
 }
 
@@ -415,7 +415,7 @@ n64 biti_ya_d64_swa(n8* ch, n32 u) {
 // soma_mstari -- soma mstari mmoja kutoka faili hadi bafa.
 // Inasimama kwa '\n' (isiyojumuishwa) au EOF. Rudisha idadi ya
 // baiti zilizosomwa, au -1 ikiwa EOF mara moja bila baiti.
-n64 soma_mstari(n32 faili, n8* bafa, n64 upeo) {
+n64 soma_mstari(n32 faili, n8* chombo, n64 upeo) {
     n64 n = 0;
     wakati (n + 1 < upeo) {
         n8 ch = 0;
@@ -429,7 +429,7 @@ n64 soma_mstari(n32 faili, n8* bafa, n64 upeo) {
         kama (ch == 10) {
             rudisha n;
         }
-        bafa[n] = ch;
+        chombo[n] = ch;
         n = n + 1;
     }
     rudisha n;
@@ -504,20 +504,20 @@ w0 faili_funga(n8* f) {
 
 // Soma data kutoka faili. Hurudisha idadi ya vipengele vilivyosomwa
 // (vipengele kamili; salio la mwisho linatupwa kama fread ya C).
-n64 faili_soma(n8* bafa_ya_jaribio, n64 ukubwa, n64 idadi, n8* f) {
+n64 faili_soma(n8* chombo_cha_jaribio, n64 ukubwa, n64 idadi, n8* f) {
     kama (f == 0) { rudisha 0; }
     kama (ukubwa == 0) { rudisha 0; }
-    n64 n = mfumo_soma(kishikio_kutoka_hoja(f), bafa_ya_jaribio, ukubwa * idadi);
+    n64 n = mfumo_soma(kishikio_kutoka_hoja(f), chombo_cha_jaribio, ukubwa * idadi);
     kama (n <= 0) { rudisha 0; }
     rudisha n / ukubwa;
 }
 
 // Andika data kwenye faili. Hurudisha idadi ya vipengele
 // vilivyoandikwa.
-n64 faili_andika(n8* bafa_ya_jaribio, n64 ukubwa, n64 idadi, n8* f) {
+n64 faili_andika(n8* chombo_cha_jaribio, n64 ukubwa, n64 idadi, n8* f) {
     kama (f == 0) { rudisha 0; }
     kama (ukubwa == 0) { rudisha 0; }
-    n64 n = mfumo_andika(kishikio_kutoka_hoja(f), bafa_ya_jaribio, ukubwa * idadi);
+    n64 n = mfumo_andika(kishikio_kutoka_hoja(f), chombo_cha_jaribio, ukubwa * idadi);
     kama (n <= 0) { rudisha 0; }
     rudisha n / ukubwa;
 }
@@ -525,17 +525,17 @@ n64 faili_andika(n8* bafa_ya_jaribio, n64 ukubwa, n64 idadi, n8* f) {
 // Soma faili lote na ulihifadhi kwenye bafa.
 // Hurudisha urefu wa data iliyosomwa, au -1 kwa kushindwa.
 // Bafa lazima iwe na nafasi ya kutosha (uwezo ni pamoja na NUL).
-n64 faili_soma_yote(n8* njia, n8* bafa_ya_jaribio, n64 uwezo) {
+n64 faili_soma_yote(n8* njia, n8* chombo_cha_jaribio, n64 uwezo) {
     n8* f = faili_fungua(njia, "r");
     kama (f == 0) { rudisha -1; }
     n64 n = 0;
     wakati (n + 1 < uwezo) {
-        n64 r = mfumo_soma(kishikio_kutoka_hoja(f), bafa_ya_jaribio + n, uwezo - 1 - n);
+        n64 r = mfumo_soma(kishikio_kutoka_hoja(f), chombo_cha_jaribio + n, uwezo - 1 - n);
         kama (r <= 0) { vunja; }
         n = n + r;
     }
     faili_funga(f);
-    bafa_ya_jaribio[n] = 0;
+    chombo_cha_jaribio[n] = 0;
     rudisha n;
 }
 
@@ -561,7 +561,7 @@ n32 faili_ipo(n8* njia) {
 // Soma mstari mmoja kutoka faili hadi bafa.
 // Huacha kwenye '\n' (inayojumuishwa kwenye bafa) au EOF.
 // Hurudisha urefu uliosomwa au -1 kwa mwisho.
-n32 faili_soma_mstari(n8* f, n8* bafa_ya_jaribio, n32 uwezo) {
+n32 faili_soma_mstari(n8* f, n8* chombo_cha_jaribio, n32 uwezo) {
     kama (f == 0 || uwezo <= 0) {
         rudisha -1;
     }
@@ -576,14 +576,14 @@ n32 faili_soma_mstari(n8* f, n8* bafa_ya_jaribio, n32 uwezo) {
             vunja;
         }
         kama (c == 10) {  // '\n'
-            bafa_ya_jaribio[i] = c;
+            chombo_cha_jaribio[i] = c;
             i = i + 1;
             vunja;
         }
-        bafa_ya_jaribio[i] = c;
+        chombo_cha_jaribio[i] = c;
         i = i + 1;
     }
-    bafa_ya_jaribio[i] = 0;
+    chombo_cha_jaribio[i] = 0;
     rudisha i;
 }
 
@@ -605,11 +605,11 @@ n32 main() {
     kama (faili_ipo(njia) != 1) rudisha 2;
 
     // Soma faili lote
-    n8 bafa_ya_jaribio[64];
-    weka_sifuri(bafa_ya_jaribio, 64);
-    n64 soma = faili_soma_yote(njia, bafa_ya_jaribio, 64);
+    n8 chombo_cha_jaribio[64];
+    weka_sifuri(chombo_cha_jaribio, 64);
+    n64 soma = faili_soma_yote(njia, chombo_cha_jaribio, 64);
     kama (soma != urefu) rudisha 3;
-    kama (linganisha_kumbukumbu(bafa_ya_jaribio, data, urefu) != 0) rudisha 4;
+    kama (linganisha_kumbukumbu(chombo_cha_jaribio, data, urefu) != 0) rudisha 4;
 
     // Fungua na uandike kwa mkono
     n8 namna[8];
@@ -623,10 +623,10 @@ n32 main() {
     kama (n != 7) rudisha 6;
 
     // Soma tena na uhakikishe
-    weka_sifuri(bafa_ya_jaribio, 64);
-    soma = faili_soma_yote(njia, bafa_ya_jaribio, 64);
+    weka_sifuri(chombo_cha_jaribio, 64);
+    soma = faili_soma_yote(njia, chombo_cha_jaribio, 64);
     kama (soma != 7) rudisha 7;
-    kama (linganisha_kumbukumbu(bafa_ya_jaribio, andiko, 7) != 0) rudisha 8;
+    kama (linganisha_kumbukumbu(chombo_cha_jaribio, andiko, 7) != 0) rudisha 8;
 
     // faili_soma_mstari -- mistari imejengwa kwa baiti 10 waziwazi
     // (utorokaji wa \n ni tofauti kati ya minyororo -- usitegemee;
@@ -647,20 +647,20 @@ n32 main() {
     faili_andika_yote(f2, mistari, 16);
     n8* fh = faili_fungua(f2, "r");
     kama (fh == 0) rudisha 9;
-    n8 mst_bafa[32];
-    weka_sifuri(mst_bafa, 32);
-    n32 urefu_uliosomwa = faili_soma_mstari(fh, mst_bafa, 32);
+    n8 mst_chombo[32];
+    weka_sifuri(mst_chombo, 32);
+    n32 urefu_uliosomwa = faili_soma_mstari(fh, mst_chombo, 32);
     kama (urefu_uliosomwa != 8) rudisha 10;
     n8 tarajiwa1[16];
     nakili(tarajiwa1, "mstari1", 7);
     tarajiwa1[7] = 10;
-    kama (linganisha_kumbukumbu(mst_bafa, tarajiwa1, 8) != 0) rudisha 11;
-    urefu_uliosomwa = faili_soma_mstari(fh, mst_bafa, 32);
+    kama (linganisha_kumbukumbu(mst_chombo, tarajiwa1, 8) != 0) rudisha 11;
+    urefu_uliosomwa = faili_soma_mstari(fh, mst_chombo, 32);
     kama (urefu_uliosomwa != 8) rudisha 12;
     n8 tarajiwa2[16];
     nakili(tarajiwa2, "mstari2", 7);
     tarajiwa2[7] = 10;
-    kama (linganisha_kumbukumbu(mst_bafa, tarajiwa2, 8) != 0) rudisha 13;
+    kama (linganisha_kumbukumbu(mst_chombo, tarajiwa2, 8) != 0) rudisha 13;
     faili_funga(fh);
 
     // Angalia faili isiyokuwepo

@@ -41,12 +41,12 @@ n32 linganisha_kumbukumbu(n8* a, n8* b, n64 n) {
 // na daraja la C kwa mbegu. Haina tangazo la .swa: kila mkaguzi
 // (wa mbegu na wa stage1) hujenga saini kutoka hoja halisi za wito.
 
-n64 mfumo_soma(n32 faili, n8* bafa, n64 urefu) {
-    rudisha wito_wa_mfumo(0, faili, bafa, urefu, 0, 0, 0);
+n64 mfumo_soma(n32 faili, n8* chombo, n64 urefu) {
+    rudisha wito_wa_mfumo(0, faili, chombo, urefu, 0, 0, 0);
 }
 
-n64 mfumo_andika(n32 faili, n8* bafa, n64 urefu) {
-    rudisha wito_wa_mfumo(1, faili, bafa, urefu, 0, 0, 0);
+n64 mfumo_andika(n32 faili, n8* chombo, n64 urefu) {
+    rudisha wito_wa_mfumo(1, faili, chombo, urefu, 0, 0, 0);
 }
 
 n64 mfumo_fungua(n8* njia, n64 machaguo, n64 ruhusa) {
@@ -78,14 +78,14 @@ w0 andika_n64(n32 faili, n64 v) {
     // Bafa ya n32, si n8 -- mbegu hutoa maandishi ya safu ya n8
     // kwa mizani ya baiti 4, hivyo tumia n32 na uchapishe tarakimu
     // moja kwa moja kupitia andika_herufi.
-    n32 bafa[32];
+    n32 chombo[32];
     n32 n = 0;
     kama (v < 0) {
         andika_herufi(faili, 45);  // '-'
         v = 0 - v;
     }
     wakati (1 == 1) {
-        bafa[n] = v - ((v / 10) * 10);
+        chombo[n] = v - ((v / 10) * 10);
         n = n + 1;
         v = v / 10;
         kama (v == 0) { vunja; }
@@ -93,7 +93,7 @@ w0 andika_n64(n32 faili, n64 v) {
     // Chapisha tarakimu kwa mpangilio wa nyuma
     wakati (n > 0) {
         n = n - 1;
-        andika_herufi(faili, 48 + bafa[n]);
+        andika_herufi(faili, 48 + chombo[n]);
     }
 }
 
@@ -151,27 +151,27 @@ n64 hoja_kwa_na(n64 a1, n64 a2, n64 a3, n64 a4, n64 a5, n64 a6, n32 na) {
 // bila alama ya kutoa). Thamani hasi inaonyeshwa kama mfuatano
 // kamili wa bits: -1 -> 18446744073709551615.
 w0 andika_u64(n32 faili, n64 v) {
-    n32 bafa[32];
+    n32 chombo[32];
     n32 n = 0;
     kama (v < 0) {
         n64 u = v + 6;
         n64 d = u % 10;
         n32 ni_hasi = 0;
         kama (d < 0) { d = d + 10; ni_hasi = 1; }  // salio la C ni hasi
-        bafa[n] = d;
+        chombo[n] = d;
         n = n + 1;
         v = 1844674407370955161 + u / 10;
         kama (ni_hasi) { v = v - 1; }  // urekebishaji wa gawanya la C
     }
     wakati (1 == 1) {
-        bafa[n] = v - ((v / 10) * 10);
+        chombo[n] = v - ((v / 10) * 10);
         n = n + 1;
         v = v / 10;
         kama (v == 0) { vunja; }
     }
     wakati (n > 0) {
         n = n - 1;
-        andika_herufi(faili, 48 + bafa[n]);
+        andika_herufi(faili, 48 + chombo[n]);
     }
 }
 
@@ -425,7 +425,7 @@ n64 biti_ya_d64_swa(n8* ch, n32 u) {
 // soma_mstari -- soma mstari mmoja kutoka faili hadi bafa.
 // Inasimama kwa '\n' (isiyojumuishwa) au EOF. Rudisha idadi ya
 // baiti zilizosomwa, au -1 ikiwa EOF mara moja bila baiti.
-n64 soma_mstari(n32 faili, n8* bafa, n64 upeo) {
+n64 soma_mstari(n32 faili, n8* chombo, n64 upeo) {
     n64 n = 0;
     wakati (n + 1 < upeo) {
         n8 ch = 0;
@@ -439,7 +439,7 @@ n64 soma_mstari(n32 faili, n8* bafa, n64 upeo) {
         kama (ch == 10) {
             rudisha n;
         }
-        bafa[n] = ch;
+        chombo[n] = ch;
         n = n + 1;
     }
     rudisha n;

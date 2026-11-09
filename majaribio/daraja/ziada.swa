@@ -3,26 +3,26 @@
 husisha { kumbukumbu.swa }
 
 nje "libc.so.6" {
-    n32 andika_kwa_umbo(n8* bafa, n64 ukubwa, n8* umbo, ...) = "snprintf";
+    n32 andika_kwa_umbo(n8* chombo, n64 ukubwa, n8* umbo, ...) = "snprintf";
     n32 linganisha_c(n8* a, n8* b) = "strcmp";
 }
 
-n8* bafa = 0;
+n8* chombo = 0;
 
-n32 sawa(n8* tarajio) { rudisha linganisha_c(bafa, tarajio) == 0; }
+n32 sawa(n8* tarajio) { rudisha linganisha_c(chombo, tarajio) == 0; }
 
 n32 main() {
-    bafa = tenga(512);
-    andika_kwa_umbo(bafa, 512, "%ld", 42);
+    chombo = tenga(512);
+    andika_kwa_umbo(chombo, 512, "%ld", 42);
     kama (sawa("42") == 0) { rudisha 1; }
     // hoja 12 za namba: 3 za rejesta + 9 za ziada -> 6 rafuni
-    andika_kwa_umbo(bafa, 512, "%ld %ld %ld %ld %ld %ld %ld %ld %ld", 1, 2, 3, 4, 5, 6, 7, 8, 9);
-    kama (sawa("1 2 3 4 5 6 7 8 9") == 0) { andika("[%s]\n", bafa); rudisha 2; }
+    andika_kwa_umbo(chombo, 512, "%ld %ld %ld %ld %ld %ld %ld %ld %ld", 1, 2, 3, 4, 5, 6, 7, 8, 9);
+    kama (sawa("1 2 3 4 5 6 7 8 9") == 0) { andika("[%s]\n", chombo); rudisha 2; }
     // desimali zikichanganyika
-    andika_kwa_umbo(bafa, 512, "%.1f %ld %.2f %s", 1.5, 7, 2.25, "sawa");
-    kama (sawa("1.5 7 2.25 sawa") == 0) { andika("[%s]\n", bafa); rudisha 3; }
+    andika_kwa_umbo(chombo, 512, "%.1f %ld %.2f %s", 1.5, 7, 2.25, "sawa");
+    kama (sawa("1.5 7 2.25 sawa") == 0) { andika("[%s]\n", chombo); rudisha 3; }
     // desimali 10: 8 za xmm + 2 rafuni, na namba rafuni baada yake
-    andika_kwa_umbo(bafa, 512, "%g %g %g %g %g %g %g %g %g %g %ld %ld %ld", 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11, 12, 13);
-    kama (sawa("1 2 3 4 5 6 7 8 9 10 11 12 13") == 0) { andika("[%s]\n", bafa); rudisha 4; }
+    andika_kwa_umbo(chombo, 512, "%g %g %g %g %g %g %g %g %g %g %ld %ld %ld", 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11, 12, 13);
+    kama (sawa("1 2 3 4 5 6 7 8 9 10 11 12 13") == 0) { andika("[%s]\n", chombo); rudisha 4; }
     rudisha 0;
 }
