@@ -80,7 +80,7 @@ n32 wasm_data_wapi = 0;
 n32 WASM_DATA_MSINGI = 1024;  // ofseti ya kwanza ya kumbukumbu kwa data (0..1023 imehifadhiwa)
 
 n32 WASM_UPEO_MFUATANO = 128;
-n32 wasm_ofseti_ya_mfuatano[128];   // ofseti YA KUMBUKUMBU (WASM linear memory) ya kila mfuatano wa kipekee
+n32 wasm_umbali_wa_mfuatano[128];   // ofseti YA KUMBUKUMBU (WASM linear memory) ya kila mfuatano wa kipekee
 n32 wasm_idadi_ya_mifuatano = 0;
 
 n32 wasm_tenga_kutumika = 0;
@@ -148,14 +148,14 @@ n32 wasm_ongeza_mfuatano(n8* ghafi) {
     // dhidi ya kila mfuatano ulioshahifadhiwa.
     n32 i = 0;
     wakati (i < wasm_idadi_ya_mifuatano) {
-        n32 o = wasm_ofseti_ya_mfuatano[i] - WASM_DATA_MSINGI;
+        n32 o = wasm_umbali_wa_mfuatano[i] - WASM_DATA_MSINGI;
         n32 sawa = 1;
         n32 k = 0;
         wakati (k <= urefu) {
             kama (wasm_bafa_ya_data[o + k] != muda[k]) { sawa = 0; vunja; }
             k = k + 1;
         }
-        kama (sawa) { rudisha wasm_ofseti_ya_mfuatano[i]; }
+        kama (sawa) { rudisha wasm_umbali_wa_mfuatano[i]; }
         i = i + 1;
     }
 
@@ -165,16 +165,16 @@ n32 wasm_ongeza_mfuatano(n8* ghafi) {
         rudisha WASM_DATA_MSINGI;
     }
 
-    n32 mem_ofseti = WASM_DATA_MSINGI + wasm_data_wapi;
+    n32 mem_umbali = WASM_DATA_MSINGI + wasm_data_wapi;
     n32 k2 = 0;
     wakati (k2 <= urefu) {
         wasm_bafa_ya_data[wasm_data_wapi] = muda[k2];
         wasm_data_wapi = wasm_data_wapi + 1;
         k2 = k2 + 1;
     }
-    wasm_ofseti_ya_mfuatano[wasm_idadi_ya_mifuatano] = mem_ofseti;
+    wasm_umbali_wa_mfuatano[wasm_idadi_ya_mifuatano] = mem_umbali;
     wasm_idadi_ya_mifuatano = wasm_idadi_ya_mifuatano + 1;
-    rudisha mem_ofseti;
+    rudisha mem_umbali;
 }
 
 // Alama ya kosa la nje ya wigo (Awamu 1) -- imewekwa mahali popote
@@ -333,7 +333,7 @@ w0 wasm_kitendo_memory_grow() { wasm_baiti(64); wasm_baiti(0); }  // 0x40 0x00 (
 
 n32 WASM_UPEO_KAZI = 256;
 n8* wasm_ghala_la_majina_ya_kazi;  // huhifadhi majina (nakala kutoka ast_pool)
-n32 wasm_ofseti_ya_jina_la_kazi[256];
+n32 wasm_umbali_wa_jina_la_kazi[256];
 n32 wasm_nodi_ya_kazi[256];
 n32 wasm_idadi_ya_kazi = 0;
 n32 wasm_ghala_la_majina_ya_kazi_wapi = 1;
@@ -377,7 +377,7 @@ n32 wasm_tafuta_ulimwengu(n8* jina) {
 n32 wasm_tafuta_kazi(n8* jina) {
     n32 i = 0;
     wakati (i < wasm_idadi_ya_kazi) {
-        kama (jina_linganisha(wasm_ghala_la_majina_ya_kazi + wasm_ofseti_ya_jina_la_kazi[i], jina)) {
+        kama (jina_linganisha(wasm_ghala_la_majina_ya_kazi + wasm_umbali_wa_jina_la_kazi[i], jina)) {
             rudisha i;
         }
         i = i + 1;
@@ -638,8 +638,8 @@ w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi) {
         // uzalishaji_kitambulisho (uzalishaji.swa). Kigeu na mfuatano
         // ZOTE ni AST_KITAMBULISHO -- hakuna nodi tofauti ya AST.
         kama (jina[0] == 34) {
-            n32 mem_ofseti = wasm_ongeza_mfuatano(jina);
-            wasm_kitendo_i32_const(mem_ofseti);
+            n32 mem_umbali = wasm_ongeza_mfuatano(jina);
+            wasm_kitendo_i32_const(mem_umbali);
             rudisha;
         }
 
@@ -1225,8 +1225,8 @@ w0 wasm_andika_data_sehemu() {
     kama (wasm_data_wapi == 0) { rudisha; }
     wasm_bafu_sasa = 0;
     wasm_baiti(11);
-    n32 ofseti_usemi_ukubwa = 1 + wasm_sleb128_ukubwa(WASM_DATA_MSINGI) + 1;
-    n32 seg_ukubwa = wasm_uleb128_ukubwa(0) + ofseti_usemi_ukubwa + wasm_uleb128_ukubwa(wasm_data_wapi) + wasm_data_wapi;
+    n32 umbali_usemi_ukubwa = 1 + wasm_sleb128_ukubwa(WASM_DATA_MSINGI) + 1;
+    n32 seg_ukubwa = wasm_uleb128_ukubwa(0) + umbali_usemi_ukubwa + wasm_uleb128_ukubwa(wasm_data_wapi) + wasm_data_wapi;
     n32 maudhui = wasm_uleb128_ukubwa(1) + seg_ukubwa;
     wasm_uleb128(maudhui);
     wasm_uleb128(1);
@@ -1413,8 +1413,8 @@ w0 wasm_andika_sehemu_uingizaji() {
     n32 maudhui = wasm_uleb128_ukubwa(kigeni_idadi_ya_kazi);
     n32 k = 0;
     wakati (k < kigeni_idadi_ya_kazi) {
-        maudhui = maudhui + wasm_ukubwa_wa_jina(kigeni_ghala + kigeni_maktaba_ofseti[kigeni_kazi_maktaba[k]]);
-        maudhui = maudhui + wasm_ukubwa_wa_jina(kigeni_ghala + kigeni_ofseti_ya_alama_ya_kazi[k]);
+        maudhui = maudhui + wasm_ukubwa_wa_jina(kigeni_ghala + kigeni_maktaba_umbali[kigeni_kazi_maktaba[k]]);
+        maudhui = maudhui + wasm_ukubwa_wa_jina(kigeni_ghala + kigeni_umbali_wa_alama_ya_kazi[k]);
         maudhui = maudhui + 1 + wasm_uleb128_ukubwa(k);
         k = k + 1;
     }
@@ -1424,8 +1424,8 @@ w0 wasm_andika_sehemu_uingizaji() {
     wasm_uleb128(kigeni_idadi_ya_kazi);
     k = 0;
     wakati (k < kigeni_idadi_ya_kazi) {
-        wasm_andika_jina(kigeni_ghala + kigeni_maktaba_ofseti[kigeni_kazi_maktaba[k]]);
-        wasm_andika_jina(kigeni_ghala + kigeni_ofseti_ya_alama_ya_kazi[k]);
+        wasm_andika_jina(kigeni_ghala + kigeni_maktaba_umbali[kigeni_kazi_maktaba[k]]);
+        wasm_andika_jina(kigeni_ghala + kigeni_umbali_wa_alama_ya_kazi[k]);
         wasm_baiti(0);  // kind = func
         wasm_uleb128(k);
         k = k + 1;
@@ -1509,15 +1509,15 @@ n32 uzalishaji_wasm_kuu(n32 nodi_ya_programu) {
             n32 jina_la_nodi = nodi_ya_kushoto[gn];
             n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[jina_la_nodi];
             n32 urefu = urefu_wa_jina(jina);
-            n32 ofseti = wasm_ghala_la_majina_ya_kazi_wapi;
+            n32 umbali = wasm_ghala_la_majina_ya_kazi_wapi;
             n32 ci = 0;
             wakati (ci < urefu) {
-                wasm_ghala_la_majina_ya_kazi[ofseti + ci] = jina[ci];
+                wasm_ghala_la_majina_ya_kazi[umbali + ci] = jina[ci];
                 ci = ci + 1;
             }
-            wasm_ghala_la_majina_ya_kazi[ofseti + urefu] = 0;
-            wasm_ghala_la_majina_ya_kazi_wapi = ofseti + urefu + 1;
-            wasm_ofseti_ya_jina_la_kazi[wasm_idadi_ya_kazi] = ofseti;
+            wasm_ghala_la_majina_ya_kazi[umbali + urefu] = 0;
+            wasm_ghala_la_majina_ya_kazi_wapi = umbali + urefu + 1;
+            wasm_umbali_wa_jina_la_kazi[wasm_idadi_ya_kazi] = umbali;
             wasm_nodi_ya_kazi[wasm_idadi_ya_kazi] = gn;
             wasm_idadi_ya_kazi = wasm_idadi_ya_kazi + 1;
         } sivyo { kama (aina_ya_nodi[gn] == NODI_TANGAZO_ULIMWENGU) {

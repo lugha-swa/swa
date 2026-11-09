@@ -107,7 +107,7 @@ n32 irk_upana_wa_matokeo[16384];
 n32 irk_ishara_ya_matokeo[16384];
 n32 irk_nodi[16384];          // nodi ya AST ya kazi
 n32 irk_idadi = 0;
-n32 irp_ofseti[1048576];      // vigezo: ofseti ya nafasi kwenye fremu
+n32 irp_umbali[1048576];      // vigezo: ofseti ya nafasi kwenye fremu
 n32 irp_upana[1048576];
 n32 irp_idadi = 0;
 n32 ir_kianzio_cha_kazi = -1;     // kazi ya vianzio vya ulimwengu
@@ -129,7 +129,7 @@ n32 irg_idadi = 0;
 
 // Hali ya kuteremsha kazi moja
 n8* irl_jina[8192];
-n32 irl_ofseti[8192];
+n32 irl_umbali[8192];
 n32 irl_usimbaji[8192];
 n32 irl_ni_safu[8192];
 n32 irl_ukubwa[8192];
@@ -341,7 +341,7 @@ n32 tm_ndani_unda(n8* jina, n32 usimbaji, n32 idadi_ya_safu) {
     tm_fremu = ((tm_fremu + upana - 1) / upana) * upana;
     i = irl_idadi;
     irl_jina[i] = jina;
-    irl_ofseti[i] = tm_fremu;
+    irl_umbali[i] = tm_fremu;
     irl_usimbaji[i] = usimbaji;
     irl_ni_safu[i] = 0;
     irl_ukubwa[i] = ukubwa;
@@ -379,7 +379,7 @@ n32 tm_anwani_ya_jina(n8* jina, n32 nodi_hii) {
     kama (i >= 0) {
         n32 v = tm_vreg_mpya();
         n32 a = tm_amri(IR_FREMU, v, -1, -1, 0);
-        ir_namba[a] = irl_ofseti[i];
+        ir_namba[a] = irl_umbali[i];
         tm_lvalue_usimbaji = irl_usimbaji[i];
         tm_lvalue_ni_safu = irl_ni_safu[i];
         rudisha v;
@@ -502,11 +502,11 @@ n32 tm_usemi(n32 nodi_hii) {
     kama (aina == NODI_NAMBARI) {
         kama (nodi_ya_kulia[nodi_hii] == 1) {
             // halisi ya biti 64: baiti 8 kwenye dimbwi
-            n32 ofseti = thamani_ya_nodi[nodi_hii];
+            n32 umbali = thamani_ya_nodi[nodi_hii];
             n64 t = 0;
             n32 bi = 7;
             wakati (bi >= 0) {
-                t = t * 256 + (ghala_la_majina[ofseti + bi] & 255);
+                t = t * 256 + (ghala_la_majina[umbali + bi] & 255);
                 bi = bi - 1;
             }
             rudisha tm_namba(t);
@@ -822,7 +822,7 @@ w0 tm_tangazo(n32 nodi_hii) {
     n32 i = tm_ndani_unda(tm_jina(nodi_ya_kigeu), usimbaji, idadi_ya_safu);
     n32 adr = tm_vreg_mpya();
     n32 a = tm_amri(IR_FREMU, adr, -1, -1, 0);
-    ir_namba[a] = irl_ofseti[i];
+    ir_namba[a] = irl_umbali[i];
     kama (idadi_ya_safu > 0) {
         // safu ya ndani: sifuri kila kipengele (kama mkusanyaji: rep stosb)
         n32 kipengele = ukubwa_kutoka_usimbaji(usimbaji);
@@ -830,7 +830,7 @@ w0 tm_tangazo(n32 nodi_hii) {
         wakati (k < idadi_ya_safu) {
             n32 ak = tm_vreg_mpya();
             n32 b = tm_amri(IR_FREMU, ak, -1, -1, 0);
-            ir_namba[b] = irl_ofseti[i] + k * kipengele;
+            ir_namba[b] = irl_umbali[i] + k * kipengele;
             tm_hifadhi(ak, tm_namba(0), usimbaji);
             k = k + 1;
         }
@@ -968,7 +968,7 @@ w0 tm_kazi(n32 k) {
         n32 usimbaji = thamani_ya_nodi[kigezo];
         kama (tm_inaungwa(usimbaji, kigezo) == 0) { rudisha; }
         n32 i = tm_ndani_unda(tm_jina(kigezo), usimbaji, 0);
-        irp_ofseti[irp_idadi] = irl_ofseti[i];
+        irp_umbali[irp_idadi] = irl_umbali[i];
         irp_upana[irp_idadi] = tm_upana(usimbaji);
         irp_idadi = irp_idadi + 1;
         idadi = idadi + 1;
