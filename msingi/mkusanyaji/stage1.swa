@@ -579,30 +579,26 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     n32 faharasa_ya_faili = 1;
     kama (idadi_ya_hoja_za_mstari > 1) {
         n8* a = hoja_za_mstari[1];
-        kama (a[0]==45 && a[1]==45 && a[2]==106 && a[3]==105 && a[4]==116 && a[5]==0) {
-            ni_papo = 1; faharasa_ya_faili = 2;
-        }
-        kama (a[0]==45 && a[1]==45 && a[2]==101 && a[3]==120 && a[4]==101 && a[5]==0) {
-            ni_exe = 1; faharasa_ya_faili = 2;
-        }
-        // --wasm: kwenda WebAssembly (kwa kivinjari) badala ya x86-64
-        // ELF. mbegu.bin HAIHITAJI kuelewa bendera hii kabisa -- ni
-        // ya stage1 pekee (angalia uzalishaji_wasm.swa).
-        kama (a[0]==45 && a[1]==45 && a[2]==119 && a[3]==97 && a[4]==115 && a[5]==109 && a[6]==0) {
-            ni_wasm = 1; faharasa_ya_faili = 2;
-        }
-        // --kernel: pato ghafi la .text la x86-64 freestanding (Kawira,
+        // Bendera za Kiswahili (hati/kamusi.md): --programu (ELF
+        // inayotekelezeka), --kiini (picha ya kiini, Kawira), --kati
+        // (uwakilishi wa kati), --papo (tekeleza papo hapo). Za zamani
+        // (--programu, --kiini, --kati, --papo) zinakubalika kwa toleo moja, kwa onyo.
+        kama (linganisha_mfuatano(a, "--papo") == 0) { ni_papo = 1; faharasa_ya_faili = 2; }
+        kama (linganisha_mfuatano(a, "--jit") == 0) { onya_neno_la_zamani("--jit", "--papo"); ni_papo = 1; faharasa_ya_faili = 2; }
+        kama (linganisha_mfuatano(a, "--programu") == 0) { ni_exe = 1; faharasa_ya_faili = 2; }
+        kama (linganisha_mfuatano(a, "--exe") == 0) { onya_neno_la_zamani("--exe", "--programu"); ni_exe = 1; faharasa_ya_faili = 2; }
+        // --wasm: kwenda WebAssembly (kwa kivinjari) badala ya x86-64 ELF.
+        // Mbegu haihitaji kuielewa -- ni ya stage1 pekee (uzalishaji_wasm.swa).
+        kama (linganisha_mfuatano(a, "--wasm") == 0) { ni_wasm = 1; faharasa_ya_faili = 2; }
+        // --kiini: pato ghafi la .text la x86-64 lisilo na mfumo (Kawira,
         // ring 0) -- hakuna ELF, hakuna _start/argv, hakuna syscalls.
-        // mbegu.bin HAIHITAJI kuelewa bendera hii kabisa -- ni ya
-        // stage1 pekee (angalia uzalishaji_kuu, uzalishaji.swa,
-        // hali_exe==2).
-        kama (a[0]==45 && a[1]==45 && a[2]==107 && a[3]==101 && a[4]==114 && a[5]==110 && a[6]==101 && a[7]==108 && a[8]==0) {
-            ni_kiini = 1; faharasa_ya_faili = 2;
-        }
+        kama (linganisha_mfuatano(a, "--kiini") == 0) { ni_kiini = 1; faharasa_ya_faili = 2; }
+        kama (linganisha_mfuatano(a, "--kernel") == 0) { onya_neno_la_zamani("--kernel", "--kiini"); ni_kiini = 1; faharasa_ya_faili = 2; }
         // --tafsiri: teremsha hadi IR (mteremko.swa) na uitekeleze moja kwa
-        // moja (mtafsiri.swa) -- hakuna msimbo wa mashine. --ir: chapisha IR.
+        // moja (mtafsiri.swa) -- hakuna msimbo wa mashine. --kati: chapisha IR.
         kama (linganisha_mfuatano(a, "--tafsiri") == 0) { ni_tafsiri = 1; faharasa_ya_faili = 2; }
-        kama (linganisha_mfuatano(a, "--ir") == 0) { ni_ir = 1; faharasa_ya_faili = 2; }
+        kama (linganisha_mfuatano(a, "--kati") == 0) { ni_ir = 1; faharasa_ya_faili = 2; }
+        kama (linganisha_mfuatano(a, "--ir") == 0) { onya_neno_la_zamani("--ir", "--kati"); ni_ir = 1; faharasa_ya_faili = 2; }
         // --wasm-js: daraja la JS la moduli za --wasm (hati/daraja-la-mashine.md)
         kama (linganisha_mfuatano(a, "--wasm-js") == 0) {
             wasm_andika_kiolesura_js();
@@ -696,13 +692,13 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     // sscse_boresha, msambazaji.swa).
     nodi_ya_programu = sscse_boresha(nodi_ya_programu);
 
-    // 3. --tafsiri / --ir: teremsha AST hadi IR ya mstari (mteremko.swa);
+    // 3. --tafsiri / --kati: teremsha AST hadi IR ya mstari (mteremko.swa);
     // kisha itekeleze (mtafsiri.swa) au ichapishe. Kisichoungwa mkono na IR
     // hutajwa kwa sauti na kutoka kwa 2.
     // Kazi za nje (daraja la mashine) zinahitaji kipakiaji cha mfumo
-    // (--exe) au mwenyeji wa WASM (--wasm: uingizaji); mtafsiri hana.
+    // (--programu) au mwenyeji wa WASM (--wasm: uingizaji); mtafsiri hana.
     kama (kigeni_idadi_ya_kazi + kigeni_idadi_ya_data > 0 && (ni_tafsiri || ni_ir)) {
-        andika_kosa("Hitilafu: kazi za nje (kizuizi cha nje) zinahitaji --exe au --wasm -- hazipatikani kwenye --tafsiri wala --ir\n");
+        andika_kosa("Hitilafu: kazi za nje (kizuizi cha nje) zinahitaji --programu au --wasm -- hazipatikani kwenye --tafsiri wala --kati\n");
         rudisha 1;
     }
 
@@ -722,7 +718,7 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
             n32 matokeo_wasm = uzalishaji_wasm_kuu(nodi_ya_programu);
             kama (matokeo_wasm != 0) { rudisha 1; }
         } sivyo { kama (ni_kiini) {
-                // hali_exe==2: --kernel (Kawira). Ukaguzi wa wigo
+                // hali_exe==2: --kiini (Kawira). Ukaguzi wa wigo
                 // (kernel_kagua_wigo) na makosa mengine ndani ya
                 // uzalishaji_kuu/uzalishaji_wito hutoka moja kwa moja
                 // (wito_wa_mfumo(60,1,...)) -- kioo cha jinsi makosa
@@ -737,8 +733,8 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     // Wavu wa usalama wa PILI (ule wa kwanza na wa KWELI uko ndani ya
     // uzalishaji_kuu yenyewe, mara moja kabla ya "4. Toa ELF kwa
     // stdout" -- hutoka kabisa kupitia wito_wa_mfumo(60,1,...) KABLA
-    // ya baiti yoyote kuandikwa, kwa hali_exe zote (exe, --kernel, .o),
-    // hivyo kwa kawaida haifikiki hapa). Hii hapa inashughulikia --jit
+    // ya baiti yoyote kuandikwa, kwa hali_exe zote (exe, --kiini, .o),
+    // hivyo kwa kawaida haifikiki hapa). Hii hapa inashughulikia --papo
     // (uzalishaji_jit ina ukaguzi wake wa ndani kabla ya tekeleza(),
     // lakini hiyo inarudi kimya -- rudisha; -- badala ya kuashiria
     // mchakato, hivyo ukaguzi huu unahakikisha msimbo wa kutoka wa

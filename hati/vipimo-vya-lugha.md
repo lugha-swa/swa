@@ -31,7 +31,7 @@ Programu ya Swa ni mfuatano wa tangazo la kiwango cha juu:
   kwa mpangilio wa utegemezi (sehemu 8). Mbegu haitatui -- inaruka
   mstari kimya. Kiungo cha C ni `husisha C::stdio`
 
-Sehemu ya kuingia ni kazi `main`. Katika hali ya `--exe`, sahihi ni
+Sehemu ya kuingia ni kazi `main`. Katika hali ya `--programu`, sahihi ni
 `n32 anza()` au `n32 anza(n32 argc, n8** argv)`.
 
 Kila faili huchanganuliwa kwa mpangilio wa juu-chini; wito wa mbele
@@ -348,7 +348,7 @@ n64 k2 = &jumlisha3;
   ya upana 64); vigeu VINGINE vya kielekezi kwa paramu ya namba
   vinakataliwa kwa sauti kwenye minyororo yote miwili ("kielekezi
   dhidi ya namba"). Kigezo cha ulimwengu kinaweza kupewa kianzio cha
-  anwani ya kazi: `n64 kazi_kuu = &nyongeza;` (hali ya --exe pekee
+  anwani ya kazi: `n64 kazi_kuu = &nyongeza;` (hali ya --programu pekee
   -- imepimwa kwa minyororo yote miwili; aina ya baiti 8 -- kielekezi
   au n64/a64; si safu; si d64) -- anwani kamili ya .text huandikwa
   mwishoni mwa kukusanya, kwa hiyo .o na JIT hazikubali kianzio
@@ -649,7 +649,7 @@ nje "libm.so.6" {
 - Saini inajulikana, kwa hiyo mkaguzi hukagua hoja na matokeo kama
   wito wa kawaida (tofauti na wito kupitia kielekezi, 4.3), na matokeo
   ya `d64` huja kwenye xmm0.
-- Makubaliano ya wito huamuliwa na lengo: `--exe` kwenye Linux x86-64
+- Makubaliano ya wito huamuliwa na lengo: `--programu` kwenye Linux x86-64
   ni System V. Kila wito hupitia kipande kinachopangilia rsp kwa baiti
   16. `&kazi_ya_swa` inaweza kupitishwa kwa msimbo wa nje kama kazi ya
   kurudi (mf. `qsort`).
@@ -673,8 +673,8 @@ nje "libm.so.6" {
   haiongezi kujaza kimya, hivyo mpangilio mbaya ni kosa linalotaja
   kujaza kunakohitajika.
 - Mipaka iliyobaki, yote kwa sauti: muundo kwenye kazi yenye `...`,
-  data ya desimali au safu, na hali zisizo `--exe`/`--wasm`
-  (`--kernel`, `--tafsiri`, `--ir`, `--jit`, `.o`). Jina linalogongana na
+  data ya desimali au safu, na hali zisizo `--programu`/`--wasm`
+  (`--kiini`, `--tafsiri`, `--kati`, `--papo`, `.o`). Jina linalogongana na
   kazi ya Swa yenye mwili, au kutangazwa mara mbili, ni kosa.
 - `--wasm`: kila `nje "<moduli>"` huwa uingizaji wa WASM (moduli,
   alama); hoja na matokeo ni `n32`, kielekezi au `w0`. DOM hutoka
@@ -699,10 +699,10 @@ nje "libm.so.6" {
   inarekebishwa (mgandisho ujao wa mbegu).
 - `tekeleza(n8* kazi, n32 argc, n8** argv, n32 ofseti)` na
   `anwani_ya_kazi(n8* jina)` -- visaidizi vya NDANI vya daraja la JIT
-  la mkusanyaji wa kujikusanya (`--jit`): havipo kwenye minyororo
+  la mkusanyaji wa kujikusanya (`--papo`): havipo kwenye minyororo
   yote miwili kama kazi za lugha. Kipimo cha 2026-09-04: `tekeleza`
   inatambuliwa na MZALISHAJI kwa jina (badala ya wito halisi) hata
-  katika hali ya --exe -- wito wa mtumiaji unakusanywa na kuanguka
+  katika hali ya --programu -- wito wa mtumiaji unakusanywa na kuanguka
   SEGV wakati wa kukimbia (hoja ya kwanza inachukuliwa kama anwani
   ya msimbo). `anwani_ya_kazi` inakataliwa kwa sauti ("kazi
   haijafafanuliwa") kwenye minyororo yote miwili. Lugha ya programu

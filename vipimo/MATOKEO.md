@@ -11,7 +11,7 @@ kupima kazi yoyote ijayo ya utendaji, si kujengwa upya kila wakati.
 
 Ujenzi wa `stage1` ulithibitishwa dhidi ya suti kamili KABLA ya
 kupima (329/329 yamefaulu). Mkusanyaji HAUNA bendera yoyote ya
-uboreshaji (`-O` na kadhalika) -- `--exe` na `--jit` PEKEE
+uboreshaji (`-O` na kadhalika) -- `--programu` na `--papo` PEKEE
 zinakubaliwa (imethibitishwa kwa kusoma `stage1.swa` moja kwa moja,
 si kudhani).
 

@@ -186,7 +186,7 @@ n32 jm_tafuta_kipande(n8* chombo, n64 urefu, n8* kipande) {
 }
 
 // Uwezo wa bafa kwa ujumbe wa makosa ya mkusanyaji (stdout+stderr
-// ya `--exe`) -- 65536 inatosha kwa ujumbe wowote HALISI wa hitilafu
+// ya `--programu`) -- 65536 inatosha kwa ujumbe wowote HALISI wa hitilafu
 // uliowahi kuonekana kwenye mradi (angalia KANUNI-MAJINA.md kwa
 // kikomo kinachofanana cha bafa za ujumbe mahali pengine).
 n64 JM_UWEZO_UJUMBE = 65536;
@@ -264,7 +264,7 @@ w0 jm_jaribu_kata(n8* MBEGU, n8* STAGE1, n8** mazingira, n8* faili, n8* mfululiz
     kama (urefu_wa_mfuatano(kipande) == 0) { kipande = "jina la aina"; }
     n8* programu = MBEGU;
     kama (linganisha_mfuatano(mfululizo, "stage1") == 0) { programu = STAGE1; }
-    n8** hoja_za_mstari = jm_hoja_mstari3(programu, "--exe", faili);
+    n8** hoja_za_mstari = jm_hoja_mstari3(programu, "--programu", faili);
     n32 rc = jm_kusanya(programu, hoja_za_mstari, mazingira, "/tmp/swa-mnyororo-asili/p", "/tmp/swa-mnyororo-asili/p.err");
     n32 ni_ujumbe = jm_mafaili_mawili_yana_kipande("/tmp/swa-mnyororo-asili/p", "/tmp/swa-mnyororo-asili/p.err", kipande);
     n32 ni_tupu = jm_faili_lipo_na_lina_ukubwa("/tmp/swa-mnyororo-asili/p");
@@ -274,7 +274,7 @@ w0 jm_jaribu_kata(n8* MBEGU, n8* STAGE1, n8** mazingira, n8* faili, n8* mfululiz
 }
 
 w0 jm_jaribu_moja(n8* programu, n8** mazingira, n8* faili, n64 tarajiwa, n8* jina_la_mfululizo) {
-    n8** hoja_za_mstari = jm_hoja_mstari3(programu, "--exe", faili);
+    n8** hoja_za_mstari = jm_hoja_mstari3(programu, "--programu", faili);
     n32 rc_kusanya = jm_kusanya(programu, hoja_za_mstari, mazingira, "/tmp/swa-mnyororo-asili/p", JM_TUPU);
     kama (rc_kusanya != 0) {
         andika_kosa("SHINDWA: kukusanya %s kwa %s\n", faili, jina_la_mfululizo, 0, 0, 0, 0);
@@ -310,24 +310,24 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         andika_kosa("SHINDWA: kutatua msingi/mkusanyaji/stage1.swa\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
-    n8** hoja_mstari_stage1 = jm_hoja_mstari3(MBEGU, "--exe", "/tmp/swa-mnyororo-asili/zima.swa");
+    n8** hoja_mstari_stage1 = jm_hoja_mstari3(MBEGU, "--programu", "/tmp/swa-mnyororo-asili/zima.swa");
     n32 rc_stage1 = jm_kusanya(MBEGU, hoja_mstari_stage1, mazingira, "/tmp/swa-mnyororo-asili/stage1", "/tmp/swa-mnyororo-asili/stage1.err");
     kama (rc_stage1 != 0) {
-        andika_kosa("SHINDWA: mbegu --exe zima.swa\n", 0, 0, 0, 0, 0, 0);
+        andika_kosa("SHINDWA: mbegu --programu zima.swa\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
     wito_wa_mfumo(90, "/tmp/swa-mnyororo-asili/stage1", 493, 0, 0, 0, 0);  // chmod +x
     JM_IMEPITA = JM_IMEPITA + 1;  // ujenzi wa stage1
 
     // ============ Fixpoint: stage2 == stage3 ============
-    n8** hoja_mstari_s2 = jm_hoja_mstari3("/tmp/swa-mnyororo-asili/stage1", "--exe", "/tmp/swa-mnyororo-asili/zima.swa");
+    n8** hoja_mstari_s2 = jm_hoja_mstari3("/tmp/swa-mnyororo-asili/stage1", "--programu", "/tmp/swa-mnyororo-asili/zima.swa");
     n32 rc_s2 = jm_kusanya("/tmp/swa-mnyororo-asili/stage1", hoja_mstari_s2, mazingira, "/tmp/swa-mnyororo-asili/stage2", JM_TUPU);
-    kama (rc_s2 != 0) { andika_kosa("SHINDWA: stage1 --exe\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
+    kama (rc_s2 != 0) { andika_kosa("SHINDWA: stage1 --programu\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
     wito_wa_mfumo(90, "/tmp/swa-mnyororo-asili/stage2", 493, 0, 0, 0, 0);
 
-    n8** hoja_mstari_s3 = jm_hoja_mstari3("/tmp/swa-mnyororo-asili/stage2", "--exe", "/tmp/swa-mnyororo-asili/zima.swa");
+    n8** hoja_mstari_s3 = jm_hoja_mstari3("/tmp/swa-mnyororo-asili/stage2", "--programu", "/tmp/swa-mnyororo-asili/zima.swa");
     n32 rc_s3 = jm_kusanya("/tmp/swa-mnyororo-asili/stage2", hoja_mstari_s3, mazingira, "/tmp/swa-mnyororo-asili/stage3", JM_TUPU);
-    kama (rc_s3 != 0) { andika_kosa("SHINDWA: stage2 --exe\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
+    kama (rc_s3 != 0) { andika_kosa("SHINDWA: stage2 --programu\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
 
     kama (jm_mafaili_sawa("/tmp/swa-mnyororo-asili/stage2", "/tmp/swa-mnyororo-asili/stage3")) {
         JM_IMEPITA = JM_IMEPITA + 1;

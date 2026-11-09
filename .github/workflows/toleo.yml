@@ -48,7 +48,7 @@ jobs:
         run: |
           mkdir -p "$RUNNER_TEMP/t" "$RUNNER_TEMP/mradi" && tar -C "$RUNNER_TEMP/t" -xzf "dist/$D.tar.gz"
           cp mifano/salamu.swa "$RUNNER_TEMP/mradi/"
-          cd "$RUNNER_TEMP/mradi" && "$RUNNER_TEMP/t/$D/bin/swa" --exe salamu.swa > p && chmod +x p
+          cd "$RUNNER_TEMP/mradi" && "$RUNNER_TEMP/t/$D/bin/swa" --programu salamu.swa > p && chmod +x p
           ./p | cmp - "$GITHUB_WORKSPACE/mifano/salamu.tarajiwa"
 
       - name: Jenga na jaribu picha
@@ -56,7 +56,7 @@ jobs:
           V="${GITHUB_REF_NAME#v}"
           P="ghcr.io/${GITHUB_REPOSITORY_OWNER}/swa"
           docker build -f gharama/kifurushi/Dockerfile -t "$P:$V" -t "$P:latest" "dist/$D"
-          docker run --rm -v "$PWD/mifano:/kazi" "$P:$V" --exe salamu.swa > "$RUNNER_TEMP/p_picha"
+          docker run --rm -v "$PWD/mifano:/kazi" "$P:$V" --programu salamu.swa > "$RUNNER_TEMP/p_picha"
           chmod +x "$RUNNER_TEMP/p_picha" && "$RUNNER_TEMP/p_picha" | cmp - mifano/salamu.tarajiwa
           echo "P=$P" >> "$GITHUB_ENV"
           echo "V=$V" >> "$GITHUB_ENV"
