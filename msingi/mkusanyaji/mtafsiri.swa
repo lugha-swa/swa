@@ -15,8 +15,8 @@ husisha { mkusanyaji/mteremko.swa }
 // (3) kuwa rejea ya sehemu za nyuma zijazo (ARM64, Mizani).
 // ==========================================================
 
-n8 mt_rafu[67108864];        // fremu za kazi (MB 64)
-n64 mt_rafu_wapi = 0;
+n8 mt_mrundikano[67108864];        // fremu za kazi (MB 64)
+n64 mt_mrundikano_wapi = 0;
 n64 mt_vreg[8388608];        // rejista pepe za kila wito (MB 64)
 n64 mt_vreg_wapi = 0;
 
@@ -25,8 +25,8 @@ n64 mt_sawazisha(n64 x, n32 upana, n32 ishara) {
     kama (upana >= 8 || upana <= 0) { rudisha x; }
     n32 biti = upana * 8;
     n64 moja = 1;
-    n64 kinyago = (moja << biti) - 1;
-    x = x & kinyago;
+    n64 kichujio = (moja << biti) - 1;
+    x = x & kichujio;
     kama (ishara) {
         n64 juu = moja << (biti - 1);
         kama ((x & juu) != 0) { x = x - (moja << biti); }
@@ -204,7 +204,7 @@ n32 mt_wito_pc[1048576];
 n32 mt_wito_lengo[1048576];
 n64 mt_wito_fremu[1048576];
 n64 mt_wito_v[1048576];
-n64 mt_wito_rafu[1048576];
+n64 mt_mrundikano_wa_wito[1048576];
 n64 mt_wito_vreg[1048576];
 
 // Andaa fremu na rejista za kazi k; hifadhi hoja kwenye nafasi za vigezo.
@@ -212,14 +212,14 @@ n64 mt_wito_vreg[1048576];
 n64 mt_v_mpya = 0;
 n64 mt_fremu_andaa(n32 k, n64* hoja, n32 idadi) {
     n64 ukubwa_wa_fremu = irk_fremu[k];
-    kama (mt_rafu_wapi + ukubwa_wa_fremu > 67108864 || mt_vreg_wapi + irk_vreg[k] > 8388608) {
+    kama (mt_mrundikano_wapi + ukubwa_wa_fremu > 67108864 || mt_vreg_wapi + irk_vreg[k] > 8388608) {
         andika_stderr("mtafsiri: rafu imejaa (kujirudia kwa kina mno?)\n");
         wito_wa_mfumo(60, 139, 0, 0, 0, 0, 0);
     }
-    n64 fremu = mt_rafu + mt_rafu_wapi;
+    n64 fremu = mt_mrundikano + mt_mrundikano_wapi;
     n64 z = 0;
-    wakati (z < ukubwa_wa_fremu) { mt_rafu[mt_rafu_wapi + z] = 0; z = z + 1; }
-    mt_rafu_wapi = mt_rafu_wapi + ukubwa_wa_fremu;
+    wakati (z < ukubwa_wa_fremu) { mt_mrundikano[mt_mrundikano_wapi + z] = 0; z = z + 1; }
+    mt_mrundikano_wapi = mt_mrundikano_wapi + ukubwa_wa_fremu;
     mt_v_mpya = mt_vreg + mt_vreg_wapi;
     mt_vreg_wapi = mt_vreg_wapi + irk_vreg[k];
     n32 pi = 0;
@@ -235,12 +235,12 @@ n64 mt_bafa_ya_hoja[64];
 
 n64 mt_endesha(n32 k, n64* hoja, n32 idadi) {
     n32 kina = 0;
-    n64 mwanzo_wa_rafu = mt_rafu_wapi;
+    n64 mwanzo_wa_mrundikano = mt_mrundikano_wapi;
     n64 vreg_mwanzo = mt_vreg_wapi;
     n64 fremu = mt_fremu_andaa(k, hoja, idadi);
     n64* v = mt_v_mpya;
     n32 pc = irk_mwanzo[k];
-    n64 rafu_hii = mwanzo_wa_rafu;
+    n64 mrundikano_huu = mwanzo_wa_mrundikano;
     n64 vreg_hii = vreg_mwanzo;
     wakati (1) {
         n32 amri = ir_amri[pc];
@@ -289,11 +289,11 @@ n64 mt_endesha(n32 k, n64* hoja, n32 idadi) {
             mt_wito_lengo[kina] = lengo;
             mt_wito_fremu[kina] = fremu;
             mt_wito_v[kina] = v;
-            mt_wito_rafu[kina] = rafu_hii;
+            mt_mrundikano_wa_wito[kina] = mrundikano_huu;
             mt_wito_vreg[kina] = vreg_hii;
             kina = kina + 1;
             k = a;
-            rafu_hii = mt_rafu_wapi;
+            mrundikano_huu = mt_mrundikano_wapi;
             vreg_hii = mt_vreg_wapi;
             n64* hb2 = mt_bafa_ya_hoja;
             fremu = mt_fremu_andaa(k, hb2, c);
@@ -304,7 +304,7 @@ n64 mt_endesha(n32 k, n64* hoja, n32 idadi) {
         kama (amri == IR_RUDISHA) {
             n64 matokeo = 0;
             kama (a >= 0) { matokeo = v[a]; }
-            mt_rafu_wapi = rafu_hii;
+            mt_mrundikano_wapi = mrundikano_huu;
             mt_vreg_wapi = vreg_hii;
             kama (kina == 0) { rudisha matokeo; }
             n32 aliyeita = k;
@@ -313,7 +313,7 @@ n64 mt_endesha(n32 k, n64* hoja, n32 idadi) {
             pc = mt_wito_pc[kina];
             fremu = mt_wito_fremu[kina];
             v = mt_wito_v[kina];
-            rafu_hii = mt_wito_rafu[kina];
+            mrundikano_huu = mt_mrundikano_wa_wito[kina];
             vreg_hii = mt_wito_vreg[kina];
             v[mt_wito_lengo[kina]] = mt_sawazisha(matokeo, irk_upana_wa_matokeo[aliyeita], irk_ishara_ya_matokeo[aliyeita]);
             endelea;

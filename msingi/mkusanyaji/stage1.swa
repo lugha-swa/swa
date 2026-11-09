@@ -50,8 +50,8 @@ n8 bafa_ya_ukaguzi[16777216];
 n8 majina_husisha[262144];
 n32 idadi_ya_majina = 0;
 n32 KIPANDE = 512;
-n32 rafu_husisha[512];
-n32 rafu_kiasi = 0;
+n32 mrundikano_wa_husisha[512];
+n32 urefu_wa_mrundikano = 0;
 n32 zilizotatuliwa[512];
 n32 idadi_zilizotatuliwa = 0;
 
@@ -222,70 +222,70 @@ n32 ongeza_jina(n8* jina) {
 // tu ikiendeshwa kutoka mzizi wa hazina (njia zote zilikuwa kulingana
 // na saraka ya sasa), kwa hiyo binary iliyopakuliwa haikuweza
 // kukusanya program yoyote yenye husisha ya maktaba.
-n8 mzizi_wa_swa[512];
-n32 mzizi_wa_swa_hali = 0;  // 0 = haijatafutwa, 1 = ipo, -1 = haipo
+n8 saraka_ya_swa[512];
+n32 saraka_ya_swa_hali = 0;  // 0 = haijatafutwa, 1 = ipo, -1 = haipo
 n8* swa_hoja_mstari0 = 0;          // argv[0], hujazwa na main
 
-n32 mzizi_wa_swa_tafuta() {
-    kama (mzizi_wa_swa_hali != 0) {
-        rudisha mzizi_wa_swa_hali;
+n32 saraka_ya_swa_tafuta() {
+    kama (saraka_ya_swa_hali != 0) {
+        rudisha saraka_ya_swa_hali;
     }
-    mzizi_wa_swa_hali = -1;
+    saraka_ya_swa_hali = -1;
     // readlink(2) = 89; haiandiki NUL, urefu unarudishwa. Hufuata
     // viungo (symlink), kwa hiyo /usr/local/bin/swa -> /opt/swa/bin/swa
     // hupata /opt/swa.
-    n64 n = wito_wa_mfumo(89, "/proc/self/exe", mzizi_wa_swa, 511, 0, 0, 0);
+    n64 n = wito_wa_mfumo(89, "/proc/self/exe", saraka_ya_swa, 511, 0, 0, 0);
     kama (n <= 0) {
         // Hakuna /proc (chroot, initramfs): tumia argv[0] likiwa na '/'.
         // Njia ya jamaa hupewa "./" ili kuvua ngazi mbili kubaki halali.
         kama (swa_hoja_mstari0 == 0) {
             rudisha -1;
         }
-        n64 ua = urefu_wa_mfuatano(swa_hoja_mstari0);
+        n64 upana = urefu_wa_mfuatano(swa_hoja_mstari0);
         n64 k = 0;
         n32 ina_mkwaju = 0;
-        wakati (k < ua) {
+        wakati (k < upana) {
             kama (swa_hoja_mstari0[k] == 47) {
                 ina_mkwaju = 1;
             }
             k = k + 1;
         }
-        kama (ina_mkwaju == 0 || ua >= 500) {
+        kama (ina_mkwaju == 0 || upana >= 500) {
             rudisha -1;
         }
         kama (swa_hoja_mstari0[0] == 47) {
-            nakili_mfuatano(mzizi_wa_swa, swa_hoja_mstari0);
+            nakili_mfuatano(saraka_ya_swa, swa_hoja_mstari0);
         } sivyo {
-            unganisha_mfuatano(mzizi_wa_swa, "./", swa_hoja_mstari0);
+            unganisha_mfuatano(saraka_ya_swa, "./", swa_hoja_mstari0);
         }
-        n = urefu_wa_mfuatano(mzizi_wa_swa);
+        n = urefu_wa_mfuatano(saraka_ya_swa);
     }
-    mzizi_wa_swa[n] = 0;
+    saraka_ya_swa[n] = 0;
     n32 ngazi = 0;
     wakati (ngazi < 2) {
         n64 i = n - 1;
-        wakati (i > 0 && mzizi_wa_swa[i] != 47) {
+        wakati (i > 0 && saraka_ya_swa[i] != 47) {
             i = i - 1;
         }
         // binary moja kwa moja chini ya / (mf. /bin/swa): hakuna mzizi
         kama (i <= 0) {
             rudisha -1;
         }
-        mzizi_wa_swa[i] = 0;
+        saraka_ya_swa[i] = 0;
         n = i;
         ngazi = ngazi + 1;
     }
-    mzizi_wa_swa_hali = 1;
+    saraka_ya_swa_hali = 1;
     rudisha 1;
 }
 
 // jaribu_chini_ya_mzizi — <mzizi><kati><jina> kwenye njia_buf.
-n32 jaribu_chini_ya_mzizi(n8* kati, n8* jina) {
-    kama (urefu_wa_mfuatano(mzizi_wa_swa) + urefu_wa_mfuatano(kati) + urefu_wa_mfuatano(jina) >= 511) {
+n32 jaribu_chini_ya_saraka(n8* kati, n8* jina) {
+    kama (urefu_wa_mfuatano(saraka_ya_swa) + urefu_wa_mfuatano(kati) + urefu_wa_mfuatano(jina) >= 511) {
         rudisha 0;
     }
     n8 kiambishi[512];
-    unganisha_mfuatano(kiambishi, mzizi_wa_swa, kati);
+    unganisha_mfuatano(kiambishi, saraka_ya_swa, kati);
     unganisha_mfuatano(bafa_ya_njia, kiambishi, jina);
     rudisha faili_ipo_swa(bafa_ya_njia);
 }
@@ -307,14 +307,14 @@ n32 pata_njia(n8* jina) {
     kama (faili_ipo_swa(bafa_ya_njia) != 0) {
         rudisha 1;
     }
-    kama (jina[0] != 47 && mzizi_wa_swa_tafuta() == 1) {
-        kama (jaribu_chini_ya_mzizi("/msingi/", jina) != 0) {
+    kama (jina[0] != 47 && saraka_ya_swa_tafuta() == 1) {
+        kama (jaribu_chini_ya_saraka("/msingi/", jina) != 0) {
             rudisha 1;
         }
-        kama (jaribu_chini_ya_mzizi("/msingi/maktaba/", jina) != 0) {
+        kama (jaribu_chini_ya_saraka("/msingi/maktaba/", jina) != 0) {
             rudisha 1;
         }
-        kama (jaribu_chini_ya_mzizi("/", jina) != 0) {
+        kama (jaribu_chini_ya_saraka("/", jina) != 0) {
             rudisha 1;
         }
     }
@@ -437,14 +437,14 @@ w0 chapisha_mzunguko(n32 mwanzo) {
     andika_stderr("; KOSA: mzunguko wa husisha umegunduliwa:\n");
     andika_stderr(";   ");
     n32 k = mwanzo;
-    wakati (k < rafu_kiasi) {
-        andika_stderr("%s", majina_husisha + rafu_husisha[k] * KIPANDE);
+    wakati (k < urefu_wa_mrundikano) {
+        andika_stderr("%s", majina_husisha + mrundikano_wa_husisha[k] * KIPANDE);
         k = k + 1;
-        kama (k < rafu_kiasi) {
+        kama (k < urefu_wa_mrundikano) {
             andika_stderr(" -> ");
         }
     }
-    andika_stderr(" -> %s\n", majina_husisha + rafu_husisha[mwanzo] * KIPANDE);
+    andika_stderr(" -> %s\n", majina_husisha + mrundikano_wa_husisha[mwanzo] * KIPANDE);
 }
 
 // Tangazo la mbele — tatua_husisha na changanua_husisha
@@ -463,20 +463,20 @@ w0 tatua_husisha(n8* jina) {
     // Pata njia ya kwanza iliyopo kwa mpangilio wa utafutaji
     kama (pata_njia(jina) == 0) {
         andika_stderr("; KOSA: faili la husisha halipatikani: %s\n", jina);
-        kama (rafu_kiasi > 0) {
-            andika_stderr(";   Ilitajwa kutoka: %s\n", majina_husisha + rafu_husisha[rafu_kiasi - 1] * KIPANDE);
+        kama (urefu_wa_mrundikano > 0) {
+            andika_stderr(";   Ilitajwa kutoka: %s\n", majina_husisha + mrundikano_wa_husisha[urefu_wa_mrundikano - 1] * KIPANDE);
         }
         andika_stderr(";   Utafutaji: msingi/%s, msingi/maktaba/%s, %s\n", jina, jina, jina);
-        kama (mzizi_wa_swa_tafuta() == 1) {
-            andika_stderr(";   kisha chini ya usakinishaji: %s/msingi/, %s/msingi/maktaba/, %s/\n", mzizi_wa_swa, mzizi_wa_swa, mzizi_wa_swa);
+        kama (saraka_ya_swa_tafuta() == 1) {
+            andika_stderr(";   kisha chini ya usakinishaji: %s/msingi/, %s/msingi/maktaba/, %s/\n", saraka_ya_swa, saraka_ya_swa, saraka_ya_swa);
         }
         kosa = 1;
         rudisha;
     }
     // Mzunguko? — faili liko tayari kwenye rafu ya sasa
     n32 k = 0;
-    wakati (k < rafu_kiasi) {
-        kama (linganisha_mfuatano(bafa_ya_njia, majina_husisha + rafu_husisha[k] * KIPANDE) == 0) {
+    wakati (k < urefu_wa_mrundikano) {
+        kama (linganisha_mfuatano(bafa_ya_njia, majina_husisha + mrundikano_wa_husisha[k] * KIPANDE) == 0) {
             chapisha_mzunguko(k);
             kosa = 1;
             rudisha;
@@ -491,7 +491,7 @@ w0 tatua_husisha(n8* jina) {
         }
         k = k + 1;
     }
-    kama (rafu_kiasi >= 511) {
+    kama (urefu_wa_mrundikano >= 511) {
         andika_stderr("; KOSA: utegemezi ni mrefu mno\n");
         kosa = 1;
         rudisha;
@@ -513,12 +513,12 @@ w0 tatua_husisha(n8* jina) {
     kama (kosa) {
         rudisha;
     }
-    rafu_husisha[rafu_kiasi] = faharisi;
-    rafu_kiasi = rafu_kiasi + 1;
+    mrundikano_wa_husisha[urefu_wa_mrundikano] = faharisi;
+    urefu_wa_mrundikano = urefu_wa_mrundikano + 1;
     // Changanua mistari yake kwa kujirudia
     changanua_husisha(bafa_chanzo, urefu, 0);
     // Toa kwenye rafu; kamilisha faili hili
-    rafu_kiasi = rafu_kiasi - 1;
+    urefu_wa_mrundikano = urefu_wa_mrundikano - 1;
     kama (kosa == 0) {
         zilizotatuliwa[idadi_zilizotatuliwa] = faharisi;
         idadi_zilizotatuliwa = idadi_zilizotatuliwa + 1;
@@ -552,7 +552,7 @@ w0 changanua_husisha(n8* b, n64 urefu, n32 ni_kuu) {
                     kama (ni_kuu == 0 && kosa == 0) {
                         // bafa_chanzo imeharibiwa — isome upya njia
                         // ya sasa (juu ya rafu)
-                        n8* njia_sasa = majina_husisha + rafu_husisha[rafu_kiasi - 1] * KIPANDE;
+                        n8* njia_sasa = majina_husisha + mrundikano_wa_husisha[urefu_wa_mrundikano - 1] * KIPANDE;
                         n64 m2 = soma_faili(njia_sasa, bafa_chanzo, 16777216);
                         kama (m2 != urefu) {
                             andika_stderr("; KOSA: faili lilibadilika wakati wa kutatua: %s\n", njia_sasa);
@@ -605,7 +605,7 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         kama (linganisha_mfuatano(a, "--ir") == 0) { ni_ir = 1; faharasa_ya_faili = 2; }
         // --wasm-js: daraja la JS la moduli za --wasm (hati/daraja-la-mashine.md)
         kama (linganisha_mfuatano(a, "--wasm-js") == 0) {
-            wasm_andika_daraja_js();
+            wasm_andika_kiolesura_js();
             rudisha 0;
         }
     }
@@ -644,8 +644,8 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         kama (kosa) {
             rudisha 1;
         }
-        rafu_husisha[0] = faharisi;
-        rafu_kiasi = 1;
+        mrundikano_wa_husisha[0] = faharisi;
+        urefu_wa_mrundikano = 1;
         changanua_husisha(bafa_kuu, n, 1);
     }
 
@@ -657,7 +657,7 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
 
     // 1. Changanua chanzo hadi AST
     Msambazaji p = msambazaji_mpya(chanzo_bafa, chanzo_urefu);
-    n32 mzizi = changanua(&p);
+    n32 nodi_ya_programu = changanua(&p);
     kama (p.kosa != 0) {
         andika_stderr("; KOSA: %d\n", p.kosa);
         rudisha 1;
@@ -668,13 +668,13 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     // uliosukwa unapita ukaguzi wa mkaguzi_angalia kama mti mwingine
     // wowote, hivyo ukaguzi huo unatumika kama ulinzi wa bure wa
     // usahihi dhidi ya kosa lolote la usukaji.
-    mzizi = kujumuisha_kazi_ndogo(mzizi);
+    nodi_ya_programu = kujumuisha_kazi_ndogo(nodi_ya_programu);
 
     // 2. Ukaguzi wa kisemantiki
     // Makosa ya aina ni ya kufa: programu iliyokataliwa haipaswi
     // kutoa msimbo wowote. Kosa lolote la mkaguzi linazuia mkusanyaji
     // (ona hati/uthibitisho-wa-lugha.md, kipengele J10).
-    n32 makosa = mkaguzi_angalia(mzizi);
+    n32 makosa = mkaguzi_angalia(nodi_ya_programu);
     kama (makosa != 0) {
         andika_stderr("Hitilafu: makosa %d ya aina yalipatikana; hakuna msimbo uliotolewa\n", makosa);
         rudisha 1;
@@ -687,14 +687,14 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     // muda tunayotengeneza yanaweza kunakili enc hiyo moja kwa moja
     // badala ya kuhitaji jedwali letu wenyewe la aina za vigezo
     // (angalia maelezo kamili juu ya licm_boresha, msambazaji.swa).
-    mzizi = pandisha_boresha(mzizi);
+    nodi_ya_programu = hamisha_nje_boresha(nodi_ya_programu);
 
     // 2.6. SSCSE (CSE ya msimbo wa mstari-moja-kwa-moja). Baada ya
     // LICM kwa makusudi -- inashughulikia usemi unaorudiwa NJE ya
     // vitanzi (au ndani ya vitanzi lakini usiokuwa invariant), sehemu
     // ambayo LICM haigusi kabisa (angalia maelezo kamili juu ya
     // sscse_boresha, msambazaji.swa).
-    mzizi = sscse_boresha(mzizi);
+    nodi_ya_programu = sscse_boresha(nodi_ya_programu);
 
     // 3. --tafsiri / --ir: teremsha AST hadi IR ya mstari (mteremko.swa);
     // kisha itekeleze (mtafsiri.swa) au ichapishe. Kisichoungwa mkono na IR
@@ -707,19 +707,19 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     }
 
     kama (ni_tafsiri || ni_ir) {
-        kama (teremsha(mzizi) != 0) { rudisha 2; }
+        kama (teremsha(nodi_ya_programu) != 0) { rudisha 2; }
         kama (ni_ir) { ir_chapisha(); rudisha 0; }
         rudisha mtafsiri_endesha(idadi_ya_hoja_za_mstari - faharasa_ya_faili, hoja_za_mstari + faharasa_ya_faili);
     }
 
-    kama (ni_jit) { uzalishaji_jit(mzizi, idadi_ya_hoja_za_mstari - faharasa_ya_faili, hoja_za_mstari, faharasa_ya_faili); }
+    kama (ni_jit) { uzalishaji_jit(nodi_ya_programu, idadi_ya_hoja_za_mstari - faharasa_ya_faili, hoja_za_mstari, faharasa_ya_faili); }
     sivyo { kama (ni_wasm) {
             // uzalishaji_wasm_kuu inarudisha 1 kwa ujenzi ulio nje ya
             // wigo wa Awamu 1 (angalia uzalishaji_wasm.swa) -- lazima
             // ijulishwe kwa msimbo wa kutoka wa mchakato, sawa na
             // ukaguzi wa "kosa" hapo juu, la sivyo stdout ingekuwa
             // tupu lakini mchakato ungeonekana kufaulu.
-            n32 matokeo_wasm = uzalishaji_wasm_kuu(mzizi);
+            n32 matokeo_wasm = uzalishaji_wasm_kuu(nodi_ya_programu);
             kama (matokeo_wasm != 0) { rudisha 1; }
         } sivyo { kama (ni_kernel) {
                 // hali_exe==2: --kernel (Kawira). Ukaguzi wa wigo
@@ -731,8 +731,8 @@ n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
                 // ukaguzi wa ziada wa msimbo wa kutoka unaohitajika
                 // hapa (tofauti na --wasm, ambayo inarudi 1 badala ya
                 // kutoka moja kwa moja).
-                uzalishaji_kuu(mzizi, 2);
-            } sivyo { uzalishaji_kuu(mzizi, ni_exe); } } }
+                uzalishaji_kuu(nodi_ya_programu, 2);
+            } sivyo { uzalishaji_kuu(nodi_ya_programu, ni_exe); } } }
 
     // Wavu wa usalama wa PILI (ule wa kwanza na wa KWELI uko ndani ya
     // uzalishaji_kuu yenyewe, mara moja kabla ya "4. Toa ELF kwa
