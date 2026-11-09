@@ -366,7 +366,7 @@ n32 nambari_kwa_mfuatano_heksa(n32 n, n8* bafa) {
 }
 
 // heshi_mfuatano — heshi ya djb2 ya mfuatano (kwa jedwali la hashi).
-n32 heshi_mfuatano(n8* s) {
+n32 heshi_ya_mfuatano(n8* s) {
     n32 h = 5381;
     n32 i = 0;
     wakati (s[i] != 0) {
@@ -395,7 +395,7 @@ n32 heshi_mfuatano(n8* s) {
 // muundo (f) ni kigezo cha kawaida, si lazima uwe herufi halisi
 // (literal) inayojulikana wakati wa kukusanya.
 
-w0 bafa_herufi(n8* bafa, n64 uwezo, n64* nafasi, n64 b) {
+w0 bafa_ya_herufi(n8* bafa, n64 uwezo, n64* nafasi, n64 b) {
     kama (*nafasi + 1 < uwezo) {
         bafa[*nafasi] = b;
         *nafasi = *nafasi + 1;
@@ -405,7 +405,7 @@ w0 bafa_herufi(n8* bafa, n64 uwezo, n64* nafasi, n64 b) {
 w0 bafa_mfuatano(n8* bafa, n64 uwezo, n64* nafasi, n8* s) {
     n64 i = 0;
     wakati (s[i] != 0) {
-        bafa_herufi(bafa, uwezo, nafasi, s[i]);
+        bafa_ya_herufi(bafa, uwezo, nafasi, s[i]);
         i = i + 1;
     }
 }
@@ -414,7 +414,7 @@ w0 bafa_n64(n8* bafa, n64 uwezo, n64* nafasi, n64 v) {
     n32 muda[32];
     n32 n = 0;
     kama (v < 0) {
-        bafa_herufi(bafa, uwezo, nafasi, 45);
+        bafa_ya_herufi(bafa, uwezo, nafasi, 45);
         v = 0 - v;
     }
     wakati (1 == 1) {
@@ -425,7 +425,7 @@ w0 bafa_n64(n8* bafa, n64 uwezo, n64* nafasi, n64 v) {
     }
     wakati (n > 0) {
         n = n - 1;
-        bafa_herufi(bafa, uwezo, nafasi, 48 + muda[n]);
+        bafa_ya_herufi(bafa, uwezo, nafasi, 48 + muda[n]);
     }
 }
 
@@ -453,7 +453,7 @@ w0 bafa_u64(n8* bafa, n64 uwezo, n64* nafasi, n64 v) {
     }
     wakati (n > 0) {
         n = n - 1;
-        bafa_herufi(bafa, uwezo, nafasi, 48 + muda[n]);
+        bafa_ya_herufi(bafa, uwezo, nafasi, 48 + muda[n]);
     }
 }
 
@@ -464,12 +464,12 @@ w0 bafa_heksa(n8* bafa, n64 uwezo, n64* nafasi, n64 v) {
         n32 d = (v >> (4 * i)) & 15;
         kama (d != 0 || imeanza) {
             imeanza = 1;
-            kama (d < 10) { bafa_herufi(bafa, uwezo, nafasi, 48 + d); }
-            sivyo { bafa_herufi(bafa, uwezo, nafasi, 87 + d); }
+            kama (d < 10) { bafa_ya_herufi(bafa, uwezo, nafasi, 48 + d); }
+            sivyo { bafa_ya_herufi(bafa, uwezo, nafasi, 87 + d); }
         }
         i = i - 1;
     }
-    kama (imeanza == 0) { bafa_herufi(bafa, uwezo, nafasi, 48); }
+    kama (imeanza == 0) { bafa_ya_herufi(bafa, uwezo, nafasi, 48); }
 }
 
 n64 mfuatano_umbiza(n8* bafa, n64 uwezo, n8* f, n64 a1, n64 a2, n64 a3, n64 a4, n64 a5, n64 a6) {
@@ -482,7 +482,7 @@ n64 mfuatano_umbiza(n8* bafa, n64 uwezo, n8* f, n64 a1, n64 a2, n64 a3, n64 a4, 
         kama (f[p] == 37) {  // '%'
             n8 sp = f[p + 1];
             kama (sp == 0) {
-                bafa_herufi(bafa, uwezo, &nafasi, 37);
+                bafa_ya_herufi(bafa, uwezo, &nafasi, 37);
                 p = p + 1;
                 endelea;
             }
@@ -500,23 +500,23 @@ n64 mfuatano_umbiza(n8* bafa, n64 uwezo, n8* f, n64 a1, n64 a2, n64 a3, n64 a4, 
                             bafa_mfuatano(bafa, uwezo, &nafasi, kielekezi_kutoka_hoja(hoja_kwa_na(a1, a2, a3, a4, a5, a6, na)));
                             na = na + 1;
                         } sivyo { kama (sp == 99) {  // %c
-                                bafa_herufi(bafa, uwezo, &nafasi, hoja_kwa_na(a1, a2, a3, a4, a5, a6, na));
+                                bafa_ya_herufi(bafa, uwezo, &nafasi, hoja_kwa_na(a1, a2, a3, a4, a5, a6, na));
                                 na = na + 1;
                             } sivyo { kama (sp == 37) {  // %%
-                                    bafa_herufi(bafa, uwezo, &nafasi, 37);
+                                    bafa_ya_herufi(bafa, uwezo, &nafasi, 37);
                                 } sivyo {
                                     // Visivyosaidiwa — chapisha kama herufi halisi.
-                                    bafa_herufi(bafa, uwezo, &nafasi, 37);
-                                    bafa_herufi(bafa, uwezo, &nafasi, sp);
+                                    bafa_ya_herufi(bafa, uwezo, &nafasi, 37);
+                                    bafa_ya_herufi(bafa, uwezo, &nafasi, sp);
                                 } } } } } }
             endelea;
         }
         kama (f[p] == 92 && f[p + 1] == 110) {  // \n (mfuatano wa kawaida)
-            bafa_herufi(bafa, uwezo, &nafasi, 10);
+            bafa_ya_herufi(bafa, uwezo, &nafasi, 10);
             p = p + 2;
             endelea;
         }
-        bafa_herufi(bafa, uwezo, &nafasi, f[p]);
+        bafa_ya_herufi(bafa, uwezo, &nafasi, f[p]);
         p = p + 1;
     }
     bafa[nafasi] = 0;

@@ -20,7 +20,7 @@ n32 chanzo_urefu = 0;
 n32 towe_urefu = 0;
 n32 towe_imejaa = 0;
 n32 ambatisha = 0;
-n32 mwanzo_mstari = 0;
+n32 mwanzo_wa_mstari = 0;
 
 n8 miundo_jina[2048];
 n32 miundo_idadi = 0;
@@ -211,7 +211,7 @@ w0 towe_nafasi_kabla() {
         ambatisha = 0;
         rudisha;
     }
-    kama (towe_urefu > mwanzo_mstari) {
+    kama (towe_urefu > mwanzo_wa_mstari) {
         kama (towe[towe_urefu - 1] != 32) {
             towe_herufi(32);
         }
@@ -222,10 +222,10 @@ w0 towe_nafasi_kabla() {
 // (mkongwe wa repo: `msimbo;  // maoni`). Maoni ya pekee mwanzoni
 // mwa mstari yanabaki kwenye ujongezaji wake — bila nafasi ya ziada.
 w0 towe_nafasi_maoni() {
-    kama (towe_urefu > mwanzo_mstari) {
+    kama (towe_urefu > mwanzo_wa_mstari) {
         // Angalia kama kuna msimbo tangu mwanzo wa mstari — ikiwa
         // ni nafasi tu (maoni ya pekee), usiongeze chochote.
-        n32 p = mwanzo_mstari;
+        n32 p = mwanzo_wa_mstari;
         n32 kuna_msimbo = 0;
         wakati (p < towe_urefu) {
             kama (towe[p] != 32 && towe[p] != 9) {
@@ -244,7 +244,7 @@ w0 towe_nafasi_maoni() {
 
 // Ondoa nafasi ya mwisho kwenye mstari (kabla ya ) ] , ; na .).
 w0 towe_ondo_nafasi() {
-    kama (towe_urefu > mwanzo_mstari) {
+    kama (towe_urefu > mwanzo_wa_mstari) {
         kama (towe[towe_urefu - 1] == 32) {
             towe_urefu = towe_urefu - 1;
         }
@@ -278,12 +278,12 @@ n32 panga_chanzo() {
         n8 c = chanzo[i];
         kama (c == 10) {
             kama (umoja != HALI_MFUATANO && umoja != HALI_HERUFI) {
-                wakati (towe_urefu > mwanzo_mstari && (towe[towe_urefu - 1] == 32 || towe[towe_urefu - 1] == 9)) {
+                wakati (towe_urefu > mwanzo_wa_mstari && (towe[towe_urefu - 1] == 32 || towe[towe_urefu - 1] == 9)) {
                     towe_urefu = towe_urefu - 1;
                 }
             }
             towe_herufi(10);
-            mwanzo_mstari = towe_urefu;
+            mwanzo_wa_mstari = towe_urefu;
             imeanza = 0;
             kiwango = kiwango + funguka - funga;
             funguka = 0;
@@ -437,7 +437,7 @@ n32 panga_chanzo() {
         kama (c == 40) {
             kama (ambatisha == 0) {
                 kama (neno_la_kabla_ni_muhimu(i) != 0) {
-                    kama (towe_urefu > mwanzo_mstari && towe[towe_urefu - 1] != 32) {
+                    kama (towe_urefu > mwanzo_wa_mstari && towe[towe_urefu - 1] != 32) {
                         towe_herufi(32);
                     }
                 }
@@ -667,7 +667,7 @@ n32 panga_chanzo() {
         i = i + 1;
     }
     kama (umoja != HALI_MFUATANO && umoja != HALI_HERUFI) {
-        wakati (towe_urefu > mwanzo_mstari && (towe[towe_urefu - 1] == 32 || towe[towe_urefu - 1] == 9)) {
+        wakati (towe_urefu > mwanzo_wa_mstari && (towe[towe_urefu - 1] == 32 || towe[towe_urefu - 1] == 9)) {
             towe_urefu = towe_urefu - 1;
         }
     }
@@ -678,14 +678,14 @@ n32 panga_chanzo() {
 // Kazi kuu
 // -------------------------------------------------------
 
-n32 main(n32 idadi_hoja, n8** hoja_mstari) {
-    kama (idadi_hoja < 2) {
+n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
+    kama (idadi_ya_hoja_za_mstari < 2) {
         andika_stderr("Matumizi: umbizaji <faili.swa>\n");
         rudisha 1;
     }
-    n64 f = mfumo_fungua(hoja_mstari[1], 0, 0);
+    n64 f = mfumo_fungua(hoja_za_mstari[1], 0, 0);
     kama (f < 0) {
-        andika_stderr("Hitilafu: faili halifunguki: %s\n", hoja_mstari[1]);
+        andika_stderr("Hitilafu: faili halifunguki: %s\n", hoja_za_mstari[1]);
         rudisha 1;
     }
     n64 n = 0;

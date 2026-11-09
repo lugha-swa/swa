@@ -339,10 +339,10 @@ n32 ni_neno_muhimu(n8* neno, n64 urefu) {
 // ==========================================================
 
 w0 ruka_nafasi_na_maelezo(Msomaji* m);
-w0 tokeni_soma_mfuatano(Tokeni* t, Msomaji* m, n64 mwanzo_nafasi);
-w0 tokeni_soma_herufi(Tokeni* t, Msomaji* m, n64 mwanzo_nafasi);
+w0 tokeni_soma_mfuatano(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo);
+w0 tokeni_soma_herufi(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo);
 w0 tokeni_soma_kitambulisho(Tokeni* t, Msomaji* m);
-w0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, n64 mwanzo_nafasi);
+w0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo);
 w0 tokeni_soma_ishara(Tokeni* t, Msomaji* m, n32 c);
 
 // ==========================================================
@@ -427,7 +427,7 @@ w0 ruka_nafasi_na_maelezo(Msomaji* m) {
 // Kisaidizi: mfuatano halisi "..."
 // ==========================================================
 
-w0 tokeni_soma_mfuatano(Tokeni* t, Msomaji* m, n64 mwanzo_nafasi) {
+w0 tokeni_soma_mfuatano(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo) {
     m->nafasi = m->nafasi + 1;
     m->safu = m->safu + 1;
     wakati (msomaji_imeisha(m) == 0) {
@@ -475,7 +475,7 @@ w0 tokeni_soma_mfuatano(Tokeni* t, Msomaji* m, n64 mwanzo_nafasi) {
         m->safu = m->safu + 1;
     }
     t->aina = TOKENI_MFUATANO;
-    t->urefu = m->nafasi - mwanzo_nafasi;
+    t->urefu = m->nafasi - nafasi_ya_mwanzo;
     rudisha;
 }
 
@@ -483,7 +483,7 @@ w0 tokeni_soma_mfuatano(Tokeni* t, Msomaji* m, n64 mwanzo_nafasi) {
 // Kisaidizi: herufi halisi '.'
 // ==========================================================
 
-w0 tokeni_soma_herufi(Tokeni* t, Msomaji* m, n64 mwanzo_nafasi) {
+w0 tokeni_soma_herufi(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo) {
     m->nafasi = m->nafasi + 1;
     m->safu = m->safu + 1;
     kama (msomaji_imeisha(m) == 0) {
@@ -522,7 +522,7 @@ w0 tokeni_soma_herufi(Tokeni* t, Msomaji* m, n64 mwanzo_nafasi) {
         }
     }
     t->aina = TOKENI_NAMBARI;
-    t->urefu = m->nafasi - mwanzo_nafasi;
+    t->urefu = m->nafasi - nafasi_ya_mwanzo;
     rudisha;
 }
 
@@ -552,7 +552,7 @@ w0 tokeni_soma_kitambulisho(Tokeni* t, Msomaji* m) {
 // Kisaidizi: nambari halisi
 // ==========================================================
 
-w0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, n64 mwanzo_nafasi) {
+w0 tokeni_soma_nambari(Tokeni* t, Msomaji* m, n64 nafasi_ya_mwanzo) {
     n64 anza = m->nafasi;
     n8 c0 = m->chanzo[m->nafasi];
 
@@ -728,17 +728,17 @@ w0 tokeni_inayofuata(Tokeni* t, Msomaji* m) {
     t->mstari = m->mstari;
     t->safu = m->safu;
     t->mwanzo = m->chanzo + m->nafasi;
-    n64 mwanzo_nafasi = m->nafasi;
+    n64 nafasi_ya_mwanzo = m->nafasi;
 
     n8 c = m->chanzo[m->nafasi];
 
     // Tuma kwa visaidi kulingana na herufi ya kwanza.
     kama (c == 34) {
-        tokeni_soma_mfuatano(t, m, mwanzo_nafasi);
+        tokeni_soma_mfuatano(t, m, nafasi_ya_mwanzo);
         rudisha;
     }
     kama (c == 39) {
-        tokeni_soma_herufi(t, m, mwanzo_nafasi);
+        tokeni_soma_herufi(t, m, nafasi_ya_mwanzo);
         rudisha;
     }
     kama (ni_alfabeti(c)) {
@@ -746,7 +746,7 @@ w0 tokeni_inayofuata(Tokeni* t, Msomaji* m) {
         rudisha;
     }
     kama (ni_tarakimu(c)) {
-        tokeni_soma_nambari(t, m, mwanzo_nafasi);
+        tokeni_soma_nambari(t, m, nafasi_ya_mwanzo);
         rudisha;
     }
     tokeni_soma_ishara(t, m, c);

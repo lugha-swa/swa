@@ -104,7 +104,7 @@ n8 mti_dimbwi[16777216];
 // hivyo hesabu ya kielekezi cha muundo wa kwanza ilibaki baiti
 // (mdudu wa 2026-09-04: (p + 1)->y ilirudisha 0).
 n32 mti_dimbwi_wapi = 1;
-n32 mti_jina_ofseti[1048576];
+n32 mti_ofseti_ya_jina[1048576];
 
 // -------------------------------------------------------
 // Muundo wa hali ya mchanganuzi
@@ -142,7 +142,7 @@ n32 nodi_mpya(n32 aina, n32 thamani, n32 kushoto, n32 kulia) {
     mti_kulia[faharasa] = kulia;
     mti_tiga[faharasa] = -1;
     mti_nne[faharasa] = -1;
-    mti_jina_ofseti[faharasa] = 0;
+    mti_ofseti_ya_jina[faharasa] = 0;
     mti_idadi = mti_idadi + 1;
     rudisha faharasa;
 }
@@ -235,7 +235,7 @@ w0 hifadhi_jina(n32 nodi_hii, n8* maandishi, n64 urefu) {
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
     n32 ofseti = mti_dimbwi_wapi;
-    mti_jina_ofseti[nodi_hii] = ofseti;
+    mti_ofseti_ya_jina[nodi_hii] = ofseti;
     mti_dimbwi_wapi = ofseti + urefu + 1;
     n32 i = 0;
     wakati (i < urefu) {
@@ -331,8 +331,8 @@ n32 ruka_hadi_kifikisha(Msambazaji* p) {
 // -------------------------------------------------------
 // Tarajia tokeni ya aina fulani; tumia ikifaulu
 // -------------------------------------------------------
-n32 tarajia(Msambazaji* p, n32 aina_tokeni) {
-    kama (p->sasa.aina == aina_tokeni) { sogeza(p); rudisha 1; }
+n32 tarajia(Msambazaji* p, n32 aina_ya_tokeni) {
+    kama (p->sasa.aina == aina_ya_tokeni) { sogeza(p); rudisha 1; }
     p->kosa = 1;
     rudisha 0;
 }
@@ -510,7 +510,7 @@ n32 encode_aina(n32 familia, n32 upana, n32 mshale) {
 
 // Alama ya muktadha: tuko ndani ya hoja za ukubwa(...) — mahali
 // pekee jina la aina linapokubalika kama usemi (kipimo cha aina).
-n32 ukubwa_hoja = 0;
+n32 ukubwa_wa_hoja = 0;
 
 // Jina la aina? Aina za nambari hufuata muundo [N|A|D|B|W]+tarakimu
 // (mf. n32, d64, w0, n32, d64, w0), na miundo ya mtumiaji
@@ -530,8 +530,8 @@ n32 ni_jina_la_aina(Tokeni* t) {
     kama (ni_aina_msingi_pia_ndogo(t->mwanzo, t->urefu)) { rudisha 1; }
     kama (ni_jina_la_muundo_awali(t)) { rudisha 1; }
     n32 mi = 0;
-    wakati (mi < muundo_ukubwa_idadi) {
-        n8* mj = muundo_ukubwa_jina[mi];
+    wakati (mi < idadi_ya_ukubwa_wa_muundo) {
+        n8* mj = jina_la_ukubwa_wa_muundo[mi];
         n32 j = 0;
         n32 lingana = 1;
         wakati (j < t->urefu) {
@@ -583,14 +583,14 @@ n32 changanua_aina_tokeni(Msambazaji* p) {
                 kama (upana != 32) {
                     kama (upana != 64) {
                         kama ((upana != 0 || familia != 5) && (upana != 1 || familia != 4)) {
-                            n8 bafa_jina[64];
+                            n8 bafa_ya_jina[64];
                             n32 bi = 0;
                             wakati (bi < n && bi < 63) {
-                                bafa_jina[bi] = txt[bi];
+                                bafa_ya_jina[bi] = txt[bi];
                                 bi = bi + 1;
                             }
-                            bafa_jina[bi] = 0;
-                            andika_stderr("kosa: aina isiyojulikana: %s\n", bafa_jina);
+                            bafa_ya_jina[bi] = 0;
+                            andika_stderr("kosa: aina isiyojulikana: %s\n", bafa_ya_jina);
                             p->kosa = 1;
                             rudisha -1;
                         }
@@ -854,7 +854,7 @@ n32 changanua_taarifa_chagua(Msambazaji* p) {
                 kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
                     kama (neno_ni(&p->sasa, "hali")) {
                         sogeza(p);
-                        n32 lebo_usemi = changanua_usemi(p);
+                        n32 usemi_wa_lebo = changanua_usemi(p);
                         // Tarajia :
                         kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
                             kama (neno_ni(&p->sasa, ":")) { sogeza(p); }
@@ -878,10 +878,10 @@ n32 changanua_taarifa_chagua(Msambazaji* p) {
                             case_awali = taarifa;
                         }
 
-                        n32 hali_nodi = nodi_mpya(MTI_HALI, 0, lebo_usemi, case_kwanza);
-                        kama (awali_case == -1) { kwanza_case = hali_nodi; }
-                        sivyo { mti_nne[awali_case] = hali_nodi; }
-                        awali_case = hali_nodi;
+                        n32 hali_ya_nodi = nodi_mpya(MTI_HALI, 0, usemi_wa_lebo, case_kwanza);
+                        kama (awali_case == -1) { kwanza_case = hali_ya_nodi; }
+                        sivyo { mti_nne[awali_case] = hali_ya_nodi; }
+                        awali_case = hali_ya_nodi;
                         endelea;
                     }
                     kama (neno_ni(&p->sasa, "sivyo")) {
@@ -1069,10 +1069,10 @@ n32 changanua_taarifa_tangazo(Msambazaji* p) {
             n32 tangazo_type = changanua_aina_tokeni(p);
             n32 kwanza = -1;
             n32 awali = -1;
-            n32 safu_ukubwa = 0;
+            n32 ukubwa_wa_safu = 0;
 
             wakati (1 == 1) {
-                safu_ukubwa = 0;
+                ukubwa_wa_safu = 0;
                 n32 safu_ilipo = 0;
                 kama ((p->sasa.mwanzo[0] >= 65 && p->sasa.mwanzo[0] != 91 && p->sasa.mwanzo[0] != 93 && p->sasa.mwanzo[0] != 123 && p->sasa.mwanzo[0] != 125)) {
                     // Neno muhimu kama jina la kigeu — kosa la sauti (hati 2.2)
@@ -1094,7 +1094,7 @@ n32 changanua_taarifa_tangazo(Msambazaji* p) {
                                     p->kosa = 1;
                                     rudisha -1;
                                 }
-                                safu_ukubwa = neno_kwa_nambari(p->sasa.mwanzo, p->sasa.urefu);
+                                ukubwa_wa_safu = neno_kwa_nambari(p->sasa.mwanzo, p->sasa.urefu);
                                 sogeza(p);
                             }
                             kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
@@ -1118,7 +1118,7 @@ n32 changanua_taarifa_tangazo(Msambazaji* p) {
                     }
 
                     n32 tangazo_nodi = nodi_mpya(MTI_TANGAZO, tangazo_type, kigeu_name, kianzio);
-                    kama (safu_ukubwa > 0) { mti_tiga[tangazo_nodi] = safu_ukubwa; }
+                    kama (ukubwa_wa_safu > 0) { mti_tiga[tangazo_nodi] = ukubwa_wa_safu; }
                     kama (kwanza == -1) { kwanza = tangazo_nodi; }
                     sivyo { mti_nne[awali] = tangazo_nodi; }
                     awali = tangazo_nodi;
@@ -1164,14 +1164,14 @@ n32 changanua_taarifa_tangazo(Msambazaji* p) {
     // kwa maneno mawili mfululizo — sawa na mbegu).
     kama (p->sasa.aina == TOKENI_KITAMBULISHO || p->sasa.aina == TOKENI_MANENO) {
         kama (p->inayofuata.aina == TOKENI_KITAMBULISHO || p->inayofuata.aina == TOKENI_MANENO) {
-            n8 bafa_jina[64];
+            n8 bafa_ya_jina[64];
             n32 bi = 0;
             wakati (bi < p->sasa.urefu && bi < 63) {
-                bafa_jina[bi] = p->sasa.mwanzo[bi];
+                bafa_ya_jina[bi] = p->sasa.mwanzo[bi];
                 bi = bi + 1;
             }
-            bafa_jina[bi] = 0;
-            andika_stderr("kosa: aina isiyojulikana: %s\n", bafa_jina);
+            bafa_ya_jina[bi] = 0;
+            andika_stderr("kosa: aina isiyojulikana: %s\n", bafa_ya_jina);
             p->kosa = 1;
             rudisha -1;
         }
@@ -1295,7 +1295,7 @@ n32 changanua_kazi_vigezo(Msambazaji* p) {
         // bila ulinzi huu kitanzi hakina mwendo wala toka (hang).
         kama (ni_aina_tokeni(&p->sasa) == 0) { p->kosa = 1; rudisha -1; }
 
-        n32 kigezo_aina = changanua_aina_tokeni(p);
+        n32 aina_ya_kigezo = changanua_aina_tokeni(p);
         n32 pnode = -1;
         n8 nc0 = p->sasa.mwanzo[0];
         kama ((nc0 >= 65 && nc0 != 123 && nc0 != 125)) {
@@ -1303,7 +1303,7 @@ n32 changanua_kazi_vigezo(Msambazaji* p) {
             kama (kataa_neno_muhimu(p)) { rudisha -1; }
             pnode = nodi_mpya(MTI_KITAMBULISHO, 0, -1, -1);
             hifadhi_jina(pnode, p->sasa.mwanzo, p->sasa.urefu);
-            mti_thamani[pnode] = kigezo_aina;
+            mti_thamani[pnode] = aina_ya_kigezo;
             sogeza(p);
         }
         kama (vigezo_kwanza_ulimwengu == -1) { vigezo_kwanza_ulimwengu = pnode; }
@@ -1530,16 +1530,16 @@ n32 changanua_msingi(Msambazaji* p) {
         // Jina la muundo lililotangazwa linaruhusiwa: kigezo kinaweza
         // kubeba jina linalofanana na muundo (sawa na mbegu).
         // Hoja ya ukubwa(...) ndiyo pekee inayoruhusu aina ya nambari.
-        kama (ukubwa_hoja == 0) {
+        kama (ukubwa_wa_hoja == 0) {
             kama (ni_aina_msingi(p->sasa.mwanzo, p->sasa.urefu)) {
-                n8 bafa_jina[64];
+                n8 bafa_ya_jina[64];
                 n32 bi = 0;
                 wakati (bi < p->sasa.urefu && bi < 63) {
-                    bafa_jina[bi] = p->sasa.mwanzo[bi];
+                    bafa_ya_jina[bi] = p->sasa.mwanzo[bi];
                     bi = bi + 1;
                 }
-                bafa_jina[bi] = 0;
-                andika_stderr("kosa: jina la aina halitumiki kama usemi: %s\n", bafa_jina);
+                bafa_ya_jina[bi] = 0;
+                andika_stderr("kosa: jina la aina halitumiki kama usemi: %s\n", bafa_ya_jina);
                 p->kosa = 1;
                 rudisha -1;
             }
@@ -1624,10 +1624,10 @@ n32 changanua_usemi_upande(Msambazaji* p) {
                 // aina hapo.
                 n32 ni_ukubwa = 0;
                 kama (mti_aina[kushoto] == MTI_KITAMBULISHO) {
-                    kama (jina_linganisha(mti_dimbwi + mti_jina_ofseti[kushoto], "ukubwa")) { ni_ukubwa = 1; }
+                    kama (jina_linganisha(mti_dimbwi + mti_ofseti_ya_jina[kushoto], "ukubwa")) { ni_ukubwa = 1; }
                 }
-                n32 ukubwa_hoja_zamani = ukubwa_hoja;
-                kama (ni_ukubwa) { ukubwa_hoja = 1; }
+                n32 ukubwa_wa_hoja_zamani = ukubwa_wa_hoja;
+                kama (ni_ukubwa) { ukubwa_wa_hoja = 1; }
                 sogeza(p);
                 n32 hoja_zote = -1;
                 n32 awali = -1;
@@ -1648,7 +1648,7 @@ n32 changanua_usemi_upande(Msambazaji* p) {
                         }
                     }
                 }
-                ukubwa_hoja = ukubwa_hoja_zamani;
+                ukubwa_wa_hoja = ukubwa_wa_hoja_zamani;
                 n32 wito = nodi_mpya(MTI_WITO, 0, kushoto, hoja_zote);
                 kushoto = wito;
                 endelea;
@@ -1689,11 +1689,11 @@ n32 changanua_usemi_upande(Msambazaji* p) {
         kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
             kama (neno_ni(&p->sasa, "[")) {
                 sogeza(p);
-                n32 faharasa_usemi = changanua_usemi(p);
+                n32 faharasa_ya_usemi = changanua_usemi(p);
                 kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
                     kama (neno_ni(&p->sasa, "]")) { sogeza(p); }
                 }
-                kushoto = nodi_mpya(MTI_TAJA, 0, kushoto, faharasa_usemi);
+                kushoto = nodi_mpya(MTI_TAJA, 0, kushoto, faharasa_ya_usemi);
                 endelea;
             }
         }
@@ -2177,7 +2177,7 @@ n32 kazi_mbele_ilifungwa = 0;
 n32 changanua_kazi(Msambazaji* p) {
     kama (ni_aina_tokeni(&p->sasa) == 0) { rudisha -1; }
 
-    n32 matokeo_aina = changanua_aina_tokeni(p);
+    n32 aina_ya_matokeo = changanua_aina_tokeni(p);
 
     // Neno muhimu kama jina la kazi au kigezo cha kimataifa — kosa la sauti (hati 2.2)
     kama (kataa_neno_muhimu(p)) { rudisha -1; }
@@ -2186,7 +2186,7 @@ n32 changanua_kazi(Msambazaji* p) {
     hifadhi_jina(name_nodi, p->sasa.mwanzo, p->sasa.urefu);
     sogeza(p);  // tumia jina
     // Hifadhi usimbaji wa aina kwenye nodi ya jina (sawa na matamko ya ndani)
-    mti_thamani[name_nodi] = matokeo_aina;
+    mti_thamani[name_nodi] = aina_ya_matokeo;
 
     // --------------------------------------------------
     // FIX: Tofautisha kazi kutoka kwa kigezo cha kimataifa.
@@ -2194,7 +2194,7 @@ n32 changanua_kazi(Msambazaji* p) {
     // kina '=', ';', au mwisho-wa-tangazo.
     // --------------------------------------------------
     n32 ni_ulimwengu = 0;
-    n32 ulimwengu_nodi = -1;
+    n32 nodi_ya_ulimwengu = -1;
     kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
         n32 ni_mabano = neno_ni(&p->sasa, "(");
         kama (ni_mabano) {
@@ -2204,7 +2204,7 @@ n32 changanua_kazi(Msambazaji* p) {
             // Kigezo cha kimataifa:  n32 jina [= usemi];
             ni_ulimwengu = 1;
             // Hifadhi ukubwa wa safu yakipo: jina[ukubwa]
-            n32 safu_ukubwa = 0;
+            n32 ukubwa_wa_safu = 0;
             n32 safu_ilipo = 0;
             kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
                 kama (neno_ni(&p->sasa, "[")) {
@@ -2217,7 +2217,7 @@ n32 changanua_kazi(Msambazaji* p) {
                             p->kosa = 1;
                             rudisha -1;
                         }
-                        safu_ukubwa = neno_kwa_nambari(p->sasa.mwanzo, p->sasa.urefu);
+                        ukubwa_wa_safu = neno_kwa_nambari(p->sasa.mwanzo, p->sasa.urefu);
                         sogeza(p);  // ruka ukubwa
                     }
                     kama (neno_ni(&p->sasa, "]")) { sogeza(p); }  // ruka ']'
@@ -2234,7 +2234,7 @@ n32 changanua_kazi(Msambazaji* p) {
                             p->kosa = 1;
                             rudisha -1;
                         }
-                        safu_ukubwa = neno_kwa_nambari(p->sasa.mwanzo, p->sasa.urefu);
+                        ukubwa_wa_safu = neno_kwa_nambari(p->sasa.mwanzo, p->sasa.urefu);
                         sogeza(p);
                     }
                     kama (neno_ni(&p->sasa, "]")) { sogeza(p); }
@@ -2271,15 +2271,15 @@ n32 changanua_kazi(Msambazaji* p) {
             kama (p->sasa.urefu == 1) {
                 kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
             }
-            ulimwengu_nodi = nodi_mpya(MTI_TANGAZO_ULIMWENGU, matokeo_aina, name_nodi, kianzio);
+            nodi_ya_ulimwengu = nodi_mpya(MTI_TANGAZO_ULIMWENGU, aina_ya_matokeo, name_nodi, kianzio);
             // Hifadhi ukubwa wa safu (kama ipo) kwenye ast_tiga
-            kama (safu_ukubwa > 0) {
-                n32 size_nodi = nodi_mpya(MTI_NAMBARI, safu_ukubwa, -1, -1);
-                mti_tiga[ulimwengu_nodi] = size_nodi;
+            kama (ukubwa_wa_safu > 0) {
+                n32 size_nodi = nodi_mpya(MTI_NAMBARI, ukubwa_wa_safu, -1, -1);
+                mti_tiga[nodi_ya_ulimwengu] = size_nodi;
             }
         }
     }
-    kama (ni_ulimwengu) { rudisha ulimwengu_nodi; }
+    kama (ni_ulimwengu) { rudisha nodi_ya_ulimwengu; }
     // --------------------------------------------------
     // MWISHO WA FIX -- utekelezaji unafika hapa kwa kazi pekee
     // --------------------------------------------------
@@ -2306,7 +2306,7 @@ n32 changanua_kazi(Msambazaji* p) {
         kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, ";")) { sogeza(p); kazi_mbele_ilifungwa = 1; }
     }
 
-    n32 kazi_hii = nodi_mpya(MTI_KAZI, matokeo_aina, name_nodi, vigezo);
+    n32 kazi_hii = nodi_mpya(MTI_KAZI, aina_ya_matokeo, name_nodi, vigezo);
     mti_tiga[kazi_hii] = mwili;
     kama (vigezo != -1) { mti_kulia[name_nodi] = vigezo; }
     rudisha kazi_hii;
@@ -2324,9 +2324,9 @@ n32 changanua_kazi(Msambazaji* p) {
 // kwenye akiba hii hutambuliwa VIBAYA kama SI jina la aina (angalia
 // ni_jina_la_aina chini) na ukubwa wake hurudi 4 (chaguo-msingi
 // kimya) badala ya ukubwa wake halisi.
-n8* muundo_ukubwa_jina[1024];
-n32 muundo_ukubwa_thamani[1024];
-n32 muundo_ukubwa_idadi = 0;
+n8* jina_la_ukubwa_wa_muundo[1024];
+n32 thamani_ya_ukubwa_wa_muundo[1024];
+n32 idadi_ya_ukubwa_wa_muundo = 0;
 
 // Majina YOTE ya miundo kwenye chanzo, yaliyokusanywa KABLA ya
 // uchanganuzi (kusanya_majina_ya_miundo). Akiba ya ukubwa hapo juu
@@ -2394,8 +2394,8 @@ w0 kusanya_majina_ya_miundo(Msambazaji* p) {
 // Tafuta ukubwa wa muundo uliotangazwa tayari (kutoka akiba)
 n32 ukubwa_wa_muundo_msambazaji(n8* jina) {
     n32 mi = 0;
-    wakati (mi < muundo_ukubwa_idadi) {
-        kama (jina_linganisha(muundo_ukubwa_jina[mi], jina)) { rudisha muundo_ukubwa_thamani[mi]; }
+    wakati (mi < idadi_ya_ukubwa_wa_muundo) {
+        kama (jina_linganisha(jina_la_ukubwa_wa_muundo[mi], jina)) { rudisha thamani_ya_ukubwa_wa_muundo[mi]; }
         mi = mi + 1;
     }
     rudisha 4;  // chaguo-msingi kama haijulikani
@@ -2423,14 +2423,14 @@ n32 changanua_muundo(Msambazaji* p) {
     // (herufi ya familia + tarakimu), hivyo jina lolote ambalo
     // mchanganuzi angelisoma kama aina linakataliwa hapa.
     kama (ni_aina_msingi_pia_ndogo(p->sasa.mwanzo, p->sasa.urefu)) {
-        n8 bafa_aina[64];
+        n8 aina_ya_bafa[64];
         n32 bi = 0;
         wakati (bi < p->sasa.urefu && bi < 63) {
-            bafa_aina[bi] = p->sasa.mwanzo[bi];
+            aina_ya_bafa[bi] = p->sasa.mwanzo[bi];
             bi = bi + 1;
         }
-        bafa_aina[bi] = 0;
-        andika_stderr("kosa: '%s' ni jina la aina ya msingi — haliwezi kutumika kama jina la muundo\n", bafa_aina);
+        aina_ya_bafa[bi] = 0;
+        andika_stderr("kosa: '%s' ni jina la aina ya msingi — haliwezi kutumika kama jina la muundo\n", aina_ya_bafa);
         p->kosa = 1;
         rudisha -1;
     }
@@ -2452,9 +2452,9 @@ n32 changanua_muundo(Msambazaji* p) {
         kama (p->sasa.urefu == 0) { p->kosa = 1; vunja; }
 
         // Ufafanuzi wa aina wa hiari kwenye shamba
-        n32 sehemu_aina = 0;
+        n32 aina_ya_sehemu = 0;
         kama (ni_aina_tokeni(&p->sasa)) {
-            sehemu_aina = changanua_aina_tokeni(p);
+            aina_ya_sehemu = changanua_aina_tokeni(p);
         }
 
         kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
@@ -2470,11 +2470,11 @@ n32 changanua_muundo(Msambazaji* p) {
 
         n32 fname = nodi_mpya(MTI_KITAMBULISHO, 0, -1, -1);
         hifadhi_jina(fname, p->sasa.mwanzo, p->sasa.urefu);
-        mti_thamani[fname] = sehemu_aina;
+        mti_thamani[fname] = aina_ya_sehemu;
         mti_tiga[fname] = inayoendelea_ofseti;  // hifadhi ofseti ya baiti
         // Kokotoa ukubwa wa baiti kutoka kwa encoding ya aina.
         // Tumia hesabu ya / na % (mbegu ina hitilafu katika & na >>).
-        kama (sehemu_aina < 0) {
+        kama (aina_ya_sehemu < 0) {
             // Sehemu yenye aina ya muundo (encoding hasi). Encoding
             // halisi (angalia changanua_aina_tokeni juu, karibu na
             // "rudisha (-((off + 1) * 2)) + mshale;") ni
@@ -2497,7 +2497,7 @@ n32 changanua_muundo(Msambazaji* p) {
             // unaoelekezwa kabisa. Ni shamba lililopachikwa KWELI KWELI
             // (mshale == 0, `(-field_aina) % 2 == 0`) ndilo linalohitaji
             // kutafuta ukubwa halisi wa muundo huo.
-            n32 hasi = 0 - sehemu_aina;
+            n32 hasi = 0 - aina_ya_sehemu;
             n32 ni_kielekezi_cha_muundo = hasi % 2;
             kama (ni_kielekezi_cha_muundo != 0) {
                 inayoendelea_ofseti = inayoendelea_ofseti + 8;
@@ -2505,13 +2505,13 @@ n32 changanua_muundo(Msambazaji* p) {
                 n32 name_ofseti2 = (hasi / 2) - 1;
                 inayoendelea_ofseti = inayoendelea_ofseti + ukubwa_wa_muundo_msambazaji(mti_dimbwi + name_ofseti2);
             }
-        } sivyo { kama (sehemu_aina != 0) {
-                n32 mshale_f = sehemu_aina % 2;
+        } sivyo { kama (aina_ya_sehemu != 0) {
+                n32 mshale_f = aina_ya_sehemu % 2;
                 kama (mshale_f == 1) { inayoendelea_ofseti = inayoendelea_ofseti + 8; }
                 sivyo {
-                    n32 familia_f = (sehemu_aina / 256) % 256;
+                    n32 familia_f = (aina_ya_sehemu / 256) % 256;
                     // Upana halisi: toa familia*256 kwanza
-                    n32 upana_f = sehemu_aina - (sehemu_aina % 2) - (familia_f * 256);
+                    n32 upana_f = aina_ya_sehemu - (aina_ya_sehemu % 2) - (familia_f * 256);
                     kama (familia_f >= 1) { inayoendelea_ofseti = inayoendelea_ofseti + (upana_f / 8); }
                     sivyo { inayoendelea_ofseti = inayoendelea_ofseti + 4; }
                 }
@@ -2539,16 +2539,16 @@ n32 changanua_muundo(Msambazaji* p) {
     n32 mnode = nodi_mpya(MTI_MUUNDO, 0, name, kwanza_sehemu);
     // Hifadhi ukubwa wa muundo huu (running_offset ya mwisho)
     mti_thamani[mnode] = inayoendelea_ofseti;
-    kama (muundo_ukubwa_idadi < 1024) {
-        muundo_ukubwa_jina[muundo_ukubwa_idadi] = mti_dimbwi + mti_jina_ofseti[name];
-        muundo_ukubwa_thamani[muundo_ukubwa_idadi] = inayoendelea_ofseti;
-        muundo_ukubwa_idadi = muundo_ukubwa_idadi + 1;
+    kama (idadi_ya_ukubwa_wa_muundo < 1024) {
+        jina_la_ukubwa_wa_muundo[idadi_ya_ukubwa_wa_muundo] = mti_dimbwi + mti_ofseti_ya_jina[name];
+        thamani_ya_ukubwa_wa_muundo[idadi_ya_ukubwa_wa_muundo] = inayoendelea_ofseti;
+        idadi_ya_ukubwa_wa_muundo = idadi_ya_ukubwa_wa_muundo + 1;
     } sivyo {
         // lugha-swa/swa#298 -- muundo huu (na kila mmoja unaofuata)
         // ungekosa ukubwa wake kimya -- ukubwa_kutoka_enc ingerudi
         // 0 kwa struct hii, ikivuruga ofseti za field na ukubwa wa
         // tenga() bila hitilafu yoyote ya kukusanya.
-        andika_stderr("KOSA: akiba ya ukubwa wa miundo (muundo_ukubwa_jina/val) imejaa (kikomo 1024) — muundo '%s' na zinazofuata hazitapata ukubwa sahihi\n", mti_dimbwi + mti_jina_ofseti[name]);
+        andika_stderr("KOSA: akiba ya ukubwa wa miundo (muundo_ukubwa_jina/val) imejaa (kikomo 1024) — muundo '%s' na zinazofuata hazitapata ukubwa sahihi\n", mti_dimbwi + mti_ofseti_ya_jina[name]);
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
     rudisha mnode;
@@ -2636,7 +2636,7 @@ n32 changanua(Msambazaji* p) {
         sivyo { mti_nne[awali] = nodi_hii; }
         awali = nodi_hii;
         // Kizuizi cha nje hurudisha mnyororo wa kazi; endelea kutoka ya mwisho
-        kama (ni_nje) { awali = kigeni_mwisho_nodi; }
+        kama (ni_nje) { awali = kigeni_nodi_ya_mwisho; }
     }
 
     rudisha nodi_mpya(MTI_PROGRAMU, 0, kwanza, -1);
@@ -2652,18 +2652,18 @@ n8 kigeni_dimbwi[65536];
 n32 kigeni_dimbwi_wapi = 1;
 n32 kigeni_maktaba_ofseti[64];
 n32 kigeni_maktaba_idadi = 0;
-n32 kigeni_kazi_nodi[1024];
-n32 kigeni_kazi_alama_ofseti[1024];
+n32 kigeni_nodi_ya_kazi[1024];
+n32 kigeni_ofseti_ya_alama_ya_kazi[1024];
 n32 kigeni_kazi_maktaba[1024];
 n32 kigeni_kazi_ya_ziada[1024];   // 1 = ina `...`
-n32 kigeni_kazi_idadi = 0;
-n32 kigeni_mwisho_nodi = -1;
+n32 kigeni_idadi_ya_kazi = 0;
+n32 kigeni_nodi_ya_mwisho = -1;
 
 // Faharisi ya kazi ya nje yenye jina la Swa `jina`, au -1.
 n32 kigeni_kazi_kwa_jina(n8* jina) {
     n32 i = 0;
-    wakati (i < kigeni_kazi_idadi) {
-        kama (jina_linganisha(mti_dimbwi + mti_jina_ofseti[mti_kushoto[kigeni_kazi_nodi[i]]], jina)) { rudisha i; }
+    wakati (i < kigeni_idadi_ya_kazi) {
+        kama (jina_linganisha(mti_dimbwi + mti_ofseti_ya_jina[mti_kushoto[kigeni_nodi_ya_kazi[i]]], jina)) { rudisha i; }
         i = i + 1;
     }
     rudisha -1;
@@ -2711,14 +2711,14 @@ n32 kigeni_hifadhi_mfuatano(Msambazaji* p) {
 // ambacho kipakiaji hukijaza kwa nakala ya thamani yake (R_X86_64_COPY),
 // na maktaba zenyewe hutumia nakala hiyo. Kianzio cha mfuatano ni jina
 // la alama, si thamani -- kinabadilishwa kuwa 0 ili kigezo kikae .data.
-n32 kigeni_data_nodi[256];
-n32 kigeni_data_alama_ofseti[256];
-n32 kigeni_data_idadi = 0;
+n32 kigeni_nodi_ya_data[256];
+n32 kigeni_ofseti_ya_alama_ya_data[256];
+n32 kigeni_idadi_ya_data = 0;
 
 n32 kigeni_ongeza_data(n32 g, n32 maktaba, n32 mstari) {
-    n32 jina_nodi = mti_kushoto[g];
-    n8* jina_swa = mti_dimbwi + mti_jina_ofseti[jina_nodi];
-    kama (kigeni_data_idadi >= 256) {
+    n32 jina_la_nodi = mti_kushoto[g];
+    n8* jina_swa = mti_dimbwi + mti_ofseti_ya_jina[jina_la_nodi];
+    kama (kigeni_idadi_ya_data >= 256) {
         andika_stderr("kosa: mstari %d: data ya nje imezidi kikomo (256)\n", mstari);
         rudisha -1;
     }
@@ -2741,7 +2741,7 @@ n32 kigeni_ongeza_data(n32 g, n32 maktaba, n32 mstari) {
         wakati (jina_swa[urefu_swa] != 0) { urefu_swa = urefu_swa + 1; }
         alama = kigeni_hifadhi(jina_swa, urefu_swa);
     } sivyo {
-        n8* maandishi = mti_dimbwi + mti_jina_ofseti[kianzio];
+        n8* maandishi = mti_dimbwi + mti_ofseti_ya_jina[kianzio];
         kama (mti_aina[kianzio] != MTI_KITAMBULISHO || maandishi[0] != 34) {
             andika_stderr("kosa: mstari %d: data ya nje '%s': baada ya '=' kunatarajiwa jina la alama kama mfuatano\n", mstari, jina_swa);
             rudisha -1;
@@ -2756,9 +2756,9 @@ n32 kigeni_ongeza_data(n32 g, n32 maktaba, n32 mstari) {
     }
     kama (alama < 0) { rudisha -1; }
     mti_kulia[g] = nodi_mpya(MTI_NAMBARI, 0, -1, -1);
-    kigeni_data_nodi[kigeni_data_idadi] = g;
-    kigeni_data_alama_ofseti[kigeni_data_idadi] = alama;
-    kigeni_data_idadi = kigeni_data_idadi + 1;
+    kigeni_nodi_ya_data[kigeni_idadi_ya_data] = g;
+    kigeni_ofseti_ya_alama_ya_data[kigeni_idadi_ya_data] = alama;
+    kigeni_idadi_ya_data = kigeni_idadi_ya_data + 1;
     rudisha 0;
 }
 
@@ -2806,7 +2806,7 @@ n32 changanua_nje(Msambazaji* p) {
             andika_stderr("kosa: mstari %d: ndani ya nje ni vichwa vya kazi na vigezo vya data pekee, bila mwili\n", mstari_kazi);
             rudisha -1;
         }
-        kama (kigeni_kazi_idadi >= 1024) {
+        kama (kigeni_idadi_ya_kazi >= 1024) {
             andika_stderr("kosa: mstari %d: kazi za nje zimezidi kikomo (1024)\n", mstari_kazi);
             rudisha -1;
         }
@@ -2820,7 +2820,7 @@ n32 changanua_nje(Msambazaji* p) {
             alama = kigeni_hifadhi_mfuatano(p);
             sogeza(p);
         } sivyo {
-            n8* jina_swa = mti_dimbwi + mti_jina_ofseti[mti_kushoto[f]];
+            n8* jina_swa = mti_dimbwi + mti_ofseti_ya_jina[mti_kushoto[f]];
             n64 urefu_swa = 0;
             wakati (jina_swa[urefu_swa] != 0) { urefu_swa = urefu_swa + 1; }
             alama = kigeni_hifadhi(jina_swa, urefu_swa);
@@ -2835,11 +2835,11 @@ n32 changanua_nje(Msambazaji* p) {
             sogeza(p);
         }
 
-        kigeni_kazi_ya_ziada[kigeni_kazi_idadi] = vigezo_vya_ziada;
-        kigeni_kazi_nodi[kigeni_kazi_idadi] = f;
-        kigeni_kazi_alama_ofseti[kigeni_kazi_idadi] = alama;
-        kigeni_kazi_maktaba[kigeni_kazi_idadi] = maktaba;
-        kigeni_kazi_idadi = kigeni_kazi_idadi + 1;
+        kigeni_kazi_ya_ziada[kigeni_idadi_ya_kazi] = vigezo_vya_ziada;
+        kigeni_nodi_ya_kazi[kigeni_idadi_ya_kazi] = f;
+        kigeni_ofseti_ya_alama_ya_kazi[kigeni_idadi_ya_kazi] = alama;
+        kigeni_kazi_maktaba[kigeni_idadi_ya_kazi] = maktaba;
+        kigeni_idadi_ya_kazi = kigeni_idadi_ya_kazi + 1;
 
         kama (iliyopita == -1) { kwanza = f; }
         sivyo { mti_nne[iliyopita] = f; }
@@ -2854,7 +2854,7 @@ n32 changanua_nje(Msambazaji* p) {
         andika_stderr("kosa: mstari %d: kizuizi cha nje hakina kazi wala data yoyote\n", mstari_nje);
         rudisha -1;
     }
-    kigeni_mwisho_nodi = iliyopita;
+    kigeni_nodi_ya_mwisho = iliyopita;
     rudisha kwanza;
 }
 
@@ -2912,7 +2912,7 @@ n32 changanua_nje(Msambazaji* p) {
 n32 PACHIKA_KIKOMO_TAARIFA = 6;
 n32 PACHIKA_W0_USIMBAJI = 1280;  // encode_aina(familia=5 [W], upana=0, mshale=0)
 
-n32 pachika_urefu_jina(n8* s) {
+n32 pachika_urefu_wa_jina(n8* s) {
     n32 i = 0;
     wakati (s[i] != 0) { i = i + 1; }
     rudisha i;
@@ -2940,7 +2940,7 @@ w0 pachika_jaza_sajili(n32 mzizi) {
             kama (mti_tiga[nodi_hii] != -1) {
                 kama (pachika_reg_idadi < 512) {
                     n32 name_nodi = mti_kushoto[nodi_hii];
-                    pachika_reg_jina[pachika_reg_idadi] = mti_dimbwi + mti_jina_ofseti[name_nodi];
+                    pachika_reg_jina[pachika_reg_idadi] = mti_dimbwi + mti_ofseti_ya_jina[name_nodi];
                     pachika_reg_nodi[pachika_reg_idadi] = nodi_hii;
                     pachika_reg_idadi = pachika_reg_idadi + 1;
                 }
@@ -2998,7 +2998,7 @@ w0 pachika_chunguza(n32 nodi_hii) {
         n32 callee = mti_kushoto[nodi_hii];
         kama (callee != -1) {
             kama (mti_aina[callee] == MTI_KITAMBULISHO) {
-                n8* cjina = mti_dimbwi + mti_jina_ofseti[callee];
+                n8* cjina = mti_dimbwi + mti_ofseti_ya_jina[callee];
                 kama (pachika_jina_sawa(cjina, pachika_chunguza_jina_msingi)) { pachika_chunguza_kujiita = 1; }
             }
         }
@@ -3029,7 +3029,7 @@ w0 pachika_chunguza(n32 nodi_hii) {
         // katika upanuzi wa inline: bila kizuizi hiki, kigezo cha
         // ulimwengu kilichotajwa na F kingeweza kufasiriwa vibaya kama
         // kigezo cha ndani cha mwitaji ikiwa majina yanafanana kwa bahati).
-        n8* jina = mti_dimbwi + mti_jina_ofseti[nodi_hii];
+        n8* jina = mti_dimbwi + mti_ofseti_ya_jina[nodi_hii];
         kama (pachika_chunguza_ni_paramu(jina) == 0) { pachika_chunguza_ovyo = 1; }
         pachika_chunguza(mti_nne[nodi_hii]);
         rudisha;
@@ -3050,19 +3050,19 @@ n32 pachika_hesabu_taarifa(n32 mwili) {
     rudisha n;
 }
 
-n32 pachika_mgombea(n32 kazi_nodi) {
-    n32 matokeo_aina = mti_thamani[kazi_nodi];
-    kama (matokeo_aina != PACHIKA_W0_USIMBAJI) { rudisha 0; }
+n32 pachika_mgombea(n32 nodi_ya_kazi) {
+    n32 aina_ya_matokeo = mti_thamani[nodi_ya_kazi];
+    kama (aina_ya_matokeo != PACHIKA_W0_USIMBAJI) { rudisha 0; }
 
-    n32 mwili = mti_tiga[kazi_nodi];
+    n32 mwili = mti_tiga[nodi_ya_kazi];
     kama (mwili == -1) { rudisha 0; }
 
-    n32 pn = mti_kulia[kazi_nodi];
+    n32 pn = mti_kulia[nodi_ya_kazi];
     n32 pcount = 0;
     wakati (pn != -1) {
         kama (mti_thamani[pn] <= 0) { rudisha 0; }
         kama (pcount >= 6) { rudisha 0; }
-        pachika_chunguza_kigezo_jina[pcount] = mti_dimbwi + mti_jina_ofseti[pn];
+        pachika_chunguza_kigezo_jina[pcount] = mti_dimbwi + mti_ofseti_ya_jina[pn];
         pcount = pcount + 1;
         pn = mti_kulia[pn];
     }
@@ -3070,7 +3070,7 @@ n32 pachika_mgombea(n32 kazi_nodi) {
     kama (pachika_hesabu_taarifa(mwili) > PACHIKA_KIKOMO_TAARIFA) { rudisha 0; }
 
     pachika_chunguza_ovyo = 0;
-    pachika_chunguza_jina_msingi = mti_dimbwi + mti_jina_ofseti[mti_kushoto[kazi_nodi]];
+    pachika_chunguza_jina_msingi = mti_dimbwi + mti_ofseti_ya_jina[mti_kushoto[nodi_ya_kazi]];
     pachika_chunguza_kujiita = 0;
     pachika_chunguza_kigezo_idadi = pcount;
     pachika_chunguza(mwili);
@@ -3085,11 +3085,11 @@ n32 pachika_mgombea(n32 kazi_nodi) {
 // inakalia baiti [i*64, i*64+63].
 n8 pachika_ramani_zamani[384];  // 6 * 64
 n8 pachika_ramani_mpya[384];
-n32 pachika_ramani_idadi = 0;
+n32 pachika_idadi_ya_ramani = 0;
 
 n32 pachika_jina_ni_ramani(n8* jina) {
     n32 i = 0;
-    wakati (i < pachika_ramani_idadi) {
+    wakati (i < pachika_idadi_ya_ramani) {
         kama (pachika_jina_sawa(jina, pachika_ramani_zamani + (i * 64))) { rudisha i; }
         i = i + 1;
     }
@@ -3102,15 +3102,15 @@ n32 pachika_nakili(n32 nodi_hii) {
     n32 aina = mti_aina[nodi_hii];
 
     kama (aina == MTI_KITAMBULISHO) {
-        n8* jina = mti_dimbwi + mti_jina_ofseti[nodi_hii];
+        n8* jina = mti_dimbwi + mti_ofseti_ya_jina[nodi_hii];
         n32 mi = pachika_jina_ni_ramani(jina);
         n32 nn = nodi_mpya(MTI_KITAMBULISHO, mti_thamani[nodi_hii], -1, -1);
         kama (nn == -1) { rudisha -1; }
         kama (mi != -1) {
             n8* jj = pachika_ramani_mpya + (mi * 64);
-            hifadhi_jina(nn, jj, pachika_urefu_jina(jj));
+            hifadhi_jina(nn, jj, pachika_urefu_wa_jina(jj));
         } sivyo {
-            hifadhi_jina(nn, jina, pachika_urefu_jina(jina));
+            hifadhi_jina(nn, jina, pachika_urefu_wa_jina(jina));
         }
         rudisha nn;
     }
@@ -3128,12 +3128,12 @@ n32 pachika_nakili(n32 nodi_hii) {
         kama (nn == -1) { rudisha -1; }
         n32 a = mti_kulia[nodi_hii];
         n32 kwanza_hoja = -1;
-        n32 mwisho_hoja = -1;
+        n32 mwisho_wa_hoja = -1;
         wakati (a != -1) {
             n32 ac = pachika_nakili(a);
             kama (kwanza_hoja == -1) { kwanza_hoja = ac; }
-            sivyo { mti_tiga[mwisho_hoja] = ac; }
-            mwisho_hoja = ac;
+            sivyo { mti_tiga[mwisho_wa_hoja] = ac; }
+            mwisho_wa_hoja = ac;
             a = mti_tiga[a];
         }
         mti_kulia[nn] = kwanza_hoja;
@@ -3194,31 +3194,31 @@ n32 pachika_jenga_jina(n8* bafa, n32 id, n8* asili) {
 }
 
 n32 pachika_kesi_id = 0;
-n32 pachika_matokeo_mwanzo = -1;
-n32 pachika_matokeo_mwisho = -1;
+n32 pachika_mwanzo_wa_matokeo = -1;
+n32 pachika_mwisho_wa_matokeo = -1;
 n8* pachika_p_jina[6];
 n32 pachika_p_usimbaji[6];
 n32 pachika_p_hoja[6];
 
 n32 pachika_jaribu_wito(n32 wito_nodi) {
-    pachika_matokeo_mwanzo = -1;
-    pachika_matokeo_mwisho = -1;
+    pachika_mwanzo_wa_matokeo = -1;
+    pachika_mwisho_wa_matokeo = -1;
     kama (mti_aina[wito_nodi] != MTI_WITO) { rudisha 0; }
     n32 callee_id = mti_kushoto[wito_nodi];
     kama (callee_id == -1) { rudisha 0; }
     kama (mti_aina[callee_id] != MTI_KITAMBULISHO) { rudisha 0; }
-    n8* cjina = mti_dimbwi + mti_jina_ofseti[callee_id];
-    n32 kazi_nodi = pachika_tafuta_kazi(cjina);
-    kama (kazi_nodi == -1) { rudisha 0; }
-    kama (pachika_mgombea(kazi_nodi) == 0) { rudisha 0; }
+    n8* cjina = mti_dimbwi + mti_ofseti_ya_jina[callee_id];
+    n32 nodi_ya_kazi = pachika_tafuta_kazi(cjina);
+    kama (nodi_ya_kazi == -1) { rudisha 0; }
+    kama (pachika_mgombea(nodi_ya_kazi) == 0) { rudisha 0; }
 
     n32 pc = 0;
-    n32 pn = mti_kulia[kazi_nodi];
+    n32 pn = mti_kulia[nodi_ya_kazi];
     n32 an = mti_kulia[wito_nodi];
     wakati (pn != -1) {
         kama (an == -1) { rudisha 0; }  // hoja pungufu -- usiunganishe
         kama (pc >= 6) { rudisha 0; }
-        pachika_p_jina[pc] = mti_dimbwi + mti_jina_ofseti[pn];
+        pachika_p_jina[pc] = mti_dimbwi + mti_ofseti_ya_jina[pn];
         pachika_p_usimbaji[pc] = mti_thamani[pn];
         pachika_p_hoja[pc] = an;
         pc = pc + 1;
@@ -3230,7 +3230,7 @@ n32 pachika_jaribu_wito(n32 wito_nodi) {
     pachika_kesi_id = pachika_kesi_id + 1;
     n32 kid = pachika_kesi_id;
 
-    pachika_ramani_idadi = pc;
+    pachika_idadi_ya_ramani = pc;
     n32 i = 0;
     wakati (i < pc) {
         n32 j = 0;
@@ -3257,14 +3257,14 @@ n32 pachika_jaribu_wito(n32 wito_nodi) {
         i = i - 1;
         n32 kigeu_name = nodi_mpya(MTI_KITAMBULISHO, 0, -1, -1);
         n8* jj = pachika_ramani_mpya + (i * 64);
-        hifadhi_jina(kigeu_name, jj, pachika_urefu_jina(jj));
+        hifadhi_jina(kigeu_name, jj, pachika_urefu_wa_jina(jj));
         mti_thamani[kigeu_name] = pachika_p_usimbaji[i];
         n32 tangazo = nodi_mpya(MTI_TANGAZO, pachika_p_usimbaji[i], kigeu_name, pachika_p_hoja[i]);
         kama (mwanzo == -1) { mwanzo = tangazo; } sivyo { mti_nne[mwisho] = tangazo; }
         mwisho = tangazo;
     }
 
-    n32 chanzo_hiki = mti_tiga[kazi_nodi];
+    n32 chanzo_hiki = mti_tiga[nodi_ya_kazi];
     wakati (chanzo_hiki != -1) {
         n32 kopi = pachika_nakili_taarifa(chanzo_hiki);
         kama (kopi != -1) {
@@ -3279,8 +3279,8 @@ n32 pachika_jaribu_wito(n32 wito_nodi) {
         mwisho = mwanzo;
     }
 
-    pachika_matokeo_mwanzo = mwanzo;
-    pachika_matokeo_mwisho = mwisho;
+    pachika_mwanzo_wa_matokeo = mwanzo;
+    pachika_mwisho_wa_matokeo = mwisho;
     rudisha 1;
 }
 
@@ -3295,9 +3295,9 @@ n32 pachika_pitisha_mwili(n32 kichwa) {
             kama (pachika_jaribu_wito(nodi_hii)) { kuunganishwa = 1; }
         }
         kama (kuunganishwa) {
-            kama (mpya_kichwa == -1) { mpya_kichwa = pachika_matokeo_mwanzo; }
-            sivyo { mti_nne[mpya_mwisho] = pachika_matokeo_mwanzo; }
-            mpya_mwisho = pachika_matokeo_mwisho;
+            kama (mpya_kichwa == -1) { mpya_kichwa = pachika_mwanzo_wa_matokeo; }
+            sivyo { mti_nne[mpya_mwisho] = pachika_mwanzo_wa_matokeo; }
+            mpya_mwisho = pachika_mwisho_wa_matokeo;
         } sivyo {
             kama (mpya_kichwa == -1) { mpya_kichwa = nodi_hii; }
             sivyo { mti_nne[mpya_mwisho] = nodi_hii; }
@@ -3512,9 +3512,9 @@ w0 pandisha_changanua_mwili(n32 nodi_hii) {
         // kinachobadilika (mf. "D64 n_d = n;" ndani ya "wakati (n<=20)")
         // hivyo thamani ya jina hili SIYO sawa kila mzunguko. Bila hii,
         // usemi unaotumia jina hili ungeonekana (kimakosa) usiobadilika.
-        n32 kigeu_nodi = mti_kushoto[nodi_hii];
-        kama (kigeu_nodi != -1 && mti_aina[kigeu_nodi] == MTI_KITAMBULISHO) {
-            pandisha_ongeza_badiliko(mti_dimbwi + mti_jina_ofseti[kigeu_nodi]);
+        n32 nodi_ya_kigeu = mti_kushoto[nodi_hii];
+        kama (nodi_ya_kigeu != -1 && mti_aina[nodi_ya_kigeu] == MTI_KITAMBULISHO) {
+            pandisha_ongeza_badiliko(mti_dimbwi + mti_ofseti_ya_jina[nodi_ya_kigeu]);
         }
         pandisha_changanua_mwili(mti_kulia[nodi_hii]);  // kianzio
         pandisha_changanua_mwili(mti_nne[nodi_hii]);
@@ -3542,7 +3542,7 @@ w0 pandisha_changanua_mwili(n32 nodi_hii) {
     kama (aina == MTI_ASIMILIA) {
         n32 lengo = mti_kushoto[nodi_hii];
         kama (lengo != -1 && mti_aina[lengo] == MTI_KITAMBULISHO) {
-            pandisha_ongeza_badiliko(mti_dimbwi + mti_jina_ofseti[lengo]);
+            pandisha_ongeza_badiliko(mti_dimbwi + mti_ofseti_ya_jina[lengo]);
         } sivyo {
             // Lengo si jina safi (mf. *p = .., arr[i] = .., s.f = ..) --
             // bado tembelea ndani yake (fahirisi n.k. inaweza kutaja
@@ -3561,7 +3561,7 @@ w0 pandisha_changanua_mwili(n32 nodi_hii) {
         // isiyogharimu chochote.
         n32 hoja = mti_kushoto[nodi_hii];
         kama (hoja != -1 && mti_aina[hoja] == MTI_KITAMBULISHO) {
-            pandisha_ongeza_badiliko(mti_dimbwi + mti_jina_ofseti[hoja]);
+            pandisha_ongeza_badiliko(mti_dimbwi + mti_ofseti_ya_jina[hoja]);
         }
         pandisha_changanua_mwili(mti_nne[nodi_hii]);
         rudisha;
@@ -3598,7 +3598,7 @@ n32 pandisha_naingiliana(n32 nodi_hii) {
     n32 aina = mti_aina[nodi_hii];
     kama (aina == MTI_NAMBARI || aina == MTI_HALISI_D) { rudisha 1; }
     kama (aina == MTI_KITAMBULISHO) {
-        n8* jina = mti_dimbwi + mti_jina_ofseti[nodi_hii];
+        n8* jina = mti_dimbwi + mti_ofseti_ya_jina[nodi_hii];
         kama (pandisha_ni_jina_badilishwa(jina)) { rudisha 0; }
         rudisha 1;
     }
@@ -3660,7 +3660,7 @@ n32 pandisha_keq(n32 a, n32 b) {
     kama (mti_aina[a] != mti_aina[b]) { rudisha 0; }
     n32 t = mti_aina[a];
     kama (t == MTI_KITAMBULISHO) {
-        rudisha pachika_jina_sawa(mti_dimbwi + mti_jina_ofseti[a], mti_dimbwi + mti_jina_ofseti[b]);
+        rudisha pachika_jina_sawa(mti_dimbwi + mti_ofseti_ya_jina[a], mti_dimbwi + mti_ofseti_ya_jina[b]);
     }
     kama (t == MTI_NAMBARI) {
         // ast_kulia ni alama ya "dimbwi la N64" (angalia mahali
@@ -3698,14 +3698,14 @@ n8* pandisha_urudufu_tafuta(n32 nodi_hii) {
 }
 
 // -------- Usanisi wa jina jipya la kigezo cha muda --------
-n8 pandisha_jina_bafa[1536];  // 64 * 24
-n32 pandisha_jina_idadi = 0;
+n8 pandisha_bafa_ya_jina[1536];  // 64 * 24
+n32 pandisha_idadi_ya_majina = 0;
 
 n8* pandisha_jina_mpya() {
-    kama (pandisha_jina_idadi >= 64) { rudisha 0; }
-    n32 sloti = pandisha_jina_idadi;
-    pandisha_jina_idadi = pandisha_jina_idadi + 1;
-    n8* bafa = pandisha_jina_bafa + (sloti * 24);
+    kama (pandisha_idadi_ya_majina >= 64) { rudisha 0; }
+    n32 sloti = pandisha_idadi_ya_majina;
+    pandisha_idadi_ya_majina = pandisha_idadi_ya_majina + 1;
+    n8* bafa = pandisha_bafa_ya_jina + (sloti * 24);
     bafa[0] = 95;   // _
     bafa[1] = 95;   // _
     bafa[2] = 108;  // l
@@ -3769,7 +3769,7 @@ w0 pandisha_badilisha_kama_inavyowezekana(n32 mzazi, n32 ni_kushoto) {
         kama (jina_uliopo != 0) {
             n32 marejeo_urudufu = nodi_mpya(MTI_KITAMBULISHO, usimbaji, -1, -1);
             kama (marejeo_urudufu == -1) { rudisha; }
-            hifadhi_jina(marejeo_urudufu, jina_uliopo, pachika_urefu_jina(jina_uliopo));
+            hifadhi_jina(marejeo_urudufu, jina_uliopo, pachika_urefu_wa_jina(jina_uliopo));
             kama (ni_kushoto) { mti_kushoto[mzazi] = marejeo_urudufu; } sivyo { mti_kulia[mzazi] = marejeo_urudufu; }
             rudisha;
         }
@@ -3777,11 +3777,11 @@ w0 pandisha_badilisha_kama_inavyowezekana(n32 mzazi, n32 ni_kushoto) {
         n8* jina_mpya = pandisha_jina_mpya();
         kama (jina_mpya == 0) { rudisha; }  // kikomo cha majina kimefikiwa -- acha bila kuhamisha
 
-        n32 kigeu_nodi = nodi_mpya(MTI_KITAMBULISHO, usimbaji, -1, -1);
-        kama (kigeu_nodi == -1) { rudisha; }
-        hifadhi_jina(kigeu_nodi, jina_mpya, pachika_urefu_jina(jina_mpya));
+        n32 nodi_ya_kigeu = nodi_mpya(MTI_KITAMBULISHO, usimbaji, -1, -1);
+        kama (nodi_ya_kigeu == -1) { rudisha; }
+        hifadhi_jina(nodi_ya_kigeu, jina_mpya, pachika_urefu_wa_jina(jina_mpya));
 
-        n32 tangazo = nodi_mpya(MTI_TANGAZO, usimbaji, kigeu_nodi, mtoto);
+        n32 tangazo = nodi_mpya(MTI_TANGAZO, usimbaji, nodi_ya_kigeu, mtoto);
         kama (tangazo == -1) { rudisha; }
         mti_nne[tangazo] = -1;
 
@@ -3790,7 +3790,7 @@ w0 pandisha_badilisha_kama_inavyowezekana(n32 mzazi, n32 ni_kushoto) {
 
         n32 marejeo = nodi_mpya(MTI_KITAMBULISHO, usimbaji, -1, -1);
         kama (marejeo == -1) { rudisha; }
-        hifadhi_jina(marejeo, jina_mpya, pachika_urefu_jina(jina_mpya));
+        hifadhi_jina(marejeo, jina_mpya, pachika_urefu_wa_jina(jina_mpya));
 
         kama (ni_kushoto) { mti_kushoto[mzazi] = marejeo; } sivyo { mti_kulia[mzazi] = marejeo; }
 
@@ -4031,14 +4031,14 @@ n32 urudufu_inapatikana_idadi = 0;
 n32 urudufu_kichwa_sasa = -1;  // kichwa cha mnyororo wa SASA (kinaweza kubadilika kwa uwekaji wa tangazo mpya kwenye nafasi ya kwanza)
 
 // -------- Usanisi wa jina jipya la kigezo cha muda (kioo cha licm_jina_mpya, kiambishi TOFAUTI ili kisichanganyike) --------
-n8 urudufu_jina_bafa[1536];  // 64 * 24
-n32 urudufu_jina_idadi = 0;
+n8 urudufu_bafa_ya_jina[1536];  // 64 * 24
+n32 urudufu_idadi_ya_majina = 0;
 
 n8* urudufu_jina_mpya() {
-    kama (urudufu_jina_idadi >= 64) { rudisha 0; }
-    n32 sloti = urudufu_jina_idadi;
-    urudufu_jina_idadi = urudufu_jina_idadi + 1;
-    n8* bafa = urudufu_jina_bafa + (sloti * 24);
+    kama (urudufu_idadi_ya_majina >= 64) { rudisha 0; }
+    n32 sloti = urudufu_idadi_ya_majina;
+    urudufu_idadi_ya_majina = urudufu_idadi_ya_majina + 1;
+    n8* bafa = urudufu_bafa_ya_jina + (sloti * 24);
     bafa[0] = 95;   // _
     bafa[1] = 95;   // _
     bafa[2] = 115;  // s
@@ -4095,7 +4095,7 @@ n32 urudufu_usemi_ina_jina(n32 nodi_hii, n8* jina) {
     kama (nodi_hii == -1) { rudisha 0; }
     n32 aina = mti_aina[nodi_hii];
     kama (aina == MTI_KITAMBULISHO) {
-        rudisha pachika_jina_sawa(mti_dimbwi + mti_jina_ofseti[nodi_hii], jina);
+        rudisha pachika_jina_sawa(mti_dimbwi + mti_ofseti_ya_jina[nodi_hii], jina);
     }
     kama (pandisha_ni_operesheni(nodi_hii) == 0) { rudisha 0; }
     kama (urudufu_usemi_ina_jina(mti_kushoto[nodi_hii], jina)) { rudisha 1; }
@@ -4228,7 +4228,7 @@ w0 urudufu_chakata(n32 mzazi, n32 ni_kushoto, n32 juu) {
                 // Tayari imehamishwa (tokeo la TATU au zaidi) -- rejelea tu.
                 n32 marejeo = nodi_mpya(MTI_KITAMBULISHO, usimbaji, -1, -1);
                 kama (marejeo == -1) { rudisha; }
-                hifadhi_jina(marejeo, urudufu_inapatikana_jina[faharasa], pachika_urefu_jina(urudufu_inapatikana_jina[faharasa]));
+                hifadhi_jina(marejeo, urudufu_inapatikana_jina[faharasa], pachika_urefu_wa_jina(urudufu_inapatikana_jina[faharasa]));
                 urudufu_weka_uwanja(mzazi, ni_kushoto, marejeo);
                 rudisha;  // node imebadilishwa -- hakuna watoto wa kuchunguza tena
             }
@@ -4241,11 +4241,11 @@ w0 urudufu_chakata(n32 mzazi, n32 ni_kushoto, n32 juu) {
             n8* jina_mpya = urudufu_jina_mpya();
             kama (jina_mpya == 0) { rudisha; }  // majina yamekwisha -- si hatari, achana nayo tu
 
-            n32 kigeu_nodi = nodi_mpya(MTI_KITAMBULISHO, usimbaji, -1, -1);
-            kama (kigeu_nodi == -1) { rudisha; }
-            hifadhi_jina(kigeu_nodi, jina_mpya, pachika_urefu_jina(jina_mpya));
+            n32 nodi_ya_kigeu = nodi_mpya(MTI_KITAMBULISHO, usimbaji, -1, -1);
+            kama (nodi_ya_kigeu == -1) { rudisha; }
+            hifadhi_jina(nodi_ya_kigeu, jina_mpya, pachika_urefu_wa_jina(jina_mpya));
 
-            n32 tangazo = nodi_mpya(MTI_TANGAZO, usimbaji, kigeu_nodi, urudufu_inapatikana_nodi[faharasa]);
+            n32 tangazo = nodi_mpya(MTI_TANGAZO, usimbaji, nodi_ya_kigeu, urudufu_inapatikana_nodi[faharasa]);
             kama (tangazo == -1) { rudisha; }
             mti_nne[tangazo] = -1;
 
@@ -4261,14 +4261,14 @@ w0 urudufu_chakata(n32 mzazi, n32 ni_kushoto, n32 juu) {
 
             n32 marejeo1 = nodi_mpya(MTI_KITAMBULISHO, usimbaji, -1, -1);
             kama (marejeo1 == -1) { rudisha; }
-            hifadhi_jina(marejeo1, jina_mpya, pachika_urefu_jina(jina_mpya));
+            hifadhi_jina(marejeo1, jina_mpya, pachika_urefu_wa_jina(jina_mpya));
             urudufu_weka_uwanja(urudufu_inapatikana_mzazi[faharasa], urudufu_inapatikana_ni_kushoto[faharasa], marejeo1);
 
             urudufu_inapatikana_jina[faharasa] = jina_mpya;
 
             n32 marejeo2 = nodi_mpya(MTI_KITAMBULISHO, usimbaji, -1, -1);
             kama (marejeo2 == -1) { rudisha; }
-            hifadhi_jina(marejeo2, jina_mpya, pachika_urefu_jina(jina_mpya));
+            hifadhi_jina(marejeo2, jina_mpya, pachika_urefu_wa_jina(jina_mpya));
             urudufu_weka_uwanja(mzazi, ni_kushoto, marejeo2);
             rudisha;  // node imebadilishwa -- hakuna watoto wa kuchunguza tena
         }
@@ -4304,7 +4304,7 @@ n32 urudufu_pitisha_mwili(n32 kichwa) {
             urudufu_chakata(nodi_hii, 0, nodi_hii);
             n32 kushoto = mti_kushoto[nodi_hii];
             kama (kushoto != -1 && mti_aina[kushoto] == MTI_KITAMBULISHO) {
-                urudufu_ua_zenye_jina(mti_dimbwi + mti_jina_ofseti[kushoto]);
+                urudufu_ua_zenye_jina(mti_dimbwi + mti_ofseti_ya_jina[kushoto]);
             }
             kama (urudufu_ina_kigeni(mti_kushoto[nodi_hii]) || urudufu_ina_kigeni(mti_kulia[nodi_hii])) {
                 urudufu_inapatikana_idadi = 0;
