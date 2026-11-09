@@ -4,7 +4,7 @@
 
 ```sh
 bin/swa --tafsiri programu.swa [hoja...]   # teremsha hadi IR, kisha itekeleze
-bin/swa --ir programu.swa                  # chapisha IR
+bin/swa --kati programu.swa                  # chapisha IR
 ```
 
 ## Kwa nini

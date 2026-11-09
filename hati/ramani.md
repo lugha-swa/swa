@@ -33,9 +33,9 @@
 ### Mnyororo wa Kujikusanya wa Sasa
 
 1. `kwanza.bin` (baiti za mkono, hex -> binary) hutoa `mbegu.bin` kutoka `mbegu.hex`
-2. `mbegu --exe` (syscalls pekee, hakuna kiunganishi) hukusanya `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` -> `stage1-exe`
-3. `stage1-exe --exe` inajikusanya maktaba -> `stage2-exe`
-4. `stage2-exe --exe` inajikusanya -> `stage3-exe`
+2. `mbegu --programu` (syscalls pekee, hakuna kiunganishi) hukusanya `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` -> `stage1-exe`
+3. `stage1-exe --programu` inajikusanya maktaba -> `stage2-exe`
+4. `stage2-exe --programu` inajikusanya -> `stage3-exe`
 
 **Uthibitisho:** stage2-exe == stage3-exe sawa kwa baiti, bila gcc/ld/clang/libc
 popote kwenye mnyororo. Kumbuka: hili linahusu mnyororo wa uzalishaji pekee --
@@ -111,7 +111,7 @@ asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
       Inajijenga (kwanza.hex -> kwanza.bin) na inazalisha mbegu.bin kutoka
       mbegu.hex -- NASM si sehemu ya mnyororo wa uzalishaji tena.
       Uthibitisho: gharama/mnyororo.mapishi (pia kwenye CI).
-- [x] **Kiunganishi cha kujitegemea:** bendera ya `--exe` inatoa ET_EXEC
+- [x] **Kiunganishi cha kujitegemea:** bendera ya `--programu` inatoa ET_EXEC
       tuli (syscalls pekee, hakuna kichwa cha sehemu) -- stage2-exe
       inajijenga yenyewe sawa kwa baiti (stage3-exe) bila ld/gcc/libc.
       Marejeo ya ndani yanatatuliwa na mkusanyaji mwenyewe (RELA-patch
@@ -119,7 +119,7 @@ asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
 - [x] **Runtime ya syscalls:** mkusanyaji hautekelezi kupitia libc tena
       (PR #149) -- faili, mmap, na uchapishaji kupitia syscalls.
 - [x] **0% bootstrap gap:** mbegu inatoa ET_EXEC tuli moja kwa moja
-      (`--exe`) -- kichwa (64) + phdr (56) + stub ya `_start` (28) +
+      (`--programu`) -- kichwa (64) + phdr (56) + stub ya `_start` (28) +
       urekebishaji wa RELA wa ndani (ulimwengu, tungo, na wito wa
       mbele) -- hakuna gcc/ld/clang/muda.c/libc popote kwenye mnyororo.
       Uthibitisho: jaribio_exe_kujijenga (CI).
@@ -144,11 +144,11 @@ Angalia [`CONTRIBUTING.md`](CONTRIBUTING.md). Masuala yenye lebo `good-first-iss
 
 1. ~~Baiti za mkono~~ -- IMESHAFANYIKA (PR #147): Kwanza (baiti 393)
    inazalisha mbegu.bin kutoka hex; NASM imeondolewa kwenye mnyororo
-2. ~~Kiunganishi cha kujitegemea~~ -- IMESHAFANYIKA: `--exe` inatoa ET_EXEC
+2. ~~Kiunganishi cha kujitegemea~~ -- IMESHAFANYIKA: `--programu` inatoa ET_EXEC
    tuli inayojijenga yenyewe bila ld/gcc/libc (stage2-exe == stage3-exe)
 3. ~~Runtime ya syscalls~~ -- IMESHAFANYIKA (PR #149): syscalls moja kwa moja
 4. ~~Kuziba hatua ya stage1~~ -- IMESHAFANYIKA: mbegu inatoa stage1-exe
-   moja kwa moja (`--exe`) -- 0% bootstrap gap imefungwa
+   moja kwa moja (`--programu`) -- 0% bootstrap gap imefungwa
 5. ~~Uthabiti wa makosa ya mchanganuzi~~ -- IMESHAFANYIKA: mbegu na
    mchanganuzi wa .swa dhidi ya ingizo baya (hati/mipaka.md sehemu 1-2)
 6. ~~JIT ndani ya exe~~ -- IMESHAFANYIKA: tekeleza kama builtin,

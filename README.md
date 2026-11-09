@@ -35,7 +35,7 @@ Mwongozo kamili wa lugha uko kwenye [lugha-swa.github.io](https://lugha-swa.gith
 Toleo lililojengwa tayari (Linux x86-64) liko kwenye [matoleo](https://github.com/lugha-swa/swa/releases/latest): fungua tarball popote, `bin/swa` hupata `msingi/maktaba/` iliyo kando yake. Au kwa Docker:
 
 ```sh
-docker run --rm -v "$PWD:/kazi" ghcr.io/lugha-swa/swa --exe p.swa > p
+docker run --rm -v "$PWD:/kazi" ghcr.io/lugha-swa/swa --programu p.swa > p
 ```
 
 Kujenga kutoka chanzo, mahitaji ni Linux ya x86-64 pekee -- hakuna gcc, ld, nasm, libc wala bash:
@@ -91,7 +91,7 @@ n32 anza() {
 ```
 
 ```sh
-bin/swa --exe mifano/salamu.swa > salamu && chmod +x salamu && ./salamu
+bin/swa --programu mifano/salamu.swa > salamu && chmod +x salamu && ./salamu
 ```
 
 ```
@@ -114,10 +114,10 @@ Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hat
 
 | Lengo | Amri | Matokeo |
 |---|---|---|
-| Linux x86-64 | `bin/swa --exe p.swa > p` | ELF inayojitegemea |
+| Linux x86-64 | `bin/swa --programu p.swa > p` | ELF inayojitegemea |
 | WebAssembly | `bin/swa --wasm p.swa > p.wasm` | moduli ya `.wasm` kwa kivinjari; `bin/swa --wasm-js > swa-js.js` huandika daraja la jumla, na DOM na matukio ni Swa ([`msingi/maktaba/kivinjari.swa`](msingi/maktaba/kivinjari.swa); mfano: [`mifano/kivinjari/`](mifano/kivinjari/)) |
-| Ring 0 | `bin/swa --kernel p.swa > p.bin` | msimbo bapa kwa [Kawira](https://github.com/lugha-swa/kawira) (kazi ya kwanza lazima iwe `kernel_main`) |
-| IR | `bin/swa --tafsiri p.swa` / `bin/swa --ir p.swa` | tekeleza au chapisha [IR ya mstari](hati/ir.md) -- msingi wa ARM64 na Mizani |
+| Ring 0 | `bin/swa --kiini p.swa > p.bin` | msimbo bapa kwa [Kawira](https://github.com/lugha-swa/kawira) (kazi ya kwanza lazima iwe `kernel_main`) |
+| IR | `bin/swa --tafsiri p.swa` / `bin/swa --kati p.swa` | tekeleza au chapisha [IR ya mstari](hati/ir.md) -- msingi wa ARM64 na Mizani |
 
 </details>
 
@@ -139,7 +139,7 @@ Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hat
 | Mnyororo wa majaribio (mbegu + stage1, fixpoint) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | Mkimbiaji wa majaribio wa Swa asili (bila bash) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | WebAssembly | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
-| `--kernel` (ring 0) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
+| `--kiini` (ring 0) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | IR (mtafsiri dhidi ya msimbo wa mashine) | programu 161 sawa kabisa ([hati/ir.md](hati/ir.md)) |
 | Kujikusanya | `stage2 == stage3`, sawa kwa baiti |
 | Mbegu (mzizi wa uaminifu) | hujengwa na kujaribiwa kabla ya kila kugandishwa |

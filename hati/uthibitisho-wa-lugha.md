@@ -22,7 +22,7 @@ Minyororo iliyopimwa:
   tena. Gandisho la sasa la mbegu.bin: 415e692 (2026-09-04).
   Vipengee vya sehemu ya 8 na 9 vinarejelea mbegu ya sasa.
 - **uzalishaji** -- stage1 iliyojengwa leo kutoka `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` kupitia
-  mbegu (`--exe`, chmod +x). Mnyororo wa kujikusanya: fixpoint
+  mbegu (`--programu`, chmod +x). Mnyororo wa kujikusanya: fixpoint
   stage2-exe == stage3-exe imepimwa leo, sawa kwa baiti.
 
 Rekodi hii inachukua nafasi ya rekodi ya 2026-08-27 (hali ya
@@ -73,18 +73,18 @@ mbegu (mnyororo wa kujikusanya):
 ```bash
 cd /home/kandemark/Projects/compilers/swa
 cat msingi/maktaba/{kumbukumbu,mfuatano}.swa msingi/mkusanyaji/{msomaji,msambazaji,mteremko,mkaguzi,uzalishaji}.swa msingi/maktaba/{orodha,ramani}.swa msingi/mkusanyaji/stage1.swa > /tmp/zima.swa
-msingi/mbegu.bin --exe /tmp/zima.swa > /tmp/stage1.bin
+msingi/mbegu.bin --programu /tmp/zima.swa > /tmp/stage1.bin
 chmod +x /tmp/stage1.bin
 ```
 
 Kila kesi inakusanywa na kuendeshwa kwenye minyororo yote miwili:
 
 ```bash
-msingi/mbegu.bin --exe kesi.swa > matokeo.bin 2> makosa.txt
+msingi/mbegu.bin --programu kesi.swa > matokeo.bin 2> makosa.txt
 chmod +x matokeo.bin
 ./matokeo.bin; echo $?
 
-/tmp/stage1.bin --exe kesi.swa > matokeo.bin 2> makosa.txt
+/tmp/stage1.bin --programu kesi.swa > matokeo.bin 2> makosa.txt
 chmod +x matokeo.bin
 ./matokeo.bin; echo $?
 ```
@@ -604,7 +604,7 @@ binutils za mashine hii: `clang -Wl,--defsym,andika=printf` inarudisha
 cha kisasa hakiwezi kutatua printf kwenye usemi wa --defsym kabla
 ya libc kuunganishwa), kisha "final link failed". Imepimwa leo:
 `kande rahisi.swa -o rahisi.exe` inashindwa; `rahisi.o` inahifadhiwa.
-Mnyororo wa kujikusanya (mbegu --exe) hauhusiki na kiunganishi
+Mnyororo wa kujikusanya (mbegu --programu) hauhusiki na kiunganishi
 hiki -- unatoa ELF moja kwa moja.
 
 ## 11. Ahadi za hati zisizoshikika (zilizobaki)

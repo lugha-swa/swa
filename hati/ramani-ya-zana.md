@@ -11,7 +11,7 @@ kilichopo mbali.
 | Mkusanyaji wa kujikusanya (mbegu -> stage1 -> stage2 == stage3) | KAMILI | fixpoint sawa kwa baiti |
 | Vipimo rasmi vya lugha | KAMILI | hati/vipimo-vya-lugha.md |
 | Maktaba ya kawaida | KAMILI | jaribio_maktaba_mbegu_exe |
-| JIT (--jit) ndani ya exe | KAMILI | UND=0; jaribio la CI |
+| JIT (--papo) ndani ya exe | KAMILI | UND=0; jaribio la CI |
 | Formatter (umbizaji) | INAFANYIKA | zana/umbizaji.swa (kwa Swa yenyewe) |
 
 ## Kilicho karibu (muda wa wiki)

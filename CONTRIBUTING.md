@@ -58,7 +58,7 @@ cd swa
 
 ### Kujaribu Mkusanyaji
 ```sh
-./msingi/mbegu.bin --exe mfano.swa > mfano.bin
+./msingi/mbegu.bin --programu mfano.swa > mfano.bin
 chmod +x mfano.bin && ./mfano.bin
 ```
 

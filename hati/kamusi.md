@@ -7,7 +7,7 @@ hii kwa mashine (kitambulisho kwa kitambulisho, nje ya mifuatano na
 maoni), na kila hatua huthibitishwa kwa:
 
 - fixpoint ya mkusanyaji (stage2 == stage3);
-- kila programu ya majaribio na mifano, `--exe` na `--wasm`, sawa kwa
+- kila programu ya majaribio na mifano, `--programu` na `--wasm`, sawa kwa
   baiti na mkusanyaji wa kabla ya kubadilisha;
 - vipimo vyote vya `gharama/`.
 
@@ -55,10 +55,10 @@ inayoruhusiwa kubadilika.
 |---|---|---|
 | `main` | `anza` | mlango wa programu -- sawa na `anza:` ya lugha ya mashine |
 | `andika_kosa` | `andika_kosa` | kazi ya ndani: andika kwenye mkondo wa makosa (2) |
-| `--exe` | `--programu` | ELF inayotekelezeka |
-| `--kernel` | `--kiini` | picha ya kiini (Kawira) |
-| `--ir` | `--kati` | uwakilishi wa kati |
-| `--jit` | `--papo` | tekeleza papo hapo |
+| `--programu` | `--programu` | ELF inayotekelezeka |
+| `--kiini` | `--kiini` | picha ya kiini (Kawira) |
+| `--kati` | `--kati` | uwakilishi wa kati |
+| `--papo` | `--papo` | tekeleza papo hapo |
 | `--wasm`, `--wasm-js` | (zinabaki) | WASM na JS ni majina ya umbizo |
 | `stage1.swa` | `kiendeshaji.swa` | dereva wa mkusanyaji (hatua 1 ya mnyororo ni `hatua1_maoni`) |
 
