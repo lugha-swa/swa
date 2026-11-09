@@ -147,7 +147,7 @@ mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 | LICM (licm) | `pandisha` (kupandisha kisichobadilika nje ya kitanzi) |
 | CSE (cse) | `rudufu` (kuondoa usemi uliorudiwa) |
 | inline (inl) | `pachika` |
-| sret | `matokeo_ya_muundo` (kifupisho `mm`) |
+| sret | `matokeo_ya_muundo` (mf. `kazi_inarudisha_muundo`, `ofseti_ya_bafa_ya_matokeo`) |
 | SIMD (simd) | `sambamba` |
 | syscall / sys_ | `mfumo` / `mfumo_` (mf. `sys_fork` -> `mfumo_gawanyika`) |
 | argc / argv / envp | `idadi_ya_hoja` / `hoja_za_mstari` / `mazingira` |
@@ -161,7 +161,7 @@ Kazi za kuandika baiti za maagizo hufuata lugha ya mashine:
 
 | Agizo la Intel | Tendo la Swa |
 |---|---|
-| mov (rejista <- rejista) | `nakili` |
+| mov (rejista <- rejista) | `hamisha` |
 | mov (rejista <- namba) | `weka` |
 | mov (rejista <- kumbukumbu) | `soma` |
 | mov (kumbukumbu <- rejista) | `hifadhi` |
@@ -171,7 +171,7 @@ Kazi za kuandika baiti za maagizo hufuata lugha ya mashine:
 | call / ret | `ita` / `rudi` |
 | jmp / jcc | `ruka` / `ruka_kama` |
 | cmp / test | `linganisha` / `pima` |
-| add / sub | `jumlisha` / `punguza` (`toa_` tayari ni kiambishi cha "toa msimbo") |
+| add / sub | `jumlisha` / `toa` (kutoa -- neno la hesabu za shule) |
 | imul / mul | `zidisha_n` / `zidisha_a` |
 | idiv / div | `gawanya_n` / `gawanya_a` |
 | cdq | `panua` |
@@ -179,7 +179,7 @@ Kazi za kuandika baiti za maagizo hufuata lugha ya mashine:
 | neg | `hasi` |
 | shl / shr / sar | `sogeza_kushoto` / `sogeza_kulia_a` / `sogeza_kulia_n` |
 | setcc | `weka_kama` |
-| rep movsb | `nakili_baiti` |
+| rep movsb | `nakili_baiti` (`nakili` ya lugha ya mashine ni nakili ya baiti) |
 | syscall | `mfumo` |
 | movsd / movss / movapd / movupd / movd / movq | `soma_d64` / `soma_d32` / `nakili_x` / ... (kwa upana) |
 | addsd subsd mulsd divsd (na ss, pd) | `jumlisha_d64` `toa_d64` `zidisha_d64` `gawanya_d64` (`_d32`, `_d64x2`) |
@@ -189,6 +189,9 @@ Kazi za kuandika baiti za maagizo hufuata lugha ya mashine:
 | disp (ofseti ya anwani) | `ofseti` |
 | ModRM / SIB / REX | `modrm` / `sib` / `rex` -- majina ya baiti za Intel, kama data |
 | rip-relative | `jirani` |
+
+Kazi za kutoa msimbo kwa ngazi ya juu (zamani `toa_`) ni `zalisha_`
+(`zalisha_ruka_lebo`), ili `toa` ibaki na maana yake ya hesabu.
 
 Mfano: `andika_mov_rax_rbp_off` -> `andika_soma_r0_r5_ofseti`;
 `andika_push_rax` -> `andika_sukuma_r0`; `andika_xor_eax_eax` ->

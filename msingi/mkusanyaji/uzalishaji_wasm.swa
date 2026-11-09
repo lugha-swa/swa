@@ -304,7 +304,7 @@ w0 wasm_kitendo_i32_le_s() { wasm_baiti(76); }  // 0x4C
 w0 wasm_kitendo_i32_ge_s() { wasm_baiti(78); }  // 0x4E
 
 w0 wasm_kitendo_i32_jumlisha() { wasm_baiti(106); }  // 0x6A
-w0 wasm_kitendo_i32_punguza() { wasm_baiti(107); }  // 0x6B
+w0 wasm_kitendo_i32_toa() { wasm_baiti(107); }  // 0x6B
 w0 wasm_kitendo_i32_zidisha() { wasm_baiti(108); }  // 0x6C
 w0 wasm_kitendo_i32_gawanya_n() { wasm_baiti(109); }  // 0x6D
 w0 wasm_kitendo_i32_rem_s() { wasm_baiti(111); }  // 0x6F
@@ -562,7 +562,7 @@ n32 wasm_ni_ulinganisho(n32 aina) {
              aina == MTI_JUU || aina == MTI_CHINI_SAWA || aina == MTI_JUU_SAWA);
 }
 
-w0 wasm_toa_ulinganisho(n32 nodi) {
+w0 wasm_zalisha_ulinganisho(n32 nodi) {
     n32 aina = mti_aina[nodi];
     kama (aina == MTI_SAWA) { wasm_kitendo_i32_eq(); rudisha; }
     kama (aina == MTI_TOFAUTI_SI) { wasm_kitendo_i32_ne(); rudisha; }
@@ -609,7 +609,7 @@ w0 wasm_sharti(n32 nodi) {
     kama (wasm_ni_ulinganisho(aina)) {
         wasm_usemi(mti_kushoto[nodi], -1);
         wasm_usemi(mti_kulia[nodi], -1);
-        wasm_toa_ulinganisho(nodi);
+        wasm_zalisha_ulinganisho(nodi);
         rudisha;
     }
     // Usemi mwingine wowote (kigezo, wito, n.k.) -- 0 = uwongo,
@@ -689,7 +689,7 @@ w0 wasm_usemi(n32 nodi, n32 kazi_nodi) {
         wasm_usemi(mti_kushoto[nodi], kazi_nodi);
         wasm_usemi(mti_kulia[nodi], kazi_nodi);
         kama (aina == MTI_JUMLISHA) { wasm_kitendo_i32_jumlisha(); }
-        kama (aina == MTI_TOFAUTI) { wasm_kitendo_i32_punguza(); }
+        kama (aina == MTI_TOFAUTI) { wasm_kitendo_i32_toa(); }
         kama (aina == MTI_ZIDISHA) { wasm_kitendo_i32_zidisha(); }
         kama (aina == MTI_GAWANYA) { wasm_kitendo_i32_gawanya_n(); }
         kama (aina == MTI_MODULO) { wasm_kitendo_i32_rem_s(); }
@@ -1289,7 +1289,7 @@ w0 wasm_jenga_tenga_msaidizi() {
         wasm_kitendo_memory_size();
         wasm_kitendo_i32_const(65536);
         wasm_kitendo_i32_zidisha();
-        wasm_kitendo_i32_punguza();
+        wasm_kitendo_i32_toa();
         wasm_kitendo_i32_const(65535);
         wasm_kitendo_i32_jumlisha();
         wasm_kitendo_i32_const(65536);
