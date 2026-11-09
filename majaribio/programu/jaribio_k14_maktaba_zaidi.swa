@@ -52,15 +52,15 @@ n32 kigawe_kidogo_cha_shirika(n32 a, n32 b) {
     rudisha neneo_n32((a / g) * b);
 }
 
-n32 kipeo_kwa_baki(n32 msingi, n32 kipeo, n32 mod) {
-    kama (mod <= 1) { rudisha 0; }
+n32 kipeo_kwa_baki(n32 msingi, n32 kipeo, n32 kigawanyi) {
+    kama (kigawanyi <= 1) { rudisha 0; }
     n32 r = 1;
-    n32 ms = msingi % mod;
-    kama (ms < 0) { ms = ms + mod; }
+    n32 ms = msingi % kigawanyi;
+    kama (ms < 0) { ms = ms + kigawanyi; }
     n32 kp = kipeo;
     wakati (kp > 0) {
-        kama (kp % 2 == 1) { r = (r * ms) % mod; }
-        ms = (ms * ms) % mod;
+        kama (kp % 2 == 1) { r = (r * ms) % kigawanyi; }
+        ms = (ms * ms) % kigawanyi;
         kp = kp / 2;
     }
     rudisha r;
@@ -177,10 +177,10 @@ n32 heshi_ya_mfuatano(n8* s) {
 // === Mrejesho wa mende ya literal-kama-hoja ===
 // Literali kamili yenye thamani katika [768,1023] ilipitishwa kama
 // desimali (familia 3) badala ya n32 -- hoja ilifika kwenye xmm0.
-n32 hesabu_literal(n32 a, n32 b) { rudisha a + b; }
+n32 hesabu_halisi(n32 a, n32 b) { rudisha a + b; }
 n32 toa_kwa_halisi(n32 a, n32 b) { rudisha a - b; }
-n32 gawanya_literal(n32 a, n32 b) { rudisha a / b; }
-n32 asilimia_literal(n32 a, n32 b) { rudisha a % b; }
+n32 gawanya_halisi(n32 a, n32 b) { rudisha a / b; }
+n32 asilimia_halisi(n32 a, n32 b) { rudisha a % b; }
 
 n32 anza() {
     // hesabu.swa
@@ -226,10 +226,10 @@ n32 anza() {
     kama (heshi_ya_mfuatano(hs) != heshi_ya_mfuatano(hs)) rudisha 25;
 
     // Mrejesho wa mende ya literal-kama-hoja (familia 3: [768,1023])
-    kama (hesabu_literal(1000, 7) != 1007) rudisha 26;
+    kama (hesabu_halisi(1000, 7) != 1007) rudisha 26;
     kama (toa_kwa_halisi(1024, 1000) != 24) rudisha 27;
-    kama (gawanya_literal(1000, 7) != 142) rudisha 28;
-    kama (asilimia_literal(1024, 1000) != 24) rudisha 29;
+    kama (gawanya_halisi(1000, 7) != 142) rudisha 28;
+    kama (asilimia_halisi(1024, 1000) != 24) rudisha 29;
 
     rudisha 0;
 }
