@@ -92,12 +92,12 @@ Hali halisi (iliyothibitishwa 2026-08-20, kwa ushahidi wa kila mnyororo):
   za kuelea (addsd/subsd/mulsd/divsd), ulinganisho (ucomisd+setcc),
   na ukanushaji (mulsd kwa -1.0 -- xorpd ya kumbukumbu ilionekana
   kuvunjika kwenye VM ya mtumiaji). Jaribio:
-  jaribio_mende_60_desimali_mbegu.
+  jaribio_hitilafu_60_desimali_mbegu.
 - Mnyororo wa .swa (kujikusanya): IMEREKEBISHWA -- bits_ya_d64_swa
   inakusanywa kwa usahihi na mbegu mpya (FPE ya zamani imetoweka);
   ABI kamili ya xmm0-xmm7 (hoja na kurejesha) inafanya kazi.
 - Mnyororo wa LLVM (dereva wa Rust): IMEREKEBISHWA 2026-08 (suala
-  #135) -- jaribio_mende_135_desimali.
+  #135) -- jaribio_hitilafu_135_desimali.
 
 KILICHOPIMWA 2026-08-27 (hati/uthibitisho-wa-lugha.md): kauli ya
 zamani "mbegu bado HAIJATEKELEZA ABI ya xmm kwenye wito wa kazi --

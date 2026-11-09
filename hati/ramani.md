@@ -159,7 +159,7 @@ Angalia [`CONTRIBUTING.md`](CONTRIBUTING.md). Masuala yenye lebo `good-first-iss
    Kilichobaki: mpaka wa D64 na nambari kamili (jibu baya) na D32
    (poromoko)
 8. ~~Dereva wa Rust~~ -- IMESHAFANYIKA: desimali katika codegen ya LLVM
-   (suala #135; jaribio_mende_135_desimali -- mipaka.md 4c)
+   (suala #135; jaribio_hitilafu_135_desimali -- mipaka.md 4c)
 9. **Uamuzi wa mteremko.swa** -- kuifuta au kuikamilisha
 
 ## Historia Fupi ya Milestone (Julai-Agosti 2026)
