@@ -263,6 +263,7 @@ kazi yake -- neno moja la zamani linaweza kupata maneno tofauti.
 | mtoto, mzazi | nodi_iliyomo, nodi_inayoibeba (mchakato_mpya kwa fork) | nodi ndani ya nodi / mchakato mpya | -- |
 | kaunta, selecta | kihesabu, kiteuzi | | -- (maneno yaliyoundwa kutoka hesabu, teua) |
 | mti_* (majedwali ya nodi) | aina_ya_nodi, thamani_ya_nodi, nodi_ya_kushoto/kulia, tatu_ya_nodi, nne_ya_nodi, ghala_la_majina, NODI_* | kila ingizo ni nodi moja; tiga/nne ni nafasi za jumla ambazo maudhui yake hutegemea aina ya nodi | -- (sitiari ya mti imeondolewa) |
+| ofseti | umbali (`umbali_wa_jina`, `andika_umbali32_hasi`, `umbali_wa_kigeu_chini_ya_r5`) | umbali kutoka mahali pa kuanzia | umbali: "distance" |
 | lebo_mkia | lebo_mabaki | marudio yaliyobaki baada ya uvekta | -- |
 
 `husisha` linabaki: lina maana ya kuhusisha, na ndivyo linavyofanya --
