@@ -1,0 +1,36 @@
+// maktaba/nasibu.swa: xorshift64* kwa Swa safi (zamani iliita
+// rand()/srand() za C, ambazo hazipo). Mbegu ile ile -> mfuatano ule
+// ule; masafa sahihi; mgawanyo wa takriban sawa kwenye vyumba 10;
+// mbegu ya kernel inafanya kazi.
+husisha { msingi/maktaba/kumbukumbu.swa }
+husisha { msingi/maktaba/nasibu.swa }
+n32 main() {
+    nasibu_anzisha(42);
+    n64 a1 = nasibu_n64();
+    n64 a2 = nasibu_n64();
+    nasibu_anzisha(42);
+    kama (nasibu_n64() != a1) { rudisha 1; }
+    kama (nasibu_n64() != a2) { rudisha 2; }
+    kama (a1 == a2) { rudisha 3; }
+    n32* vyumba = tenga(40);
+    n32 i = 0;
+    wakati (i < 10) { vyumba[i] = 0; i = i + 1; }
+    i = 0;
+    wakati (i < 100000) {
+        n32 r = nasibu_katikati(10);
+        kama (r < 0 || r >= 10) { rudisha 4; }
+        vyumba[r] = vyumba[r] + 1;
+        kama (nasibu_n32() < 0) { rudisha 5; }
+        i = i + 1;
+    }
+    i = 0;
+    wakati (i < 10) {
+        kama (vyumba[i] < 9000 || vyumba[i] > 11000) { rudisha 6; }
+        i = i + 1;
+    }
+    kama (nasibu_katikati(0) != 0) { rudisha 7; }
+    nasibu_anzisha(0);
+    kama (nasibu_n64() == 0) { rudisha 8; }
+    kama (nasibu_kutoka_mfumo() != 1) { rudisha 9; }
+    rudisha 0;
+}
