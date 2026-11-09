@@ -57,7 +57,7 @@ n32 MTI_HALISI_D = 45;  // desimali halisi (d64)
 n32 MTI_BADILI = 48;  // badili(ptr, size) -> realloc
 n32 MTI_MODULO = 49;  // asilimia (%)
 n32 MTI_KIZUIZI = 50;  // kifungio cha ndani (hatua ya kwa)
-n32 MTI_XOR = 46;  // ^ (AU ya biti za kipekee)
+n32 MTI_AU_PEKEE = 46;  // ^ (AU ya biti za kipekee)
 n32 MTI_KINYUME = 47;  // ~ (kanusha biti)
 
 // -------------------------------------------------------
@@ -1884,7 +1884,7 @@ n32 changanua_usemi_biti_na(Msambazaji* p) {
 // -------------------------------------------------------
 // BITWISE XOR :: ^  (kati ya & na |, utangulizi wa C)
 // -------------------------------------------------------
-n32 changanua_usemi_biti_xor(Msambazaji* p) {
+n32 changanua_usemi_biti_au_pekee(Msambazaji* p) {
     n32 kushoto = changanua_usemi_biti_na(p);
     kama (kushoto == -1) { rudisha -1; }
 
@@ -1898,7 +1898,7 @@ n32 changanua_usemi_biti_xor(Msambazaji* p) {
             p->kosa = 1;
             rudisha -1;
         }
-        kushoto = nodi_mpya(MTI_XOR, 0, kushoto, kulia);
+        kushoto = nodi_mpya(MTI_AU_PEKEE, 0, kushoto, kulia);
     }
 
     rudisha kushoto;
@@ -1908,14 +1908,14 @@ n32 changanua_usemi_biti_xor(Msambazaji* p) {
 // BITWISE AU :: |
 // -------------------------------------------------------
 n32 changanua_usemi_biti_au(Msambazaji* p) {
-    n32 kushoto = changanua_usemi_biti_xor(p);
+    n32 kushoto = changanua_usemi_biti_au_pekee(p);
     kama (kushoto == -1) { rudisha -1; }
 
     wakati (1 == 1) {
         kama (p->sasa.urefu != 1) { vunja; }
         kama (neno_ni(&p->sasa, "|") == 0) { vunja; }
         sogeza(p);
-        n32 kulia = changanua_usemi_biti_xor(p);
+        n32 kulia = changanua_usemi_biti_au_pekee(p);
         kama (kulia == -1) {
             andika_stderr("kosa: operanda ya kulia haipo\n");
             p->kosa = 1;
@@ -2023,7 +2023,7 @@ n32 changanua_usemi_asimilia(Msambazaji* p) {
             kama (neno_ni(&p->sasa, "%=")) { kitendo = MTI_MODULO; ni_kiunganishi = 1; }
             kama (neno_ni(&p->sasa, "&=")) { kitendo = MTI_BITI_NA; ni_kiunganishi = 1; }
             kama (neno_ni(&p->sasa, "|=")) { kitendo = MTI_BITI_AU; ni_kiunganishi = 1; }
-            kama (neno_ni(&p->sasa, "^=")) { kitendo = MTI_XOR; ni_kiunganishi = 1; }
+            kama (neno_ni(&p->sasa, "^=")) { kitendo = MTI_AU_PEKEE; ni_kiunganishi = 1; }
         }
         // Ugawa wa kiwanja wa hamisha: <<=  >>=  (tokeni ya herufi 3)
         kama (kitendo == -1 && p->sasa.urefu == 3) {
@@ -2497,12 +2497,12 @@ n32 changanua_muundo(Msambazaji* p) {
             // unaoelekezwa kabisa. Ni shamba lililopachikwa KWELI KWELI
             // (mshale == 0, `(-field_aina) % 2 == 0`) ndilo linalohitaji
             // kutafuta ukubwa halisi wa muundo huo.
-            n32 neg = 0 - sehemu_aina;
-            n32 ni_kielekezi_cha_muundo = neg % 2;
+            n32 hasi = 0 - sehemu_aina;
+            n32 ni_kielekezi_cha_muundo = hasi % 2;
             kama (ni_kielekezi_cha_muundo != 0) {
                 inayoendelea_ofseti = inayoendelea_ofseti + 8;
             } sivyo {
-                n32 name_ofseti2 = (neg / 2) - 1;
+                n32 name_ofseti2 = (hasi / 2) - 1;
                 inayoendelea_ofseti = inayoendelea_ofseti + ukubwa_wa_muundo_msambazaji(mti_dimbwi + name_ofseti2);
             }
         } sivyo { kama (sehemu_aina != 0) {
@@ -3589,7 +3589,7 @@ n32 pandisha_ni_operesheni(n32 nodi_hii) {
     n32 aina = mti_aina[nodi_hii];
     kama (aina == MTI_JUMLISHA || aina == MTI_TOFAUTI || aina == MTI_ZIDISHA) { rudisha 1; }
     kama (aina == MTI_SAWA || aina == MTI_TOFAUTI_SI || aina == MTI_CHINI || aina == MTI_JUU || aina == MTI_CHINI_SAWA || aina == MTI_JUU_SAWA) { rudisha 1; }
-    kama (aina == MTI_HAMISHA_KUSHOTO || aina == MTI_HAMISHA_KULIA || aina == MTI_BITI_AU || aina == MTI_BITI_NA || aina == MTI_XOR) { rudisha 1; }
+    kama (aina == MTI_HAMISHA_KUSHOTO || aina == MTI_HAMISHA_KULIA || aina == MTI_BITI_AU || aina == MTI_BITI_NA || aina == MTI_AU_PEKEE) { rudisha 1; }
     rudisha 0;
 }
 

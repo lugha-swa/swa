@@ -113,6 +113,10 @@ mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 | scratch | `rasimu` |
 | flags | `bendera` |
 | mask | `kinyago` |
+| negative / neg | `hasi` (`ni_hasi` = ni hasi; si `has` ya Kiingereza) |
+| positive | `chanya` |
+| signed / unsigned | `yenye_ishara` / `bila_ishara` (kwenye maagizo: `_n` / `_a`, kama familia za aina) |
+| has (ina) | `ina` (`ina_koma` = ina koma) |
 | bits | `biti` |
 | bytes | `baiti` |
 | raw | `ghafi` |
@@ -167,7 +171,7 @@ Kazi za kuandika baiti za maagizo hufuata lugha ya mashine:
 | call / ret | `ita` / `rudi` |
 | jmp / jcc | `ruka` / `ruka_kama` |
 | cmp / test | `linganisha` / `pima` |
-| add / sub | `jumlisha` / `toa` |
+| add / sub | `jumlisha` / `punguza` (`toa_` tayari ni kiambishi cha "toa msimbo") |
 | imul / mul | `zidisha_n` / `zidisha_a` |
 | idiv / div | `gawanya_n` / `gawanya_a` |
 | cdq | `panua` |
