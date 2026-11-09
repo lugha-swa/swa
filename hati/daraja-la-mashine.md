@@ -1,6 +1,6 @@
 # Daraja la mashine: Swa ikiita msimbo wa nje
 
-Hali: awamu 1, 2 na 4 zimetekelezwa (`gharama/jaribu-daraja.mapishi`,
+Hali: awamu 1, 2, 3 na 4 zimetekelezwa (`gharama/jaribu-daraja.mapishi`,
 `gharama/jaribu-wasm.mapishi`). Vipimo vya
 lugha: `hati/vipimo-vya-lugha.md` sehemu 8.1.
 
@@ -114,6 +114,63 @@ nje utaita Swa. Swa lazima:
     kwenye utafutaji). DT_HASH ina ndoo moja na alama zote kwenye
     mnyororo mmoja -- hash yenyewe haihitajiki. Namba na vielekezi
     pekee; safu, desimali na muundo ni makosa.
+  - Muundo kwa thamani (awamu 3): tazama sehemu inayofuata. Data ya
+    aina ya muundo (`Anwani6 kitanzi6 = "in6addr_loopback";`) hupata
+    alama ya ukubwa wa muundo, hivyo COPY hunakili baiti zote.
+
+### Muundo kwa thamani (awamu 3)
+
+Swa na System V hupitisha muundo kwa njia tofauti:
+
+| | Swa | System V |
+|---|---|---|
+| hoja, baiti <= 8 | baiti zake kwenye rejesta ya GP | kwa darasa la baiti-8 |
+| hoja, baiti 9-16 | kielekezi cha nakala kwenye GP | kila baiti-8 kwa darasa lake |
+| hoja, baiti > 16 | kielekezi cha nakala kwenye GP | MEMORY: nakala rafuni |
+| matokeo, baiti <= 16 | kielekezi kilichofichwa (rdi -> rax) | rax/rdx na xmm0/xmm1 |
+| matokeo, baiti > 16 | kielekezi kilichofichwa (rdi -> rax) | sawa na Swa |
+
+Darasa la baiti-8: INTEGER ikiwa sehemu yoyote ndani yake si desimali
+(kielekezi na namba ni INTEGER), SSE vinginevyo; `{ n32; d32; }` ni
+INTEGER moja, `{ d32; d32; }` ni SSE moja (float mbili ndani ya xmm
+moja). Muundo ndani ya muundo huainishwa kwa sehemu zake za ndani.
+Muundo wa baiti <= 16 usiopata rejesta za kutosha kwa baiti-8 zake
+zote huenda rafuni wote -- lakini hoja zinazofuata bado hupata rejesta
+zilizobaki.
+
+Kwa hiyo kazi ya nje yenye muundo (hoja au matokeo) hupata kipande cha
+kutafsiri badala ya kile kifupi:
+
+```
+push rbp; mov rbp,rsp; sub rsp,112
+hifadhi rdi..r9 kwenye [rbp-8..-48], xmm0..7 kwenye [rbp-56..-112]
+and rsp,-16; [sub rsp,8 sloti zikiwa witiri]; sub rsp,8*sloti
+kwa kila hamisho la mpango: rafu kupitia rax, kisha GP, kisha xmm
+  (chanzo: sloti iliyohifadhiwa, hoja ya rafu ya Swa [rbp+16+8k], au
+  [kielekezi + ofseti] kupitia r11)
+mov eax, <xmm zilizotumika>          ; al ya System V
+call [rip+sloti]
+[matokeo <= 16: mov r11,[rbp-8]; rax/rdx, xmm0/xmm1 -> [r11]; mov rax,r11]
+mov rsp,rbp; pop rbp; ret
+```
+
+Mpango wote huhesabiwa wakati wa kukusanya kutoka kichwa cha `nje`;
+vyanzo vyote ni kumbukumbu iliyohifadhiwa, hivyo hakuna rejesta
+inayoharibu nyingine. Kazi zisizo na muundo hubaki na kipande kifupi,
+baiti zile zile.
+
+**Mpangilio wa C, si kujaza kimya.** Swa haiongezi kujaza kati ya
+sehemu (`{ n8 a; n32 b; }` ni baiti 5); C huongeza (baiti 8). Muundo
+unaovuka daraja lazima uwe tayari na mpangilio wa C: kila sehemu
+kwenye ofseti ya kizidisho cha upangiliaji wake na ukubwa kizidisho
+cha upangiliaji mkubwa. Vinginevyo ni kosa linalotaja sehemu, ofseti,
+na baiti za kujaza zinazohitajika -- mpangaji huongeza sehemu ya
+kujaza mwenyewe, na mpangilio unaonekana kwenye chanzo.
+
+Mipaka ya awamu 3 (kwa sauti): muundo kwenye kazi yenye `...`, au kama
+hoja ya ziada; muundo mtupu. Kazi ya Swa inayoitwa na msimbo wa nje
+(callback) ikipokea au kurudisha muundo kwa thamani bado hutumia njia
+ya Swa -- tumia kielekezi kwenye kazi za kurudi.
 
 ### Rekebisho la wito wa Swa wenyewe (awamu 2)
 
@@ -150,7 +207,7 @@ Windows na macOS kipakiaji cha mfumo ni lazima hata hivyo. Kwa hiyo:
 |---|---|---|
 | 1 (imekamilika) | `nje`, aina za namba/kielekezi/d64/d32, ELF ya kiungo-hai, ukaguzi wa aina, upangiliaji wa rafu | libm: `cos`, `pow`, `sqrt`; libc: `strlen`, `qsort` yenye kazi ya kurudi ya Swa, `getcontext` kwa upangiliaji; makosa 13 kwa ujumbe kamili; programu 460 zilizopo sawa kwa baiti (--exe na --wasm); fixpoint |
 | 2 (imekamilika) | hoja za rafu, hoja za ziada (`...`, r11 + al), data ya maktaba (R_X86_64_COPY), rekebisho la wito wa Swa | `snprintf`: namba 9 za ziada (6 rafuni), desimali zikichanganyika, desimali 10 (2 rafuni) + namba; kichwa cha kudumu chenye sloti 3 za rafu; `optind` (thamani 1 inakiliwa) na `stdout` kwa `fputs`; makosa 19; majaribio 4 ya mabadiliko (kitanzi bila push, ofseti mbaya, COPY kama GLOB_DAT, al = 0) yote hukamatwa |
-| 3 | muundo kwa thamani (uainishaji wa System V) | maktaba yenye muundo wa baiti 16 na 24 |
+| 3 (imekamilika) | muundo kwa thamani: uainishaji wa System V (INTEGER/SSE/MEMORY), kipande cha kutafsiri, matokeo kwenye rax:rdx/xmm0:xmm1, data ya muundo; ukaguzi wa mpangilio wa C | libc/libm halisi: `div`, `ldiv` (matokeo baiti 8 na 16), `cabs`/`csqrt`/`cpow` (`double complex`, SSE,SSE), `cabsf`/`csqrtf` (`float complex`, SSE moja kutoka GP ya Swa), `inet_ntoa` (`struct in_addr`), `memcpy` kama matokeo MEMORY, `in6addr_loopback` kama data; `snprintf` huonyesha rafu: MEMORY ya baiti 24, muundo usiotosha rejesta, INTEGER+SSE, darasa ndani ya baiti-8 moja, xmm zilizojaa, desimali ya 9, miundo kutoka rafu ya Swa, muundo ndani ya muundo; makosa 7; programu 968 zilizopo sawa kwa baiti; majaribio 14 ya mabadiliko: 13 hukamatwa, moja ni sawa kimaana (bila kupakia rdi kwa matokeo MEMORY -- rdi ya Swa tayari ni ile ya System V) |
 | 4 (imekamilika) | `--wasm`: kila `nje "<moduli>"` huwa uingizaji wa WASM (moduli, alama); `dom_*` 8 zilizowekwa ndani ya mkusanyaji zimeondolewa; DOM ni Swa (`msingi/maktaba/kivinjari.swa`) juu ya daraja la jumla linaloandikwa na `swa --wasm-js`; `msingi/kivinjari/swa-kivinjari.js` ya mkono imefutwa | majaribio yote ya DOM na matukio hupitia mnyororo mzima (Swa -> kivinjari.swa -> swa-js.js -> hati bandia); `jaribio_nje_js` hutumia uingizaji moja kwa moja; makosa 3 (desimali, `...`, data); mabadiliko 2 (daraja lenye hoja zilizobadilishwa, `dom_unda` bila maktaba) hukamatwa |
 | 5 | Win64 + PE (Windows), kisha ARM64 + Mach-O | programu ile ile kwenye kila jukwaa |
 
@@ -183,7 +240,8 @@ daraja lipo, lakini lina umbo la `syscall/js` ya Go na `wasm_exec.js`:
 
 ## Mipaka iliyobaki (kwa sauti, si kimya)
 
-- muundo kwa thamani (hoja, matokeo, au data) -> kosa mpaka awamu 3;
+- muundo kwa thamani kwenye `...`, na callback ya Swa yenye muundo kwa
+  thamani (tumia kielekezi);
 - data ya desimali au safu -> kosa (tumia kielekezi);
 - hoja 16 kwa wito (kikomo cha mkaguzi kwa wito wote wa Swa);
 - mbegu haihitaji kubadilika: stage1 haitumii `nje`, kwa hiyo hakuna
