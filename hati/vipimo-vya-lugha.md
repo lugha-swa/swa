@@ -659,9 +659,15 @@ nje "libm.so.6" {
   Hoja ya ziada ya `d32` ni kosa -- tumia `d64`.
 - Data ya maktaba: `n8* mkondo = "stdout";` ndani ya `nje` ni kigezo cha
   ulimwengu ambacho kipakiaji hukijaza kwa thamani ya maktaba
-  (R_X86_64_COPY). Namba au kielekezi pekee.
-- Mipaka iliyobaki, yote kwa sauti: muundo kwa thamani (hoja, matokeo,
-  au data), data ya desimali au safu, na hali zisizo `--exe`/`--wasm`
+  (R_X86_64_COPY). Namba, kielekezi au muundo.
+- Muundo kwa thamani (hoja, matokeo na data) hufuata uainishaji wa
+  System V; kipande hutafsiri kati ya njia ya Swa na ile ya C. Muundo
+  lazima uwe na mpangilio wa C (sehemu kwenye ofseti za kizidisho cha
+  upangiliaji wake, ukubwa kizidisho cha upangiliaji mkubwa) -- Swa
+  haiongezi kujaza kimya, hivyo mpangilio mbaya ni kosa linalotaja
+  kujaza kunakohitajika.
+- Mipaka iliyobaki, yote kwa sauti: muundo kwenye kazi yenye `...`,
+  data ya desimali au safu, na hali zisizo `--exe`/`--wasm`
   (`--kernel`, `--tafsiri`, `--ir`, `--jit`, `.o`). Jina linalogongana na
   kazi ya Swa yenye mwili, au kutangazwa mara mbili, ni kosa.
 - `--wasm`: kila `nje "<moduli>"` huwa uingizaji wa WASM (moduli,

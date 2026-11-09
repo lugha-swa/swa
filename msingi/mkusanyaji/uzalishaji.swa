@@ -4558,6 +4558,21 @@ w0 uzalishaji_wito(n32 node, n32 kazi_node) {
         }
         l = l + 1;
     }
+    // Kazi ya nje: kipande chake huandikwa baada ya kazi zote, hivyo
+    // lebo yake haipo bado -- matokeo ya muundo hujulikana kutoka kichwa.
+    kama (ni_ndani == 0) {
+        n32 kg_k = kigeni_kazi_kwa_jina(callee);
+        kama (kg_k >= 0) {
+            n32 kg_ret = ast_thamani[kigeni_kazi_node[kg_k]];
+            kama (ni_muundo_enc(kg_ret)) {
+                callee_ni_sret = 1;
+                sret_size = ukubwa_kutoka_enc(kg_ret);
+                kama ((sret_size & 15) != 0) {
+                    sret_size = sret_size + (16 - (sret_size & 15));
+                }
+            }
+        }
+    }
 
     // Wito wa kielekezi cha kazi: callee ni kigeu/paramu chenye anwani
     // (k.m. bafa ya JIT au &jina_la_kazi) — vigeu vya ndani na paramu
@@ -8718,6 +8733,8 @@ n32 kazi_ret_enc_kwa_jina(n8* jina) {
         }
         gn = ast_nne[gn];
     }
+    n32 kg_k = kigeni_kazi_kwa_jina(jina);
+    kama (kg_k >= 0) { rudisha ast_thamani[kigeni_kazi_node[kg_k]]; }
     rudisha 0;
 }
 
@@ -9717,11 +9734,127 @@ w0 kigeni_kosa(n8* ujumbe, n8* jina) {
     wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
 }
 
-// Kagua kichwa cha kazi ya nje dhidi ya mipaka ya awamu 1 (kwa sauti).
+// ---- Muundo kwa thamani (awamu 3): uainishaji wa System V ----
+//
+// Swa hupitisha muundo kwa njia yake: wa baiti <= 8 kama baiti zake
+// ndani ya rejesta ya GP, mkubwa zaidi kama kielekezi cha nakala; na
+// hurudisha kila muundo kupitia kielekezi kilichofichwa (rdi -> rax).
+// System V huainisha kila baiti-8 ya muundo wa baiti <= 16: INTEGER
+// (rejesta ya GP) ikiwa kuna sehemu yoyote isiyo desimali ndani yake,
+// SSE (xmm) vinginevyo; mkubwa zaidi ni MEMORY (nakala rafuni, na
+// matokeo kupitia kielekezi kilichofichwa -- sawa na Swa). Kipande cha
+// kazi yenye muundo hutafsiri kati ya njia hizo mbili.
+//
+// Swa haiongezi kujaza kimya kati ya sehemu; C huongeza. Kwa hiyo
+// muundo unaovuka daraja lazima uwe tayari na mpangilio wa C -- kila
+// sehemu kwenye ofseti ya kizidisho cha upangiliaji wake, na ukubwa
+// kizidisho cha upangiliaji mkubwa. Vinginevyo ni kosa linalotaja
+// sehemu na kujaza kunakohitajika.
+
+n32 kigeni_kazi_muundo[1024];  // 1 = kazi ina muundo kwa thamani (hoja au matokeo)
+n32 kigeni_kazi_muundo_sasa = 0;
+n32 kg_ni_data = 0;            // 1 = tunakagua data ya nje (kwa ujumbe wa makosa)
+n32 kg_darasa[2];              // darasa la kila baiti-8: 0 hakuna, 1 INTEGER, 2 SSE
+
+n8* kg_kitu() {
+    kama (kg_ni_data) { rudisha "data"; }
+    rudisha "kazi";
+}
+
+// Nodi ya AST_MUUNDO kwa jina, au -1
+n32 kigeni_muundo_node(n8* jina) {
+    n32 si = 0;
+    wakati (si < ast_idadi) {
+        kama (ast_aina[si] == 12 && ast_kushoto[si] != -1) {
+            kama (jina_linganisha(ast_pool + ast_jina_off[ast_kushoto[si]], jina)) { rudisha si; }
+        }
+        si = si + 1;
+    }
+    rudisha -1;
+}
+
+n8* kigeni_jina_la_muundo_enc(n32 enc) {
+    rudisha ast_pool + (((0 - enc) / 2) - 1);
+}
+
+// Upangiliaji wa C wa aina (baiti)
+n32 kigeni_mpangilio_wa_enc(n32 enc) {
+    kama (ni_muundo_enc(enc)) {
+        n32 m = kigeni_muundo_node(kigeni_jina_la_muundo_enc(enc));
+        n32 kubwa = 1;
+        kama (m == -1) { rudisha 1; }
+        n32 s = ast_kulia[m];
+        wakati (s != -1) {
+            n32 a = kigeni_mpangilio_wa_enc(ast_thamani[ast_kushoto[s]]);
+            kama (a > kubwa) { kubwa = a; }
+            s = ast_kulia[s];
+        }
+        rudisha kubwa;
+    }
+    rudisha ukubwa_kutoka_enc(enc);
+}
+
+// Kagua mpangilio wa C wa muundo, na weka darasa la kila baiti-8
+// (kg_darasa) kwa sehemu zake, kuanzia ofseti msingi.
+w0 kigeni_ainisha(n32 enc, n32 msingi, n8* kazi) {
+    n8* jina_m = kigeni_jina_la_muundo_enc(enc);
+    n32 m = kigeni_muundo_node(jina_m);
+    kama (m == -1) {
+        andika_stderr("Hitilafu: %s ya nje '%s': muundo '%s' haujafafanuliwa\n", kg_kitu(), kazi, jina_m);
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+    n32 s = ast_kulia[m];
+    wakati (s != -1) {
+        n32 fname = ast_kushoto[s];
+        n32 fenc = ast_thamani[fname];
+        n32 off = ast_tiga[fname];
+        n32 a = kigeni_mpangilio_wa_enc(fenc);
+        kama (off % a != 0) {
+            andika_stderr("Hitilafu: %s ya nje '%s': muundo '%s': sehemu '%s' iko kwenye ofseti %d, si kizidisho cha %d -- C hupangilia sehemu, Swa haiongezi kujaza kimya: ongeza sehemu ya kujaza ya baiti %d kabla yake\n", kg_kitu(), kazi, jina_m, ast_pool + ast_jina_off[fname], off, a, a - off % a);
+            wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+        }
+        kama (ni_muundo_enc(fenc)) {
+            kigeni_ainisha(fenc, msingi + off, kazi);
+        } sivyo {
+            n32 e = (msingi + off) / 8;
+            kama (e < 2) {
+                kama (ni_desimali_enc(fenc)) {
+                    kama (kg_darasa[e] == 0) { kg_darasa[e] = 2; }
+                } sivyo {
+                    kg_darasa[e] = 1;  // INTEGER hushinda SSE ndani ya baiti-8 moja
+                }
+            }
+        }
+        s = ast_kulia[s];
+    }
+    n32 ukubwa = ast_thamani[m];
+    n32 ma = kigeni_mpangilio_wa_enc(enc);
+    kama (ukubwa % ma != 0) {
+        andika_stderr("Hitilafu: %s ya nje '%s': muundo '%s' una baiti %d, si kizidisho cha %d -- C huongeza kujaza mwishoni: ongeza sehemu ya kujaza ya baiti %d\n", kg_kitu(), kazi, jina_m, ukubwa, ma, ma - ukubwa % ma);
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+}
+
+// Ainisha muundo enc kwa kazi; hurudisha ukubwa wake (kg_darasa hujazwa)
+n32 kigeni_ainisha_muundo(n32 enc, n8* kazi) {
+    kg_darasa[0] = 0; kg_darasa[1] = 0;
+    kigeni_ainisha(enc, 0, kazi);
+    // Ukubwa halisi kutoka nodi (ukubwa_kutoka_enc huripoti 4 kwa muundo mtupu)
+    n32 ukubwa = ast_thamani[kigeni_muundo_node(kigeni_jina_la_muundo_enc(enc))];
+    kama (ukubwa == 0) {
+        andika_stderr("Hitilafu: %s ya nje '%s': muundo '%s' hauna sehemu -- hauwezi kuvuka daraja\n", kg_kitu(), kazi, kigeni_jina_la_muundo_enc(enc));
+        wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+    }
+    rudisha ukubwa;
+}
+
+// Kagua kichwa cha kazi ya nje dhidi ya mipaka (kwa sauti).
 w0 kigeni_kagua_kichwa(n32 f) {
     n8* jina = ast_pool + ast_jina_off[ast_kushoto[f]];
+    kigeni_kazi_muundo_sasa = 0;
     kama (ni_muundo_enc(ast_thamani[f])) {
-        kigeni_kosa("kurudisha muundo kwa thamani hakujaungwa mkono (awamu 3)", jina);
+        kigeni_ainisha_muundo(ast_thamani[f], jina);
+        kigeni_kazi_muundo_sasa = 1;
     }
     n32 namba = 0;
     n32 desimali = 0;
@@ -9729,13 +9862,252 @@ w0 kigeni_kagua_kichwa(n32 f) {
     wakati (pn != -1) {
         n32 enc = ast_thamani[pn];
         kama (ni_muundo_enc(enc)) {
-            kigeni_kosa("muundo kwa thamani kama hoja haujaungwa mkono (awamu 3) -- tumia kielekezi", jina);
+            kigeni_ainisha_muundo(enc, jina);
+            kigeni_kazi_muundo_sasa = 1;
         }
         kama (ni_desimali_enc(enc)) { desimali = desimali + 1; }
         sivyo { namba = namba + 1; }
         pn = ast_kulia[pn];
     }
     kigeni_kazi_rafu_sasa = kigeni_sloti_za_rafu(namba, desimali);
+}
+
+// ---- Kipande cha kutafsiri (kazi yenye muundo) ----
+// Mpango: kila hamisho ni (lengo, chanzo). Lengo: aina 0 = GP ya
+// System V namba n, 1 = xmm n, 2 = sloti ya rafu n. Chanzo: [rbp+d],
+// au (kupitia = 1) kielekezi kilicho [rbp+d] na ofseti juu yake.
+// Rejesta za hoja za Swa huhifadhiwa kwanza: GP g kwenye [rbp-8-8g],
+// xmm x kwenye [rbp-56-8x]; hoja za rafu za mpigaji ziko [rbp+16+8k].
+n32 km_aina[64];
+n32 km_lengo[64];
+n32 km_chanzo[64];
+n32 km_kupitia[64];
+n32 km_ofseti[64];
+n32 km_idadi = 0;
+n32 km_rafu = 0;       // sloti za rafu za System V
+n32 km_xmm = 0;        // rejesta za xmm zilizotumika (al)
+n32 km_rudi = 0;       // 0 si muundo, 1 muundo kwenye rejesta, 2 MEMORY
+n32 km_rudi_darasa[2];
+
+w0 km_ongeza(n32 aina, n32 lengo, n32 chanzo, n32 kupitia, n32 ofseti, n8* kazi) {
+    kama (km_idadi >= 64) {
+        kigeni_kosa("muundo ni mkubwa mno kwa kipande (hamisho zaidi ya 64)", kazi);
+    }
+    km_aina[km_idadi] = aina;
+    km_lengo[km_idadi] = lengo;
+    km_chanzo[km_idadi] = chanzo;
+    km_kupitia[km_idadi] = kupitia;
+    km_ofseti[km_idadi] = ofseti;
+    km_idadi = km_idadi + 1;
+}
+
+w0 kigeni_mpango(n32 f) {
+    n8* jina = ast_pool + ast_jina_off[ast_kushoto[f]];
+    km_idadi = 0; km_rafu = 0; km_rudi = 0;
+    n32 gp_in = 0; n32 xmm_in = 0; n32 rafu_in = 0;
+    n32 gp_out = 0; n32 xmm_out = 0;
+    n32 ret = ast_thamani[f];
+    kama (ni_muundo_enc(ret)) {
+        gp_in = 1;  // rdi ya Swa = bafa ya matokeo
+        n32 r = kigeni_ainisha_muundo(ret, jina);
+        kama (r > 16) {
+            km_rudi = 2;
+            km_ongeza(0, 0, -8, 0, 0, jina);  // rdi ya System V = bafa ile ile
+            gp_out = 1;
+        } sivyo {
+            km_rudi = 1;
+            km_rudi_darasa[0] = kg_darasa[0];
+            km_rudi_darasa[1] = 0;
+            kama (r > 8) { km_rudi_darasa[1] = kg_darasa[1]; }
+        }
+    }
+    n32 pn = ast_kulia[f];
+    wakati (pn != -1) {
+        n32 enc = ast_thamani[pn];
+        n32 ni_d = ni_desimali_enc(enc);
+        // Mahali hoja ilipo upande wa Swa
+        n32 chanzo = 0;
+        kama (ni_d) {
+            kama (xmm_in < 8) { chanzo = -56 - 8 * xmm_in; xmm_in = xmm_in + 1; }
+            sivyo { chanzo = 16 + 8 * rafu_in; rafu_in = rafu_in + 1; }
+        } sivyo {
+            kama (gp_in < 6) { chanzo = -8 - 8 * gp_in; gp_in = gp_in + 1; }
+            sivyo { chanzo = 16 + 8 * rafu_in; rafu_in = rafu_in + 1; }
+        }
+        kama (ni_muundo_enc(enc)) {
+            n32 sz = kigeni_ainisha_muundo(enc, jina);
+            n32 kupitia = 0;
+            kama (sz > 8) { kupitia = 1; }
+            n32 vipande = (sz + 7) / 8;
+            n32 rejestani = 0;
+            kama (sz <= 16) {
+                n32 nint = 0; n32 nsse = 0;
+                n32 e = 0;
+                wakati (e < vipande) {
+                    kama (kg_darasa[e] == 2) { nsse = nsse + 1; } sivyo { nint = nint + 1; }
+                    e = e + 1;
+                }
+                kama (gp_out + nint <= 6 && xmm_out + nsse <= 8) {
+                    rejestani = 1;
+                    e = 0;
+                    wakati (e < vipande) {
+                        kama (kg_darasa[e] == 2) {
+                            km_ongeza(1, xmm_out, chanzo, kupitia, 8 * e, jina);
+                            xmm_out = xmm_out + 1;
+                        } sivyo {
+                            km_ongeza(0, gp_out, chanzo, kupitia, 8 * e, jina);
+                            gp_out = gp_out + 1;
+                        }
+                        e = e + 1;
+                    }
+                }
+            }
+            kama (rejestani == 0) {
+                // MEMORY, au rejesta hazitoshi kwa muundo mzima: nakala rafuni
+                n32 q = 0;
+                wakati (q < vipande) {
+                    km_ongeza(2, km_rafu, chanzo, kupitia, 8 * q, jina);
+                    km_rafu = km_rafu + 1;
+                    q = q + 1;
+                }
+            }
+        } sivyo { kama (ni_d) {
+            kama (xmm_out < 8) { km_ongeza(1, xmm_out, chanzo, 0, 0, jina); xmm_out = xmm_out + 1; }
+            sivyo { km_ongeza(2, km_rafu, chanzo, 0, 0, jina); km_rafu = km_rafu + 1; }
+        } sivyo {
+            kama (gp_out < 6) { km_ongeza(0, gp_out, chanzo, 0, 0, jina); gp_out = gp_out + 1; }
+            sivyo { km_ongeza(2, km_rafu, chanzo, 0, 0, jina); km_rafu = km_rafu + 1; }
+        } }
+        pn = ast_kulia[pn];
+    }
+    km_xmm = xmm_out;
+}
+
+// Rejesta za hoja za System V kwa mpangilio: rdi rsi rdx rcx r8 r9
+n32 kigeni_gp_ya_sysv(n32 n) {
+    kama (n == 0) { rudisha 7; }
+    kama (n == 1) { rudisha 6; }
+    kama (n == 2) { rudisha 2; }
+    kama (n == 3) { rudisha 1; }
+    kama (n == 4) { rudisha 8; }
+    rudisha 9;
+}
+
+// Kwa chanzo cha hamisho: andika mov r11,[rbp+d] ikihitajika, na
+// rudisha (msingi_rm, disp): msingi 5 = rbp, 3 = r11 (REX.B).
+n32 km_disp = 0;
+n32 km_andaa_chanzo(n32 chanzo, n32 kupitia, n32 ofseti) {
+    kama (kupitia) {
+        andika_baiti(76); andika_baiti(139); andika_baiti(157); andika_neno4(chanzo);  // mov r11, [rbp+disp32]
+        km_disp = ofseti;
+        rudisha 3;
+    }
+    km_disp = chanzo + ofseti;
+    rudisha 5;
+}
+
+// mov reg64, [chanzo]
+w0 km_soma_gp(n32 reg, n32 chanzo, n32 kupitia, n32 ofseti) {
+    n32 rm = km_andaa_chanzo(chanzo, kupitia, ofseti);
+    n32 rex = 72;
+    kama (reg >= 8) { rex = rex + 4; }
+    kama (rm == 3) { rex = rex + 1; }
+    andika_baiti(rex); andika_baiti(139);
+    andika_baiti(128 + (reg % 8) * 8 + rm); andika_neno4(km_disp);
+}
+
+// movq xmmN, [chanzo]  (F3 [41] 0F 7E /r)
+w0 km_soma_xmm(n32 x, n32 chanzo, n32 kupitia, n32 ofseti) {
+    n32 rm = km_andaa_chanzo(chanzo, kupitia, ofseti);
+    andika_baiti(243);
+    kama (rm == 3) { andika_baiti(65); }
+    andika_baiti(15); andika_baiti(126);
+    andika_baiti(128 + x * 8 + rm); andika_neno4(km_disp);
+}
+
+w0 kigeni_andika_kipande_cha_muundo(n32 i) {
+    n32 f = kigeni_kazi_node[i];
+    kigeni_mpango(f);
+    andika_baiti(85);                                       // push rbp
+    andika_baiti(72); andika_baiti(137); andika_baiti(229);  // mov rbp, rsp
+    andika_baiti(72); andika_baiti(129); andika_baiti(236); andika_neno4(112);  // sub rsp, 112
+    // Hifadhi rejesta za hoja za Swa
+    n32 g = 0;
+    wakati (g < 6) {
+        n32 reg = kigeni_gp_ya_sysv(g);
+        n32 rex = 72;
+        kama (reg >= 8) { rex = 76; }
+        andika_baiti(rex); andika_baiti(137);
+        andika_baiti(128 + (reg % 8) * 8 + 5); andika_neno4(-8 - 8 * g);  // mov [rbp+d], reg
+        g = g + 1;
+    }
+    n32 x = 0;
+    wakati (x < 8) {
+        andika_baiti(102); andika_baiti(15); andika_baiti(214);
+        andika_baiti(128 + x * 8 + 5); andika_neno4(-56 - 8 * x);       // movq [rbp+d], xmmN
+        x = x + 1;
+    }
+    andika_baiti(72); andika_baiti(131); andika_baiti(228); andika_baiti(240);  // and rsp, -16
+    n32 nafasi = km_rafu * 8;
+    kama (km_rafu % 2 == 1) { nafasi = nafasi + 8; }
+    kama (nafasi > 0) {
+        andika_baiti(72); andika_baiti(129); andika_baiti(236); andika_neno4(nafasi);  // sub rsp, imm32
+    }
+    // Rafu kwanza (kupitia rax), kisha GP, kisha xmm -- vyanzo vyote ni
+    // kumbukumbu iliyohifadhiwa, hivyo hakuna rejesta inayoharibu nyingine.
+    n32 h = 0;
+    wakati (h < km_idadi) {
+        kama (km_aina[h] == 2) {
+            km_soma_gp(0, km_chanzo[h], km_kupitia[h], km_ofseti[h]);
+            andika_baiti(72); andika_baiti(137); andika_baiti(132); andika_baiti(36);
+            andika_neno4(8 * km_lengo[h]);                      // mov [rsp+disp32], rax
+        }
+        h = h + 1;
+    }
+    h = 0;
+    wakati (h < km_idadi) {
+        kama (km_aina[h] == 0) {
+            km_soma_gp(kigeni_gp_ya_sysv(km_lengo[h]), km_chanzo[h], km_kupitia[h], km_ofseti[h]);
+        }
+        h = h + 1;
+    }
+    h = 0;
+    wakati (h < km_idadi) {
+        kama (km_aina[h] == 1) {
+            km_soma_xmm(km_lengo[h], km_chanzo[h], km_kupitia[h], km_ofseti[h]);
+        }
+        h = h + 1;
+    }
+    andika_baiti(184); andika_neno4(km_xmm);                // mov eax, imm32 (al ya System V)
+    andika_baiti(255); andika_baiti(21);                    // call [rip+disp32]
+    andika_rela_ulimwengu(kigeni_kazi_sloti[i]);
+    andika_neno4(0);
+    kama (km_rudi == 1) {
+        // Matokeo ya System V kwenye rax/rdx na xmm0/xmm1 -> bafa ya Swa
+        andika_baiti(76); andika_baiti(139); andika_baiti(93); andika_baiti(248);  // mov r11, [rbp-8]
+        n32 gp_r = 0; n32 xmm_r = 0;
+        n32 e = 0;
+        wakati (e < 2) {
+            n32 d = km_rudi_darasa[e];
+            kama (d == 1) {
+                n32 reg = 0;
+                kama (gp_r == 1) { reg = 2; }
+                andika_baiti(73); andika_baiti(137);
+                andika_baiti(128 + reg * 8 + 3); andika_neno4(8 * e);   // mov [r11+d], rax/rdx
+                gp_r = gp_r + 1;
+            }
+            kama (d == 2) {
+                andika_baiti(102); andika_baiti(65); andika_baiti(15); andika_baiti(214);
+                andika_baiti(128 + xmm_r * 8 + 3); andika_neno4(8 * e);  // movq [r11+d], xmm0/xmm1
+                xmm_r = xmm_r + 1;
+            }
+            e = e + 1;
+        }
+        andika_baiti(76); andika_baiti(137); andika_baiti(216);  // mov rax, r11
+    }
+    andika_baiti(72); andika_baiti(137); andika_baiti(236);  // mov rsp, rbp
+    andika_baiti(93);                                       // pop rbp
+    andika_baiti(195);                                      // ret
 }
 
 // Idadi ya vigezo vilivyotangazwa vya kazi f
@@ -9766,6 +10138,9 @@ w0 kigeni_andaa_wito_wa_ziada(n8* callee, n32 hoja_n, n32 msingi, n32 namba, n32
         kama (ni_desimali_enc(enc) && ukubwa_kutoka_enc(enc) < 8) {
             kigeni_kosa("hoja ya ziada ya d32 -- tumia d64 (C hupandisha float kuwa double)", callee);
         }
+        kama (ni_muundo_enc(enc)) {
+            kigeni_kosa("muundo kwa thamani kama hoja ya ziada (`...`) haujaungwa mkono -- tumia kielekezi", callee);
+        }
         j = j + 1;
     }
     n32 xmm = desimali;
@@ -9788,6 +10163,10 @@ w0 kigeni_andaa(n32 mzizi, n32 hali_exe) {
         n8* jina = ast_pool + ast_jina_off[ast_kushoto[f]];
         kigeni_kagua_kichwa(f);
         kigeni_kazi_rafu[i] = kigeni_kazi_rafu_sasa;
+        kigeni_kazi_muundo[i] = kigeni_kazi_muundo_sasa;
+        kama (kigeni_kazi_muundo_sasa == 1 && kigeni_kazi_ya_ziada[i] == 1) {
+            kigeni_kosa("muundo kwa thamani kwenye kazi yenye `...` haujaungwa mkono", jina);
+        }
         // Jina la Swa ni la ulimwengu: haliwezi kuwa kazi ya Swa yenye
         // mwili, wala kutangazwa mara mbili kwenye nje.
         n32 a = ast_kushoto[mzizi];
@@ -9825,6 +10204,16 @@ w0 kigeni_andaa(n32 mzizi, n32 hali_exe) {
         kigeni_kazi_sloti[i] = g;
         i = i + 1;
     }
+    // Data ya maktaba yenye aina ya muundo: mpangilio wake lazima uwe wa C
+    n32 di = 0;
+    wakati (di < kigeni_data_idadi) {
+        n32 dg = kigeni_data_node[di];
+        kama (ni_muundo_enc(ast_thamani[dg])) {
+            kg_ni_data = 1;
+            kigeni_ainisha_muundo(ast_thamani[dg], ast_pool + ast_jina_off[ast_kushoto[dg]]);
+        }
+        di = di + 1;
+    }
 }
 
 // Faharisi ya data_ulimwengu ya data ya nje i (jina lile lile la dimbwi)
@@ -9845,6 +10234,11 @@ w0 kigeni_andika_vipande() {
     wakati (i < kigeni_kazi_idadi) {
         n32 f = kigeni_kazi_node[i];
         lebo_hifadhi(ast_pool + ast_jina_off[ast_kushoto[f]], ast_thamani[f]);
+        kama (kigeni_kazi_muundo[i]) {
+            kigeni_andika_kipande_cha_muundo(i);
+            i = i + 1;
+            endelea;
+        }
         andika_baiti(85);                                       // push rbp
         andika_baiti(72); andika_baiti(137); andika_baiti(229);  // mov rbp, rsp
         andika_baiti(72); andika_baiti(131); andika_baiti(228); andika_baiti(240);  // and rsp, -16
