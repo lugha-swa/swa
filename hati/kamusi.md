@@ -264,6 +264,8 @@ kazi yake -- neno moja la zamani linaweza kupata maneno tofauti.
 | kaunta, selecta | kihesabu, kiteuzi | | -- (maneno yaliyoundwa kutoka hesabu, teua) |
 | mti_* (majedwali ya nodi) | aina_ya_nodi, thamani_ya_nodi, nodi_ya_kushoto/kulia, tatu_ya_nodi, nne_ya_nodi, ghala_la_majina, NODI_* | kila ingizo ni nodi moja; tiga/nne ni nafasi za jumla ambazo maudhui yake hutegemea aina ya nodi | -- (sitiari ya mti imeondolewa) |
 | ofseti | umbali (`umbali_wa_jina`, `andika_umbali32_hasi`, `umbali_wa_kigeu_chini_ya_r5`) | umbali kutoka mahali pa kuanzia | umbali: "distance" |
+| ELF: strtab, symtab, shstrtab, phdr, shdr, vaddr, filesz, memsz, bss, .text, rela | jedwali_la_majina, jedwali_la_alama, jedwali_la_majina_ya_sehemu, maelezo_ya_kipande, maelezo_ya_sehemu, anwani_pepe, ukubwa_kwenye_faili, ukubwa_kwenye_kumbukumbu, tupu, msimbo, urekebishaji | sehemu za faili la ELF kwa kazi yake | -- |
+| WASM: local.get/set/tee, br/br_if, i32.const, eqz, drop, memory.grow; sehemu type/import/function/table/memory/export | pata_ndani/weka_ndani/weka_ndani_na_baki, ruka/ruka_kama, i32_namba, ni_sifuri, tupa, panua_kumbukumbu; aina/uingizaji/kazi/jedwali/kumbukumbu/uhamishaji | maagizo na sehemu kwa kitendo chake; LEB128 ni jina la umbizo (leb_a/leb_n) | -- |
 | bafa | chombo (`chombo_cha_jina`, `chombo_cha_msimbo` kwa .text, `chombo_cha_faili_la_sasa`) | kumbukumbu inayoshikilia baiti kwa muda | chombo: "vessel, container" |
 | lebo | mahali (`mahali_pa_kutoka`, `mahali_papya`, `namba_ya_mahali`); `nodi_ya_hali` kwa thamani ya `hali`; `onyesho` kwa kipengele cha DOM kinachoonyesha | mahali palipo na jina kwenye msimbo, pa kurukia | mahali (ngeli ya PA: mahali pa, papya) |
 | lebo_mkia | mahali_pa_..._mabaki | marudio yaliyobaki baada ya uvekta | -- |
