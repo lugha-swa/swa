@@ -26,12 +26,12 @@ w0 ji_elekeza(n64 fd, n8* njia) {
 
 // endesha programu (hoja hadi 3), stdout/stderr kwenda faili; kikomo cha
 // muda kwa mlinzi anayeua mtoto. Rudisha namba ya kutoka (au 128+ishara).
-n32 ji_endesha(n8** hoja_mstari, n8** mazingira, n8* nje, n8* kosa, n64 sekunde) {
+n32 ji_endesha(n8** hoja_za_mstari, n8** mazingira, n8* nje, n8* kosa, n64 sekunde) {
     n64 mtoto = mfumo_gawanyika();
     kama (mtoto == 0) {
         ji_elekeza(1, nje);
         ji_elekeza(2, kosa);
-        mfumo_execve(hoja_mstari[0], hoja_mstari, mazingira);
+        mfumo_execve(hoja_za_mstari[0], hoja_za_mstari, mazingira);
         wito_wa_mfumo(60, 127, 0, 0, 0, 0, 0);
     }
     n64 mlinzi = mfumo_gawanyika();
@@ -71,12 +71,12 @@ w0 ji_shindwa(n8* faili, n8* sababu) {
 }
 
 w0 ji_jaribu(n8* stage1, n8* faili, n8** mazingira) {
-    n8* hoja_mstari[4];
-    hoja_mstari[0] = stage1;
-    hoja_mstari[1] = "--exe";
-    hoja_mstari[2] = faili;
-    hoja_mstari[3] = 0;
-    n32 rc = ji_endesha(hoja_mstari, mazingira, "jengo/ir-linganisha/p", "jengo/ir-linganisha/p.kosa", 60);
+    n8* hoja_za_mstari[4];
+    hoja_za_mstari[0] = stage1;
+    hoja_za_mstari[1] = "--exe";
+    hoja_za_mstari[2] = faili;
+    hoja_za_mstari[3] = 0;
+    n32 rc = ji_endesha(hoja_za_mstari, mazingira, "jengo/ir-linganisha/p", "jengo/ir-linganisha/p.kosa", 60);
     kama (rc != 0) { ji_shindwa(faili, "stage1 --exe haikukusanya"); rudisha; }
     wito_wa_mfumo(90, "jengo/ir-linganisha/p", 493, 0, 0, 0, 0);  // chmod 755
 
@@ -85,8 +85,8 @@ w0 ji_jaribu(n8* stage1, n8* faili, n8** mazingira) {
     hoja_mstari_p[1] = 0;
     n32 rc_asili = ji_endesha(hoja_mstari_p, mazingira, "jengo/ir-linganisha/asili", JI_TUPU, 10);
 
-    hoja_mstari[1] = "--tafsiri";
-    n32 rc_ir = ji_endesha(hoja_mstari, mazingira, "jengo/ir-linganisha/ir", "jengo/ir-linganisha/ir.kosa", 120);
+    hoja_za_mstari[1] = "--tafsiri";
+    n32 rc_ir = ji_endesha(hoja_za_mstari, mazingira, "jengo/ir-linganisha/ir", "jengo/ir-linganisha/ir.kosa", 120);
     kama (rc_ir == 2) {
         n64 n = faili_soma_yote("jengo/ir-linganisha/ir.kosa", ji_bafa_a, 1048575);
         kama (n < 0) { n = 0; }
@@ -111,19 +111,19 @@ w0 ji_jaribu(n8* stage1, n8* faili, n8** mazingira) {
 
 n8 ji_orodha[1048576];
 
-n32 main(n32 idadi_hoja, n8** hoja_mstari) {
-    kama (idadi_hoja < 3) {
+n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
+    kama (idadi_ya_hoja_za_mstari < 3) {
         andika_stderr("matumizi: jaribu_ir <stage1> <orodha>\n");
         rudisha 1;
     }
     n32 i = 0;
-    wakati (hoja_mstari[i] != 0) { i = i + 1; }
-    n8** mazingira = hoja_mstari + (i + 1);
+    wakati (hoja_za_mstari[i] != 0) { i = i + 1; }
+    n8** mazingira = hoja_za_mstari + (i + 1);
     mfumo_unda_saraka("jengo/ir-linganisha", 493);
 
-    n64 n = faili_soma_yote(hoja_mstari[2], ji_orodha, 1048575);
+    n64 n = faili_soma_yote(hoja_za_mstari[2], ji_orodha, 1048575);
     kama (n <= 0) {
-        andika_stderr("jaribu_ir: orodha haisomeki: %s\n", hoja_mstari[2]);
+        andika_stderr("jaribu_ir: orodha haisomeki: %s\n", hoja_za_mstari[2]);
         rudisha 1;
     }
     ji_orodha[n] = 0;
@@ -133,7 +133,7 @@ n32 main(n32 idadi_hoja, n8** hoja_mstari) {
         wakati (p < n && ji_orodha[p] != 10) { p = p + 1; }
         ji_orodha[p] = 0;
         kama (p > mwanzo && ji_orodha[mwanzo] != 35) {  // si mstari tupu wala maoni (#)
-            ji_jaribu(hoja_mstari[1], ji_orodha + mwanzo, mazingira);
+            ji_jaribu(hoja_za_mstari[1], ji_orodha + mwanzo, mazingira);
         }
         p = p + 1;
     }

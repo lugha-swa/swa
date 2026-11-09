@@ -36,6 +36,19 @@ inayoruhusiwa kubadilika.
    `ptr`) si kifupisho tena: hutumia neno kamili la Kiswahili au kifupisho
    chake kilichoamuliwa hapa.
 
+5. **Mpangilio wa asili wa Kiswahili.** Kichwa kwanza, kisha kiunganishi
+   kinachokubaliana na ngeli yake: `idadi_ya_lebo` (si `lebo_idadi`),
+   `jina_la_kazi`, `urefu_wa_mfuatano`, `kina_cha_kitanzi`,
+   `ofseti_ya_jina_la_kigeu`. Kichwa kinachohesabu huchukua wingi:
+   `idadi_ya_vigeu`, `dimbwi_la_majina`. Majina yanayoanza na kitenzi
+   (`andika_`, `soma_`, `pata_`) tayari ni ya asili. Viambishi vya nafasi
+   ya majina (`kigeni_`, `wasm_`, `mti_`, `jr_`) hubaki mbele:
+   `kigeni_idadi_ya_kazi`, `mti_ofseti_ya_jina`.
+6. **Neno la lugha halilazimishwi na msimbo.** Mgongano wa majina
+   hutatuliwa kwa kubadilisha msimbo, si kwa kuchagua neno lisilo sahihi
+   (mf. `toa` ni kutoa; kiambishi cha kutoa msimbo kilihamishwa kuwa
+   `zalisha_`).
+
 ## Lugha yenyewe
 
 | Kiingereza | Swa | Maelezo |

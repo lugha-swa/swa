@@ -46,10 +46,10 @@ w0 jm_kagua(n64 halisi, n64 tarajiwa, n8* maelezo) {
 // Dominion -- angalia moduli/onyesho/wayland/mazingira.swa huko,
 // imethibitishwa dhidi ya shell halisi).
 // ---------------------------------------------------------------
-n8** jm_pata_mazingira(n8** hoja_mstari) {
+n8** jm_pata_mazingira(n8** hoja_za_mstari) {
     n64 i = 0;
-    wakati (hoja_mstari[i] != 0) { i = i + 1; }
-    rudisha hoja_mstari + (i + 1);
+    wakati (hoja_za_mstari[i] != 0) { i = i + 1; }
+    rudisha hoja_za_mstari + (i + 1);
 }
 
 // ---------------------------------------------------------------
@@ -264,8 +264,8 @@ w0 jm_jaribu_kata(n8* MBEGU, n8* STAGE1, n8** mazingira, n8* faili, n8* mnyororo
     kama (urefu_wa_mfuatano(kipande) == 0) { kipande = "jina la aina"; }
     n8* binary = MBEGU;
     kama (linganisha_mfuatano(mnyororo, "stage1") == 0) { binary = STAGE1; }
-    n8** hoja_mstari = jm_hoja_mstari3(binary, "--exe", faili);
-    n32 rc = jm_kusanya(binary, hoja_mstari, mazingira, "/tmp/swa-mnyororo-asili/p", "/tmp/swa-mnyororo-asili/p.err");
+    n8** hoja_za_mstari = jm_hoja_mstari3(binary, "--exe", faili);
+    n32 rc = jm_kusanya(binary, hoja_za_mstari, mazingira, "/tmp/swa-mnyororo-asili/p", "/tmp/swa-mnyororo-asili/p.err");
     n32 ni_ujumbe = jm_mafaili_mawili_yana_kipande("/tmp/swa-mnyororo-asili/p", "/tmp/swa-mnyororo-asili/p.err", kipande);
     n32 ni_tupu = jm_faili_lipo_na_lina_ukubwa("/tmp/swa-mnyororo-asili/p");
     n32 sahihi = 0;
@@ -274,8 +274,8 @@ w0 jm_jaribu_kata(n8* MBEGU, n8* STAGE1, n8** mazingira, n8* faili, n8* mnyororo
 }
 
 w0 jm_jaribu_moja(n8* binary, n8** mazingira, n8* faili, n64 tarajiwa, n8* jina_mnyororo) {
-    n8** hoja_mstari = jm_hoja_mstari3(binary, "--exe", faili);
-    n32 rc_kusanya = jm_kusanya(binary, hoja_mstari, mazingira, "/tmp/swa-mnyororo-asili/p", JM_TUPU);
+    n8** hoja_za_mstari = jm_hoja_mstari3(binary, "--exe", faili);
+    n32 rc_kusanya = jm_kusanya(binary, hoja_za_mstari, mazingira, "/tmp/swa-mnyororo-asili/p", JM_TUPU);
     kama (rc_kusanya != 0) {
         andika_stderr("SHINDWA: kukusanya %s kwa %s\n", faili, jina_mnyororo, 0, 0, 0, 0);
         JM_SHINDWA = JM_SHINDWA + 1;
@@ -289,14 +289,14 @@ w0 jm_jaribu_moja(n8* binary, n8** mazingira, n8* faili, n64 tarajiwa, n8* jina_
     jm_kagua(msimbo, tarajiwa, faili);
 }
 
-n32 main(n32 idadi_hoja, n8** hoja_mstari) {
-    kama (idadi_hoja < 3) {
+n32 main(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
+    kama (idadi_ya_hoja_za_mstari < 3) {
         andika_stderr("Matumizi: jaribu_mnyororo <njia-ya-mbegu> <njia-ya-msuluhishi>\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
-    n8** mazingira = jm_pata_mazingira(hoja_mstari);
-    n8* MBEGU = hoja_mstari[1];
-    n8* MSULUHISHI = hoja_mstari[2];
+    n8** mazingira = jm_pata_mazingira(hoja_za_mstari);
+    n8* MBEGU = hoja_za_mstari[1];
+    n8* MSULUHISHI = hoja_za_mstari[2];
 
     mfumo_unda_saraka("/tmp/swa-mnyororo-asili", 493);
 
@@ -357,13 +357,13 @@ n32 main(n32 idadi_hoja, n8** hoja_mstari) {
 
         kama (urefu_wa_mfuatano(mstari) == 0) { endelea; }
 
-        n32 idadi_sehemu = jm_mgawanyo_mstari(mstari, nafasi);
+        n32 idadi_ya_sehemu = jm_mgawanyo_mstari(mstari, nafasi);
         n8* code = nafasi[0];
         n8* faili = nafasi[2];
         n8* mnyororo = "";
-        kama (idadi_sehemu >= 4) { mnyororo = nafasi[3]; }
+        kama (idadi_ya_sehemu >= 4) { mnyororo = nafasi[3]; }
         n8* ujumbe = "";
-        kama (idadi_sehemu >= 5) { ujumbe = nafasi[4]; }
+        kama (idadi_ya_sehemu >= 5) { ujumbe = nafasi[4]; }
 
         // Hakuna kuruka kimya: kila mstari ni KATA au namba ya kutoka.
         kama (linganisha_mfuatano(code, "KATA") != 0 && (code[0] < 48 || code[0] > 57)) {
