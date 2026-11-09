@@ -41,15 +41,15 @@ n32 linganisha_kumbukumbu(n8* a, n8* b, n64 n) {
 // na daraja la C kwa mbegu. Haina tangazo la .swa: kila mkaguzi
 // (wa mbegu na wa stage1) hujenga saini kutoka hoja halisi za wito.
 
-n64 sys_soma(n32 faili, n8* bafa, n64 urefu) {
+n64 mfumo_soma(n32 faili, n8* bafa, n64 urefu) {
     rudisha wito_wa_mfumo(0, faili, bafa, urefu, 0, 0, 0);
 }
 
-n64 sys_andika(n32 faili, n8* bafa, n64 urefu) {
+n64 mfumo_andika(n32 faili, n8* bafa, n64 urefu) {
     rudisha wito_wa_mfumo(1, faili, bafa, urefu, 0, 0, 0);
 }
 
-n64 sys_fungua(n8* njia, n64 bendera, n64 ruhusa) {
+n64 mfumo_fungua(n8* njia, n64 bendera, n64 ruhusa) {
     // Hoja ya 3 (hali) ni ruhusa za faili linaloundwa (mode) — kernel
     // inaitumia tu wakati O_CREAT iko kwenye bendera, vinginevyo
     // inapuuzwa. Awali ilipitishwa kama 0, hivyo faili zilizoundwa
@@ -57,15 +57,15 @@ n64 sys_fungua(n8* njia, n64 bendera, n64 ruhusa) {
     rudisha wito_wa_mfumo(2, njia, bendera, ruhusa, 0, 0, 0);
 }
 
-n64 sys_funga(n32 faili) {
+n64 mfumo_funga(n32 faili) {
     rudisha wito_wa_mfumo(3, faili, 0, 0, 0, 0, 0);
 }
 
-n64 sys_mmap(n8* anwani, n64 urefu, n64 ulinzi, n64 bendera, n64 faili) {
+n64 mfumo_ramani_kumbukumbu(n8* anwani, n64 urefu, n64 ulinzi, n64 bendera, n64 faili) {
     rudisha wito_wa_mfumo(9, anwani, urefu, ulinzi, bendera, faili, 0);
 }
 
-n64 sys_munmap(n8* anwani, n64 urefu) {
+n64 mfumo_ondoa_ramani_kumbukumbu(n8* anwani, n64 urefu) {
     rudisha wito_wa_mfumo(11, anwani, urefu, 0, 0, 0, 0);
 }
 
@@ -104,16 +104,16 @@ w0 andika_mfuatano(n32 faili, n8* s) {
     wakati (s[u] != 0) {
         u = u + 1;
     }
-    sys_andika(faili, s, u);
+    mfumo_andika(faili, s, u);
 }
 
 w0 andika_herufi(n32 faili, n64 b) {
     n8 bb = b;
-    sys_andika(faili, &bb, 1);
+    mfumo_andika(faili, &bb, 1);
 }
 
 w0 andika_sehemu(n32 faili, n8* s, n64 urefu) {
-    sys_andika(faili, s, urefu);
+    mfumo_andika(faili, s, urefu);
 }
 
 // ==========================================================
@@ -156,12 +156,12 @@ w0 andika_u64(n32 faili, n64 v) {
     kama (v < 0) {
         n64 u = v + 6;
         n64 d = u % 10;
-        n32 ni_has = 0;
-        kama (d < 0) { d = d + 10; ni_has = 1; }  // salio la C ni hasi
+        n32 ni_ina = 0;
+        kama (d < 0) { d = d + 10; ni_ina = 1; }  // salio la C ni hasi
         bafa[n] = d;
         n = n + 1;
         v = 1844674407370955161 + u / 10;
-        kama (ni_has) { v = v - 1; }  // urekebishaji wa gawanya la C
+        kama (ni_ina) { v = v - 1; }  // urekebishaji wa gawanya la C
     }
     wakati (1 == 1) {
         bafa[n] = v - ((v / 10) * 10);
@@ -280,7 +280,7 @@ n8* tenga(n64 ukubwa) {
         // Halisi 0 kwa kigezo cha kielekezi inakataliwa na ukaguzi
         // wa 2026-09-01 — tumia kielekezi cha sifuri wazi.
         n8* anwani_sifuri = 0;
-        arena_anwani = sys_mmap(anwani_sifuri, 1048576, 3, 34, 0 - 1);
+        arena_anwani = mfumo_ramani_kumbukumbu(anwani_sifuri, 1048576, 3, 34, 0 - 1);
         kama (arena_anwani == 0 - 1) { rudisha 0; }
     }
     kama (ukubwa == 0) { ukubwa = 8; }
@@ -340,7 +340,7 @@ n64 p2_kwa(n32 kubwa) {
     rudisha thamani;
 }
 
-n64 bits_ya_d64_swa(n8* ch, n32 u) {
+n64 biti_ya_d64_swa(n8* ch, n32 u) {
     n64 alama = 0;
     n32 fasi = 0;
     kama (ch[fasi] == 45) { alama = 1; fasi = fasi + 1; }
@@ -429,7 +429,7 @@ n64 soma_mstari(n32 faili, n8* bafa, n64 upeo) {
     n64 n = 0;
     wakati (n + 1 < upeo) {
         n8 ch = 0;
-        n64 r = sys_soma(faili, &ch, 1);
+        n64 r = mfumo_soma(faili, &ch, 1);
         kama (r <= 0) {
             kama (n == 0) {
                 rudisha -1;
@@ -463,18 +463,18 @@ n32 main() {
     // %x na %u za hasi: kukamilisha mbili (mdudu wa 2026-09-01 ulirekebishwa)
     n8 njia2[64];
     nakili(njia2, "_jaribio_k10h_hasi.txt", 22);
-    n64 fd = sys_fungua(njia2, 577, 420);
+    n64 fd = mfumo_fungua(njia2, 577, 420);
     kama (fd < 0) rudisha 21;
     n8 mu_heksa[64];
     nakili(mu_heksa, "%x %x %x %x %x %u\n", 21);
     andika_ndani(fd, mu_heksa, -1, -255, -9223372036854775808, 42, 0, -1);
-    sys_funga(fd);
+    mfumo_funga(fd);
     n8 bafa2[128];
     weka_sifuri(bafa2, 128);
-    n64 fd2 = sys_fungua(njia2, 0, 0);
+    n64 fd2 = mfumo_fungua(njia2, 0, 0);
     kama (fd2 < 0) rudisha 22;
-    n64 n = sys_soma(fd2, bafa2, 127);
-    sys_funga(fd2);
+    n64 n = mfumo_soma(fd2, bafa2, 127);
+    mfumo_funga(fd2);
     n8 t2[128];
     nakili(t2, "ffffffffffffffff ffffffffffffff01 8000000000000000 2a 0 18446744073709551615", 76);
     t2[76] = 10;
