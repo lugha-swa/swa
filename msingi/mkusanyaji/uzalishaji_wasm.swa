@@ -103,8 +103,8 @@ n32 wasm_import_idadi = 0;
 // inaongeza wasm_import_idadi kiotomatiki. Kazi za uingizaji (kazi za
 // nje) zinaitwa na wasm_op_call ghafi (faharisi 0..I-1 moja
 // kwa moja), SI kupitia hii.
-w0 wasm_kitendo_call_kazi(n32 kidx) {
-    wasm_kitendo_call(kidx + wasm_import_idadi);
+w0 wasm_kitendo_ita_kazi(n32 kidx) {
+    wasm_kitendo_ita(kidx + wasm_import_idadi);
 }
 
 // Kusanya herufi halisi (mfuatano) kwenye wasm_data_buf -- kioo cha
@@ -284,7 +284,7 @@ w0 wasm_kitendo_if(n32 bt) { wasm_baiti(4); wasm_baiti(bt & 255); }      // 0x04
 w0 wasm_kitendo_else() { wasm_baiti(5); }        // 0x05
 w0 wasm_kitendo_br(n32 kina) { wasm_baiti(12); wasm_uleb128(kina); }     // 0x0C
 w0 wasm_kitendo_br_if(n32 kina) { wasm_baiti(13); wasm_uleb128(kina); }  // 0x0D
-w0 wasm_kitendo_call(n32 faharasa) { wasm_baiti(16); wasm_uleb128(faharasa); }     // 0x10
+w0 wasm_kitendo_ita(n32 faharasa) { wasm_baiti(16); wasm_uleb128(faharasa); }     // 0x10
 w0 wasm_kitendo_return() { wasm_baiti(15); }     // 0x0F
 w0 wasm_kitendo_drop() { wasm_baiti(26); }       // 0x1A
 w0 wasm_kitendo_unreachable() { wasm_baiti(0); } // 0x00
@@ -303,14 +303,14 @@ w0 wasm_kitendo_i32_gt_s() { wasm_baiti(74); }  // 0x4A
 w0 wasm_kitendo_i32_le_s() { wasm_baiti(76); }  // 0x4C
 w0 wasm_kitendo_i32_ge_s() { wasm_baiti(78); }  // 0x4E
 
-w0 wasm_kitendo_i32_add() { wasm_baiti(106); }  // 0x6A
-w0 wasm_kitendo_i32_sub() { wasm_baiti(107); }  // 0x6B
-w0 wasm_kitendo_i32_mul() { wasm_baiti(108); }  // 0x6C
-w0 wasm_kitendo_i32_div_s() { wasm_baiti(109); }  // 0x6D
+w0 wasm_kitendo_i32_jumlisha() { wasm_baiti(106); }  // 0x6A
+w0 wasm_kitendo_i32_punguza() { wasm_baiti(107); }  // 0x6B
+w0 wasm_kitendo_i32_zidisha() { wasm_baiti(108); }  // 0x6C
+w0 wasm_kitendo_i32_gawanya_n() { wasm_baiti(109); }  // 0x6D
 w0 wasm_kitendo_i32_rem_s() { wasm_baiti(111); }  // 0x6F
-w0 wasm_kitendo_i32_and() { wasm_baiti(113); }  // 0x71
-w0 wasm_kitendo_i32_or() { wasm_baiti(114); }   // 0x72
-w0 wasm_kitendo_i32_xor() { wasm_baiti(115); }  // 0x73
+w0 wasm_kitendo_i32_na() { wasm_baiti(113); }  // 0x71
+w0 wasm_kitendo_i32_au() { wasm_baiti(114); }   // 0x72
+w0 wasm_kitendo_i32_au_pekee() { wasm_baiti(115); }  // 0x73
 
 // Awamu 2: kumbukumbu, globals, na ukuaji wa kumbukumbu.
 // i32.load/i32.store: align=2 (mzani wa asili wa baiti 4), offset=0
@@ -547,8 +547,8 @@ w0 wasm_taja_anwani(n32 nodi, n32 kazi_nodi) {
     kama (faharasa != -1) {
         wasm_usemi(faharasa, kazi_nodi);
         wasm_kitendo_i32_const(4);
-        wasm_kitendo_i32_mul();
-        wasm_kitendo_i32_add();
+        wasm_kitendo_i32_zidisha();
+        wasm_kitendo_i32_jumlisha();
     }
 }
 
@@ -685,17 +685,17 @@ w0 wasm_usemi(n32 nodi, n32 kazi_nodi) {
 
     kama (aina == MTI_JUMLISHA || aina == MTI_TOFAUTI || aina == MTI_ZIDISHA ||
           aina == MTI_GAWANYA || aina == MTI_MODULO || aina == MTI_BITI_AU ||
-          aina == MTI_BITI_NA || aina == MTI_XOR) {
+          aina == MTI_BITI_NA || aina == MTI_AU_PEKEE) {
         wasm_usemi(mti_kushoto[nodi], kazi_nodi);
         wasm_usemi(mti_kulia[nodi], kazi_nodi);
-        kama (aina == MTI_JUMLISHA) { wasm_kitendo_i32_add(); }
-        kama (aina == MTI_TOFAUTI) { wasm_kitendo_i32_sub(); }
-        kama (aina == MTI_ZIDISHA) { wasm_kitendo_i32_mul(); }
-        kama (aina == MTI_GAWANYA) { wasm_kitendo_i32_div_s(); }
+        kama (aina == MTI_JUMLISHA) { wasm_kitendo_i32_jumlisha(); }
+        kama (aina == MTI_TOFAUTI) { wasm_kitendo_i32_punguza(); }
+        kama (aina == MTI_ZIDISHA) { wasm_kitendo_i32_zidisha(); }
+        kama (aina == MTI_GAWANYA) { wasm_kitendo_i32_gawanya_n(); }
         kama (aina == MTI_MODULO) { wasm_kitendo_i32_rem_s(); }
-        kama (aina == MTI_BITI_AU) { wasm_kitendo_i32_or(); }
-        kama (aina == MTI_BITI_NA) { wasm_kitendo_i32_and(); }
-        kama (aina == MTI_XOR) { wasm_kitendo_i32_xor(); }
+        kama (aina == MTI_BITI_AU) { wasm_kitendo_i32_au(); }
+        kama (aina == MTI_BITI_NA) { wasm_kitendo_i32_na(); }
+        kama (aina == MTI_AU_PEKEE) { wasm_kitendo_i32_au_pekee(); }
         rudisha;
     }
 
@@ -725,7 +725,7 @@ w0 wasm_usemi(n32 nodi, n32 kazi_nodi) {
             }
             wasm_usemi(hoja_t, kazi_nodi);
             wasm_tenga_kutumika = 1;
-            wasm_kitendo_call_kazi(wasm_tenga_faharasa);
+            wasm_kitendo_ita_kazi(wasm_tenga_faharasa);
             rudisha;
         }
 
@@ -739,7 +739,7 @@ w0 wasm_usemi(n32 nodi, n32 kazi_nodi) {
                 wasm_usemi(hoja_k, kazi_nodi);
                 hoja_k = mti_tiga[hoja_k];
             }
-            wasm_kitendo_call(kigeni_k);
+            wasm_kitendo_ita(kigeni_k);
             rudisha;
         }
 
@@ -758,7 +758,7 @@ w0 wasm_usemi(n32 nodi, n32 kazi_nodi) {
             wasm_usemi(hoja, kazi_nodi);
             hoja = mti_tiga[hoja];
         }
-        wasm_kitendo_call_kazi(kidx);
+        wasm_kitendo_ita_kazi(kidx);
         rudisha;
     }
 
@@ -1267,33 +1267,33 @@ w0 wasm_jenga_tenga_msaidizi() {
     // local2 = (param0 + 3) & ~3  (kupanga juu hadi baiti 4)
     wasm_kitendo_local_get(0);
     wasm_kitendo_i32_const(3);
-    wasm_kitendo_i32_add();
+    wasm_kitendo_i32_jumlisha();
     wasm_kitendo_i32_const(0 - 4);
-    wasm_kitendo_i32_and();
+    wasm_kitendo_i32_na();
     wasm_kitendo_local_set(2);
 
     // local3 = heap mpya = local1 + local2
     wasm_kitendo_local_get(1);
     wasm_kitendo_local_get(2);
-    wasm_kitendo_i32_add();
+    wasm_kitendo_i32_jumlisha();
     wasm_kitendo_local_set(3);
 
     // kama local3 > memory.size()*65536: kuza kumbukumbu
     wasm_kitendo_local_get(3);
     wasm_kitendo_memory_size();
     wasm_kitendo_i32_const(65536);
-    wasm_kitendo_i32_mul();
+    wasm_kitendo_i32_zidisha();
     wasm_kitendo_i32_gt_s();
     wasm_kitendo_if(WASM_VOID_BT);
         wasm_kitendo_local_get(3);
         wasm_kitendo_memory_size();
         wasm_kitendo_i32_const(65536);
-        wasm_kitendo_i32_mul();
-        wasm_kitendo_i32_sub();
+        wasm_kitendo_i32_zidisha();
+        wasm_kitendo_i32_punguza();
         wasm_kitendo_i32_const(65535);
-        wasm_kitendo_i32_add();
+        wasm_kitendo_i32_jumlisha();
         wasm_kitendo_i32_const(65536);
-        wasm_kitendo_i32_div_s();
+        wasm_kitendo_i32_gawanya_n();
         wasm_kitendo_memory_grow();
         wasm_kitendo_i32_const(0 - 1);
         wasm_kitendo_i32_eq();
