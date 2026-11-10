@@ -181,7 +181,7 @@ kimya. Mwitwaji alihesabu nafasi ya rafu kwa hoja za namba pekee, na
 desimali ya 9+ haikusomwa kabisa. Sasa mpangilio uliochanganyika
 hupakiwa kwa ofseti na hoja za rafu hubanwa (`hoja_kwa_sysv`), na
 mwitwaji ana kaunta moja ya rafu. Mipangilio iliyofanya kazi hubaki
-baiti zile zile. Jaribio: `majaribio/programu/jaribio_hoja_rafu_mchanganyiko.swa`.
+baiti zile zile. Jaribio: `majaribio/programu/jaribio_hoja_mrundikano_mchanganyiko.swa`.
   - Jedwali lote (interp, dynstr, dynsym, hash, rela, dynamic, phdr)
     huandikwa mwishoni mwa .data; e_phoff huelekeza kwenye phdr hizo,
     na phdr ya baiti 64-119 hubaki nakala ya PT_LOAD ile ile, hivyo

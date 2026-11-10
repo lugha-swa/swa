@@ -2996,7 +2996,7 @@ n32 pachika_chunguza_kujiita = 0;
 n8* pachika_chunguza_kigezo_jina[6];
 n32 pachika_chunguza_kigezo_idadi = 0;
 
-n32 pachika_chunguza_ni_paramu(n8* jina) {
+n32 pachika_chunguza_ni_kigezo(n8* jina) {
     n32 i = 0;
     wakati (i < pachika_chunguza_kigezo_idadi) {
         kama (pachika_jina_sawa(jina, pachika_chunguza_kigezo_jina[i])) { rudisha 1; }
@@ -3055,7 +3055,7 @@ w0 pachika_chunguza(n32 nodi_hii) {
         // ulimwengu kilichotajwa na F kingeweza kufasiriwa vibaya kama
         // kigezo cha ndani cha mwitaji ikiwa majina yanafanana kwa bahati).
         n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_hii];
-        kama (pachika_chunguza_ni_paramu(jina) == 0) { pachika_chunguza_ovyo = 1; }
+        kama (pachika_chunguza_ni_kigezo(jina) == 0) { pachika_chunguza_ovyo = 1; }
         pachika_chunguza(nne_ya_nodi[nodi_hii]);
         rudisha;
     }
@@ -3377,7 +3377,7 @@ n32 kujumuisha_kazi_ndogo(n32 nodi_ya_programu) {
 // wavu wa usalama halisi kwa mabadiliko haya yote.
 //
 // HATARI SITA ZILIZOZINGATIWA KWA MAKUSUDI (kila moja ina jaribio la
-// kudumu linaloambatana, angalia majaribio/programu/jaribio_licm_*):
+// kudumu linaloambatana, angalia majaribio/programu/jaribio_hamisha_nje_*):
 //
 // 1. HAKUNA OPERESHENI INAYOWEZA KUSHINDWA. Mgombea wa kuhamishwa
 //    huruhusiwa TU kama mizizi/matawi yake yote ni miongoni mwa: +,
@@ -3386,7 +3386,7 @@ n32 kujumuisha_kazi_ndogo(n32 nodi_ya_programu) {
 //    mgawanyo unaoweza kushindwa (kigawanyaji sifuri) juu ya kitanzi
 //    ambacho huenda kisitekelezwe kamwe kungegeuza programu
 //    isiyoanguka kuwa moja inayoanguka kabla kitanzi hakijaanza.
-//    (angalia jaribio_licm_mgawanyiko_hauhamishwi.swa)
+//    (angalia jaribio_hamisha_nje_mgawanyiko_hauhamishwi.swa)
 //
 // 2. HAKUNA OPERAND INAYOGUSA KUMBUKUMBU. Mgombea lazima ujengwe TU
 //    kutoka kwa vigezo vya moja kwa moja (vya ndani, vya ulimwengu,
@@ -3398,13 +3398,13 @@ n32 kujumuisha_kazi_ndogo(n32 nodi_ya_programu) {
 //    ndani ya mti mdogo hufanya mti huo mdogo usistahili KABISA --
 //    hakuna uchambuzi wa uwiano (alias analysis) unaohitajika kwa
 //    sababu hatuwezi kamwe kufikia hatua ambapo swali hilo lingekuwa
-//    muhimu. (angalia jaribio_licm_kumbukumbu_haihamishwi.swa)
+//    muhimu. (angalia jaribio_hamisha_nje_kumbukumbu_haihamishwi.swa)
 //
 // 3. KITANZI CHENYE WITO WOWOTE (AST_WITO) POPOTE NDANI YA MWILI WAKE
 //    (au sharti lake) HAKIGOMBEI LICM KABISA -- kizuizi kikali lakini
 //    salama dhidi ya uwiano kupitia wito (kazi iliyoitwa inaweza
 //    kubadilisha kigezo cha ulimwengu ambacho usemi "usiobadilika"
-//    unakitegemea). (angalia jaribio_licm_wito_huzuia_kitanzi.swa)
+//    unakitegemea). (angalia jaribio_hamisha_nje_wito_huzuia_mzunguko.swa)
 //
 // 4. TABIA YA "KITANZI KINACHOENDESHWA MARA SIFURI" HAIBADILIKI KAMWE.
 //    Njia salama iliyotumika: HATUONDOI, KUFUTA, WALA KUPANGA UPYA
@@ -3414,7 +3414,7 @@ n32 kujumuisha_kazi_ndogo(n32 nodi_ya_programu) {
 //    mwili (uwanja mmoja wa mzazi -- kushoto AU kulia) kuelekeza kwa
 //    hicho kigezo kipya. Hii ni "usukaji wa ngazi-ya-mti-mdogo"
 //    (subexpression-level splicing), SI uhamishaji wa taarifa nzima.
-//    (angalia jaribio_licm_mzunguko_sifuri.swa)
+//    (angalia jaribio_hamisha_nje_mzunguko_sifuri.swa)
 //
 // 5. UCHUNGUZI KAMILI WA MWILI MZIMA WA UBADILISHAJI, SI TAARIFA ZA
 //    NGAZI YA JUU TU -- usemi ni "usiobadilika" TU kama kila kigezo
@@ -3423,7 +3423,7 @@ n32 kujumuisha_kazi_ndogo(n32 nodi_ya_programu) {
 //    inaiga kwa makusudi mfano wa inl_scan (kuunganisha kazi ndogo)
 //    na kusanya_vigeu_vya_ndani (uzalishaji.swa) -- utembeaji kamili
 //    wa AST bila kudhania thamani zilizosimbwa (mf. -777777) kuwa
-//    nodi. (angalia jaribio_licm_ubadilishaji_ndani_ya_kama.swa)
+//    nodi. (angalia jaribio_hamisha_nje_ubadilishaji_ndani_ya_kama.swa)
 //
 // 6. WIGO WA KITANZI: "wakati" TU kwa awamu hii. Tumethibitisha
 //    kuwa "kwa" hufunguliwa (desugared) kuwa NODI ILE ILE ya
@@ -4369,7 +4369,7 @@ n32 urudufu_pitisha_maudhui(n32 mwanzo) {
     rudisha urudufu_mwanzo_sasa;
 }
 
-n32 sscse_boresha(n32 nodi_ya_programu) {
+n32 urudufu_wa_mstari_boresha(n32 nodi_ya_programu) {
     n32 nodi_hii = nodi_ya_kushoto[nodi_ya_programu];
     wakati (nodi_hii != -1) {
         kama (aina_ya_nodi[nodi_hii] == NODI_KAZI) {
