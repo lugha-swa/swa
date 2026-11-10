@@ -14,11 +14,11 @@ matokeo yako (hata "nimekagua X, sikuona tatizo") kwenye issue ya hazina.
 
 | # | Programu | Baiti | Faili la kusoma | Wito wa mfumo (strace) |
 |---|---|---|---|---|
-| 0 | `kwanza` (hex -> binary) | 393 | `hati/kwanza-baiti.md`, `msingi/kwanza.hex` | read, write, exit |
-| 0b | `kizinduzi` (kiendeshaji cha hatua) | 839 | `msingi/kizinduzi.hexc` (chanzo: `msingi/mfululizo/kizinduzi.swm`) | read, write, open, dup2, fork, wait4, execve, mkdir, exit |
-| 1 | `maoni` (hex + maoni) | 400 | `msingi/mfululizo/hatua1_maoni.hexc` | read, write, exit |
-| 2 | `lebo` (lebo na matawi) | 730 | `msingi/mfululizo/hatua2_lebo.hexc` | read, write, exit |
-| 3 | `kusanyiko0` (makro) | 1019 | `msingi/mfululizo/hatua3_kusanyiko0.hex2` | read, write, exit |
+| 0 | `kwanza` (heksa -> binary) | 393 | `hati/kwanza-baiti.md`, `msingi/kwanza.heksa` | read, write, exit |
+| 0b | `kizinduzi` (kiendeshaji cha hatua) | 839 | `msingi/kizinduzi.maoni` (chanzo: `msingi/mfululizo/kizinduzi.swm`) | read, write, open, dup2, fork, wait4, execve, mkdir, exit |
+| 1 | `maoni` (heksa + maoni) | 400 | `msingi/mfululizo/hatua1_maoni.maoni` | read, write, exit |
+| 2 | `mahali` (mahali na matawi) | 730 | `msingi/mfululizo/hatua2_mahali.maoni` | read, write, exit |
+| 3 | `kusanyiko0` (makro) | 1019 | `msingi/mfululizo/hatua3_kusanyiko0.mahali` | read, write, exit |
 
 Jumla: baiti 3381. Mbegu mbili (0 na 0b) ndizo binary pekee zilizogandishwa
 kwenye mzizi; hatua 1-3 hujengwa kutoka faili za maandishi wakati wa kila
@@ -31,7 +31,7 @@ lugha ya mashine ya Swa (`.swm`) -- unasomeka kama programu, si baiti.
    `hati/kwanza-baiti.md` inaeleza kila sehemu ya kichwa na msimbo.
 2. **`kizinduzi`** -- huendesha hatua zote za mwanzo. Kosa hapa lingeweza
    kubadilisha matokeo ya hatua yoyote.
-3. **`maoni`, `lebo`, `kusanyiko0`** -- kila moja huongeza kipengele kimoja
+3. **`maoni`, `mahali`, `kusanyiko0`** -- kila moja huongeza kipengele kimoja
    juu ya iliyotangulia.
 
 ## Kwa kila programu, kagua
@@ -54,27 +54,27 @@ lugha ya mashine ya Swa (`.swm`) -- unasomeka kama programu, si baiti.
 Kila amri hapa chini hutumia zana za nje tu kama wakaguzi.
 
 ```sh
-# baiti za faili == baiti za hex iliyoelezwa (bila programu zetu;
-# au `xxd -r -p msingi/kwanza.hex | cmp - msingi/kwanza.bin`)
-python3 -c 'import sys; print(bytes.fromhex(open(sys.argv[1]).read()) == open(sys.argv[2],"rb").read())' msingi/kwanza.hex msingi/kwanza.bin
-python3 -c 'import sys; print(bytes.fromhex(open(sys.argv[1]).read()) == open(sys.argv[2],"rb").read())' msingi/kizinduzi.hex msingi/kizinduzi.bin
+# baiti za faili == baiti za heksa iliyoelezwa (bila programu zetu;
+# au `xxd -r -p msingi/kwanza.heksa | cmp - msingi/kwanza.bin`)
+python3 -c 'import sys; print(bytes.fromhex(open(sys.argv[1]).read()) == open(sys.argv[2],"rb").read())' msingi/kwanza.heksa msingi/kwanza.bin
+python3 -c 'import sys; print(bytes.fromhex(open(sys.argv[1]).read()) == open(sys.argv[2],"rb").read())' msingi/kizinduzi.heksa msingi/kizinduzi.bin
 
 # disassembly huru ya msimbo (kiingilio 0x400078)
 objdump -D -b binary -m i386:x86-64 --adjust-vma=0x400000 \
         --start-address=0x400078 msingi/kizinduzi.bin
 
 # wito wa mfumo halisi wakati wa kukimbia
-strace -o s.txt msingi/kwanza.bin < msingi/kwanza.hex > /dev/null
+strace -o s.txt msingi/kwanza.bin < msingi/kwanza.heksa > /dev/null
 ```
 
-Kisha linganisha disassembly na maoni ya `.hexc` mstari kwa mstari.
+Kisha linganisha disassembly na maoni ya `.maoni` mstari kwa mstari.
 
 ## Kinachothibitishwa kiotomatiki (hakuhitaji kusomwa)
 
 - `./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi`: hatua zote hujengwa
   kutoka mbegu mbili, kisha mjenzi uliojengwa kutoka chanzo hulinganisha
-  kila binary iliyogandishwa (`mjenzi.bin`, `mbegu.bin`, `kizinduzi.bin` na
-  `.hex` zao). Hatua ya kwanza ya CI.
+  kila binary iliyogandishwa (`mjenzi.bin`, `awali.bin`, `kizinduzi.bin` na
+  `.heksa` zao). Hatua ya kwanza ya CI.
 - `gharama/jaribu-mfululizo-huru.mapishi`: kila hatua hujijenga yenyewe sawa
   kwa baiti, na kila kipengele na kosa la kila hatua lina jaribio.
 

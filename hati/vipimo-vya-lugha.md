@@ -625,7 +625,7 @@ muundo Nukta {
   .o), na wito wa kazi yoyote isiyofafanuliwa (hata baada ya C::)
   bado unakataliwa kwa sauti kama "kazi haijafafanuliwa".
 
-### 8.1 Kazi za nje (daraja la mashine)
+### 8.1 Kazi za nje (kiolesura cha mashine)
 
 Kazi iliyokwisha kukusanywa kwenye maktaba ya mfumo inatangazwa kwa
 kichwa cha Swa na kuitwa kama kazi nyingine yoyote. Muundo kamili na
@@ -681,7 +681,7 @@ nje "libm.so.6" {
 - `--wasm`: kila `nje "<moduli>"` huwa uingizaji wa WASM (moduli,
   alama); hoja na matokeo ni `n32`, kielekezi au `w0`. DOM hutoka
   `msingi/maktaba/kivinjari.swa` (`husisha { kivinjari.swa }`), na
-  `swa --wasm-js` huandika daraja la jumla la JS.
+  `swa --wasm-js` huandika kiolesura cha jumla cha JS.
 - Majaribio: `gharama/jaribu-kiolesura.mapishi` (`majaribio/kiolesura/`),
   `gharama/jaribu-wasm.mapishi` (`majaribio/wasm/`).
 
@@ -700,7 +700,7 @@ nje "libm.so.6" {
   uharibifu wa vigezo vya ndani -- kilichopimwa 2026-09-04) --
   inarekebishwa (mgandisho ujao wa mbegu).
 - `tekeleza(n8* kazi, n32 argc, n8** argv, n32 ofseti)` na
-  `anwani_ya_kazi(n8* jina)` -- visaidizi vya NDANI vya daraja la JIT
+  `anwani_ya_kazi(n8* jina)` -- visaidizi vya NDANI vya kiolesura cha JIT
   la mkusanyaji wa kujikusanya (`--papo`): havipo kwenye minyororo
   yote miwili kama kazi za lugha. Kipimo cha 2026-09-04: `tekeleza`
   inatambuliwa na MZALISHAJI kwa jina (badala ya wito halisi) hata
@@ -762,7 +762,7 @@ Muhtasari wa kilichopimwa 2026-09-04 kwenye minyororo yote miwili
 Kila kanuni katika hati hii ina mwenzake kwenye majaribio
 yanayoendeshwa na CI (`gharama/*.mapishi`: mnyororo huru, programu
 za `majaribio/programu/ORODHA.txt` kwenye minyororo yote miwili,
-mkazo, mifano, usakinishaji, IR, daraja la mashine, WASM, kernel)
+mkazo, mifano, usakinishaji, IR, kiolesura cha mashine, WASM, kernel)
 au kwenye fixpoint ya kujikusanya (stage2-exe == stage3-exe sawa
 kwa baiti).
 

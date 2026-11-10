@@ -1,16 +1,16 @@
 # Kwanza -- Baiti za Mkono
 
 Kwanza ni mkusanyaji wa kwanza wa Swa: program ya **baiti za mkono**
-(bila NASM, bila lugha nyingine) inayobadilisha hex -> binary. Ukubwa:
+(bila NASM, bila lugha nyingine) inayobadilisha heksa -> binary. Ukubwa:
 **baiti 393** (kichwa cha ELF 64 + kichwa cha programu 56 + msimbo 273).
 
-Kwanza inajijenga yenyewe na inazalisha `mbegu.bin` kutoka `mbegu.hex`.
+Kwanza inajijenga yenyewe na inazalisha `awali.bin` kutoka `awali.heksa`.
 Hii inafunga pengo la bootstrap: **hakuna zana ya nje inayohitajika
-kuzalisha mbegu.bin tena** -- baiti za mkono pekee.
+kuzalisha awali.bin tena** -- baiti za mkono pekee.
 
 Mnyororo:
 ```
-kwanza.hex (baiti za mkono)  ->  kwanza.bin  ->  mbegu.hex  ->  mbegu.bin
+kwanza.heksa (baiti za mkono)  ->  kwanza.bin  ->  awali.heksa  ->  awali.bin
 ```
 
 Uthibitisho: `gharama/kusanyiko.mapishi` (kwanza hujijenga yenyewe, kisha mnyororo huru) na `gharama/mfululizo.mapishi`.
@@ -48,7 +48,7 @@ Kumbukumbu baada ya msimbo ni bafa iliyoandikwa sifuri:
 
 ### Msimbo (baiti 273, kuanzia 0x400078)
 
-Msimbo unasoma hex kutoka stdin, unaruka herufi zisizo hex
+Msimbo unasoma heksa kutoka stdin, unaruka herufi zisizo heksa
 (nafasi, mistari mipya), unachanganya nibble mbili kuwa baiti moja,
 na unaandika matokeo kwenye stdout.
 
@@ -78,7 +78,7 @@ huwaharibu.)
 | 48 ff c3 | rbx++ |
 | 49 ff c8 | r8-- |
 | 3d 30 00 00 00 | linganisha na 48 ('0') |
-| 72 xx | chini -- ruka (si hex) |
+| 72 xx | chini -- ruka (si heksa) |
 | 3d 39 00 00 00 | linganisha na 57 ('9') |
 | 76 xx | chini au sawa -- tarakimu |
 | 3d 41 00 00 00 | linganisha na 65 ('A') |
@@ -127,7 +127,7 @@ huwaharibu.)
 | 0f 05 | syscall |
 
 Kuruka zenye `xx` ni displacements zinazokokotolewa kutoka nafasi za
-lebo za ndani -- zinaonekana kwenye `kwanza.hex`.
+mahali pa ndani -- zinaonekana kwenye `kwanza.heksa`.
 
 ## Historia ya Hitilafu Zilizopatikana Wakati wa Kuandika
 
@@ -138,5 +138,5 @@ lebo za ndani -- zinaonekana kwenye `kwanza.hex`.
    (si 2): `jg 05; jmp ...`.
 4. Uanzishaji wa bafa ya kuandika ufanyike **mara moja tu** -- katika
    kila mzunguko wa kusoma ulikuwa unafuta pato lililojazwa.
-5. Maoni katika faili la hex hayaruhusiwi kuwa na tarakimu au herufi
-   a-f -- yangechakatwa kama nibbles. Kwanza.hex ni hex safi.
+5. Maoni katika faili la heksa hayaruhusiwi kuwa na tarakimu au herufi
+   a-f -- yangechakatwa kama nibbles. Kwanza.heksa ni heksa safi.

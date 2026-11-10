@@ -32,7 +32,7 @@
 
 ### Mnyororo wa Kujikusanya wa Sasa
 
-1. `kwanza.bin` (baiti za mkono, hex -> binary) hutoa `mbegu.bin` kutoka `mbegu.hex`
+1. `kwanza.bin` (baiti za mkono, hex -> binary) hutoa `awali.bin` kutoka `awali.heksa`
 2. `mbegu --programu` (syscalls pekee, hakuna kiunganishi) hukusanya `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` -> `stage1-exe`
 3. `stage1-exe --programu` inajikusanya maktaba -> `stage2-exe`
 4. `stage2-exe --programu` inajikusanya -> `stage3-exe`
@@ -44,7 +44,7 @@ uthabiti wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti
 
 **JIT inafanya kazi (PR #143):** mmap -> opcodes -> rukia, na thamani ya
 kurudi inarudi kwa usahihi. Stub ya `jmp main`, tungo mwishoni mwa bafa,
-na daraja la C `tekeleza` kwa wito wa bafa (mbegu hana wito wa kielekezi).
+na kiolesura cha C `tekeleza` kwa wito wa bafa (mbegu hana wito wa kielekezi).
 
 **Uchunguzi muhimu wa usanifu:** `uzalishaji.swa` (mistari ~3,900) hukusanya
 moja kwa moja kutoka AST, SI kutoka IR. `mteremko.swa` hutoa IR lakini
@@ -108,8 +108,8 @@ asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
 
 - [x] **Baiti za mkono:** Kwanza (msingi/kwanza.bin) -- baiti 393 zilizoandikwa
       kwa mkono (ELF 64 + phdr 56 + msimbo 273) hubadilisha hex hadi binary.
-      Inajijenga (kwanza.hex -> kwanza.bin) na inazalisha mbegu.bin kutoka
-      mbegu.hex -- NASM si sehemu ya mnyororo wa uzalishaji tena.
+      Inajijenga (kwanza.heksa -> kwanza.bin) na inazalisha awali.bin kutoka
+      awali.heksa -- NASM si sehemu ya mnyororo wa uzalishaji tena.
       Uthibitisho: gharama/mfululizo.mapishi (pia kwenye CI).
 - [x] **Kiunganishi cha kujitegemea:** bendera ya `--programu` inatoa ET_EXEC
       tuli (syscalls pekee, hakuna kichwa cha sehemu) -- stage2-exe
@@ -143,7 +143,7 @@ Angalia [`CONTRIBUTING.md`](../CONTRIBUTING.md). Masuala yenye lebo `good-first-
 ## Vipaumbele vya Sasa (Agosti 2026)
 
 1. ~~Baiti za mkono~~ -- IMESHAFANYIKA (PR #147): Kwanza (baiti 393)
-   inazalisha mbegu.bin kutoka hex; NASM imeondolewa kwenye mnyororo
+   inazalisha awali.bin kutoka hex; NASM imeondolewa kwenye mnyororo
 2. ~~Kiunganishi cha kujitegemea~~ -- IMESHAFANYIKA: `--programu` inatoa ET_EXEC
    tuli inayojijenga yenyewe bila ld/gcc/libc (stage2-exe == stage3-exe)
 3. ~~Runtime ya syscalls~~ -- IMESHAFANYIKA (PR #149): syscalls moja kwa moja
@@ -169,4 +169,4 @@ Angalia [`CONTRIBUTING.md`](../CONTRIBUTING.md). Masuala yenye lebo `good-first-
 - PR #131-133, #141: marejeo ya mbele, hifadhi/upakiaji wa aina, husisha nukuu,
   AST_KWELI/UONGO/TUPU -- MERGED
 - PR #142: mnyororo kamili wa kujikusanya na makosa 0 ya mkaguzi -- MERGED
-- PR #143: JIT -- thamani ya kurudi, stub ya main, daraja la tekeleza -- MERGED
+- PR #143: JIT -- thamani ya kurudi, stub ya main, kiolesura cha tekeleza -- MERGED

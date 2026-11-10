@@ -27,7 +27,7 @@
 //                ni <thamani_tarajiwa> (thamani ya kisa kwenye gharama/jaribu-wasm.mapishi,
 //                si namba -- angalia majaribio/wasm/*.tarajiwa.json).
 //
-// Daraja (daraja la mashine, awamu 4): moduli hupakiwa kupitia daraja
+// Kiolesura cha mashine (awamu 4): moduli hupakiwa kupitia kiolesura
 // linalozalishwa na mkusanyaji (`kamili --wasm-js > jengo/wasm/swa-js.js`),
 // pamoja na hati bandia ya dom_bandia.js kama globalThis.document. Moduli
 // zisizo na uingizaji hupakiwa vivyo hivyo.

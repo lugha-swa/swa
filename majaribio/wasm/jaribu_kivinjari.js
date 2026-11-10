@@ -1,5 +1,5 @@
 // jaribu_kivinjari.js -- jaribio la mifano/kivinjari/kihesabu.swa kupitia
-// daraja linalozalishwa (`swa --wasm-js`) bila kivinjari: hati bandia
+// kiolesura kinachozalishwa (`swa --wasm-js`) bila kivinjari: hati bandia
 // yenye createElement/appendChild/setAttribute/textContent/
 // addEventListener tu -- yaani API ambazo kivinjari.swa inatumia.
 // Matumizi: node jaribu_kivinjari.js <kaunta.wasm> <swa-js.js>

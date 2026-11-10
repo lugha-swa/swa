@@ -115,7 +115,7 @@ Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hat
 | Lengo | Amri | Matokeo |
 |---|---|---|
 | Linux x86-64 | `bin/swa --programu p.swa > p` | ELF inayojitegemea |
-| WebAssembly | `bin/swa --wasm p.swa > p.wasm` | moduli ya `.wasm` kwa kivinjari; `bin/swa --wasm-js > swa-js.js` huandika daraja la jumla, na DOM na matukio ni Swa ([`msingi/maktaba/kivinjari.swa`](msingi/maktaba/kivinjari.swa); mfano: [`mifano/kivinjari/`](mifano/kivinjari/)) |
+| WebAssembly | `bin/swa --wasm p.swa > p.wasm` | moduli ya `.wasm` kwa kivinjari; `bin/swa --wasm-js > swa-js.js` huandika kiolesura cha jumla, na DOM na matukio ni Swa ([`msingi/maktaba/kivinjari.swa`](msingi/maktaba/kivinjari.swa); mfano: [`mifano/kivinjari/`](mifano/kivinjari/)) |
 | Ring 0 | `bin/swa --kiini p.swa > p.bin` | msimbo bapa kwa [Kawira](https://github.com/lugha-swa/kawira) (kazi ya kwanza lazima iwe `anza`) |
 | IR | `bin/swa --tafsiri p.swa` / `bin/swa --kati p.swa` | tekeleza au chapisha [IR ya mstari](hati/ir.md) -- msingi wa ARM64 na Mizani |
 
@@ -151,7 +151,7 @@ Mipaka inayojulikana imeandikwa wazi kwenye [hati/mipaka.md](hati/mipaka.md); ra
 | Njia | Maelezo |
 |---|---|
 | [`msingi/kwanza.bin`](msingi) | baiti 393 za mkono -- mwanzo wa mnyororo |
-| [`msingi/kizinduzi.bin`](msingi) | baiti 839 za mkono -- mbegu ya pili: huendesha hatua za mwanzo hadi mjenzi ujengwe kutoka chanzo chake ([`kizinduzi.hexc`](msingi/kizinduzi.hexc)) |
+| [`msingi/kizinduzi.bin`](msingi) | baiti 839 za mkono -- mbegu ya pili: huendesha hatua za mwanzo hadi mjenzi ujengwe kutoka chanzo chake ([`kizinduzi.maoni`](msingi/kizinduzi.maoni)) |
 | [`msingi/awali.swm`](msingi) | mbegu -- mkusanyaji mdogo uliogandishwa, kwa lugha ya mashine ya Swa; hujengwa na mnyororo huru |
 | [`msingi/mkusanyaji/`](msingi/mkusanyaji) | msomaji, mchanganuzi, mkaguzi, uzalishaji (x86-64 na WASM) |
 | [`msingi/maktaba/`](msingi/maktaba) | kumbukumbu, mfuatano, orodha, ramani, faili, hesabu, takwimu, ... |

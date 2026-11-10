@@ -19,7 +19,7 @@ Minyororo iliyopimwa:
   awali kilitumia gandisho f12e134 (2026-09-01 12:03); kundi la
   marekebisho f13416d (2026-09-02) lilifunga vipengee vya mbegu
   vilivyoorodheshwa katika sehemu ya 8 na 9, na mbegu iligandishwa
-  tena. Gandisho la sasa la mbegu.bin: 415e692 (2026-09-04).
+  tena. Gandisho la sasa la awali.bin: 415e692 (2026-09-04).
   Vipengee vya sehemu ya 8 na 9 vinarejelea mbegu ya sasa.
 - **uzalishaji** -- stage1 iliyojengwa leo kutoka `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` kupitia
   mbegu (`--programu`, chmod +x). Mnyororo wa kujikusanya: fixpoint

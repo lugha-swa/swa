@@ -1,9 +1,9 @@
 // dom_bandia.js -- hati (document) bandia isiyo na tegemeo la nje (hakuna
 // jsdom/puppeteer -- Node haina `document`), kwa majaribio ya WASM.
 //
-// Daraja la mashine (awamu 4): programu ya Swa haiiti DOM moja kwa moja.
+// Kiolesura cha mashine (awamu 4): programu ya Swa haiiti DOM moja kwa moja.
 // msingi/maktaba/kivinjari.swa huita uingizaji wa moduli 'js' wa
-// daraja linalozalishwa na `swa --wasm-js`, nalo huita API hizi za DOM:
+// kiolesura kinachozalishwa na `swa --wasm-js`, nalo huita API hizi za DOM:
 // createElement, appendChild, setAttribute, textContent,
 // addEventListener. Mock hii hutoa API hizo pekee -- hivyo majaribio
 // hupima mnyororo mzima: Swa -> kivinjari.swa -> swa-js.js -> DOM.
