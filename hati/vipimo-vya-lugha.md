@@ -52,9 +52,11 @@ Kiswahili kwa mkongwe.
 
 Kiingilio cha programu ni kazi `anza` (kama `anza:` ya lugha ya
 mashine), na kazi ya ndani ya kuandika kwenye mkondo wa makosa ni
-`andika_kosa`. Maneno ya zamani `vunja`, `main` na `andika_stderr`
-bado yanakusanywa na stage1 kwa toleo moja, kwa onyo, ili miradi
-mingine ihamie; mbegu inajua maneno mapya pekee.
+`andika_kosa`. Maneno ya v0.0.1 `vunja`, `main` na `andika_stderr`
+(pamoja na `kernel_main`, `kbd_scancode`, bendera `--exe`/`--kernel`/`--ir`/`--jit`
+na majina 33 ya maktaba) yameondolewa: si maneno muhimu tena, na
+programu ikiyatumia bila kuyafafanua, kosa linataja jina jipya
+(`kosa: 'vunja' imeondolewa -- tumia 'acha'`).
 
 Maneno muhimu hayawezi kutumika kama majina ya vitambulisho.
 `tenga` si neno muhimu -- ni kazi ya kawaida ya maktaba (sehemu 10):
