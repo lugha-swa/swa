@@ -1,10 +1,10 @@
 husisha { msingi/maktaba/kumbukumbu.swa }
 
 // jaribio_mfumo_ishara_subiri_saraka.swa -- jaribio la kudumu
-// linalothibitisha sys_kill/sys_nanosleep_sekunde/sys_mkdir
-// (mkusanyiko mpya wa kumbukumbu.swa, pamoja na sys_fork/sys_execve/
-// sys_wait4 -- angalia jaribio_mfumo_gawanyika_tekeleza_subiri.swa).
-// sys_kill+sys_nanosleep_sekunde ndizo msingi wa "mlinzi"
+// linalothibitisha mfumo_tuma_ishara/mfumo_subiri_nano_sekunde/mfumo_unda_saraka
+// (mkusanyiko mpya wa kumbukumbu.swa, pamoja na mfumo_gawanyika/mfumo_tekeleza_programu/
+// mfumo_subiri4 -- angalia jaribio_mfumo_gawanyika_tekeleza_subiri.swa).
+// mfumo_tuma_ishara+mfumo_subiri_nano_sekunde ndizo msingi wa "mlinzi"
 // (watchdog) wa muda wa kikomo (timeout) unaotumika na
 // gharama/jaribu_mfululizo.swa kwa kila programu ya jaribio
 // inayoendeshwa -- jaribio hili linathibitisha mtoto ANAYELALA
@@ -23,20 +23,20 @@ n32 anza() {
     n32 hali_ya = 0;
     mfumo_subiri4(kitambulisho_mchakato, &hali_ya, 0);
     kama (rc_tuma_ishara < 0) {
-        andika_kosa("FAIL: sys_kill ilishindwa\n", 0, 0, 0, 0, 0, 0);
+        andika_kosa("FAIL: mfumo_tuma_ishara ilishindwa\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
     kama (mfumo_subiri4_ulitoka_kwa_kawaida(hali_ya) == 1) {
         andika_kosa("FAIL: mtoto alitarajiwa kuuawa na ishara, si kutoka kwa kawaida\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
-    andika("PASS: sys_kill + sys_nanosleep_sekunde zinafanya kazi (mtoto aliuawa kabla ya sekunde 10)\n", 0, 0, 0, 0, 0, 0);
+    andika("PASS: mfumo_tuma_ishara + mfumo_subiri_nano_sekunde zinafanya kazi (mtoto aliuawa kabla ya sekunde 10)\n", 0, 0, 0, 0, 0, 0);
 
     n64 rc_unda_saraka = mfumo_unda_saraka("/tmp/jaribio-swa-mkdir-msingi", 493);
     kama (rc_unda_saraka < 0 && rc_unda_saraka != (0 - 17)) {
-        andika_kosa("FAIL: sys_mkdir ilishindwa rc=%d\n", rc_unda_saraka, 0, 0, 0, 0, 0);
+        andika_kosa("FAIL: mfumo_unda_saraka ilishindwa rc=%d\n", rc_unda_saraka, 0, 0, 0, 0, 0);
         rudisha 1;
     }
-    andika("PASS: sys_mkdir inafanya kazi (rc=%d, -17=tayari ipo ni sawa)\n", rc_unda_saraka, 0, 0, 0, 0, 0);
+    andika("PASS: mfumo_unda_saraka inafanya kazi (rc=%d, -17=tayari ipo ni sawa)\n", rc_unda_saraka, 0, 0, 0, 0, 0);
     rudisha 0;
 }

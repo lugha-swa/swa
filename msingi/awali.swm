@@ -684,7 +684,7 @@ kataa_neno_muhimu:
 
 ; -------------------------------------------------------
 ; kagua_muundo_wa_kamba: kagua muundo wa KAMBA HALISI (hoja ya
-; kwanza ya andika/andika_stderr) -- viungwa %d %s %c %% pekee
+; kwanza ya andika/andika_kosa) -- viungwa %d %s %c %% pekee
 ; (8.11: %u na %x katika muundo halisi zilikubaliwa kimya).
 ; Bwawa lina mfuatano ULIOTOROKISHWA (hakuna nukuu za mipaka) --
 ; sawa na mkaguzi wa mnyororo: jozi ya backslash (k.m. kutoka
@@ -1034,7 +1034,7 @@ andika_nambari:
         rudi
 
 ; -------------------------------------------------------
-; soma_chanzo_kutoka_stdin: soma chanzo chote kutoka stdin
+; soma_chanzo_kutoka_ingizo: soma chanzo chote kutoka stdin
 ; -------------------------------------------------------
 soma_chanzo_kutoka_ingizo:
         r6 = &[chombo_chanzo]
@@ -10967,7 +10967,7 @@ uzalishaji_wambile:
         ruka .hoja_idadi_chunguza
 .hoja_idadi_iko:
         r9d = r8d   ; faharisi ya kazi
-        ; andika/andika_stderr ni za kutofautiana -- ruka ukaguzi
+        ; andika/andika_kosa ni za kutofautiana -- ruka ukaguzi
         ; (mkia wao hupokea aina yoyote kwa ABI)
         r6 = r13
         r7 = &[jina_andika]
@@ -11083,7 +11083,7 @@ uzalishaji_wambile:
         sukuma r3   ; nyota ya hoja
         sukuma r0   ; aina ya hoja
         ; 8.11: muundo wa kamba halisi (hoja ya KWANZA ya andika/
-        ; andika_stderr) -- viungwa %d %s %c %% pekee; %u/%x vya
+        ; andika_kosa) -- viungwa %d %s %c %% pekee; %u/%x vya
         ; halisi vinakataliwa kwa sauti
         linganisha n32[r4 + 16], 0   ; faharisi ya hoja
         ruka .hoja_sio_kwanza kama !=
@@ -11104,7 +11104,7 @@ uzalishaji_wambile:
         r8d = n32[r4 + 64]   ; faharisi ya kazi
         linganisha r8d, 0
         ruka .hoja_kigezo_acha kama <n
-        ; Mkia wa kutofautiana: andika/andika_stderr (hoja 2+),
+        ; Mkia wa kutofautiana: andika/andika_kosa (hoja 2+),
         ; andika_ndani (hoja 3+) -- ruka ukaguzi (ABI hupitisha
         ; mkia kwa rejesta za N64 bila kukagua aina).
         r9d = n32[r4 + 16]   ; faharisi ya hoja
@@ -13979,7 +13979,7 @@ toa_elf:
         rudi
 
 ; -------------------------------------------------------
-; toa_elf_hesabu_strtab: hesabu ukubwa wa .strtab
+; zalisha_elf_hesabu_ya_jedwali_la_majina: hesabu ukubwa wa .strtab
 ;   rax = ukubwa
 ; -------------------------------------------------------
 zalisha_elf_hesabu_ya_jedwali_la_majina:
@@ -14073,7 +14073,7 @@ toa_elf_utangulizi:
         rudi
 
 ; -------------------------------------------------------
-; toa_elf_symtab: andika .symtab kwa stdout
+; zalisha_elf_jedwali_la_alama: andika .symtab kwa stdout
 ; -------------------------------------------------------
 zalisha_elf_jedwali_la_alama:
         sukuma r12
@@ -14195,7 +14195,7 @@ zalisha_elf_jedwali_la_alama:
         rudi
 
 ; -------------------------------------------------------
-; toa_elf_strtab: andika .strtab kwa stdout
+; zalisha_elf_jedwali_la_majina: andika .strtab kwa stdout
 ; -------------------------------------------------------
 zalisha_elf_jedwali_la_majina:
         sukuma r12
@@ -14248,7 +14248,7 @@ zalisha_elf_jedwali_la_majina:
         rudi
 
 ; -------------------------------------------------------
-; toa_elf_rela: andika .rela.text kwa stdout
+; zalisha_elf_urekebishaji: andika .rela.text kwa stdout
 ; -------------------------------------------------------
 zalisha_elf_urekebishaji:
         sukuma r12
@@ -14266,7 +14266,7 @@ zalisha_elf_urekebishaji:
         ; r_info = ELF64_R_INFO(sym, R_X86_64_PC32)
         ; Aina = 2 (R_X86_64_PC32)
         r7d = n32[alama_ya_urekebishaji + r12*4]
-        ; Angalia ikiwa ni rekebisho la .data (alama_rela == -1)
+        ; Angalia ikiwa ni rekebisho la .data (alama_ya_urekebishaji == -1)
         linganisha r7d, -1
         ruka .nje_hamisho kama !=
         ; Rekebisho la .data: tumia faharisi ya sehemu 2 (.data)
@@ -14281,7 +14281,7 @@ zalisha_elf_urekebishaji:
         r7 <<= 32
         r7 |= 2
         ita andika_neno8_moja_kwa_moja
-        ; r_addend kutoka nyongeza_rela (inaweza kuwa hasi)
+        ; r_addend kutoka nyongeza_ya_urekebishaji (inaweza kuwa hasi)
         r7 = n32[nyongeza_ya_urekebishaji + r12*4]
         ita andika_neno8_moja_kwa_moja
 
@@ -14293,7 +14293,7 @@ zalisha_elf_urekebishaji:
         rudi
 
 ; -------------------------------------------------------
-; toa_elf_shstrtab: andika .shstrtab kwa stdout
+; zalisha_elf_jedwali_la_majina_ya_sehemu: andika .shstrtab kwa stdout
 ; -------------------------------------------------------
 zalisha_elf_jedwali_la_majina_ya_sehemu:
         r6 = &[data_ya_jedwali_la_majina_ya_sehemu]
@@ -14454,7 +14454,7 @@ anza:
         ita mfumo_toka
 
 ; -------------------------------------------------------
-; toa_exe: toa ET_EXEC tuli moja kwa moja -- hakuna ld, hakuna libc.
+; zalisha_programu: toa ET_EXEC tuli moja kwa moja -- hakuna ld, hakuna libc.
 ;   Hii ndiyo hatua ya 0% bootstrap gap: mbegu inajenga exe ya
 ;   stage1 bila kiunganishi chochote.
 ;   Mpangilio wa faili: kichwa (64) + phdr (56) + stub ya _start
@@ -14505,7 +14505,7 @@ zalisha_programu:
         ; Rekebisho la .data: addend = data_offset - 4 (imefupishwa
         ; katika mbegu, si -4 kawaida). disp32 = S + addend - P:
         ; (text_size + data_offset) - 4 - pos = text_size + addend - pos.
-        ; Ongeza 4 hapa kwa sababu .rela_andika huondoa pos + 4.
+        ; Ongeza 4 hapa kwa sababu .andika_urekebishaji huondoa pos + 4.
         r2d = r12d
         r2d += r1d
         r2d += 4
@@ -14983,7 +14983,7 @@ toa_elf_rahisi:
         rudi
 
 ; -------------------------------------------------------
-; toa_elf_symtab_rahisi: toleo rahisi la .symtab
+; zalisha_elf_jedwali_la_alama_rahisi: toleo rahisi la .symtab
 ; -------------------------------------------------------
 zalisha_elf_jedwali_la_alama_rahisi:
         sukuma r12
@@ -15086,7 +15086,7 @@ zalisha_elf_jedwali_la_alama_rahisi:
         ita andika_baiti_moja_kwa_moja
         r7b = 0
         ita andika_baiti_moja_kwa_moja
-        ; st_shndx = 2 (.data) au 7 (.bss) kulingana na ulimwengu_ni_bss
+        ; st_shndx = 2 (.data) au 7 (.bss) kulingana na ulimwengu_ni_tupu
         r7d = n32[ulimwengu_ni_tupu + r12*4]
         linganisha r7d, 0
         ruka .ulimwengu_data kama ==
@@ -15145,7 +15145,7 @@ zalisha_elf_jedwali_la_alama_rahisi:
         rudi
 
 ; -------------------------------------------------------
-; toa_elf_strtab_rahisi: toleo rahisi la .strtab
+; zalisha_elf_jedwali_la_majina_rahisi: toleo rahisi la .strtab
 ; -------------------------------------------------------
 zalisha_elf_jedwali_la_majina_rahisi:
         sukuma r12
@@ -15202,7 +15202,7 @@ zalisha_elf_jedwali_la_majina_rahisi:
         rudi
 
 ; -------------------------------------------------------
-; toa_elf_rela_rahisi: toleo rahisi la .rela.text
+; zalisha_elf_urekebishaji_rahisi: toleo rahisi la .rela.text
 ; -------------------------------------------------------
 zalisha_elf_urekebishaji_rahisi:
         sukuma r12
@@ -15225,19 +15225,19 @@ zalisha_elf_urekebishaji_rahisi:
 
         ; r_info (aina = 2 kwa R_X86_64_PC32, sym = faharisi)
         r14d = n32[alama_ya_urekebishaji + r12*4]
-        ; Angalia ikiwa ni rekebisho la .data (alama_rela == -1)
+        ; Angalia ikiwa ni rekebisho la .data (alama_ya_urekebishaji == -1)
         linganisha r14d, -1
         ruka .ulimwengu_hamisho kama !=
         ; Rekebisho la .data: tumia faharisi ya sehemu 2
         r14d = 2
         ruka .habari_hamisho
 .ulimwengu_hamisho:
-        ; Angalia ikiwa ni rekebisho la kigezo cha ulimwengu (alama_rela <= -2)
+        ; Angalia ikiwa ni rekebisho la kigezo cha ulimwengu (alama_ya_urekebishaji <= -2)
         linganisha r14d, -1
         ruka .nje_hamisho kama >n
         ; Faharisi ya alama = 4 (null + .text + .data + .bss) + lebo_idadi + global_idx
         r14d = -r14d
-        r14d -= 2   ; global_idx = -(alama_rela + 2)
+        r14d -= 2   ; global_idx = -(alama_ya_urekebishaji + 2)
         r0 = n64[idadi_ya_mahali]
         r14d += r0d
         r14d += 4
@@ -15254,7 +15254,7 @@ zalisha_elf_urekebishaji_rahisi:
         r7 = r14
         ita andika_neno8_moja_kwa_moja
 
-        ; r_addend kutoka nyongeza_rela (inaweza kuwa hasi)
+        ; r_addend kutoka nyongeza_ya_urekebishaji (inaweza kuwa hasi)
         r7 = n32[nyongeza_ya_urekebishaji + r12*4]
         ita andika_neno8_moja_kwa_moja
 
@@ -15283,7 +15283,7 @@ toa_elf_vichwa_vya_sehemu_rahisi:
         ; data_size = [mahali_bafa_data]
         ; symtab_size = (3 + lebo_idadi + ulimwengu_idadi + nje_idadi) * 24
         ; strtab_size = tunahitaji kuhesabu
-        ; rela_size = rela_idadi * 24
+        ; rela_size = idadi_ya_urekebishaji_wa_elf * 24
 
         ; Hebu tukokotoe ofseti:
 
@@ -15397,7 +15397,7 @@ toa_elf_vichwa_vya_sehemu_rahisi:
         r7d += n32[chombo_cha_data_wapi]
         r7d += r14d
         ita andika_neno8_moja_kwa_moja
-        ; sh_size = strtab_size (tunakokotoa kwa kutumia toa_elf_hesabu_strtab)
+        ; sh_size = strtab_size (tunakokotoa kwa kutumia zalisha_elf_hesabu_ya_jedwali_la_majina)
         sukuma r14
         ita zalisha_elf_hesabu_ya_jedwali_la_majina
         vuta r14
@@ -15436,7 +15436,7 @@ toa_elf_vichwa_vya_sehemu_rahisi:
         vuta r7   ; Rejesha offset iliyokokotolewa
         r7d += r0d   ; + strtab_size
         ita andika_neno8_moja_kwa_moja
-        ; sh_size = rela_idadi * 24
+        ; sh_size = idadi_ya_urekebishaji_wa_elf * 24
         r7 = n64[idadi_ya_urekebishaji_wa_elf]
         r7 = r7 * 24
         r7d = r7d

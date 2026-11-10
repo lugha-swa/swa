@@ -2561,7 +2561,7 @@ w0 duru_ya_kutambua_anwani(n32 nodi) {
     // KAMWE kisingegunduliwa, na kigezo hicho kingekuwa mgombea WA
     // UONGO wa rejesta, kikisababisha uharibifu wa kimya wa data
     // (iligunduliwa: andika_herufi(faili, b) -- &bb ni hoja ya PILI
-    // ya sys_andika, bb ilipewa rejesta kimakosa, ikaandika baiti za
+    // ya mfumo_andika, bb ilipewa rejesta kimakosa, ikaandika baiti za
     // takataka badala ya herufi halisi).
     kama (aina == 8) {
         duru_ya_kutambua_anwani(nodi_ya_kushoto[nodi]);  // callee (kwa wito usio wa moja kwa moja, nadra)
@@ -2855,7 +2855,7 @@ w0 rekebisha_anwani_za_kazi() {
 // Rekebisha kianzio cha ulimwengu cha anwani ya kazi (&jina_la_kazi):
 // slot ya bafa_data inapata anwani kamili ya msimbo wa kazi =
 // 4194424 (0x400078 -- msingi wa .text wa exe, kama RELA za wito wa
-// nje katika uzalishaji_exe) + nafasi ya lebo. Hali ya .o haifiki
+// nje katika uzalishaji_programu) + nafasi ya lebo. Hali ya .o haifiki
 // hapa (uchunguzi wa awali unaikataa -- inahitaji RELA ya kiunganishi).
 w0 rekebisha_anwani_za_data() {
     n32 fi = 0;
@@ -3906,7 +3906,7 @@ w0 uzalishaji_chagua(n32 nodi, n32 nodi_ya_kazi) {
 // Utoaji wa wito wa kazi -- AST_WITO (8)
 // -------------------------------------------------------
 // =========================================================
-// Kawira (--kiini, hali_exe_sasa==2): kazi za msaada za vga_andika()
+// Kawira (--kiini, hali_ya_towe_sasa==2): kazi za msaada za vga_andika()
 // -- anwani mbili za kudumu: 0x9000 (kaka/cursor, n32 moja, chini ya
 // eneo la kupakia kernel 0x100000 -- HAKUNA sehemu ya .data kwenye
 // hali hii, hivyo hali hii ya kudumu HAILAZIMU kuwa "kigezo cha
@@ -4098,7 +4098,7 @@ w0 uzalishaji_vga_andika(n32 nodi, n32 nodi_ya_kazi) {
     }
 }
 
-// Ukaguzi wa wigo wa --kiini (hali_exe_sasa==2): tembea AST NZIMA
+// Ukaguzi wa wigo wa --kiini (hali_ya_towe_sasa==2): tembea AST NZIMA
 // KABLA ya msimbo wowote kutolewa, ukikataa ujenzi ulio nje ya wigo
 // kwa kosa la wazi (kioo cha wasm_kagua_enc_kigezo, Awamu 1 ya WASM).
 // PIA inathibitisha anza ni kazi ya KWANZA iliyotangazwa --
@@ -4200,7 +4200,7 @@ w0 kiini_kagua_taarifa(n32 nodi) {
 // kuvunja kikomo cha "vigezo vya ndani vimezidi 64" (uzalishaji_kuu
 // tayari iko karibu na kikomo -- imegunduliwa kwa vitendo: kuzijumlisha
 // hapo kuligeuza ujenzi wa kamili kutoka kwa kamili kuwa batili).
-// Rekebisha (patch) kila `rela_idadi` ya --kiini (hali_exe==2) kwa
+// Rekebisha (patch) kila `idadi_ya_urekebishaji_wa_elf` ya --kiini (hali_ya_towe==2) kwa
 // anwani ya JAMAA (relative) ndani ya bafa_text pekee -- angalia
 // maelezo kamili ya SABABU (mdudu wa RELA usioshughulikiwa) kwenye
 // maoni ya uzalishaji_kuu karibu na mahali hii inapoitwa.
@@ -4352,7 +4352,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     n32 nodi_ya_mwitwa = nodi_ya_kushoto[nodi];
     n8* mwitwa = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_mwitwa];
 
-    // --kiini (hali_exe_sasa==2, Kawira): I/O ya Linux (syscalls,
+    // --kiini (hali_ya_towe_sasa==2, Kawira): I/O ya Linux (syscalls,
     // andika, tekeleza) HAIPO -- hakuna kernel ya chini kuipokea.
     // vga_andika ni MPYA, PEKEE inayoruhusiwa kwa I/O, inatambuliwa
     // KWA JINA (kioo cha jinsi "ukubwa"/"urefu" tayari zinatambuliwa
@@ -5704,7 +5704,7 @@ n32 su_kina_cha_mzunguko = 0;
 // Idadi HALISI ya rejesta za SU zilizotengwa (RASMI, sehemu ya
 // "rejesta zinazotumika na kazi hii") kwa kazi INAYOSHUGHULIKIWA SASA
 // -- min(su_max_haja_kazi, 5 - rega_tumika_idadi), kukokotolewa MARA
-// MOJA TU baada ya finalisha_ugawaji_rejista() (angalia
+// MOJA TU baada ya kamilisha_ugawaji_wa_rejista() (angalia
 // uzalishaji_kazi). Rejesta zenye id [rega_tumika_idadi,
 // rega_tumika_idadi + su_rejestwa_idadi) sasa ni sehemu RASMI ya
 // utangulizi/mwisho wa kazi hii (rp_push/rp_pop_mwisho/rp_pop ya
@@ -9208,7 +9208,7 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
     kamilisha_ugawaji_wa_rejista();
     // Tenga rasmi rejesta za SU (angalia maelezo karibu na tangazo la
     // su_rejestwa_idadi juu ya faili hili) -- LAZIMA baada ya
-    // finalisha_ugawaji_rejista (inayohitaji rega_tumika_idadi ya
+    // kamilisha_ugawaji_wa_rejista (inayohitaji rega_tumika_idadi ya
     // MWISHO), na KABLA ya utangulizi wa kazi (rp_push chini hutumia
     // su_rejestwa_idadi). su_max_haja_kazi tayari imekokotolewa na
     // hook ndani ya kusanya_vigeu_vya_ndani hapo juu.
@@ -10470,7 +10470,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // miundo) ni kosa la kufa -- kabla ya kutoa msimbo wowote.
     hakiki_marudio_ya_ngazi_ya_juu(nodi_ya_programu);
 
-    // hali_exe==2 (--kiini, Kawira): programu ya mtumiaji LAZIMA
+    // hali_ya_towe==2 (--kiini, Kawira): programu ya mtumiaji LAZIMA
     // isitumie ujenzi usio na maana bila mfumo wa uendeshaji chini
     // (miundo, D32/D64, chagua, vigezo vya ulimwengu) -- ukaguzi wa
     // wigo unafanyika KABLA ya msimbo wowote kutolewa (kioo cha jinsi
@@ -10479,7 +10479,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
         kiini_kagua_wigo(nodi_ya_programu);
     }
 
-    // Katika hali ya exe (hali_exe==1): _start mwanzoni mwa .text --
+    // Katika hali ya exe (hali_ya_towe==1): _start mwanzoni mwa .text --
     // mov rdi,[rsp] (argc); lea rsi,[rsp+8] (argv); mov al,0; call
     // main (disp32 hurekebishwa baada ya main kutolewa); mov
     // rdi,rax; mov eax,60; syscall.
@@ -10502,7 +10502,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
         // 0 KABLA anza (LAZIMA iwe kazi ya KWANZA iliyotangazwa
         // -- angalia kernel_kagua_wigo -- kwa sababu hali hii ya
         // --kiini HAITOI ELF/_start yenye anwani ya "anza" iliyotafutwa
-        // kwa jina (kama hali_exe==1 inavyofanya kupitia main_off) --
+        // kwa jina (kama hali_ya_towe==1 inavyofanya kupitia main_off) --
         // ni baiti ghafi za .text TU, kiini.s (Kawira) inaita
         // "call anza" ikitegemea anza iko HASA kwenye
         // ofseti 0 ya pato).
@@ -10863,7 +10863,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // ya #301. Kataa HAPA -- kabla ya kichwa/.text/.data kuanza
     // kuandikwa (kioo cha jinsi ukaguzi wa "main haipo" hapa chini
     // unavyolia kwa sauti NA kutoka kabla ya kuandika baiti yoyote) --
-    // ili HAKUNA faili lenye uharibifu litolewe kwa hali_exe YOYOTE
+    // ili HAKUNA faili lenye uharibifu litolewe kwa hali_ya_towe YOYOTE
     // (exe, --kiini, .o).
     kama (msimbo_umefurika != 0) {
         andika_kosa("KOSA: uzalishaji wa msimbo umefurika bafa ya ndani (bafa_text au jedwali linalohusiana) -- sitatoa ELF iliyoharibika\n");
@@ -10894,7 +10894,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
         rudisha;
     }
 
-    // --kiini (hali_exe==2, Kawira): HAKUNA ELF, HAKUNA _start,
+    // --kiini (hali_ya_towe==2, Kawira): HAKUNA ELF, HAKUNA _start,
     // HAKUNA linker -- bafa_text (kaka ya mov [0x9000],0 + anza
     // + kazi zake za msaada zote, kwa mpangilio wa tangazo la chanzo)
     // ni pato LOTE moja kwa moja kwa stdout. Kawira's kiini.s inaingiza
@@ -10906,13 +10906,13 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // maendeleo, si dhana -- angalia jaribio_kazi_ya_mtumiaji.swa):
     // wito wa kazi ya MTUMIAJI iliyotangazwa BAADAYE kwenye chanzo
     // (wito wa mbele) HAUJAREKEBISHWI (fixed up) na chochote kwenye
-    // njia hii -- utaratibu wa `rela_idadi`/`nje_idadi` (RELA) upo,
-    // LAKINI unashughulikiwa TU na `uzalishaji_exe` (kwa hali_exe==1,
+    // njia hii -- utaratibu wa `idadi_ya_urekebishaji_wa_elf`/`nje_idadi` (RELA) upo,
+    // LAKINI unashughulikiwa TU na `uzalishaji_programu` (kwa hali_ya_towe==1,
     // ikitumia anwani KAMILI ya kudumu 0x400000+off), ambayo hali hii
     // (==2) HAIITWI kabisa. Bila kurekebisha wenyewe, `call` kwenda
     // kazi ya mbele huachwa na disp32=0 (yaani "call" inayoruka kwenye
     // agizo LINALOFUATA lenyewe -- kimya kabisa, HAKUNA SEGV, matokeo
-    // ni ya UONGO tu). Suluhisho: rekebisha kila `rela_idadi` MOJA KWA
+    // ni ya UONGO tu). Suluhisho: rekebisha kila `idadi_ya_urekebishaji_wa_elf` MOJA KWA
     // MOJA hapa, kwa anwani ya JAMAA (relative) ndani ya bafa_text
     // pekee (SIYO anwani kamili ya kudumu -- hakuna anwani ya kupakia
     // iliyowekwa mapema kwenye --kiini, `call rel32` ni "position
