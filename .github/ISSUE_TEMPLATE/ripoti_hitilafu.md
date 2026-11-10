@@ -11,7 +11,7 @@ assignees: []
 
 ## Hatua za Kuzalisha
 <!-- Orodhesha hatua za kuzalisha hitilafu -->
-1. Endesha `./stage1 --programu programu.swa` (au mbegu) na hoja...
+1. Endesha `bin/swa --programu programu.swa` (au `msingi/awali.bin`) na hoja...
 2. ...
 
 ## Matokeo Halisi
@@ -22,7 +22,7 @@ assignees: []
 
 ## Mazingira
 - Mfumo wa uendeshaji: 
-- Mnyororo uliotumika: mbegu au stage1
+- Mnyororo uliotumika: awali (`msingi/awali.bin`) au kamili (`bin/swa`)
 - Ukubwa wa mbegu.bin (baiti): 
 - Fixpoint (stage2 == stage3): ndiyo / hapana
 

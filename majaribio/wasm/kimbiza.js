@@ -21,7 +21,7 @@
 //                kulinganishwa moja kwa moja.
 //   dom       -- (Awamu 3) anza() haihitaji thamani ya kurudi maalum
 //                (inaweza kuwa 0/w0) -- baada ya kuiendesha, mti wa
-//                dom_mock.js (kuanzia nodi kuu, id=0) unalinganishwa
+//                dom_bandia.js (kuanzia nodi kuu, id=0) unalinganishwa
 //                (JSON.stringify iliyopangwa) na muundo tarajiwa
 //                uliohifadhiwa kwenye FAILI la JSON ambalo NJIA yake
 //                ni <thamani_tarajiwa> (thamani ya kisa kwenye gharama/jaribu-wasm.mapishi,
@@ -29,7 +29,7 @@
 //
 // Daraja (daraja la mashine, awamu 4): moduli hupakiwa kupitia daraja
 // linalozalishwa na mkusanyaji (`kamili --wasm-js > jengo/wasm/swa-js.js`),
-// pamoja na hati bandia ya dom_mock.js kama globalThis.document. Moduli
+// pamoja na hati bandia ya dom_bandia.js kama globalThis.document. Moduli
 // zisizo na uingizaji hupakiwa vivyo hivyo.
 //
 // Husoma faili, huthibitisha (WebAssembly.validate), huipakia kwa
@@ -39,7 +39,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const { createDomMock } = require("./dom_mock.js");
+const { createDomMock } = require("./dom_bandia.js");
 const { anzishaSwa } = require(process.env.SWA_JS || path.join(__dirname, "../../jengo/wasm/swa-js.js"));
 
 function shindwa(ujumbe) {

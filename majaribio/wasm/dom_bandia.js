@@ -1,4 +1,4 @@
-// dom_mock.js -- hati (document) bandia isiyo na tegemeo la nje (hakuna
+// dom_bandia.js -- hati (document) bandia isiyo na tegemeo la nje (hakuna
 // jsdom/puppeteer -- Node haina `document`), kwa majaribio ya WASM.
 //
 // Daraja la mashine (awamu 4): programu ya Swa haiiti DOM moja kwa moja.

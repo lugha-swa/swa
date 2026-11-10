@@ -761,7 +761,7 @@ Muhtasari wa kilichopimwa 2026-09-04 kwenye minyororo yote miwili
 
 Kila kanuni katika hati hii ina mwenzake kwenye majaribio
 yanayoendeshwa na CI (`gharama/*.mapishi`: mnyororo huru, programu
-za `majaribio/programu/MANIFEST.txt` kwenye minyororo yote miwili,
+za `majaribio/programu/ORODHA.txt` kwenye minyororo yote miwili,
 mkazo, mifano, usakinishaji, IR, daraja la mashine, WASM, kernel)
 au kwenye fixpoint ya kujikusanya (stage2-exe == stage3-exe sawa
 kwa baiti).

@@ -4,7 +4,7 @@ husisha { msingi/maktaba/faili.swa }
 
 // jaribu_mfululizo.swa -- mkimbiaji wa majaribio wa Swa ASILIA: ujenzi wa
 // kamili, fixpoint (stage2 == stage3), na kila programu ya
-// majaribio/programu/MANIFEST.txt kwa minyororo yote miwili, ukiendesha
+// majaribio/programu/ORODHA.txt kwa minyororo yote miwili, ukiendesha
 // michakato mingine (mbegu/kamili/programu za majaribio) kupitia
 // sys_fork/sys_execve/sys_wait4 (msingi/maktaba/kumbukumbu.swa) badala ya
 // bash. Majaribio ya mkazo na semantiki (wito 1,000 wa mbele, kwa/endelea,
@@ -255,7 +255,7 @@ n32 jm_mgawanyo_mstari(n8* mstari, n8** nje) {
 }
 
 // ---------------------------------------------------------------
-// Sehemu MOJA ya mzunguko wa MANIFEST (KATA au namba-ya-kutoka),
+// Sehemu MOJA ya mzunguko wa ORODHA (KATA au namba-ya-kutoka),
 // zikigawanywa kwa `mnyororo` (""=zote mbili, "kamili"=hiyo pekee,
 // "awali"=hiyo pekee) -- kioo cha mzunguko wa bash.
 // ---------------------------------------------------------------
@@ -336,13 +336,13 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         JM_SHINDWA = JM_SHINDWA + 1;
     }
 
-    // ============ Mzunguko wa MANIFEST.txt ============
-    n64 JM_UWEZO_MANIFEST = 1048576;
-    n8* manifest_chombo = tenga(JM_UWEZO_MANIFEST);
-    weka_sifuri(manifest_chombo, JM_UWEZO_MANIFEST);
-    n64 urefu = faili_soma_yote("majaribio/programu/MANIFEST.txt", manifest_chombo, JM_UWEZO_MANIFEST);
+    // ============ Mzunguko wa ORODHA.txt ============
+    n64 JM_UWEZO_WA_ORODHA = 1048576;
+    n8* chombo_cha_orodha = tenga(JM_UWEZO_WA_ORODHA);
+    weka_sifuri(chombo_cha_orodha, JM_UWEZO_WA_ORODHA);
+    n64 urefu = faili_soma_yote("majaribio/programu/ORODHA.txt", chombo_cha_orodha, JM_UWEZO_WA_ORODHA);
     kama (urefu < 0) {
-        andika_kosa("SHINDWA: MANIFEST.txt ni kubwa mno au haifunguki\n", 0, 0, 0, 0, 0, 0);
+        andika_kosa("SHINDWA: ORODHA.txt ni kubwa mno au haifunguki\n", 0, 0, 0, 0, 0, 0);
         rudisha 1;
     }
 
@@ -350,10 +350,10 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     n64 i = 0;
     wakati (i < urefu) {
         n64 mwanzo = i;
-        wakati (i < urefu && manifest_chombo[i] != 10) { i = i + 1; }
-        manifest_chombo[i] = 0;
+        wakati (i < urefu && chombo_cha_orodha[i] != 10) { i = i + 1; }
+        chombo_cha_orodha[i] = 0;
         i = i + 1;
-        n8* mstari = manifest_chombo + mwanzo;
+        n8* mstari = chombo_cha_orodha + mwanzo;
 
         kama (urefu_wa_mfuatano(mstari) == 0) { endelea; }
 
@@ -367,7 +367,7 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
 
         // Hakuna kuruka kimya: kila mstari ni KATA au namba ya kutoka.
         kama (linganisha_mfuatano(safu_ya_kwanza, "KATA") != 0 && (safu_ya_kwanza[0] < 48 || safu_ya_kwanza[0] > 57)) {
-            andika_kosa("SHINDWA: MANIFEST: safu ya kwanza si KATA wala namba: %s\n", safu_ya_kwanza, 0, 0, 0, 0, 0);
+            andika_kosa("SHINDWA: ORODHA: safu ya kwanza si KATA wala namba: %s\n", safu_ya_kwanza, 0, 0, 0, 0, 0);
             JM_SHINDWA = JM_SHINDWA + 1;
             endelea;
         }

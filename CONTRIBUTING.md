@@ -71,7 +71,7 @@ chmod +x mfano.bin && ./mfano.bin
 | `msingi/` | Mzizi wa uaminifu: kwanza (baiti za mkono), mbegu, bootstrap |
 | `msingi/maktaba/` | Maktaba ya kawaida ya Swa (kumbukumbu, mfuatano, orodha, ramani, hesabu, faili) |
 | `msingi/mkusanyaji/` | Mkusanyaji wa kujikusanya wa Swa (msomaji, msambazaji, mkaguzi, uzalishaji, mteremko -- IR, mtafsiri, stage1) |
-| `majaribio/` | Programu za majaribio za Swa (MANIFEST.txt) |
+| `majaribio/` | Programu za majaribio za Swa (ORODHA.txt) |
 | `gharama/` | Zana za ujenzi na majaribio |
 | `hati/` | Nyaraka za mradi |
 
@@ -94,7 +94,7 @@ iliyovunjika inaweza bado kutoa fixpoint imara LAKINI mbaya
 kimya kimya. Mfano halisi: uhariri mdogo wa njia ya fixup uliwahi
 kufanya kila mkusanyiko kushindwa -- ulipatikana tu kwa sababu jaribio
 la wito 1,000 lilikimbizwa kabla ya kugandisha. Jaribio hilo sasa ni
-mkazo wa RELA ndani ya `gharama/jaribu-mfululizo.mapishi` (`majaribio/mkazo/rela_1000.swa`) -- la kudumu.
+mkazo wa RELA ndani ya `gharama/jaribu-mfululizo.mapishi` (`majaribio/mkazo/urekebishaji_1000.swa`) -- la kudumu.
 
 Mpangilio wa lazima:
 1. Badilisha `msingi/awali.swm`.
