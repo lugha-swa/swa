@@ -40,7 +40,7 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
       kujikusanya wa exe ni safi kabisa: stage2-exe == stage3-exe
       (sawa kwa baiti) bila ld, gcc, wala libc.
 - [x] Runtime ya syscalls: mkusanyaji hautekelezi kupitia libc tena --
-      sys_open/sys_read/sys_write/sys_mmap kupitia wito_wa_mfumo;
+      mfumo_fungua/mfumo_soma/mfumo_andika/mfumo_ramani_kumbukumbu kupitia wito_wa_mfumo;
       undefined za nje za stage2-exe ni mbili tu (daraja za JIT).
 - [x] 0% bootstrap gap -- mbegu inatoa ET_EXEC tuli moja kwa moja
       (`--programu`): kichwa + phdr + stub ya `_start` + urekebishaji wa

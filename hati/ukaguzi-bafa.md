@@ -57,7 +57,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 | bafa_data (uzalishaji) | 256 KB | kama hapo juu | SALAMA KWA SAUTI |
 | lebo_*[2048] (uzalishaji) | 2048 | lebo_idadi < 2048 | SALAMA KWA UTHIBITISHO (kazi ~350) |
 | fixup_*[65536] (uzalishaji) | 65,536 | fixup_idadi < 65536 | SALAMA KWA UTHIBITISHO (fixups <= lebo ~2048) |
-| rela_*[65536] (uzalishaji) | 65,536 | rela_idadi < 65536 | SALAMA KWA UTHIBITISHO (RELA ~4,100 kwa kujikusanya) |
+| rela_*[65536] (uzalishaji) | 65,536 | idadi_ya_urekebishaji_wa_elf < 65536 | SALAMA KWA UTHIBITISHO (RELA ~4,100 kwa kujikusanya) |
 | data_ulimwengu_*[1024] | 1024 | idadi < 1024 | SALAMA KWA UTHIBITISHO (ulimwengu ~133) |
 | sehemu_*/desimali_*[1024] | 1024 | >= 1024 -> -1 | SALAMA KWA UTHIBITISHO (tungo ~100) |
 | hoja_*[32], hoja_bk[256] | 32/256 | idadi < 32 | SALAMA KWA UTHIBITISHO (hoja za wito <= 9) |

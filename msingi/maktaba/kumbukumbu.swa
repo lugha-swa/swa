@@ -57,7 +57,7 @@ n64 mfumo_funga(n32 faili) {
     rudisha wito_wa_mfumo(3, faili, 0, 0, 0, 0, 0);
 }
 
-// sys_lseek -- soga kiashiria cha faili. aina: 0=SEEK_SET, 1=SEEK_CUR,
+// mfumo_tafuta_nafasi -- soga kiashiria cha faili. aina: 0=SEEK_SET, 1=SEEK_CUR,
 // 2=SEEK_END. Hurudisha mahali papya (baiti kutoka mwanzo), au namba
 // hasi kwa kushindwa. Hutumika kupata ukubwa HALISI wa faili kabla
 // ya kusoma (lseek(fd, 0, SEEK_END)), ili kuepuka kukata maudhui
@@ -74,7 +74,7 @@ n64 mfumo_ondoa_ramani_kumbukumbu(n8* anwani, n64 urefu) {
     rudisha wito_wa_mfumo(11, anwani, urefu, 0, 0, 0, 0);
 }
 
-// sys_fork -- unda mchakato mtoto (child process) kwa kuiga mchakato
+// mfumo_gawanyika -- unda mchakato mtoto (child process) kwa kuiga mchakato
 // wa sasa kikamilifu (kumbukumbu, deskripta za faili zote). Hoja
 // ZOTE ni sifuri (fork() haina hoja kabisa). Hurudisha: 0 kwenye
 // mchakato MTOTO, PID ya mtoto (>0) kwenye mchakato MZAZI, namba
@@ -86,7 +86,7 @@ n64 mfumo_gawanyika() {
     rudisha wito_wa_mfumo(57, 0, 0, 0, 0, 0, 0);
 }
 
-// sys_execve -- badilisha picha YOTE ya mchakato wa SASA na programu
+// mfumo_tekeleza_programu -- badilisha picha YOTE ya mchakato wa SASA na programu
 // mpya (HAIRUDI kamwe ikiwa imefaulu -- mchakato wa sasa HAUPO tena,
 // umebadilishwa kikamilifu; ikirudi, ni HITILAFU, thamani hasi).
 // `argv`/`envp` ni safu za n8* (kielekezi cha mfuatano), ZIKIISHIA
@@ -99,11 +99,11 @@ n64 mfumo_tekeleza_programu(n8* njia, n8** hoja_za_mstari, n8** mazingira) {
     rudisha wito_wa_mfumo(59, njia, hoja_za_mstari, mazingira, 0, 0, 0);
 }
 
-// sys_wait4 -- subiri mchakato MTOTO abadilishe hali (kawaida: amalize
+// mfumo_subiri4 -- subiri mchakato MTOTO abadilishe hali (kawaida: amalize
 // kutekeleza). `pid`: >0 subiri MTOTO HUYO HASA, -1 subiri MTOTO
 // WOWOTE. `status_ptr`: kielekezi cha n32 MOJA ambapo kernel itaandika
 // hali ya kutoka iliyosimbwa (encoded) -- tumia
-// `sys_wait4_msimbo_wa_kutoka`/`sys_wait4_ulikufa_kwa_ishara` chini
+// `mfumo_subiri4_msimbo_wa_kutoka`/`sys_wait4_ulikufa_kwa_ishara` chini
 // kuichanganua, USIJARIBU kuisoma moja kwa moja (umbizo la kiwango
 // cha biti ni maalum kwa kernel, SI msimbo wa kutoka safi). `chaguo`:
 // 0 kwa tabia ya kawaida (subiri hadi mtoto amalize), WNOHANG=1
@@ -114,18 +114,18 @@ n64 mfumo_subiri4(n64 kitambulisho_mchakato, n32* hali_ya_kielekezi, n64 chaguo)
     rudisha wito_wa_mfumo(61, kitambulisho_mchakato, hali_ya_kielekezi, chaguo, 0, 0, 0);
 }
 
-// sys_wait4_msimbo_wa_kutoka -- toa msimbo wa kutoka (0-255) kutoka
+// mfumo_subiri4_msimbo_wa_kutoka -- toa msimbo wa kutoka (0-255) kutoka
 // kwenye thamani iliyoandikwa na kernel kwenye status_ptr ya
-// sys_wait4. Umbizo (angalia <bits/waitstatus.h> ya glibc/kernel):
+// mfumo_subiri4. Umbizo (angalia <bits/waitstatus.h> ya glibc/kernel):
 // biti 8-15 (((status) >> 8) & 0xff) ni msimbo wa kutoka IKIWA TU
-// mchakato ulitoka kwa kawaida (angalia sys_wait4_ulitoka_kwa_kawaida
+// mchakato ulitoka kwa kawaida (angalia mfumo_subiri4_ulitoka_kwa_kawaida
 // kwanza) -- HESABU ya / na % inatumika hapa kuepuka >> na & (mbegu
 // ina hitilafu kwenye hizo, kama ilivyoelezwa kote kwenye mradi).
 n32 mfumo_subiri4_msimbo_wa_kutoka(n32 hali_ya) {
     rudisha (hali_ya / 256) % 256;
 }
 
-// sys_wait4_ulitoka_kwa_kawaida -- 1 ikiwa mchakato ulitoka kwa
+// mfumo_subiri4_ulitoka_kwa_kawaida -- 1 ikiwa mchakato ulitoka kwa
 // wito wa kawaida wa exit() (SI kuuawa na ishara/signal). Umbizo:
 // biti 0-6 za status ni namba ya ishara (0 ikiwa ulitoka kwa
 // kawaida).
@@ -135,7 +135,7 @@ n32 mfumo_subiri4_ulitoka_kwa_kawaida(n32 hali_ya) {
     rudisha 0;
 }
 
-// sys_kill -- tuma ishara (signal) kwenye mchakato. `ishara`=9 ni
+// mfumo_tuma_ishara -- tuma ishara (signal) kwenye mchakato. `ishara`=9 ni
 // SIGKILL (toa mara moja, HAIWEZI kupuuzwa/kukamatwa) -- hutumika
 // kusitisha mchakato uliozidi muda wa kikomo (timeout). Kutuma
 // kwenye PID isiyokuwepo tena (mfano imekwisha toka yenyewe) ni
@@ -144,7 +144,7 @@ n64 mfumo_tuma_ishara(n64 kitambulisho_mchakato, n64 ishara) {
     rudisha wito_wa_mfumo(62, kitambulisho_mchakato, ishara, 0, 0, 0, 0);
 }
 
-// sys_nanosleep_sekunde -- lala kwa idadi kamili ya SEKUNDE (hoja
+// mfumo_subiri_nano_sekunde -- lala kwa idadi kamili ya SEKUNDE (hoja
 // pekee ya kutumika na kikomo cha muda cha mchakato wa "mlinzi" --
 // angalia maelezo ya pr_endesha_kwa_kikomo, gharama/jaribu_mfululizo.swa).
 // Hujenga muundo wa `timespec` (sekunde za n64 + nanosekunde za n64,
@@ -159,7 +159,7 @@ n64 mfumo_subiri_nano_sekunde(n64 sekunde) {
     rudisha wito_wa_mfumo(35, muda, 0, 0, 0, 0, 0);
 }
 
-// sys_mkdir -- unda saraka (haifanyi kazi kimya ikiwa TAYARI ipo --
+// mfumo_unda_saraka -- unda saraka (haifanyi kazi kimya ikiwa TAYARI ipo --
 // angalia maelezo ya matumizi, ambayo yanapaswa kupuuza hitilafu
 // "tayari ipo" badala ya kuikataa). `ruhusa` ya kawaida: 0755 (493).
 n64 mfumo_unda_saraka(n8* njia, n64 ruhusa) {
@@ -386,10 +386,10 @@ n64 ukubwa(n32 aina) {
 //
 // Suluhisho: arena ni sasa MNYORORO wa vipande vya mmap -- kipande
 // kimoja kinapojaa, kipande KIPYA kinatengwa (kwa ukubwa angalau
-// ARENA_UKUBWA_MSINGI, au kikubwa zaidi ikiwa utengaji mmoja
+// UKUBWA_WA_MSINGI_WA_ENEO_LA_UTENGAJI, au kikubwa zaidi ikiwa utengaji mmoja
 // unahitaji zaidi ya hapo) na utengaji unaendelea kutoka humo.
 // Vipande vya zamani havitolewi (kama ilivyokuwa tabia ya awali --
-// achilia_arena() imekuwa no-op ya kudumu kwa MAKUSUDI tangu
+// achilia_eneo_la_utengaji() imekuwa no-op ya kudumu kwa MAKUSUDI tangu
 // 2026-09-01, angalia maelezo yake chini; hakuna msimbo unaotegemea
 // ikirudisha kumbukumbu kwa kweli) lakini KIKOMO CHA JUMLA
 // hakipo tena -- kila kipande kipya kinapoisha, kingine kinatengwa.
@@ -407,7 +407,7 @@ n8* tenga(n64 ukubwa) {
     kama (anwani_ya_eneo_la_utengaji == 0 || nafasi_ndani_ya_eneo_la_utengaji + ukubwa > ukubwa_wa_eneo_la_utengaji) {
         // Hakuna kipande bado, AU kipande cha sasa hakina nafasi ya
         // kutosha -- tenga kipande KIPYA. Ukubwa wa kipande kipya ni
-        // angalau ARENA_UKUBWA_MSINGI, lakini mkubwa zaidi ikiwa
+        // angalau UKUBWA_WA_MSINGI_WA_ENEO_LA_UTENGAJI, lakini mkubwa zaidi ikiwa
         // utengaji huu mmoja unahitaji zaidi ya hapo (mfano: utengaji
         // mmoja wa MB kadhaa) -- hii inaepuka kupoteza kipande kizima
         // cha msingi kwa ombi moja kubwa, na inahakikisha ombi kubwa
@@ -449,12 +449,12 @@ w0 achilia_eneo_la_utengaji(n8* p) {
     // Hii inabaki no-op KWA MAKUSUDI hata baada ya #190 -- hakuna
     // mahali kwenye mkusanyaji huu au maktaba zake (orodha.swa,
     // ramani.swa) panapotegemea ikirudisha kumbukumbu kwa kweli;
-    // zote zinaita achilia_arena() kama "tumemaliza na hii" bila
+    // zote zinaita achilia_eneo_la_utengaji() kama "tumemaliza na hii" bila
     // kutegemea matokeo yoyote. Sasa kwamba arena inaweza kuwa
     // vipande vingi (si kimoja), munmap ya kweli ingehitaji
     // kufuatilia kila kipande na si salama kufungua kipande
     // kinachoshirikiwa na vitu vingine vilivyo hai bado -- muundo wa
-    // "achilia yote mara moja mwishoni" haufai kwa achilia_arena(p)
+    // "achilia yote mara moja mwishoni" haufai kwa achilia_eneo_la_utengaji(p)
     // ya kipande kimoja. Hii ni uamuzi wa makusudi, si upungufu.
 }
 
@@ -479,7 +479,7 @@ n8* badili(n8* p, n64 ukubwa) {
 
 // ==========================================================
 // Usomaji wa desimali halisi -- badala ya strtod (libc)
-// bits_ya_d64_swa: mfuatano [-]z.z -> baiti za d64 (IEEE 754)
+// biti_ya_d64_swa: mfuatano [-]z.z -> baiti za d64 (IEEE 754)
 // (majina ya kigeu hayawezi kuwa herufi za aina: N A B D W)
 //
 // lugha-swa/swa#188: tarakimu za kasoro (baada ya nukta) zaidi ya 10

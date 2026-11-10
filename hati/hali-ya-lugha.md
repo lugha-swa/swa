@@ -17,7 +17,7 @@ kikomo kimeandikwa na kikomo chake.
 | Miundo, kielekezi, &, nyoosha (sehemu, `->`, sret) | jaribio_k13_*; kikomo kilichopimwa 2026-08-27: safu za miundo zinaanguka SEGV kwa zote mbili, muundo kwa thamani ni takataka kwenye mbegu na unapoteza baiti > 8 kwenye uzalishaji |
 | JIT (--papo) NDANI ya exe | jaribio la CI: '; JIT: matokeo=42'; UND=0 kwenye exe |
 | Kujikusanya (0% bootstrap gap) | stage2 == stage3 sawa kwa baiti; kwanza -> mbegu -> stage1-exe |
-| Uthibitisho wa nje wa RELA | GNU ld inakubaliana na toa_exe sawa kwa baiti |
+| Uthibitisho wa nje wa RELA | GNU ld inakubaliana na zalisha_programu sawa kwa baiti |
 | Ukaguzi wa bafa (mbegu) | hati/ukaguzi-bafa.md -- kila mpaka unalia kwa sauti |
 | Mzunguko mfupi wa && na || KATIKA MBEGU (sawa na uzalishaji.swa) | jaribio_awali_mzunguko_mfupi (SEGV ya zamani) |
 | Usomaji wa stdin hadi EOF (bomba) -- matokeo yana uhakika | jaribio_awali_stdin_bomba_kubwa (mkato wa zamani) |

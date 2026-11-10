@@ -169,7 +169,7 @@ Sasa:
   mbegu/exe pekee) -- lakini hakuna njia ya msimbo isiyothibitishwa
   inayotumika kimya tena.
 
-Uthibitisho wa nje wa mnyororo (GNU ld dhidi ya toa_exe ya mbegu)
+Uthibitisho wa nje wa mnyororo (GNU ld dhidi ya zalisha_programu ya mbegu)
 unafunika njia ya mbegu/exe/RELA -- SI mwisho wa LLVM; ndiyo maana
 mwisho wa LLVM unabaki MAJARIBIO, si kitu cha uzalishaji.
 
@@ -211,7 +211,7 @@ bado inachakatwa kwa usahihi.
 
 Hatari ya zamani: wito wa kazi kutoka faili "lililoingizwa" bila
 kuunganisha ulikuwa ukitulia kimya kwa anwani 0 -- mchakato
-ulivunjika SEGV wakati wa utekelezaji. Sasa toa_exe inachapisha
+ulivunjika SEGV wakati wa utekelezaji. Sasa zalisha_programu inachapisha
 `Hitilafu: kazi haijafafanuliwa: <jina>` na kutoka kwa msimbo 1
 kwenye mnyororo wa uzalishaji (jaribio la kurejesha:
 jaribio_awali_kazi_kukosa). Mbegu inakataa kimya katika kesi
