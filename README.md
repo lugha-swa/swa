@@ -130,7 +130,7 @@ Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hat
 | **Biti** | familia `b` ni bendera na maski: `& \| ^ ~ << >> == !=` pekee -- hesabu na mpangilio (`+ - * / %`, `< >`) hazina maana kwa biti na zinakataliwa kwa sauti |
 | **Kumbukumbu** | `tenga` / `achilia` / `badili` -- moja kwa moja, bila ukusanyaji taka |
 | **Moduli** | `husisha { njia/ya/faili.swa }` -- hutatuliwa na mkusanyaji; mzunguko hukataliwa kwa sauti |
-| **Kanuni** | programu hukusanywa sahihi **au** hukataliwa kwa sauti. Jibu baya la kimya ni mdudu |
+| **Kanuni** | programu hukusanywa sahihi **au** hukataliwa kwa sauti. Jibu baya la kimya ni hitilafu |
 
 ## Hali ya mradi
 
@@ -173,7 +173,7 @@ Mipaka inayojulikana imeandikwa wazi kwenye [hati/mipaka.md](hati/mipaka.md); ra
 
 Michango inakaribishwa -- kila kitu kwenye mradi (msimbo, maoni, commits, PR) kiko kwa Kiswahili. Soma [CONTRIBUTING.md](CONTRIBUTING.md), kisha angalia [masuala ya waanzishaji](https://github.com/lugha-swa/swa/labels/good-first-issue). Mabadiliko yote huingia kupitia PR; `main` inalindwa na CI lazima iwe kijani.
 
-Ripoti mdudu kwenye [Issues](https://github.com/lugha-swa/swa/issues), uliza swali kwenye [Discussions](https://github.com/lugha-swa/swa/discussions). Masuala ya usalama: [SECURITY.md](SECURITY.md).
+Ripoti hitilafu kwenye [Issues](https://github.com/lugha-swa/swa/issues), uliza swali kwenye [Discussions](https://github.com/lugha-swa/swa/discussions). Masuala ya usalama: [SECURITY.md](SECURITY.md).
 
 ## Leseni
 

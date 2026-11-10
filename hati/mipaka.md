@@ -155,7 +155,7 @@ mfululizo wa .swa ni finyu kuliko ilivyoandikwa:
 
 Zamani: FastISel ya LLVM (O0) iliacha kimyakimya vizuizi zaidi ya
 ~50 (k.m. `ni_neno_muhimu` -- 247) -- mkusanyaji wa LLVM ulitoa .o
-BILA alama na usio na uthibitisho. Ukali wake ulilingana na mende za
+BILA alama na usio na uthibitisho. Ukali wake ulilingana na hitilafu za
 bafa za ukubwa wa kukisia: matokeo mabaya KIMYA bila kosa.
 
 Sasa:
@@ -297,7 +297,7 @@ AST kwenye `wasm_usemi`/`wasm_taarifa` (kielekezi/safu kwa AST_TAJA,
 miundo/vigezo-vya-ulimwengu/chagua kwa aina ya AST ya moja kwa moja).
 
 Kikomo hiki KIPO KWA MAKUSUDI (angalia mpango wa Awamu ya 1 -- hati ya
-mradi) -- si mdudu, ni wigo uliobuniwa kimakusudi kudumisha PR ya
+mradi) -- si hitilafu, ni wigo uliobuniwa kimakusudi kudumisha PR ya
 kwanza ndogo. Awamu 2+ (kumbukumbu/`tenga()`/vielekezi kupitia
 `memory.grow`, I/O kupitia Import section, D32/D64/miundo/vigezo vya
 ulimwengu) ni kazi ya baadaye, haijaanzishwa.

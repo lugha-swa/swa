@@ -30,7 +30,7 @@ kabla ya ukarabati). Kesi 467 zilipimwa kwenye kila mfululizo kwenye
 majaribio ya mwisho ya mfumo wa aina, udhibiti wa mwendo na
 miundo/maktaba (2026-09-01, HEAD 1c525ce), na marekebisho ya
 baada ya skani yalipimwa tena leo kwa kirejeshi kidogo cha kila
-mdudu -- tazama sehemu ya 3 na 12 kwa kile kilichopimwa upya.
+hitilafu -- tazama sehemu ya 3 na 12 kwa kile kilichopimwa upya.
 
 ## 1. Uainishaji
 
@@ -51,7 +51,7 @@ Kila kesi inaainishwa mojawapo ya nne:
 Jibu baya ni mbaya kuliko kukataliwa. Ukataaji ni sauti: mwandishi
 anajua lugha haikubali msimbo wake na anaweza kuchukua njia nyingine.
 Jibu baya ni kimya: mkusanyaji anakubali programu, anaizalisha kwa
-muonekano kamili, na jibu lake ni potofu -- mdudu anaingia kwenye
+muonekano kamili, na jibu lake ni potofu -- hitilafu inaingia kwenye
 programu zilizojengwa bila ishara yoyote. Sehemu ya 8 inaorodhesha
 kila jibu baya lililobaki, kwa kipimo cha chini, kilichoonekana,
 na kinachotarajiwa.
@@ -105,7 +105,7 @@ upya iko katika sehemu ya 12.
 ## 3. Marekebisho ya baada ya skani
 
 Majaribio ya mwisho (467 kesi) yalipimwa kwenye HEAD 1c525ce.
-Baada ya hapo, mende yafuatayo yalirekebishwa kwenye tawi hili;
+Baada ya hapo, hitilafu zifuatazo zilirekebishwa kwenye tawi hili;
 kila kirejeshi kilipimwa tena leo na uthibitisho uliobainishwa:
 
 1. **Mstari wowote unaoanza na "hu" ulifutwa kimya** (dereva
@@ -569,7 +569,7 @@ tabia ya lugha inabadilika kulingana na mfululizo uliotumika.
   vitambulisho (t105-t108). Mwelekeo wa uzalishaji ndio sahihi.
 - **Mbegu HUANGUKA, uzalishaji SAWA (1 kesi)** -- N32** (9.2).
 - **Mbegu SAWA, uzalishaji JIBU-BAYA (1 kesi)** -- utorokaji \%
-  (8.2): mende iko kwenye uzalishaji.
+  (8.2): hitilafu iko kwenye uzalishaji.
 - **Mbegu SAWA, uzalishaji IMEKATALIWA (1 kesi)** -- %f katika
   muundo halisi: mbegu inachapisha "%f" kama herufi halisi,
   uzalishaji unakataa kwa sauti (uamuzi ulioandikwa: viungwa
@@ -591,7 +591,7 @@ tabia ya lugha inabadilika kulingana na mfululizo uliotumika.
   -- kielekezi na N32 kama hoja (d30/d31, 8.15): mwelekeo wa
   uzalishaji ndio sahihi.
 - **Mbegu SAWA, uzalishaji JIBU-BAYA (1 kesi)** -- hoja kwa thamani
-  + sret pamoja (a19, 8.1): mende iko kwenye uzalishaji.
+  + sret pamoja (a19, 8.1): hitilafu iko kwenye uzalishaji.
 - **Mbegu SAWA, uzalishaji IMEKATALIWA (1 kesi)** -- %f kwenye
   andika (passthrough ya mbegu dhidi ya kata ya uzalishaji).
 
@@ -650,7 +650,7 @@ hiki -- unatoa ELF moja kwa moja.
 14. **Hati 7 -- "KUPITISHWA kwa thamani"**: miundo > baiti 8 kwa
     hoja (a09), sret kwa mfululizo (J7) na muundo wa ulimwengu
     zimefunga; mpaka uliobaki ni hoja kwa thamani + sret pamoja
-    (a19, 8.1) -- sehemu ya hati haijafunikwa na mende hii.
+    (a19, 8.1) -- sehemu ya hati haijafunikwa na hitilafu hii.
 
 ## 12. Hesabu za mwisho
 
@@ -748,7 +748,7 @@ Mkusanyaji unaweza kujijenga yenyewe kwa kudumu.
 
 **Fixpoint haithibitishi nini**: usahihi wa semantiki. Mkusanyaji
 anaweza kujijenga yenyewe na bado kuwa na makosa kwenye mipaka ya
-lugha -- ushahidi: mende ya a19 (8.1) iko kwenye mfululizo wa
+lugha -- ushahidi: hitilafu ya a19 (8.1) iko kwenye mfululizo wa
 uzalishaji uliojijenga, na mbegu iliyogandishwa ina makosa yake
 (8.4 hadi 8.8, 8.12 hadi 8.17) ambayo stage1 inayojijenga
 haijarithishi. Fixpoint inathibitisha uthabiti wa kujijenga, si
@@ -764,7 +764,7 @@ jibu sahihi (sehemu ya 3), na kilichobaki (8 jibu baya na 2
 huanguka kati ya 467 kwenye uzalishaji; 59 jibu baya na 5
 huanguka kwenye mbegu iliyogandishwa) kimeorodheshwa hapa kwa
 kirejeshi kidogo, kilichoonekana, na kinachotarajiwa -- ili
-kila mdudu uweze kuthibitishwa na kufungwa. Mbegu imegandishwa;
+kila hitilafu iweze kuthibitishwa na kufungwa. Mbegu imegandishwa;
 kazi ya sasa na ya baadaye iko kwenye mfululizo wa uzalishaji,
 ambapo ukali wa mkaguzi (kukataa kwa sauti badala ya kuhesabu
 kwa bahati) ndio mwamba wa mfumo mzima.
