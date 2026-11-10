@@ -13,7 +13,7 @@ kimoja na uamuzi:
 
 Historia ya darasa hili la mdudu: mizani ya safu ya ndani (star_count
 = 0), dimbwi la majina la mkaguzi (8,192 dhidi ya hitaji ~9,500),
-na majedwali ya vunja/endelea (256) -- zote ziligunduliwa kwa bahati
+na majedwali ya acha/endelea (256) -- zote ziligunduliwa kwa bahati
 baada ya kusababisha uharibifu. Kanuni ya kudumu baada ya ukaguzi
 huu: **kila mgawanyo mpya wa ukubwa thabiti lazima uwe na ukaguzi wa
 mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
@@ -76,7 +76,7 @@ unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la mdudu wa
 
 ## Masomo
 
-1. **Ukaguzi huu uligundua kufurika HALISI**: majedwali ya vunja/
+1. **Ukaguzi huu uligundua kufurika HALISI**: majedwali ya acha/
    endelea (256) yalifurika kwenye mkusanyiko mzima -- na kabla ya
    ulinzi, kufurika huko kulikuwa kimya (kurukaji kimya = kuruka
    mahali pasiposahihi kwenye njia za makosa). CI haikugundua kwa

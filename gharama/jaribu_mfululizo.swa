@@ -105,10 +105,10 @@ w0 jm_elekeza_kishikio(n64 kishikio_cha_chanzo, n8* njia) {
 // AU hitilafu nyingine ya ishara) -- msimbo_nje si sahihi katika
 // hali hii.
 // ---------------------------------------------------------------
-n32 jm_endesha_kwa_kikomo(n8* njia, n8** hoja_za_mchakato_mpya, n8** mazingira, n8* stdout_njia, n8* njia_ya_makosa, n64 kikomo_sekunde, n32* msimbo_nje) {
+n32 jm_endesha_kwa_kikomo(n8* njia, n8** hoja_za_mchakato_mpya, n8** mazingira, n8* njia_ya_matokeo, n8* njia_ya_makosa, n64 kikomo_sekunde, n32* msimbo_nje) {
     n64 mchakato_mpya = mfumo_gawanyika();
     kama (mchakato_mpya == 0) {
-        jm_elekeza_kishikio(1, stdout_njia);
+        jm_elekeza_kishikio(1, njia_ya_matokeo);
         jm_elekeza_kishikio(2, njia_ya_makosa);
         mfumo_tekeleza_programu(njia, hoja_za_mchakato_mpya, mazingira);
         wito_wa_mfumo(60, 127, 0, 0, 0, 0, 0);
@@ -135,10 +135,10 @@ n32 jm_endesha_kwa_kikomo(n8* njia, n8** hoja_za_mchakato_mpya, n8** mazingira, 
 // mlinzi -- `sys_wait4` ya moja kwa moja, kuzuia (blocking) inatosha.
 // Hurudisha msimbo wa kutoka (0 = ukusanyaji umefaulu).
 // ---------------------------------------------------------------
-n32 jm_kusanya(n8* njia_ya_kutekeleza, n8** hoja_za_mchakato_mpya, n8** mazingira, n8* stdout_njia, n8* njia_ya_makosa) {
+n32 jm_kusanya(n8* njia_ya_kutekeleza, n8** hoja_za_mchakato_mpya, n8** mazingira, n8* njia_ya_matokeo, n8* njia_ya_makosa) {
     n64 mchakato_mpya = mfumo_gawanyika();
     kama (mchakato_mpya == 0) {
-        jm_elekeza_kishikio(1, stdout_njia);
+        jm_elekeza_kishikio(1, njia_ya_matokeo);
         jm_elekeza_kishikio(2, njia_ya_makosa);
         mfumo_tekeleza_programu(njia_ya_kutekeleza, hoja_za_mchakato_mpya, mazingira);
         wito_wa_mfumo(60, 127, 0, 0, 0, 0, 0);
@@ -167,15 +167,15 @@ n32 jm_faili_lipo_na_lina_ukubwa(n8* njia) {
 }
 
 n32 jm_tafuta_kipande(n8* chombo, n64 urefu, n8* kipande) {
-    n64 klen = urefu_wa_mfuatano(kipande);
-    kama (klen == 0) { rudisha 1; }
-    kama (klen > urefu) { rudisha 0; }
+    n64 urefu_wa_kipande = urefu_wa_mfuatano(kipande);
+    kama (urefu_wa_kipande == 0) { rudisha 1; }
+    kama (urefu_wa_kipande > urefu) { rudisha 0; }
     n64 i = 0;
-    n64 mwisho = urefu - klen;
+    n64 mwisho = urefu - urefu_wa_kipande;
     wakati (i <= mwisho) {
         n32 sawa = 1;
         n64 j = 0;
-        wakati (j < klen) {
+        wakati (j < urefu_wa_kipande) {
             kama (chombo[i + j] != kipande[j]) { sawa = 0; acha; }
             j = j + 1;
         }
@@ -358,7 +358,7 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         kama (urefu_wa_mfuatano(mstari) == 0) { endelea; }
 
         n32 idadi_ya_sehemu = jm_mgawanyo_mstari(mstari, nafasi);
-        n8* code = nafasi[0];
+        n8* safu_ya_kwanza = nafasi[0];
         n8* faili = nafasi[2];
         n8* mfululizo = "";
         kama (idadi_ya_sehemu >= 4) { mfululizo = nafasi[3]; }
@@ -366,18 +366,18 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         kama (idadi_ya_sehemu >= 5) { ujumbe = nafasi[4]; }
 
         // Hakuna kuruka kimya: kila mstari ni KATA au namba ya kutoka.
-        kama (linganisha_mfuatano(code, "KATA") != 0 && (code[0] < 48 || code[0] > 57)) {
-            andika_kosa("SHINDWA: MANIFEST: safu ya kwanza si KATA wala namba: %s\n", code, 0, 0, 0, 0, 0);
+        kama (linganisha_mfuatano(safu_ya_kwanza, "KATA") != 0 && (safu_ya_kwanza[0] < 48 || safu_ya_kwanza[0] > 57)) {
+            andika_kosa("SHINDWA: MANIFEST: safu ya kwanza si KATA wala namba: %s\n", safu_ya_kwanza, 0, 0, 0, 0, 0);
             JM_SHINDWA = JM_SHINDWA + 1;
             endelea;
         }
 
-        kama (linganisha_mfuatano(code, "KATA") == 0) {
+        kama (linganisha_mfuatano(safu_ya_kwanza, "KATA") == 0) {
             jm_jaribu_kata(AWALI, "/tmp/swa-mnyororo-asili/kamili", mazingira, faili, mfululizo, ujumbe);
             endelea;
         }
 
-        n64 tarajiwa = mfuatano_hadi_n64(code);
+        n64 tarajiwa = mfuatano_hadi_n64(safu_ya_kwanza);
         kama (linganisha_mfuatano(mfululizo, "kamili") == 0) {
             jm_jaribu_moja("/tmp/swa-mnyororo-asili/kamili", mazingira, faili, tarajiwa, "kamili");
         } sivyo { kama (linganisha_mfuatano(mfululizo, "awali") == 0) {

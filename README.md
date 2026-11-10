@@ -116,7 +116,7 @@ Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hat
 |---|---|---|
 | Linux x86-64 | `bin/swa --programu p.swa > p` | ELF inayojitegemea |
 | WebAssembly | `bin/swa --wasm p.swa > p.wasm` | moduli ya `.wasm` kwa kivinjari; `bin/swa --wasm-js > swa-js.js` huandika daraja la jumla, na DOM na matukio ni Swa ([`msingi/maktaba/kivinjari.swa`](msingi/maktaba/kivinjari.swa); mfano: [`mifano/kivinjari/`](mifano/kivinjari/)) |
-| Ring 0 | `bin/swa --kiini p.swa > p.bin` | msimbo bapa kwa [Kawira](https://github.com/lugha-swa/kawira) (kazi ya kwanza lazima iwe `kernel_main`) |
+| Ring 0 | `bin/swa --kiini p.swa > p.bin` | msimbo bapa kwa [Kawira](https://github.com/lugha-swa/kawira) (kazi ya kwanza lazima iwe `anza`) |
 | IR | `bin/swa --tafsiri p.swa` / `bin/swa --kati p.swa` | tekeleza au chapisha [IR ya mstari](hati/ir.md) -- msingi wa ARM64 na Mizani |
 
 </details>
@@ -125,7 +125,7 @@ Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hat
 
 | Kipengele | Maelezo |
 |---|---|
-| **Maneno muhimu 13** | `muundo` `rudisha` `kama` `sivyo` `wakati` `kwa` `fanya` `vunja` `endelea` `chagua` `hali` `husisha` `achilia` -- mengine yote ni maktaba |
+| **Maneno muhimu 13** | `muundo` `rudisha` `kama` `sivyo` `wakati` `kwa` `fanya` `acha` `endelea` `chagua` `hali` `husisha` `achilia` -- mengine yote ni maktaba |
 | **Aina** | familia tano: `n` (nambari), `a` (bila ishara), `d` (desimali), `b` (mifumo ya biti), `w` (tupu) -- upana 8/16/32/64, mf. `n32`, `d64`, `b8`, `w0`; pia `b1` (biti moja) |
 | **Biti** | familia `b` ni bendera na maski: `& \| ^ ~ << >> == !=` pekee -- hesabu na mpangilio (`+ - * / %`, `< >`) hazina maana kwa biti na zinakataliwa kwa sauti |
 | **Kumbukumbu** | `tenga` / `achilia` / `badili` -- moja kwa moja, bila ukusanyaji taka |

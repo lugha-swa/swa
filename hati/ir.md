@@ -40,11 +40,11 @@ Kazi (`irk_*`) zina amri zao `[irk_mwanzo, irk_mwisho)`, idadi ya vreg, ukubwa w
 - Upande wa **kulia** wa tendo hutathminiwa kwanza, kisha kushoto.
 - `x op= y`: anwani ya `x` hukokotolewa mara moja, kabla ya `y`.
 - `kwa`: `endelea` huruka kwenye hatua; `fanya { } wakati (s);` hutekeleza mwili kwanza.
-- Baada ya `rudisha`/`vunja`/`endelea` ndugu wa kifungu hawatolewi, isipokuwa hatua ya `kwa`.
+- Baada ya `rudisha`/`acha`/`endelea` ndugu wa kifungu hawatolewi, isipokuwa hatua ya `kwa`.
 - `andika`: umbo hugawanywa wakati wa kuteremsha; `%d` ya aina ndogo kuliko baiti 8 hupanuliwa kutoka biti 32 zenye ishara.
 
 ## Wigo
 
-Ndani: nambari kamili za upana wote (n, a, b, w), vielekezi na safu za nambari kamili, vigeu vya ndani na vya ulimwengu, waendeshaji wote wa nambari kamili, `kama`/`wakati`/`kwa`/`fanya`, `vunja`/`endelea`, `&& || ! ?:`, wito na kujirudia (bila kikomo cha rafu ya mtafsiri: wito ni rekodi kwenye rafu yake), mifuatano halisi, `andika`/`andika_kosa`, `wito_wa_mfumo`, `tenga`, `ukubwa`.
+Ndani: nambari kamili za upana wote (n, a, b, w), vielekezi na safu za nambari kamili, vigeu vya ndani na vya ulimwengu, waendeshaji wote wa nambari kamili, `kama`/`wakati`/`kwa`/`fanya`, `acha`/`endelea`, `&& || ! ?:`, wito na kujirudia (bila kikomo cha rafu ya mtafsiri: wito ni rekodi kwenye rafu yake), mifuatano halisi, `andika`/`andika_kosa`, `wito_wa_mfumo`, `tenga`, `ukubwa`.
 
 Nje (hukataliwa kwa sauti, kutoka 2: `IR: haijaungwa mkono: ...`): miundo, desimali, vielekezi vya kazi, `chagua`. Kila kipengele kikiongezwa, programu zinazopita huongezwa kwenye `majaribio/ir/WIGO.txt`.

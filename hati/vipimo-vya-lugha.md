@@ -31,7 +31,7 @@ Programu ya Swa ni mfuatano wa tangazo la kiwango cha juu:
   kwa mpangilio wa utegemezi (sehemu 8). Mbegu haitatui -- inaruka
   mstari kimya. Kiungo cha C ni `husisha C::stdio`
 
-Sehemu ya kuingia ni kazi `main`. Katika hali ya `--programu`, sahihi ni
+Sehemu ya kuingia ni kazi `anza`. Katika hali ya `--programu`, sahihi ni
 `n32 anza()` au `n32 anza(n32 argc, n8** argv)`.
 
 Kila faili huchanganuliwa kwa mpangilio wa juu-chini; wito wa mbele
@@ -354,7 +354,7 @@ n64 k2 = &jumlisha3;
   -- imepimwa kwa minyororo yote miwili; aina ya baiti 8 -- kielekezi
   au n64/a64; si safu; si d64) -- anwani kamili ya .text huandikwa
   mwishoni mwa kukusanya, kwa hiyo .o na JIT hazikubali kianzio
-  hicho (gawa ndani ya main badala yake).
+  hicho (gawa ndani ya anza badala yake).
 
 Wito kupitia kielekezi -- `kigezo(hoja...)` -- jina ambalo SI kazi
 linalinganishwa na kigeu/paramu/kigeu cha ulimwengu:
@@ -471,7 +471,7 @@ kwa (kianzilishi; sharti; hatua) { ... }
 
 Sehemu zote tatu ni za hiari; hali iliyoachwa wazi ina maana KWELI
 DAIMA -- `kwa (i = 0; ; i = i + 1)` na `kwa (;;)` ni vitanzi
-visivyoisha hadi `vunja` au `rudisha` (semantiki ya C).
+visivyoisha hadi `acha` au `rudisha` (semantiki ya C).
 **Semantiki ya `endelea`:** inaruka kwenye HATUA (ya tatu), si
 kwenye sharti -- semantiki ya C, katika mbegu NA mnyororo wa .swa
 (uliowiana 2026-08; angalia mipaka.md 4b).
@@ -514,15 +514,15 @@ kabisa (kilichopimwa 2026-09-04).
 Kilichopimwa (2026-08-31) -- UAMIZI WA KIMUUNDO: HAKUNA mwanguko
 wa mkono hadi mkono (fall-through) kwenye `chagua`. Kila mkono wa
 `hali` unamalizika peke yake kwa kuruka hadi mwisho wa `chagua`
-(sawa na `vunja` ya kimya ya C); mkono usio na taarifa yoyote
+(sawa na `acha` ya kimya ya C); mkono usio na taarifa yoyote
 haufanyi chochote; mkono wa `sivyo` (chaguo-msingi) unatekelezwa
-ikiwa hali ZOTE hazikulingana. `vunja` ndani ya mkono wa `chagua`
+ikiwa hali ZOTE hazikulingana. `acha` ndani ya mkono wa `chagua`
 inamaliza KITANZI cha ndani kabisa (wakati au kwa -- semantiki ya
-6.7), si `chagua` chenyewe; `vunja` ndani ya `chagua` isiyo ndani
+6.7), si `chagua` chenyewe; `acha` ndani ya `chagua` isiyo ndani
 ya kitanzi inakataliwa na mkaguzi kwa sauti. Sababu: vipimo vya
 awali havikutaja mwanguko wowote; mwanguko wa C ni chanzo cha
 makosa ya kawaida; na lugha hii haina njia ya kusimamisha mkono
-moja kwa moja (`vunja` ni ya vitanzi pekee) -- kukubali mwanguko
+moja kwa moja (`acha` ni ya vitanzi pekee) -- kukubali mwanguko
 bila njia ya kuusimamisha kungeacha tabia isiyo na udhibiti.
 Majaribio: jaribio_hitilafu_chagua_bila_mwanguko,
 jaribio_hitilafu_chagua_acha_ndani_ya_kitanzi,
@@ -551,10 +551,10 @@ wa mwisho ni ya lazima (sawa na mbegu).
 `endelea` ndani ya fanya inaruka hadi SHARTI: taarifa zilizobaki
 za mwili zinarukwa kwenye mwendo huo, na sharti linajaribiwa upya
 (semantiki ya C ya do-while -- tofauti na `kwa`, ambapo endelea
-inaruka hadi HATUA, 6.5). `vunja` inaondoka kwenye kitanzi mara
-moja bila kujaribu sharti tena. vunja na endelea ndani ya fanya
+inaruka hadi HATUA, 6.5). `acha` inaondoka kwenye kitanzi mara
+moja bila kujaribu sharti tena. acha na endelea ndani ya fanya
 zinahesabiwa kama zilivyo ndani ya wakati kwa ukaguzi wa
-"vunja/endelea nje ya kitanzi" (6.7).
+"acha/endelea nje ya kitanzi" (6.7).
 
 Majaribio: jaribio_fanya_hukimbia_mara_moja,
 jaribio_fanya_hali_ya_uwongo, jaribio_fanya_endelea,
@@ -562,7 +562,7 @@ jaribio_fanya_acha, na jaribio_fanya_kama_jina_la_kigezo (KATA --
 neno muhimu kama jina linakataliwa, 2.2). Kilichopimwa
 (2026-09-04): fanya inafanya kazi kwenye minyororo YOTE MIWILI --
 mbegu iliyogandishwa 2026-09-04 ina kitanzi cha fanya (mwili
-hukimbia mara moja, `endelea` inaruka hadi sharti, `vunja` inaondoka
+hukimbia mara moja, `endelea` inaruka hadi sharti, `acha` inaondoka
 mara moja, viota ndani ya `kwa` -- vyote sawa na mnyororo wa
 uzalishaji). Kumbuka la zamani la "majaribio ni ya stage1 pekee
 hadi mbegu igandishwe" halishikiki.
@@ -715,10 +715,10 @@ nje "libm.so.6" {
 
 | Faili | Kazi muhimu |
 |---|---|
-| `kumbukumbu.swa` | nakili, weka_sifuri, linganisha_kumbukumbu, tenga/badili/achilia_arena (arena ya mmap), sys_soma/sys_andika/sys_fungua/sys_funga, andika, soma_mstari |
+| `kumbukumbu.swa` | nakili, weka_sifuri, linganisha_kumbukumbu, tenga/badili/achilia_eneo_la_utengaji (eneo la utengaji la mmap), mfumo_soma/mfumo_andika/mfumo_fungua/mfumo_funga, andika, andika_kosa, soma_mstari |
 | `mfuatano.swa` | urefu_wa_mfuatano, linganisha_mfuatano, nakili_mfuatano, unganisha_mfuatano, tafuta_herufi, tafuta_mfuatano, kata_nafasi, nambari_kwa_mfuatano, mfuatano_hadi_n32/n64 |
 | `hesabu.swa` | hesabu_kamili/kubwa, hesabu_ndogo/dogo, neneo_n32/n64, kigawo_kikuu_cha_shirika, kipeo_kamili, kipeuo_kamili, fibonacci_hesabu |
-| `orodha.swa` | Orodha (orodha_mpya huchukua uwezo wa awali kama hoja; UKUAJI unafanya kazi -- orodha_ongeza zaidi ya uwezo inaongeza mara mbili kwa badili; kilichopimwa 2026-09-04: kujaza 30 kwenye uwezo wa 10 kunafanya kazi kwenye minyororo yote miwili): orodha_mpya, orodha_ongeza, orodha_pata, orodha_futa_mwisho, orodha_urefu, orodha_huru |
+| `orodha.swa` | Orodha (orodha_mpya huchukua uwezo wa awali kama hoja; UKUAJI unafanya kazi -- orodha_ongeza zaidi ya uwezo inaongeza mara mbili kwa badili; kilichopimwa 2026-09-04: kujaza 30 kwenye uwezo wa 10 kunafanya kazi kwenye minyororo yote miwili): orodha_mpya, orodha_ongeza, orodha_pata, orodha_futa_mwisho, urefu_wa_orodha, orodha_huru |
 | `mpangilio.swa` | pangilia_n32, pangilia_n32_kushuka, pangilia_n64, pangilia_n64_kushuka |
 | `ramani.swa` | Ramani ya funguo za n32 hadi thamani (inafanya kazi kwenye minyororo yote miwili -- weka+pata kwa funguo kamili; kilichopimwa 2026-09-04, jibu baya la zamani la mbegu halipo) |
 
@@ -727,10 +727,10 @@ za maktaba, si maneno muhimu (2.2):
 - `w0 nakili(n8* lengwa, n8* chanzo, n64 n)` -- inanakili baiti
   `n` kutoka `chanzo` hadi `lengwa` (kama memcpy ya C).
 - `n8* badili(n8* p, n64 ukubwa)` -- inarudisha kipande kipya cha
-  baiti `ukubwa` kutoka kwa arena, kikiwa kimenakili kipande cha
-  zamani cha `p` (kama realloc ya C juu ya arena ya mmap):
+  baiti `ukubwa` kutoka eneo la utengaji, kikiwa kimenakili kipande cha
+  zamani cha `p` (kama realloc ya C juu ya eneo la utengaji la mmap):
   `p == 0` inafanya kama `tenga`; `ukubwa == 0` inarudisha `p`;
-  arena haifungui vipande -- kipande cha zamani kinabaki.
+  eneo la utengaji halifungui vipande -- kipande cha zamani kinabaki.
 
 Kila kazi imejitosheleza; maktaba inaweza kuunganishwa kwa mkono
 (`cat`) kwa matumizi na mbegu.

@@ -2028,7 +2028,7 @@ n32 mahali_pa_urekebishaji[65536];
 n32 idadi_ya_urekebishaji = 0;
 
 // Hali ya exe: 1 = toa ET_EXEC ya kujitegemea badala ya .o.
-n32 hali_exe_sasa = 0;
+n32 hali_ya_towe_sasa = 0;
 
 // Msaidizi wa kuongeza kuingia kwa fixup (na ulinzi wa mipaka)
 w0 weka_urekebishaji(n32 namba_ya_mahali) {
@@ -2317,18 +2317,18 @@ n32 uzalishaji_nodi_ya_programu = 0;  // mzizi wa AST (kwa utafutaji wa kazi za 
 // mpangilio -- &x inayotokea KABLA ya x kutangazwa kwenye mpangilio
 // wa AST (usiowezekana kwa lugha hii, lakini si lazima ufanane na
 // mpangilio wa maandishi ya chanzo) bado inagunduliwa kwa usahihi.
-n32 REGISTA_HALISI_0 = 3;   // rbx
-n32 REGISTA_HALISI_1 = 12;  // r12
-n32 REGISTA_HALISI_2 = 13;  // r13
-n32 REGISTA_HALISI_3 = 14;  // r14
-n32 REGISTA_HALISI_4 = 15;  // r15
+n32 REJISTA_HALISI_0 = 3;   // rbx
+n32 REJISTA_HALISI_1 = 12;  // r12
+n32 REJISTA_HALISI_2 = 13;  // r13
+n32 REJISTA_HALISI_3 = 14;  // r14
+n32 REJISTA_HALISI_4 = 15;  // r15
 
 n32 rejista_halisi_kwa_kitambulisho(n32 kitambulisho) {
-    kama (kitambulisho == 0) { rudisha REGISTA_HALISI_0; }
-    kama (kitambulisho == 1) { rudisha REGISTA_HALISI_1; }
-    kama (kitambulisho == 2) { rudisha REGISTA_HALISI_2; }
-    kama (kitambulisho == 3) { rudisha REGISTA_HALISI_3; }
-    rudisha REGISTA_HALISI_4;
+    kama (kitambulisho == 0) { rudisha REJISTA_HALISI_0; }
+    kama (kitambulisho == 1) { rudisha REJISTA_HALISI_1; }
+    kama (kitambulisho == 2) { rudisha REJISTA_HALISI_2; }
+    kama (kitambulisho == 3) { rudisha REJISTA_HALISI_3; }
+    rudisha REJISTA_HALISI_4;
 }
 
 // -1 = kigezo hiki kiko kwenye rafu (tabia ya asili); 0-4 = faharisi
@@ -2646,7 +2646,7 @@ w0 duru_ya_kutambua_anwani(n32 nodi) {
 
 // Baada ya pitio zote mbili kukamilika: gawa rejesta 0-4 kwa
 // wagombea 5 wa KWANZA (mpangilio wa AST) wasio na alama ya haramu.
-w0 finalisha_ugawaji_rejista() {
+w0 kamilisha_ugawaji_wa_rejista() {
     rega_tumika_idadi = 0;
     n32 ci = 0;
     wakati (ci < rega_idadi_ya_wagombea) {
@@ -4207,7 +4207,7 @@ w0 kiini_kagua_taarifa(n32 nodi) {
 w0 kiini_tumia_marekebisho() {
     n32 kri = 0;
     wakati (kri < idadi_ya_marekebisho) {
-        n32 kpos = umbali_wa_urekebishaji_kwenye_msimbo[kri];
+        n32 nafasi_ya_urekebishaji_huu = umbali_wa_urekebishaji_kwenye_msimbo[kri];
         n32 knje_faharasa = nje_ya_urekebishaji[kri];
         kama (knje_faharasa == -1) {
             andika_kosa("KOSA: --kiini -- kigezo cha ulimwengu (global) kimeonekana kwenye urekebishaji (haipaswi kutokea -- kernel_kagua_wigo ilishakataa)\n");
@@ -4218,7 +4218,7 @@ w0 kiini_tumia_marekebisho() {
             andika_kosa("Hitilafu: kazi haijafafanuliwa: %s\n", nje_ghala + nje_jina_umbali[knje_faharasa]);
             wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
         }
-        andika_umbali32_kwenye(chombo_cha_msimbo, kpos, knafasi - (kpos + 4));
+        andika_umbali32_kwenye(chombo_cha_msimbo, nafasi_ya_urekebishaji_huu, knafasi - (nafasi_ya_urekebishaji_huu + 4));
         kri = kri + 1;
     }
 }
@@ -4357,7 +4357,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     // vga_andika ni MPYA, PEKEE inayoruhusiwa kwa I/O, inatambuliwa
     // KWA JINA (kioo cha jinsi "ukubwa"/"urefu" tayari zinatambuliwa
     // hapa juu, na jinsi Awamu 3 ya WASM ilivyoongeza dom_unda).
-    kama (hali_exe_sasa == 2) {
+    kama (hali_ya_towe_sasa == 2) {
         kama (jina_linganisha(mwitwa, "vga_andika")) {
             uzalishaji_vga_andika(nodi, nodi_ya_kazi);
             rudisha;
@@ -4372,7 +4372,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
         }
         kama (jina_linganisha(mwitwa, "wito_wa_mfumo") || jina_linganisha(mwitwa, "andika") ||
         jina_linganisha(mwitwa, "andika_kosa") || jina_linganisha(mwitwa, "tekeleza") ||
-        jina_linganisha(mwitwa, "tenga") || jina_linganisha(mwitwa, "achilia_arena")) {
+        jina_linganisha(mwitwa, "tenga") || jina_linganisha(mwitwa, "achilia_eneo_la_utengaji")) {
             andika_kosa("KOSA: --kiini -- '%s' iko nje ya wigo (hakuna syscalls/I/O ya Linux kwenye ring 0, tumia vga_andika() pekee)\n", mwitwa);
             wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
         }
@@ -7774,10 +7774,10 @@ n32 usemi_ni_sawa_kimuundo(n32 a, n32 b) {
 // nodi ile ile.
 n32 taja_ni_sawa_kimuundo(n32 a, n32 b) {
     kama (aina_ya_nodi[a] != 29 || aina_ya_nodi[b] != 29) { rudisha 0; }
-    n32 abase = nodi_ya_kushoto[a]; n32 bbase = nodi_ya_kushoto[b];
-    kama (abase == -1 || bbase == -1) { rudisha 0; }
-    kama (aina_ya_nodi[abase] != 5 || aina_ya_nodi[bbase] != 5) { rudisha 0; }
-    kama (jina_linganisha(ghala_la_majina + umbali_wa_jina_la_nodi[abase], ghala_la_majina + umbali_wa_jina_la_nodi[bbase]) == 0) { rudisha 0; }
+    n32 msingi_wa_a = nodi_ya_kushoto[a]; n32 msingi_wa_b = nodi_ya_kushoto[b];
+    kama (msingi_wa_a == -1 || msingi_wa_b == -1) { rudisha 0; }
+    kama (aina_ya_nodi[msingi_wa_a] != 5 || aina_ya_nodi[msingi_wa_b] != 5) { rudisha 0; }
+    kama (jina_linganisha(ghala_la_majina + umbali_wa_jina_la_nodi[msingi_wa_a], ghala_la_majina + umbali_wa_jina_la_nodi[msingi_wa_b]) == 0) { rudisha 0; }
     n32 faharasa_a = nodi_ya_kulia[a]; n32 faharasa_b = nodi_ya_kulia[b];
     kama (faharasa_a == -1 && faharasa_b == -1) { rudisha 1; }
     kama (faharasa_a == -1 || faharasa_b == -1) { rudisha 0; }
@@ -8540,10 +8540,10 @@ n32 pata_umbali_wa_sehemu_kwa_jina(n8* jina_la_sehemu) {
         kama (aina_ya_nodi[si] == 12) {  // AST_MUUNDO
             n32 kazi_hii = nodi_ya_kulia[si];
             wakati (kazi_hii != -1) {
-                n32 fname_nodi = nodi_ya_kushoto[kazi_hii];
-                n8* sn = ghala_la_majina + umbali_wa_jina_la_nodi[fname_nodi];
+                n32 nodi_ya_jina_la_kazi = nodi_ya_kushoto[kazi_hii];
+                n8* sn = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_jina_la_kazi];
                 kama (jina_linganisha(sn, jina_la_sehemu)) {
-                    rudisha tatu_ya_nodi[fname_nodi];  // ofseti iliyohifadhiwa
+                    rudisha tatu_ya_nodi[nodi_ya_jina_la_kazi];  // ofseti iliyohifadhiwa
                 }
                 kazi_hii = nodi_ya_kulia[kazi_hii];
             }
@@ -9205,7 +9205,7 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
         kvn_zamu = kvn_zamu + 1;
         duru_ya_kutambua_anwani(maudhui);
     }
-    finalisha_ugawaji_rejista();
+    kamilisha_ugawaji_wa_rejista();
     // Tenga rasmi rejesta za SU (angalia maelezo karibu na tangazo la
     // su_rejestwa_idadi juu ya faili hili) -- LAZIMA baada ya
     // finalisha_ugawaji_rejista (inayohitaji rega_tumika_idadi ya
@@ -9520,7 +9520,7 @@ w0 andika_thamani_ya_data(n64 thamani, n32 ukubwa_huu) {
 // Mpangilio: kichwa+phdr (vaddr 0x400000, baiti 120), .text
 // (0x400078), .data, .bss (memsz pekee -- kernel hujaza sifuri).
 // -------------------------------------------------------
-w0 uzalishaji_exe(n32 ukubwa_wa_msimbo, n32 ukubwa_wa_data, n32 ukubwa_wa_tupu, n32 umbali_wa_kazi_ya_anza) {
+w0 uzalishaji_programu(n32 ukubwa_wa_msimbo, n32 ukubwa_wa_data, n32 ukubwa_wa_tupu, n32 umbali_wa_kazi_ya_anza) {
 
     n32 anwani_pepe_ya_msimbo = 4194424;  // 0x400078 (0x400000 + baiti 120)
     n32 anwani_pepe_ya_data = anwani_pepe_ya_msimbo + ukubwa_wa_msimbo;
@@ -9806,12 +9806,12 @@ w0 kigeni_ainisha(n32 usimbaji, n32 msingi, n8* kazi) {
     }
     n32 s = nodi_ya_kulia[m];
     wakati (s != -1) {
-        n32 fname = nodi_ya_kushoto[s];
-        n32 usimbaji_wa_sehemu = thamani_ya_nodi[fname];
-        n32 umbali = tatu_ya_nodi[fname];
+        n32 nodi_ya_jina_la_kazi = nodi_ya_kushoto[s];
+        n32 usimbaji_wa_sehemu = thamani_ya_nodi[nodi_ya_jina_la_kazi];
+        n32 umbali = tatu_ya_nodi[nodi_ya_jina_la_kazi];
         n32 a = kigeni_mpangilio_wa_usimbaji(usimbaji_wa_sehemu);
         kama (umbali % a != 0) {
-            andika_kosa("Hitilafu: %s ya nje '%s': muundo '%s': sehemu '%s' iko kwenye ofseti %d, si kizidisho cha %d -- C hupangilia sehemu, Swa haiongezi kujaza kimya: ongeza sehemu ya kujaza ya baiti %d kabla yake\n", kg_kitu(), kazi, jina_m, ghala_la_majina + umbali_wa_jina_la_nodi[fname], umbali, a, a - umbali % a);
+            andika_kosa("Hitilafu: %s ya nje '%s': muundo '%s': sehemu '%s' iko kwenye ofseti %d, si kizidisho cha %d -- C hupangilia sehemu, Swa haiongezi kujaza kimya: ongeza sehemu ya kujaza ya baiti %d kabla yake\n", kg_kitu(), kazi, jina_m, ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_jina_la_kazi], umbali, a, a - umbali % a);
             wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
         }
         kama (ni_muundo_usimbaji(usimbaji_wa_sehemu)) {
@@ -10152,9 +10152,9 @@ w0 kigeni_andaa_wito_wa_ziada(n8* mwitwa, n32 hoja_n, n32 msingi, n32 namba, n32
 }
 
 // Kabla ya msimbo wowote: kagua, kisha tenga sloti ya GOT kwa kila kazi.
-w0 kigeni_andaa(n32 nodi_ya_programu, n32 hali_exe) {
+w0 kigeni_andaa(n32 nodi_ya_programu, n32 hali_ya_towe) {
     kama (kigeni_idadi_ya_kazi + kigeni_idadi_ya_data == 0) { rudisha; }
-    kama (hali_exe != 1) {
+    kama (hali_ya_towe != 1) {
         andika_kosa("Hitilafu: kazi za nje (kizuizi cha nje) zinahitaji --programu -- kipakiaji cha mfumo hakipo kwenye hali hii\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
@@ -10436,7 +10436,7 @@ w0 kigeni_andika_jedwali(n32 ukubwa_wa_msimbo, n32 ukubwa_wa_tupu) {
 // Kiingilio kikuu -- toa ELF .o kwa AST nzima
 // -------------------------------------------------------
 
-w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
+w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // Hifadhi mzizi kwa kipitishi cha awali (utafutaji wa kazi za ndani)
     uzalishaji_nodi_ya_programu = nodi_ya_programu;
     // Bafa la muda la hali ya exe: stub ya _start (baiti 26) na
@@ -10455,7 +10455,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
     idadi_ya_marekebisho = 0;
     idadi_ya_anwani_za_kazi = 0;
     idadi_ya_anwani_za_data = 0;
-    hali_exe_sasa = hali_exe;
+    hali_ya_towe_sasa = hali_ya_towe;
 
     // Weka upya hali ya herufi halisi (kwa kazi zote)
     idadi_ya_mifuatano = 0;
@@ -10475,7 +10475,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
     // (miundo, D32/D64, chagua, vigezo vya ulimwengu) -- ukaguzi wa
     // wigo unafanyika KABLA ya msimbo wowote kutolewa (kioo cha jinsi
     // wasm_kagua_enc_kigezo inavyofanya kazi kwa Awamu 1 ya WASM).
-    kama (hali_exe == 2) {
+    kama (hali_ya_towe == 2) {
         kiini_kagua_wigo(nodi_ya_programu);
     }
 
@@ -10483,7 +10483,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
     // mov rdi,[rsp] (argc); lea rsi,[rsp+8] (argv); mov al,0; call
     // main (disp32 hurekebishwa baada ya main kutolewa); mov
     // rdi,rax; mov eax,60; syscall.
-    kama (hali_exe == 1) {
+    kama (hali_ya_towe == 1) {
         // Stub ya _start kama maneno ya n32 (baiti 28).
         kipande32[0] = 607947592;
         kipande32[1] = 611618120;
@@ -10495,7 +10495,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
         sj = 0;
         wakati (sj < 7) { andika_neno4(kipande32[sj]); sj = sj + 1; }
     }
-    sivyo { kama (hali_exe == 2) {
+    sivyo { kama (hali_ya_towe == 2) {
         // --kiini: HAKUNA _start (hakuna argc/argv, hakuna mchakato
         // wa Linux unaoanzisha). Badala yake: andika "mov dword
         // [0x9000], 0" -- anzisha kaka (cursor) ya vga_andika() kuwa
@@ -10657,7 +10657,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
                     kama (thamani != -1) {
                         kama (aina_ya_nodi[thamani] == 5) {  // KITAMBULISHO
                             kama (tatu_ya_nodi[gn] == -1) {  // si safu
-                                kama (hali_exe_sasa == 1) {
+                                kama (hali_ya_towe_sasa == 1) {
                                     kama (usimbaji >= 0) {
                                         kama (ni_desimali_usimbaji(usimbaji) == 0) {
                                             kama (ukubwa_wa_kipengele_hiki == 8) { ni_halali = 1; }
@@ -10727,7 +10727,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
     }
 
     // 0c. Kazi za nje: kagua na tenga sloti za GOT (daraja la mashine)
-    kigeni_andaa(nodi_ya_programu, hali_exe);
+    kigeni_andaa(nodi_ya_programu, hali_ya_towe);
 
     // 1. Toa msimbo wa .text kwenye buffer
     n32 nodi = nodi_ya_kushoto[nodi_ya_programu];
@@ -10760,7 +10760,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
     n32 ukubwa_wa_msimbo = chombo_cha_msimbo_wapi;
 
     // Jedwali la kiungo-hai (kazi za nje pekee) mwishoni mwa .data
-    kama (hali_exe == 1) { kigeni_andika_jedwali(ukubwa_wa_msimbo, tupu_wapi); }
+    kama (hali_ya_towe == 1) { kigeni_andika_jedwali(ukubwa_wa_msimbo, tupu_wapi); }
 
     // 3. Hesabu ofseti za sehemu
     // Jenga ramani ya kuondoa nje zinazofanana na lebo
@@ -10802,8 +10802,8 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
         kama (nje_mpya_umbali[si] >= 0) {  // si dup
             umbali_wa_majina_ya_nje[si] = hesabu_ya_jedwali_la_majina;
             n8* njina = nje_ghala + nje_jina_umbali[si];
-            n32 nlen = urefu_wa_jina(njina);
-            hesabu_ya_jedwali_la_majina = hesabu_ya_jedwali_la_majina + nlen + 1;
+            n32 urefu_wa_jina_hili = urefu_wa_jina(njina);
+            hesabu_ya_jedwali_la_majina = hesabu_ya_jedwali_la_majina + urefu_wa_jina_hili + 1;
         }
         si = si + 1;
     }
@@ -10880,7 +10880,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
     // Kumbuka: inatumia vigeu vilivyopo (text_off, i, sz, n.k.) --
     // jedwali la vigeu vya ndani lina ukomo wa 64.
     // ==================================================
-    kama (hali_exe == 1) {
+    kama (hali_ya_towe == 1) {
         // main haipo: wito wa _start ungeenda anwani 0 na binary
         // ingeanguka. Kataa kwa sauti bila kutoa faili -- sawa na mbegu.
         kama (umbali_wa_kazi_ya_anza == 0) {
@@ -10889,7 +10889,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
         }
         // Utoaji wa exe uko kwenye kazi yake -- jedwali la vigeu vya
         // ndani la mbegu halina nafasi zaidi hapa.
-        uzalishaji_exe(ukubwa_wa_msimbo, ukubwa_wa_data, ukubwa_wa_tupu, umbali_wa_kazi_ya_anza);
+        uzalishaji_programu(ukubwa_wa_msimbo, ukubwa_wa_data, ukubwa_wa_tupu, umbali_wa_kazi_ya_anza);
 
         rudisha;
     }
@@ -10917,7 +10917,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
     // pekee (SIYO anwani kamili ya kudumu -- hakuna anwani ya kupakia
     // iliyowekwa mapema kwenye --kiini, `call rel32` ni "position
     // independent" ndani ya bafa moja iliyo pamoja).
-    kama (hali_exe == 2) {
+    kama (hali_ya_towe == 2) {
         kiini_tumia_marekebisho();
         futa_chombo_cha_msimbo();
         rudisha;
