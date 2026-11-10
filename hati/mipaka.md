@@ -190,7 +190,7 @@ kamili ya dereva ipo kwenye hazina kuu hadi commit 8fd71b2.
 
 Kwanza (msingi/kwanza.bin, baiti 393) ni mzizi usioweza kupunguzwa wa
 uaminifu -- baiti mbichi bila chanzo chenye maelezo kwenye repo.
-Inajithibitisha kwa kujizalisha (kwanza.hex -> kwanza.bin) na ndiyo
+Inajithibitisha kwa kujizalisha (kwanza.heksa -> kwanza.bin) na ndiyo
 inayoganda mbegu.
 
 ## Nini HAKIKO katika mipaka
@@ -244,7 +244,7 @@ hakuna mnyororo unaoingiza faili).
 
 ## 10. `ukubwa(x)` kwenye mbegu: jina la muundo/kigezo lililo HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi ndogo) linatafsiriwa kimya kama aina ya msingi [IMEREKEBISHWA 2026-09-27 -- freeze ya TATU ya mzizi wa uaminifu]
 
-Hali ya AWALI (kabla ya rekebisho): tangu mbegu.bin kugandishwa upya
+Hali ya AWALI (kabla ya rekebisho): tangu awali.bin kugandishwa upya
 2026-09-24 kutambua herufi ndogo za aina 6 za msingi (n8/n16/n32/n64/
 w0/d64 -- angalia hali-ya-lugha.md), mnyororo wa `ukubwa(x)` (builtin
 ya sizeof, `msingi/awali.swm`) ulichunguza jina la hoja dhidi ya majina

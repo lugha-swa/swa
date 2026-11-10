@@ -31,8 +31,8 @@ fafanua V_AINA_TOKENI = 88
 fafanua V_ANWANI_TOKENI = 96
 fafanua V_UREFU_TOKENI = 104
 fafanua V_THAMANI_TOKENI = 112
-fafanua V_ANWANI_LEBO_KUU = 120
-fafanua V_UREFU_LEBO_KUU = 128
+fafanua V_ANWANI_MAHALI_KUU = 120
+fafanua V_UREFU_MAHALI_KUU = 128
 fafanua V_MSTARI = 136
 fafanua V_MSINGI_DATA = 144
 fafanua V_MSINGI_TUPU = 152
@@ -40,12 +40,12 @@ fafanua V_PITIO_LA_KUANDIKA = 160
 fafanua V_HAIJATATULIWA = 168
 fafanua V_NAKALA_TOKENI = 176
 fafanua V_NAKALA_TOKENI2 = 184
-fafanua V_MAHALI_DIMBWI = 192
+fafanua V_MAHALI_GHALA = 192
 fafanua V_MAHALI_PA_KUANZA = 200
 fafanua V_MWANZO_MSTARI = 208
 fafanua V_UPANA_AINA = 216
 fafanua V_REJISTA_BAITI = 224
-fafanua V_NI_LEBO = 232
+fafanua V_NI_MAHALI = 232
 fafanua V_PICHA = 240   ; 1 = picha tambarare (hakuna ELF)
 fafanua V_MSINGI_MSIMBO = 248   ; anwani ya baiti ya kwanza ya msimbo
 fafanua V_BITI32 = 256   ; 1 = usimbaji wa biti 32
@@ -69,7 +69,7 @@ imesomwa:
         r0 = eneo_alama
         n64[r15+V_MWISHO_ALAMA] = r0
         r0 = eneo_majina
-        n64[r15+V_MAHALI_DIMBWI] = r0
+        n64[r15+V_MAHALI_GHALA] = r0
         r0 = eneo_data
         n64[r15+V_MSINGI_DATA] = r0   ; thamani ya muda; hukokotwa kila pitio
         n64[r15+V_PITIO] = 0
@@ -148,7 +148,7 @@ pt_b_sawa:
 ; mstari: kauli moja.
 mstari:
         n64[r15+V_HAIJATATULIWA] = 0
-        n64[r15+V_NI_LEBO] = 0
+        n64[r15+V_NI_MAHALI] = 0
         ita tokeni
         linganisha n64[r15+V_AINA_TOKENI], 0
         ruka ms_mwisho kama ==
@@ -157,13 +157,13 @@ mstari:
 ; lebo? kitambulisho kinachofuatwa na ':'
         r0 = n64[r15+V_MAHALI_SASA]
         linganisha r0, n64[r15+V_MWISHO_MSTARI]
-        ruka ms_si_lebo kama >=a
+        ruka ms_si_mahali kama >=a
         linganisha n8[r0], 0x3a
-        ruka ms_si_lebo kama !=
+        ruka ms_si_mahali kama !=
         n64[r15+V_MAHALI_SASA]++
-        ita fafanua_lebo
+        ita fafanua_mahali
         ruka mstari
-ms_si_lebo:
+ms_si_mahali:
 ; fafanua JINA = usemi
         r0 = 0x0061756e61666166
         linganisha n64[r15+V_NAKALA_TOKENI], r0
@@ -489,8 +489,8 @@ jina_kamili:
         ruka jk_m kama !=
         r7 = eneo_jina_kazi
         sukuma r7
-        r1 = n64[r15+V_UREFU_LEBO_KUU]
-        r0 = n64[r15+V_ANWANI_LEBO_KUU]
+        r1 = n64[r15+V_UREFU_MAHALI_KUU]
+        r0 = n64[r15+V_ANWANI_MAHALI_KUU]
         r8d ^= r8d
 jk_g:
         linganisha r8, r1
@@ -561,7 +561,7 @@ weka_alama:
         r8 = eneo_jina_kazi
         linganisha r6, r8
         ruka wa_jina_tayari kama !=
-        r7 = n64[r15+V_MAHALI_DIMBWI]
+        r7 = n64[r15+V_MAHALI_GHALA]
         sukuma r7
         r8d ^= r8d
 wa_nakili:
@@ -573,7 +573,7 @@ wa_nakili:
         ruka wa_nakili
 wa_nakili_m:
         r7 += r2
-        n64[r15+V_MAHALI_DIMBWI] = r7
+        n64[r15+V_MAHALI_GHALA] = r7
         vuta r6
 wa_jina_tayari:
         r8 = n64[r15+V_MWISHO_ALAMA]
@@ -598,9 +598,9 @@ wa_m:
 thamani_ya_alama:
         r1 = n64[r0+24]
         linganisha r1, 4
-        ruka tya_si_lebo kama ==
-        n64[r15+V_NI_LEBO] = 1
-tya_si_lebo:
+        ruka tya_si_mahali kama ==
+        n64[r15+V_NI_MAHALI] = 1
+tya_si_mahali:
         r0 = n64[r0+16]
         linganisha r1, 1
         ruka tya_d kama !=
@@ -618,13 +618,13 @@ tya_b:
 tya_m:
         rudi
 
-fafanua_lebo:
+fafanua_mahali:
         r6 = n64[r15+V_ANWANI_TOKENI]
         linganisha n8[r6], 0x2e
         ruka fl_ndani kama ==
-        n64[r15+V_ANWANI_LEBO_KUU] = r6
+        n64[r15+V_ANWANI_MAHALI_KUU] = r6
         r2 = n64[r15+V_UREFU_TOKENI]
-        n64[r15+V_UREFU_LEBO_KUU] = r2
+        n64[r15+V_UREFU_MAHALI_KUU] = r2
 ; anza: mahali pa kuanzia
         linganisha r2, 4
         ruka fl_ndani kama !=
@@ -816,9 +816,9 @@ um_jina:
         ruka thamani_ya_alama
 um_haijulikani:
         n64[r15+V_HAIJATATULIWA] = 1
-        n64[r15+V_NI_LEBO] = 1
+        n64[r15+V_NI_MAHALI] = 1
         linganisha n64[r15+V_PITIO_LA_KUANDIKA], 0
-        ruka kosa_lebo kama !=
+        ruka kosa_mahali kama !=
         r0d ^= r0d
         rudi
 
@@ -879,9 +879,9 @@ kauli_data:
         ruka kosa_sintaksia kama !=
 ; jina la data ni lebo ya kawaida: huanzisha wigo wa lebo za ndani (kama NASM)
         r0 = n64[r15+V_ANWANI_TOKENI]
-        n64[r15+V_ANWANI_LEBO_KUU] = r0
+        n64[r15+V_ANWANI_MAHALI_KUU] = r0
         r0 = n64[r15+V_UREFU_TOKENI]
-        n64[r15+V_UREFU_LEBO_KUU] = r0
+        n64[r15+V_UREFU_MAHALI_KUU] = r0
         sukuma n64[r15+V_ANWANI_TOKENI]
         sukuma n64[r15+V_UREFU_TOKENI]
         ita tokeni
@@ -1866,12 +1866,12 @@ arm_rex:
         ita toa_rex_hoja
         r0d = r13d
         linganisha r0d, 0xff
-        ruka arm_op1 kama <=a
+        ruka arm_kitendo1 kama <=a
         r0d = 0x0f
         ita toa_baiti
         r0d = r13d
         r0d &= 0xff
-arm_op1:
+arm_kitendo1:
         ita toa_baiti
         vuta r2
         vuta r6
@@ -1949,19 +1949,19 @@ ag_si_kushoto:
 ; += -= &= |= ^=  -> kundi la ALU
         r0d = 0
         linganisha r14, 0x3d2b
-        ruka ag_alu kama ==
+        ruka ag_hesabu kama ==
         r0d = 5
         linganisha r14, 0x3d2d
-        ruka ag_alu kama ==
+        ruka ag_hesabu kama ==
         r0d = 4
         linganisha r14, 0x3d26
-        ruka ag_alu kama ==
+        ruka ag_hesabu kama ==
         r0d = 1
         linganisha r14, 0x3d7c
-        ruka ag_alu kama ==
+        ruka ag_hesabu kama ==
         r0d = 6
         linganisha r14, 0x3d5e
-        ruka ag_alu kama ==
+        ruka ag_hesabu kama ==
         ruka kosa_sintaksia
 
 ; upana wa agizo: lengo (au chanzo ikiwa lengo halina)
@@ -1969,26 +1969,26 @@ upana_ab:
         r2 = hoja_lengo
         r0 = n64[r2+16]
         pima r0, r0
-        ruka ua_m kama !=
+        ruka upana_ab_mwisho kama !=
         r2 = hoja_chanzo
         r0 = n64[r2+16]
         pima r0, r0
         ruka kosa_upana kama ==
-ua_m:
+upana_ab_mwisho:
         r12d = r0d
         rudi
 
 ; kundi la ALU: r0d = /op (0 add 1 or 4 and 5 sub 6 xor 7 cmp)
-ag_alu:
+ag_hesabu:
         r14d = r0d
-alu_kawaida:
+hesabu_kawaida:
         ita upana_ab
         r3 = hoja_lengo
         r7 = hoja_chanzo
         linganisha n64[r7], 3
-        ruka alu_namba kama ==
+        ruka hesabu_namba kama ==
         linganisha n64[r7], 1
-        ruka alu_r_m kama !=
+        ruka hesabu_r_m kama !=
 ; chanzo ni rejista: r/m, reg  (op*8 + 1, au +0 kwa baiti)
         r6d = n32[r7+8]
         r2 = r3
@@ -2002,7 +2002,7 @@ alu_kawaida:
         r13d += r0d
         r1d ^= r1d
         ruka agizo_rm
-alu_r_m:
+hesabu_r_m:
 ; lengo rejista, chanzo kumbukumbu: reg, r/m (op*8 + 3, au +2)
         linganisha n64[r3], 1
         ruka kosa_sintaksia kama !=
@@ -2011,26 +2011,26 @@ alu_r_m:
         n32[r15+V_REJISTA_BAITI] = 1
         r13d = 3
         linganisha r12d, 1
-        ruka alu_rm_op kama !=
+        ruka hesabu_rm_kitendo kama !=
         r13d = 2
-alu_rm_op:
+hesabu_rm_kitendo:
         r0d = r14d
         r0d <<= 3
         r13d += r0d
         r1d ^= r1d
         ruka agizo_rm
-alu_namba:
+hesabu_namba:
         r0 = n64[r7+48]
         r9 = r0
         n32[r15+V_REJISTA_BAITI] = 0
         linganisha r12d, 1
-        ruka alu_n8 kama ==
+        ruka hesabu_n8 kama ==
 ; i8 yenye ishara -> 83 /op ib
         r1 = n r0b
         linganisha r1, r0
-        ruka alu_n32 kama !=
+        ruka hesabu_n32 kama !=
         linganisha n64[r7+72], 0
-        ruka alu_n32 kama !=
+        ruka hesabu_n32 kama !=
         sukuma r9
         r6d = r14d
         r2 = r3
@@ -2039,23 +2039,23 @@ alu_namba:
         ita agizo_rm
         vuta r0
         ruka toa_baiti
-alu_n32:
+hesabu_n32:
 ; r0 / r0d: umbo fupi (op*8 + 5) id
         linganisha n64[r3], 1
-        ruka alu_n32_81 kama !=
+        ruka hesabu_n32_81 kama !=
         linganisha n64[r3+8], 0
-        ruka alu_n32_81 kama !=
+        ruka hesabu_n32_81 kama !=
         sukuma r9
         linganisha r12d, 2
-        ruka alu_acc_rex kama !=
+        ruka hesabu_r0_rex kama !=
         r0d = 0x66
         ita toa_baiti
-alu_acc_rex:
+hesabu_r0_rex:
         linganisha r12d, 8
-        ruka alu_acc_op kama !=
+        ruka hesabu_r0_kitendo kama !=
         r0d = 0x48
         ita toa_baiti
-alu_acc_op:
+hesabu_r0_kitendo:
         r0d = r14d
         r0d <<= 3
         r0d += 5
@@ -2064,16 +2064,16 @@ alu_acc_op:
         linganisha r12d, 2
         ruka toa_neno2 kama ==
         ruka toa_neno4
-alu_n32_81:
+hesabu_n32_81:
         sukuma r9
         r6d = r14d
         r2 = r3
         r13d = 0x81
         r1d = 4
         linganisha r12d, 2
-        ruka alu_81 kama !=
+        ruka hesabu_81 kama !=
         r1d = 2
-alu_81:
+hesabu_81:
         sukuma r1
         ita agizo_rm
         vuta r1
@@ -2081,19 +2081,19 @@ alu_81:
         linganisha r1d, 2
         ruka toa_neno2 kama ==
         ruka toa_neno4
-alu_n8:
+hesabu_n8:
         sukuma r9
         linganisha n64[r3], 1
-        ruka alu_n8_80 kama !=
+        ruka hesabu_n8_80 kama !=
         linganisha n64[r3+8], 0
-        ruka alu_n8_80 kama !=
+        ruka hesabu_n8_80 kama !=
         r0d = r14d
         r0d <<= 3
         r0d += 4
         ita toa_baiti
         vuta r0
         ruka toa_baiti
-alu_n8_80:
+hesabu_n8_80:
         r6d = r14d
         r2 = r3
         r13d = 0x80
@@ -2203,12 +2203,12 @@ ag_hamisha:
         r0 = n64[r3+16]
         r1 = n64[r7+16]
         pima r1, r1
-        ruka hm_mov_rm kama ==
+        ruka hm_hamisha_rm kama ==
         linganisha r0, r1
-        ruka hm_mov_rm kama ==
+        ruka hm_hamisha_rm kama ==
         ruka hm_panua kama >a
         ruka kosa_upana
-hm_mov_rm:
+hm_hamisha_rm:
 ; reg = r/m : 8B /r (8A baiti)
         ita upana_ab
         r6d = n32[r3+8]
@@ -2410,9 +2410,9 @@ agr_rex:
         ita toa_rex
         r0d = 0x89
         linganisha r13d, 1
-        ruka agr_op kama !=
+        ruka agr_kitendo kama !=
         r0d = 0x88
-agr_op:
+agr_kitendo:
         ita toa_baiti
         r0d = r14d
         r0d &= 7
@@ -2429,7 +2429,7 @@ hamisha_namba:
         linganisha r13d, 8
         ruka hn_ndogo kama !=
 ; 64: thamani yenye lebo -> REX.W B8+r io (anwani kamili, kama NASM)
-        linganisha n64[r15+V_NI_LEBO], 0
+        linganisha n64[r15+V_NI_MAHALI], 0
         ruka hn_64 kama !=
 ; 64: 0..0xffffffff -> B8+r id (biti 32, hupanua kwa sifuri)
         r1 = 0xffffffff
@@ -2596,7 +2596,7 @@ soma_jozi:
 agizo_linganisha:
         ita soma_jozi
         r14d = 7
-        ruka alu_kawaida
+        ruka hesabu_kawaida
 agizo_pima:
         ita soma_jozi
         ita upana_ab
@@ -2718,10 +2718,10 @@ sukuma_vuta_rej:
         sukuma r0
         sukuma r1
         linganisha r0d, 8
-        ruka svr_op kama <a
+        ruka svr_kitendo kama <a
         r0d = 0x41
         ita toa_baiti
-svr_op:
+svr_kitendo:
         vuta r1
         vuta r0
         r0d &= 7
@@ -2792,9 +2792,9 @@ andika_elf:
         ruka ae_elf kama ==
         r6 = eneo_msimbo   ; picha tambarare: baiti zenyewe tu
         r2 = n64[r15+V_MAHALI_MSIMBO]
-        ruka andika_stdout
+        ruka andika_kwenye_matokeo
 ae_elf:
-        r7 = eneo_kichwa
+        r7 = eneo_utangulizi
         n32[r7] = 0x464c457f
         n32[r7+4] = 0x00010102
         n16[r7+16] = 2
@@ -2834,12 +2834,12 @@ ae_elf:
         n64[r6+40] = r0
         n64[r6+48] = 0x1000
 ; andika: kichwa (0x1000), msimbo, sifuri hadi data, data
-        r6 = eneo_kichwa
+        r6 = eneo_utangulizi
         r2d = 0x1000
-        ita andika_stdout
+        ita andika_kwenye_matokeo
         r6 = eneo_msimbo
         r2 = n64[r15+V_MAHALI_MSIMBO]
-        ita andika_stdout
+        ita andika_kwenye_matokeo
         r3 = n64[r15+V_MSINGI_DATA]
         r3 -= 0x401000
         r3 -= n64[r15+V_MAHALI_MSIMBO]
@@ -2853,15 +2853,15 @@ ae_sifuri:
 ae_s:
         r3 -= r2
         r6 = eneo_sifuri
-        ita andika_stdout
+        ita andika_kwenye_matokeo
         ruka ae_sifuri
 ae_data:
         r6 = eneo_data
         r2 = n64[r15+V_MAHALI_DATA]
-        ruka andika_stdout
+        ruka andika_kwenye_matokeo
 
-; andika_stdout: r6, r2 (hurudia mpaka yote yaandikwe)
-andika_stdout:
+; andika_kwenye_matokeo: r6, r2 (hurudia mpaka yote yaandikwe)
+andika_kwenye_matokeo:
         pima r2, r2
         ruka as_m kama ==
         r7d = 1
@@ -2875,7 +2875,7 @@ andika_stdout:
         ruka as_m kama <=n
         r6 += r0
         r2 -= r0
-        ruka andika_stdout
+        ruka andika_kwenye_matokeo
 as_m:
         rudi
 
@@ -2891,7 +2891,7 @@ kosa_sintaksia:
 kosa_agizo:
         r3d = 2
         ruka kosa
-kosa_lebo:
+kosa_mahali:
         r3d = 3
         ruka kosa
 kosa_marudio:
@@ -2910,7 +2910,7 @@ kosa_faili:
         r3d = 8
 kosa:
 ; "kosa " + mstari + ":" + namba + "\n"
-        r7 = eneo_kichwa
+        r7 = eneo_utangulizi
         r0 = 0x2061736f6b   ; "kosa "
         n64[r7] = r0
         r7 += 5
@@ -2922,7 +2922,7 @@ kosa:
         ita andika_desimali
         n8[r7] = 10
         r7++
-        r6 = eneo_kichwa
+        r6 = eneo_utangulizi
         r2 = r7
         r2 -= r6
         r7d = 2
@@ -3322,9 +3322,9 @@ hmb_hoja:
         vuta r2
 hmb_si66:
         linganisha r12d, 1
-        ruka hmb_op kama ==
+        ruka hmb_kitendo kama ==
         r13d++
-hmb_op:
+hmb_kitendo:
         linganisha n64[r2+24], 2
         ruka hmb_namba kama !=
         r0d = r13d
@@ -3447,7 +3447,7 @@ n8 eneo_msimbo[0x400000]
 n8 eneo_data[0x400000]
 n8 eneo_alama[0x300000]
 n8 eneo_sifuri[0x1000]
-n8 eneo_kichwa[0xe000]
+n8 eneo_utangulizi[0xe000]
 n8 eneo_jina_kazi[0x1000]
 n8 eneo_majina[0xf0000]
 n8 eneo_vigezo[0x1000]

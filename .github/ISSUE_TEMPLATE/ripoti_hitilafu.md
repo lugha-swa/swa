@@ -23,7 +23,7 @@ assignees: []
 ## Mazingira
 - Mfumo wa uendeshaji: 
 - Mnyororo uliotumika: awali (`msingi/awali.bin`) au kamili (`bin/swa`)
-- Ukubwa wa mbegu.bin (baiti): 
+- Ukubwa wa awali.bin (baiti): 
 - Fixpoint (stage2 == stage3): ndiyo / hapana
 
 ## Maelezo ya Ziada

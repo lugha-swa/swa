@@ -22,7 +22,7 @@ Tafuta lebo `good-first-issue` kwenye [ukurasa wa masuala](https://github.com/lu
 Tumia kiolezo cha **Ripoti ya Hitilafu**. Hakikisha umejumuisha:
 - Hatua za kuzalisha hitilafu
 - Matokeo halisi na yanayotarajiwa
-- Mazingira yako (OS, mnyororo uliotumika -- mbegu au stage1, ukubwa wa mbegu.bin, hali ya fixpoint)
+- Mazingira yako (OS, mnyororo uliotumika -- mbegu au stage1, ukubwa wa awali.bin, hali ya fixpoint)
 
 ### 3. Kupendekeza Vipengele
 
@@ -99,14 +99,14 @@ mkazo wa RELA ndani ya `gharama/jaribu-mfululizo.mapishi` (`majaribio/mkazo/urek
 Mpangilio wa lazima:
 1. Badilisha `msingi/awali.swm`.
 2. `./msingi/mjenzi.bin gharama/awali-mpya.mapishi` -> mbegu ya muda
-   `jengo/awali` (mnyororo huru: kwanza.bin -> maoni -> lebo -> kusanyiko0
+   `jengo/awali` (mnyororo huru: kwanza.bin -> maoni -> mahali -> kusanyiko0
    -> kusanyiko) -> jaribu
    kwa chanzo KIDOGO (sio mkusanyiko mzima kwanza) na kwa mkusanyiko
    mzima.
 3. Jaribio la mkazo la wito wa mbele (angalau 1,000) -- njia za RELA
    na nje zinazopigwa mara nyingi.
 4. Baada ya hapo tu: gandisha (`./msingi/mjenzi.bin gharama/gandisha.mapishi`
-   huandika `mbegu.bin` + `mbegu.hex` na `mjenzi.bin` + `mjenzi.hex`,
+   huandika `awali.bin` + `awali.heksa` na `mjenzi.bin` + `mjenzi.heksa`,
    kisha huthibitisha mnyororo mzima), endesha
    `./msingi/mjenzi.bin gharama/jaribu-mfululizo-huru.mapishi`, na endesha
    `./msingi/mjenzi.bin gharama/jaribu-mfululizo.mapishi` nzima.

@@ -446,18 +446,18 @@ KIPENGELE TOFAUTI KABISA na kazi hii, kinachofanya kazi wakati wa
 UCHANGANUZI si UZALISHAJI) kina mdudu WAKE MWENYEWE kwa mgawanyo wa
 namba HASI ya kudumu (mfano `(0-17)/3` -- si nguvu ya 2, hivyo nje ya
 wigo wa PR hii kabisa) -- imefuatiliwa kwa uhakika kamili hadi
-`mbegu.bin` (mkusanyaji wa awali uliogandishwa): mbegu.bin YENYEWE
+`awali.bin` (mkusanyaji wa awali uliogandishwa): awali.bin YENYEWE
 inakosea kuzalisha msimbo kwa muundo maalum wa "N64 = safu ya N32
 [fahirisi]; ...; mgawanyo" (imethibitishwa kwa kuunda upya muundo huo
-kama programu huru na kuikusanya MOJA KWA MOJA na mbegu.bin). Kwa
+kama programu huru na kuikusanya MOJA KWA MOJA na awali.bin). Kwa
 kuwa `jaribu_kunja_namba` ipo ndani ya kiendeshaji.swa (chanzo cha
 mkusanyaji mwenyewe), hitilafu hii inaingia kwenye kizazi cha KWANZA
-(gen1/stage1, kilichojengwa NA mbegu.bin moja kwa moja) -- LAKINI
+(gen1/stage1, kilichojengwa NA awali.bin moja kwa moja) -- LAKINI
 INAJIPONYA (self-heals) KABISA kwenye kizazi cha PILI (gen2/stage2,
 kilichojengwa na gen1, ambaye msimbo wake WENYEWE wa uzalishaji
 (uzalishaji.swa) HAUNA mdudu huu) -- imethibitishwa moja kwa moja
 kwa kujenga gen2 na kuonyesha `(0-17)/3` inatoa `-5` sahihi. Kwa
-kuwa mbegu.bin imegandishwa milele, hitilafu hii haiwezi kurekebishwa
+kuwa awali.bin imegandishwa milele, hitilafu hii haiwezi kurekebishwa
 huko -- lakini haiathiri mkusanyaji halisi unaotumika (mnyororo wa
 kujiendeleza zaidi ya kizazi kimoja), na majaribio ya PR hii
 YAMEUNDWA KWA MAKUSUDI kuepuka mkondo wa kukunja namba kabisa
@@ -928,7 +928,7 @@ ina wito, kina cha xmm zaidi ya 6, upana usiolingana (N8/N16 na N32).
 - Fixpoint stage2 == stage3. Programu 307 (majaribio + vipimo)
   zimeundwa na stage1 na stage2 -- baiti sawa isipokuwa
   `jaribio_gawanyo_nguvu_pili_mipaka`, ambayo inatofautiana vilevile kwenye
-  mkusanyaji wa zamani (mdudu unaojulikana wa mbegu.bin: mgawanyo hasi
+  mkusanyaji wa zamani (mdudu unaojulikana wa awali.bin: mgawanyo hasi
   uliokunjwa hukusanywa vibaya kwenye gen1 tu).
 - Programu 3401 za nasibu (mbegu 1..4000; N32, N64, D64; vielekezi na
   faharasa; ulinganishi) zimeundwa na mkusanyaji wa zamani na mpya --
@@ -1002,7 +1002,7 @@ kuthibitisha kuwa jaribio linakishika.
 - Programu 315 zimeundwa na stage1 na stage2: baiti sawa isipokuwa tatu --
   `jaribio_gawanyo_nguvu_pili_mipaka`, `jaribio_kihesabu_namba` na
   `jaribio_wito_hoja_ya_kwanza` -- zote tatu zinatofautiana vilevile kwenye
-  mkusanyaji wa kabla ya PR hii (mdudu unaojulikana wa mbegu.bin: baadhi ya
+  mkusanyaji wa kabla ya PR hii (mdudu unaojulikana wa awali.bin: baadhi ya
   namba hasi zilizokunjwa, mfano `0 - 2147483647 - 1`, hazikunjwi kwenye gen1;
   tofauti ni anwani za data tu, matokeo ya kukimbia ni sawa).
 - Programu 6001 za nasibu (N32/N64/D64, vielekezi, faharasa, mgawanyo,
@@ -1064,7 +1064,7 @@ juu na faharasa ya ndani (`b[a[1] / 10]`) kati ya uamuzi na upakiaji;
 
 - 420/420 (419 + 1 mpya), mara 3 kutoka ujenzi safi; fixpoint stage2 == stage3.
 - Programu 317 zimeundwa na stage1 na stage2: baiti sawa isipokuwa tatu
-  zinazojulikana (mdudu wa mbegu.bin wa kukunja namba hasi; zinatofautiana
+  zinazojulikana (mdudu wa awali.bin wa kukunja namba hasi; zinatofautiana
   vilevile kabla ya mabadiliko haya).
 - Programu 4001 za nasibu, mkusanyaji wa kabla dhidi ya wa baada: sifuri
   tofauti. Programu 2501 za oracle (vigawanyaji vya kudumu dhidi ya
@@ -1126,7 +1126,7 @@ tayari -- kazi hiyo haikuwa na mdudu huu.
   (c09c3d5) na linapita baada yake. 421/421.
 - Fixpoint stage2 == stage3, mara 3 kutoka ujenzi safi.
 - Programu 318 zimeundwa na stage1 na stage2: baiti sawa isipokuwa
-  tatu zinazojulikana (mdudu wa mbegu.bin).
+  tatu zinazojulikana (mdudu wa awali.bin).
 - Programu 3001 za nasibu (kabla dhidi ya baada): sifuri tofauti.
   Programu 1500 za jenereta mpya ya faharasa (aina zote, faharasa
   ndani ya faharasa, wito): sifuri tofauti.

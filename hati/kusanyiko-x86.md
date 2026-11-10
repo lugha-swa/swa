@@ -89,7 +89,7 @@ n32 aina_ast[262144]
 n8  ujumbe = "kosa: chanzo kikubwa mno", 10, 0
 ```
 
-Lebo: `jina:` na za ndani `.jina:` (za wigo wa lebo iliyotangulia). Programu huanzia `anza:`. Mpangilio wa faili ni sawa na `mbegu.bin` ya sasa (msimbo 0x401000, data 0x40c000, tupu baadaye), ili msimbo ulinganishwe kwa baiti.
+Lebo: `jina:` na za ndani `.jina:` (za wigo wa lebo iliyotangulia). Programu huanzia `anza:`. Mpangilio wa faili ni sawa na `awali.bin` ya sasa (msimbo 0x401000, data 0x40c000, tupu baadaye), ili msimbo ulinganishwe kwa baiti.
 
 ## Picha tambarare na biti 32
 

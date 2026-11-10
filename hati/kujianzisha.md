@@ -19,7 +19,7 @@ Lengo lenyewe lilitimizwa na **mnyororo huru** (`hati/mfululizo-huru.md`):
 - `msingi/kwanza.bin` -- baiti 393 za mkono kweli (hex -> binary)
 - maoni -> lebo -> kusanyiko0 -> kusanyiko: kila hatua imeandikwa kwa lugha
   ya iliyo chini yake, na kusanyiko (lugha ya mashine ya Swa) hujijenga lenyewe
-- `msingi/awali.swm` -> `mbegu.bin`, mkusanyaji wa Swa -> stage1 -> `bin/swa`
+- `msingi/awali.swm` -> `awali.bin`, mkusanyaji wa Swa -> stage1 -> `bin/swa`
 - `msingi/mjenzi.bin` huendesha yote: `./msingi/mjenzi.bin gharama/jenga.mapishi`
 
 Hakuna assembler, linker wala compiler ya nje popote kwenye mnyororo.
