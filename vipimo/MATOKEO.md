@@ -57,7 +57,7 @@ KWANZA
 Kikao hiki kilichotangulia kilijaribu kupima kuzidisha kwa matriki
 lakini ililazimika kutumia namba kamili (integer) badala ya D64 kwa
 sababu `D64*` (kielekezi kwenda desimali) haikufanya kazi KABISA
-(lugha-swa/swa#181). Mdudu huo sasa umerekebishwa (PR #213/#221),
+(lugha-swa/swa#181). Hitilafu hiyo sasa umerekebishwa (PR #213/#221),
 kwa hiyo kipimo hiki sasa kinatumia D64 HALISI kwenye safu
 zilizotengwa (`tenga`), kama ilivyokusudiwa awali. Hii ndiyo
 tovuti pekee ambapo Swa inabaki karibu na uwiano wa mwanzo wa kikao
@@ -105,7 +105,7 @@ ya `licm_boresha` -- LICM hii HAIFANYI CSE ya kuunganisha matukio
 yanayofanana kuwa kigezo kimoja cha muda, hivyo `a[i*n+j]`,
 `b[i*n+j]`, na `c[i*n+j]` kila moja hupata kigezo chake CHA PEKEE
 badala ya kushiriki kimoja -- fursa iliyoachwa kwa makusudi kwa
-awamu ijayo, si mdudu).
+awamu ijayo, si hitilafu).
 
 **mzunguko_mchezo HAIFAIDIKI KABISA (kama ilivyotarajiwa, si
 kushangaza)** -- kitanzi chake pekee (`wakati (t < MZUNGUKO_JUMLA)`)
@@ -255,7 +255,7 @@ vinavyoshikilia thamani MOJA (imethibitishwa kwa disassembly: maagizo
 YALE YALE ya kuzidisha `rbx*r13` yanaonekana MARA MBILI mfululizo,
 yakihifadhiwa kwenye nafasi mbili tofauti za rafu). Kwa kuwa vigezo
 hivyo vina MAJINA tofauti, ulinganisho wa muundo (`keq_taja_sawa`)
-kwa usahihi HAUKUBALI ulinganifu -- si mdudu, ni tabia salama
+kwa usahihi HAUKUBALI ulinganifu -- si hitilafu, ni tabia salama
 inayozuia matokeo yasiyo sahihi. Matokeo: binary ya matriki
 iliyotolewa na mkusanyaji mpya ni SAWA KABISA kwa baiti na ile ya
 zamani (`cmp` imethibitisha usawa kamili) -- kashe hii HAIBADILISHI
@@ -306,7 +306,7 @@ inashughulikia KILA agizo linaloweza kutokea kati ya push na pop
 `uzalishaji_kuu`/`uzalishaji_jit`) zote husafisha eksplisiti pia --
 uhakika, si dhana ya mpangilio wa wito.
 
-**Mdudu halisi uliogunduliwa na kurekebishwa KABLA ya kuunganishwa**:
+**Hitilafu halisi iliyogunduliwa na kurekebishwa KABLA ya kuunganishwa**:
 jaribio la kwanza la utekelezaji lilisababisha SEGV/matokeo mabaya
 kwenye majaribio 18 (ikiwa ni pamoja na yale ya kashe ya anwani ya
 kiwanja) -- chanzo: `andika_pop_rcx`/`andika_pop_rax` ziliita
@@ -443,7 +443,7 @@ ndogo kabisa ya N32 (-2147483648/2), na bila ishara na thamani kubwa
 uwazi)**: wakati wa kuandaa majaribio haya, iligundulika kuwa
 `jaribu_kunja_namba` (kukunja namba za kudumu, msambazaji.swa --
 KIPENGELE TOFAUTI KABISA na kazi hii, kinachofanya kazi wakati wa
-UCHANGANUZI si UZALISHAJI) kina mdudu WAKE MWENYEWE kwa mgawanyo wa
+UCHANGANUZI si UZALISHAJI) kina hitilafu YAKE YENYEWE kwa mgawanyo wa
 namba HASI ya kudumu (mfano `(0-17)/3` -- si nguvu ya 2, hivyo nje ya
 wigo wa PR hii kabisa) -- imefuatiliwa kwa uhakika kamili hadi
 `awali.bin` (mkusanyaji wa awali uliogandishwa): awali.bin YENYEWE
@@ -455,7 +455,7 @@ mkusanyaji mwenyewe), hitilafu hii inaingia kwenye kizazi cha KWANZA
 (gen1/stage1, kilichojengwa NA awali.bin moja kwa moja) -- LAKINI
 INAJIPONYA (self-heals) KABISA kwenye kizazi cha PILI (gen2/stage2,
 kilichojengwa na gen1, ambaye msimbo wake WENYEWE wa uzalishaji
-(uzalishaji.swa) HAUNA mdudu huu) -- imethibitishwa moja kwa moja
+(uzalishaji.swa) HAUNA hitilafu hii) -- imethibitishwa moja kwa moja
 kwa kujenga gen2 na kuonyesha `(0-17)/3` inatoa `-5` sahihi. Kwa
 kuwa awali.bin imegandishwa milele, hitilafu hii haiwezi kurekebishwa
 huko -- lakini haiathiri mkusanyaji halisi unaotumika (mfululizo wa
@@ -668,7 +668,7 @@ Wakati wa kuandaa majaribio, iligundulika mibegu miwili TOFAUTI KABISA
 na kazi hii, isiyohusiana:
 1. `{ N32 x = 1; }` (kitalu kisicho na kitanzi/tawi kinachofunga
    tangazo la kigezo cha ndani) hutoa "kosa: kianzilishi cha safu
-   hakijaungwa mkono" kimakosa -- mdudu wa uchanganuzi (parser),
+   hakijaungwa mkono" kimakosa -- hitilafu ya uchanganuzi (parser),
    HAUHUSIANI na zidisho-na-uchawi kabisa.
 2. `A32 z = 4294964296;` (uanzishaji wa moja kwa moja wa A32 na namba
    halisi kubwa kuliko 2^31) haufanyi kazi sahihi -- kigawanyaji
@@ -900,7 +900,7 @@ kulia kwenye rcx/xmm1 kama zamani, kwa njia tatu:
   hiyo kwa kigezo inahitaji kushoto isiyoweza kukibadilisha
   (`jr_ni_salama`: hakuna wito, hakuna uandishi). Namba ya kudumu
   hasi kwa upana wa 8 haikubaliwi (uzalishaji_usemi huipanua kwa
-  ishara, `mov ecx` haifanyi hivyo) -- mdudu huu ulipatikana na
+  ishara, `mov ecx` haifanyi hivyo) -- hitilafu hii ilipatikana na
   `jaribio_uchawi_kataa` wakati wa kazi hii, na sasa una jaribio lake.
 - **C -- desimali, kushoto haina wito**: kulia huhifadhiwa xmm2..xmm7
   (kina hadi 6), kushoto, kisha xmm1. Rejesta za xmm ni caller-saved,
@@ -928,7 +928,7 @@ ina wito, kina cha xmm zaidi ya 6, upana usiolingana (N8/N16 na N32).
 - Fixpoint stage2 == stage3. Programu 307 (majaribio + vipimo)
   zimeundwa na stage1 na stage2 -- baiti sawa isipokuwa
   `jaribio_gawanyo_nguvu_pili_mipaka`, ambayo inatofautiana vilevile kwenye
-  mkusanyaji wa zamani (mdudu unaojulikana wa awali.bin: mgawanyo hasi
+  mkusanyaji wa zamani (hitilafu inayojulikana ya awali.bin: mgawanyo hasi
   uliokunjwa hukusanywa vibaya kwenye gen1 tu).
 - Programu 3401 za nasibu (mbegu 1..4000; N32, N64, D64; vielekezi na
   faharasa; ulinganishi) zimeundwa na mkusanyaji wa zamani na mpya --
@@ -1002,7 +1002,7 @@ kuthibitisha kuwa jaribio linakishika.
 - Programu 315 zimeundwa na stage1 na stage2: baiti sawa isipokuwa tatu --
   `jaribio_gawanyo_nguvu_pili_mipaka`, `jaribio_kihesabu_namba` na
   `jaribio_wito_hoja_ya_kwanza` -- zote tatu zinatofautiana vilevile kwenye
-  mkusanyaji wa kabla ya PR hii (mdudu unaojulikana wa awali.bin: baadhi ya
+  mkusanyaji wa kabla ya PR hii (hitilafu inayojulikana ya awali.bin: baadhi ya
   namba hasi zilizokunjwa, mfano `0 - 2147483647 - 1`, hazikunjwi kwenye gen1;
   tofauti ni anwani za data tu, matokeo ya kukimbia ni sawa).
 - Programu 6001 za nasibu (N32/N64/D64, vielekezi, faharasa, mgawanyo,
@@ -1035,7 +1035,7 @@ wito na fremu), heshi (3.8x, bado maandishi-hadi-nambari ya maktaba).
 
 ### Masahihisho kwa awamu ya pili
 
-Awamu hiyo ilikuja na rekebisho la mdudu uliokuwepo main tangu #244:
+Awamu hiyo ilikuja na rekebisho la hitilafu iliyokuwepo main tangu #244:
 mgawanyo/modulo wa kudumu ulioota (`x / 10 / 100`) ulitumia namba ya uchawi ya
 kigawanyaji cha ndani (`gwm_uchawi_*` na `gwm64_*` ni vigezo vya ulimwengu
 vilivyoandikwa juu na mgawanyo wa ndani kabla ya wa nje kuvitumia). Sasa
@@ -1055,7 +1055,7 @@ faharasa (mpangilio ule ule wa asili), kisha upakiaji. Awali ilikuwa `shl`,
 `cdqe`, `add`, kisha upakiaji. Miundo (`z[i].a`), vielekezi vya vielekezi na
 msingi usio jani hubaki njia ya asili. Uhifadhi (`arr[i] = x`) haujaguswa.
 
-Mdudu mmoja ulipatikana na jaribio jipya wakati wa kuandika: `jr_msingi_off`
+Hitilafu moja ilipatikana na jaribio jipya wakati wa kuandika: `jr_msingi_off`
 (kigezo cha ulimwengu kilichoshikilia ofseti ya safu ya msingi) kiliandikwa
 juu na faharasa ya ndani (`b[a[1] / 10]`) kati ya uamuzi na upakiaji;
 `jr_pakia_msingi_rcx` sasa inatafuta tena. Jaribio: `jaribio_safu_sib`.
@@ -1064,7 +1064,7 @@ juu na faharasa ya ndani (`b[a[1] / 10]`) kati ya uamuzi na upakiaji;
 
 - 420/420 (419 + 1 mpya), mara 3 kutoka ujenzi safi; fixpoint stage2 == stage3.
 - Programu 317 zimeundwa na stage1 na stage2: baiti sawa isipokuwa tatu
-  zinazojulikana (mdudu wa awali.bin wa kukunja namba hasi; zinatofautiana
+  zinazojulikana (hitilafu ya awali.bin ya kukunja namba hasi; zinatofautiana
   vilevile kabla ya mabadiliko haya).
 - Programu 4001 za nasibu, mkusanyaji wa kabla dhidi ya wa baada: sifuri
   tofauti. Programu 2501 za oracle (vigawanyaji vya kudumu dhidi ya
@@ -1095,7 +1095,7 @@ si gharama ya SIB (maagizo yamepungua 3%). Tofauti chini ya ~6% kwenye kipimo
 kimoja haipaswi kudaiwa bila jaribio hilo la kuhamisha msimbo. fibonacci na
 mandelbrot hazina `arr[i]` moto, kwa hiyo hazibadiliki (maagizo sawa kabisa).
 
-## Rekebisho la mdudu: fahirisi kubwa (idx * saizi > 2^32)
+## Rekebisho la hitilafu: fahirisi kubwa (idx * saizi > 2^32)
 
 Ukaguzi wa PR #251 uligundua kuwa `andika_ongea_kipengele_kwa_saizi`
 (inayotumika kwa `arr[idx] = x`, `&arr[idx]`, na njia ya asili -- isiyo
@@ -1113,7 +1113,7 @@ inabaki imepanuliwa kwa sifuri kiasili na x86-64). Suluhisho: zidisha
 kwenye `RAX` (biti 64) moja kwa moja (REX.W), bila `cdqe` ya ziada
 (haihitajiki -- `rax` tayari ni sahihi). Ni muundo ule ule ambao
 `andika_ongea_kielekezi_kipengele` (kwa `p + n`) ulikuwa akitumia
-tayari -- kazi hiyo haikuwa na mdudu huu.
+tayari -- kazi hiyo haikuwa na hitilafu hii.
 
 ### Uthibitisho
 
@@ -1121,12 +1121,12 @@ tayari -- kazi hiyo haikuwa na mdudu huu.
   milioni 550-700, kumbukumbu ya mmap ya uvivu -- RSS halisi ni ndogo)
   na N32 (fahirisi bilioni 1.1), zikiandika, kusoma na kuchukua anwani
   (`&arr[idx]`), kila anwani ikithibitishwa dhidi ya hesabu huru ya
-  N64 (`msingi + idx*saizi`, ambayo haina mdudu huu). Jaribio hili
+  N64 (`msingi + idx*saizi`, ambayo haina hitilafu hii). Jaribio hili
   linashindwa (msimbo 11) kwenye mkusanyaji wa kabla ya rekebisho hili
   (c09c3d5) na linapita baada yake. 421/421.
 - Fixpoint stage2 == stage3, mara 3 kutoka ujenzi safi.
 - Programu 318 zimeundwa na stage1 na stage2: baiti sawa isipokuwa
-  tatu zinazojulikana (mdudu wa awali.bin).
+  tatu zinazojulikana (hitilafu ya awali.bin).
 - Programu 3001 za nasibu (kabla dhidi ya baada): sifuri tofauti.
   Programu 1500 za jenereta mpya ya faharasa (aina zote, faharasa
   ndani ya faharasa, wito): sifuri tofauti.
@@ -1227,7 +1227,7 @@ rekebisho hili pia, hivyo hakuna mabadiliko ya tabia kwa kesi hizo.
   safi. Fixpoint stage2 == stage3.
 - Kama uondoaji wa "mov al", hakuna mutation ya maana ya "kuvunja
   kwa makusudi" -- ni uondoaji wa msimbo mfu uliothibitishwa kwa
-  hoja hapo juu, si mdudu mpya wa kurekebisha. Programu 4001 za
+  hoja hapo juu, si hitilafu mpya ya kurekebisha. Programu 4001 za
   nasibu (kabla dhidi ya baada): sifuri tofauti. Nimethibitisha kwa
   disassembly ya moja kwa moja ya `fib` kuwa `cdqe` haitokei tena
   mara moja baada ya `call`.
@@ -1345,7 +1345,7 @@ jr_ni_salama -- inarudi njia ya asili kiotomatiki.
   disp32 (ofseti > 127), RHS salama inayogusa rcx, RHS isiyo salama
   (wito), kiwanja, kielekezi kilichotokana na pointer arithmetic.
   426/426, fixpoint stage2==stage3.
-- Mdudu WA KANDO uliogunduliwa (nje ya wigo, HAUJAREKEBISHWA): muundo
+- Hitilafu YA KANDO iliyogunduliwa (nje ya wigo, HAUJAREKEBISHWA): muundo
   wenye SAFU kama sehemu (`N32 pad[40];` ndani ya `muundo`) unashindwa
   kukusanywa (`; KOSA: 1` kutoka kwa mchanganuzi wa stage2) -- ilikuwepo
   hata kwenye mkusanyaji wa KABLA ya kazi hii (f1v), hivyo si

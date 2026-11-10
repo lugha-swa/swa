@@ -11,7 +11,7 @@ kimoja na uamuzi:
   mipaka ya sasa, na sababu imeandikwa.
 - **PENGO** -- hakuna ulinzi; limerekebishwa au limewekwa wazi hapa.
 
-Historia ya darasa hili la mdudu: mizani ya safu ya ndani (star_count
+Historia ya darasa hili la hitilafu: mizani ya safu ya ndani (star_count
 = 0), dimbwi la majina la mkaguzi (8,192 dhidi ya hitaji ~9,500),
 na majedwali ya acha/endelea (256) -- zote ziligunduliwa kwa bahati
 baada ya kusababisha uharibifu. Kanuni ya kudumu baada ya ukaguzi
@@ -71,7 +71,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 
 Ukaguzi wa bafa UMEKAMILIKA kwa mzizi wa uaminifu (mbegu.swm) na
 maktaba (msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa). Kila mgawanyo wa ukubwa thabiti una ukaguzi
-unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la mdudu wa
+unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la hitilafu ya
 "ukubwa wa kukisia" limefungwa.
 
 ## Masomo
@@ -81,11 +81,11 @@ unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la mdudu wa
    ulinzi, kufurika huko kulikuwa kimya (kurukaji kimya = kuruka
    mahali pasiposahihi kwenye njia za makosa). CI haikugundua kwa
    sababu inathibitisha fixpoint, si usahihi wa kila njia ya msimbo.
-2. **Ukaguzi wa kwanza wa "abort za sauti" ulikuwa na mdudu wa
+2. **Ukaguzi wa kwanza wa "abort za sauti" ulikuwa na hitilafu ya
    makutano** (njia ya kawaida iliangukia kwenye lebo ya abort) --
    darasa lilelile lililotokea wakati wa PR #151. Kanuni ya nne ya
    sheria ya mzizi wa uaminifu (angalia fallthrough ya kila lebo)
    inathibitishwa tena. Jaribio la kabla ya kugandisha lililipata.
 3. Majedwali yote ya mbegu sasa yana ukaguzi unaolia au uthibitisho
-   ulioandikwa -- darasa la mdudu wa "ukubwa wa kukisia" limefungwa
+   ulioandikwa -- darasa la hitilafu ya "ukubwa wa kukisia" limefungwa
    kwenye mzizi wa uaminifu.

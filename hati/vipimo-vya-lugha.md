@@ -414,12 +414,12 @@ n32 anza() {
   ni ya stage1 pekee).
 - Kikomo cha hoja kwenye mfululizo wa uzalishaji: 16 -- wito wa hoja
   zaidi ya 16 unakataliwa kwa sauti ("una hoja nyingi mno (17) --
-  kikomo ni 16"); mdudu wa 2026-09-01 (hoja zaidi zilitupwa kimya)
+  kikomo ni 16"); hitilafu ya 2026-09-01 (hoja zaidi zilitupwa kimya)
   umefunga. Mbegu ina kikomo cha hoja 9: wito wa hoja 10+ unakataliwa
   kwa sauti ("wito wenye hoja zaidi ya 9"). Kilichopimwa 2026-09-04.
 - Kielekezi na namba hazichanganyiki kwenye hoja: kielekezi kwa
   kigezo cha namba -- au namba kwa kigezo cha kielekezi -- ni kosa
-  la aina (mdudu wa 2026-09-01: kilikubaliwa kimya na kuanguka
+  la aina (hitilafu ya 2026-09-01: kilikubaliwa kimya na kuanguka
   SEGV wakati wa kukimbia). `andika`/`andika_kosa` na mkia wao
   (pamoja na `andika_ndani` a1..a6) ni za kutofautiana: mkia hupita
   kwa rejesta za n64 iwe thamani au kielekezi.
@@ -694,7 +694,7 @@ nje "libm.so.6" {
   anwani iliyorudishwa inatumika kwa kuandika na kusoma). Kikomo:
   mkaguzi wa mfululizo wa uzalishaji anakataa wito wenye hoja zaidi
   ya 7 ("idadi ya hoja kwa 'wito_wa_mfumo' si sahihi (kikomo ni 7,
-  imepokea 8)") -- mdudu wa zamani (hoja za ziada zilimezwa kimya)
+  imepokea 8)") -- hitilafu ya zamani (hoja za ziada zilimezwa kimya)
   umefunga. Mbegu bado inakubali wito wa hoja 8+ na kusawazisha
   rafu (hoja ya 7 inachukuliwa na pop r9, hoja 8+ zinafutwa, hakuna
   uharibifu wa vigezo vya ndani -- kilichopimwa 2026-09-04) --

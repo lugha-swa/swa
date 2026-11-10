@@ -174,7 +174,7 @@ ya Swa -- tumia kielekezi kwenye kazi za kurudi.
 
 ### Rekebisho la wito wa Swa wenyewe (awamu 2)
 
-Hoja za rafu zilifichua mdudu wa zamani wa Swa: mpigaji alivuta hoja
+Hoja za rafu zilifichua hitilafu ya zamani ya Swa: mpigaji alivuta hoja
 kwa mpangilio, hivyo hoja ya rejesta iliyofuata hoja ya rafu (mf. n64
 saba + d64) ilisomwa kutoka sloti ya hoja ya rafu -- thamani ya uongo
 kimya. Mwitwaji alihesabu nafasi ya rafu kwa hoja za namba pekee, na
