@@ -343,41 +343,14 @@ n32 tarajia(Msambazaji* p, n32 aina_ya_tokeni) {
 // wanaolinganisha dhidi ya waendeshaji wa herufi-nyingi LAZIMA
 // pia waangalie kwamba urefu wa tokeni unalingana.
 // -------------------------------------------------------
-// Maneno ya zamani (kabla ya v0.0.2) yanakubalika kwa toleo moja, kwa
-// onyo, ili miradi mingine iweze kuhamia: vunja -> acha, main -> anza,
-// andika_stderr -> andika_kosa. Mbegu inajua maneno mapya pekee.
-n32 onyo_la_vunja = 0;
-n32 onyo_la_main = 0;
-n32 onyo_la_andika_stderr = 0;
-
-w0 onya_neno_la_zamani(n8* zamani, n8* jipya) {
-    andika_kosa("onyo: '%s' ni neno la zamani -- tumia '%s'\n", zamani, jipya);
-}
-
-// andika_kosa (au andika_stderr ya zamani)
-n32 ni_andika_kosa(n8* jina) {
-    kama (jina_linganisha(jina, "andika_kosa")) { rudisha 1; }
-    kama (jina_linganisha(jina, "andika_stderr")) {
-        kama (onyo_la_andika_stderr == 0) {
-            onya_neno_la_zamani("andika_stderr", "andika_kosa");
-            onyo_la_andika_stderr = 1;
-        }
-        rudisha 1;
-    }
-    rudisha 0;
-}
-
-// Kiingilio cha programu: anza (au main ya zamani)
-n32 ni_jina_la_kuingia(n8* jina) {
-    kama (jina_linganisha(jina, "anza")) { rudisha 1; }
-    kama (jina_linganisha(jina, "main")) {
-        kama (onyo_la_main == 0) {
-            onya_neno_la_zamani("main", "anza");
-            onyo_la_main = 1;
-        }
-        rudisha 1;
-    }
-    rudisha 0;
+// Maneno yaliyoondolewa kabla ya v0.0.2 (vunja, main, andika_kosa,
+// anza, msimbo_wa_kitufe, majina 33 ya maktaba ya v0.0.1) hayana
+// maana maalum tena -- ni majina ya kawaida, na programu inaweza
+// kuyafafanua yenyewe. Yakitumika bila kufafanuliwa, kosa linataja
+// jina jipya ili kuhamia kuwe kazi ya dakika moja.
+// -------------------------------------------------------
+w0 kataa_neno_la_zamani(n8* zamani, n8* jipya) {
+    andika_kosa("kosa: '%s' imeondolewa -- tumia '%s'\n", zamani, jipya);
 }
 
 n32 neno_ni(Tokeni * t, n8* neno) {
@@ -390,6 +363,16 @@ n32 neno_ni(Tokeni * t, n8* neno) {
     // Hakikisha neno pia lina urefu sawa
     kama (neno[i] != 0) { rudisha 0; }
     rudisha 1;
+}
+
+// "vunja;" au "vunja }" -- taarifa ya zamani ya kutoka kwenye mzunguko
+// (si kigeu kiitwacho vunja, kama "vunja = 3;")
+n32 ni_vunja_iliyoondolewa(Tokeni * t) {
+    kama (neno_ni(t, "vunja") == 0) { rudisha 0; }
+    n8* q = t->mwanzo + t->urefu;
+    wakati (q[0] == 32 || q[0] == 9) { q = q + 1; }
+    kama (q[0] == 59 || q[0] == 125) { rudisha 1; }
+    rudisha 0;
 }
 
 // -------------------------------------------------------
@@ -409,7 +392,6 @@ n32 tokeni_ni_muhimu(Tokeni* t) {
     kama (neno_ni(t, "kwa")) { rudisha 1; }
     kama (neno_ni(t, "fanya")) { rudisha 1; }
     kama (neno_ni(t, "acha")) { rudisha 1; }
-    kama (neno_ni(t, "vunja")) { rudisha 1; }  // la zamani (onyo)
     kama (neno_ni(t, "endelea")) { rudisha 1; }
     kama (neno_ni(t, "chagua")) { rudisha 1; }
     kama (neno_ni(t, "hali")) { rudisha 1; }
@@ -1220,11 +1202,12 @@ n32 changanua_taarifa_tangazo(Msambazaji* p) {
 n32 changanua_taarifa_ndani(Msambazaji* p) {
     // ---- vunja ; ----
     kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
-        kama (neno_ni(&p->sasa, "acha") || neno_ni(&p->sasa, "vunja")) {
-            kama (neno_ni(&p->sasa, "vunja") && onyo_la_vunja == 0) {
-                onya_neno_la_zamani("vunja", "acha");
-                onyo_la_vunja = 1;
-            }
+        kama (ni_vunja_iliyoondolewa(&p->sasa)) {
+            kataa_neno_la_zamani("vunja", "acha");
+            p->kosa = 1;
+            rudisha -1;
+        }
+        kama (neno_ni(&p->sasa, "acha")) {
             sogeza(p);
             kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
                 kama (neno_ni(&p->sasa, ";")) { sogeza(p); }
@@ -4400,10 +4383,9 @@ n32 sscse_boresha(n32 nodi_ya_programu) {
     rudisha nodi_ya_programu;
 }
 
-// Majina ya zamani ya kazi za maktaba (v0.0.1) -> mapya. Kwa toleo moja,
-// wito wa jina la zamani ambalo programu haijalifafanua huelekezwa kwa
-// jina jipya, kwa onyo -- kama maneno ya zamani ya lugha.
-n8* jina_jipya_la_maktaba(n8* jina) {
+// Jina lililoondolewa -> jina jipya (0 kama si jina lililoondolewa).
+n8* jina_jipya_la_zamani(n8* jina) {
+    kama (jina_linganisha(jina, "kbd_scancode")) { rudisha "msimbo_wa_kitufe"; }
     kama (jina_linganisha(jina, "andika_stderr")) { rudisha "andika_kosa"; }
     kama (jina_linganisha(jina, "atan2_hesabu")) { rudisha "arctan2_hesabu"; }
     kama (jina_linganisha(jina, "atan_hesabu")) { rudisha "arctan_hesabu"; }
@@ -4440,9 +4422,6 @@ n8* jina_jipya_la_maktaba(n8* jina) {
     rudisha 0;
 }
 
-n8* majina_ya_zamani_yaliyoonywa[64];
-n32 idadi_ya_majina_yaliyoonywa = 0;
-
 n32 kazi_imefafanuliwa_kwenye_programu(n32 nodi_ya_programu, n8* jina) {
     n32 n = nodi_ya_kushoto[nodi_ya_programu];
     wakati (n != -1) {
@@ -4454,32 +4433,35 @@ n32 kazi_imefafanuliwa_kwenye_programu(n32 nodi_ya_programu, n8* jina) {
     rudisha 0;
 }
 
-w0 badili_wito_wa_maktaba_ya_zamani(n32 nodi_ya_programu) {
+// Baada ya uchanganuzi: wito wa jina lililoondolewa ambalo programu
+// haijalifafanua, au kiingilio main/anza bila anza, ni kosa.
+// Inarudisha idadi ya makosa.
+n32 kagua_majina_yaliyoondolewa(n32 nodi_ya_programu) {
+    n32 makosa = 0;
+    kama (kazi_imefafanuliwa_kwenye_programu(nodi_ya_programu, "anza") == 0) {
+        kama (kazi_imefafanuliwa_kwenye_programu(nodi_ya_programu, "main")) {
+            kataa_neno_la_zamani("main", "anza");
+            makosa = makosa + 1;
+        }
+        kama (kazi_imefafanuliwa_kwenye_programu(nodi_ya_programu, "kernel_main")) {
+            kataa_neno_la_zamani("kernel_main", "anza");
+            makosa = makosa + 1;
+        }
+    }
     n32 i = 0;
     wakati (i < idadi_ya_nodi) {
         kama (aina_ya_nodi[i] == NODI_WITO) {
             n32 k = nodi_ya_kushoto[i];
             kama (k >= 0) { kama (aina_ya_nodi[k] == NODI_KITAMBULISHO) {
                 n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[k];
-                n8* jipya = jina_jipya_la_maktaba(jina);
+                n8* jipya = jina_jipya_la_zamani(jina);
                 kama (jipya != 0) { kama (kazi_imefafanuliwa_kwenye_programu(nodi_ya_programu, jina) == 0) {
-                    n32 j = 0;
-                    n32 kimeonywa = 0;
-                    wakati (j < idadi_ya_majina_yaliyoonywa) {
-                        kama (jina_linganisha(majina_ya_zamani_yaliyoonywa[j], jina)) { kimeonywa = 1; }
-                        j = j + 1;
-                    }
-                    kama (kimeonywa == 0 && idadi_ya_majina_yaliyoonywa < 64) {
-                        onya_neno_la_zamani(jina, jipya);
-                        majina_ya_zamani_yaliyoonywa[idadi_ya_majina_yaliyoonywa] = jina;
-                        idadi_ya_majina_yaliyoonywa = idadi_ya_majina_yaliyoonywa + 1;
-                    }
-                    n64 u = 0;
-                    wakati (jipya[u] != 0) { u = u + 1; }
-                    hifadhi_jina(k, jipya, u);
+                    kataa_neno_la_zamani(jina, jipya);
+                    makosa = makosa + 1;
                 } }
             } }
         }
         i = i + 1;
     }
+    rudisha makosa;
 }

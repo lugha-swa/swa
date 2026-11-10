@@ -2735,13 +2735,13 @@ n32 idadi_ya_desimali = 0;
 // kama tungo, ili JIT iweze kuzifikia kwa rip-relative.
 //
 // UKUBWA (lugha-swa/swa#232): bafa hii inahifadhi sehemu za maandishi
-// halisi za KILA wito wa andika/andika_stderr katika UKUSANYAJI MZIMA
+// halisi za KILA wito wa andika/andika_kosa katika UKUSANYAJI MZIMA
 // (imewekwa upya mara MOJA tu, kwenye uzalishaji_kuu/uzalishaji_jit --
 // angalia chini ya faili hili). Ilikuwa 4096 baiti / sehemu 1024, na
 // sehemu_tungo_hifadhi() ilipofurika ilirudisha -1 KIMYA (tovuti za
 // wito zinaziruka sehemu bila onyo lolote wakati lebo < 0). Kwa
 // programu ndogo hii haikuwahi kufikiwa, lakini kukusanya mkusanyaji
-// huu MWENYEWE (zima.swa, mamia ya wito wa andika_stderr wenye
+// huu MWENYEWE (zima.swa, mamia ya wito wa andika_kosa wenye
 // maandishi ya makosa marefu katika msambazaji.swa, mkaguzi.swa,
 // uzalishaji.swa, kiendeshaji.swa n.k.) hufikia na kupita kikomo hicho
 // kwa urahisi. Matokeo: sehemu za maandishi (hasa zile zinazotokea
@@ -4015,7 +4015,7 @@ w0 uzalishaji_vga_herufi(n32 nodi, n32 nodi_ya_kazi) {
     kiini_vga_andika_herufi_rt();
 }
 
-// kbd_scancode() -- soma "PS/2 data port" (0x60): baiti ya mwisho ya
+// msimbo_wa_kitufe() -- soma "PS/2 data port" (0x60): baiti ya mwisho ya
 // scancode kutoka kwa kidhibiti cha kibodi (8042). Hakuna hoja;
 // thamani inabaki kwenye eax baada ya kuitwa (mkataba wa kurudi wa
 // hali hii, kioo cha jinsi ukubwa()/urefu() zinavyorudisha). Kusoma
@@ -4101,9 +4101,9 @@ w0 uzalishaji_vga_andika(n32 nodi, n32 nodi_ya_kazi) {
 // Ukaguzi wa wigo wa --kiini (hali_exe_sasa==2): tembea AST NZIMA
 // KABLA ya msimbo wowote kutolewa, ukikataa ujenzi ulio nje ya wigo
 // kwa kosa la wazi (kioo cha wasm_kagua_enc_kigezo, Awamu 1 ya WASM).
-// PIA inathibitisha kernel_main ni kazi ya KWANZA iliyotangazwa --
-// bila hii, "call kernel_main" ya kiini.s (Kawira, Sehemu 1) ingeruka
-// kwenye ofseti 0 ya pato ambayo SI kernel_main halisi.
+// PIA inathibitisha anza ni kazi ya KWANZA iliyotangazwa --
+// bila hii, "call anza" ya kiini.s (Kawira, Sehemu 1) ingeruka
+// kwenye ofseti 0 ya pato ambayo SI anza halisi.
 w0 kiini_kagua_wigo(n32 nodi_ya_programu) {
     n32 kwanza_kazi_jina_sawa = 0;
     n32 kwanza_kazi_imeonekana = 0;
@@ -4114,13 +4114,8 @@ w0 kiini_kagua_wigo(n32 nodi_ya_programu) {
                 kama (kwanza_kazi_imeonekana == 0) {
                     kwanza_kazi_imeonekana = 1;
                     n8* jkwanza = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[nodi]];
-                    // Kiingilio cha kiini ni anza, kama programu yoyote ya Swa;
-                    // kernel_main ya zamani inakubalika kwa toleo moja, kwa onyo.
+                    // Kiingilio cha kiini ni anza, kama programu yoyote ya Swa.
                     kama (jina_linganisha(jkwanza, "anza")) { kwanza_kazi_jina_sawa = 1; }
-                    kama (jina_linganisha(jkwanza, "kernel_main")) {
-                        onya_neno_la_zamani("kernel_main", "anza");
-                        kwanza_kazi_jina_sawa = 1;
-                    }
                 }
                 kiini_kagua_maudhui_ya_kazi(nodi);
             }
@@ -4356,8 +4351,6 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     ni_andika_nje = 0;
     n32 nodi_ya_mwitwa = nodi_ya_kushoto[nodi];
     n8* mwitwa = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_mwitwa];
-    // Jina la zamani (onyo hutolewa na mkaguzi): wito huelekea kazi ya maktaba andika_kosa
-    kama (jina_linganisha(mwitwa, "andika_stderr")) { mwitwa = "andika_kosa"; }
 
     // --kiini (hali_exe_sasa==2, Kawira): I/O ya Linux (syscalls,
     // andika, tekeleza) HAIPO -- hakuna kernel ya chini kuipokea.
@@ -4373,13 +4366,12 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
             uzalishaji_vga_herufi(nodi, nodi_ya_kazi);
             rudisha;
         }
-        kama (jina_linganisha(mwitwa, "msimbo_wa_kitufe") || jina_linganisha(mwitwa, "kbd_scancode")) {
-            kama (jina_linganisha(mwitwa, "kbd_scancode")) { onya_neno_la_zamani("kbd_scancode", "msimbo_wa_kitufe"); }
+        kama (jina_linganisha(mwitwa, "msimbo_wa_kitufe")) {
             uzalishaji_msimbo_wa_kitufe(nodi, nodi_ya_kazi);
             rudisha;
         }
         kama (jina_linganisha(mwitwa, "wito_wa_mfumo") || jina_linganisha(mwitwa, "andika") ||
-        ni_andika_kosa(mwitwa) || jina_linganisha(mwitwa, "tekeleza") ||
+        jina_linganisha(mwitwa, "andika_kosa") || jina_linganisha(mwitwa, "tekeleza") ||
         jina_linganisha(mwitwa, "tenga") || jina_linganisha(mwitwa, "achilia_arena")) {
             andika_kosa("KOSA: --kiini -- '%s' iko nje ya wigo (hakuna syscalls/I/O ya Linux kwenye ring 0, tumia vga_andika() pekee)\n", mwitwa);
             wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
@@ -4446,10 +4438,10 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
         ni_tekeleza_wito = 1;
     }
 
-    // Wito maalum wa andika/andika_stderr -- uchapishaji wakati wa kukusanya.
+    // Wito maalum wa andika/andika_kosa -- uchapishaji wakati wa kukusanya.
     // Codegen inachanganua muundo na kutoa wito wa kazi za ndani za
     // kuchapisha (andika_sehemu, andika_n64, andika_mfuatano, andika_baiti).
-    kama (jina_linganisha(mwitwa, "andika") || ni_andika_kosa(mwitwa)) {
+    kama (jina_linganisha(mwitwa, "andika") || jina_linganisha(mwitwa, "andika_kosa")) {
         n32 a0 = nodi_ya_kulia[nodi];
         // Kama kazi za kuchapisha za ndani hazipo (program ya mtumiaji
         // bila maktaba), angukia kwenye wito wa nje wa C (andika ya muda).
@@ -4465,7 +4457,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
             // mf. bafa ikichapishwa "af").
             kama (umbo[0] == 34) {
                 n32 kishikio = 1;
-                kama (ni_andika_kosa(mwitwa)) { kishikio = 2; }
+                kama (jina_linganisha(mwitwa, "andika_kosa")) { kishikio = 2; }
                 n32 urefu_m = urefu_wa_jina(umbo);
                 n32 h = tatu_ya_nodi[a0];
                 n32 p = 1;  // baada ya nukuu ya mwanzo
@@ -4890,7 +4882,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     // NJE (external) VARIADIC PEKEE (mfano printf ya libc), ili kazi
     // hiyo ijue idadi ya hoja za xmm bila kuchunguza aina zake. Callee
     // ZOTE zinazowezekana kwenye lugha hii ni: (1) kazi za Swa zenye
-    // idadi thabiti ya hoja (ni_ndani -- ikiwemo `andika`/`andika_stderr`
+    // idadi thabiti ya hoja (ni_ndani -- ikiwemo `andika`/`andika_kosa`
     // pale njia ya haraka ya `andika_sehemu` haipo, angalia ni_andika_nje
     // juu), (2) wito wa kielekezi (ni_kielekezi -- kielekezi HAKIWEZI
     // kuundwa isipokuwa kupitia `&jina_la_kazi`, hivyo lengwa ni kazi ya
@@ -5556,7 +5548,7 @@ n32 su_ni_kushughulikiwa(n32 nodi) {
     kama (nodi < 0) { rudisha 0; }
     // HISTORIA FUPI (maelezo kamili ya awali yapo kwenye historia ya
     // git ya faili hili, kwa yeyote anayehitaji muktadha kamili wa
-    // uchunguzi #232): mdudu wa awali (unaohusu andika_stderr) ULIKUWA
+    // uchunguzi #232): mdudu wa awali (unaohusu andika_kosa) ULIKUWA
     // hitilafu tofauti kabisa (jedwali la sehemu za maandishi
     // lililofurika kimya -- limerekebishwa PR #234) -- HAUNA UHUSIANO
     // na kipengele hiki. Sababu ya KWELI ya Sethi-Ullman kubaki
@@ -10507,12 +10499,12 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
         // --kiini: HAKUNA _start (hakuna argc/argv, hakuna mchakato
         // wa Linux unaoanzisha). Badala yake: andika "mov dword
         // [0x9000], 0" -- anzisha kaka (cursor) ya vga_andika() kuwa
-        // 0 KABLA kernel_main (LAZIMA iwe kazi ya KWANZA iliyotangazwa
+        // 0 KABLA anza (LAZIMA iwe kazi ya KWANZA iliyotangazwa
         // -- angalia kernel_kagua_wigo -- kwa sababu hali hii ya
         // --kiini HAITOI ELF/_start yenye anwani ya "anza" iliyotafutwa
         // kwa jina (kama hali_exe==1 inavyofanya kupitia main_off) --
         // ni baiti ghafi za .text TU, kiini.s (Kawira) inaita
-        // "call kernel_main" ikitegemea kernel_main iko HASA kwenye
+        // "call anza" ikitegemea anza iko HASA kwenye
         // ofseti 0 ya pato).
         //
         // C7 04 25 <disp32=0x9000> <imm32=0>: MOV DWORD [0x9000], 0
@@ -10848,7 +10840,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
     n32 i = 0;
     wakati (i < idadi_ya_mahali) {
         n8* jina = jina_la_mahali[i];
-        kama (ni_jina_la_kuingia(jina)) {
+        kama (jina_linganisha(jina, "anza")) {
             umbali_wa_kazi_ya_anza = nafasi_ya_mahali[i];
             kama (i + 1 < idadi_ya_mahali) {
                 ukubwa_hadi_kazi_ya_anza = nafasi_ya_mahali[i + 1] - nafasi_ya_mahali[i];
@@ -10903,11 +10895,11 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_exe) {
     }
 
     // --kiini (hali_exe==2, Kawira): HAKUNA ELF, HAKUNA _start,
-    // HAKUNA linker -- bafa_text (kaka ya mov [0x9000],0 + kernel_main
+    // HAKUNA linker -- bafa_text (kaka ya mov [0x9000],0 + anza
     // + kazi zake za msaada zote, kwa mpangilio wa tangazo la chanzo)
     // ni pato LOTE moja kwa moja kwa stdout. Kawira's kiini.s inaingiza
     // baiti hizi kupitia "incbin" na kuruka moja kwa moja kwa ofseti 0
-    // (angalia kernel_kagua_wigo -- inathibitisha kernel_main ni kazi
+    // (angalia kernel_kagua_wigo -- inathibitisha anza ni kazi
     // ya KWANZA kabla ya hatua hii kufikiwa kabisa).
     //
     // MUHIMU (mdudu HALISI uliopatikana na kurekebishwa wakati wa
@@ -11121,7 +11113,7 @@ w0 uzalishaji_papo(n32 nodi_ya_programu, n32 idadi_hoja_papo, n8** hoja_mstari_p
     n32 l2 = 0;
     wakati (l2 < idadi_ya_mahali) {
         n8* jn2 = jina_la_mahali[l2];
-        kama (ni_jina_la_kuingia(jn2)) {
+        kama (jina_linganisha(jn2, "anza")) {
             umbali_wa_kazi_ya_anza = nafasi_ya_mahali[l2];
             acha;
         }
