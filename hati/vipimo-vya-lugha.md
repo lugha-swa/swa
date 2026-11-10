@@ -410,7 +410,7 @@ n32 anza() {
 - Wito wa kujirudia na wito wa mbele unasaidiwa.
 - Hoja zinazozidi rejesta (namba 6, desimali 8) huenda rafuni kwa
   mpangilio wa hoja (System V), hata hoja za rejesta zikizifuata
-  (rekebisho la 2026-11-09; mbegu bado haina -- `jaribio_hoja_rafu_mchanganyiko`
+  (rekebisho la 2026-11-09; mbegu bado haina -- `jaribio_hoja_mrundikano_mchanganyiko`
   ni ya stage1 pekee).
 - Kikomo cha hoja kwenye mnyororo wa uzalishaji: 16 -- wito wa hoja
   zaidi ya 16 unakataliwa kwa sauti ("una hoja nyingi mno (17) --
@@ -525,7 +525,7 @@ makosa ya kawaida; na lugha hii haina njia ya kusimamisha mkono
 moja kwa moja (`acha` ni ya vitanzi pekee) -- kukubali mwanguko
 bila njia ya kuusimamisha kungeacha tabia isiyo na udhibiti.
 Majaribio: jaribio_hitilafu_chagua_bila_mwanguko,
-jaribio_hitilafu_chagua_acha_ndani_ya_kitanzi,
+jaribio_hitilafu_chagua_acha_ndani_ya_mzunguko,
 jaribio_hitilafu_kata_acha_ndani_ya_chagua_nje.
 
 ### 6.7 Vunja na endelea

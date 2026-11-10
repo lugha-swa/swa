@@ -48,6 +48,10 @@ inayoruhusiwa kubadilika.
    hutatuliwa kwa kubadilisha msimbo, si kwa kuchagua neno lisilo sahihi
    (mf. `toa` ni kutoa; kiambishi cha kutoa msimbo kilihamishwa kuwa
    `zalisha_`).
+7. **Mikopo iliyozoeleka inakubalika** pale istilahi za TEHAMA za
+   Kiswahili zinapoitumia tayari: `fremu`, `operesheni`, `operanda`,
+   `binari`, `oktali`, `heksa`, `iterasi`, `makro`. Mkopo wa mazungumzo
+   wenye neno la Kiswahili lililopo (`saizi`, `paramu`, `pointa`) hautumiki.
 
 ## Lugha yenyewe
 
@@ -153,6 +157,16 @@ mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 | unreachable (WASM) | `haifikiki` (jina la agizo la WASM hubaki kwenye maoni) |
 | opaque (kuficha thamani kwa kiboreshaji) | `fiche` |
 | finalize | `kamilisha` |
+| LICM (loop-invariant code motion) | `hamisha_nje` -- hesabu isiyobadilika huhamishwa nje ya mzunguko |
+| CSE / SSCSE | `urudufu` / `urudufu_wa_mstari` -- usemi unaorudiwa hukokotolewa mara moja |
+| SIMD / vectorization | `sambamba` (uvektishaji) |
+| inlining | `pachika` |
+| peephole | `kidirisha` -- dirisha dogo la maagizo yanayofuatana |
+| sret (kurudisha muundo kwa kielekezi kilichofichwa) | `kurudisha_muundo` |
+| cmp + jcc (zilizounganishwa) | `linganisha_na_ruka` |
+| size (ya operesheni, kwa baiti) | `upana_wa_baiti` (`ukubwa` ni kazi ya ndani ya upimaji) |
+| param | `kigezo` (si `paramu`); pointer `kielekezi` (si `pointa`); digit `tarakimu` (si `dijiti`) |
+| Sethi-Ullman | `su_` -- kifupisho cha herufi mbili cha majina ya watu (kanuni ya 4) |
 | check / chk | `kagua` |
 | fail / bail | `shindwa` / `acha` |
 | reset | `weka_upya` |

@@ -143,7 +143,7 @@ si urekebishaji mdogo -- imeachwa kimakusudi kwa awamu hii nyembamba.
 Kwa sababu `matriki` haiendani na muundo, kipimo cha kabla/baada cha
 `matriki` chenyewe hakina maana hapa (hakuna njia mpya ya msimbo
 inayotekelezwa kabisa) -- kipimo cha chini kinaonyesha badala yake
-kipimo kipya cha lengo (`vipimo/simd_jozi_d64/`), kilichoundwa MAALUM
+kipimo kipya cha lengo (`vipimo/sambamba_jozi_d64/`), kilichoundwa MAALUM
 kuendana na muundo unaokubalika, kikilinganisha toleo linaloustahili
 uvektishaji dhidi ya toleo la scalar lenye hesabu ile ile HASA
 (N=2,000,000 elementi, marudio 60) lakini mwili wa kitanzi wenye
@@ -337,7 +337,7 @@ ni SIFURI kabisa -- ugawaji wa rejesta (PR #226/227), Sethi-Ullman
 za push/pop zinazofuatana kwenye vitanzi vyao vikuu. `heshi` (djb2)
 pekee ilionyesha tofauti ya baiti 1 (kokotoo moja ya rejesta-moja
 imeondolewa). Kipimo kipya kilicholengwa
-(`vipimo/png_peephole/`, `c[idx]+=1` mara milioni 40 kwa mzunguko
+(`vipimo/kidirisha/`, `c[idx]+=1` mara milioni 40 kwa mzunguko
 mmoja) kinakokotoa baiti 1 pungufu (kimethibitishwa), LAKINI muda wa
 ukuta haubadiliki HATA KIDOGO (264-287ms zote mbili, ndani kabisa ya
 kelele) -- push/pop ya rejesta MOJA (bila kugusa kumbukumbu ya
@@ -464,16 +464,16 @@ YAMEUNDWA KWA MAKUSUDI kuepuka mkondo wa kukunja namba kabisa
 (kigawiwa daima ni kigezo, si namba halisi ya moja kwa moja) ili
 yasiathiriwe.
 
-**Vipimo halisi vilivyopo**: `matriki`'s `n/2` (mara moja tu, si
-kwenye kitanzi kizito, faida haina maana), `simd_jozi_d64`'s
-`sum/1000000000` (si nguvu ya 2, haihusiki), `kupanga`'s
+**Vipimo halisi vilivyopo**: `n/2` ya `matriki` (mara moja tu, si
+kwenye mzunguko mzito, faida haina maana), `sum/1000000000` ya
+`sambamba_jozi_d64` (si nguvu ya 2, haihusiki), na ya `kupanga`
 `nasibu_ijayo()` `% 2147483648` (2^31 -- LAKINI namba hii inazidi
 wigo chanya wa N32 (2147483647), hivyo inahifadhiwa kwenye dimbwi la
 N64 -- `gwm_kipeo_kulia` inakataa kwa usahihi kigawanyaji cha dimbwi
 kimakusudi, hivyo HAIFAIDIKI kabisa -- imethibitishwa kwa disassembly,
 hakuna SAR, idiv bado inatumika).
 
-**Kipimo kipya cha moja kwa moja (`vipimo/png_peephole/swa.swa`,
+**Kipimo kipya cha moja kwa moja (`vipimo/kidirisha/swa.swa`,
 tayari zilizopo -- `i % 8` ndani ya kitanzi cha mizunguko 40,000,000)**:
 binary ni TOFAUTI (kashe mpya inatumika, imethibitishwa kwa
 disassembly -- SAR badala ya idiv). Muda halisi (interleaved, mizunguko
@@ -534,11 +534,11 @@ vyote vinapita, imethibitishwa mara TATU kutoka kwa ujenzi safi
 (zaidi ya kawaida -- hii ni msimbo unaoamua mtiririko wa udhibiti,
 hatari ya hitilafu ni majibu MABAYA KIMYA, si kuanguka).
 
-Disassembly ya jaribio_cmpjcc_sita_operesheni imefuatiliwa KABISA
+Disassembly ya jaribio_linganisha_na_ruka_sita_operesheni imefuatiliwa KABISA
 mkononi: kila mojawapo ya vinodi sita, PAMOJA na sharti la wakati
 lenyewe (i<=5), imethibitishwa kuwa cmp+jcc SAHIHI (mwelekeo sahihi
 kabisa dhidi ya chanzo) -- SIFURI setcc/movzx popote kwenye binary
-hiyo. jaribio_cmpjcc_bila_ishara/desimali zimethibitisha familia
+hiyo. jaribio_linganisha_na_ruka_bila_ishara/desimali zimethibitisha familia
 sahihi ya jcc (jb/ja/jbe/jae, SI jl/jg/jle/jge) kwa A32 na D64.
 
 ### Utendaji (vipimo vyote vitano, interleaved, mizunguko 5)
@@ -854,9 +854,9 @@ hufuta jedwali, hata usiohusiana -- fursa iliyokosekana, si hitilafu).
 406/406 (401 zilizopo + 5 mpya). Fixpoint na gen1-dhidi-ya-gen2
 vinapita, imethibitishwa mara TATU kutoka kwa ujenzi safi.
 
-Disassembly ya jaribio_sscse_msingi imethibitisha imul MOJA TU
+Disassembly ya jaribio_urudufu_wa_mstari_msingi imethibitisha imul MOJA TU
 inatokea (badala ya mbili) -- "a*b" inashirikiwa kati ya "x=a*b+c" na
-"y=a*b-d". jaribio_sscse_ubatilishaji limethibitisha imul MBILI
+"y=a*b-d". jaribio_urudufu_wa_mstari_ubatilishaji limethibitisha imul MBILI
 zinatokea (hazikushirikiana, kama inavyotarajiwa baada ya
 reassignment). Vipimo vyote vilivyopo (fibonacci, matriki, kupanga,
 heshi, mzunguko_mchezo) vimethibitishwa kuwa BAITI SAWA kati ya
@@ -867,7 +867,7 @@ vina usomaji wa kumbukumbu ulio nje ya wigo wa SSCSE).
 ### Utendaji
 
 Hakuna kipimo kilichopo kinachotumia mfano wa "usemi unaorudiwa lakini
-si invariant ndani ya kitanzi" -- kipimo kipya `vipimo/sscse_mstari/`
+si invariant ndani ya kitanzi" -- kipimo kipya `vipimo/urudufu_wa_mstari/`
 kimeundwa MAKUSUDI: "i*i" hutokea mara mbili kwa kila mzunguko (h1=
 i*i+i, h2=i*i-i), SIYO invariant (i inabadilika kila mzunguko, hivyo
 LICM haiwezi kuigusa), lakini ni straight-line ndani ya mwili wa
@@ -1000,7 +1000,7 @@ kuthibitisha kuwa jaribio linakishika.
 - 419/419 (410 zilizopo + 8 mapya + jaribio la rekebisho la mgawanyo ulioota), imekimbizwa mara 3 kutoka ujenzi safi.
   Fixpoint stage2 == stage3.
 - Programu 315 zimeundwa na stage1 na stage2: baiti sawa isipokuwa tatu --
-  `jaribio_gawanyo_nguvu_pili_mipaka`, `jaribio_kaunta_namba` na
+  `jaribio_gawanyo_nguvu_pili_mipaka`, `jaribio_kihesabu_namba` na
   `jaribio_wito_hoja_ya_kwanza` -- zote tatu zinatofautiana vilevile kwenye
   mkusanyaji wa kabla ya PR hii (mdudu unaojulikana wa mbegu.bin: baadhi ya
   namba hasi zilizokunjwa, mfano `0 - 2147483647 - 1`, hazikunjwi kwenye gen1;
@@ -1218,7 +1218,7 @@ rekebisho hili pia, hivyo hakuna mabadiliko ya tabia kwa kesi hizo.
 
 ### Uthibitisho
 
-- Jaribio jipya `jaribio_wito_bila_cdqe`: thamani HASI za N8/N16/N32
+- Jaribio jipya `jaribio_wito_bila_kupanua`: thamani HASI za N8/N16/N32
   (ambapo cdqe iliyokosekana ingeonekana mara moja -- upanuzi wa
   sifuri ungegeuza namba hasi ndogo kuwa kubwa chanya) kupitia
   muktadha wa N64, ulinganishi wa moja kwa moja, mnyororo wa wito 21
