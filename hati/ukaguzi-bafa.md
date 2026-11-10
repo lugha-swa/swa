@@ -47,7 +47,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 
 | Mgawanyo | Ukubwa | Ulinzi | Uamuzi |
 |---|---|---|---|
-| chanzo_buf (stage1) | 1 MB | "chanzo ni kikubwa mno" kwa sauti | SALAMA KWA SAUTI |
+| chanzo_buf (kamili) | 1 MB | "chanzo ni kikubwa mno" kwa sauti | SALAMA KWA SAUTI |
 | kazi_jina_pool (mkaguzi) | 16,384 | ulinzi wa mpaka -> sauti | SALAMA KWA SAUTI |
 | kazi_jina_off[1024] (mkaguzi) | 1024 | kazi_idadi >= 1024 -> rudisha | SALAMA KWA UTHIBITISHO (kazi ~350 < 1024) |
 | kazi_param_enc[4096] (mkaguzi) | 4096 | kama < 4096 tu | SALAMA KWA UTHIBITISHO (vigezo vya kazi <= 8) |
@@ -56,7 +56,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 | bafa_text (uzalishaji) | 512 KB | andika_baiti -> KOSA kwa sauti + flag | SALAMA KWA SAUTI |
 | bafa_data (uzalishaji) | 256 KB | kama hapo juu | SALAMA KWA SAUTI |
 | lebo_*[2048] (uzalishaji) | 2048 | lebo_idadi < 2048 | SALAMA KWA UTHIBITISHO (kazi ~350) |
-| fixup_*[65536] (uzalishaji) | 65,536 | fixup_idadi < 65536 | SALAMA KWA UTHIBITISHO (fixups <= lebo ~2048) |
+| urekebishaji_*[65536] (uzalishaji) | 65,536 | urekebishaji_idadi < 65536 | SALAMA KWA UTHIBITISHO (urekebishaji <= lebo ~2048) |
 | rela_*[65536] (uzalishaji) | 65,536 | idadi_ya_urekebishaji_wa_elf < 65536 | SALAMA KWA UTHIBITISHO (RELA ~4,100 kwa kujikusanya) |
 | data_ulimwengu_*[1024] | 1024 | idadi < 1024 | SALAMA KWA UTHIBITISHO (ulimwengu ~133) |
 | sehemu_*/desimali_*[1024] | 1024 | >= 1024 -> -1 | SALAMA KWA UTHIBITISHO (tungo ~100) |
@@ -80,7 +80,7 @@ unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la hitilafu ya
    endelea (256) yalifurika kwenye mkusanyiko mzima -- na kabla ya
    ulinzi, kufurika huko kulikuwa kimya (kurukaji kimya = kuruka
    mahali pasiposahihi kwenye njia za makosa). CI haikugundua kwa
-   sababu inathibitisha fixpoint, si usahihi wa kila njia ya msimbo.
+   sababu inathibitisha uthabiti, si usahihi wa kila njia ya msimbo.
 2. **Ukaguzi wa kwanza wa "abort za sauti" ulikuwa na hitilafu ya
    makutano** (njia ya kawaida iliangukia kwenye lebo ya abort) --
    darasa lilelile lililotokea wakati wa PR #151. Kanuni ya nne ya

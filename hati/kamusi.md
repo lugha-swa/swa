@@ -6,7 +6,7 @@ kila faili litumie neno lile lile. Ubadilishaji wa majina hufuata kamusi
 hii kwa mashine (kitambulisho kwa kitambulisho, nje ya mifuatano na
 maoni), na kila hatua huthibitishwa kwa:
 
-- fixpoint ya mkusanyaji (stage2 == stage3);
+- uthabiti wa mkusanyaji (kamili2 == kamili3);
 - kila programu ya majaribio na mifano, `--programu` na `--wasm`, sawa kwa
   baiti na mkusanyaji wa kabla ya kubadilisha;
 - vipimo vyote vya `gharama/`.
@@ -157,6 +157,8 @@ mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 | unreachable (WASM) | `haifikiki` (jina la agizo la WASM hubaki kwenye maoni) |
 | opaque (kuficha thamani kwa kiboreshaji) | `fiche` |
 | finalize | `kamilisha` |
+| stage1 / stage2 / stage3 | `kamili` / `kamili2` / `kamili3` -- mkusanyaji kamili uliojengwa na awali, kisha ukijijenga mara ya pili na ya tatu |
+| fixpoint (kamili2 == kamili3) | `uthabiti` -- kujijenga upya kunatoa baiti zile zile |
 | LICM (loop-invariant code motion) | `hamisha_nje` -- hesabu isiyobadilika huhamishwa nje ya mzunguko |
 | CSE / SSCSE | `urudufu` / `urudufu_wa_mstari` -- usemi unaorudiwa hukokotolewa mara moja |
 | SIMD / vectorization | `sambamba` (uvektishaji) |

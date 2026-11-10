@@ -21,9 +21,9 @@ Mifululizo iliyopimwa:
   vilivyoorodheshwa katika sehemu ya 8 na 9, na mbegu iligandishwa
   tena. Gandisho la sasa la awali.bin: 415e692 (2026-09-04).
   Vipengee vya sehemu ya 8 na 9 vinarejelea mbegu ya sasa.
-- **uzalishaji** -- stage1 iliyojengwa leo kutoka `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` kupitia
-  mbegu (`--programu`, chmod +x). Mfululizo wa kujikusanya: fixpoint
-  stage2-exe == stage3-exe imepimwa leo, sawa kwa baiti.
+- **uzalishaji** -- kamili iliyojengwa leo kutoka `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` kupitia
+  mbegu (`--programu`, chmod +x). Mfululizo wa kujikusanya: uthabiti
+  kamili2 == kamili3 imepimwa leo, sawa kwa baiti.
 
 Rekodi hii inachukua nafasi ya rekodi ya 2026-08-27 (hali ya
 kabla ya ukarabati). Kesi 467 zilipimwa kwenye kila mfululizo kwenye
@@ -73,8 +73,8 @@ mbegu (mfululizo wa kujikusanya):
 ```bash
 cd /home/kandemark/Projects/compilers/swa
 cat msingi/maktaba/{kumbukumbu,mfuatano}.swa msingi/mkusanyaji/{msomaji,msambazaji,mteremko,mkaguzi,uzalishaji}.swa msingi/maktaba/{orodha,ramani}.swa msingi/mkusanyaji/kiendeshaji.swa > /tmp/zima.swa
-msingi/awali.bin --programu /tmp/zima.swa > /tmp/stage1.bin
-chmod +x /tmp/stage1.bin
+msingi/awali.bin --programu /tmp/zima.swa > /tmp/kamili.bin
+chmod +x /tmp/kamili.bin
 ```
 
 Kila kesi inakusanywa na kuendeshwa kwenye mifululizo yote miwili:
@@ -84,7 +84,7 @@ msingi/awali.bin --programu kesi.swa > matokeo.bin 2> makosa.txt
 chmod +x matokeo.bin
 ./matokeo.bin; echo $?
 
-/tmp/stage1.bin --programu kesi.swa > matokeo.bin 2> makosa.txt
+/tmp/kamili.bin --programu kesi.swa > matokeo.bin 2> makosa.txt
 chmod +x matokeo.bin
 ./matokeo.bin; echo $?
 ```
@@ -92,7 +92,7 @@ chmod +x matokeo.bin
 Kesi zinazotumia `andika` zinaunganishwa na `msingi/maktaba/kumbukumbu.swa`
 (njia ya `cat`, kama hati 8). Kipimo kwenye mfululizo wa mbegu
 kinatumia binary iliyogandishwa; kipimo kwenye mfululizo wa
-uzalishaji kinatumia stage1 iliyojengwa siku ya kipimo kutoka
+uzalishaji kinatumia kamili iliyojengwa siku ya kipimo kutoka
 `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` vya sasa.
 
 Uthibitisho wa papo hapo ulifanyika leo kwa kesi za kirejeshi za
@@ -406,7 +406,7 @@ orodha ya awali -- pamoja na 9.2 -- vimefunga; orodha yao iko katika
 
 Kila kipimo ni cha chini kabisa; "kilichoonekana" ni cha mifululizo
 yote miwili isipokuwa ilivyobainishwa. Msimbo wa kutoka ni mod 256.
-Mbegu: gandisho la sasa (415e692, 2026-09-04); uzalishaji: stage1
+Mbegu: gandisho la sasa (415e692, 2026-09-04); uzalishaji: kamili
 iliyojengwa kutoka chanzo cha sasa. Kila kirejeshi kilipimwa upya
 kwenye mifululizo yote miwili katika kipindi cha 2026-09.
 
@@ -734,24 +734,24 @@ na linabaki kama hivyo, kwa maelezo ya 8.14.
   inachapisha 4294967295 -- tazama 8.10. Hii haibadilishi hesabu
   ya mbegu (kesi hiyo ilihesabiwa SAWA katika skani na imebaki
   hivyo), lakini inabainishwa kwa uaminifu.
-- Fixpoint stage2-exe == stage3-exe imepimwa leo, sawa kwa baiti.
-  Stage1-exe ni tofauti na stage2: mbegu imeoka makosa yake (8.4
-  hadi 8.8, 8.12 hadi 8.17) ndani ya stage1 iliyojengwa kupitia
-  yeye; stage2 inayojijenga ndiyo ushahidi wa fixpoint.
+- Uthabiti kamili2 == kamili3 imepimwa leo, sawa kwa baiti.
+  Kamili ni tofauti na kamili2: mbegu imeoka makosa yake (8.4
+  hadi 8.8, 8.12 hadi 8.17) ndani ya kamili iliyojengwa kupitia
+  yeye; kamili2 inayojijenga ndiyo ushahidi wa uthabiti.
 
 ## 13. Hitimisho
 
-**Fixpoint inathibitisha nini**: mfululizo wa kujikusanya unafanya
-kazi kikamilifu -- kutoka kwanza hadi mbegu hadi stage1 hadi
-stage2 == stage3 (sawa kwa baiti), bila lugha nyingine popote.
+**Uthabiti inathibitisha nini**: mfululizo wa kujikusanya unafanya
+kazi kikamilifu -- kutoka kwanza hadi mbegu hadi kamili hadi
+kamili2 == kamili3 (sawa kwa baiti), bila lugha nyingine popote.
 Mkusanyaji unaweza kujijenga yenyewe kwa kudumu.
 
-**Fixpoint haithibitishi nini**: usahihi wa semantiki. Mkusanyaji
+**Uthabiti haithibitishi nini**: usahihi wa semantiki. Mkusanyaji
 anaweza kujijenga yenyewe na bado kuwa na makosa kwenye mipaka ya
 lugha -- ushahidi: hitilafu ya a19 (8.1) iko kwenye mfululizo wa
 uzalishaji uliojijenga, na mbegu iliyogandishwa ina makosa yake
-(8.4 hadi 8.8, 8.12 hadi 8.17) ambayo stage1 inayojijenga
-haijarithishi. Fixpoint inathibitisha uthabiti wa kujijenga, si
+(8.4 hadi 8.8, 8.12 hadi 8.17) ambayo kamili inayojijenga
+haijarithishi. Uthabiti inathibitisha uthabiti wa kujijenga, si
 usahihi wa tabia.
 
 **Kanuni inayoongoza mradi huu**: programu inakusanywa kwa usahihi
