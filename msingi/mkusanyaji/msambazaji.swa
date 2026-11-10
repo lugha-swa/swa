@@ -4399,3 +4399,87 @@ n32 sscse_boresha(n32 nodi_ya_programu) {
     }
     rudisha nodi_ya_programu;
 }
+
+// Majina ya zamani ya kazi za maktaba (v0.0.1) -> mapya. Kwa toleo moja,
+// wito wa jina la zamani ambalo programu haijalifafanua huelekezwa kwa
+// jina jipya, kwa onyo -- kama maneno ya zamani ya lugha.
+n8* jina_jipya_la_maktaba(n8* jina) {
+    kama (jina_linganisha(jina, "andika_stderr")) { rudisha "andika_kosa"; }
+    kama (jina_linganisha(jina, "atan2_hesabu")) { rudisha "arctan2_hesabu"; }
+    kama (jina_linganisha(jina, "atan_hesabu")) { rudisha "arctan_hesabu"; }
+    kama (jina_linganisha(jina, "atan_ndogo_hesabu")) { rudisha "arctan_ndogo_hesabu"; }
+    kama (jina_linganisha(jina, "bafa_heksa")) { rudisha "andika_heksa_kwenye_chombo"; }
+    kama (jina_linganisha(jina, "bafa_herufi")) { rudisha "andika_herufi_kwenye_chombo"; }
+    kama (jina_linganisha(jina, "bafa_mfuatano")) { rudisha "andika_mfuatano_kwenye_chombo"; }
+    kama (jina_linganisha(jina, "bafa_n64")) { rudisha "andika_n64_kwenye_chombo"; }
+    kama (jina_linganisha(jina, "bafa_u64")) { rudisha "andika_u64_kwenye_chombo"; }
+    kama (jina_linganisha(jina, "bits_ya_d64_swa")) { rudisha "biti_ya_d64_swa"; }
+    kama (jina_linganisha(jina, "faili_bendera")) { rudisha "machaguo_ya_kufungua"; }
+    kama (jina_linganisha(jina, "gcd_hesabu")) { rudisha "kigawo_kikuu_cha_shirika"; }
+    kama (jina_linganisha(jina, "heshi_mfuatano")) { rudisha "heshi_ya_mfuatano"; }
+    kama (jina_linganisha(jina, "isqrt_hesabu")) { rudisha "kipeuo_kamili"; }
+    kama (jina_linganisha(jina, "lcm_hesabu")) { rudisha "kigawe_kidogo_cha_shirika"; }
+    kama (jina_linganisha(jina, "orodha_urefu")) { rudisha "urefu_wa_orodha"; }
+    kama (jina_linganisha(jina, "pow_kamili")) { rudisha "kipeo_kamili"; }
+    kama (jina_linganisha(jina, "pow_mod_hesabu")) { rudisha "kipeo_kwa_baki"; }
+    kama (jina_linganisha(jina, "sys_andika")) { rudisha "mfumo_andika"; }
+    kama (jina_linganisha(jina, "sys_execve")) { rudisha "mfumo_tekeleza_programu"; }
+    kama (jina_linganisha(jina, "sys_fork")) { rudisha "mfumo_gawanyika"; }
+    kama (jina_linganisha(jina, "sys_funga")) { rudisha "mfumo_funga"; }
+    kama (jina_linganisha(jina, "sys_fungua")) { rudisha "mfumo_fungua"; }
+    kama (jina_linganisha(jina, "sys_kill")) { rudisha "mfumo_tuma_ishara"; }
+    kama (jina_linganisha(jina, "sys_lseek")) { rudisha "mfumo_tafuta_nafasi"; }
+    kama (jina_linganisha(jina, "sys_mkdir")) { rudisha "mfumo_unda_saraka"; }
+    kama (jina_linganisha(jina, "sys_mmap")) { rudisha "mfumo_ramani_kumbukumbu"; }
+    kama (jina_linganisha(jina, "sys_munmap")) { rudisha "mfumo_ondoa_ramani_kumbukumbu"; }
+    kama (jina_linganisha(jina, "sys_nanosleep_sekunde")) { rudisha "mfumo_subiri_nano_sekunde"; }
+    kama (jina_linganisha(jina, "sys_soma")) { rudisha "mfumo_soma"; }
+    kama (jina_linganisha(jina, "sys_wait4")) { rudisha "mfumo_subiri4"; }
+    kama (jina_linganisha(jina, "sys_wait4_msimbo_wa_kutoka")) { rudisha "mfumo_subiri4_msimbo_wa_kutoka"; }
+    kama (jina_linganisha(jina, "sys_wait4_ulitoka_kwa_kawaida")) { rudisha "mfumo_subiri4_ulitoka_kwa_kawaida"; }
+    rudisha 0;
+}
+
+n8* majina_ya_zamani_yaliyoonywa[64];
+n32 idadi_ya_majina_yaliyoonywa = 0;
+
+n32 kazi_imefafanuliwa_kwenye_programu(n32 nodi_ya_programu, n8* jina) {
+    n32 n = nodi_ya_kushoto[nodi_ya_programu];
+    wakati (n != -1) {
+        kama (aina_ya_nodi[n] == NODI_KAZI) {
+            kama (jina_linganisha(ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[n]], jina)) { rudisha 1; }
+        }
+        n = nne_ya_nodi[n];
+    }
+    rudisha 0;
+}
+
+w0 badili_wito_wa_maktaba_ya_zamani(n32 nodi_ya_programu) {
+    n32 i = 0;
+    wakati (i < idadi_ya_nodi) {
+        kama (aina_ya_nodi[i] == NODI_WITO) {
+            n32 k = nodi_ya_kushoto[i];
+            kama (k >= 0) { kama (aina_ya_nodi[k] == NODI_KITAMBULISHO) {
+                n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[k];
+                n8* jipya = jina_jipya_la_maktaba(jina);
+                kama (jipya != 0) { kama (kazi_imefafanuliwa_kwenye_programu(nodi_ya_programu, jina) == 0) {
+                    n32 j = 0;
+                    n32 kimeonywa = 0;
+                    wakati (j < idadi_ya_majina_yaliyoonywa) {
+                        kama (jina_linganisha(majina_ya_zamani_yaliyoonywa[j], jina)) { kimeonywa = 1; }
+                        j = j + 1;
+                    }
+                    kama (kimeonywa == 0 && idadi_ya_majina_yaliyoonywa < 64) {
+                        onya_neno_la_zamani(jina, jipya);
+                        majina_ya_zamani_yaliyoonywa[idadi_ya_majina_yaliyoonywa] = jina;
+                        idadi_ya_majina_yaliyoonywa = idadi_ya_majina_yaliyoonywa + 1;
+                    }
+                    n64 u = 0;
+                    wakati (jipya[u] != 0) { u = u + 1; }
+                    hifadhi_jina(k, jipya, u);
+                } }
+            } }
+        }
+        i = i + 1;
+    }
+}

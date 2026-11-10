@@ -395,7 +395,7 @@ n32 heshi_ya_mfuatano(n8* s) {
 // muundo (f) ni kigezo cha kawaida, si lazima uwe herufi halisi
 // (literal) inayojulikana wakati wa kukusanya.
 
-w0 chombo_cha_herufi(n8* chombo, n64 uwezo, n64* nafasi, n64 b) {
+w0 andika_herufi_kwenye_chombo(n8* chombo, n64 uwezo, n64* nafasi, n64 b) {
     kama (*nafasi + 1 < uwezo) {
         chombo[*nafasi] = b;
         *nafasi = *nafasi + 1;
@@ -405,7 +405,7 @@ w0 chombo_cha_herufi(n8* chombo, n64 uwezo, n64* nafasi, n64 b) {
 w0 andika_mfuatano_kwenye_chombo(n8* chombo, n64 uwezo, n64* nafasi, n8* s) {
     n64 i = 0;
     wakati (s[i] != 0) {
-        chombo_cha_herufi(chombo, uwezo, nafasi, s[i]);
+        andika_herufi_kwenye_chombo(chombo, uwezo, nafasi, s[i]);
         i = i + 1;
     }
 }
@@ -414,7 +414,7 @@ w0 andika_n64_kwenye_chombo(n8* chombo, n64 uwezo, n64* nafasi, n64 v) {
     n32 muda[32];
     n32 n = 0;
     kama (v < 0) {
-        chombo_cha_herufi(chombo, uwezo, nafasi, 45);
+        andika_herufi_kwenye_chombo(chombo, uwezo, nafasi, 45);
         v = 0 - v;
     }
     wakati (1 == 1) {
@@ -425,7 +425,7 @@ w0 andika_n64_kwenye_chombo(n8* chombo, n64 uwezo, n64* nafasi, n64 v) {
     }
     wakati (n > 0) {
         n = n - 1;
-        chombo_cha_herufi(chombo, uwezo, nafasi, 48 + muda[n]);
+        andika_herufi_kwenye_chombo(chombo, uwezo, nafasi, 48 + muda[n]);
     }
 }
 
@@ -453,7 +453,7 @@ w0 andika_u64_kwenye_chombo(n8* chombo, n64 uwezo, n64* nafasi, n64 v) {
     }
     wakati (n > 0) {
         n = n - 1;
-        chombo_cha_herufi(chombo, uwezo, nafasi, 48 + muda[n]);
+        andika_herufi_kwenye_chombo(chombo, uwezo, nafasi, 48 + muda[n]);
     }
 }
 
@@ -464,12 +464,12 @@ w0 andika_heksa_kwenye_chombo(n8* chombo, n64 uwezo, n64* nafasi, n64 v) {
         n32 d = (v >> (4 * i)) & 15;
         kama (d != 0 || imeanza) {
             imeanza = 1;
-            kama (d < 10) { chombo_cha_herufi(chombo, uwezo, nafasi, 48 + d); }
-            sivyo { chombo_cha_herufi(chombo, uwezo, nafasi, 87 + d); }
+            kama (d < 10) { andika_herufi_kwenye_chombo(chombo, uwezo, nafasi, 48 + d); }
+            sivyo { andika_herufi_kwenye_chombo(chombo, uwezo, nafasi, 87 + d); }
         }
         i = i - 1;
     }
-    kama (imeanza == 0) { chombo_cha_herufi(chombo, uwezo, nafasi, 48); }
+    kama (imeanza == 0) { andika_herufi_kwenye_chombo(chombo, uwezo, nafasi, 48); }
 }
 
 n64 mfuatano_umbiza(n8* chombo, n64 uwezo, n8* f, n64 a1, n64 a2, n64 a3, n64 a4, n64 a5, n64 a6) {
@@ -482,7 +482,7 @@ n64 mfuatano_umbiza(n8* chombo, n64 uwezo, n8* f, n64 a1, n64 a2, n64 a3, n64 a4
         kama (f[p] == 37) {  // '%'
             n8 juu_ya_mrundikano = f[p + 1];
             kama (juu_ya_mrundikano == 0) {
-                chombo_cha_herufi(chombo, uwezo, &nafasi, 37);
+                andika_herufi_kwenye_chombo(chombo, uwezo, &nafasi, 37);
                 p = p + 1;
                 endelea;
             }
@@ -500,23 +500,23 @@ n64 mfuatano_umbiza(n8* chombo, n64 uwezo, n8* f, n64 a1, n64 a2, n64 a3, n64 a4
                             andika_mfuatano_kwenye_chombo(chombo, uwezo, &nafasi, kielekezi_kutoka_hoja(hoja_kwa_na(a1, a2, a3, a4, a5, a6, na)));
                             na = na + 1;
                         } sivyo { kama (juu_ya_mrundikano == 99) {  // %c
-                                chombo_cha_herufi(chombo, uwezo, &nafasi, hoja_kwa_na(a1, a2, a3, a4, a5, a6, na));
+                                andika_herufi_kwenye_chombo(chombo, uwezo, &nafasi, hoja_kwa_na(a1, a2, a3, a4, a5, a6, na));
                                 na = na + 1;
                             } sivyo { kama (juu_ya_mrundikano == 37) {  // %%
-                                    chombo_cha_herufi(chombo, uwezo, &nafasi, 37);
+                                    andika_herufi_kwenye_chombo(chombo, uwezo, &nafasi, 37);
                                 } sivyo {
                                     // Visivyosaidiwa -- chapisha kama herufi halisi.
-                                    chombo_cha_herufi(chombo, uwezo, &nafasi, 37);
-                                    chombo_cha_herufi(chombo, uwezo, &nafasi, juu_ya_mrundikano);
+                                    andika_herufi_kwenye_chombo(chombo, uwezo, &nafasi, 37);
+                                    andika_herufi_kwenye_chombo(chombo, uwezo, &nafasi, juu_ya_mrundikano);
                                 } } } } } }
             endelea;
         }
         kama (f[p] == 92 && f[p + 1] == 110) {  // \n (mfuatano wa kawaida)
-            chombo_cha_herufi(chombo, uwezo, &nafasi, 10);
+            andika_herufi_kwenye_chombo(chombo, uwezo, &nafasi, 10);
             p = p + 2;
             endelea;
         }
-        chombo_cha_herufi(chombo, uwezo, &nafasi, f[p]);
+        andika_herufi_kwenye_chombo(chombo, uwezo, &nafasi, f[p]);
         p = p + 1;
     }
     chombo[nafasi] = 0;
