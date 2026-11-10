@@ -22,7 +22,7 @@ Tafuta lebo `good-first-issue` kwenye [ukurasa wa masuala](https://github.com/lu
 Tumia kiolezo cha **Ripoti ya Hitilafu**. Hakikisha umejumuisha:
 - Hatua za kuzalisha hitilafu
 - Matokeo halisi na yanayotarajiwa
-- Mazingira yako (OS, mfululizo uliotumika -- mbegu au stage1, ukubwa wa awali.bin, hali ya fixpoint)
+- Mazingira yako (OS, mfululizo uliotumika -- mbegu au kamili, ukubwa wa awali.bin, hali ya uthabiti)
 
 ### 3. Kupendekeza Vipengele
 
@@ -70,7 +70,7 @@ chmod +x mfano.bin && ./mfano.bin
 |--------|---------|
 | `msingi/` | Mzizi wa uaminifu: kwanza (baiti za mkono), mbegu, bootstrap |
 | `msingi/maktaba/` | Maktaba ya kawaida ya Swa (kumbukumbu, mfuatano, orodha, ramani, hesabu, faili) |
-| `msingi/mkusanyaji/` | Mkusanyaji wa kujikusanya wa Swa (msomaji, msambazaji, mkaguzi, uzalishaji, mteremko -- IR, mtafsiri, stage1) |
+| `msingi/mkusanyaji/` | Mkusanyaji wa kujikusanya wa Swa (msomaji, msambazaji, mkaguzi, uzalishaji, mteremko -- IR, mtafsiri, kamili) |
 | `majaribio/` | Programu za majaribio za Swa (ORODHA.txt) |
 | `gharama/` | Zana za ujenzi na majaribio |
 | `hati/` | Nyaraka za mradi |
@@ -89,9 +89,9 @@ mfululizo mzima. Sheria isiyo na mbadala:
 kugandishwa -- hakuna ubaguzi.**
 
 Kwa nini: hitilafu kwenye mzizi ni ya darasa baya zaidi -- mbegu
-iliyovunjika inaweza bado kutoa fixpoint imara LAKINI mbaya
-(stage2 == stage3 == takataka), na mfululizo mzima unaweza kushindwa
-kimya kimya. Mfano halisi: uhariri mdogo wa njia ya fixup uliwahi
+iliyovunjika inaweza bado kutoa uthabiti imara LAKINI mbaya
+(kamili2 == kamili3 == takataka), na mfululizo mzima unaweza kushindwa
+kimya kimya. Mfano halisi: uhariri mdogo wa njia ya urekebishaji uliwahi
 kufanya kila mkusanyiko kushindwa -- ulipatikana tu kwa sababu jaribio
 la wito 1,000 lilikimbizwa kabla ya kugandisha. Jaribio hilo sasa ni
 mkazo wa RELA ndani ya `gharama/jaribu-mfululizo.mapishi` (`majaribio/mkazo/urekebishaji_1000.swa`) -- la kudumu.

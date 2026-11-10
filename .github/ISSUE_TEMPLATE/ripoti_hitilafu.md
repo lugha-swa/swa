@@ -24,7 +24,7 @@ assignees: []
 - Mfumo wa uendeshaji: 
 - Mfululizo uliotumika: awali (`msingi/awali.bin`) au kamili (`bin/swa`)
 - Ukubwa wa awali.bin (baiti): 
-- Fixpoint (stage2 == stage3): ndiyo / hapana
+- Uthabiti (kamili2 == kamili3): ndiyo / hapana
 
 ## Maelezo ya Ziada
 <!-- Ongeza maelezo yoyote ya ziada, mfano wa msimbo, au viungo -->

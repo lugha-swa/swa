@@ -15,7 +15,7 @@ Hakuna assembly. Hakuna GNU as.
 - [x] ELF header + machine code (opcodes za x86-64)
 - [x] Inachukua nafasi ya mteremko.swa (LLVM) KABISA katika mfululizo wa kujikusanya
 - [x] `N32 anza() { rudisha 42; }` -> ELF binary inayofanya kazi
-- [x] Mfululizo mzima unajithibitisha: stage2-exe == stage3-exe (sawa kwa baiti)
+- [x] Mfululizo mzima unajithibitisha: kamili2 == kamili3 (sawa kwa baiti)
 
 ### Hatua ya 2: JIT halisi (kama HolyC) [IMEFANYIKA]
 Swa inatoa maelekezo moja kwa moja kwenye kumbukumbu na kuyatekeleza.
@@ -37,16 +37,16 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
       kutoka mbegu.swm na mfululizo huru (hati/mfululizo-huru.md)
 - [x] Kiunganishi cha kujitegemea: bendera ya `--programu` inatoa **ET_EXEC
       tuli** (bila kichwa cha sehemu, bila PT_INTERP) -- mfululizo wa
-      kujikusanya wa exe ni safi kabisa: stage2-exe == stage3-exe
+      kujikusanya wa exe ni safi kabisa: kamili2 == kamili3
       (sawa kwa baiti) bila ld, gcc, wala libc.
 - [x] Runtime ya syscalls: mkusanyaji hautekelezi kupitia libc tena --
       mfumo_fungua/mfumo_soma/mfumo_andika/mfumo_ramani_kumbukumbu kupitia wito_wa_mfumo;
-      undefined za nje za stage2-exe ni mbili tu (violesura vya JIT).
+      undefined za nje za kamili2 ni mbili tu (violesura vya JIT).
 - [x] 0% bootstrap gap -- mbegu inatoa ET_EXEC tuli moja kwa moja
       (`--programu`): kichwa + phdr + stub ya `_start` + urekebishaji wa
       RELA wa ndani. Hakuna gcc, ld, clang, muda.c, wala libc popote
-      kwenye mfululizo: kwanza -> mbegu -> stage1-exe -> stage2-exe ->
-      stage3-exe (stage2-exe == stage3-exe, sawa kwa baiti).
+      kwenye mfululizo: kwanza -> mbegu -> kamili -> kamili2 ->
+      kamili3 (kamili2 == kamili3, sawa kwa baiti).
       Kumbuka: hili linahusu mfululizo wa uzalishaji pekee -- uthabiti
       wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti, bado
       wazi (angalia hati/mipaka.md).
@@ -82,7 +82,7 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 
 Lengo kuu limefikiwa: mfululizo wa kujikusanya umefungwa kikamilifu na
 **hakuna lugha nyingine** -- baiti za mkono (kwanza, 393) -> mbegu ->
-stage1-exe -> stage2-exe == stage3-exe, bila gcc/ld/clang/libc popote.
+kamili -> kamili2 == kamili3, bila gcc/ld/clang/libc popote.
 (0% gap ni mhimili wa mfululizo wa uzalishaji; uthabiti wa makosa ni
 mhimili tofauti -- hati/mipaka.md.)
 

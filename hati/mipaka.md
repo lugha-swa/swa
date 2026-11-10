@@ -61,7 +61,7 @@ Vikomo viliinuliwa Agosti 2026 (4x) ili kupunguza mzunguko:
   ingizo jipya bila dedup
 - jedwali la RELA (UPEO_HAMISHO 65,536) -- maeneo yote: mizigo ya
   ulimwengu, uhifadhi wa ulimwengu, tungo, nafasi za sret, na wito
-- jedwali la fixup, la ulimwengu (UPEO_ULIMWENGU 4096), la lebo
+- jedwali la urekebishaji, la ulimwengu (UPEO_ULIMWENGU 4096), la lebo
   (UPEO_LEBO 65,536), na la AST (UPEO_NODI_MTI 262,144)
 - chanzo kikubwa kuliko baiti 4,194,304 (UPEO_CHANZO) -- mbegu inalia
   kwa sauti badala ya kusoma sehemu tu
@@ -82,7 +82,7 @@ hutoa s=5, na kesi ya endelea-pekee inapita. Mfululizo wa .swa UMEWIWA
 tarehe 2026-08 (AST_BLOCK yenye alama -777777, lebo ya hatua
 iliyotengwa mapema) -- mifululizo yote miwili sasa ina semantiki ya C
 (uthibitisho: jaribio_exe_kujijenga sehemu ya 11 inaendesha kupitia
-mbegu NA stage1).
+mbegu NA kamili).
 
 ## 4c. Desimali (D32/D64) -- mifululizo ya uzalishaji IMEREKEBISHWA [kilichobaki: CHINI]
 
@@ -195,8 +195,8 @@ inayoganda mbegu.
 
 ## Nini HAKIKO katika mipaka
 
-- Mfululizo wa uzalishaji: kwanza -> mbegu -> stage1-exe -> stage2-exe
-  == stage3-exe, bila gcc/ld/clang/libc popote. Hakuna lugha nyingine.
+- Mfululizo wa uzalishaji: kwanza -> mbegu -> kamili -> kamili2
+  == kamili3, bila gcc/ld/clang/libc popote. Hakuna lugha nyingine.
 - RELA za mbegu zinakubaliana na GNU ld (rejea huru) sawa kwa baiti.
 - Utekelezaji wa makosa: exit 0/1 inafanya kazi kwa makosa
   YANAYOTAMBULIWA.
@@ -218,7 +218,7 @@ jaribio_awali_kazi_kukosa). Mbegu inakataa kimya katika kesi
 kadhaa (tazama sehemu ya 1).
 
 KILICHOPIMWA 2026-08-27 (hati/uthibitisho-wa-lugha.md): mfululizo
-wa .swa (stage1+) pia HAUSOMI faili lililotajwa -- ahadi ya zamani
+wa .swa (kamili+) pia HAUSOMI faili lililotajwa -- ahadi ya zamani
 "mkusanyaji wa .swa unawiwa viungo vya ndani" HAIKUBALIKI. Kesi
 iliyopimwa: `husisha { kumbukumbu.swa }` + wito wa `weka_sifuri`
 bila cat hutoa "kazi haijafafanuliwa: weka_sifuri" kwa mifululizo yote
@@ -274,14 +274,14 @@ rekebisho hili):** `uzalishaji.swa` (mkusanyaji uliojijenga, kazi
 `ukubwa()` yake YENYEWE -- inachunguza majina ya aina za msingi
 (N8/n8...D64/d64) KWANZA kupitia mfululizo wa if-sivyo, ikianguka
 kwenye `ukubwa_wa_muundo_kwa_jina` PEKEE kama HAKUNA jina la msingi
-linalolingana. Imethibitishwa kwa vitendo: stage1 (self-hosted)
+linalolingana. Imethibitishwa kwa vitendo: kamili (self-hosted)
 ILIYOJENGWA na mbegu MPYA (baada ya rekebisho hili) BADO inarudisha 4
 kwa `ukubwa(n32)` yenye muundo `n32` wa kweli -- kwa sababu chanzo cha
 uzalishaji.swa chenyewe hakijaguswa. Hii ni kazi ya BAADAYE, tofauti
 kabisa na rekebisho hili (faili tofauti, hakuna hatari ya mzizi wa
 uaminifu -- mkusanyaji wa kawaida, si mbegu.swm).
 
-## 11. Lengwa ya WebAssembly (`stage1 --wasm`) -- Awamu ya 1 pekee: N32, hakuna kumbukumbu [UKALI: KWA KUBUNI]
+## 11. Lengwa ya WebAssembly (`kamili --wasm`) -- Awamu ya 1 pekee: N32, hakuna kumbukumbu [UKALI: KWA KUBUNI]
 
 `msingi/mkusanyaji/uzalishaji_wasm.swa` (backend ya PILI ya
 uzalishaji msimbo, sambamba na `uzalishaji.swa` ya x86-64) inatoa
