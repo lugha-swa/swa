@@ -37,11 +37,11 @@ Pipeline ya LLVM inayotumika kwa **kila kazi** (`function` scope):
    Hubadilisha uhifadhi wa rafu kuwa rejista za LLVM, kuwezesha uboreshaji
    unaofuata.
 
-2. **instcombine** (`no-verify-fixpoint`) -- Uchanganyaji wa maagizo
+2. **instcombine** (`no-verify-uthabiti`) -- Uchanganyaji wa maagizo
    (peephole optimization). Hurahisisha misemo ya mara kwa mara, huondoa
    maagizo yasiyo na maana, huchanganya shughuli zinazofanana.
 
-   Bendera ya `no-verify-fixpoint` inaepuka uthibitishaji wa marudio baada ya
+   Bendera ya `no-verify-uthabiti` inaepuka uthibitishaji wa marudio baada ya
    kupita -- kwa kuwa instcombine haijawahi kuhitaji marudio zaidi ya moja,
    hii inaokoa muda bila athari.
 

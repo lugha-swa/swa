@@ -4,7 +4,7 @@ Hati hii ni marejeo rasmi ya lugha ya Swa. Kila kanuni hapa
 imejaribiwa kwenye mfululizo wa mkusanyaji (mbegu na mfululizo wa
 kujikusanya wa .swa) au imeandikwa wazi kama kikomo (tazama
 `hati/mipaka.md`). Kila dai la 2026-09-04 linalohusu mbegu
-linapima MBEGU ILIYOGANDISHWA ya 2026-09-04 (na stage1 iliyojengwa
+linapima MBEGU ILIYOGANDISHWA ya 2026-09-04 (na kamili iliyojengwa
 kutoka kwake); kila dai la awali linabaki kwenye tarehe yake.
 Toleo hili linalenga Swa 1.0.
 
@@ -102,7 +102,7 @@ ya zamani ni jambo jingine:
 - Nambari kamili: mfuatano wa tarakimu. Aina yake ya chaguo-msingi ni
   n32 ikiwa inatoshea ndani ya 32-bit signed; nje ya hapo ni n64.
   Kilichopimwa (2026-09-04, mbegu iliyogandishwa 2026-09-04 na
-  stage1): halisi za [2^31, 2^63) kwenye kigezo, ulimwengu, na kama
+  kamili): halisi za [2^31, 2^63) kwenye kigezo, ulimwengu, na kama
   hoja ya wito -- SAWA kwa mifululizo yote miwili; halisi >= 2^63
   (2^63-1, 2^63, 2^64-1, 2^64) zinatoa imm64 KAMILI kwa mifululizo
   yote miwili (2^63 = -2^63 kwa ishara; 2^64-1 = -1 kwa ishara;
@@ -411,7 +411,7 @@ n32 anza() {
 - Hoja zinazozidi rejesta (namba 6, desimali 8) huenda rafuni kwa
   mpangilio wa hoja (System V), hata hoja za rejesta zikizifuata
   (rekebisho la 2026-11-09; mbegu bado haina -- `jaribio_hoja_mrundikano_mchanganyiko`
-  ni ya stage1 pekee).
+  ni ya kamili pekee).
 - Kikomo cha hoja kwenye mfululizo wa uzalishaji: 16 -- wito wa hoja
   zaidi ya 16 unakataliwa kwa sauti ("una hoja nyingi mno (17) --
   kikomo ni 16"); hitilafu ya 2026-09-01 (hoja zaidi zilitupwa kimya)
@@ -564,7 +564,7 @@ neno muhimu kama jina linakataliwa, 2.2). Kilichopimwa
 mbegu iliyogandishwa 2026-09-04 ina kitanzi cha fanya (mwili
 hukimbia mara moja, `endelea` inaruka hadi sharti, `acha` inaondoka
 mara moja, viota ndani ya `kwa` -- vyote sawa na mfululizo wa
-uzalishaji). Kumbuka la zamani la "majaribio ni ya stage1 pekee
+uzalishaji). Kumbuka la zamani la "majaribio ni ya kamili pekee
 hadi mbegu igandishwe" halishikiki.
 
 ## 7. Miundo
@@ -602,7 +602,7 @@ muundo Nukta {
 ## 8. Utegemezi wa faili (husisha)
 
 - `husisha { faili.swa }` -- tangazo la utegemezi. Kwenye mfululizo wa
-  uzalishaji (stage1) ni KIUNGO HALISI (kilichopimwa 2026-09-04;
+  uzalishaji (kamili) ni KIUNGO HALISI (kilichopimwa 2026-09-04;
   kipengele cha mfumo wa moduli, tangu 2026-09-02): mkusanyaji
   anatatua maelekezo ya `husisha { }` mwenyewe, sawa na msuluhishi
   wa `gharama/msuluhishi.swa` -- kila faili linalotajwa linatafutwa
@@ -763,10 +763,10 @@ Kila kanuni katika hati hii ina mwenzake kwenye majaribio
 yanayoendeshwa na CI (`gharama/*.mapishi`: mfululizo huru, programu
 za `majaribio/programu/ORODHA.txt` kwenye mifululizo yote miwili,
 mkazo, mifano, usakinishaji, IR, kiolesura cha mashine, WASM, kernel)
-au kwenye fixpoint ya kujikusanya (stage2-exe == stage3-exe sawa
+au kwenye uthabiti ya kujikusanya (kamili2 == kamili3 sawa
 kwa baiti).
 
-Kumbuka kilichopimwa (2026-08-27): fixpoint inathibitisha
+Kumbuka kilichopimwa (2026-08-27): uthabiti inathibitisha
 kujikusanya, si usahihi wa semantiki. Uthibitisho kamili wa tabia
 ya lugha (kesi ~487 zilizokusanywa na kuendeshwa kwenye mifululizo
 yote miwili) umeandikwa kwenye `hati/uthibitisho-wa-lugha.md`.

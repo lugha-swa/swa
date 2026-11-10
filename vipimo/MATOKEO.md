@@ -9,7 +9,7 @@ kupima kazi yoyote ijayo ya utendaji, si kujengwa upya kila wakati.
 
 ## Muktadha wa mkusanyaji
 
-Ujenzi wa `stage1` ulithibitishwa dhidi ya suti kamili KABLA ya
+Ujenzi wa `kamili` ulithibitishwa dhidi ya suti kamili KABLA ya
 kupima (329/329 yamefaulu). Mkusanyaji HAUNA bendera yoyote ya
 uboreshaji (`-O` na kadhalika) -- `--programu` na `--papo` PEKEE
 zinakubaliwa (imethibitishwa kwa kusoma `kiendeshaji.swa` moja kwa moja,
@@ -290,7 +290,7 @@ push rax; pop rax` (kashe ya anwani ya kiwanja, PR #239/#240 --
 nakala ya pili + pop hulingana kabisa, hakuna athari).
 
 **Njia**: badala ya kuandika upya baiti ZILIZOKWISHA-ANDIKWA (tatizo
-la uhamishaji/relocation la kweli -- lebo/fixup/rela zote hurekodi
+la uhamishaji/relocation la kweli -- lebo/urekebishaji/rela zote hurekodi
 `bafa_text_wapi` moja kwa moja), `andika_push_rax`/`andika_push_rcx`
 sasa HUAHIRISHA push MOJA (haiandiki baiti mara moja, huweka tu
 `png_akiba_reg`). `andika_pop_rax`/`andika_pop_rcx` hukagua hali hiyo:
@@ -326,7 +326,7 @@ isiyotolewa.
 **Majaribio 4 mapya**: mfululizo mrefu wa jozi HURU za push/pop (=96),
 kesi maalum push;push;pop kutoka kiwanja_tail (fahirisi tata i*n+j),
 lebo katikati ya usemi (&&/||, =6), wito wa kazi katikati ya usemi
-wenye push inayosubiri (=23). 381/381 (377+4), fixpoint na gen1/gen2
+wenye push inayosubiri (=23). 381/381 (377+4), uthabiti na gen1/gen2
 vyote vinapita, imethibitishwa mara 4 kutoka kwa ujenzi safi (idadi
 kubwa kimakusudi kutokana na wigo mpana wa mabadiliko haya).
 
@@ -452,8 +452,8 @@ inakosea kuzalisha msimbo kwa muundo maalum wa "N64 = safu ya N32
 kama programu huru na kuikusanya MOJA KWA MOJA na awali.bin). Kwa
 kuwa `jaribu_kunja_namba` ipo ndani ya kiendeshaji.swa (chanzo cha
 mkusanyaji mwenyewe), hitilafu hii inaingia kwenye kizazi cha KWANZA
-(gen1/stage1, kilichojengwa NA awali.bin moja kwa moja) -- LAKINI
-INAJIPONYA (self-heals) KABISA kwenye kizazi cha PILI (gen2/stage2,
+(kamili, kilichojengwa NA awali.bin moja kwa moja) -- LAKINI
+INAJIPONYA (self-heals) KABISA kwenye kizazi cha PILI (gen2/kamili2,
 kilichojengwa na gen1, ambaye msimbo wake WENYEWE wa uzalishaji
 (uzalishaji.swa) HAUNA hitilafu hii) -- imethibitishwa moja kwa moja
 kwa kujenga gen2 na kuonyesha `(0-17)/3` inatoa `-5` sahihi. Kwa
@@ -529,7 +529,7 @@ haraka ndani ya kazi moja); kitanzi cha kwa; ulinganishi wa D64
 (comisd, jb/ja/jbe/jae, ikiwemo mpaka wa usawa halisi); ulinganishi
 wa A32 bila ishara (a=4000000000 -- ingeonekana hasi kama ingesomwa
 kwa ishara, jaribio linatofautisha wazi kati ya njia mbili). 390/390
-(385 zilizopo + 5 mpya). Fixpoint na ukaguzi wa gen1-dhidi-ya-gen2
+(385 zilizopo + 5 mpya). Uthabiti na ukaguzi wa gen1-dhidi-ya-gen2
 vyote vinapita, imethibitishwa mara TATU kutoka kwa ujenzi safi
 (zaidi ya kawaida -- hii ni msimbo unaoamua mtiririko wa udhibiti,
 hatari ya hitilafu ni majibu MABAYA KIMYA, si kuanguka).
@@ -589,7 +589,7 @@ kama na wakati zote mbili); mchanganyiko (leg moja ni ulinganishi wa
 moja kwa moja, nyingine ni kigezo cha kawaida, ndani ya && / || moja
 -- kuthibitisha njia mbili zinaweza kuchanganyika kwa usahihi ndani
 ya usemi mmoja); vinodi sita vya ulinganishi kama legs (==,!=,<,>,<=,
->=) ndani ya && na ||. 397/397 (394 zilizopo + 3 mpya). Fixpoint na
+>=) ndani ya && na ||. 397/397 (394 zilizopo + 3 mpya). Uthabiti na
 gen1-dhidi-ya-gen2 vinapita, imethibitishwa mara TATU kutoka kwa
 ujenzi safi.
 
@@ -689,7 +689,7 @@ karibu na 2^32-1 iliyoundwa kwa hesabu); kesi za kukataa (d=7 bila
 ishara, d>65536, kigawanyaji si wa kudumu, N64); mfululizo mpana wa
 vigawanyaji 14 dhidi ya idiv (N32 x=-600..600 ikiwemo karibu na
 N32_CHINI/N32_JUU, A32 y=0..600). 398/398 (394 zilizopo + 4 mpya).
-Fixpoint na gen1-dhidi-ya-gen2 vinapita, imethibitishwa mara TATU
+Uthabiti na gen1-dhidi-ya-gen2 vinapita, imethibitishwa mara TATU
 kutoka kwa ujenzi safi.
 
 Disassembly ya jaribio_uchawi_gawanyo_ishara_msingi imefuatiliwa
@@ -851,7 +851,7 @@ havifanani kamwe kimuundo); ubatilishaji (reassignment kati ya tokeo
 mbili, lazima ikokotolewe upya); mpaka wa tawi; tokeo la ngazi ya juu
 dhidi ya la ndani; na wito wa kazi kati ya tokeo mawili (wito wowote
 hufuta jedwali, hata usiohusiana -- fursa iliyokosekana, si hitilafu).
-406/406 (401 zilizopo + 5 mpya). Fixpoint na gen1-dhidi-ya-gen2
+406/406 (401 zilizopo + 5 mpya). Uthabiti na gen1-dhidi-ya-gen2
 vinapita, imethibitishwa mara TATU kutoka kwa ujenzi safi.
 
 Disassembly ya jaribio_urudufu_wa_mstari_msingi imethibitisha imul MOJA TU
@@ -925,8 +925,8 @@ ina wito, kina cha xmm zaidi ya 6, upana usiolingana (N8/N16 na N32).
   ishara, `jr_ni_salama` ikirudisha 1 daima, kina cha xmm bila kikomo,
   `mov rcx` ya baiti 4 badala ya 8) hufanya angalau jaribio moja
   lishindwe.
-- Fixpoint stage2 == stage3. Programu 307 (majaribio + vipimo)
-  zimeundwa na stage1 na stage2 -- baiti sawa isipokuwa
+- Uthabiti kamili2 == kamili3. Programu 307 (majaribio + vipimo)
+  zimeundwa na kamili na kamili2 -- baiti sawa isipokuwa
   `jaribio_gawanyo_nguvu_pili_mipaka`, ambayo inatofautiana vilevile kwenye
   mkusanyaji wa zamani (hitilafu inayojulikana ya awali.bin: mgawanyo hasi
   uliokunjwa hukusanywa vibaya kwenye gen1 tu).
@@ -998,8 +998,8 @@ kuthibitisha kuwa jaribio linakishika.
 ### Uthibitisho
 
 - 419/419 (410 zilizopo + 8 mapya + jaribio la rekebisho la mgawanyo ulioota), imekimbizwa mara 3 kutoka ujenzi safi.
-  Fixpoint stage2 == stage3.
-- Programu 315 zimeundwa na stage1 na stage2: baiti sawa isipokuwa tatu --
+  Uthabiti kamili2 == kamili3.
+- Programu 315 zimeundwa na kamili na kamili2: baiti sawa isipokuwa tatu --
   `jaribio_gawanyo_nguvu_pili_mipaka`, `jaribio_kihesabu_namba` na
   `jaribio_wito_hoja_ya_kwanza` -- zote tatu zinatofautiana vilevile kwenye
   mkusanyaji wa kabla ya PR hii (hitilafu inayojulikana ya awali.bin: baadhi ya
@@ -1062,8 +1062,8 @@ juu na faharasa ya ndani (`b[a[1] / 10]`) kati ya uamuzi na upakiaji;
 
 ### Uthibitisho
 
-- 420/420 (419 + 1 mpya), mara 3 kutoka ujenzi safi; fixpoint stage2 == stage3.
-- Programu 317 zimeundwa na stage1 na stage2: baiti sawa isipokuwa tatu
+- 420/420 (419 + 1 mpya), mara 3 kutoka ujenzi safi; uthabiti kamili2 == kamili3.
+- Programu 317 zimeundwa na kamili na kamili2: baiti sawa isipokuwa tatu
   zinazojulikana (hitilafu ya awali.bin ya kukunja namba hasi; zinatofautiana
   vilevile kabla ya mabadiliko haya).
 - Programu 4001 za nasibu, mkusanyaji wa kabla dhidi ya wa baada: sifuri
@@ -1124,8 +1124,8 @@ tayari -- kazi hiyo haikuwa na hitilafu hii.
   N64 (`msingi + idx*saizi`, ambayo haina hitilafu hii). Jaribio hili
   linashindwa (msimbo 11) kwenye mkusanyaji wa kabla ya rekebisho hili
   (c09c3d5) na linapita baada yake. 421/421.
-- Fixpoint stage2 == stage3, mara 3 kutoka ujenzi safi.
-- Programu 318 zimeundwa na stage1 na stage2: baiti sawa isipokuwa
+- Uthabiti kamili2 == kamili3, mara 3 kutoka ujenzi safi.
+- Programu 318 zimeundwa na kamili na kamili2: baiti sawa isipokuwa
   tatu zinazojulikana (hitilafu ya awali.bin).
 - Programu 3001 za nasibu (kabla dhidi ya baada): sifuri tofauti.
   Programu 1500 za jenereta mpya ya faharasa (aina zote, faharasa
@@ -1169,8 +1169,8 @@ ya moja kwa moja (agizo la `syscall` halisi haliangalii AL kamwe), au
   Uthibitisho ni kwa upana: `jaribio_wito_gharama` (wito wa idadi
   tofauti za hoja za xmm 0..8, wito wa kielekezi, wito ndani ya wito,
   muundo kama matokeo, mfululizo wa wito 50) -- 422/422 kwa jumla,
-  mara 3 kutoka ujenzi safi. Fixpoint stage2 == stage3.
-- Programu 318 zimeundwa na stage1/stage2: baiti sawa isipokuwa tatu
+  mara 3 kutoka ujenzi safi. Uthabiti kamili2 == kamili3.
+- Programu 318 zimeundwa na kamili/kamili2: baiti sawa isipokuwa tatu
   zinazojulikana. Programu 4001 za nasibu na 1501 za faharasa
   (mkusanyaji wa kabla dhidi ya wa baada): sifuri tofauti.
 
@@ -1224,7 +1224,7 @@ rekebisho hili pia, hivyo hakuna mabadiliko ya tabia kwa kesi hizo.
   muktadha wa N64, ulinganishi wa moja kwa moja, mfululizo wa wito 21
   (ishara inabadilika kila hatua), usemi mkubwa wa jumla ya matokeo
   matatu ya wito, na faharasa ya safu. 423/423, mara 3 kutoka ujenzi
-  safi. Fixpoint stage2 == stage3.
+  safi. Uthabiti kamili2 == kamili3.
 - Kama uondoaji wa "mov al", hakuna mutation ya maana ya "kuvunja
   kwa makusudi" -- ni uondoaji wa msimbo mfu uliothibitishwa kwa
   hoja hapo juu, si hitilafu mpya ya kurekebisha. Programu 4001 za
@@ -1261,8 +1261,8 @@ wito za syscall/paramu 5+/6+).
   (N8/A8/N16/N32/N64/D32/D64), RHS salama dhidi ya isiyo salama
   (wito), kiwanja (lazima libaki njia ya asili), muundo (lazima
   ubaki njia ya asili), fahirisi kubwa (mwingiliano na rekebisho la
-  #252), safu ya ndani. 423/423, mara 3 kutoka ujenzi safi. Fixpoint
-  stage2 == stage3.
+  #252), safu ya ndani. 423/423, mara 3 kutoka ujenzi safi. Uthabiti
+  kamili2 == kamili3.
 - Mutation: kuharibu REX.X/B (agizo linatumia rax/rcx badala ya
   r8/r9) kunasababisha SEGV; kuharibu mizani ya SIB kwa saizi 4
   kunatoa matokeo mabaya (jaribio linashindwa); kuharibu lengwa la
@@ -1307,7 +1307,7 @@ kulazimishwa kwa SIB byte).
 
 - `jaribio_uhifadhi_kielekezi`: aina zote, RHS salama/isiyo salama, kielekezi
   kilichotokana na pointer arithmetic, kiwanja (bado njia ya asili).
-  425/425, mara 3, fixpoint stage2==stage3.
+  425/425, mara 3, uthabiti kamili2==kamili3.
 - Somo la pili la mutation kikao hiki: mutation ya kwanza (kuondoa
   REX.B kwa uandishi wa byte) HAIKUGUNDULIKA na RHS ndogo (namba ya
   moja kwa moja haigusi rcx KAMWE, hivyo rcx ilibaki sahihi kwa bahati
@@ -1344,10 +1344,10 @@ jr_ni_salama -- inarudi njia ya asili kiotomatiki.
 - `jaribio_uhifadhi_mshale`: sehemu ya kwanza (hakuna disp), disp8,
   disp32 (ofseti > 127), RHS salama inayogusa rcx, RHS isiyo salama
   (wito), kiwanja, kielekezi kilichotokana na pointer arithmetic.
-  426/426, fixpoint stage2==stage3.
+  426/426, uthabiti kamili2==kamili3.
 - Hitilafu YA KANDO iliyogunduliwa (nje ya wigo, HAUJAREKEBISHWA): muundo
   wenye SAFU kama sehemu (`N32 pad[40];` ndani ya `muundo`) unashindwa
-  kukusanywa (`; KOSA: 1` kutoka kwa mchanganuzi wa stage2) -- ilikuwepo
+  kukusanywa (`; KOSA: 1` kutoka kwa mchanganuzi wa kamili2) -- ilikuwepo
   hata kwenye mkusanyaji wa KABLA ya kazi hii (f1v), hivyo si
   imesababishwa na mabadiliko haya. Jaribio hili liliepuka tatizo kwa
   kutumia sehemu nyingi za N32 badala ya safu moja kupata ofseti > 127.

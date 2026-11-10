@@ -3,7 +3,7 @@ husisha { msingi/maktaba/mfuatano.swa }
 husisha { msingi/maktaba/faili.swa }
 
 // jaribu_mfululizo.swa -- mkimbiaji wa majaribio wa Swa ASILIA: ujenzi wa
-// kamili, fixpoint (stage2 == stage3), na kila programu ya
+// kamili, uthabiti (kamili2 == kamili3), na kila programu ya
 // majaribio/programu/ORODHA.txt kwa mifululizo yote miwili, ukiendesha
 // michakato mingine (mbegu/kamili/programu za majaribio) kupitia
 // mfumo_gawanyika/mfumo_tekeleza_programu/mfumo_subiri4 (msingi/maktaba/kumbukumbu.swa) badala ya
@@ -205,8 +205,8 @@ n32 jm_mafaili_mawili_yana_kipande(n8* njia_a, n8* njia_b, n8* kipande) {
     rudisha 0;
 }
 
-// Uwezo wa bafa kwa kulinganisha maFAILE MAKUBWA (ELF za stage2/
-// stage3) -- binaries hizi ni ~400KB kwa sasa; 8MB ni nafasi KUBWA
+// Uwezo wa bafa kwa kulinganisha maFAILE MAKUBWA (ELF za kamili2/
+// kamili3) -- binaries hizi ni ~400KB kwa sasa; 8MB ni nafasi KUBWA
 // ya kutosha kwa ukuaji wa mkusanyaji kwa miaka mingi ijayo bila
 // kuhitaji kubadilishwa (kioo cha kanuni ya mradi ya "angalia
 // ukomo HALISI, usikisie" -- angalia #295/#298/#189 kwenye
@@ -319,20 +319,20 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     wito_wa_mfumo(90, "/tmp/swa-mfululizo-asili/kamili", 493, 0, 0, 0, 0);  // chmod +x
     JM_IMEPITA = JM_IMEPITA + 1;  // ujenzi wa kamili
 
-    // ============ Fixpoint: stage2 == stage3 ============
+    // ============ Uthabiti: kamili2 == kamili3 ============
     n8** hoja_mstari_s2 = jm_hoja_mstari3("/tmp/swa-mfululizo-asili/kamili", "--programu", "/tmp/swa-mfululizo-asili/zima.swa");
-    n32 rc_s2 = jm_kusanya("/tmp/swa-mfululizo-asili/kamili", hoja_mstari_s2, mazingira, "/tmp/swa-mfululizo-asili/stage2", JM_TUPU);
+    n32 rc_s2 = jm_kusanya("/tmp/swa-mfululizo-asili/kamili", hoja_mstari_s2, mazingira, "/tmp/swa-mfululizo-asili/kamili2", JM_TUPU);
     kama (rc_s2 != 0) { andika_kosa("SHINDWA: kamili --programu\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
-    wito_wa_mfumo(90, "/tmp/swa-mfululizo-asili/stage2", 493, 0, 0, 0, 0);
+    wito_wa_mfumo(90, "/tmp/swa-mfululizo-asili/kamili2", 493, 0, 0, 0, 0);
 
-    n8** hoja_mstari_s3 = jm_hoja_mstari3("/tmp/swa-mfululizo-asili/stage2", "--programu", "/tmp/swa-mfululizo-asili/zima.swa");
-    n32 rc_s3 = jm_kusanya("/tmp/swa-mfululizo-asili/stage2", hoja_mstari_s3, mazingira, "/tmp/swa-mfululizo-asili/stage3", JM_TUPU);
-    kama (rc_s3 != 0) { andika_kosa("SHINDWA: stage2 --programu\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
+    n8** hoja_mstari_s3 = jm_hoja_mstari3("/tmp/swa-mfululizo-asili/kamili2", "--programu", "/tmp/swa-mfululizo-asili/zima.swa");
+    n32 rc_s3 = jm_kusanya("/tmp/swa-mfululizo-asili/kamili2", hoja_mstari_s3, mazingira, "/tmp/swa-mfululizo-asili/kamili3", JM_TUPU);
+    kama (rc_s3 != 0) { andika_kosa("SHINDWA: kamili2 --programu\n", 0, 0, 0, 0, 0, 0); rudisha 1; }
 
-    kama (jm_mafaili_sawa("/tmp/swa-mfululizo-asili/stage2", "/tmp/swa-mfululizo-asili/stage3")) {
+    kama (jm_mafaili_sawa("/tmp/swa-mfululizo-asili/kamili2", "/tmp/swa-mfululizo-asili/kamili3")) {
         JM_IMEPITA = JM_IMEPITA + 1;
     } sivyo {
-        andika_kosa("SHINDWA: fixpoint (stage2 != stage3)\n", 0, 0, 0, 0, 0, 0);
+        andika_kosa("SHINDWA: uthabiti (kamili2 != kamili3)\n", 0, 0, 0, 0, 0, 0);
         JM_SHINDWA = JM_SHINDWA + 1;
     }
 

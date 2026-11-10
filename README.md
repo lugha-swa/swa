@@ -20,7 +20,7 @@
 </div>
 <br>
 
-**Swa** ni lugha ya kupanga ya mifumo yenye sintaksia kamili ya Kiswahili. Mkusanyaji wake umeandikwa kwa Swa yenyewe na hutoa ELF ya x86-64 moja kwa moja -- bila LLVM, bila assembler, bila kiunganishi, bila libc. Mfululizo mzima wa kujikusanya huanzia **baiti 393 za mkono** na hujifunga hadi `stage2 == stage3`, sawa kwa baiti.
+**Swa** ni lugha ya kupanga ya mifumo yenye sintaksia kamili ya Kiswahili. Mkusanyaji wake umeandikwa kwa Swa yenyewe na hutoa ELF ya x86-64 moja kwa moja -- bila LLVM, bila assembler, bila kiunganishi, bila libc. Mfululizo mzima wa kujikusanya huanzia **baiti 393 za mkono** na hujifunga hadi `kamili2 == kamili3`, sawa kwa baiti.
 
 Swa hiyo hiyo inakusanya pia kwenda **WebAssembly** (kivinjari) na kwenda **ring 0** ([Kawira](https://github.com/lugha-swa/kawira), kernel iliyoandikwa kwa Swa).
 
@@ -42,12 +42,12 @@ Kujenga kutoka chanzo, mahitaji ni Linux ya x86-64 pekee -- hakuna gcc, ld, nasm
 
 ```sh
 git clone https://github.com/lugha-swa/swa && cd swa
-./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> mbegu -> stage1 -> bin/swa
+./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> mbegu -> kamili -> bin/swa
 ```
 
 Kwa anayetaka kuthibitisha mzizi bila kuamini `msingi/mjenzi.bin`: `./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi` hujenga mjenzi kutoka chanzo chake kwa mbegu mbili za mkono pekee (`kwanza.bin` na `kizinduzi.bin`), kisha hulinganisha kila binary iliyogandishwa ([hati/mfululizo-huru.md](hati/mfululizo-huru.md)).
 
-`jenga.mapishi` huanzia `msingi/kwanza.bin` (baiti 393 zilizoandikwa kwa mkono): kila hatua ya mfululizo huru hujengwa na iliyo chini yake, kisha `mbegu`, kisha `stage1`, kisha `stage1` hujijenga yenyewe kuwa `bin/swa`. `mjenzi` (kiendeshaji cha mapishi, `msingi/mfululizo/mjenzi.swm`) yenyewe ni programu ya lugha ya mashine ya Swa iliyojengwa kwa mfululizo huo huo; mapishi huthibitisha kwamba `msingi/mjenzi.bin` ni sawa kwa baiti na inayojengwa kutoka chanzo chake.
+`jenga.mapishi` huanzia `msingi/kwanza.bin` (baiti 393 zilizoandikwa kwa mkono): kila hatua ya mfululizo huru hujengwa na iliyo chini yake, kisha `mbegu`, kisha `kamili`, kisha `kamili` hujijenga yenyewe kuwa `bin/swa`. `mjenzi` (kiendeshaji cha mapishi, `msingi/mfululizo/mjenzi.swm`) yenyewe ni programu ya lugha ya mashine ya Swa iliyojengwa kwa mfululizo huo huo; mapishi huthibitisha kwamba `msingi/mjenzi.bin` ni sawa kwa baiti na inayojengwa kutoka chanzo chake.
 
 </details>
 
@@ -136,12 +136,12 @@ Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hat
 
 | Kipimo | Hali |
 |---|---|
-| Mfululizo wa majaribio (mbegu + stage1, fixpoint) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
+| Mfululizo wa majaribio (mbegu + kamili, uthabiti) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | Mkimbiaji wa majaribio wa Swa asili (bila bash) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | WebAssembly | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | `--kiini` (ring 0) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | IR (mtafsiri dhidi ya msimbo wa mashine) | programu 161 sawa kabisa ([hati/ir.md](hati/ir.md)) |
-| Kujikusanya | `stage2 == stage3`, sawa kwa baiti |
+| Kujikusanya | `kamili2 == kamili3`, sawa kwa baiti |
 | Mbegu (mzizi wa uaminifu) | hujengwa na kujaribiwa kabla ya kila kugandishwa |
 
 Mipaka inayojulikana imeandikwa wazi kwenye [hati/mipaka.md](hati/mipaka.md); ramani iko kwenye [hati/ramani.md](hati/ramani.md).

@@ -8,7 +8,7 @@
 - **Majaribio:** 304/304 mfululizo wa Swa (dereva wa Rust umehamia
   hazina ya kumbukumbu lugha-swa/swa-dereva, 2026-09-05)
 - **Backend:** uzalishaji.swa (asilia x86-64, inajikusanya) ndiyo njia PEKEE; LLVM ilikuwa ya MAJARIBIO kwenye dereva wa Rust na sasa iko kwenye hazina ya kumbukumbu (mipaka.md 6)
-- **Bootstrap:** kwanza (baiti za mkono) -> mbegu -> stage1-exe -> stage2-exe == stage3-exe -- sawa kwa baiti
+- **Bootstrap:** kwanza (baiti za mkono) -> mbegu -> kamili -> kamili2 == kamili3 -- sawa kwa baiti
 
 ## Hatua ya 0: Mkusanyaji wa Bootstrap wa Rust [PASS] IMEFANIKIWA
 
@@ -33,11 +33,11 @@
 ### Mfululizo wa Kujikusanya wa Sasa
 
 1. `kwanza.bin` (baiti za mkono, hex -> binary) hutoa `awali.bin` kutoka `awali.heksa`
-2. `mbegu --programu` (syscalls pekee, hakuna kiunganishi) hukusanya `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` -> `stage1-exe`
-3. `stage1-exe --programu` inajikusanya maktaba -> `stage2-exe`
-4. `stage2-exe --programu` inajikusanya -> `stage3-exe`
+2. `mbegu --programu` (syscalls pekee, hakuna kiunganishi) hukusanya `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` -> `kamili`
+3. `kamili --programu` inajikusanya maktaba -> `kamili2`
+4. `kamili2 --programu` inajikusanya -> `kamili3`
 
-**Uthibitisho:** stage2-exe == stage3-exe sawa kwa baiti, bila gcc/ld/clang/libc
+**Uthibitisho:** kamili2 == kamili3 sawa kwa baiti, bila gcc/ld/clang/libc
 popote kwenye mfululizo. Kumbuka: hili linahusu mfululizo wa uzalishaji pekee --
 uthabiti wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti
 (angalia hati/mipaka.md).
@@ -91,7 +91,7 @@ asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
 
 - [x] Mkusanyaji wa Swa unajikusanya **bila kutumia kande**
 - [x] Bootstrap inafungwa: mbegu -> Swa -> Swa -> binary
-- [x] Uthibitisho: stage2-exe == stage3-exe sawa kwa baiti
+- [x] Uthibitisho: kamili2 == kamili3 sawa kwa baiti
 - [!] Rust `kande` inabaki kama chombo cha vipimo na ukuzaji (CI) tu --
       si sehemu ya mfululizo wa uzalishaji
       (2026-09-05: imehamishiwa lugha-swa/swa-dereva)
@@ -112,8 +112,8 @@ asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
       awali.heksa -- NASM si sehemu ya mfululizo wa uzalishaji tena.
       Uthibitisho: gharama/mfululizo.mapishi (pia kwenye CI).
 - [x] **Kiunganishi cha kujitegemea:** bendera ya `--programu` inatoa ET_EXEC
-      tuli (syscalls pekee, hakuna kichwa cha sehemu) -- stage2-exe
-      inajijenga yenyewe sawa kwa baiti (stage3-exe) bila ld/gcc/libc.
+      tuli (syscalls pekee, hakuna kichwa cha sehemu) -- kamili2
+      inajijenga yenyewe sawa kwa baiti (kamili3) bila ld/gcc/libc.
       Marejeo ya ndani yanatatuliwa na mkusanyaji mwenyewe (RELA-patch
       + jedwali la lebo); `_start` inaitwa moja kwa moja na kernel.
 - [x] **Runtime ya syscalls:** mkusanyaji hautekelezi kupitia libc tena
@@ -145,9 +145,9 @@ Angalia [`CONTRIBUTING.md`](../CONTRIBUTING.md). Masuala yenye lebo `good-first-
 1. ~~Baiti za mkono~~ -- IMESHAFANYIKA (PR #147): Kwanza (baiti 393)
    inazalisha awali.bin kutoka hex; NASM imeondolewa kwenye mfululizo
 2. ~~Kiunganishi cha kujitegemea~~ -- IMESHAFANYIKA: `--programu` inatoa ET_EXEC
-   tuli inayojijenga yenyewe bila ld/gcc/libc (stage2-exe == stage3-exe)
+   tuli inayojijenga yenyewe bila ld/gcc/libc (kamili2 == kamili3)
 3. ~~Runtime ya syscalls~~ -- IMESHAFANYIKA (PR #149): syscalls moja kwa moja
-4. ~~Kuziba hatua ya stage1~~ -- IMESHAFANYIKA: mbegu inatoa stage1-exe
+4. ~~Kuziba hatua ya kamili~~ -- IMESHAFANYIKA: mbegu inatoa kamili
    moja kwa moja (`--programu`) -- 0% bootstrap gap imefungwa
 5. ~~Uthabiti wa makosa ya mchanganuzi~~ -- IMESHAFANYIKA: mbegu na
    mchanganuzi wa .swa dhidi ya ingizo baya (hati/mipaka.md sehemu 1-2)
