@@ -22,7 +22,7 @@ const nodi_kuu = new Elementi("div");
 
 globalThis.document = hati;
 anzishaSwa(fs.readFileSync(process.argv[2]), nodi_kuu).then(({ matokeo }) => {
-    if (matokeo !== 0) shindwa("main() ilirudisha " + matokeo);
+    if (matokeo !== 0) shindwa("anza() ilirudisha " + matokeo);
     const [kitufe, lebo, futa] = nodi_kuu.watoto;
     if (!kitufe || kitufe.tag !== "button" || kitufe.textContent !== "Ongeza") shindwa("kitufe hakikujengwa sawa");
     if (lebo.textContent !== "0") shindwa("lebo ya mwanzo: " + JSON.stringify(lebo.textContent));

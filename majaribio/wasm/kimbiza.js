@@ -3,23 +3,23 @@
 // Matumizi: node kimbiza.js <faili.wasm> <thamani_tarajiwa> [aina]
 //
 // aina (hiari, chaguo-msingi "namba"):
-//   namba     -- main() haihitaji hoja, matokeo (i32) yanalinganishwa
+//   namba     -- anza() haihitaji hoja, matokeo (i32) yanalinganishwa
 //                moja kwa moja na <thamani_tarajiwa> (namba kamili).
 //                Tabia ya asili ya Awamu 1, HAIJABADILIKA.
-//   mfuatano  -- main() inarudisha i32 (ofseti ya kumbukumbu, ptr).
+//   mfuatano  -- anza() inarudisha i32 (umbali ndani ya kumbukumbu, ptr).
 //                Baiti zinasomwa kutoka instance.exports.memory.buffer
 //                kuanzia ptr HADI baiti 0x00 (mkataba wa mfuatano wa
 //                NUL-terminated, sawa na jinsi mfuatano halisi
 //                unavyohifadhiwa na wasm_ongeza_mfuatano), kisha
 //                kubadilishwa kuwa Latin1 na kulinganishwa na
 //                <thamani_tarajiwa> (mfuatano halisi, SI namba).
-//   safu      -- main() inarudisha i32 (ptr kwenye safu ya n32,
+//   safu      -- anza() inarudisha i32 (ptr kwenye safu ya n32,
 //                little-endian, kama WASM linear memory yenyewe).
 //                <thamani_tarajiwa> ni namba kamili zilizotenganishwa
 //                kwa mkato (,), idadi ya vipengele inatokana na hesabu
 //                yao. Kila kipengele kinasomwa kama i32 (baiti 4) na
 //                kulinganishwa moja kwa moja.
-//   dom       -- (Awamu 3) main() haihitaji thamani ya kurudi maalum
+//   dom       -- (Awamu 3) anza() haihitaji thamani ya kurudi maalum
 //                (inaweza kuwa 0/w0) -- baada ya kuiendesha, mti wa
 //                dom_mock.js (kuanzia nodi kuu, id=0) unalinganishwa
 //                (JSON.stringify iliyopangwa) na muundo tarajiwa
@@ -33,7 +33,7 @@
 // zisizo na uingizaji hupakiwa vivyo hivyo.
 //
 // Husoma faili, huthibitisha (WebAssembly.validate), huipakia kwa
-// anzishaSwa (ambayo huita instance.exports.main()), na kulinganisha
+// anzishaSwa (ambayo huita instance.exports.anza()), na kulinganisha
 // na thamani tarajiwa kulingana na aina. process.exit(0) kwa mafanikio, process.exit(1)
 // kwa kushindwa kokote (haikubaliki, haijapakika, matokeo si sawa).
 
@@ -82,7 +82,7 @@ anzishaSwa(bafa, dom.nodi_kuu)
                 shindwa("faili la mti tarajiwa halisomeki (" + tarajiwa_str + "): " + e.message);
             }
             // Awamu 4: { "chochea": [[id, "tukio"], ...], "mti": {...} } --
-            // matukio yanachochewa kwa mpangilio baada ya main(), kisha
+            // matukio yanachochewa kwa mpangilio baada ya anza(), kisha
             // mti unalinganishwa. Muundo wa zamani (mti peke yake) haubadiliki.
             if (tarajiwa_tree && tarajiwa_tree.mti !== undefined) {
                 for (const [id, tukio] of tarajiwa_tree.chochea || []) {

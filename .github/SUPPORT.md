@@ -4,10 +4,10 @@
 
 ### Nyaraka
 
-- [readme.md](readme.md) -- Muhtasari wa mradi na maelekezo ya ujenzi
-- [hati/ramani.md](hati/ramani.md) -- Ramani ya maendeleo ya mradi
-- [hati/marekebisho.md](hati/marekebisho.md) -- Marekebisho ya mende yaliyofanyika
-- [hati/masuala.md](hati/masuala.md) -- Masuala yanayojulikana
+- [README.md](../README.md) -- Muhtasari wa mradi na maelekezo ya ujenzi
+- [hati/ramani.md](../hati/ramani.md) -- Ramani ya maendeleo ya mradi
+- [hati/marekebisho.md](../hati/marekebisho.md) -- Hitilafu zilizorekebishwa
+- [hati/masuala.md](../hati/masuala.md) -- Masuala yanayojulikana
 
 ### Maswali na Majibu
 
@@ -22,8 +22,8 @@ Kwa maswali ya jumla:
 
 ### Masuala ya Usalama
 
-- Tazama [SECURITY.md](SECURITY.md) kwa mwongozo wa kuripoti athari za usalama
+- Tazama [SECURITY.md](../SECURITY.md) kwa mwongozo wa kuripoti athari za usalama
 
 ### Kuchangia
 
-- Tazama [CONTRIBUTING.md](CONTRIBUTING.md) kwa mwongozo wa kuchangia msimbo
+- Tazama [CONTRIBUTING.md](../CONTRIBUTING.md) kwa mwongozo wa kuchangia msimbo
