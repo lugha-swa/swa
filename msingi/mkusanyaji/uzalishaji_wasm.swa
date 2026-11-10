@@ -287,7 +287,7 @@ w0 wasm_kitendo_ruka_kama(n32 kina) { wasm_baiti(13); wasm_leb_a(kina); }  // 0x
 w0 wasm_kitendo_ita(n32 faharasa) { wasm_baiti(16); wasm_leb_a(faharasa); }     // 0x10
 w0 wasm_kitendo_rudi() { wasm_baiti(15); }     // 0x0F
 w0 wasm_kitendo_tupa() { wasm_baiti(26); }       // 0x1A
-w0 wasm_kitendo_unreachable() { wasm_baiti(0); } // 0x00
+w0 wasm_kitendo_haifikiki() { wasm_baiti(0); } // 0x00
 
 w0 wasm_kitendo_pata_ndani(n32 faharasa) { wasm_baiti(32); wasm_leb_a(faharasa); }  // 0x20
 w0 wasm_kitendo_weka_ndani(n32 faharasa) { wasm_baiti(33); wasm_leb_a(faharasa); }  // 0x21
@@ -1019,20 +1019,20 @@ w0 wasm_jenga_kazi(n32 nodi_ya_kazi) {
     wasm_idadi_ya_vya_ndani = 0;
 
     // Paramu -- faharisi 0..P-1
-    n32 nparam = 0;
+    n32 idadi_ya_vigezo = 0;
     n32 pn = nodi_ya_kulia[nodi_ya_kazi];
     wakati (pn != -1) {
         wasm_kagua_usimbaji_kigezo(ghala_la_majina + umbali_wa_jina_la_nodi[pn], thamani_ya_nodi[pn], 0);
         wasm_ongeza_cha_ndani(ghala_la_majina + umbali_wa_jina_la_nodi[pn]);
-        nparam = nparam + 1;
+        idadi_ya_vigezo = idadi_ya_vigezo + 1;
         pn = nodi_ya_kulia[pn];
     }
-    wasm_idadi_ya_vigezo_vya_ndani = nparam;
+    wasm_idadi_ya_vigezo_vya_ndani = idadi_ya_vigezo;
 
     // Vigezo vya ndani (ikiwemo vilivyopachikwa) -- faharisi P..P+L-1
     n32 maudhui = tatu_ya_nodi[nodi_ya_kazi];
     wasm_kusanya_vya_ndani(maudhui);
-    n32 idadi_ya_vya_ndani = wasm_idadi_ya_vya_ndani - nparam;
+    n32 idadi_ya_vya_ndani = wasm_idadi_ya_vya_ndani - idadi_ya_vigezo;
 
     // ---- Type entry: (nparam x i32) -> i32 (au tupu kwa w0/w0) ----
     // -- imeongezwa kwenye wasm_type_buf, INAYOENDELEA kati ya kazi
@@ -1046,9 +1046,9 @@ w0 wasm_jenga_kazi(n32 nodi_ya_kazi) {
     }
     wasm_chombo_sasa = 3;
     wasm_baiti(96);  // 0x60 -- func type tag
-    wasm_leb_a(nparam);
+    wasm_leb_a(idadi_ya_vigezo);
     n32 pi = 0;
-    wakati (pi < nparam) { wasm_baiti(WASM_I32); pi = pi + 1; }
+    wakati (pi < idadi_ya_vigezo) { wasm_baiti(WASM_I32); pi = pi + 1; }
     kama (ni_w0) {
         wasm_leb_a(0);
     } sivyo {
@@ -1083,7 +1083,7 @@ w0 wasm_jenga_kazi(n32 nodi_ya_kazi) {
     // hivyo inatatua tatizo la uthibitishaji bila kuathiri utekelezaji
     // halisi (chanzo sahihi haifiki hapa kamwe). Kazi za w0 hazihitaji
     // hii (fallthru yao haihitaji thamani).
-    kama (ni_w0 == 0) { wasm_kitendo_unreachable(); }
+    kama (ni_w0 == 0) { wasm_kitendo_haifikiki(); }
     wasm_kitendo_mwisho();
 
     // Nakili mwili wa kazi (wasm_fn_buf) kuingia sec_buf ikiwa na
@@ -1298,7 +1298,7 @@ w0 wasm_jenga_tenga_msaidizi() {
         wasm_kitendo_i32_namba(0 - 1);
         wasm_kitendo_i32_sawa();
         wasm_kitendo_kama(WASM_UBETI_TUPU);
-            wasm_kitendo_unreachable();
+            wasm_kitendo_haifikiki();
         wasm_kitendo_mwisho();
     wasm_kitendo_mwisho();
 
@@ -1540,11 +1540,11 @@ n32 uzalishaji_wasm_kuu(n32 nodi_ya_programu) {
                 }
                 n32 thamani_g = 0;
                 kama (kianzio_cha_ulimwengu != -1) {
-                    n8* gtxt = ghala_la_majina + umbali_wa_jina_la_nodi[kianzio_cha_ulimwengu];
+                    n8* maandishi_ya_kianzio = ghala_la_majina + umbali_wa_jina_la_nodi[kianzio_cha_ulimwengu];
                     kama (aina_ya_nodi[kianzio_cha_ulimwengu] == NODI_NAMBARI && nodi_ya_kulia[kianzio_cha_ulimwengu] != 1) {
                         thamani_g = thamani_ya_nodi[kianzio_cha_ulimwengu];
-                    } sivyo { kama (aina_ya_nodi[kianzio_cha_ulimwengu] == NODI_KITAMBULISHO && gtxt[0] == 34) {
-                            thamani_g = wasm_ongeza_mfuatano(gtxt);
+                    } sivyo { kama (aina_ya_nodi[kianzio_cha_ulimwengu] == NODI_KITAMBULISHO && maandishi_ya_kianzio[0] == 34) {
+                            thamani_g = wasm_ongeza_mfuatano(maandishi_ya_kianzio);
                         } sivyo {
                             andika_kosa("KOSA: wasm -- kianzio cha kigezo cha ulimwengu '%s' lazima kiwe namba halisi au mfuatano halisi\n", gjina);
                             rudisha 1;

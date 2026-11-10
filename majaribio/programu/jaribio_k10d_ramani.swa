@@ -178,24 +178,24 @@ n64 ukubwa(n32 aina) {
 }
 
 // ==========================================================
-// Arena ya kumbukumbu -- badala ya malloc/realloc/free
+// Eneo la utengaji -- badala ya malloc/realloc/free
 // ==========================================================
-n8* arena_anwani = 0;
-n64 arena_nafasi = 0;
+n8* anwani_ya_eneo_la_utengaji = 0;
+n64 nafasi_ndani_ya_eneo_la_utengaji = 0;
 
 n8* tenga(n64 ukubwa) {
-    kama (arena_anwani == 0) {
+    kama (anwani_ya_eneo_la_utengaji == 0) {
         // Anwani sifuri = "popote" (kama mmap(NULL, ...) ya C).
         // Halisi 0 kwa kigezo cha kielekezi inakataliwa na ukaguzi
         // wa 2026-09-01 -- tumia kielekezi cha sifuri wazi.
         n8* anwani_sifuri = 0;
-        arena_anwani = mfumo_ramani_kumbukumbu(anwani_sifuri, 1048576, 3, 34, 0 - 1);
-        kama (arena_anwani == 0 - 1) { rudisha 0; }
+        anwani_ya_eneo_la_utengaji = mfumo_ramani_kumbukumbu(anwani_sifuri, 1048576, 3, 34, 0 - 1);
+        kama (anwani_ya_eneo_la_utengaji == 0 - 1) { rudisha 0; }
     }
     kama (ukubwa == 0) { ukubwa = 8; }
     ukubwa = ukubwa + 8;  // nafasi ya ukubwa wa kipande (kwa badili)
-    kama (arena_nafasi + ukubwa > 1048576) { rudisha 0; }
-    n8* r = arena_anwani + arena_nafasi;
+    kama (nafasi_ndani_ya_eneo_la_utengaji + ukubwa > 1048576) { rudisha 0; }
+    n8* r = anwani_ya_eneo_la_utengaji + nafasi_ndani_ya_eneo_la_utengaji;
     // hifadhi ukubwa mbele ya kipande (baiti 8)
     n8* h = &ukubwa;
     n32 bi = 0;
@@ -203,12 +203,12 @@ n8* tenga(n64 ukubwa) {
         r[bi] = h[bi];
         bi = bi + 1;
     }
-    arena_nafasi = arena_nafasi + ukubwa;
+    nafasi_ndani_ya_eneo_la_utengaji = nafasi_ndani_ya_eneo_la_utengaji + ukubwa;
     rudisha r + 8;
 }
 
-w0 achilia_arena(n8* p) {
-    // Arena haiwezi kufungua vipande -- hakuna kitu
+w0 achilia_eneo_la_utengaji(n8* p) {
+    // Eneo la utengaji haliwezi kufungua vipande -- hakuna kitu
 }
 
 n8* badili(n8* p, n64 ukubwa) {
@@ -463,9 +463,9 @@ w0 ramani_futa(Ramani* r, n32 funguo) {
 }
 
 w0 ramani_huru(Ramani* r) {
-    achilia_arena(r->funguo);
-    achilia_arena(r->thamani);
-    achilia_arena(r);
+    achilia_eneo_la_utengaji(r->funguo);
+    achilia_eneo_la_utengaji(r->thamani);
+    achilia_eneo_la_utengaji(r);
 }
 
 n32 anza() {

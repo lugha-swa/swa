@@ -93,7 +93,7 @@ Hali halisi (iliyothibitishwa 2026-08-20, kwa ushahidi wa kila mnyororo):
   na ukanushaji (mulsd kwa -1.0 -- xorpd ya kumbukumbu ilionekana
   kuvunjika kwenye VM ya mtumiaji). Jaribio:
   jaribio_hitilafu_60_desimali_mbegu.
-- Mnyororo wa .swa (kujikusanya): IMEREKEBISHWA -- bits_ya_d64_swa
+- Mnyororo wa .swa (kujikusanya): IMEREKEBISHWA -- biti_ya_d64_swa
   inakusanywa kwa usahihi na mbegu mpya (FPE ya zamani imetoweka);
   ABI kamili ya xmm0-xmm7 (hoja na kurejesha) inafanya kazi.
 - Mnyororo wa LLVM (dereva wa Rust): IMEREKEBISHWA 2026-08 (suala
@@ -287,7 +287,7 @@ uaminifu -- mkusanyaji wa kawaida, si mbegu.swm).
 uzalishaji msimbo, sambamba na `uzalishaji.swa` ya x86-64) inatoa
 moduli za WebAssembly kwa Awamu ya 1 TU: N32 pekee -- hesabu,
 ulinganisho, `&&`/`||` za mzunguko mfupi, kama/sivyo, wakati (+kwa/
-vunja/endelea), wito wa kazi (ikiwemo kujirudia), rudisha. Ujenzi
+acha/endelea), wito wa kazi (ikiwemo kujirudia), rudisha. Ujenzi
 wowote ulio nje ya wigo huu (vielekezi, safu, D64/D32, miundo,
 vigezo vya ulimwengu, I/O, `tenga()`, `wito_wa_mfumo`, `chagua`)
 UNAKATALIWA kwa sauti (`wasm_kosa`) wakati wa kukusanya kupitia

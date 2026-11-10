@@ -415,7 +415,7 @@ mtoto:
 .ina_mkwaju:
         r0d = a8[r7+r1]
         pima r0d, r0d
-        ruka .tafuta_path kama ==
+        ruka .tafuta_njia kama ==
         linganisha r0d, 0x2f
         ruka .moja_kwa_moja kama ==
         r1++
@@ -427,23 +427,23 @@ mtoto:
         mfumo
         ruka .ameshindwa
 ; PROG bila '/': jaribu kila saraka ya PATH
-.tafuta_path:
-        r12 = path_ya_kawaida
+.tafuta_njia:
+        r12 = njia_ya_kawaida
         r3 = n64[mazingira]
 .mazingira_k:
         r6 = n64[r3]
         pima r6, r6
-        ruka .path_tayari kama ==
+        ruka .njia_tayari kama ==
         linganisha n32[r6], 0x48544150   ; "PATH"
         ruka .mazingira_ijayo kama !=
         linganisha n8[r6+4], 0x3d   ; '='
         ruka .mazingira_ijayo kama !=
         r12 = &[r6+5]
-        ruka .path_tayari
+        ruka .njia_tayari
 .mazingira_ijayo:
         r3 += 8
         ruka .mazingira_k
-.path_tayari:
+.njia_tayari:
 ; r12 = "saraka:saraka:..."; jenga "saraka/PROG" kwenye bafa_njia
 .saraka_k:
         linganisha n8[r12], 0
@@ -635,7 +635,7 @@ amri_unganisha:
         ruka andika_faili
 
 ; hex A B: "xx xx ... xx\n", baiti 16 kwa mstari (umbo la kwanza.bin)
-amri_hex:
+amri_heksa:
         r0d = 3
         ita idadi_lazima
         r7 = n64[hoja + 8]
@@ -645,7 +645,7 @@ amri_hex:
         r12 = r0   ; ukubwa
         r1d ^= r1d   ; ofseti ya kusoma
         r2d ^= r2d   ; ofseti ya kuandika
-        r9 = tarakimu_hex
+        r9 = tarakimu_ya_heksa
 .k:
         linganisha r1, r12
         ruka .andika kama ==
@@ -764,7 +764,7 @@ shindwa_andika:
         r0d = 1
         mfumo
         r0 = n64[namba_ya_mstari]
-        ita andika_namba_stderr
+        ita andika_namba_kwenye_makosa
         r7d = 2
         r6 = ujumbe_koloni
         r2d = 2
@@ -797,7 +797,7 @@ shindwa_andika:
         r0d = 1
         mfumo
         r0 = n64[kutoka_halisi]
-        ita andika_namba_stderr
+        ita andika_namba_kwenye_makosa
         r7d = 2
         r6 = ujumbe_funga
         r2d = 1
@@ -814,7 +814,7 @@ shindwa_andika:
         mfumo
 
 ; andika_namba_stderr: r0 -> tarakimu za desimali kwenye stderr
-andika_namba_stderr:
+andika_namba_kwenye_makosa:
         r6 = chombo_namba + 31
         r1d = 10
 .k:
@@ -849,7 +849,7 @@ n8 alama_ndani = "<", 0
 n8 alama_nje = ">", 0
 n8 alama_kosa = "2>", 0
 n8 alama_saraka = "@", 0
-n8 tarakimu_hex = "0123456789abcdef"
+n8 tarakimu_ya_heksa = "0123456789abcdef"
 
 n8 neno_saraka = "saraka", 0
 n8 neno_endesha = "endesha", 0
@@ -857,7 +857,7 @@ n8 neno_endesha_kosa = "endesha_kosa", 0
 n8 neno_sawa = "sawa", 0
 n8 neno_nakili = "nakili", 0
 n8 neno_unganisha = "unganisha", 0
-n8 neno_hex = "hex", 0
+n8 neno_heksa = "hex", 0
 n8 neno_andika = "andika", 0
 n8 neno_kiungo = "kiungo", 0
 n8 neno_ina = "ina", 0
@@ -869,13 +869,13 @@ n64 = neno_endesha_kosa, amri_endesha_kosa
 n64 = neno_sawa, amri_sawa
 n64 = neno_nakili, amri_nakili
 n64 = neno_unganisha, amri_unganisha
-n64 = neno_hex, amri_hex
+n64 = neno_heksa, amri_heksa
 n64 = neno_andika, amri_andika
 n64 = neno_kiungo, amri_kiungo
 n64 = neno_ina, amri_ina
 n64 = 0, 0
 
-n8 path_ya_kawaida = "/usr/local/bin:/usr/bin:/bin", 0
+n8 njia_ya_kawaida = "/usr/local/bin:/usr/bin:/bin", 0
 
 ; ---------- tupu ----------
 n64 mahali_sasa

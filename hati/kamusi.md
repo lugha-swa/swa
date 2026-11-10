@@ -143,6 +143,16 @@ mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 | visited | `imetembelewa` |
 | pass (kipitishi) | `kipitishi` |
 | scan | `chunguza` |
+| arena (allocator) | `eneo_la_utengaji` -- kipande cha kumbukumbu ambacho utengaji husogea ndani yake (si "uwanja") |
+| hex | `heksa` |
+| exe (hali ya pato) | `programu`; hali ya towe: `hali_ya_towe` |
+| stdin / stdout / stderr | `ingizo` / `matokeo` / `makosa` (mikondo 0, 1, 2) |
+| semicolon / paren / brace | `nukta_mkato` / `mabano` / `mabano_ya_kombo` |
+| backslash / tilde | `mkwaju_wa_nyuma` / `kiwimbi` |
+| frac (fraction) | `sehemu_ndogo` |
+| unreachable (WASM) | `haifikiki` (jina la agizo la WASM hubaki kwenye maoni) |
+| opaque (kuficha thamani kwa kiboreshaji) | `fiche` |
+| finalize | `kamilisha` |
 | check / chk | `kagua` |
 | fail / bail | `shindwa` / `acha` |
 | reset | `weka_upya` |

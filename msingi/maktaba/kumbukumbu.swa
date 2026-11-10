@@ -374,7 +374,7 @@ n64 ukubwa(n32 aina) {
 }
 
 // ==========================================================
-// Arena ya kumbukumbu -- badala ya malloc/realloc/free
+// Eneo la utengaji -- badala ya malloc/realloc/free
 //
 // MUHIMU (lugha-swa/swa#190): arena hii ZAMANI ilikuwa mmap MOJA ya
 // baiti 1,048,576 (1MB) ya KUDUMU kwa maisha yote ya programu --
@@ -394,17 +394,17 @@ n64 ukubwa(n32 aina) {
 // ikirudisha kumbukumbu kwa kweli) lakini KIKOMO CHA JUMLA
 // hakipo tena -- kila kipande kipya kinapoisha, kingine kinatengwa.
 // ==========================================================
-n8* arena_anwani = 0;
-n64 arena_nafasi = 0;
-n64 arena_ukubwa = 0;   // ukubwa wa KIPANDE CHA SASA (si jumla)
+n8* anwani_ya_eneo_la_utengaji = 0;
+n64 nafasi_ndani_ya_eneo_la_utengaji = 0;
+n64 ukubwa_wa_eneo_la_utengaji = 0;   // ukubwa wa KIPANDE CHA SASA (si jumla)
 
-n64 ARENA_UKUBWA_MSINGI = 1048576;
+n64 UKUBWA_WA_MSINGI_WA_ENEO_LA_UTENGAJI = 1048576;
 
 n8* tenga(n64 ukubwa) {
     kama (ukubwa == 0) { ukubwa = 8; }
     ukubwa = ukubwa + 8;  // nafasi ya ukubwa wa kipande (kwa badili)
 
-    kama (arena_anwani == 0 || arena_nafasi + ukubwa > arena_ukubwa) {
+    kama (anwani_ya_eneo_la_utengaji == 0 || nafasi_ndani_ya_eneo_la_utengaji + ukubwa > ukubwa_wa_eneo_la_utengaji) {
         // Hakuna kipande bado, AU kipande cha sasa hakina nafasi ya
         // kutosha -- tenga kipande KIPYA. Ukubwa wa kipande kipya ni
         // angalau ARENA_UKUBWA_MSINGI, lakini mkubwa zaidi ikiwa
@@ -413,7 +413,7 @@ n8* tenga(n64 ukubwa) {
         // cha msingi kwa ombi moja kubwa, na inahakikisha ombi kubwa
         // LOLOTE linakubaliwa, si tu maombi madogo yanayozidi kwa
         // wingi.
-        n64 kipya_ukubwa = ARENA_UKUBWA_MSINGI;
+        n64 kipya_ukubwa = UKUBWA_WA_MSINGI_WA_ENEO_LA_UTENGAJI;
         kama (ukubwa > kipya_ukubwa) { kipya_ukubwa = ukubwa; }
 
         // Anwani sifuri = "popote" (kama mmap(NULL, ...) ya C).
@@ -423,12 +423,12 @@ n8* tenga(n64 ukubwa) {
         n8* kipande_kipya = mfumo_ramani_kumbukumbu(anwani_sifuri, kipya_ukubwa, 3, 34, 0 - 1);
         kama (kipande_kipya == 0 - 1) { rudisha 0; }
 
-        arena_anwani = kipande_kipya;
-        arena_nafasi = 0;
-        arena_ukubwa = kipya_ukubwa;
+        anwani_ya_eneo_la_utengaji = kipande_kipya;
+        nafasi_ndani_ya_eneo_la_utengaji = 0;
+        ukubwa_wa_eneo_la_utengaji = kipya_ukubwa;
     }
 
-    n8* r = arena_anwani + arena_nafasi;
+    n8* r = anwani_ya_eneo_la_utengaji + nafasi_ndani_ya_eneo_la_utengaji;
     // hifadhi ukubwa mbele ya kipande (baiti 8)
     n8* h = &ukubwa;
     n32 bi = 0;
@@ -436,12 +436,12 @@ n8* tenga(n64 ukubwa) {
         r[bi] = h[bi];
         bi = bi + 1;
     }
-    arena_nafasi = arena_nafasi + ukubwa;
+    nafasi_ndani_ya_eneo_la_utengaji = nafasi_ndani_ya_eneo_la_utengaji + ukubwa;
     rudisha r + 8;
 }
 
-w0 achilia_arena(n8* p) {
-    // Arena haiwezi kufungua vipande -- hakuna kitu.
+w0 achilia_eneo_la_utengaji(n8* p) {
+    // Eneo la utengaji haliwezi kufungua vipande -- hakuna kitu.
     // Jina lilibadilishwa kutoka "achilia" (2026-09-01): achilia ni
     // neno muhimu (taarifa ya kufungua kumbukumbu) -- hati 2.2
     // inakataa maneno muhimu kama majina ya kazi.
