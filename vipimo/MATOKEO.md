@@ -323,7 +323,7 @@ kuthibitishwa kwa disassembly -- push hutolewa kikamilifu KABLA ya
 lebo yoyote, mtiririko wa udhibiti hauwezi kamwe kuruka juu ya push
 isiyotolewa.
 
-**Majaribio 4 mapya**: mnyororo mrefu wa jozi HURU za push/pop (=96),
+**Majaribio 4 mapya**: mfululizo mrefu wa jozi HURU za push/pop (=96),
 kesi maalum push;push;pop kutoka kiwanja_tail (fahirisi tata i*n+j),
 lebo katikati ya usemi (&&/||, =6), wito wa kazi katikati ya usemi
 wenye push inayosubiri (=23). 381/381 (377+4), fixpoint na gen1/gen2
@@ -383,7 +383,7 @@ kwa kuwa fahirisi mbili za `c[i*n+j]` sasa zinarejelea KIGEZO KIMOJA
 (r15+j pande zote mbili), kashe ya anwani ya ugawaji wa kawaida (PR
 iliyopita) SASA INAJIHUSISHA PIA kwa muundo huu -- disassembly
 inaonyesha anwani moja ikikokotolewa (shl+add mara moja), ikihifadhiwa
-kwa push/pop mara mbili, ikitumika kwa usomaji NA uandishi -- mnyororo
+kwa push/pop mara mbili, ikitumika kwa usomaji NA uandishi -- mfululizo
 mzima wa hoja tatu (LICM ya msingi -> LICM CSE -> kashe ya anwani)
 sasa unafanya kazi PAMOJA kwa muundo huu.
 
@@ -413,7 +413,7 @@ inayotarajiwa, kwa kuwa `matriki` bado ina uzidishaji wa D64
 (`aik*b[k*n+j]`) usiobadilika ambao hauhusiani na kazi hii, na hesabu
 za anwani zinazoondolewa ni sehemu ndogo tu ya kazi ya jumla ya
 kitanzi cha ndani -- lakini ni HALISI, thabiti, na ya kwanza kutoka
-kwenye mnyororo wa kashe-ya-anwani/LICM-CSE tangu PR #239.
+kwenye mfululizo wa kashe-ya-anwani/LICM-CSE tangu PR #239.
 
 ## Kupunguza nguvu kwa mgawanyo/modulo ya nguvu-ya-2 (signed)
 
@@ -458,7 +458,7 @@ kilichojengwa na gen1, ambaye msimbo wake WENYEWE wa uzalishaji
 (uzalishaji.swa) HAUNA mdudu huu) -- imethibitishwa moja kwa moja
 kwa kujenga gen2 na kuonyesha `(0-17)/3` inatoa `-5` sahihi. Kwa
 kuwa awali.bin imegandishwa milele, hitilafu hii haiwezi kurekebishwa
-huko -- lakini haiathiri mkusanyaji halisi unaotumika (mnyororo wa
+huko -- lakini haiathiri mkusanyaji halisi unaotumika (mfululizo wa
 kujiendeleza zaidi ya kizazi kimoja), na majaribio ya PR hii
 YAMEUNDWA KWA MAKUSUDI kuepuka mkondo wa kukunja namba kabisa
 (kigawiwa daima ni kigezo, si namba halisi ya moja kwa moja) ili
@@ -554,7 +554,7 @@ sahihi ya jcc (jb/ja/jbe/jae, SI jl/jg/jle/jge) kwa A32 na D64.
 Uboreshaji wa kweli na thabiti kwenye vipimo vitatu (fibonacci,
 matriki, heshi) -- vyote vina matawi/mizunguko mingi yenye
 ulinganishi wa moja kwa moja. `matriki` inaendelea kufaidika juu ya
-mnyororo mzima uliopo (LICM -> LICM CSE -> kashe ya anwani).
+mfululizo mzima uliopo (LICM -> LICM CSE -> kashe ya anwani).
 fibonacci (kazi ya kujirudia yenye "kama (n<2)" kila wito -- mamilioni
 ya matawi) inaonyesha faida kubwa zaidi -- inatarajiwa, kwa kuwa
 uwiano wa maagizo ya tawi dhidi ya kazi nyingine ni mkubwa zaidi
@@ -838,7 +838,7 @@ LICM (kilichoungana kabla) inashughulikia usemi usiobadilika ndani ya
 kitanzi tu -- usemi unaorudiwa NJE ya kitanzi (au ndani ya kitanzi
 lakini usiokuwa invariant) haugusiki kabisa. SSCSE inashughulikia
 hiyo: kigawanyaji cha "available expressions" cha kawaida (classical
-CSE) kwa mnyororo wa taarifa za ngazi moja (straight-line), na jedwali
+CSE) kwa mfululizo wa taarifa za ngazi moja (straight-line), na jedwali
 linalowekwa upya kabisa kila mpaka wa kama/wakati/kwa (angalia maelezo
 kamili juu ya sscse_boresha, msambazaji.swa, kwa muundo kamili wa
 uamuzi na sababu za kila kizuizi cha wigo).
@@ -1221,7 +1221,7 @@ rekebisho hili pia, hivyo hakuna mabadiliko ya tabia kwa kesi hizo.
 - Jaribio jipya `jaribio_wito_bila_kupanua`: thamani HASI za N8/N16/N32
   (ambapo cdqe iliyokosekana ingeonekana mara moja -- upanuzi wa
   sifuri ungegeuza namba hasi ndogo kuwa kubwa chanya) kupitia
-  muktadha wa N64, ulinganishi wa moja kwa moja, mnyororo wa wito 21
+  muktadha wa N64, ulinganishi wa moja kwa moja, mfululizo wa wito 21
   (ishara inabadilika kila hatua), usemi mkubwa wa jumla ya matokeo
   matatu ya wito, na faharasa ya safu. 423/423, mara 3 kutoka ujenzi
   safi. Fixpoint stage2 == stage3.

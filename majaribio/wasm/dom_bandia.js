@@ -6,7 +6,7 @@
 // kiolesura kinachozalishwa na `swa --wasm-js`, nalo huita API hizi za DOM:
 // createElement, appendChild, setAttribute, textContent,
 // addEventListener. Mock hii hutoa API hizo pekee -- hivyo majaribio
-// hupima mnyororo mzima: Swa -> kivinjari.swa -> swa-js.js -> DOM.
+// hupima mfululizo mzima: Swa -> kivinjari.swa -> swa-js.js -> DOM.
 //
 // Nodi hupewa namba kwa mpangilio wa kuundwa (nodi kuu = 0), kama mti
 // tarajiwa wa majaribio/wasm/*.tarajiwa.json unavyozitaja.

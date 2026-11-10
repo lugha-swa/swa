@@ -14,7 +14,7 @@ zilifanyika kama `msingi/bootstrap.bin` (baiti 1305: vigeu na `+ - *`),
 lakini baiti zake zilizalishwa na `bootstrap.py` -- Python, si mkono -- na
 hatua ya nne haikufikiwa kwa njia hiyo.
 
-Lengo lenyewe lilitimizwa na **mnyororo huru** (`hati/mfululizo-huru.md`):
+Lengo lenyewe lilitimizwa na **mfululizo huru** (`hati/mfululizo-huru.md`):
 
 - `msingi/kwanza.bin` -- baiti 393 za mkono kweli (hex -> binary)
 - maoni -> lebo -> kusanyiko0 -> kusanyiko: kila hatua imeandikwa kwa lugha
@@ -22,7 +22,7 @@ Lengo lenyewe lilitimizwa na **mnyororo huru** (`hati/mfululizo-huru.md`):
 - `msingi/awali.swm` -> `awali.bin`, mkusanyaji wa Swa -> stage1 -> `bin/swa`
 - `msingi/mjenzi.bin` huendesha yote: `./msingi/mjenzi.bin gharama/jenga.mapishi`
 
-Hakuna assembler, linker wala compiler ya nje popote kwenye mnyororo.
+Hakuna assembler, linker wala compiler ya nje popote kwenye mfululizo.
 
 ## bootstrap.bin ilikwenda wapi
 

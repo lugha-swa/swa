@@ -1,4 +1,4 @@
-# Mnyororo huru: Swa kutoka baiti 393, bila zana za nje
+# Mfululizo huru: Swa kutoka baiti 393, bila zana za nje
 
 ## Tatizo
 
@@ -33,7 +33,7 @@ Zana inayogeuza chanzo cha mbegu kuwa `awali.bin` lazima ijengwe kutoka `kwanza.
 - [x] Hatua 3: `msingi/mfululizo/hatua3_kusanyiko0.mahali` (hujengwa na mahali) + `.kus` (chanzo chake kwa lugha yake: makro 138 za maagizo kwa **majina ya Kiswahili**, rejista `r0`-`r15`). Baiti 1019. `FAFANUA jina baiti`, namba `!N %N ^N`, mifuatano `"..."`, mahali zinapitishwa; tokeni isiyojulikana -> kutoka 4. Hujijenga yenyewe sawa kwa baiti (.kus -> kusanyiko0 -> mahali).
 - [x] Hatua 4: `msingi/mfululizo/hatua4_kusanyiko.kus` (hujengwa na kusanyiko0 + mahali; makro 774, baiti 9131). Lugha ya mashine ya Swa kwa maana, si tafsiri ya majina ya Intel: `r0 = r3`, `r0d += 5`, `n32[jedwali + r12*4] = r0d`, `linganisha r1d, 0` / `ruka .x kama ==`, `r0d = a r0b`, `x0 = n r3`, data kama Swa (`n8 ujumbe = "habari", 0`). Mapitio hadi kutulia; ukubwa wa matawi kwa sheria ile ile ya NASM. Majaribio: programu 4 zinaendeshwa, maumbo 107 ya maagizo sawa kwa baiti na NASM (`majaribio/maagizo.heksa`).
 - [x] Hatua 4d: `msingi/mfululizo/kusanyiko.swm` (mistari 2,832) -- kusanyiko limeandikwa kwa lugha yake lenyewe. Kusanyiko la hatua 4 hulijenga (`kusanyiko2`), na `kusanyiko2` hujijenga lenyewe sawa kwa baiti; hutoa matokeo sawa kwa baiti na la hatua 4 kwa kila jaribio, maumbo yote 107 ya maagizo, kila kosa, na `awali.bin` nzima. `gandisha-mbegu.sh` hujenga mbegu kwa `kusanyiko2`. Kuanzia sasa assembler hubadilishwa kwenye `kusanyiko.swm`; `hatua4_kusanyiko.kus` hubaki kama kiolesura cha kuanzia tu (zana za nje hazihitajiki tena hata kwa uandishi).
-- [x] Hatua 5: `msingi/awali.swm` (mistari 15,492 -- mbegu yote kwa lugha ya mashine ya Swa). Kusanyiko likiikusanya: msimbo baiti 43,209, data baiti 3,032, mahali pa kuanzia 0x40ab65 -- **sawa kwa baiti** na mbegu ya NASM + ld (sha256 c2b38fba...a249209). Mbegu hiyo ndiyo `msingi/awali.bin` sasa (baiti 52,184, sha256 6f1d0df0...daf3e0e388; ELF ya kusanyiko -- bila sehemu wala symtab za ld), na `awali.heksa` imegandishwa upya kutoka kwake (`gharama/gandisha-mbegu.sh`). `msingi/awali.s` imeondolewa. Mbegu mpya hupita majaribio yote: mnyororo 470, mnyororo asili 453, WASM 42, --kiini 15, usakinishaji 5; stage2 == stage3.
+- [x] Hatua 5: `msingi/awali.swm` (mistari 15,492 -- mbegu yote kwa lugha ya mashine ya Swa). Kusanyiko likiikusanya: msimbo baiti 43,209, data baiti 3,032, mahali pa kuanzia 0x40ab65 -- **sawa kwa baiti** na mbegu ya NASM + ld (sha256 c2b38fba...a249209). Mbegu hiyo ndiyo `msingi/awali.bin` sasa (baiti 52,184, sha256 6f1d0df0...daf3e0e388; ELF ya kusanyiko -- bila sehemu wala symtab za ld), na `awali.heksa` imegandishwa upya kutoka kwake (`gharama/gandisha-mbegu.sh`). `msingi/awali.s` imeondolewa. Mbegu mpya hupita majaribio yote: mfululizo 470, mfululizo asili 453, WASM 42, --kiini 15, usakinishaji 5; stage2 == stage3.
 
 - [x] NASM imeondolewa kila mahali: kusanyiko lina `picha`, `biti 32`, maagizo ya ring 0, `bandari`, `jumuisha` (hati/kusanyiko-x86.md). `majaribio/kiini/kianzishi.swm` (jaribio la --kiini) na kiini cha Kawira (lugha-swa/kawira `kiini.swm`) hujengwa nalo; picha zote mbili ni sawa kwa baiti na za NASM.
 
@@ -41,7 +41,7 @@ Uthibitisho: `gharama/jaribu-mfululizo-huru.mapishi` (kwenye CI; visa vyake viko
 
 ## Ujenzi bila bash: mjenzi
 
-`msingi/mfululizo/mjenzi.swm` ni kiendeshaji cha mapishi kwa lugha ya mashine ya Swa (amri: `saraka`, `endesha PROG ... < NDANI > NJE`, `endesha_kosa`, `sawa`, `nakili`, `unganisha`, `heksa`, `andika`). Huhifadhiwa kama `msingi/mjenzi.bin` + `msingi/mjenzi.heksa`, na `mnyororo.mapishi` huthibitisha kwamba vyote viwili ni sawa kwa baiti na kusanyiko(mjenzi.swm). Mapishi:
+`msingi/mfululizo/mjenzi.swm` ni kiendeshaji cha mapishi kwa lugha ya mashine ya Swa (amri: `saraka`, `endesha PROG ... < NDANI > NJE`, `endesha_kosa`, `sawa`, `nakili`, `unganisha`, `heksa`, `andika`). Huhifadhiwa kama `msingi/mjenzi.bin` + `msingi/mjenzi.heksa`, na `mfululizo.mapishi` huthibitisha kwamba vyote viwili ni sawa kwa baiti na kusanyiko(mjenzi.swm). Mapishi:
 
 | Mapishi | Kazi |
 |---|---|
@@ -53,7 +53,7 @@ Uthibitisho: `gharama/jaribu-mfululizo-huru.mapishi` (kwenye CI; visa vyake viko
 | `gharama/gandisha.mapishi` | gandisha mbegu na mjenzi kutoka vyanzo, kisha thibitisha |
 | `gharama/jaribu-mfululizo-asili.mapishi` | majaribio ya Swa asili (`gharama/jaribu_mfululizo.swa`) |
 | `gharama/jaribu-mfululizo.mapishi` | majaribio ya Swa asili + mkazo na semantiki (`majaribio/mkazo/`) |
-| `gharama/jaribu-mfululizo-huru.mapishi` | kila hatua ya mnyororo huru, kila kipengele na kosa (`msingi/mfululizo/majaribio/`) |
+| `gharama/jaribu-mfululizo-huru.mapishi` | kila hatua ya mfululizo huru, kila kipengele na kosa (`msingi/mfululizo/majaribio/`) |
 | `gharama/jaribu-mifano.mapishi`, `jaribu-usakinishaji.mapishi` | mifano ya README; swa iliyosakinishwa nje ya hazina |
 | `gharama/jaribu-wasm.mapishi`, `jaribu-kiini.mapishi` | `--wasm` (node kama mkaguzi), `--kiini` (QEMU kama mkaguzi) |
 
@@ -61,9 +61,9 @@ Hakuna bash kwenye ujenzi wala kwenye majaribio ya CI: zana za nje pekee ni waka
 
 ## Mbegu mbili: kwanza na kizinduzi
 
-Kabla ya hili, mnyororo uliendeshwa na `msingi/mjenzi.bin` (baiti 8559, heksa bila maoni) -- binary iliyoendesha kila hatua NA kufanya kila ulinganisho `sawa`, ikijithibitisha yenyewe. Kuendesha `kwanza.bin` kwa mkono kungehitaji programu nyingine ya kuelekeza stdin/stdout (shell) -- programu ya nje.
+Kabla ya hili, mfululizo uliendeshwa na `msingi/mjenzi.bin` (baiti 8559, heksa bila maoni) -- binary iliyoendesha kila hatua NA kufanya kila ulinganisho `sawa`, ikijithibitisha yenyewe. Kuendesha `kwanza.bin` kwa mkono kungehitaji programu nyingine ya kuelekeza stdin/stdout (shell) -- programu ya nje.
 
-Sasa mnyororo huanza na mbegu mbili zinazosomeka baiti kwa baiti, kama hex0 na kaem-optional-seed za stage0:
+Sasa mfululizo huanza na mbegu mbili zinazosomeka baiti kwa baiti, kama hex0 na kaem-optional-seed za stage0:
 
 | Mbegu | Baiti | Kazi | Maelezo |
 |---|---|---|---|

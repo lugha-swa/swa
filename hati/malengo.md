@@ -4,7 +4,7 @@
 
 **Swa itakuwa lugha ya kwanza duniani yenye uhuru kamili (0% bootstrap gap).**
 Hakuna Rust, hakuna LLVM, hakuna GNU as, hakuna lugha nyingine yoyote
-iliyowahi kuhusika katika mnyororo wake. Binary mbichi inayojitengeneza
+iliyowahi kuhusika katika mfululizo wake. Binary mbichi inayojitengeneza
 yenyewe kupitia baiti za mkono.
 
 ## Jinsi Tutakavyofika
@@ -13,9 +13,9 @@ yenyewe kupitia baiti za mkono.
 `uzalishaji.swa` inatoa **binary mbichi (.o)** moja kwa moja.
 Hakuna assembly. Hakuna GNU as.
 - [x] ELF header + machine code (opcodes za x86-64)
-- [x] Inachukua nafasi ya mteremko.swa (LLVM) KABISA katika mnyororo wa kujikusanya
+- [x] Inachukua nafasi ya mteremko.swa (LLVM) KABISA katika mfululizo wa kujikusanya
 - [x] `N32 anza() { rudisha 42; }` -> ELF binary inayofanya kazi
-- [x] Mnyororo mzima unajithibitisha: stage2-exe == stage3-exe (sawa kwa baiti)
+- [x] Mfululizo mzima unajithibitisha: stage2-exe == stage3-exe (sawa kwa baiti)
 
 ### Hatua ya 2: JIT halisi (kama HolyC) [IMEFANYIKA]
 Swa inatoa maelekezo moja kwa moja kwenye kumbukumbu na kuyatekeleza.
@@ -33,10 +33,10 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
       (kichwa cha ELF 64 + kichwa cha programu 56 + msimbo 273) -- hubadilisha
       hex hadi binary na inajijenga yenyewe (kwanza.heksa -> kwanza.bin)
 - [x] awali.bin inazalika kutoka awali.heksa kupitia Kwanza -- NASM
-      si sehemu ya mnyororo tena; tangu 2026-11-03 awali.bin yenyewe hujengwa
-      kutoka mbegu.swm na mnyororo huru (hati/mfululizo-huru.md)
+      si sehemu ya mfululizo tena; tangu 2026-11-03 awali.bin yenyewe hujengwa
+      kutoka mbegu.swm na mfululizo huru (hati/mfululizo-huru.md)
 - [x] Kiunganishi cha kujitegemea: bendera ya `--programu` inatoa **ET_EXEC
-      tuli** (bila kichwa cha sehemu, bila PT_INTERP) -- mnyororo wa
+      tuli** (bila kichwa cha sehemu, bila PT_INTERP) -- mfululizo wa
       kujikusanya wa exe ni safi kabisa: stage2-exe == stage3-exe
       (sawa kwa baiti) bila ld, gcc, wala libc.
 - [x] Runtime ya syscalls: mkusanyaji hautekelezi kupitia libc tena --
@@ -45,9 +45,9 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - [x] 0% bootstrap gap -- mbegu inatoa ET_EXEC tuli moja kwa moja
       (`--programu`): kichwa + phdr + stub ya `_start` + urekebishaji wa
       RELA wa ndani. Hakuna gcc, ld, clang, muda.c, wala libc popote
-      kwenye mnyororo: kwanza -> mbegu -> stage1-exe -> stage2-exe ->
+      kwenye mfululizo: kwanza -> mbegu -> stage1-exe -> stage2-exe ->
       stage3-exe (stage2-exe == stage3-exe, sawa kwa baiti).
-      Kumbuka: hili linahusu mnyororo wa uzalishaji pekee -- uthabiti
+      Kumbuka: hili linahusu mfululizo wa uzalishaji pekee -- uthabiti
       wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti, bado
       wazi (angalia hati/mipaka.md).
 
@@ -76,14 +76,14 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - `msingi/mkusanyaji/mteremko.swa` -- kiteremshi cha AST->IR ya mstari (hati/ir.md); `mtafsiri.swa` huitekeleza (`swa --tafsiri`), na ndiyo msingi wa sehemu za nyuma zijazo
 - `msingi/mkusanyaji/kiendeshaji.swa` -- kiendeshi cha bootstrap
 - `msingi/awali.swm` -- mbegu kwa lugha ya mashine ya Swa; hujengwa na
-  mnyororo huru kutoka kwanza.bin (baiti 393), bila NASM wala ld
+  mfululizo huru kutoka kwanza.bin (baiti 393), bila NASM wala ld
 
 ## Kile Tunachofanya Sasa (Agosti 2026)
 
-Lengo kuu limefikiwa: mnyororo wa kujikusanya umefungwa kikamilifu na
+Lengo kuu limefikiwa: mfululizo wa kujikusanya umefungwa kikamilifu na
 **hakuna lugha nyingine** -- baiti za mkono (kwanza, 393) -> mbegu ->
 stage1-exe -> stage2-exe == stage3-exe, bila gcc/ld/clang/libc popote.
-(0% gap ni mhimili wa mnyororo wa uzalishaji; uthabiti wa makosa ni
+(0% gap ni mhimili wa mfululizo wa uzalishaji; uthabiti wa makosa ni
 mhimili tofauti -- hati/mipaka.md.)
 
 Hali ya Agosti 2026 (kuelekea 1.0):
@@ -96,10 +96,10 @@ Hali ya Agosti 2026 (kuelekea 1.0):
    sort -- jaribio_maktaba_mbegu_exe.
 3. **Vipimo rasmi vya lugha -- IMEKAMILIKA** -- hati/vipimo-vya-lugha.md.
 4. **Uamuzi wa mteremko.swa/LLVM -- IMEFANYIKA** -- mwisho wa LLVM ni
-   wa MAJARIBIO; mnyororo wa uzalishaji ni mbegu/exe pekee (mipaka.md 6).
+   wa MAJARIBIO; mfululizo wa uzalishaji ni mbegu/exe pekee (mipaka.md 6).
    Dereva wa Rust/LLVM umehamishiwa hazina ya kumbukumbu
    lugha-swa/swa-dereva (2026-09-05); hazina kuu ina Swa pekee.
-5. **ABI ya wito wa kazi za D64** -- IMEFANYIKA kwenye minyororo
+5. **ABI ya wito wa kazi za D64** -- IMEFANYIKA kwenye mifululizo
    yote miwili (mbegu inatumia uhamisho wa GP; kilichopimwa
    2026-08-27 -- mipaka.md 4c imerekebishwa). Mpaka wa D64 na
    nambari kamili umefunga (T2c), na D32 sasa inafanya kazi

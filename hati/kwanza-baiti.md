@@ -8,12 +8,12 @@ Kwanza inajijenga yenyewe na inazalisha `awali.bin` kutoka `awali.heksa`.
 Hii inafunga pengo la bootstrap: **hakuna zana ya nje inayohitajika
 kuzalisha awali.bin tena** -- baiti za mkono pekee.
 
-Mnyororo:
+Mfululizo:
 ```
 kwanza.heksa (baiti za mkono)  ->  kwanza.bin  ->  awali.heksa  ->  awali.bin
 ```
 
-Uthibitisho: `gharama/kusanyiko.mapishi` (kwanza hujijenga yenyewe, kisha mnyororo huru) na `gharama/mfululizo.mapishi`.
+Uthibitisho: `gharama/kusanyiko.mapishi` (kwanza hujijenga yenyewe, kisha mfululizo huru) na `gharama/mfululizo.mapishi`.
 
 ## Muundo wa Baiti
 

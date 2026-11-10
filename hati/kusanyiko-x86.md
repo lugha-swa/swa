@@ -1,4 +1,4 @@
-# Lugha ya mashine ya Swa (x86-64) -- hatua 4 ya mnyororo huru
+# Lugha ya mashine ya Swa (x86-64) -- hatua 4 ya mfululizo huru
 
 Lugha ambayo `mbegu` itaandikwa nayo, na ambayo assembler ya hatua 4 husoma. Si tafsiri ya majina ya Intel: imebuniwa kwa **maana**, kwa familia za aina za Swa.
 
