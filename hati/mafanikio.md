@@ -154,9 +154,9 @@ Baada ya taarifa ya `kama`, block ya sharti ya `BrCond` haipaswi kuwa kiungo cha
 
 LLVM inatarajia alloca zote za vigeu vya ndani ziwe kwenye block ya kuingia ya kazi. Kutoa alloca kwenye block ya kitanzi kunasababisha kila mzunguko kugawa nafasi mpya ya rafu bila kuzirejesha. Hii inaisha kwa uharibifu wa rafu (SIGSEGV). Suluhisho ni mbinu ya kupitisha mara mbili: (1) tembea AST mapema kukusanya matamko yote ya vigeu, (2) toa alloca zote kwenye block ya kuingia kabla ya mwili wowote kuchakatwa.
 
-### 5.8 Mnyororo wa ushughulikiaji wa tokeni
+### 5.8 Mfululizo wa ushughulikiaji wa tokeni
 
-Hitilafu ndogo katika `sogeza()` (kunakili sehemu 3 kati ya 5 za tokeni) ilisababisha nambari za mistari kuripotiwa kama 1 kila wakati na kuvunja ushughulikiaji wa maagizo ya `husisha`. Hitilafu za tokeni zinaweza kuwa na athari kubwa katika sehemu nyingine za mnyororo.
+Hitilafu ndogo katika `sogeza()` (kunakili sehemu 3 kati ya 5 za tokeni) ilisababisha nambari za mistari kuripotiwa kama 1 kila wakati na kuvunja ushughulikiaji wa maagizo ya `husisha`. Hitilafu za tokeni zinaweza kuwa na athari kubwa katika sehemu nyingine za mfululizo.
 
 ---
 
@@ -228,11 +228,11 @@ Katika kipindi cha saa 18 cha kurekebisha hitilafu, marekebisho 12 yalifanywa:
   - Binary ya kujikusanya hai-SIGSEGV tena
 
 - **BrCond katika ufuatiliaji wa actual_prev:**
-  - Mnyororo wa ufuatiliaji wa block sasa unashughulikia BrCond kwa block ya kuunganisha
+  - Mfululizo wa ufuatiliaji wa block sasa unashughulikia BrCond kwa block ya kuunganisha
   - Hii inahakikisha ushughulikiaji sahihi wa mtiririko wa udhibiti baada ya taarifa za `kama`
 
 - **Marekebisho ya mchanganuzi (4ddb448):**
-  - Mnyororo wa `ast_nne` katika `src/parser/mod.rs` -- tembea hadi mwisho kabla ya kuongeza nodi mpya
+  - Mfululizo wa `ast_nne` katika `src/parser/mod.rs` -- tembea hadi mwisho kabla ya kuongeza nodi mpya
   - Ulinzi wa `t->urefu == 0` mwanzoni mwa `neno_ni` kuzuia kitanzi kisicho na mwisho kwenye EOF
   - Uainishaji wa ASCII maeneo 49 katika `msambazaji.swa`
   - `StoreTyped` sasa inahakiki aina lengwa ni nambari kamili kabla ya kuita `LLVMGetIntTypeWidth`

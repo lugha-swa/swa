@@ -14,24 +14,24 @@ Sasa (kilichopimwa 2026-08-27): mbegu inatekeleza wito wa kazi za
 D64 (parameta na kurudisha) kwa usahihi -- ABI yake hutumia uhamisho
 wa GP (`movq rax, xmm0`; `movq xmm1, rcx`), si xmm moja kwa moja,
 lakini inafanya kazi. Kilichobaki cha desimali: mpaka wa D64 na
-nambari kamili (jibu baya kwa minyororo yote miwili) na D32
+nambari kamili (jibu baya kwa mifululizo yote miwili) na D32
 (poromoko). Angalia `hati/mipaka.md` 4c na `hati/uthibitisho-wa-lugha.md`.
 
 ### 2. Maneno halisi 64-bit (mbegu na dereva wa Rust)
 
-Mnyororo wa .swa umerekebishwa 2026-08-25 -- maneno halisi hadi N64
+Mfululizo wa .swa umerekebishwa 2026-08-25 -- maneno halisi hadi N64
 kwa [2^31, 2^63) pekee (mipaka.md 5). Kilichobaki: mbegu (bootstrap
 pekee) na dereva wa Rust bado zinachanganua maneno halisi kama 32-bit
 -- `2147483648` inatafsiriwa kama `-2147483648` (biti zinahifadhiwa,
 ishara inaenea); halisi >= 2^63 zinakatwa KIMYA hadi biti 32 kwa
-minyororo yote miwili, na halisi kubwa kama hoja ya wito zinavunjika
+mifululizo yote miwili, na halisi kubwa kama hoja ya wito zinavunjika
 (uthibitisho 2026-08-27). Angalia `hati/mipaka.md` 5.
 
-### 3. Hakuna mnyororo unaochakata `husisha { faili.swa }`
+### 3. Hakuna mfululizo unaochakata `husisha { faili.swa }`
 
-Hakuna mkusanyaji (mbegu WALA mnyororo wa .swa) anayechambua faili
+Hakuna mkusanyaji (mbegu WALA mfululizo wa .swa) anayechambua faili
 lililotajwa -- faili lazima ziunganishwe kwanza (`cat`). Ahadi ya
-zamani kwamba "mnyororo wa .swa unaunga viungo vya ndani" haishikiki
+zamani kwamba "mfululizo wa .swa unaunga viungo vya ndani" haishikiki
 (kilichopimwa 2026-08-27). Angalia `hati/mipaka.md` 8.
 
 ### 4. Kizuizi cha BSS kwenye Windows
@@ -42,7 +42,7 @@ Linux ELF ni safi. Haijatatuliwa.
 ### 5. Mwisho wa LLVM ni wa majaribio [IMEFUNGWA -- kuhamishiwa kumbukumbu 2026-09-05]
 
 O0 (FastISel) inakataa kazi yenye vizuizi zaidi ya 40; majaribio hutumia
-O1. Mnyororo wa uzalishaji ni mbegu/exe pekee. Dereva wa Rust/LLVM
+O1. Mfululizo wa uzalishaji ni mbegu/exe pekee. Dereva wa Rust/LLVM
 umehamishiwa hazina ya kumbukumbu lugha-swa/swa-dereva. Angalia
 `hati/mipaka.md` 6.
 
@@ -51,8 +51,8 @@ umehamishiwa hazina ya kumbukumbu lugha-swa/swa-dereva. Angalia
 | Kipaumbele | Kazi | Ukubwa | Hali |
 |-----------|------|--------|------|
 | 1 | ABI ya wito wa D64 kwenye mbegu | kubwa | IMEFUNGWA (uthibitisho 2026-08-27) |
-| 2 | Maneno halisi 64-bit kwenye mbegu (mnyororo wa .swa umeshafanyika kwa [2^31, 2^63); halisi >= 2^63 na hoja za wito bado wazi) | wastani | wazi |
-| 3 | Viungo vya ndani (`husisha`) -- minyororo yote miwili | wastani | wazi |
+| 2 | Maneno halisi 64-bit kwenye mbegu (mfululizo wa .swa umeshafanyika kwa [2^31, 2^63); halisi >= 2^63 na hoja za wito bado wazi) | wastani | wazi |
+| 3 | Viungo vya ndani (`husisha`) -- mifululizo yote miwili | wastani | wazi |
 | 4 | Mwisho wa LLVM kuwa wa kuaminika (si majaribio) | kubwa | IMEFUNGWA -- dereva kuhamishiwa lugha-swa/swa-dereva (2026-09-05) |
 | 5 | Malengo zaidi (ARM64, RISC-V) | kubwa | wazi |
 

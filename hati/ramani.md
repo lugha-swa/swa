@@ -5,7 +5,7 @@
 - **Keywords:** 13 za Kiswahili (aina za nambari hutambuliwa kisintaksia kwa herufi kubwa)
 - **Aina:** familia 5 za nambari (N, A, D, B, W -- upana halisi
   8/16/32/64; upana mwingine haujaungwa mkono, uthibitisho 2026-08-27)
-- **Majaribio:** 304/304 mnyororo wa Swa (dereva wa Rust umehamia
+- **Majaribio:** 304/304 mfululizo wa Swa (dereva wa Rust umehamia
   hazina ya kumbukumbu lugha-swa/swa-dereva, 2026-09-05)
 - **Backend:** uzalishaji.swa (asilia x86-64, inajikusanya) ndiyo njia PEKEE; LLVM ilikuwa ya MAJARIBIO kwenye dereva wa Rust na sasa iko kwenye hazina ya kumbukumbu (mipaka.md 6)
 - **Bootstrap:** kwanza (baiti za mkono) -> mbegu -> stage1-exe -> stage2-exe == stage3-exe -- sawa kwa baiti
@@ -16,7 +16,7 @@
 - [x] IR lowering (AST -> Swa IR)
 - [x] LLVM codegen (x86-64 native binaries)
 - [x] ABI classification (sret, struct returns)
-- [x] Majaribio 265/265 mnyororo wa Swa + 232/232 Rust
+- [x] Majaribio 265/265 mfululizo wa Swa + 232/232 Rust
 
 ## Hatua ya 1: Kujikusanya kwa Msingi [PASS] IMEFANIKIWA
 
@@ -30,7 +30,7 @@
 
 ## Hatua ya 2: Mkusanyaji Kamili wa Kujikusanya [PASS] IMEFANIKIWA
 
-### Mnyororo wa Kujikusanya wa Sasa
+### Mfululizo wa Kujikusanya wa Sasa
 
 1. `kwanza.bin` (baiti za mkono, hex -> binary) hutoa `awali.bin` kutoka `awali.heksa`
 2. `mbegu --programu` (syscalls pekee, hakuna kiunganishi) hukusanya `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` -> `stage1-exe`
@@ -38,7 +38,7 @@
 4. `stage2-exe --programu` inajikusanya -> `stage3-exe`
 
 **Uthibitisho:** stage2-exe == stage3-exe sawa kwa baiti, bila gcc/ld/clang/libc
-popote kwenye mnyororo. Kumbuka: hili linahusu mnyororo wa uzalishaji pekee --
+popote kwenye mfululizo. Kumbuka: hili linahusu mfululizo wa uzalishaji pekee --
 uthabiti wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti
 (angalia hati/mipaka.md).
 
@@ -48,11 +48,11 @@ na kiolesura cha C `tekeleza` kwa wito wa bafa (mbegu hana wito wa kielekezi).
 
 **Uchunguzi muhimu wa usanifu:** `uzalishaji.swa` (mistari ~3,900) hukusanya
 moja kwa moja kutoka AST, SI kutoka IR. `mteremko.swa` hutoa IR lakini
-towe lake halitumiki katika mnyororo wa kujikusanya -- IR inatumika TU
+towe lake halitumiki katika mfululizo wa kujikusanya -- IR inatumika TU
 kwenye njia ya Rust -> LLVM.
 
 ### Kipaumbele cha Juu (kilichobaki)
-- [x] **Pengo la ABI la desimali** -- IMEFUNGWA kwenye minyororo yote
+- [x] **Pengo la ABI la desimali** -- IMEFUNGWA kwenye mifululizo yote
       miwili (mbegu inatumia ABI ya uhamisho wa GP; kilichopimwa
       2026-08-27 -- mipaka.md 4c imerekebishwa). Kilichobaki: mpaka
       wa D64 na nambari kamili (jibu baya) na D32 (poromoko)
@@ -71,7 +71,7 @@ kwenye njia ya Rust -> LLVM.
 - [x] **Maktaba ya Kawaida**
   - [x] `orodha.swa` -- orodha (inavyofanya kazi kwa uwezo uliotengwa
         mapema; UKUAJI umevunjika -- orodha_ongeza zaidi ya uwezo
-        inaanguka SEGV kwa minyororo yote miwili, uthibitisho
+        inaanguka SEGV kwa mifululizo yote miwili, uthibitisho
         2026-08-27)
   - [x] `mfuatano.swa` -- shughuli za nyuzi kamili
   - [x] `ramani.swa` -- jedwali la hashi (kwenye uzalishaji; kwenye
@@ -84,7 +84,7 @@ kwenye njia ya Rust -> LLVM.
   - [x] `wakati.swa` -- vipimo vya wakati
 
 Kumbuka (uthibitisho 2026-08-27): moduli za `faili.swa`, `nasibu.swa`
-na `wakati.swa` zinahitaji libc na hazifanyi kazi kwenye mnyororo
+na `wakati.swa` zinahitaji libc na hazifanyi kazi kwenye mfululizo
 asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
 
 ## Hatua ya 3: Kuondoa Utegemezi wa Rust [PASS] IMEFANIKIWA
@@ -93,14 +93,14 @@ asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
 - [x] Bootstrap inafungwa: mbegu -> Swa -> Swa -> binary
 - [x] Uthibitisho: stage2-exe == stage3-exe sawa kwa baiti
 - [!] Rust `kande` inabaki kama chombo cha vipimo na ukuzaji (CI) tu --
-      si sehemu ya mnyororo wa uzalishaji
+      si sehemu ya mfululizo wa uzalishaji
       (2026-09-05: imehamishiwa lugha-swa/swa-dereva)
 
-## Hatua ya 4: Kuondoa Utegemezi wa LLVM [PASS kwa mnyororo] IMEFANIKIWA
+## Hatua ya 4: Kuondoa Utegemezi wa LLVM [PASS kwa mfululizo] IMEFANIKIWA
 
 - [x] Native x86-64 backend (uzalishaji.swa) inazalisha binary bila LLVM
-- [x] Mnyororo wa kujikusanya haugusi LLVM kabisa
-- [x] Uthibitisho: Swa inajikusanya kupitia mnyororo kamili wa Swa -> Swa -> binary
+- [x] Mfululizo wa kujikusanya haugusi LLVM kabisa
+- [x] Uthibitisho: Swa inajikusanya kupitia mfululizo kamili wa Swa -> Swa -> binary
 - [!] LLVM inabaki ndani ya dereva wa Rust wa vipimo pekee
       (2026-09-05: imehamishiwa lugha-swa/swa-dereva)
 
@@ -109,7 +109,7 @@ asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
 - [x] **Baiti za mkono:** Kwanza (msingi/kwanza.bin) -- baiti 393 zilizoandikwa
       kwa mkono (ELF 64 + phdr 56 + msimbo 273) hubadilisha hex hadi binary.
       Inajijenga (kwanza.heksa -> kwanza.bin) na inazalisha awali.bin kutoka
-      awali.heksa -- NASM si sehemu ya mnyororo wa uzalishaji tena.
+      awali.heksa -- NASM si sehemu ya mfululizo wa uzalishaji tena.
       Uthibitisho: gharama/mfululizo.mapishi (pia kwenye CI).
 - [x] **Kiunganishi cha kujitegemea:** bendera ya `--programu` inatoa ET_EXEC
       tuli (syscalls pekee, hakuna kichwa cha sehemu) -- stage2-exe
@@ -121,9 +121,9 @@ asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
 - [x] **0% bootstrap gap:** mbegu inatoa ET_EXEC tuli moja kwa moja
       (`--programu`) -- kichwa (64) + phdr (56) + stub ya `_start` (28) +
       urekebishaji wa RELA wa ndani (ulimwengu, tungo, na wito wa
-      mbele) -- hakuna gcc/ld/clang/muda.c/libc popote kwenye mnyororo.
+      mbele) -- hakuna gcc/ld/clang/muda.c/libc popote kwenye mfululizo.
       Uthibitisho: jaribio_exe_kujijenga (CI).
-      Kumbuka: hili linahusu mnyororo wa uzalishaji pekee -- uthabiti
+      Kumbuka: hili linahusu mfululizo wa uzalishaji pekee -- uthabiti
       wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti, bado
       wazi (angalia hati/mipaka.md).
 
@@ -143,7 +143,7 @@ Angalia [`CONTRIBUTING.md`](../CONTRIBUTING.md). Masuala yenye lebo `good-first-
 ## Vipaumbele vya Sasa (Agosti 2026)
 
 1. ~~Baiti za mkono~~ -- IMESHAFANYIKA (PR #147): Kwanza (baiti 393)
-   inazalisha awali.bin kutoka hex; NASM imeondolewa kwenye mnyororo
+   inazalisha awali.bin kutoka hex; NASM imeondolewa kwenye mfululizo
 2. ~~Kiunganishi cha kujitegemea~~ -- IMESHAFANYIKA: `--programu` inatoa ET_EXEC
    tuli inayojijenga yenyewe bila ld/gcc/libc (stage2-exe == stage3-exe)
 3. ~~Runtime ya syscalls~~ -- IMESHAFANYIKA (PR #149): syscalls moja kwa moja
@@ -154,7 +154,7 @@ Angalia [`CONTRIBUTING.md`](../CONTRIBUTING.md). Masuala yenye lebo `good-first-
 6. ~~JIT ndani ya exe~~ -- IMESHAFANYIKA: tekeleza kama builtin,
    anwani_ya_kazi ya ndani (jedwali la anwani 0x400078+ofseti) --
    exe haina alama za nje kabisa
-7. ~~ABI ya wito wa kazi za D64~~ -- IMESHAFANYIKA kwenye minyororo
+7. ~~ABI ya wito wa kazi za D64~~ -- IMESHAFANYIKA kwenye mifululizo
    yote miwili (kilichopimwa 2026-08-27 -- mipaka.md 4c imerekebishwa).
    Kilichobaki: mpaka wa D64 na nambari kamili (jibu baya) na D32
    (poromoko)
@@ -168,5 +168,5 @@ Angalia [`CONTRIBUTING.md`](../CONTRIBUTING.md). Masuala yenye lebo `good-first-
 - PR #140: kuondoa maneno muhimu ya bloat (na, au, si, tupu, kweli, uongo) -- MERGED
 - PR #131-133, #141: marejeo ya mbele, hifadhi/upakiaji wa aina, husisha nukuu,
   AST_KWELI/UONGO/TUPU -- MERGED
-- PR #142: mnyororo kamili wa kujikusanya na makosa 0 ya mkaguzi -- MERGED
+- PR #142: mfululizo kamili wa kujikusanya na makosa 0 ya mkaguzi -- MERGED
 - PR #143: JIT -- thamani ya kurudi, stub ya main, kiolesura cha tekeleza -- MERGED

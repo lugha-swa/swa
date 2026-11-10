@@ -22,7 +22,7 @@ assignees: []
 
 ## Mazingira
 - Mfumo wa uendeshaji: 
-- Mnyororo uliotumika: awali (`msingi/awali.bin`) au kamili (`bin/swa`)
+- Mfululizo uliotumika: awali (`msingi/awali.bin`) au kamili (`bin/swa`)
 - Ukubwa wa awali.bin (baiti): 
 - Fixpoint (stage2 == stage3): ndiyo / hapana
 

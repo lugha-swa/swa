@@ -1,4 +1,4 @@
-# Mwongozo wa mkaguzi: mzizi wa mnyororo huru
+# Mwongozo wa mkaguzi: mzizi wa mfululizo huru
 
 Swa yote hujengwa kutoka programu mbili za mkono. Kila kinachofuata hujengwa
 na hatua iliyo chini yake, na kila hatua hujijenga yenyewe sawa kwa baiti --
@@ -83,7 +83,7 @@ Kisha linganisha disassembly na maoni ya `.maoni` mstari kwa mstari.
 - Mbegu haziwezi kujithibitisha zenyewe: mbegu iliyoharibiwa ndiyo
   inayoendesha ukaguzi wake. Kinga ni ukaguzi wa jicho tu -- ndiyo sababu
   mwongozo huu upo.
-- Mnyororo unaendeshwa juu ya kernel ya Linux na CPU ya x86-64. Hizo
+- Mfululizo unaendeshwa juu ya kernel ya Linux na CPU ya x86-64. Hizo
   haziko ndani ya wigo huu.
 - Baada ya hatua 3, chanzo (`hatua4_kusanyiko.kus`, `kusanyiko.swm`,
   `mbegu.swm`, `mjenzi.swm`) ni maelfu ya mistari. Kinasomeka, lakini

@@ -128,7 +128,7 @@ Fikiria `N32 ast_aina[2048]` -- safu ya nambari kamili za baiti nne 2048 (jumla 
 
 **Hitilafu.** Katika `lower_block`, baada ya kutekeleza `lower_if`, kitanzi cha taarifa kiliunganisha taarifa inayofuata moja kwa moja kutoka kwa block iliyorudishwa na `lower_if`. Kabla ya marekebisho, `lower_if` ilirudisha `merge_blk` -- block ya kuunganisha baada ya sharti na mwili wa `kama`. Hii ilifanya taarifa inayofuata ianze kutoka kwenye block ya kuunganisha, ambayo ilikuwa sahihi kwa mtiririko.
 
-Lakini tatizo kubwa zaidi lilikuwa kwamba `lower_if` ilirudisha `cond_blk` baada ya kubadilisha muundo (marekebisho ya 8a), na `lower_block` haikuwa na mantiki ya kufuatilia block halisi ya mwendelezo. Baada ya sharti la `BrCond`, block inayofuata katika mnyororo inapaswa kuwa `merge_blk` (block ya kuunganisha), si `cond_blk` (block ya sharti). Bila ufuatiliaji huu, taarifa baada ya `kama` ilikuwa haiwezi kufikiwa kutoka kwenye njia za `then` na `else`, na block ya sharti ilianguka moja kwa moja kwenye taarifa inayofuata bila kupitia `merge_blk`.
+Lakini tatizo kubwa zaidi lilikuwa kwamba `lower_if` ilirudisha `cond_blk` baada ya kubadilisha muundo (marekebisho ya 8a), na `lower_block` haikuwa na mantiki ya kufuatilia block halisi ya mwendelezo. Baada ya sharti la `BrCond`, block inayofuata katika mfululizo inapaswa kuwa `merge_blk` (block ya kuunganisha), si `cond_blk` (block ya sharti). Bila ufuatiliaji huu, taarifa baada ya `kama` ilikuwa haiwezi kufikiwa kutoka kwenye njia za `then` na `else`, na block ya sharti ilianguka moja kwa moja kwenye taarifa inayofuata bila kupitia `merge_blk`.
 
 Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (kitanzi cha kujirudia) havikuwa na urekebishaji wa kutosha. Baada ya kazi kukamilika, block iliyokuwa na kituo cha `Br(self)` ilibaki kwenye mzunguko usio na mwisho badala ya kurejea kwa `RetVoid` au `Ret` sahihi.
 
@@ -185,7 +185,7 @@ Chanzo cha msingi: Kila mzunguko wa kitanzi cha `wakati` katika `changanua()` ul
 
 4. **Uboreshaji wa `collect_constants`**: Kupitisha awali pia kuliboresha `collect_constants` ili kushughulikia `AST_KWELI` (Bool true), `AST_UONGO` (Bool false), na `AST_TUPU` (NullPtr) kwa kuweka constants zao kwenye `intern_const`, na kuhakikisha constants hizi hazijakosa wakati wa uteuzi wa kabla ya utoaji wa alloca.
 
-5. **BrCond kwenye ufuatiliaji wa `actual_prev`**: Katika mnyororo wa ufuatiliaji wa block (sehemu ya utaratibu wa `actual_prev`), sasa `BrCond` inafuatiliwa kwa block ya kuunganisha (`merge`):
+5. **BrCond kwenye ufuatiliaji wa `actual_prev`**: Katika mfululizo wa ufuatiliaji wa block (sehemu ya utaratibu wa `actual_prev`), sasa `BrCond` inafuatiliwa kwa block ya kuunganisha (`merge`):
    ```rust
    Terminator::BrCond(_, _, merge) if *merge != b => { b = *merge; }
    ```

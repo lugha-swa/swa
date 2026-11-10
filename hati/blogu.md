@@ -15,7 +15,7 @@ Swa ni lugha ya programu za mifumo ambapo **maneno muhimu, aina, na nyaraka zote
 - `N32` (i32), `A64` (u64), `D64` (f64)
 - `muundo` (struct), `tenga` (malloc), `achilia` (free)
 
-Mkusanyaji wa bootstrap (`kande`) umeandikwa kwa Rust (takriban mistari 12,200). Unakusanya chanzo cha Swa kupitia mnyororo kamili: msomaji (lexer) -> mchanganuzi (parser) -> uchanganuzi wa kisemantiki -> uteuzi wa IR -> LLVM codegen -> native x86-64 binary.
+Mkusanyaji wa bootstrap (`kande`) umeandikwa kwa Rust (takriban mistari 12,200). Unakusanya chanzo cha Swa kupitia mfululizo kamili: msomaji (lexer) -> mchanganuzi (parser) -> uchanganuzi wa kisemantiki -> uteuzi wa IR -> LLVM codegen -> native x86-64 binary.
 
 Sehemu za kujikusanya zimeandikwa kwa Swa yenyewe (takriban mistari 4,100 katika faili 7):
 - `msomaji.swa` -- msomaji (lexer)

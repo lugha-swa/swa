@@ -22,7 +22,7 @@ Tafuta lebo `good-first-issue` kwenye [ukurasa wa masuala](https://github.com/lu
 Tumia kiolezo cha **Ripoti ya Hitilafu**. Hakikisha umejumuisha:
 - Hatua za kuzalisha hitilafu
 - Matokeo halisi na yanayotarajiwa
-- Mazingira yako (OS, mnyororo uliotumika -- mbegu au stage1, ukubwa wa awali.bin, hali ya fixpoint)
+- Mazingira yako (OS, mfululizo uliotumika -- mbegu au stage1, ukubwa wa awali.bin, hali ya fixpoint)
 
 ### 3. Kupendekeza Vipengele
 
@@ -35,7 +35,7 @@ Tumia kiolezo cha **Ombi la Kipengele**. Kumbuka:
 
 1. **Fork** repo na unda tawi lako
 2. Andika msimbo wako kwa Kiswahili
-3. Hakikisha mnyororo mzima unapita: `./msingi/mjenzi.bin gharama/jaribu-mfululizo.mapishi`
+3. Hakikisha mfululizo mzima unapita: `./msingi/mjenzi.bin gharama/jaribu-mfululizo.mapishi`
 4. Tumia ujumbe wa commit kwa Kiswahili
 5. Eleza **kwa nini** unafanya mabadiliko, si **nini** tu
 
@@ -46,14 +46,14 @@ Tumia kiolezo cha **Ombi la Kipengele**. Kumbuka:
 ### Mahitaji
 - x86-64 Linux
 - bash na zana za kawaida za mfumo (cat, cmp, chmod, mktemp, timeout, grep, md5sum)
-- Hakuna kingine: mnyororo wa uzalishaji hauhitaji gcc, ld, clang, libc, Rust, wala LLVM
+- Hakuna kingine: mfululizo wa uzalishaji hauhitaji gcc, ld, clang, libc, Rust, wala LLVM
 
 ### Kujenga
 ```sh
 git clone https://github.com/lugha-swa/swa.git
 cd swa
 ./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> mbegu -> bin/swa
-./msingi/mjenzi.bin gharama/jaribu-mfululizo.mapishi   # mnyororo mzima + majaribio
+./msingi/mjenzi.bin gharama/jaribu-mfululizo.mapishi   # mfululizo mzima + majaribio
 ```
 
 ### Kujaribu Mkusanyaji
@@ -83,14 +83,14 @@ Dereva wa zamani wa Rust/LLVM uko kwenye hazina ya kumbukumbu
 ## Sheria ya Mzizi wa Uaminifu
 
 `msingi/awali.swm` na `msingi/kwanza.bin` ni MZIZI WA UAMINIFU wa
-mnyororo mzima. Sheria isiyo na mbadala:
+mfululizo mzima. Sheria isiyo na mbadala:
 
 **Mabadiliko ya mzizi wa uaminifu hujengwa na Kujaribiwa KABLA ya
 kugandishwa -- hakuna ubaguzi.**
 
 Kwa nini: hitilafu kwenye mzizi ni ya darasa baya zaidi -- mbegu
 iliyovunjika inaweza bado kutoa fixpoint imara LAKINI mbaya
-(stage2 == stage3 == takataka), na mnyororo mzima unaweza kushindwa
+(stage2 == stage3 == takataka), na mfululizo mzima unaweza kushindwa
 kimya kimya. Mfano halisi: uhariri mdogo wa njia ya fixup uliwahi
 kufanya kila mkusanyiko kushindwa -- ulipatikana tu kwa sababu jaribio
 la wito 1,000 lilikimbizwa kabla ya kugandisha. Jaribio hilo sasa ni
@@ -99,7 +99,7 @@ mkazo wa RELA ndani ya `gharama/jaribu-mfululizo.mapishi` (`majaribio/mkazo/urek
 Mpangilio wa lazima:
 1. Badilisha `msingi/awali.swm`.
 2. `./msingi/mjenzi.bin gharama/awali-mpya.mapishi` -> mbegu ya muda
-   `jengo/awali` (mnyororo huru: kwanza.bin -> maoni -> mahali -> kusanyiko0
+   `jengo/awali` (mfululizo huru: kwanza.bin -> maoni -> mahali -> kusanyiko0
    -> kusanyiko) -> jaribu
    kwa chanzo KIDOGO (sio mkusanyiko mzima kwanza) na kwa mkusanyiko
    mzima.
@@ -107,7 +107,7 @@ Mpangilio wa lazima:
    na nje zinazopigwa mara nyingi.
 4. Baada ya hapo tu: gandisha (`./msingi/mjenzi.bin gharama/gandisha.mapishi`
    huandika `awali.bin` + `awali.heksa` na `mjenzi.bin` + `mjenzi.heksa`,
-   kisha huthibitisha mnyororo mzima), endesha
+   kisha huthibitisha mfululizo mzima), endesha
    `./msingi/mjenzi.bin gharama/jaribu-mfululizo-huru.mapishi`, na endesha
    `./msingi/mjenzi.bin gharama/jaribu-mfululizo.mapishi` nzima.
 5. Tazama `hati/mipaka.md` kwa mipaka inayojulikana ya mbegu.
@@ -119,7 +119,7 @@ Mpangilio wa lazima:
 1. **Kiswahili kwanza.** Vigeu, kazi, na maoni yote kwa Kiswahili.
 2. **Rahisi.** Swa haihitaji kuwa na kila kipengele. Inalenga kuwa mbadala wa C, si C++ au Rust.
 3. **Imara.** Hakuna paniki, hakuna tabia isiyotabirika. Kila hitilafu lazima ishughulikiwe.
-4. **Inayojikusanya.** Utegemezi wa Rust na LLVM umeondolewa kabisa -- mnyororo wa uzalishaji ni Swa pekee.
+4. **Inayojikusanya.** Utegemezi wa Rust na LLVM umeondolewa kabisa -- mfululizo wa uzalishaji ni Swa pekee.
 
 ---
 
