@@ -119,4 +119,4 @@ Kwa kianzio cha kernel (Multiboot) na programu zisizo na mfumo wa uendeshaji:
 
 Usemi (`fafanua`, data, namba) una waendeshaji kwa mpangilio wa C: `~` na `-` (hasi), `*`, `+ -`, `<< >>` (`>>` bila ishara), `&`, `|`. Mfano wa kipengele cha IDT: `n16 = (isr_kibodi >> 16) & 0xFFFF`.
 
-`majaribio/kernel/stub.swm` ni mfano kamili: Multiboot1, kurasa, biti 32 -> 64, kisha `ita kazi_kuu`. Picha yake ni sawa kwa baiti na ya NASM iliyotangulia.
+`majaribio/kiini/kianzishi.swm` ni mfano kamili: Multiboot1, kurasa, biti 32 -> 64, kisha `ita kazi_kuu`. Picha yake ni sawa kwa baiti na ya NASM iliyotangulia.

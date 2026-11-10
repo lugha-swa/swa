@@ -1,0 +1,68 @@
+; jaribu-kiini.mapishi -- majaribio ya backend ya "kamili --kiini" (Kawira).
+; Kila kisa:
+;   - kinachokubalika: kamili --kiini hukusanya, baiti zake huunganishwa
+;     mwishoni mwa picha ya majaribio/kiini/kianzishi.swm (iliyojengwa na
+;     kusanyiko), kisha majaribio/kiini/mhakiki.py huiwasha kwenye QEMU na
+;     kusoma HALI HALISI: RDI baada ya HLT (thamani ya kurudi ya kernel_main)
+;     na maandishi ya VGA (0xB8000) -- si "haikuanguka".
+;   - kilicho nje ya wigo: kamili --kiini lazima ikatae (kutoka 1, stdout
+;     tupu) kwa ujumbe unaotajwa.
+; Kisa kipya huongezwa hapa. Inahitaji python3 na qemu-system-x86_64 kwenye PATH.
+;   ./msingi/mjenzi.bin gharama/jaribu-kiini.mapishi
+saraka jengo
+endesha msingi/mjenzi.bin gharama/jenga.mapishi > jengo/jenga.towe
+saraka jengo/kiini
+endesha jengo/kusanyiko < majaribio/kiini/kianzishi.swm > jengo/kiini/kianzishi.bin
+
+endesha jengo/kamili --kiini majaribio/kiini/jaribio_umbo_moja.swa > jengo/kiini/umbo_moja.bin
+unganisha jengo/kiini/umbo_moja-kamili.bin jengo/kiini/kianzishi.bin jengo/kiini/umbo_moja.bin
+endesha python3 majaribio/kiini/mhakiki.py jengo/kiini/umbo_moja-kamili.bin 0 "K"
+endesha jengo/kamili --kiini majaribio/kiini/jaribio_hesabu_na_mzunguko.swa > jengo/kiini/hesabu_na_mzunguko.bin
+unganisha jengo/kiini/hesabu_na_mzunguko-kamili.bin jengo/kiini/kianzishi.bin jengo/kiini/hesabu_na_mzunguko.bin
+endesha python3 majaribio/kiini/mhakiki.py jengo/kiini/hesabu_na_mzunguko-kamili.bin 20 "Kawira"
+endesha jengo/kamili --kiini majaribio/kiini/jaribio_mstari_mpya.swa > jengo/kiini/mstari_mpya.bin
+unganisha jengo/kiini/mstari_mpya-kamili.bin jengo/kiini/kianzishi.bin jengo/kiini/mstari_mpya.bin
+endesha python3 majaribio/kiini/mhakiki.py jengo/kiini/mstari_mpya-kamili.bin 0 "AB\nCD"
+endesha jengo/kamili --kiini majaribio/kiini/jaribio_vga_herufi_usemi.swa > jengo/kiini/vga_herufi_usemi.bin
+unganisha jengo/kiini/vga_herufi_usemi-kamili.bin jengo/kiini/kianzishi.bin jengo/kiini/vga_herufi_usemi.bin
+endesha python3 majaribio/kiini/mhakiki.py jengo/kiini/vga_herufi_usemi-kamili.bin 3 "ABC"
+endesha jengo/kamili --kiini majaribio/kiini/jaribio_msimbo_wa_kitufe_haanguki.swa > jengo/kiini/msimbo_wa_kitufe_haanguki.bin
+unganisha jengo/kiini/msimbo_wa_kitufe_haanguki-kamili.bin jengo/kiini/kianzishi.bin jengo/kiini/msimbo_wa_kitufe_haanguki.bin
+endesha python3 majaribio/kiini/mhakiki.py jengo/kiini/msimbo_wa_kitufe_haanguki-kamili.bin 42
+endesha_kosa 1 jengo/kamili --kiini majaribio/kiini/nje_ya_wigo_tenga.swa > jengo/kiini/tenga.bin 2> jengo/kiini/tenga.kosa
+sawa jengo/kiini/tenga.bin /dev/null
+ina jengo/kiini/tenga.kosa "nje ya wigo"
+endesha_kosa 1 jengo/kamili --kiini majaribio/kiini/nje_ya_wigo_andika.swa > jengo/kiini/andika.bin 2> jengo/kiini/andika.kosa
+sawa jengo/kiini/andika.bin /dev/null
+ina jengo/kiini/andika.kosa "nje ya wigo"
+endesha_kosa 1 jengo/kamili --kiini majaribio/kiini/nje_ya_wigo_andika_kosa.swa > jengo/kiini/andika_stderr.bin 2> jengo/kiini/andika_stderr.kosa
+sawa jengo/kiini/andika_stderr.bin /dev/null
+ina jengo/kiini/andika_stderr.kosa "nje ya wigo"
+endesha_kosa 1 jengo/kamili --kiini majaribio/kiini/nje_ya_wigo_wito_wa_mfumo.swa > jengo/kiini/wito_wa_mfumo.bin 2> jengo/kiini/wito_wa_mfumo.kosa
+sawa jengo/kiini/wito_wa_mfumo.bin /dev/null
+ina jengo/kiini/wito_wa_mfumo.kosa "nje ya wigo"
+endesha_kosa 1 jengo/kamili --kiini majaribio/kiini/nje_ya_wigo_tekeleza.swa > jengo/kiini/tekeleza.bin 2> jengo/kiini/tekeleza.kosa
+sawa jengo/kiini/tekeleza.bin /dev/null
+ina jengo/kiini/tekeleza.kosa "nje ya wigo"
+endesha_kosa 1 jengo/kamili --kiini majaribio/kiini/nje_ya_wigo_muundo.swa > jengo/kiini/muundo.bin 2> jengo/kiini/muundo.kosa
+sawa jengo/kiini/muundo.bin /dev/null
+ina jengo/kiini/muundo.kosa "nje ya wigo"
+endesha_kosa 1 jengo/kamili --kiini majaribio/kiini/nje_ya_wigo_d64_tangazo.swa > jengo/kiini/d64_tangazo.bin 2> jengo/kiini/d64_tangazo.kosa
+sawa jengo/kiini/d64_tangazo.bin /dev/null
+ina jengo/kiini/d64_tangazo.kosa "nje ya wigo"
+endesha_kosa 1 jengo/kamili --kiini majaribio/kiini/nje_ya_wigo_d32_kurudi.swa > jengo/kiini/d32_kurudi.bin 2> jengo/kiini/d32_kurudi.kosa
+sawa jengo/kiini/d32_kurudi.bin /dev/null
+ina jengo/kiini/d32_kurudi.kosa "nje ya wigo"
+endesha_kosa 1 jengo/kamili --kiini majaribio/kiini/nje_ya_wigo_chagua.swa > jengo/kiini/chagua.bin 2> jengo/kiini/chagua.kosa
+sawa jengo/kiini/chagua.bin /dev/null
+ina jengo/kiini/chagua.kosa "nje ya wigo"
+endesha_kosa 1 jengo/kamili --kiini majaribio/kiini/nje_ya_wigo_anza_si_ya_kwanza.swa > jengo/kiini/anza_si_ya_kwanza.bin 2> jengo/kiini/anza_si_ya_kwanza.kosa
+sawa jengo/kiini/anza_si_ya_kwanza.bin /dev/null
+ina jengo/kiini/anza_si_ya_kwanza.kosa "LAZIMA iwe kazi ya KWANZA"
+; majina yaliyoondolewa kabla ya v0.0.2 hukataliwa kwa jina jipya
+endesha_kosa 1 jengo/kamili --kiini majaribio/kiini/nje_ya_wigo_kiingilio_cha_zamani.swa > jengo/kiini/ondolewa-kiingilio.bin 2> jengo/kiini/ondolewa-kiingilio.kosa
+ina jengo/kiini/ondolewa-kiingilio.kosa "'kernel_main' imeondolewa -- tumia 'anza'"
+endesha_kosa 1 jengo/kamili --kiini majaribio/kiini/nje_ya_wigo_kitufe_cha_zamani.swa > jengo/kiini/ondolewa-kbd.bin 2> jengo/kiini/ondolewa-kbd.kosa
+ina jengo/kiini/ondolewa-kbd.kosa "'kbd_scancode' imeondolewa -- tumia 'msimbo_wa_kitufe'"
+
+andika --kiini: majaribio yote yamefaulu

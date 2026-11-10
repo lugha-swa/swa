@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-# oracle.py -- oracle ya QEMU+KVM kwa gharama/jaribu-kernel.mapishi.
+# mhakiki.py -- mhakiki wa QEMU+KVM kwa gharama/jaribu-kiini.mapishi.
 #
-# Huchukua binary iliyokamilika (stub.swm + kernel_main iliyotolewa na
-# "stage1 --kernel", iliyounganishwa mwishoni mwa picha), huianzisha kwenye QEMU (-kernel,
-# hakuna BIOS/GRUB -- muundo wa a.out kludge wa Multiboot1 unaruhusu
-# hili), na kusoma HALI HALISI ya CPU/kumbukumbu kupitia monitor socket
-# (human monitor protocol) baada ya HLT -- SI "haikuanguka", ni
+# Huchukua picha iliyokamilika (kianzishi.swm + anza iliyotolewa na
+# "swa --kiini", iliyounganishwa mwishoni mwa picha), huianzisha kwenye QEMU (bendera
+# -kernel ya QEMU; hakuna BIOS/GRUB -- anwani za Multiboot1 zilizo kwenye
+# kichwa zinaruhusu hili), na kusoma HALI HALISI ya CPU/kumbukumbu kupitia
+# soketi ya kifuatiliaji cha QEMU baada ya HLT -- SI "haikuanguka", ni
 # kulinganisha thamani halisi na tarajiwa.
 #
-# Matumizi: oracle.py <binary.bin> <rdi-tarajiwa> [maandishi-ya-vga]
+# Matumizi: mhakiki.py <binary.bin> <rdi-tarajiwa> [maandishi-ya-vga]
 #
 # [maandishi-ya-vga] hutumia "\n" halisi (baiti mbili: 0x5c 0x6e)
 # kuwakilisha mstari mpya -- huvunjwa kuwa safu-mlalo (rows), kila
@@ -18,7 +18,7 @@
 #
 # Uthibitisho:
 #   - "info registers": RDI LAZIMA iwe sawa na <rdi-tarajiwa> (n32
-#     ya kurudi ya kernel_main, iliyohamishwa kwenda edi na stub.swm
+#     ya kurudi ya kernel_main, iliyohamishwa kwenda edi na kianzishi.swm
 #     mara moja baada ya "call kernel_main").
 #   - Ikiwa [maandishi-ya-vga] limetolewa: kila mstari (baada ya
 #     kugawanywa kwa "\n") LAZIMA uonekane kwenye safu-mlalo yake
@@ -36,13 +36,13 @@ def toa(msg):
     sys.exit(1)
 
 if len(sys.argv) < 3:
-    toa("matumizi: oracle.py <binary.bin> <rdi-tarajiwa> [maandishi-ya-vga]")
+    toa("matumizi: mhakiki.py <binary.bin> <rdi-tarajiwa> [maandishi-ya-vga]")
 
 BIN = sys.argv[1]
 RDI_TARAJIWA = int(sys.argv[2])
 VGA_TARAJIWA = sys.argv[3] if len(sys.argv) > 3 else None
 
-SOCK = "/tmp/swa-jaribu-kernel-%d.sock" % (int(time.time() * 1000) % 1000000)
+SOCK = "/tmp/swa-jaribu-kiini-%d.sock" % (int(time.time() * 1000) % 1000000)
 
 qemu = subprocess.Popen([
     "qemu-system-x86_64", "-accel", "kvm", "-accel", "tcg", "-kernel", BIN, "-m", "64",

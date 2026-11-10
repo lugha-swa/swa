@@ -1,4 +1,4 @@
-// miti_bst -- Rust reference. Iterative insert/search via raw pointers
+// miti_ya_utafutaji -- Rust reference. Iterative insert/search via raw pointers
 // (mirrors the C/Swa algorithm exactly; avoids recursion-depth risk on
 // an unbalanced tree, same reasoning as the other implementations).
 use std::alloc::{alloc, Layout};

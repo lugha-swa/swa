@@ -35,7 +35,7 @@ Zana inayogeuza chanzo cha mbegu kuwa `mbegu.bin` lazima ijengwe kutoka `kwanza.
 - [x] Hatua 4d: `msingi/mfululizo/kusanyiko.swm` (mistari 2,832) -- kusanyiko limeandikwa kwa lugha yake lenyewe. Kusanyiko la hatua 4 hulijenga (`kusanyiko2`), na `kusanyiko2` hujijenga lenyewe sawa kwa baiti; hutoa matokeo sawa kwa baiti na la hatua 4 kwa kila jaribio, maumbo yote 107 ya maagizo, kila kosa, na `mbegu.bin` nzima. `gandisha-mbegu.sh` hujenga mbegu kwa `kusanyiko2`. Kuanzia sasa assembler hubadilishwa kwenye `kusanyiko.swm`; `hatua4_kusanyiko.kus` hubaki kama daraja la kuanzia tu (zana za nje hazihitajiki tena hata kwa uandishi).
 - [x] Hatua 5: `msingi/awali.swm` (mistari 15,492 -- mbegu yote kwa lugha ya mashine ya Swa). Kusanyiko likiikusanya: msimbo baiti 43,209, data baiti 3,032, mahali pa kuanzia 0x40ab65 -- **sawa kwa baiti** na mbegu ya NASM + ld (sha256 c2b38fba...a249209). Mbegu hiyo ndiyo `msingi/awali.bin` sasa (baiti 52,184, sha256 6f1d0df0...daf3e0e388; ELF ya kusanyiko -- bila sehemu wala symtab za ld), na `mbegu.hex` imegandishwa upya kutoka kwake (`gharama/gandisha-mbegu.sh`). `msingi/awali.s` imeondolewa. Mbegu mpya hupita majaribio yote: mnyororo 470, mnyororo asili 453, WASM 42, --kiini 15, usakinishaji 5; stage2 == stage3.
 
-- [x] NASM imeondolewa kila mahali: kusanyiko lina `picha`, `biti 32`, maagizo ya ring 0, `bandari`, `jumuisha` (hati/kusanyiko-x86.md). `majaribio/kernel/stub.swm` (jaribio la --kiini) na kiini cha Kawira (lugha-swa/kawira `kiini.swm`) hujengwa nalo; picha zote mbili ni sawa kwa baiti na za NASM.
+- [x] NASM imeondolewa kila mahali: kusanyiko lina `picha`, `biti 32`, maagizo ya ring 0, `bandari`, `jumuisha` (hati/kusanyiko-x86.md). `majaribio/kiini/kianzishi.swm` (jaribio la --kiini) na kiini cha Kawira (lugha-swa/kawira `kiini.swm`) hujengwa nalo; picha zote mbili ni sawa kwa baiti na za NASM.
 
 Uthibitisho: `gharama/jaribu-mfululizo-huru.mapishi` (kwenye CI; visa vyake viko `msingi/mfululizo/majaribio/`). 
 
@@ -55,7 +55,7 @@ Uthibitisho: `gharama/jaribu-mfululizo-huru.mapishi` (kwenye CI; visa vyake viko
 | `gharama/jaribu-mfululizo.mapishi` | majaribio ya Swa asili + mkazo na semantiki (`majaribio/mkazo/`) |
 | `gharama/jaribu-mfululizo-huru.mapishi` | kila hatua ya mnyororo huru, kila kipengele na kosa (`msingi/mfululizo/majaribio/`) |
 | `gharama/jaribu-mifano.mapishi`, `jaribu-usakinishaji.mapishi` | mifano ya README; swa iliyosakinishwa nje ya hazina |
-| `gharama/jaribu-wasm.mapishi`, `jaribu-kernel.mapishi` | `--wasm` (node kama mkaguzi), `--kiini` (QEMU kama mkaguzi) |
+| `gharama/jaribu-wasm.mapishi`, `jaribu-kiini.mapishi` | `--wasm` (node kama mkaguzi), `--kiini` (QEMU kama mkaguzi) |
 
 Hakuna bash kwenye ujenzi wala kwenye majaribio ya CI: zana za nje pekee ni wakaguzi wa majaribio (node, python3 + QEMU).
 

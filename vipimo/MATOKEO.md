@@ -732,7 +732,7 @@ neno kwa neno) -- LCG ile ile (mbegu, kizidishi 1103515245, ongezeko
 12345, modulo 2^31) inatumika katika lugha zote nne kwa vipimo
 vinavyohitaji data ya nasibu, ili mfuatano wa thamani uwe SAWA kabisa.
 
-### miti_bst -- mti wa BST (ugawaji mdogo mdogo + pointer-chasing)
+### miti_ya_utafutaji -- mti wa BST (ugawaji mdogo mdogo + pointer-chasing)
 
 Kuingiza nodi 150,000 (kwa njia ya kurudia-rudia, SI kujirudia, kuepuka
 hatari ya kina cha rafu kwenye mti usio na usawa), kisha kutafuta
@@ -807,7 +807,7 @@ pengo la PILI kwa ukubwa kwenye mfululizo mzima (nyuma ya matriki).
 Bado ni ugunduzi halisi na wa thamani -- Rust inaonekana kuboresha
 ulinganishaji wa mfuatano
 (`kn.as_bytes() == &maandishi[mwanzo..p]`, huenda memcmp iliyoboreshwa
-sana/vectorized) kwa njia ambayo Swa (wito wa kazi unaorudiwa kwa
+sana/kwa_vekta) kwa njia ambayo Swa (wito wa kazi unaorudiwa kwa
 kila neno la kamusi 16, ukubwa wa mfuatano ukikokotolewa upya kila
 wakati kupitia urefu_mfuatano_ndani) haifanyi. Hii ni FURSA HALISI
 ya kazi ya baadaye -- si wigo wa kazi hii, ambayo ni kupima TU.
@@ -821,7 +821,7 @@ ya kazi ya baadaye -- si wigo wa kazi hii, ambayo ni kupima TU.
 | matriki | ~10.1x |
 | heshi | ~7.0x |
 | mzunguko_mchezo | ~6.1x |
-| miti_bst | ~1.75x |
+| miti_ya_utafutaji | ~1.75x |
 | mandelbrot | ~2.6x |
 | mchujo | ~2.3x |
 | maneno | ~5.5x |
@@ -947,7 +947,7 @@ Interleaved (mizunguko 9, wastani wa kati), gcc -O2 kama msingi:
 | matriki | 15.3 | 170.9 | 111.0 | 11.14x | 7.23x |
 | heshi | 161.4 | 1153.0 | 992.7 | 7.14x | 6.15x |
 | mzunguko_mchezo | 4.0 | 21.5 | 21.5 | 5.26x | 5.27x |
-| miti_bst | 62.1 | 108.3 | 108.6 | 1.74x | 1.74x |
+| miti_ya_utafutaji | 62.1 | 108.3 | 108.6 | 1.74x | 1.74x |
 | mandelbrot | 66.3 | 207.5 | 158.1 | 3.12x | 2.38x |
 | mchujo | 137.9 | 385.0 | 359.4 | 2.79x | 2.60x |
 | maneno | 28.1 | 156.3 | 103.5 | 5.55x | 3.67x |
@@ -955,7 +955,7 @@ Interleaved (mizunguko 9, wastani wa kati), gcc -O2 kama msingi:
 matriki bado ni pengo kubwa zaidi (7.2x): kitanzi cha ndani bado kina
 push/pop ya anwani ya `c[...] += ...`, `cltq` baada ya kila operesheni ya
 N32, na kaunta ya kitanzi inapita rax kabla ya kurudi kwenye rejesta --
-kazi ya baadaye. mzunguko_mchezo na miti_bst hazibadiliki (kazi yao
+kazi ya baadaye. mzunguko_mchezo na miti_ya_utafutaji hazibadiliki (kazi yao
 kuu ni wito wa kazi na miundo, si hesabu ya jozi).
 
 ## Awamu ya pili: hesabu bila rafu (kiwanja, kaunta, hoja ya kwanza, uchawi wa N64, cmp)
@@ -1023,12 +1023,12 @@ awamu ya kwanza.
 | matriki | 16.2 | 117.7 | 78.4 | 7.25x | 4.83x |
 | heshi | 161.7 | 976.6 | 613.2 | 6.03x | 3.79x |
 | mzunguko_mchezo | 3.9 | 21.0 | 18.8 | 5.40x | 4.83x |
-| miti_bst | 61.8 | 107.1 | 111.1 | 1.73x | 1.79x |
+| miti_ya_utafutaji | 61.8 | 107.1 | 111.1 | 1.73x | 1.79x |
 | mandelbrot | 65.0 | 155.1 | 149.3 | 2.38x | 2.29x |
 | mchujo | 151.3 | 367.6 | 260.8 | 2.42x | 1.72x |
 | maneno | 26.2 | 100.6 | 95.6 | 3.84x | 3.65x |
 
-miti_bst ni kipimo cha wito/miundo na inaonekana kubaki sawa ndani ya
+miti_ya_utafutaji ni kipimo cha wito/miundo na inaonekana kubaki sawa ndani ya
 kelele (+1% hadi +4% kwenye mizunguko miwili; siwezi kudai ni uboreshaji au
 hasara). Pengo kubwa lililobaki: matriki (4.8x), fibonacci (4.1x, gharama ya
 wito na fremu), heshi (3.8x, bado maandishi-hadi-nambari ya maktaba).
@@ -1288,7 +1288,7 @@ Interleaved, `perf stat` (mizunguko, mizunguko 7):
 | mzunguko_mchezo | -1.0% |
 | matriki | -0.3% |
 | mandelbrot | ~sawa |
-| fibonacci, miti_bst | +2.9%/+3.8% (kelele ya mpangilio wa msimbo -- nimethibitisha kwa jaribio la kuhamisha msimbo: fibonacci ilibadilika 224M-237M, miti_bst 336M-351M, KWA KUONGEZA TU kazi tupu bila kugusa msimbo wa mabadiliko haya) |
+| fibonacci, miti_ya_utafutaji | +2.9%/+3.8% (kelele ya mpangilio wa msimbo -- nimethibitisha kwa jaribio la kuhamisha msimbo: fibonacci ilibadilika 224M-237M, miti_ya_utafutaji 336M-351M, KWA KUONGEZA TU kazi tupu bila kugusa msimbo wa mabadiliko haya) |
 
 Hakuna kipimo hata kimoja kilichoonyesha HASARA halisi (baada ya
 kuondoa kelele). kupanga, maneno na heshi zinafaidika zaidi kwa
@@ -1305,7 +1305,7 @@ kulazimishwa kwa SIB byte).
 
 ### Uthibitisho
 
-- `jaribio_uhifadhi_ptr`: aina zote, RHS salama/isiyo salama, kielekezi
+- `jaribio_uhifadhi_kielekezi`: aina zote, RHS salama/isiyo salama, kielekezi
   kilichotokana na pointer arithmetic, kiwanja (bado njia ya asili).
   425/425, mara 3, fixpoint stage2==stage3.
 - Somo la pili la mutation kikao hiki: mutation ya kwanza (kuondoa
@@ -1359,8 +1359,8 @@ jr_ni_salama -- inarudi njia ya asili kiotomatiki.
 ### Utendaji
 
 **SAHIHISHO (baada ya ukaguzi wa Kandemark):** kipimo cha kwanza cha
-kikao hiki kilidai `miti_bst -10.1%` kama faida kuu ya kazi hii, kwa
-sababu kitanzi cha uingizaji cha `miti_bst` kinatumia `n->kushoto = n;
+kikao hiki kilidai `miti_ya_utafutaji -10.1%` kama faida kuu ya kazi hii, kwa
+sababu kitanzi cha uingizaji cha `miti_ya_utafutaji` kinatumia `n->kushoto = n;
 sasa->kulia = n;` n.k. moja kwa moja -- ndiyo mfano uliotumika
 kuhalalisha kuchagua kipimo hicho. Dai hilo HALIKUWA SAHIHI, kwa
 sababu MBILI zilizogundulika wakati wa ukaguzi:
@@ -1390,7 +1390,7 @@ sababu MBILI zilizogundulika wakati wa ukaguzi:
 
 **Hitimisho la kweli:** njia mpya ni sahihi na salama (fuzzing na
 majaribio yanathibitisha), na INAWEZEKANA ina faida ndogo kwa
-`miti_bst` (kupitia sehemu ya `thamani` PEKEE, si `kushoto`/`kulia`),
+`miti_ya_utafutaji` (kupitia sehemu ya `thamani` PEKEE, si `kushoto`/`kulia`),
 lakini HAIWEZI kudaiwa kwa uhakika kwa idadi mahususi kwenye kipimo
 hiki bila upimaji zaidi (mfumo tulivu zaidi, marudio mengi zaidi).
 Faida HALISI na iliyothibitishwa vizuri zaidi ya sehemu hii ya

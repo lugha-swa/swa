@@ -299,7 +299,7 @@ ya faili (`mende`/`mdudu` -> `hitilafu`).
 3. Maktaba (`msingi/maktaba/`), majaribio, mifano.
 4. Lugha: `anza`, `andika_kosa`, bendera, `kiendeshaji.swa` -- pamoja na
    kugandisha mbegu upya.
-5. Maoni, hati, faili za CI (`ci.yml` -> `ukaguzi.yml`), `dom_mock.js` ->
+5. Maoni, hati, faili za CI (`ci.yml` -> `ukaguzi.yml`), `dom_bandia.js` ->
    `hati_bandia.js`. Faili zinazotakiwa na GitHub kwa jina hilo
    (`README.md`, `LICENSE-*`, `SECURITY.md`, `CONTRIBUTING.md`,
    `.github/ISSUE_TEMPLATE`, `pull_request_template.md`, `FUNDING.yml`)
