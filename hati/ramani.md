@@ -26,7 +26,7 @@
 - [x] Kizalishaji cha native x86-64 (`uzalishaji.swa`)
 - [x] Binary inajikusanya (K6 inapita)
 - [x] Vipengele vya lugha vinavyotumika: functions, loops (wakati/hali), if/else, structs, heap, unary minus, break/continue, short-circuit evaluation, assignment, bitwise ops, ternary
-- [x] Safu za ndani, hoja za rafu (7+), disp32, sret, vigezo vya ulimwengu kwa RIP-relative
+- [x] Safu za ndani, hoja za mrundikano (7+), disp32, sret, vigezo vya ulimwengu kwa RIP-relative
 
 ## Hatua ya 2: Mkusanyaji Kamili wa Kujikusanya [PASS] IMEFANIKIWA
 

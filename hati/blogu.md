@@ -30,12 +30,12 @@ Sehemu za kujikusanya zimeandikwa kwa Swa yenyewe (takriban mistari 4,100 katika
 
 ### Mahali pa Kuanzia (Julai 4, 07:00)
 
-Wakati kipindi kilipoanza, binary ya kujikusanya ilianguka mara moja kwa **SIGSEGV** (kufurika kwa rafu). Jaribio la K6 la kujikusanya kamili (`jaribio_k6_kujikusanya_kamili`) lilikuwa limezimwa kwa `#[ignore]` tangu ilipoanzishwa. Majaribio 172 pekee yalipita, na mradi ulikuwa umekwama kwenye kizuizi kikubwa.
+Wakati kipindi kilipoanza, binary ya kujikusanya ilianguka mara moja kwa **SIGSEGV** (kufurika kwa mrundikano). Jaribio la K6 la kujikusanya kamili (`jaribio_k6_kujikusanya_kamili`) lilikuwa limezimwa kwa `#[ignore]` tangu ilipoanzishwa. Majaribio 172 pekee yalipita, na mradi ulikuwa umekwama kwenye kizuizi kikubwa.
 
 ### Hitilafu Zilizogunduliwa na Kurekebishwa
 
 **Hitilafu 1: Alloca-in-Loop -> SIGSEGV** (`src/ir/lower.rs`)
-Hitilafu muhimu zaidi. Kiteremshi cha IR kilitoa maagizo ya `alloca` kwenye block ya sasa ya msingi badala ya block ya kuingia ya kazi. Wakati tamko la kigezo cha ndani lilipokuwa ndani ya mzunguko (kama mzunguko wa `wakati` cha mchanganuzi), kila mzunguko uliunda alloca mpya -- ikitumia baiti 16 za rafu kwa kila mzunguko. Baada ya takriban mizunguko 524,000, rafu ya MB 8 ilikuwa imeisha.
+Hitilafu muhimu zaidi. Kiteremshi cha IR kilitoa maagizo ya `alloca` kwenye block ya sasa ya msingi badala ya block ya kuingia ya kazi. Wakati tamko la kigezo cha ndani lilipokuwa ndani ya mzunguko (kama mzunguko wa `wakati` cha mchanganuzi), kila mzunguko uliunda alloca mpya -- ikitumia baiti 16 za mrundikano kwa kila mzunguko. Baada ya takriban mizunguko 524,000, mrundikano wa MB 8 ilikuwa imeisha.
 
 **Marekebisho:** Mbinu ya kupitisha mara mbili. Kazi mpya ya `collect_local_decls` inatembea AST kugundua matamko yote ya vigeu vya ndani kabla ya uteuzi wa mwili kuanza. Alloca hizi zinatolewa mapema kwenye block ya kuingia. Wakati wa uteuzi wa mwili, `lower_local_decl` hutafuta `ValueId` iliyotengwa mapema badala ya kuunda alloca mpya.
 
@@ -44,7 +44,7 @@ Hitilafu muhimu zaidi. Kiteremshi cha IR kilitoa maagizo ya `alloca` kwenye bloc
 ---
 
 **Hitilafu 2: CFG Dead-Code -> Mzunguko Usio na Mwisho** (`src/ir/lower.rs`, mstari 875)
-Usafiri wa block ya `actual_prev` ulishughulikia tu vivunja vya `Br`. Ulipokutana na `BrCond` (kutoka tathmini fupi ya `&&`/`||`), ulivunja na kurudisha block mbaya. Maagizo yote yaliyofuata yakawa msimbo uliokufa usiofikiwa. Mzunguko wa mchanganuzi kilizunguka milele, kikiunda allocas kila mzunguko hadi rafu ikaisha.
+Usafiri wa block ya `actual_prev` ulishughulikia tu vivunja vya `Br`. Ulipokutana na `BrCond` (kutoka tathmini fupi ya `&&`/`||`), ulivunja na kurudisha block mbaya. Maagizo yote yaliyofuata yakawa msimbo uliokufa usiofikiwa. Mzunguko wa mchanganuzi kilizunguka milele, kikiunda allocas kila mzunguko hadi mrundikano ukaisha.
 
 **Marekebisho:** Mstari mmoja ulioongezwa kushughulikia `BrCond` katika usafiri:
 ```rust

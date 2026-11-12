@@ -64,12 +64,12 @@ zunguka .mzunguko          ; punguza r1, ruka ikiwa si sifuri
 
 Hali inatoka kwa agizo la mwisho lililoiweka (`linganisha`, `pima`, au hesabu kama `r1--`).
 
-## Kazi, rafu, mfumo
+## Kazi, mrundikano, mfumo
 
 | Lugha | Maana |
 |---|---|
 | `ita jina` / `rudi` | wito / rudisha |
-| `sukuma r0` / `vuta r0` / `sukuma n64[hesabu]` | rafu |
+| `sukuma r0` / `vuta r0` / `sukuma n64[hesabu]` | mrundikano |
 | `mfumo` | wito wa mfumo (Linux syscall) |
 | `nakili` | nakili `r1` baiti kutoka `[r6]` kwenda `[r7]` |
 | `mwelekeo_mbele` | nakili kwenda mbele (cld) |

@@ -28,7 +28,7 @@ ilitoa ufafanuzi wa kazi ya LLVM bila masharti. Kwa kazi ambazo hazikuwa na mwil
 
 **Faili:** `src/codegen/llvm/mod.rs`
 
-**Hitilafu.** Kibadala cha `Const::Int` kilikuwa kikijitokeza kama `i64` (baiti 8) katika LLVM IR, bila kujali aina lengwa. Wakati msimbo ulipogawa `Const::Int` kwa mgao wa rafu wa `i32`, elekezo la hifadhi liliandika baiti 8 kwenye baiti 4 za nafasi ya alloca. Baiti za ziada zilifurika kwenye vigezo vya karibu vya rafu, na kuharibu thamani zao kimya.
+**Hitilafu.** Kibadala cha `Const::Int` kilikuwa kikijitokeza kama `i64` (baiti 8) katika LLVM IR, bila kujali aina lengwa. Wakati msimbo ulipogawa `Const::Int` kwa mgao wa mrundikano wa `i32`, elekezo la hifadhi liliandika baiti 8 kwenye baiti 4 za nafasi ya alloca. Baiti za ziada zilifurika kwenye vigezo vya karibu vya mrundikano, na kuharibu thamani zao kimya.
 
 **Marekebisho.** Kidhibiti cha hifadhi kilibadilishwa kuuliza aina ya kielekezi cha mgao lengwa kupitia `LLVMGetElementType`, kisha kuingiza `LLVMBuildIntCast2` ili kukata (au kupanua) nambari kamili ili ilingane na upana wa lengwa kabla ya kutoa elekezo la hifadhi.
 
@@ -157,11 +157,11 @@ Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (mzunguko wa kujirudia) h
 
 ---
 
-## 9. Alloca-in-Loop Inamaliza Rafu -- Alloca za Vigeu vya Ndani Zinapaswa Kuwa kwenye Kitalu cha Kuingia
+## 9. Alloca-in-Loop Inamaliza Mrundikano -- Alloca za Vigeu vya Ndani Zinapaswa Kuwa kwenye Kitalu cha Kuingia
 
 **Faili:** `src/ir/lower.rs`
 
-**Hitilafu.** Mbinu ya `lower_local_decl` ilikuwa ikitoa alloca (nafasi ya rafu) kwa vigeu vya ndani kwenye block ya sasa ya kuteremsha. Kwa mpangilio wa mstari, hii inafanya kazi kwa usahihi -- kila kigezo kina alloca yake kwenye block moja. Lakini ndani ya mzunguko (`wakati`), kila mzunguko uligawa *alloca mpya* kwenye block ya mzunguko, na alloca za zamani hazikuwekwa huru. Baada ya takriban mizunguko 524,288, rafu ya MB 8 iliisha na kugonga ukurasa wa ulinzi, na kusababisha SIGSEGV.
+**Hitilafu.** Mbinu ya `lower_local_decl` ilikuwa ikitoa alloca (nafasi ya mrundikano) kwa vigeu vya ndani kwenye block ya sasa ya kuteremsha. Kwa mpangilio wa mstari, hii inafanya kazi kwa usahihi -- kila kigezo kina alloca yake kwenye block moja. Lakini ndani ya mzunguko (`wakati`), kila mzunguko uligawa *alloca mpya* kwenye block ya mzunguko, na alloca za zamani hazikuwekwa huru. Baada ya takriban mizunguko 524,288, mrundikano wa MB 8 iliisha na kugonga ukurasa wa ulinzi, na kusababisha SIGSEGV.
 
 Uchunguzi wa gdb ulionyesha kuanguka kwenye `changanua()+54`:
 ```
@@ -173,7 +173,7 @@ Rejesta zilionyesha:
 - `i` = 36794 (faharisi ya elementi -- inapaswa kuwa 0 kwa tokeni ya kitambulisho kimoja)
 - Tofauti 36794 = 36797 - 3 ilionyesha kwamba urefu wa tokeni ulikuwa umeharibika
 
-Chanzo cha msingi: Kila marudio ya mzunguko wa `wakati` katika `changanua()` uligawa baiti 16 za alloca kwa vigeu vya ndani kwenye block ya mzunguko, na alloca hizi hazikuwekwa huru wakati mzunguko ulipomalizika. Rafu ilikua hadi ikagonga ukurasa wa ulinzi.
+Chanzo cha msingi: Kila marudio ya mzunguko wa `wakati` katika `changanua()` uligawa baiti 16 za alloca kwa vigeu vya ndani kwenye block ya mzunguko, na alloca hizi hazikuwekwa huru wakati mzunguko ulipomalizika. Mrundikano ulikua hadi ukagonga ukurasa wa ulinzi.
 
 **Marekebisho.** Suluhisho linatumia mbinu ya kupitisha mara mbili katika `lower_function`:
 
@@ -191,7 +191,7 @@ Chanzo cha msingi: Kila marudio ya mzunguko wa `wakati` katika `changanua()` uli
    ```
    Hii inahakikisha kwamba wakati block ina kituo cha masharti, ufuatiliaji unaendelea kutoka kwenye block ya kuunganisha badala ya kukwama.
 
-**Athari.** Marekebisho haya yalirekebisha hitilafu ya SIGSEGV kwenye jaribio la K6 (kujikusanya kamili). Kabla ya marekebisho, binary ya kujikusanya ilianguka mara moja kwa SIGSEGV wakati wa kutekelezwa kwa sababu rafu iliisha ndani ya mzunguko wa `changanua()`. Baada ya marekebisho, binary ya kujikusanya iliendelea hadi kwenye hitilafu ya uchanganuzi tofauti (tokeni iliyobaki ya `}`), ambayo pia ilirekebishwa hatimaye.
+**Athari.** Marekebisho haya yalirekebisha hitilafu ya SIGSEGV kwenye jaribio la K6 (kujikusanya kamili). Kabla ya marekebisho, binary ya kujikusanya ilianguka mara moja kwa SIGSEGV wakati wa kutekelezwa kwa sababu mrundikano uliisha ndani ya mzunguko wa `changanua()`. Baada ya marekebisho, binary ya kujikusanya iliendelea hadi kwenye hitilafu ya uchanganuzi tofauti (tokeni iliyobaki ya `}`), ambayo pia ilirekebishwa hatimaye.
 
 ---
 
@@ -254,14 +254,14 @@ Safu ya AST (AST_SAFU) yenye elementi 4096 haikutosha kwa faili zote za maktaba 
 | # | Hitilafu | Faili | Dalili | Sababu Kuu |
 |---|---------|-------|--------|------------|
 | 1 | Matamko ya mbele yanatoa vijisabuni vitupu | `src/ir/lower.rs` | Utekelezaji halisi umefunikwa | Hakuna ukaguzi wa kuwepo kwa mwili |
-| 2 | Hifadhi ya i64 kwa alloca ya i32 | `src/codegen/llvm/mod.rs` | Vigezo vya karibu vya rafu vimeharibika | Hakuna usawazishaji wa upana kwenye hifadhi |
+| 2 | Hifadhi ya i64 kwa alloca ya i32 | `src/codegen/llvm/mod.rs` | Vigezo vya karibu vya mrundikano vimeharibika | Hakuna usawazishaji wa upana kwenye hifadhi |
 | 3 | Hifadhi ya i32 kwa sehemu ya muundo ya i64 | `src/codegen/llvm/mod.rs` | Takataka katika baiti 4 za juu | Ukaguzi wa upana ulitumia `>` badala ya `!=` |
 | 4 | FieldAddr inapuuza mpangilio | `src/codegen/llvm/mod.rs` | Sehemu isiyo sahihi ya muundo imefikiwa | Vianzio vimejumlishwa bila mpangilio |
 | 5 | width_bytes ya muundo inakosa padding | `src/ir/types.rs` | Allocas za sret ndogo sana | Hakuna padding ya mpangilio wa mwisho |
 | 6 | Safu za ulimwengu zimeainishwa kama [Nxi8] | `src/ir/mod.rs`, `lower.rs`, `llvm/mod.rs` | Vigezo vya karibu vya ulimwengu vimeharibika | IrGlobal ilikosa sehemu ya aina |
 | 7 | Opaque pointer inaharibu usawazishaji wa hifadhi | `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs` | Hitilafu za sehemu nasibu, ulinganifu wa tokeni unashindwa | LLVMGetElementType haiaminiki na opaque pointers |
 | 8 | Msimbo baada ya kama hauwiani kwenye CFG | `src/ir/lower.rs` | Taarifa baada ya kama ni msimbo uliokufa, mizunguko ya kujirudia | actual_prev haikufuatilia BrCond; self-loop haikurekebishwa |
-| 9 | Alloca-in-loop inamaliza rafu | `src/ir/lower.rs` | SIGSEGV kwenye mzunguko wa wakati (rafu inaisha) | Alloca za vigeu vya ndani zinatolewa kwenye block ya sasa badala ya block ya kuingia |
+| 9 | Alloca-in-loop inamaliza mrundikano | `src/ir/lower.rs` | SIGSEGV kwenye mzunguko wa wakati (mrundikano unaisha) | Alloca za vigeu vya ndani zinatolewa kwenye block ya sasa badala ya block ya kuingia |
 | 10 | Tamko la mbele halitumii `;` | `msingi/mkusanyaji/msambazaji.swa` | Hitilafu ya "unexpected element" | Nukta mkato inavuja hadi kiwango cha juu |
 | 11 | Mzunguko wa `kwa` unashindwa | `msingi/mkusanyaji/msambazaji.swa` | `N32 i = 0` haichanganuliwi | Mchanganuzi unatumia usemi badala ya tamko |
 | 12a | `sogeza()` inakosa sehemu za tokeni | `msingi/mkusanyaji/msambazaji.swa`, `msingi/mkusanyaji/msomaji.swa` | Nambari za mistari ni 1 kila wakati | Kunakili sehemu 3 kati ya 5 tu |

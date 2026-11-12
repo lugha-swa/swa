@@ -162,7 +162,7 @@ kumbukumbu (arrays tatu za D64 za MB 16 kila moja, mara nyingi zaidi
 ya akiba ya L2/L3), sio hesabu safi ya ALU, hivyo kupunguza maagizo
 ya ALU pekee hakuondoi kizuizi cha bandwidth ya kumbukumbu kabisa.
 Toleo la scalar pia lina mzigo mdogo wa ziada (kigezo `tmp` cha ziada
-kwenye rafu kwa kila mzunguko) ambao si sehemu safi ya uvektishaji
+kwenye mrundikano kwa kila mzunguko) ambao si sehemu safi ya uvektishaji
 wenyewe -- tofauti halisi ya "SIMD dhidi ya scalar safi" pengine ni
 kidogo zaidi ya 40% iliyoripotiwa hapa, si kidogo.
 
@@ -182,7 +182,7 @@ sawa kwa pande zote mbili.
 
 Ugawaji wa rejesta uliopo (PR #226/#227) unashughulikia vigezo vya
 NDANI na paramu PEKEE -- matokeo ya KATI ya usemi (mfano (a+b) ndani
-ya (a+b)*(c+d)) yaliendelea kusukumwa/kutolewa (push/pop) kwenye rafu
+ya (a+b)*(c+d)) yaliendelea kusukumwa/kutolewa (push/pop) kwenye mrundikano
 kila wakati. Sehemu hii inaongeza njia mbadala inayotumia rejesta za
 callee-saved ZISIZOTUMIKA (baada ya vigezo vya ndani/paramu) kushikilia
 matokeo ya kati, ikitumia fomula ya Sethi-Ullman kukokotoa haja ya
@@ -253,7 +253,7 @@ mabadiliko haya).
 kivyake nje ya mzunguko, ikitengeneza VIGEZO VYA MUDA VIWILI TOFAUTI
 vinavyoshikilia thamani MOJA (imethibitishwa kwa disassembly: maagizo
 YALE YALE ya kuzidisha `rbx*r13` yanaonekana MARA MBILI mfululizo,
-yakihifadhiwa kwenye nafasi mbili tofauti za rafu). Kwa kuwa vigezo
+yakihifadhiwa kwenye nafasi mbili tofauti za mrundikano). Kwa kuwa vigezo
 hivyo vina MAJINA tofauti, ulinganisho wa muundo (`keq_taja_sawa`)
 kwa usahihi HAUKUBALI ulinganifu -- si hitilafu, ni tabia salama
 inayozuia matokeo yasiyo sahihi. Matokeo: binary ya matriki
@@ -281,7 +281,7 @@ memory-bound.
 
 ## Peephole: unganisha push/pop (rax/rcx) inayofuatana
 
-Mkusanyaji huu hutumia rafu (push/pop) sana kama njia ya jumla ya
+Mkusanyaji huu hutumia mrundikano (push/pop) sana kama njia ya jumla ya
 kuhamisha thamani kati ya sehemu za usemi (`sukuma_thamani`/
 `vuta_thamani_rcx` na maeneo mengi ya moja kwa moja) -- disassembly
 za PR nyingi za kikao hiki zimeonyesha mara kwa mara mfuatano kama
@@ -312,7 +312,7 @@ kwenye majaribio 18 (ikiwa ni pamoja na yale ya kashe ya anwani ya
 kiwanja) -- chanzo: `andika_pop_rcx`/`andika_pop_rax` ziliita
 `andika_mov_rcx_rax`/`andika_mov_rax_rcx` KABLA ya kufuta
 `png_akiba_reg`, hivyo wito huo wa ndani wa `andika_baiti` uliona hali
-ya zamani ikiwa bado hai na kutoa PUSH YA PILI ISIYO SAHIHI (rafu
+ya zamani ikiwa bado hai na kutoa PUSH YA PILI ISIYO SAHIHI (mrundikano
 ikavurugika). Rekebisho: futa hali KWANZA, kisha ita `andika_mov_*`
 -- muundo uleule uliokuwa tayari sahihi kwenye `png_safisha`.
 Iligunduliwa kwa disassembly ya kesi ndogo (`c[i*n+j]+=7`), si dhana.
@@ -341,7 +341,7 @@ imeondolewa). Kipimo kipya kilicholengwa
 mmoja) kinakokotoa baiti 1 pungufu (kimethibitishwa), LAKINI muda wa
 ukuta haubadiliki HATA KIDOGO (264-287ms zote mbili, ndani kabisa ya
 kelele) -- push/pop ya rejesta MOJA (bila kugusa kumbukumbu ya
-maana) tayari ni ya haraka SANA kwenye CPU za kisasa (injini ya rafu/
+maana) tayari ni ya haraka SANA kwenye CPU za kisasa (injini ya mrundikano/
 stack engine), na akiba ya maagizo 2-3 inapotea kabisa dhidi ya
 gharama nyingine za mzunguko (hapa: `%` -- modulo). Hitimisho la
 uaminifu: hii ni uboreshaji WA KWELI wa idadi ya maagizo (umethibitishwa
@@ -735,7 +735,7 @@ vinavyohitaji data ya nasibu, ili mfuatano wa thamani uwe SAWA kabisa.
 ### miti_ya_utafutaji -- mti wa BST (ugawaji mdogo mdogo + pointer-chasing)
 
 Kuingiza nodi 150,000 (kwa njia ya kurudia-rudia, SI kujirudia, kuepuka
-hatari ya kina cha rafu kwenye mti usio na usawa), kisha kutafuta
+hatari ya kina cha mrundikano kwenye mti usio na usawa), kisha kutafuta
 150,000 (checksum inajumuisha hatua za pointer-chase, si tu
 imepatikana/haijapatikana, kuzuia kukatwa mapema). Checksum:
 `idadi_patikana=1074 hatua_jumla=3560678` (SAWA lugha zote nne).
@@ -880,11 +880,11 @@ mwingiliano). Ndogo kuliko ilivyotarajiwa kwa sababu ya kufurika kwa
 N32 (overflow) kwenye mzunguko wa 50M -- lakini halisi na inayoweza
 kuigwa (reproducible).
 
-## Pande mbili bila push/pop kwenye rafu
+## Pande mbili bila push/pop kwenye mrundikano
 
 Njia ya asili kwa kila operesheni ya jozi ilikuwa: tathmini kulia,
 sukuma; tathmini kushoto; vuta. Kwa `c[i*n+j] + aik * b[k*n+j]` hiyo ni
-safari nne za kumbukumbu za rafu kwa desimali (`sub rsp; movsd
+safari nne za kumbukumbu za mrundikano kwa desimali (`sub rsp; movsd
 [rsp]` ... `movsd xmm1,[rsp]; add rsp`) na mbili kwa kila namba
 kamili, bila sababu yoyote -- disassembly ya mzunguko wa ndani wa
 matriki ilionyesha mistari zaidi ya 50 kwa mzunguko mmoja.
@@ -895,7 +895,7 @@ kulia kwenye rcx/xmm1 kama zamani, kwa njia tatu:
 - **A -- kushoto ni jani** (namba, kitambulisho): kulia kwanza (mpangilio
   ule ule wa asili), nakala ya rejesta hadi rejesta, kisha jani.
 - **B -- namba kamili, kulia ni jani** (namba ya kudumu, kigezo cha
-  rejesta/rafu, paramu; upana sawa na operesheni): kushoto kwanza, jani
+  rejesta/mrundikano, paramu; upana sawa na operesheni): kushoto kwanza, jani
   moja kwa moja rcx. Hii inabadilisha mpangilio wa kusoma kigezo, kwa
   hiyo kwa kigezo inahitaji kushoto isiyoweza kukibadilisha
   (`jr_ni_salama`: hakuna wito, hakuna uandishi). Namba ya kudumu
@@ -958,17 +958,17 @@ N32, na kaunta ya mzunguko inapita rax kabla ya kurudi kwenye rejesta --
 kazi ya baadaye. mzunguko_mchezo na miti_ya_utafutaji hazibadiliki (kazi yao
 kuu ni wito wa kazi na miundo, si hesabu ya jozi).
 
-## Awamu ya pili: hesabu bila rafu (kiwanja, kaunta, hoja ya kwanza, uchawi wa N64, cmp)
+## Awamu ya pili: hesabu bila mrundikano (kiwanja, kaunta, hoja ya kwanza, uchawi wa N64, cmp)
 
 Inaendeleza `toa_pande_mbili` (sehemu iliyotangulia). Kila kipengele kina
 jaribio lake la kudumu na kila kimoja kimevunjwa kwa makusudi (mutation) ili
 kuthibitisha kuwa jaribio linakishika.
 
 - **Ugawaji wa kiwanja** (`c[idx] += x`, `-=`, `*=`): thamani ya sasa
-  haisukumwi rafuni -- kulia jani -> rcx; desimali isiyo na wito -> xmm2..xmm7;
-  vinginevyo rafu. Pia ilikuwa na `push rax; push rax; pop rax` isiyo na maana.
+  haisukumwi kwenye mrundikano -- kulia jani -> rcx; desimali isiyo na wito -> xmm2..xmm7;
+  vinginevyo mrundikano. Pia ilikuwa na `push rax; push rax; pop rax` isiyo na maana.
 - **Kaunta** `x = x + namba` / `x = x - namba` (N32 yenye ishara): `add
-  r32, imm32` + `movsxd` kwa rejesta, `add dword [rbp-off], imm32` kwa rafu
+  r32, imm32` + `movsxd` kwa rejesta, `add dword [rbp-off], imm32` kwa mrundikano
   (badala ya maagizo 6 kupitia rax). Kuzunguka kwa 2^31 kunathibitishwa.
 - **`movsxd`**: kusoma kigezo cha N32 chenye ishara kulikuwa `mov` + `cdqe`;
   sasa agizo moja. Rejesta za kudumu HAZIhakikishiwi kupanuliwa kwa ishara
@@ -976,10 +976,10 @@ kuthibitisha kuwa jaribio linakishika.
   haiwezi kuondolewa -- ila kuunganishwa kunaokoa agizo na kulipimwa ~10%
   kwenye vipimo kadhaa. (Jaribio la kuondoa `cdqe` ya operanda kabisa
   halikuleta faida yoyote inayopimika, na liliondolewa.)
-- **Hoja ya kwanza ya wito** haipiti rafuni: `mov rdi, rax` (au inabaki
+- **Hoja ya kwanza ya wito** haipiti kwenye mrundikano: `mov rdi, rax` (au inabaki
   xmm0). Inatumika tu kwa wito wa kawaida: si sret, si syscall, si
   `tekeleza`, si wito wa kielekezi, na hakuna hoja ya muundo (sloti za
-  `[rsp + j*8]` zinategemea hoja zote kuwa rafuni).
+  `[rsp + j*8]` zinategemea hoja zote kuwa kwenye mrundikano).
 - **`/ % << >> & | ^`** zinapita `toa_pande_mbili` (kigawanyaji jani).
 - **Zidisho na uchawi kwa N64 yenye ishara**: kikwazo cha awali (hakuna hesabu
   ya biti 128 kwenye lugha) kimepitwa kwa jedwali la vigawanyaji 79 (3..64
@@ -1048,7 +1048,7 @@ vigawanyaji vilivyofichwa nyuma ya kazi (idiv halisi), kwa mkusanyaji ule ule.
 ## Upakiaji wa arr[i] kwa agizo moja la SIB
 
 `arr[i]` ya scalar (N8/N16/N32/N64, A8/A16/A32, D32/D64) yenye msingi jani
-(kigezo cha kielekezi cha rejesta/rafu/paramu, au safu ya ndani) sasa
+(kigezo cha kielekezi cha rejesta/mrundikano/paramu, au safu ya ndani) sasa
 inapakiwa kwa agizo MOJA `[rcx + rax*saizi]`: faharasa kwenye rax (cdqe tu
 kama `panua_ishara_ndogo` haikuiongeza tayari), msingi kwenye rcx BAADA ya
 faharasa (mpangilio ule ule wa asili), kisha upakiaji. Awali ilikuwa `shl`,
@@ -1186,15 +1186,15 @@ mabadiliko haya).
 
 ### Kazi ya baadaye iliyogunduliwa (haijafanyiwa kazi -- hatari kubwa)
 
-`sub rsp, N` kwenye utangulizi wa kazi bado inahifadhi nafasi ya rafu
+`sub rsp, N` kwenye utangulizi wa kazi bado inahifadhi nafasi ya mrundikano
 kwa vigezo VYOTE (kutoka `param_stack`/`var_stack_idadi`), HATA vile
 vilivyopandishwa hadi rejesta za kudumu baadaye (havisomwi/kuandikwa
-kamwe kupitia anwani yao ya rafu). Kwa `fib`, hii inamaanisha `sub
+kamwe kupitia anwani yao ya mrundikano). Kwa `fib`, hii inamaanisha `sub
 rsp, 0x10` inahifadhi baiti 16 zisizotumika kabisa. Kupunguza hili
 kwa usalama kunahitaji kuunganisha uamuzi wa ugawaji wa rejesta NDANI
 ya mchakato wa kutoa umbali (si kupunguza jumla ya `sub rsp` peke
 yake baada ya umbali kukwisha gawiwa -- hilo lingehamisha vigezo
-vingine chini ya rsp mpya, uharibifu wa rafu). Ni kazi kubwa zaidi,
+vingine chini ya rsp mpya, uharibifu wa mrundikano). Ni kazi kubwa zaidi,
 haijaguswa kikao hiki.
 
 ## Kuondoa "cdqe" isiyo ya lazima baada ya kila wito wenye matokeo ya namba yenye ishara
@@ -1245,7 +1245,7 @@ kelele iliyoelezwa juu.
 Sawa na #251 (ambayo iliongeza SIB kwa KUSOMA `arr[idx]` pekee): sasa
 KUANDIKA `arr[idx] = thamani` (isiyo ya kiwanja `+=`/`-=`/`*=`, isiyo
 ya muundo) pia hutumia agizo MOJA `mov [r9 + r8*saizi], thamani`
-badala ya kukokotoa anwani kamili (shl+add), kuihifadhi kwenye rafu
+badala ya kukokotoa anwani kamili (shl+add), kuihifadhi kwenye mrundikano
 (push), kutathmini RHS, kisha kuivuta (pop) kabla ya kuhifadhi.
 
 Njia hii inatumika PEKEE pale: msingi ni jani (jr_msingi_aina, kama

@@ -45,6 +45,6 @@ Kazi (`irk_*`) zina amri zao `[irk_mwanzo, irk_mwisho)`, idadi ya vreg, ukubwa w
 
 ## Wigo
 
-Ndani: nambari kamili za upana wote (n, a, b, w), vielekezi na safu za nambari kamili, vigeu vya ndani na vya ulimwengu, waendeshaji wote wa nambari kamili, `kama`/`wakati`/`kwa`/`fanya`, `acha`/`endelea`, `&& || ! ?:`, wito na kujirudia (bila kikomo cha rafu ya mtafsiri: wito ni rekodi kwenye rafu yake), mifuatano halisi, `andika`/`andika_kosa`, `wito_wa_mfumo`, `tenga`, `ukubwa`.
+Ndani: nambari kamili za upana wote (n, a, b, w), vielekezi na safu za nambari kamili, vigeu vya ndani na vya ulimwengu, waendeshaji wote wa nambari kamili, `kama`/`wakati`/`kwa`/`fanya`, `acha`/`endelea`, `&& || ! ?:`, wito na kujirudia (bila kikomo cha mrundikano wa mtafsiri: wito ni rekodi kwenye mrundikano wake), mifuatano halisi, `andika`/`andika_kosa`, `wito_wa_mfumo`, `tenga`, `ukubwa`.
 
 Nje (hukataliwa kwa sauti, kutoka 2: `IR: haijaungwa mkono: ...`): miundo, desimali, vielekezi vya kazi, `chagua`. Kila kipengele kikiongezwa, programu zinazopita huongezwa kwenye `majaribio/ir/WIGO.txt`.
