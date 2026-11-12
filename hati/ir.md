@@ -33,7 +33,7 @@ Kila amri ina `ir_amri`, `ir_lengo` (vreg ya matokeo au -1), `ir_a`, `ir_b`, `ir
 | `wito_asili` | kazi ya asili `a`: `wito_wa_mfumo`, `tenga`, `achilia`, na vipande vya `andika` (sehemu ya maandishi, namba, mfuatano, herufi) |
 | `rudisha` | rudisha `v[a]` (`a = -1`: 0) |
 
-Kazi (`irk_*`) zina amri zao `[irk_mwanzo, irk_mwisho)`, idadi ya vreg, ukubwa wa fremu, na vigezo (`irp_*`: ofseti ya nafasi na upana). Kazi `<vianzio vya ulimwengu>` huendeshwa kabla ya `main`.
+Kazi (`irk_*`) zina amri zao `[irk_mwanzo, irk_mwisho)`, idadi ya vreg, ukubwa wa fremu, na vigezo (`irp_*`: umbali wa nafasi na upana). Kazi `<vianzio vya ulimwengu>` huendeshwa kabla ya `main`.
 
 ## Semantiki zinazofuata msimbo wa mashine
 

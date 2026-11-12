@@ -147,7 +147,7 @@ hifadhi rdi..r9 kwenye [rbp-8..-48], xmm0..7 kwenye [rbp-56..-112]
 and rsp,-16; [sub rsp,8 sloti zikiwa witiri]; sub rsp,8*sloti
 kwa kila hamisho la mpango: rafu kupitia rax, kisha GP, kisha xmm
   (chanzo: sloti iliyohifadhiwa, hoja ya rafu ya Swa [rbp+16+8k], au
-  [kielekezi + ofseti] kupitia r11)
+  [kielekezi + umbali] kupitia r11)
 mov eax, <xmm zilizotumika>          ; al ya System V
 call [rip+sloti]
 [matokeo <= 16: mov r11,[rbp-8]; rax/rdx, xmm0/xmm1 -> [r11]; mov rax,r11]
@@ -162,8 +162,8 @@ baiti zile zile.
 **Mpangilio wa C, si kujaza kimya.** Swa haiongezi kujaza kati ya
 sehemu (`{ n8 a; n32 b; }` ni baiti 5); C huongeza (baiti 8). Muundo
 unaovuka kiolesura lazima uwe tayari na mpangilio wa C: kila sehemu
-kwenye ofseti ya kizidisho cha upangiliaji wake na ukubwa kizidisho
-cha upangiliaji mkubwa. Vinginevyo ni kosa linalotaja sehemu, ofseti,
+kwenye umbali wa kizidisho cha upangiliaji wake na ukubwa kizidisho
+cha upangiliaji mkubwa. Vinginevyo ni kosa linalotaja sehemu, umbali,
 na baiti za kujaza zinazohitajika -- mpangaji huongeza sehemu ya
 kujaza mwenyewe, na mpangilio unaonekana kwenye chanzo.
 
@@ -179,7 +179,7 @@ kwa mpangilio, hivyo hoja ya rejesta iliyofuata hoja ya rafu (mf. n64
 saba + d64) ilisomwa kutoka sloti ya hoja ya rafu -- thamani ya uongo
 kimya. Mwitwaji alihesabu nafasi ya rafu kwa hoja za namba pekee, na
 desimali ya 9+ haikusomwa kabisa. Sasa mpangilio uliochanganyika
-hupakiwa kwa ofseti na hoja za rafu hubanwa (`hoja_kwa_sysv`), na
+hupakiwa kwa umbali na hoja za rafu hubanwa (`hoja_kwa_sysv`), na
 mwitwaji ana kaunta moja ya rafu. Mipangilio iliyofanya kazi hubaki
 baiti zile zile. Jaribio: `majaribio/programu/jaribio_hoja_mrundikano_mchanganyiko.swa`.
   - Jedwali lote (interp, dynstr, dynsym, hash, rela, dynamic, phdr)
@@ -206,7 +206,7 @@ Windows na macOS kipakiaji cha mfumo ni lazima hata hivyo. Kwa hiyo:
 | Awamu | Kazi | Jaribio linalothibitisha |
 |---|---|---|
 | 1 (imekamilika) | `nje`, aina za namba/kielekezi/d64/d32, ELF ya kiungo-hai, ukaguzi wa aina, upangiliaji wa rafu | libm: `cos`, `pow`, `sqrt`; libc: `strlen`, `qsort` yenye kazi ya kurudi ya Swa, `getcontext` kwa upangiliaji; makosa 13 kwa ujumbe kamili; programu 460 zilizopo sawa kwa baiti (--programu na --wasm); uthabiti |
-| 2 (imekamilika) | hoja za rafu, hoja za ziada (`...`, r11 + al), data ya maktaba (R_X86_64_COPY), rekebisho la wito wa Swa | `snprintf`: namba 9 za ziada (6 rafuni), desimali zikichanganyika, desimali 10 (2 rafuni) + namba; kichwa cha kudumu chenye sloti 3 za rafu; `optind` (thamani 1 inakiliwa) na `stdout` kwa `fputs`; makosa 19; majaribio 4 ya mabadiliko (kitanzi bila push, ofseti mbaya, COPY kama GLOB_DAT, al = 0) yote hukamatwa |
+| 2 (imekamilika) | hoja za rafu, hoja za ziada (`...`, r11 + al), data ya maktaba (R_X86_64_COPY), rekebisho la wito wa Swa | `snprintf`: namba 9 za ziada (6 rafuni), desimali zikichanganyika, desimali 10 (2 rafuni) + namba; kichwa cha kudumu chenye sloti 3 za rafu; `optind` (thamani 1 inakiliwa) na `stdout` kwa `fputs`; makosa 19; majaribio 4 ya mabadiliko (kitanzi bila push, umbali mbaya, COPY kama GLOB_DAT, al = 0) yote hukamatwa |
 | 3 (imekamilika) | muundo kwa thamani: uainishaji wa System V (INTEGER/SSE/MEMORY), kipande cha kutafsiri, matokeo kwenye rax:rdx/xmm0:xmm1, data ya muundo; ukaguzi wa mpangilio wa C | libc/libm halisi: `div`, `ldiv` (matokeo baiti 8 na 16), `cabs`/`csqrt`/`cpow` (`double complex`, SSE,SSE), `cabsf`/`csqrtf` (`float complex`, SSE moja kutoka GP ya Swa), `inet_ntoa` (`struct in_addr`), `memcpy` kama matokeo MEMORY, `in6addr_loopback` kama data; `snprintf` huonyesha rafu: MEMORY ya baiti 24, muundo usiotosha rejesta, INTEGER+SSE, darasa ndani ya baiti-8 moja, xmm zilizojaa, desimali ya 9, miundo kutoka rafu ya Swa, muundo ndani ya muundo; makosa 7; programu 968 zilizopo sawa kwa baiti; majaribio 14 ya mabadiliko: 13 hukamatwa, moja ni sawa kimaana (bila kupakia rdi kwa matokeo MEMORY -- rdi ya Swa tayari ni ile ya System V) |
 | 4 (imekamilika) | `--wasm`: kila `nje "<moduli>"` huwa uingizaji wa WASM (moduli, alama); `dom_*` 8 zilizowekwa ndani ya mkusanyaji zimeondolewa; DOM ni Swa (`msingi/maktaba/kivinjari.swa`) juu ya kiolesura cha jumla kinachoandikwa na `swa --wasm-js`; `msingi/kivinjari/swa-kivinjari.js` ya mkono imefutwa | majaribio yote ya DOM na matukio hupitia mfululizo mzima (Swa -> kivinjari.swa -> swa-js.js -> hati bandia); `jaribio_nje_js` hutumia uingizaji moja kwa moja; makosa 3 (desimali, `...`, data); mabadiliko 2 (kiolesura chenye hoja zilizobadilishwa, `dom_unda` bila maktaba) hukamatwa |
 | 5 | Win64 + PE (Windows), kisha ARM64 + Mach-O | programu ile ile kwenye kila jukwaa |

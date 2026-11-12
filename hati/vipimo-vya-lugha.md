@@ -670,7 +670,7 @@ nje "libm.so.6" {
   (R_X86_64_COPY). Namba, kielekezi au muundo.
 - Muundo kwa thamani (hoja, matokeo na data) hufuata uainishaji wa
   System V; kipande hutafsiri kati ya njia ya Swa na ile ya C. Muundo
-  lazima uwe na mpangilio wa C (sehemu kwenye ofseti za kizidisho cha
+  lazima uwe na mpangilio wa C (sehemu kwenye umbali wa kizidisho cha
   upangiliaji wake, ukubwa kizidisho cha upangiliaji mkubwa) -- Swa
   haiongezi kujaza kimya, hivyo mpangilio mbaya ni kosa linalotaja
   kujaza kunakohitajika.
@@ -699,7 +699,7 @@ nje "libm.so.6" {
   rafu (hoja ya 7 inachukuliwa na pop r9, hoja 8+ zinafutwa, hakuna
   uharibifu wa vigezo vya ndani -- kilichopimwa 2026-09-04) --
   inarekebishwa (mgandisho ujao wa mbegu).
-- `tekeleza(n8* kazi, n32 argc, n8** argv, n32 ofseti)` na
+- `tekeleza(n8* kazi, n32 argc, n8** argv, n32 umbali)` na
   `anwani_ya_kazi(n8* jina)` -- visaidizi vya NDANI vya kiolesura cha JIT
   la mkusanyaji wa kujikusanya (`--papo`): havipo kwenye mifululizo
   yote miwili kama kazi za lugha. Kipimo cha 2026-09-04: `tekeleza`

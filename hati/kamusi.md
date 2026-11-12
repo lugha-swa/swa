@@ -39,11 +39,11 @@ inayoruhusiwa kubadilika.
 5. **Mpangilio wa asili wa Kiswahili.** Kichwa kwanza, kisha kiunganishi
    kinachokubaliana na ngeli yake: `idadi_ya_lebo` (si `lebo_idadi`),
    `jina_la_kazi`, `urefu_wa_mfuatano`, `kina_cha_kitanzi`,
-   `ofseti_ya_jina_la_kigeu`. Kichwa kinachohesabu huchukua wingi:
+   `umbali_wa_jina_la_kigeu`. Kichwa kinachohesabu huchukua wingi:
    `idadi_ya_vigeu`, `dimbwi_la_majina`. Majina yanayoanza na kitenzi
    (`andika_`, `soma_`, `pata_`) tayari ni ya asili. Viambishi vya nafasi
    ya majina (`kigeni_`, `wasm_`, `mti_`, `jr_`) hubaki mbele:
-   `kigeni_idadi_ya_kazi`, `mti_ofseti_ya_jina`.
+   `kigeni_idadi_ya_kazi`, `wasm_umbali_wa_mfuatano`.
 6. **Neno la lugha halilazimishwi na msimbo.** Mgongano wa majina
    hutatuliwa kwa kubadilisha msimbo, si kwa kuchagua neno lisilo sahihi
    (mf. `toa` ni kutoa; kiambishi cha kutoa msimbo kilihamishwa kuwa
@@ -78,7 +78,7 @@ mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 | node | `nodi` |
 | IR | `kati` |
 | enc / encoding | `usimbaji` (kifupisho `usb`) |
-| offset / off | `ofseti` |
+| offset / off | `umbali` |
 | buffer / buf | `chombo` |
 | pool | `dimbwi` |
 | index / idx | `faharasa` (kifupisho `fah`) |
@@ -232,7 +232,7 @@ Kazi za kuandika baiti za maagizo hufuata lugha ya mashine:
 Kazi za kutoa msimbo kwa ngazi ya juu (zamani `toa_`) ni `zalisha_`
 (`zalisha_ruka_lebo`), ili `toa` ibaki na maana yake ya hesabu.
 
-Mfano: `andika_mov_rax_rbp_off` -> `andika_soma_r0_r5_ofseti`;
+Mfano: `andika_mov_rax_rbp_off` -> `andika_soma_r0_r5_umbali`;
 `andika_push_rax` -> `andika_sukuma_r0`; `andika_xor_eax_eax` ->
 `andika_au_pekee_r0d_r0d`.
 

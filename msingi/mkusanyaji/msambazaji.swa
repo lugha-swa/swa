@@ -655,7 +655,7 @@ n32 changanua_aina_tokeni(Msambazaji* p) {
                 // lugha-swa/swa#298 -- kurudisha 0 kimya hapa
                 // kungeharibu usimbaji wa aina ya muundo huu KIMYA
                 // (0 ni usimbaji batili/tofauti kabisa na jina sahihi
-                // la dimbwi), ikisababisha ukubwa/ofseti za field
+                // la dimbwi), ikisababisha ukubwa/umbali wa field
                 // kuhesabiwa vibaya baadaye bila hitilafu ya kukusanya.
                 andika_kosa("KOSA: dimbwi la majina ya AST (ast_pool) limejaa (jina la muundo, kikomo cha baiti 16777216, wapi=%d)\n", umbali);
                 wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
@@ -1507,7 +1507,7 @@ n32 changanua_msingi(Msambazaji* p) {
         }
         // Desimali halisi (d64): baiti kutoka kiolesura cha C (strtod),
         // zimehifadhiwa kwenye dimbwi la AST (baiti 8) -- ast_thamani
-        // ina ofseti ya dimbwi; ast_tiga inabaki -1 kama kiungo cha hoja.
+        // ina umbali wa dimbwi; ast_tiga inabaki -1 kama kiungo cha hoja.
         n64 biti = biti_ya_d64_swa(p->sasa.mwanzo, p->sasa.urefu);
         sogeza(p);
         n32 umbali_d = ghala_la_majina_wapi;
@@ -2496,7 +2496,7 @@ n32 changanua_muundo(Msambazaji* p) {
         n32 nodi_ya_jina_la_kazi = nodi_mpya(NODI_KITAMBULISHO, 0, -1, -1);
         hifadhi_jina(nodi_ya_jina_la_kazi, p->sasa.mwanzo, p->sasa.urefu);
         thamani_ya_nodi[nodi_ya_jina_la_kazi] = aina_ya_sehemu;
-        tatu_ya_nodi[nodi_ya_jina_la_kazi] = umbali_unaoendelea;  // hifadhi ofseti ya baiti
+        tatu_ya_nodi[nodi_ya_jina_la_kazi] = umbali_unaoendelea;  // hifadhi umbali wa baiti
         // Kokotoa ukubwa wa baiti kutoka kwa encoding ya aina.
         // Tumia hesabu ya / na % (mbegu ina hitilafu katika & na >>).
         kama (aina_ya_sehemu < 0) {
@@ -2512,7 +2512,7 @@ n32 changanua_muundo(Msambazaji* p) {
             // (jina halipatikani kwenye dimbwi, ukubwa_wa_muundo_
             // msambazaji hurudi 4 ya chaguo-msingi badala ya baiti 8
             // za kielekezi halisi) -- ikisababisha kila shamba
-            // linalofuata kwenye muundo kupata ofseti isiyo sahihi.
+            // linalofuata kwenye muundo kupata umbali usio sahihi.
             // lugha-swa/swa#182 (udhihirisho wa pili/tatu).
             //
             // Suluhisho: `(-field_aina) % 2 != 0` inatambua kwa
@@ -2571,7 +2571,7 @@ n32 changanua_muundo(Msambazaji* p) {
     } sivyo {
         // lugha-swa/swa#298 -- muundo huu (na kila mmoja unaofuata)
         // ungekosa ukubwa wake kimya -- ukubwa_kutoka_enc ingerudi
-        // 0 kwa struct hii, ikivuruga ofseti za field na ukubwa wa
+        // 0 kwa struct hii, ikivuruga umbali wa field na ukubwa wa
         // tenga() bila hitilafu yoyote ya kukusanya.
         andika_kosa("KOSA: akiba ya ukubwa wa miundo (muundo_ukubwa_jina/val) imejaa (kikomo 1024) -- muundo '%s' na zinazofuata hazitapata ukubwa sahihi\n", ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_jina]);
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
@@ -2695,7 +2695,7 @@ n32 kigeni_kazi_kwa_jina(n8* jina) {
 }
 
 // Nakili baiti `urefu` kuanzia `mwanzo` kwenye kigeni_pool (na 0 mwishoni).
-// Rudisha ofseti, au -1 dimbwi likijaa.
+// Rudisha umbali, au -1 dimbwi likijaa.
 n32 kigeni_hifadhi(n8* mwanzo, n64 urefu) {
     kama (kigeni_ghala_wapi + urefu + 1 >= 65536) {
         andika_kosa("kosa: majina ya nje yamejaa (kikomo baiti 65536)\n");
@@ -3599,7 +3599,7 @@ w0 hamisha_nje_changanua_maudhui(n32 nodi_hii) {
     hamisha_nje_changanua_maudhui(nodi_ya_kushoto[nodi_hii]);
     hamisha_nje_changanua_maudhui(nodi_ya_kulia[nodi_hii]);
     n32 ruka_nne = 0;
-    kama (aina == 33 || aina == 34) { ruka_nne = 1; }  // SEHEMU_DOT/MSHALE: ofseti ya baiti
+    kama (aina == 33 || aina == 34) { ruka_nne = 1; }  // SEHEMU_DOT/MSHALE: umbali wa baiti
     kama (ruka_nne == 0) { hamisha_nje_changanua_maudhui(nne_ya_nodi[nodi_hii]); }
 }
 
@@ -3691,17 +3691,17 @@ n32 hamisha_nje_ni_sawa_kimuundo(n32 a, n32 b) {
         // ast_kulia ni alama ya "dimbwi la N64" (angalia mahali
         // AST_NAMBARI inavyotengenezwa hapo juu ya faili hili) --
         // namba kubwa mno kwa n32 huhifadhiwa kwenye dimbwi kwa
-        // OFSETI tofauti kila mara hata kama thamani halisi ni sawa,
+        // UMBALI tofauti kila mara hata kama thamani halisi ni sawa,
         // hivyo ulinganisho huu hauwezi kutambua ULINGANO wa namba
         // hizo -- salama (fursa iliyokosekana TU, si hatari), kwa
-        // sababu ast_thamani (ofseti) haitafanana isipokuwa ni NODI
+        // sababu ast_thamani (umbali) haitafanana isipokuwa ni NODI
         // ILE ILE ilivyorejelewa mara mbili (jambo lisilowezekana
         // hapa, kwa kuwa kila tokeo ni uchanganuzi tofauti).
         kama (thamani_ya_nodi[a] != thamani_ya_nodi[b]) { rudisha 0; }
         rudisha (nodi_ya_kulia[a] == nodi_ya_kulia[b]);
     }
     kama (t == NODI_HALISI_D) {
-        // ast_thamani ni ofseti kwenye dimbwi la desimali -- sababu
+        // ast_thamani ni umbali kwenye dimbwi la desimali -- sababu
         // ile ile kama AST_NAMBARI hapo juu.
         rudisha (thamani_ya_nodi[a] == thamani_ya_nodi[b]);
     }

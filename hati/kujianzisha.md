@@ -31,5 +31,5 @@ Imeandikwa upya kwa maana, kutoka kwenye baiti zake, kama
 ya mashine ya Swa. Programu unazotoa zilithibitishwa kuwa sawa kwa baiti na
 za `bootstrap.bin` kwa visa vyote vya `gharama/jaribu-mifano.mapishi`, ambayo
 huujenga na kuujaribu kila CI. Marekebisho mawili: aina za herufi ndogo
-(`n32`, lugha ya sasa), na `}` bila `rudisha` huandika 0 kwenye ofseti yake
-halisi (0x81) badala ya ndani ya kitambulisho cha ELF (ofseti 9).
+(`n32`, lugha ya sasa), na `}` bila `rudisha` huandika 0 kwenye umbali wake
+halisi (0x81) badala ya ndani ya kitambulisho cha ELF (umbali 9).
