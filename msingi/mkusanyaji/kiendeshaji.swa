@@ -28,11 +28,11 @@ husisha { mkusanyaji/uzalishaji_wasm.swa }
 
 // Hifadhi chanzo cha mkusanyaji mzima wakati wa kujikusanya.
 // chanzo_buf ndio pato la mwisho linalosomwa na mstakaji.
-// bafa_kuu lina chanzo kikuu (faili la mtumiaji) -- ni salama:
-// utegemezi hauingii humo kamwe. bafa_chanzo lina faili
+// chombo_cha_faili_kuu lina chanzo kikuu (faili la mtumiaji) -- ni salama:
+// utegemezi hauingii humo kamwe. chombo_cha_faili_la_sasa lina faili
 // linalotatuliwa sasa -- kujirudia kunaweza kuliharibu, kwa
 // hiyo faili linasomwa upya baada ya kila kujirudia.
-// bafa_ukaguzi ni bafa ya ziada kwa ukaguzi wa "maudhui
+// chombo_cha_ukaguzi ni chombo cha ziada kwa ukaguzi wa "maudhui
 // yapo tayari kwenye towe".
 // Ukubwa 16777216 (16MB) unafuata kiolezo kilichopo tayari cha
 // ast_pool (msambazaji.swa) -- miradi mikubwa (k.m. Dominion's
@@ -69,11 +69,11 @@ n32 faili_ipo_swa(n8* njia) {
     rudisha 1;
 }
 
-// soma_faili -- soma faili lote hadi bafa (lenye NUL mwishoni).
+// soma_faili -- soma faili lote hadi chombo (chenye NUL mwishoni).
 // Rudisha urefu, au -1 kama halifunguki. Kikomo: upeo - 1.
 //
 // Kabla ya kusoma, ukubwa HALISI wa faili unatambuliwa kwa
-// lseek(fd, 0, SEEK_END) -- kama ukubwa huo hauingii kwenye bafa
+// lseek(fd, 0, SEEK_END) -- kama ukubwa huo hauingii kwenye chombo
 // (ukubwa + 1 > upeo), kazi inarudisha -1 MARA MOJA bila kusoma
 // chochote; mwito (tatua_husisha n.k.) tayari unalia kwa sauti na
 // kusimamisha ukusanyaji (kosa=1) pale soma_faili inaporudisha -1.
@@ -81,7 +81,7 @@ n32 faili_ipo_swa(n8* njia) {
 // ukubwa uliotarajiwa -- usomaji wa sehemu tu (kwa sababu yoyote)
 // pia unarudisha -1 badala ya kuendelea na maudhui yaliyokatwa
 // kimya (aina ile ile ya hitilafu iliyorekebishwa #189/#197/#199/#200/
-// #292/#295/#298 -- bafa yenye ukubwa dhahiri lazima isimamishe
+// #292/#295/#298 -- chombo chenye ukubwa dhahiri lazima kisimamishe
 // kazi kwa uwazi inapojaa/kukatika, si kuendelea kimya).
 n64 soma_faili(n8* njia, n8* chombo, n64 upeo) {
     n64 f = mfumo_fungua(njia, 0, 0);
@@ -322,7 +322,7 @@ n32 pata_njia(n8* jina) {
 }
 
 // tafuta_katika -- kama mfuatano [data, data + urefu) unatokea
-// ndani ya eneo [mwanzo, mwisho) la bafa b. Rudisha 1 kama lipo.
+// ndani ya eneo [mwanzo, mwisho) la chombo b. Rudisha 1 kama lipo.
 n32 tafuta_katika(n8* b, n64 mwanzo, n64 mwisho, n8* data, n64 urefu) {
     kama (urefu == 0) {
         rudisha 1;
@@ -366,7 +366,7 @@ n32 maudhui_yapo(n8* jina, n8* b, n64 p, n64 urefu) {
     kama (tafuta_katika(b, p, urefu, chombo_cha_ukaguzi, L) == 1) {
         rudisha 1;
     }
-    // Toa mistari ya husisha kwenye bafa_ukaguzi (kubana mahali)
+    // Toa mistari ya husisha kwenye chombo_cha_ukaguzi (kubana mahali)
     n64 r = 0;  // mwandishi
     n64 s = 0;  // msomaji
     wakati (s < L) {
@@ -525,12 +525,12 @@ w0 tatua_husisha(n8* jina) {
     }
 }
 
-// changanua_husisha -- tembea mistari ya bafa; mistari ya
+// changanua_husisha -- tembea mistari ya chombo; mistari ya
 // "husisha { }" inatatuliwa kwa kujirudia, mistari mingine
 // inaongezwa kwenye pato kama ilivyo. Kujirudia kusoma faili
-// jingine kwenye bafa_chanzo kunaweza kuiharibu -- kwa hiyo
+// jingine kwenye chombo_cha_faili_la_sasa kunaweza kuiharibu -- kwa hiyo
 // chanzo cha sasa kinasomwa upya baada ya kila kujirudia
-// (bafa ya chanzo kikuu haiwezi kuharibiwa: tegemezi hazisomi
+// (chombo cha chanzo kikuu hakiwezi kuharibiwa: tegemezi hazisomi
 // humo kamwe).
 w0 changanua_husisha(n8* b, n64 urefu, n32 ni_kuu) {
     n64 p = 0;
@@ -550,7 +550,7 @@ w0 changanua_husisha(n8* b, n64 urefu, n32 ni_kuu) {
                 kama (maudhui_yapo(chombo_cha_jina, b, p, urefu) == 0) {
                     tatua_husisha(chombo_cha_jina);
                     kama (ni_kuu == 0 && kosa == 0) {
-                        // bafa_chanzo imeharibiwa -- isome upya njia
+                        // chombo_cha_faili_la_sasa imeharibiwa -- isome upya njia
                         // ya sasa (juu ya rafu)
                         n8* njia_sasa = majina_husisha + mrundikano_wa_husisha[urefu_wa_mrundikano - 1] * KIPANDE;
                         n64 m2 = soma_faili(njia_sasa, chombo_cha_faili_la_sasa, 16777216);
@@ -750,7 +750,7 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     // MCHAKATO MZIMA pia ni sahihi) na kama ulinzi wa ziada endapo
     // njia nyingine ya uzalishaji itaongezwa baadaye bila kupitia
     // ukaguzi wa ndani wa uzalishaji_kuu. text_imefurika (uzalishaji.swa)
-    // inawekwa 1 na andika_baiti() kama bafa_text imefurika, na pia na
+    // inawekwa 1 na andika_baiti() kama chombo_cha_msimbo imefurika, na pia na
     // ukaguzi mwingine wa ndani unaotumia bendera ile ile kama ishara
     // ya jumla ya "uzalishaji wa msimbo umeshindwa kimya" (mfano
     // vigezo vya ndani vimezidi 64, undani wa kitanzi umezidi 16).
@@ -760,7 +760,7 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     // uchunguzi wa Dominion jaribio_mchezo_kamili.swa uliogundua
     // hitilafu hii baada ya #301).
     kama (msimbo_umefurika != 0) {
-        andika_kosa("KOSA: uzalishaji wa msimbo umefurika bafa ya ndani (bafa_text au jedwali linalohusiana) -- msimbo uliotolewa ni HARIBIKA, usiutumie\n");
+        andika_kosa("KOSA: uzalishaji wa msimbo umefurika chombo cha ndani (chombo_cha_msimbo au jedwali linalohusiana) -- msimbo uliotolewa ni HARIBIKA, usiutumie\n");
         rudisha 1;
     }
 

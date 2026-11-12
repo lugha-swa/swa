@@ -14,11 +14,11 @@ static uint64_t djb2(const char *s) {
 }
 
 int main(void) {
-    char bafa[32];
+    char chombo[32];
     int64_t jumla_hash = 0;
     for (int64_t i = 0; i < N_JUMLA; i++) {
-        snprintf(bafa, 32, "mfuatano_%lld_jaribio", (long long)i);
-        jumla_hash += (int64_t)djb2(bafa);
+        snprintf(chombo, 32, "mfuatano_%lld_jaribio", (long long)i);
+        jumla_hash += (int64_t)djb2(chombo);
     }
     printf("jumla_hash=%lld\n", (long long)jumla_hash);
     return 0;

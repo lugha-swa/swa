@@ -55,21 +55,21 @@ if (!njia || tarajiwa_str === undefined) {
     shindwa("matumizi: node kimbiza.js <faili.wasm> <thamani_tarajiwa> [aina]");
 }
 
-let bafa;
+let chombo;
 try {
-    bafa = fs.readFileSync(njia);
+    chombo = fs.readFileSync(njia);
 } catch (e) {
     shindwa("faili haifunguki: " + njia + " (" + e.message + ")");
 }
 
-if (!WebAssembly.validate(bafa)) {
+if (!WebAssembly.validate(chombo)) {
     shindwa("moduli ya WASM haikubaliki (WebAssembly.validate): " + njia);
 }
 
 const dom = createDomMock();
 globalThis.document = dom.hati;
 
-anzishaSwa(bafa, dom.nodi_kuu)
+anzishaSwa(chombo, dom.nodi_kuu)
     .then((matokeo) => {
         const halisi = matokeo.matokeo;
 

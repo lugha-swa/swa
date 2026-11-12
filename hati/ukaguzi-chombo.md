@@ -1,4 +1,4 @@
-# Ukaguzi wa Bafa za Ukubwa Thabiti
+# Ukaguzi wa Vyombo vya Ukubwa Thabiti
 
 Hati hii ni matokeo ya ukaguzi wa kila mgawanyo wa ukumbusho wa
 ukubwa thabiti (safu, dimbwi, majedwali) kwenye mzizi wa uaminifu
@@ -22,12 +22,12 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 
 | Mgawanyo | Ukubwa | Ulinzi | Uamuzi |
 |---|---|---|---|
-| bafa_chanzo | 4 MB | sys_read(mpaka) + kosa la sauti | SALAMA KWA SAUTI |
+| chombo_cha_faili_la_sasa | 4 MB | sys_read(mpaka) + kosa la sauti | SALAMA KWA SAUTI |
 | token_* | 262,144 | kikomo cha kitanzi + kosa la sauti (`Hitilafu: chanzo kina tokeni nyingi mno`) | SALAMA KWA SAUTI (ilirekebishwa -- ukataji wa kimya umefungwa; hati/mipaka.md #3) |
 | ast_* | 262,144 | node_mpya -> kosa la sauti | SALAMA KWA SAUTI |
 | dimbwi_mfuatano | 1 MB | .furika_mfuatano -> kosa la sauti (ilikuwa kimya) | SALAMA KWA SAUTI (ilirekebishwa) |
-| bafa_msimbo | 1 MB | .furika za waandishi -> kosa la sauti (zilikuwa kimya) | SALAMA KWA SAUTI (ilirekebishwa) |
-| bafa_data | 16 KB | .cr_nafasi + .sajili_ulimwengu -> sauti | SALAMA KWA SAUTI |
+| chombo_cha_msimbo | 1 MB | .furika za waandishi -> kosa la sauti (zilikuwa kimya) | SALAMA KWA SAUTI (ilirekebishwa) |
+| chombo_cha_data | 16 KB | .cr_nafasi + .sajili_ulimwengu -> sauti | SALAMA KWA SAUTI |
 | label_* | 65,536 | .pita_lebo -> sauti | SALAMA KWA SAUTI |
 | jina_nje | 65,536 | .nje_jaa -> sauti | SALAMA KWA SAUTI |
 | rela_* | 65,536 | maeneo yote -> sauti | SALAMA KWA SAUTI |
@@ -41,7 +41,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 | kazi_ret_* | 256 | ukaguzi mpya -> sauti (haukuwepo) | SALAMA KWA SAUTI (ilirekebishwa) |
 | zalisha_lebo_mahali | 1024 | ukaguzi mpya -> sauti (haukuwepo; kikomo kilikuwa 128) | SALAMA KWA SAUTI (ilirekebishwa) |
 | gen_fixup_* | 65,536 | .furika -> sauti | SALAMA KWA SAUTI |
-| bafa_muda | 4096 | maandishi <= baiti 8 | SALAMA KWA UTHIBITISHO (ukubwa wa maandishi umepangwa) |
+| chombo_muda | 4096 | maandishi <= baiti 8 | SALAMA KWA UTHIBITISHO (ukubwa wa maandishi umepangwa) |
 
 ## msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa (maktaba) -- IMEKAGULIWA KAMILI
 
@@ -53,8 +53,8 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 | kazi_param_enc[4096] (mkaguzi) | 4096 | kama < 4096 tu | SALAMA KWA UTHIBITISHO (vigezo vya kazi <= 8) |
 | ast_*[65536] (msambazaji) | 65,536 | inachapisha + rudisha -1 | SALAMA KWA SAUTI (inachapisha) |
 | ast_pool (msambazaji) | 4 MB | inachapisha + rudisha | SALAMA KWA SAUTI (inachapisha) |
-| bafa_text (uzalishaji) | 512 KB | andika_baiti -> KOSA kwa sauti + flag | SALAMA KWA SAUTI |
-| bafa_data (uzalishaji) | 256 KB | kama hapo juu | SALAMA KWA SAUTI |
+| chombo_cha_msimbo (uzalishaji) | 512 KB | andika_baiti -> KOSA kwa sauti + flag | SALAMA KWA SAUTI |
+| chombo_cha_data (uzalishaji) | 256 KB | kama hapo juu | SALAMA KWA SAUTI |
 | lebo_*[2048] (uzalishaji) | 2048 | lebo_idadi < 2048 | SALAMA KWA UTHIBITISHO (kazi ~350) |
 | urekebishaji_*[65536] (uzalishaji) | 65,536 | urekebishaji_idadi < 65536 | SALAMA KWA UTHIBITISHO (urekebishaji <= lebo ~2048) |
 | rela_*[65536] (uzalishaji) | 65,536 | idadi_ya_urekebishaji_wa_elf < 65536 | SALAMA KWA UTHIBITISHO (RELA ~4,100 kwa kujikusanya) |
@@ -69,7 +69,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 
 ## Hitimisho
 
-Ukaguzi wa bafa UMEKAMILIKA kwa mzizi wa uaminifu (mbegu.swm) na
+Ukaguzi wa chombo UMEKAMILIKA kwa mzizi wa uaminifu (mbegu.swm) na
 maktaba (msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa). Kila mgawanyo wa ukubwa thabiti una ukaguzi
 unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la hitilafu ya
 "ukubwa wa kukisia" limefungwa.

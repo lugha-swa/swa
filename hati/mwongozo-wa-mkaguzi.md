@@ -37,13 +37,13 @@ lugha ya mashine ya Swa (`.swm`) -- unasomeka kama programu, si baiti.
 ## Kwa kila programu, kagua
 
 - **Kichwa cha ELF:** kiingilio (`e_entry`), PT_LOAD moja, `p_filesz` sawa na
-  ukubwa wa faili, `p_memsz` -- bafa zote ziko ndani yake.
+  ukubwa wa faili, `p_memsz` -- vyombo vyote viko ndani yake.
 - **Kila agizo:** baiti kwenye mstari zinasimba agizo lililoandikwa kwenye
   maoni yake (rejea: Intel SDM Juzuu 2, au disassembler yoyote kama mkaguzi).
 - **Wito wa mfumo:** kabla ya kila `syscall` (0f 05), thamani ya rax ni
   mojawapo ya zile kwenye jedwali hapo juu -- hakuna mtandao, hakuna
   kubadilisha ruhusa za kumbukumbu, hakuna kuandika mahali pengine.
-- **Kumbukumbu:** kila uandishi unaenda kwenye bafa iliyotangazwa kwenye
+- **Kumbukumbu:** kila uandishi unaenda kwenye chombo kilichotangazwa kwenye
   maoni ya kichwa, ndani ya `p_memsz`.
 - **Matawi:** kila umbali wa `ruka`/`call` unaelekea mwanzo wa agizo, si
   katikati yake.
