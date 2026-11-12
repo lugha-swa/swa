@@ -225,9 +225,9 @@ Kazi za kuandika baiti za maagizo hufuata lugha ya mashine:
 | comisd / comiss | `linganisha_d64` / `linganisha_d32` |
 | cvtsi2sd / cvtsi2ss | `geuza_kuwa_d64` / `geuza_kuwa_d32` |
 | imm (namba ndani ya agizo) | `namba` (`imm32` -> `namba32`) |
-| disp (ofseti ya anwani) | `ofseti` |
+| disp (umbali wa anwani) | `umbali` |
 | ModRM / SIB / REX | `modrm` / `sib` / `rex` -- majina ya baiti za Intel, kama data |
-| rip-relative | `jirani` |
+| rip-relative | `kutoka_agizo` |
 
 Kazi za kutoa msimbo kwa ngazi ya juu (zamani `toa_`) ni `zalisha_`
 (`zalisha_ruka_lebo`), ili `toa` ibaki na maana yake ya hesabu.

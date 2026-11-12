@@ -17,7 +17,7 @@
 ; Aina za alama: 1 msimbo, 2 data, 3 tupu, 4 thamani (fafanua).
 ; =============================================================================
 
-; vigezo (ofseti kutoka r15)
+; vigezo (umbali kutoka r15)
 fafanua V_MWISHO_CHANZO = 0
 fafanua V_MAHALI_MSIMBO = 8
 fafanua V_MAHALI_DATA = 16
@@ -545,7 +545,7 @@ ta_haipo:
         r0d ^= r0d
         rudi
 
-; weka_alama: r6, r2 = jina; r1 = aina; r9 = ofseti/thamani.
+; weka_alama: r6, r2 = jina; r1 = aina; r9 = umbali/thamani.
 ; Pitio la 1: ongeza (marudio ni kosa). Mapitio mengine: sasisha, na
 ; weka V_IMEBADILIKA thamani ikibadilika.
 weka_alama:
@@ -952,7 +952,7 @@ kd_kipengele:
         n64[r15+V_MAHALI_SASA] = r7
         ita usemi
         r1 = n64[r4]
-        ita toa_data
+        ita zalisha_data
         ruka kd_ijayo
 kd_mfuatano:
         r6 = n64[r15+V_ANWANI_TOKENI]
@@ -964,7 +964,7 @@ kd_mf_k:
         sukuma r6
         sukuma r2
         r1d = 1
-        ita toa_data
+        ita zalisha_data
         vuta r2
         vuta r6
         r6++
@@ -981,14 +981,14 @@ kd_mwisho:
         vuta r0
         rudi
 
-; toa_data: r0 = thamani, r1 = baiti -> data[MAHALI_DATA..]
-toa_data:
+; zalisha_data: r0 = thamani, r1 = baiti -> data[MAHALI_DATA..]
+zalisha_data:
         linganisha n64[r15+V_PICHA], 0
         ruka td_sehemu kama ==
 td_picha:
         sukuma r0
         sukuma r1
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r1
         vuta r0
         r0 >>=a 8
@@ -1011,8 +1011,8 @@ td_k:
 td_m:
         rudi
 
-; toa_baiti: r0b -> msimbo[MAHALI_MSIMBO]
-toa_baiti:
+; zalisha_baiti: r0b -> msimbo[MAHALI_MSIMBO]
+zalisha_baiti:
         r2 = n64[r15+V_MAHALI_MSIMBO]
         n64[r15+V_MAHALI_MSIMBO]++
         linganisha n64[r15+V_PITIO_LA_KUANDIKA], 0
@@ -1021,26 +1021,26 @@ toa_baiti:
         n8[r7+r2] = r0b
 tb_m:
         rudi
-; toa_neno4: r0d -> baiti 4
-toa_neno4:
+; zalisha_neno4: r0d -> baiti 4
+zalisha_neno4:
         r1d = 4
 tn4_k:
         sukuma r0
         sukuma r1
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r1
         vuta r0
         r0 >>=a 8
         r1d--
         ruka tn4_k kama !=
         rudi
-; toa_neno8: r0 -> baiti 8
-toa_neno8:
+; zalisha_neno8: r0 -> baiti 8
+zalisha_neno8:
         sukuma r0
-        ita toa_neno4
+        ita zalisha_neno4
         vuta r0
         r0 >>=a 32
-        ruka toa_neno4
+        ruka zalisha_neno4
 
 ; ---------------------------------------------------------------
 ; Rejista: tokeni ya sasa -> r0d = namba (0-15), r1d = upana (8/4/2/1), au r0d = -1
@@ -1096,7 +1096,7 @@ nr_m:
 
 ; rex: r7d = W(0/1), r6d = reg (R), r2d = rm (B), r1d = upana; huandika REX ikihitajika.
 ; Rejista za baiti 4-7 (r4b..r7b) zinahitaji REX tupu (0x40).
-toa_rex:
+zalisha_rex:
         r0d ^= r0d
         pima r7d, r7d
         ruka rx_r kama ==
@@ -1111,25 +1111,25 @@ rx_b:
         r0d |= 1
 rx_8:
         linganisha r1d, 1
-        ruka rx_toa kama !=
+        ruka rx_zalisha kama !=
         linganisha r6d, 4
         ruka rx_8b kama <a
         linganisha r6d, 8
         ruka rx_lazima kama <a
 rx_8b:
         linganisha r2d, 4
-        ruka rx_toa kama <a
+        ruka rx_zalisha kama <a
         linganisha r2d, 8
-        ruka rx_toa kama >=a
+        ruka rx_zalisha kama >=a
 rx_lazima:
         r0d |= 0x40
-rx_toa:
+rx_zalisha:
         pima r0d, r0d
         ruka rx_m kama ==
         linganisha n64[r15+V_BITI32], 0
         ruka kosa_upana kama !=   ; biti 32 haina REX (biti 64, r8-r15, r4b-r7b)
         r0d |= 0x40
-        ruka toa_baiti
+        ruka zalisha_baiti
 rx_m:
         rudi
 
@@ -1231,13 +1231,13 @@ agizo_ita:
         ita usemi_ya_tokeni
         sukuma r0
         r0d = 0xe8
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r0
         r1 = n64[r15+V_MAHALI_MSIMBO]
         r1 += n64[r15+V_MSINGI_MSIMBO]
         r1 += 4
         r0 -= r1
-        ruka toa_neno4
+        ruka zalisha_neno4
 
 ; usemi_ya_tokeni: usemi unaoanza na tokeni iliyosomwa tayari
 usemi_ya_tokeni:
@@ -1272,44 +1272,44 @@ ar_ukubwa:
         r14 = r0
         r14 -= r1
         linganisha n64[r15+V_HAIJATATULIWA], 0
-        ruka ar_fupi_toa kama !=
+        ruka ar_fupi_zalisha kama !=
         linganisha r14, -128
         ruka ar_refu kama <n
         linganisha r14, 127
         ruka ar_refu kama >n
-ar_fupi_toa:
+ar_fupi_zalisha:
         r0d = 0xeb
         linganisha r12d, -1
         ruka ar_f1 kama ==
         r0d = &[r12+0x70]
 ar_f1:
-        ita toa_baiti
+        ita zalisha_baiti
         r0d = r14d
-        ruka toa_baiti
+        ruka zalisha_baiti
 ar_refu:
         linganisha r12d, -1
         ruka ar_refu_hali kama !=
         r14 = r0
         r0d = 0xe9
-        ita toa_baiti
+        ita zalisha_baiti
         r1 = n64[r15+V_MAHALI_MSIMBO]
         r1 += n64[r15+V_MSINGI_MSIMBO]
         r1 += 4
         r0 = r14
         r0 -= r1
-        ruka toa_neno4
+        ruka zalisha_neno4
 ar_refu_hali:
         r14 = r0
         r0d = 0x0f
-        ita toa_baiti
+        ita zalisha_baiti
         r0d = &[r12+0x80]
-        ita toa_baiti
+        ita zalisha_baiti
         r1 = n64[r15+V_MAHALI_MSIMBO]
         r1 += n64[r15+V_MSINGI_MSIMBO]
         r1 += 4
         r0 = r14
         r0 -= r1
-        ruka toa_neno4
+        ruka zalisha_neno4
 
 ; hali_ya_kulinganisha: soma hali -> r0d = namba ya hali ya x86 (cc)
 ;   == 4   != 5   <n 0xc  <=n 0xe  >n 0xf  >=n 0xd
@@ -1388,7 +1388,7 @@ hk_m:
 ;   +0 aina: 1 rejista, 2 kumbukumbu, 3 namba, 4 xmm, 5 rejista yenye
 ;            familia (a/n mbele), 6 anwani (&), 7 hali (kama ...)
 ;   +8 rejista   +16 upana (baiti; 0 = haijatajwa)   +24 msingi (-1)
-;   +32 faharisi (-1)  +40 kipimo  +48 umbali  +56 rip (1)  +64 familia
+;   +32 faharisi (-1)  +40 kipimo  +48 umbali  +56 kutoka_agizo (1)  +64 familia
 ;   +72 haijatatuliwa (1)
 
 ; soma_hoja: tokeni ya kwanza imeshasomwa; r7 = rekodi
@@ -1514,7 +1514,7 @@ sh_si_mabano:
         r7d = 0x5b
         ita tokeni_ni_alama
         ruka sh_anw_kum kama ==
-; &lebo -> [lebo] (rip)
+; &lebo -> [lebo] (kutoka agizo)
         ita usemi_ya_tokeni
         n64[r3+48] = r0
         r0 = n64[r15+V_HAIJATATULIWA]
@@ -1587,7 +1587,7 @@ sk_usemi:
         n64[r3+48] += r0
         r0 = n64[r15+V_HAIJATATULIWA]
         n64[r3+72] |= r0
-        n64[r3+56] = 1   ; lebo/umbali: rip ikiwa hakuna rejista
+        n64[r3+56] = 1   ; lebo/umbali: kutoka agizo ikiwa hakuna rejista
 sk_ijayo:
         ita tokeni
         r12d = 1
@@ -1610,12 +1610,12 @@ sk_ijayo:
         n64[r3+24] = r0
         n64[r3+40] = 1
 sk_si_2:
-; rip tu ikiwa hakuna msingi wala faharisi
+; kutoka agizo tu ikiwa hakuna msingi wala faharisi
         linganisha n64[r3+24], -1
-        ruka sk_si_rip kama !=
+        ruka sk_si_kutoka_agizo kama !=
         linganisha n64[r3+32], -1
         ruka sk_m kama ==
-sk_si_rip:
+sk_si_kutoka_agizo:
         n64[r3+56] = 0
 sk_m:
         rudi
@@ -1625,9 +1625,9 @@ usemi_ya_tokeni_zidisha:
         n64[r15+V_MAHALI_SASA] = r7
         ruka usemi_zidisha
 
-; toa_rex_hoja: r7d = W, r6d = sehemu ya reg, r2 = rekodi ya r/m, r1d = upana
+; zalisha_rex_hoja: r7d = W, r6d = sehemu ya reg, r2 = rekodi ya r/m, r1d = upana
 ; (rejista za baiti 4-7 zinahitaji REX tupu).
-toa_rex_hoja:
+zalisha_rex_hoja:
         r0d ^= r0d
         pima r7d, r7d
         ruka trh_r kama ==
@@ -1670,27 +1670,27 @@ trh_rej8:
         r0d |= 0x40
 trh_8:
         linganisha r1d, 1
-        ruka trh_toa kama !=
+        ruka trh_zalisha kama !=
         linganisha r6d, 4
-        ruka trh_toa kama <a
+        ruka trh_zalisha kama <a
         linganisha r6d, 8
-        ruka trh_toa kama >=a
+        ruka trh_zalisha kama >=a
         linganisha n32[r15+V_REJISTA_BAITI], 1   ; sehemu ya reg ni rejista ya baiti
-        ruka trh_toa kama !=
+        ruka trh_zalisha kama !=
         r0d |= 0x40
-trh_toa:
+trh_zalisha:
         pima r0d, r0d
         ruka trh_m kama ==
         linganisha n64[r15+V_BITI32], 0
         ruka kosa_upana kama !=
         r0d |= 0x40
-        ruka toa_baiti
+        ruka zalisha_baiti
 trh_m:
         rudi
 
-; toa_modrm: r6d = sehemu ya reg (biti 3 za chini), r2 = rekodi, r1d = baiti
-; za namba zinazofuata (kwa rip).
-toa_modrm:
+; zalisha_modrm: r6d = sehemu ya reg (biti 3 za chini), r2 = rekodi, r1d = baiti
+; za namba zinazofuata (kwa kutoka agizo).
+zalisha_modrm:
         r9d = r6d
         r9d &= 7
         r9d <<= 3
@@ -1701,7 +1701,7 @@ toa_modrm:
         linganisha n64[r2], 5
         ruka tm_rej kama ==
         linganisha n64[r2+56], 1
-        ruka tm_rip kama ==
+        ruka tm_kutoka_agizo kama ==
         r10 = n64[r2+24]   ; msingi
         r11 = n64[r2+32]   ; faharisi
         linganisha r10, -1
@@ -1738,13 +1738,13 @@ tm_mod_tayari:
         ruka tm_sib kama ==
         r0d |= r1d
         sukuma r2
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r2
         ruka tm_umbali
 tm_sib:
         r0d |= 4
         sukuma r2
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r2
         ita kipimo_biti   ; r0d = biti za kipimo << 6
         r1 = n64[r2+32]
@@ -1759,22 +1759,22 @@ tm_sib_f:
         r1d &= 7
         r0d |= r1d
         sukuma r2
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r2
 tm_umbali:
         vuta r8
         r0 = n64[r2+48]
         linganisha r8d, 1
-        ruka toa_baiti kama ==
+        ruka zalisha_baiti kama ==
         linganisha r8d, 2
-        ruka toa_neno4 kama ==
+        ruka zalisha_neno4 kama ==
         rudi
 tm_bila_msingi:
 ; [faharisi*k + umbali32]: mod 00, rm 100, SIB msingi 101
         r0d = r9d
         r0d |= 4
         sukuma r2
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r2
         ita kipimo_biti
         r1 = n64[r2+32]
@@ -1787,34 +1787,34 @@ tm_bm_f:
         r0d |= r1d
         r0d |= 5
         sukuma r2
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r2
         r0 = n64[r2+48]
-        ruka toa_neno4
+        ruka zalisha_neno4
 tm_rej:
         r0d = 0xc0
         r0d |= r9d
         r1 = n64[r2+8]
         r1d &= 7
         r0d |= r1d
-        ruka toa_baiti
-tm_rip:
+        ruka zalisha_baiti
+tm_kutoka_agizo:
         sukuma r1
         r0d = r9d
         r0d |= 5
         sukuma r2
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r2
         vuta r1
         r0 = n64[r2+48]
         linganisha n64[r15+V_BITI32], 0
-        ruka toa_neno4 kama !=   ; biti 32: umbali32 ni anwani kamili
+        ruka zalisha_neno4 kama !=   ; biti 32: umbali32 ni anwani kamili
         r8 = n64[r15+V_MAHALI_MSIMBO]
         r8 += n64[r15+V_MSINGI_MSIMBO]
         r8 += 4
         r8 += r1
         r0 -= r8
-        ruka toa_neno4
+        ruka zalisha_neno4
 
 kipimo_biti:
         r0 = n64[r2+40]
@@ -1837,7 +1837,7 @@ kb_m:
 
 ; agizo_rm: agizo lenye ModRM. Hoja: r12d = upana (baiti), r6d = sehemu ya
 ; reg, r2 = rekodi ya r/m, r13d = opkodi (baiti 1, au 0x0Fxx kwa baiti 2:
-; 0x0F00 | xx), r1d = baiti za namba zinazofuata (rip). Huandika 66, REX,
+; 0x0F00 | xx), r1d = baiti za namba zinazofuata (kutoka agizo). Huandika 66, REX,
 ; opkodi, ModRM/SIB/umbali.
 agizo_rm:
         sukuma r1
@@ -1850,12 +1850,12 @@ agizo_rm:
         linganisha n64[r15+V_BITI32], 0
         ruka arm_66 kama !=
         r0d = 0x67
-        ita toa_baiti
+        ita zalisha_baiti
 arm_66:
         linganisha r12d, 2
         ruka arm_rex kama !=
         r0d = 0x66
-        ita toa_baiti
+        ita zalisha_baiti
 arm_rex:
         r2 = n64[r4]
         r6 = n64[r4+8]
@@ -1863,20 +1863,20 @@ arm_rex:
         linganisha r12d, 8
         r7b = kama ==
         r1d = r12d
-        ita toa_rex_hoja
+        ita zalisha_rex_hoja
         r0d = r13d
         linganisha r0d, 0xff
         ruka arm_kitendo1 kama <=a
         r0d = 0x0f
-        ita toa_baiti
+        ita zalisha_baiti
         r0d = r13d
         r0d &= 0xff
 arm_kitendo1:
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r2
         vuta r6
         vuta r1
-        ruka toa_modrm
+        ruka zalisha_modrm
 
 ; ---------------------------------------------------------------
 ; LENGO OP CHANZO
@@ -2038,7 +2038,7 @@ hesabu_namba:
         r1d = 1
         ita agizo_rm
         vuta r0
-        ruka toa_baiti
+        ruka zalisha_baiti
 hesabu_n32:
 ; r0 / r0d: umbo fupi (op*8 + 5) id
         linganisha n64[r3], 1
@@ -2049,21 +2049,21 @@ hesabu_n32:
         linganisha r12d, 2
         ruka hesabu_r0_rex kama !=
         r0d = 0x66
-        ita toa_baiti
+        ita zalisha_baiti
 hesabu_r0_rex:
         linganisha r12d, 8
         ruka hesabu_r0_kitendo kama !=
         r0d = 0x48
-        ita toa_baiti
+        ita zalisha_baiti
 hesabu_r0_kitendo:
         r0d = r14d
         r0d <<= 3
         r0d += 5
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r0
         linganisha r12d, 2
-        ruka toa_neno2 kama ==
-        ruka toa_neno4
+        ruka zalisha_neno2 kama ==
+        ruka zalisha_neno4
 hesabu_n32_81:
         sukuma r9
         r6d = r14d
@@ -2079,8 +2079,8 @@ hesabu_81:
         vuta r1
         vuta r0
         linganisha r1d, 2
-        ruka toa_neno2 kama ==
-        ruka toa_neno4
+        ruka zalisha_neno2 kama ==
+        ruka zalisha_neno4
 hesabu_n8:
         sukuma r9
         linganisha n64[r3], 1
@@ -2090,9 +2090,9 @@ hesabu_n8:
         r0d = r14d
         r0d <<= 3
         r0d += 4
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r0
-        ruka toa_baiti
+        ruka zalisha_baiti
 hesabu_n8_80:
         r6d = r14d
         r2 = r3
@@ -2100,14 +2100,14 @@ hesabu_n8_80:
         r1d = 1
         ita agizo_rm
         vuta r0
-        ruka toa_baiti
+        ruka zalisha_baiti
 
-toa_neno2:
+zalisha_neno2:
         sukuma r0
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r0
         r0d >>=a 8
-        ruka toa_baiti
+        ruka zalisha_baiti
 
 ; ++ / --  : FF /0 , FF /1 (FE kwa baiti)
 ag_ongeza_moja:
@@ -2155,7 +2155,7 @@ sg_ib:
         r1d = 1
         ita agizo_rm
         vuta r0
-        ruka toa_baiti
+        ruka zalisha_baiti
 
 ; *= : 0F AF /r (reg, r/m)
 ag_zidisha:
@@ -2220,7 +2220,7 @@ hm_hamisha_rm:
         r13d = 0x8a
 hm_mrm:
         r14d = 0xa0
-        ita moffs_labda
+        ita anwani_tupu_labda
         pima r0d, r0d
         ruka ka_mwisho kama !=
         r1d ^= r1d
@@ -2268,7 +2268,7 @@ hm_familia:
 hm_badili_desimali:
 ; F2 REX.W 0F 2A /r
         r0d = 0xf2
-        ita toa_baiti
+        ita zalisha_baiti
         r12d = 8
         r6d = n32[r3+8]
         r2 = hoja_chanzo
@@ -2282,7 +2282,7 @@ hm_x_lengo:
 hm_x_chanzo:
 ; r = x : movq 66 REX.W 0F 7E /r (r/m = rejista ya kawaida)
         r0d = 0x66
-        ita toa_baiti
+        ita zalisha_baiti
         r7 = hoja_chanzo
         r12d = 8
         r6d = n32[r7+8]
@@ -2312,7 +2312,7 @@ hm_mr:
         r13d = 0x88
 hm_mr_op:
         r14d = 0xa2
-        ita moffs_labda
+        ita anwani_tupu_labda
         pima r0d, r0d
         ruka ka_mwisho kama !=
         r1d ^= r1d
@@ -2342,18 +2342,18 @@ hm_namba:
         r1d = 1
 hm_mn_2:
         linganisha r12d, 2
-        ruka hm_mn_toa kama !=
+        ruka hm_mn_zalisha kama !=
         r1d = 2
-hm_mn_toa:
+hm_mn_zalisha:
         sukuma r1
         ita agizo_rm
         vuta r1
         vuta r0
         linganisha r1d, 1
-        ruka toa_baiti kama ==
+        ruka zalisha_baiti kama ==
         linganisha r1d, 2
-        ruka toa_neno2 kama ==
-        ruka toa_neno4
+        ruka zalisha_neno2 kama ==
+        ruka zalisha_neno4
 hm_r_namba:
         r12d = n32[r3+8]
         r13d = n32[r3+16]
@@ -2399,7 +2399,7 @@ ag_rejista_rr:
         linganisha r13d, 2
         ruka agr_rex kama !=
         r0d = 0x66
-        ita toa_baiti
+        ita zalisha_baiti
 agr_rex:
         r7d ^= r7d
         linganisha r13d, 8
@@ -2407,13 +2407,13 @@ agr_rex:
         r6d = r14d
         r2d = r12d
         r1d = r13d
-        ita toa_rex
+        ita zalisha_rex
         r0d = 0x89
         linganisha r13d, 1
         ruka agr_kitendo kama !=
         r0d = 0x88
 agr_kitendo:
-        ita toa_baiti
+        ita zalisha_baiti
         r0d = r14d
         r0d &= 7
         r0d <<= 3
@@ -2421,7 +2421,7 @@ agr_kitendo:
         r1d &= 7
         r0d |= r1d
         r0d |= 0xc0
-        ruka toa_baiti
+        ruka zalisha_baiti
 
 ; hamisha_namba: r12 = rejista, r13 = upana, r0 = thamani (sheria za NASM)
 hamisha_namba:
@@ -2448,58 +2448,58 @@ hn_hasi:
         r2d = r12d
         r7d = 1
         r1d = 8
-        ita toa_rex
+        ita zalisha_rex
         r0d = 0xc7
-        ita toa_baiti
+        ita zalisha_baiti
         r0d = r12d
         r0d &= 7
         r0d |= 0xc0
-        ita toa_baiti
+        ita zalisha_baiti
         r0d = r14d
-        ruka toa_neno4
+        ruka zalisha_neno4
 hn_64:
         r6d ^= r6d
         r2d = r12d
         r7d = 1
         r1d = 8
-        ita toa_rex
+        ita zalisha_rex
         r0d = r12d
         r0d &= 7
         r0d += 0xb8
-        ita toa_baiti
+        ita zalisha_baiti
         r0 = r14
-        ruka toa_neno8
+        ruka zalisha_neno8
 hn_ndogo:
         linganisha r13d, 2
         ruka hn_32 kama !=
         r0d = 0x66
-        ita toa_baiti
+        ita zalisha_baiti
 hn_32:
         r7d ^= r7d
         r6d ^= r6d
         r2d = r12d
         r1d = r13d
-        ita toa_rex
+        ita zalisha_rex
         r0d = r12d
         r0d &= 7
         linganisha r13d, 1
         ruka hn_8 kama ==
         r0d += 0xb8
-        ita toa_baiti
+        ita zalisha_baiti
         r0d = r14d
         linganisha r13d, 2
         ruka hn_16 kama ==
-        ruka toa_neno4
+        ruka zalisha_neno4
 hn_16:
-        ita toa_baiti
+        ita zalisha_baiti
         r0d = r14d
         r0d >>=a 8
-        ruka toa_baiti
+        ruka zalisha_baiti
 hn_8:
         r0d += 0xb0
-        ita toa_baiti
+        ita zalisha_baiti
         r0d = r14d
-        ruka toa_baiti
+        ruka zalisha_baiti
 
 
 
@@ -2555,26 +2555,26 @@ ag_zidisha3:
         r1d = 1
         ita agizo_rm
         vuta r0
-        ruka toa_baiti
+        ruka zalisha_baiti
 az3_69:
         sukuma r9
         r13d = 0x69
         r1d = 4
         ita agizo_rm
         vuta r0
-        ruka toa_neno4
+        ruka zalisha_neno4
 
 ; desimali: x += CHANZO (F2 0F 58), x /= CHANZO (F2 0F 5E)
 ag_desimali:
         r13d = 0x0f58
         linganisha r14, 0x3d2b
-        ruka ad_toa kama ==
+        ruka ad_zalisha kama ==
         r13d = 0x0f5e
         linganisha r14, 0x3d2f
         ruka kosa_agizo kama !=
-ad_toa:
+ad_zalisha:
         r0d = 0xf2
-        ita toa_baiti
+        ita zalisha_baiti
         r12d = 4
         r3 = hoja_lengo
         r6d = n32[r3+8]
@@ -2627,36 +2627,36 @@ pm_namba:
         linganisha r12d, 1
         ruka pm_a9 kama !=
         r0d = 0xa8
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r0
-        ruka toa_baiti
+        ruka zalisha_baiti
 pm_a9:
         linganisha r12d, 8
         ruka pm_a9_op kama !=
         r0d = 0x48
-        ita toa_baiti
+        ita zalisha_baiti
 pm_a9_op:
         r0d = 0xa9
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r0
-        ruka toa_neno4
+        ruka zalisha_neno4
 pm_f7:
         r6d ^= r6d
         r2 = r3
         r13d = 0xf7
         r1d = 4
         linganisha r12d, 1
-        ruka pm_f7_toa kama !=
+        ruka pm_f7_zalisha kama !=
         r13d = 0xf6
         r1d = 1
-pm_f7_toa:
+pm_f7_zalisha:
         sukuma r1
         ita agizo_rm
         vuta r1
         vuta r0
         linganisha r1d, 1
-        ruka toa_baiti kama ==
-        ruka toa_neno4
+        ruka zalisha_baiti kama ==
+        ruka zalisha_neno4
 
 ; sukuma / vuta
 agizo_sukuma:
@@ -2687,15 +2687,15 @@ sk_namba:
         ruka sk_68 kama !=
         sukuma r0
         r0d = 0x6a
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r0
-        ruka toa_baiti
+        ruka zalisha_baiti
 sk_68:
         sukuma r0
         r0d = 0x68
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r0
-        ruka toa_neno4
+        ruka zalisha_neno4
 agizo_vuta:
         ita tokeni
         r7 = hoja_lengo
@@ -2720,13 +2720,13 @@ sukuma_vuta_rej:
         linganisha r0d, 8
         ruka svr_kitendo kama <a
         r0d = 0x41
-        ita toa_baiti
+        ita zalisha_baiti
 svr_kitendo:
         vuta r1
         vuta r0
         r0d &= 7
         r0d += r1d
-        ruka toa_baiti
+        ruka zalisha_baiti
 
 ; gawanya n|a OP : F7 /7 (idiv), F7 /6 (div)
 agizo_gawanya:
@@ -2766,10 +2766,10 @@ agizo_panua:
         linganisha r1d, 8
         ruka pn_99 kama !=
         r0d = 0x48
-        ita toa_baiti
+        ita zalisha_baiti
 pn_99:
         r0d = 0x99
-        ruka toa_baiti
+        ruka zalisha_baiti
 
 ; zunguka LEBO : E2 rel8
 agizo_zunguka:
@@ -2777,16 +2777,16 @@ agizo_zunguka:
         ita usemi_ya_tokeni
         sukuma r0
         r0d = 0xe2
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r0
         r1 = n64[r15+V_MAHALI_MSIMBO]
         r1 += n64[r15+V_MSINGI_MSIMBO]
         r1 += 1
         r0 -= r1
-        ruka toa_baiti
+        ruka zalisha_baiti
 ; ---------------------------------------------------------------
-; ELF: kichwa + vichwa 2 vya programu; msimbo kwenye ofseti 0x1000;
-; data kwenye ofseti (anwani - 0x400000), tupu baada yake.
+; ELF: kichwa + vichwa 2 vya programu; msimbo kwenye umbali 0x1000;
+; data kwenye umbali (anwani - 0x400000), tupu baada yake.
 andika_elf:
         linganisha n64[r15+V_PICHA], 0
         ruka ae_elf kama ==
@@ -3005,21 +3005,21 @@ aj_neno_m:
         r1d = a8[r6]   ; idadi ya baiti
         r6++
         pima r0d, r0d
-        ruka aj_toa kama !=
+        ruka aj_zalisha kama !=
         r6 += r1
         ruka aj_k
-aj_toa:
+aj_zalisha:
         pima r1d, r1d
         ruka aj_ndiyo kama ==
         r0d = a8[r6]
         sukuma r6
         sukuma r1
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r1
         vuta r6
         r6++
         r1d--
-        ruka aj_toa
+        ruka aj_zalisha
 aj_ndiyo:
         r0d = 1
         rudi
@@ -3111,7 +3111,7 @@ apg_k:
         pima r3, r3
         ruka apg_m kama ==
         r0d = 0x90   ; tupu (nop): salama hata ikitekelezwa
-        ita toa_baiti
+        ita zalisha_baiti
         r3--
         ruka apg_k
 apg_m:
@@ -3145,18 +3145,18 @@ agizo_ruka_mbali:
         ita usemi
         sukuma r0
         r0d = 0xea
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r0
-        ita toa_neno4
+        ita zalisha_neno4
         vuta r0
-        ita toa_neno2
+        ita zalisha_neno2
         r0d = 1
         rudi
 
-; moffs_labda: biti 32, rejista r0 na anwani tupu [ANWANI]: umbo fupi
+; anwani_tupu_labda: biti 32, rejista r0 na anwani tupu [ANWANI]: umbo fupi
 ; A0/A1 (soma) au A2/A3 (andika) + anwani32. r14d = A0 au A2, r12d = upana,
 ; r6d = rejista, r2 = kumbukumbu. r0d = 1 likiandikwa, vinginevyo 0.
-moffs_labda:
+anwani_tupu_labda:
         linganisha n64[r15+V_BITI32], 0
         ruka ml_hapana kama ==
         pima r6d, r6d
@@ -3167,17 +3167,17 @@ moffs_labda:
         linganisha r12d, 2
         ruka ml_si66 kama !=
         r0d = 0x66
-        ita toa_baiti
+        ita zalisha_baiti
 ml_si66:
         r0d = r14d
         linganisha r12d, 1
         ruka ml_op kama ==
         r0d++
 ml_op:
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r2
         r0 = n64[r2+48]
-        ita toa_neno4
+        ita zalisha_neno4
         r0d = 1
         rudi
 ml_hapana:
@@ -3263,7 +3263,7 @@ hmu_cr:
 hmu_cr_upana:
         linganisha n64[r2+16], r0
         ruka kosa_upana kama !=
-hmu_toa:
+hmu_zalisha:
         r12d = 4   ; hakuna 66 wala REX.W
 hmu_rm:
         r1d ^= r1d
@@ -3318,7 +3318,7 @@ hmb_hoja:
         ruka hmb_si66 kama !=
         sukuma r2
         r0d = 0x66
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r2
 hmb_si66:
         linganisha r12d, 1
@@ -3329,14 +3329,14 @@ hmb_kitendo:
         ruka hmb_namba kama !=
         r0d = r13d
         r0d += 8   ; umbo la r2w
-        ruka toa_baiti
+        ruka zalisha_baiti
 hmb_namba:
         sukuma r2
         r0d = r13d
-        ita toa_baiti
+        ita zalisha_baiti
         vuta r2
         r0 = n64[r2+48]
-        ruka toa_baiti
+        ruka zalisha_baiti
 
 ; jumuisha "faili" [, RUKA]: weka baiti za faili (kuanzia RUKA) kwenye
 ; mkondo wa msimbo. Ukubwa hupimwa kila pitio; baiti husomwa kwenye
