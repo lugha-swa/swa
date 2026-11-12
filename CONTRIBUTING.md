@@ -123,6 +123,22 @@ Mpangilio wa lazima:
 
 ---
 
+## Viongozi wa Maeneo
+
+Kila eneo lina kiongozi anayeamua mwelekeo wake na kukagua PR zake. Kandemark huchanganya kwenye `main`.
+
+| Eneo | Kiongozi |
+|---|---|
+| Swa nzima: lugha, mkusanyaji, `main` | @Kandemark |
+| ARM64 ([#321](https://github.com/lugha-swa/swa/issues/321)) | @Sakajara |
+| RISC-V 64 | @techlunatic-ctrl |
+| WebAssembly na kivinjari | @blackmatrx-code |
+| Mfululizo huru na chanzo cha uaminifu | @anzania-btrfs |
+
+Kipengele kipya hutumia kilichopo kabla ya kuongeza kipya: lengo jipya la mashine hujengwa kutoka IR (`msingi/mkusanyaji/mteremko.swa`), si nakala ya `uzalishaji.swa`.
+
+---
+
 ## Mawasiliano
 
 - [GitHub Discussions](https://github.com/lugha-swa/swa/discussions)
