@@ -1,0 +1,61 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+
+// hoja_na_mfumo.swa -- njia ambazo majaribio/ir/WIGO.txt haizigusi kwenye
+// --riscv64: hoja za mstari (idadi ya hoja, hoja_za_mstari[i]) na kila wito
+// wa mfumo ambao kiini cha RISC-V hakina kwa namba ya x86-64 na hivyo
+// mwenyeji huugeuza: open, mkdir, unlink, access, readlink, dup2, pipe,
+// fork (+ wait4). Huendeshwa kwa x86-64 na RV64 kwa hoja zile zile;
+// matokeo lazima yawe sawa (gharama/jaribu-riscv64.mapishi).
+
+n8 chombo[64];
+
+n32 anza(n32 idadi_ya_hoja, n8** hoja_za_mstari) {
+    andika("hoja: %d\n", idadi_ya_hoja);
+    n32 i = 1;
+    wakati (i < idadi_ya_hoja) { andika("  [%d] %s\n", i, hoja_za_mstari[i]); i = i + 1; }
+
+    // mkdir -> mkdirat (EEXIST ikiwa ipo tayari si kosa)
+    n64 r = mfumo_unda_saraka("jengo/rv-mfumo", 493);
+    andika("mkdir: %d\n", r == 0 || r == 0 - 17);
+
+    // open (O_WRONLY|O_CREAT|O_TRUNC) -> openat, kisha andika na funga
+    n64 fd = wito_wa_mfumo(2, "jengo/rv-mfumo/faili", 577, 420, 0, 0, 0);
+    andika("open: %d\n", fd >= 0);
+    mfumo_andika(fd, "habari", 6);
+    mfumo_funga(fd);
+
+    // soma tena
+    fd = wito_wa_mfumo(2, "jengo/rv-mfumo/faili", 0, 0, 0, 0, 0);
+    n64 n = mfumo_soma(fd, chombo, 63);
+    chombo[n] = 0;
+    mfumo_funga(fd);
+    andika("soma: %d '%s'\n", n, chombo);
+
+    // access -> faccessat
+    andika("access ipo: %d\n", wito_wa_mfumo(21, "jengo/rv-mfumo/faili", 0, 0, 0, 0, 0) == 0);
+
+    // readlink -> readlinkat: si kiungo, kwa hiyo kosa (hasi)
+    andika("readlink si kiungo: %d\n", wito_wa_mfumo(89, "jengo/rv-mfumo/faili", chombo, 63, 0, 0, 0) < 0);
+
+    // unlink -> unlinkat, kisha access haipo
+    andika("unlink: %d\n", wito_wa_mfumo(87, "jengo/rv-mfumo/faili", 0, 0, 0, 0, 0) == 0);
+    andika("access haipo: %d\n", wito_wa_mfumo(21, "jengo/rv-mfumo/faili", 0, 0, 0, 0, 0) < 0);
+
+    // pipe -> pipe2, dup2 -> dup3
+    n32 bomba[2];
+    andika("pipe: %d\n", wito_wa_mfumo(22, bomba, 0, 0, 0, 0, 0) == 0);
+    mfumo_andika(bomba[1], "XY", 2);
+    n64 nakala = wito_wa_mfumo(33, bomba[0], 40, 0, 0, 0, 0);
+    andika("dup2: %d\n", nakala == 40);
+    n = mfumo_soma(40, chombo, 2);
+    chombo[n] = 0;
+    andika("bomba: '%s'\n", chombo);
+
+    // fork -> clone(SIGCHLD); mchakato mpya hutoka 7, mzazi husubiri
+    n64 mchakato = mfumo_gawanyika();
+    kama (mchakato == 0) { wito_wa_mfumo(60, 7, 0, 0, 0, 0, 0); }
+    n32 hali_ya_mchakato = 0;
+    mfumo_subiri4(mchakato, &hali_ya_mchakato, 0);
+    andika("fork+wait4: %d\n", mfumo_subiri4_msimbo_wa_kutoka(hali_ya_mchakato));
+    rudisha idadi_ya_hoja;
+}

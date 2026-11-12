@@ -1,0 +1,21 @@
+; jaribu-riscv64.mapishi -- lengo la RISC-V 64 (kamili --riscv64, kutoka IR):
+; kila programu ya majaribio/ir/WIGO.txt hukusanywa kwa x86-64 na kwa RV64,
+; RV64 huendeshwa kwa qemu-riscv64, na namba ya kutoka na stdout lazima
+; viwe sawa kabisa. Inahitaji qemu-riscv64 kwenye PATH.
+;   ./msingi/mjenzi.bin gharama/jaribu-riscv64.mapishi
+saraka jengo
+endesha msingi/mjenzi.bin gharama/jenga.mapishi > jengo/jenga.towe
+endesha bin/swa --programu gharama/jaribu_ir.swa > jengo/jaribu_ir
+endesha jengo/jaribu_ir bin/swa majaribio/ir/WIGO.txt riscv64
+; kisichoungwa mkono na IR hukataliwa kwa sauti, kutoka 2
+endesha_kosa 2 bin/swa --riscv64 majaribio/ir/nje_ya_wigo_muundo.swa > jengo/rv-nje 2> jengo/rv-nje.kosa
+ina jengo/rv-nje.kosa "IR: haijaungwa mkono: muundo"
+; hoja za mstari na wito wa mfumo uliogeuzwa (open/mkdir/unlink/access/
+; readlink/dup2/pipe/fork) -- WIGO.txt haizigusi; x86-64 na RV64 lazima
+; vitoe matokeo sawa kwa hoja zile zile
+endesha bin/swa --programu majaribio/riscv64/hoja_na_mfumo.swa > jengo/rv-x86
+endesha bin/swa --riscv64 majaribio/riscv64/hoja_na_mfumo.swa > jengo/rv-rv
+endesha_kosa 3 jengo/rv-x86 moja "mbili tatu" > jengo/rv-x86.towe
+endesha_kosa 3 qemu-riscv64 jengo/rv-rv moja "mbili tatu" > jengo/rv-rv.towe
+sawa jengo/rv-x86.towe jengo/rv-rv.towe
+ina jengo/rv-rv.towe "fork+wait4: 7"
