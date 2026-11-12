@@ -68,7 +68,7 @@ chmod +x mfano.bin && ./mfano.bin
 
 | Saraka | Maelezo |
 |--------|---------|
-| `msingi/` | Mzizi wa uaminifu: kwanza (baiti za mkono), mbegu, bootstrap |
+| `msingi/` | Chanzo cha uaminifu: kwanza (baiti za mkono), mbegu, bootstrap |
 | `msingi/maktaba/` | Maktaba ya kawaida ya Swa (kumbukumbu, mfuatano, orodha, ramani, hesabu, faili) |
 | `msingi/mkusanyaji/` | Mkusanyaji wa kujikusanya wa Swa (msomaji, msambazaji, mkaguzi, uzalishaji, mteremko -- IR, mtafsiri, kamili) |
 | `majaribio/` | Programu za majaribio za Swa (ORODHA.txt) |
@@ -80,15 +80,15 @@ Dereva wa zamani wa Rust/LLVM uko kwenye hazina ya kumbukumbu
 
 ---
 
-## Sheria ya Mzizi wa Uaminifu
+## Sheria ya Chanzo cha Uaminifu
 
-`msingi/awali.swm` na `msingi/kwanza.bin` ni MZIZI WA UAMINIFU wa
+`msingi/awali.swm` na `msingi/kwanza.bin` ni CHANZO CHA UAMINIFU wa
 mfululizo mzima. Sheria isiyo na mbadala:
 
-**Mabadiliko ya mzizi wa uaminifu hujengwa na Kujaribiwa KABLA ya
+**Mabadiliko ya chanzo cha uaminifu hujengwa na Kujaribiwa KABLA ya
 kugandishwa -- hakuna ubaguzi.**
 
-Kwa nini: hitilafu kwenye mzizi ni ya darasa baya zaidi -- mbegu
+Kwa nini: hitilafu kwenye chanzo cha uaminifu ni ya darasa baya zaidi -- mbegu
 iliyovunjika inaweza bado kutoa uthabiti imara LAKINI mbaya
 (kamili2 == kamili3 == takataka), na mfululizo mzima unaweza kushindwa
 kimya kimya. Mfano halisi: uhariri mdogo wa njia ya urekebishaji uliwahi

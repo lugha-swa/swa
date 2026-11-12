@@ -47,5 +47,5 @@ kilichopo mbali.
 
 Kila hatua inapaswa kuingia kupitia PR, kwa Kiswahili, na kila moja
 ijulikane na majaribio ya kurejesha kabla ya kuchanganywa. Mabadiliko
-ya mzizi wa uaminifu hujengwa na kujaribiwa KABLA ya kugandishwa
+ya chanzo cha uaminifu hujengwa na kujaribiwa KABLA ya kugandishwa
 (angalia CONTRIBUTING.md).

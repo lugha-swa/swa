@@ -1,6 +1,6 @@
 # Kifurushi cha Swa: mkusanyaji na maktaba yake, hakuna mfumo wa
 # uendeshaji ndani. bin/swa haitumii libc wala kiungo chochote cha
-# nje (syscalls pekee), na hupata maktaba yake chini ya mzizi wake
+# nje (syscalls pekee), na hupata maktaba yake chini ya saraka yake
 # (/opt/swa/msingi/maktaba), kwa hiyo picha ni baiti zetu tu.
 #
 # Muktadha wa ujenzi ni saraka ya tarball ya toleo

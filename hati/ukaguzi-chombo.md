@@ -1,7 +1,7 @@
 # Ukaguzi wa Vyombo vya Ukubwa Thabiti
 
 Hati hii ni matokeo ya ukaguzi wa kila mgawanyo wa ukumbusho wa
-ukubwa thabiti (safu, dimbwi, majedwali) kwenye mzizi wa uaminifu
+ukubwa thabiti (safu, dimbwi, majedwali) kwenye chanzo cha uaminifu
 (msingi/awali.swm) na maktaba (msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa). Kila kipengele kimoja
 kimoja na uamuzi:
 
@@ -18,7 +18,7 @@ baada ya kusababisha uharibifu. Kanuni ya kudumu baada ya ukaguzi
 huu: **kila mgawanyo mpya wa ukubwa thabiti lazima uwe na ukaguzi wa
 mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 
-## mbegu.swm (mzizi wa uaminifu)
+## mbegu.swm (chanzo cha uaminifu)
 
 | Mgawanyo | Ukubwa | Ulinzi | Uamuzi |
 |---|---|---|---|
@@ -69,7 +69,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 
 ## Hitimisho
 
-Ukaguzi wa chombo UMEKAMILIKA kwa mzizi wa uaminifu (mbegu.swm) na
+Ukaguzi wa chombo UMEKAMILIKA kwa chanzo cha uaminifu (mbegu.swm) na
 maktaba (msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa). Kila mgawanyo wa ukubwa thabiti una ukaguzi
 unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la hitilafu ya
 "ukubwa wa kukisia" limefungwa.
@@ -84,8 +84,8 @@ unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la hitilafu ya
 2. **Ukaguzi wa kwanza wa "abort za sauti" ulikuwa na hitilafu ya
    makutano** (njia ya kawaida iliangukia kwenye mahali pa abort) --
    darasa lilelile lililotokea wakati wa PR #151. Kanuni ya nne ya
-   sheria ya mzizi wa uaminifu (angalia fallthrough ya kila mahali)
+   sheria ya chanzo cha uaminifu (angalia fallthrough ya kila mahali)
    inathibitishwa tena. Jaribio la kabla ya kugandisha lililipata.
 3. Majedwali yote ya mbegu sasa yana ukaguzi unaolia au uthibitisho
    ulioandikwa -- darasa la hitilafu ya "ukubwa wa kukisia" limefungwa
-   kwenye mzizi wa uaminifu.
+   kwenye chanzo cha uaminifu.

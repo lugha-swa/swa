@@ -188,7 +188,7 @@ kamili ya dereva ipo kwenye hazina kuu hadi commit 8fd71b2.
 
 ## 7. Kwanza haina chanzo chenye maelezo [UKALI: TAARIFA]
 
-Kwanza (msingi/kwanza.bin, baiti 393) ni mzizi usioweza kupunguzwa wa
+Kwanza (msingi/kwanza.bin, baiti 393) ni chanzo kisichoweza kupunguzwa cha
 uaminifu -- baiti mbichi bila chanzo chenye maelezo kwenye repo.
 Inajithibitisha kwa kujizalisha (kwanza.heksa -> kwanza.bin) na ndiyo
 inayoganda mbegu.
@@ -242,7 +242,7 @@ rekodi hiyo: kipengee 4c (ABI ya D64 kwenye mbegu -- imefanya kazi),
 kipengee 5 (N64 -- kwa [2^31, 2^63) pekee), na kipengee 8 (husisha --
 hakuna mfululizo unaoingiza faili).
 
-## 10. `ukubwa(x)` kwenye mbegu: jina la muundo/kigezo lililo HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi ndogo) linatafsiriwa kimya kama aina ya msingi [IMEREKEBISHWA 2026-09-27 -- freeze ya TATU ya mzizi wa uaminifu]
+## 10. `ukubwa(x)` kwenye mbegu: jina la muundo/kigezo lililo HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi ndogo) linatafsiriwa kimya kama aina ya msingi [IMEREKEBISHWA 2026-09-27 -- freeze ya TATU ya chanzo cha uaminifu]
 
 Hali ya AWALI (kabla ya rekebisho): tangu awali.bin kugandishwa upya
 2026-09-24 kutambua herufi ndogo za aina 6 za msingi (n8/n16/n32/n64/
@@ -278,7 +278,7 @@ linalolingana. Imethibitishwa kwa vitendo: kamili (self-hosted)
 ILIYOJENGWA na mbegu MPYA (baada ya rekebisho hili) BADO inarudisha 4
 kwa `ukubwa(n32)` yenye muundo `n32` wa kweli -- kwa sababu chanzo cha
 uzalishaji.swa chenyewe hakijaguswa. Hii ni kazi ya BAADAYE, tofauti
-kabisa na rekebisho hili (faili tofauti, hakuna hatari ya mzizi wa
+kabisa na rekebisho hili (faili tofauti, hakuna hatari ya chanzo cha
 uaminifu -- mkusanyaji wa kawaida, si mbegu.swm).
 
 ## 11. Lengwa ya WebAssembly (`kamili --wasm`) -- Awamu ya 1 pekee: N32, hakuna kumbukumbu [UKALI: KWA KUBUNI]

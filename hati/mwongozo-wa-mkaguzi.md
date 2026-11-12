@@ -1,4 +1,4 @@
-# Mwongozo wa mkaguzi: mzizi wa mfululizo huru
+# Mwongozo wa mkaguzi: chanzo cha mfululizo huru
 
 Swa yote hujengwa kutoka programu mbili za mkono. Kila kinachofuata hujengwa
 na hatua iliyo chini yake, na kila hatua hujijenga yenyewe sawa kwa baiti --
@@ -21,7 +21,7 @@ matokeo yako (hata "nimekagua X, sikuona tatizo") kwenye issue ya hazina.
 | 3 | `kusanyiko0` (makro) | 1019 | `msingi/mfululizo/hatua3_kusanyiko0.mahali` | read, write, exit |
 
 Jumla: baiti 3381. Mbegu mbili (0 na 0b) ndizo binary pekee zilizogandishwa
-kwenye mzizi; hatua 1-3 hujengwa kutoka faili za maandishi wakati wa kila
+kwenye chanzo; hatua 1-3 hujengwa kutoka faili za maandishi wakati wa kila
 ujenzi. Baada ya hatua 3, msimbo umeandikwa kwa makro (`.kus`) na kisha kwa
 lugha ya mashine ya Swa (`.swm`) -- unasomeka kama programu, si baiti.
 
@@ -87,4 +87,4 @@ Kisha linganisha disassembly na maoni ya `.maoni` mstari kwa mstari.
   haziko ndani ya wigo huu.
 - Baada ya hatua 3, chanzo (`hatua4_kusanyiko.kus`, `kusanyiko.swm`,
   `mbegu.swm`, `mjenzi.swm`) ni maelfu ya mistari. Kinasomeka, lakini
-  ukaguzi wake ni kazi kubwa zaidi; anza na mzizi hapa.
+  ukaguzi wake ni kazi kubwa zaidi; anza na chanzo hapa.
