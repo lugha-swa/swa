@@ -135,7 +135,7 @@ mahali pa ndani -- zinaonekana kwenye `kwanza.heksa`.
    hadi `r12/r13/r14`.
 2. `hamisha r14d, namba32` inahitaji modrm `be` (si `ba` -- hiyo ni r2d).
 3. Kuruka kwa masharti juu ya `ruka rel32` inahitaji skip ya **baiti 5**
-   (si 2): `jg 05; ruka ...`.
+   (si 2): `ruka_kama_juu_n 05; ruka ...`.
 4. Uanzishaji wa chombo cha kuandika ufanyike **mara moja tu** -- katika
    kila mzunguko wa kusoma ulikuwa unafuta pato lililojazwa.
 5. Maoni katika faili la heksa hayaruhusiwi kuwa na tarakimu au herufi

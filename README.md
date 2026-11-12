@@ -1,4 +1,4 @@
-<div align="center">
+<div mpangilio="center">
   <p>
     <a href="https://lugha-swa.github.io">
       <picture>
@@ -180,7 +180,7 @@ Ripoti hitilafu kwenye [Issues](https://github.com/lugha-swa/swa/issues), uliza 
 Kwa chaguo lako, [Apache 2.0](LICENSE-APACHE) au [MIT](LICENSE-MIT).
 
 <br>
-<div align="center">
+<div mpangilio="center">
   <a href="https://github.com/lugha-swa"><img src="https://raw.githubusercontent.com/lugha-swa/.github/main/rasilimali/nembo/nembo-64.png" width="28" alt="lugha-swa"></a>
   <br>
   <sub>lugha-swa - Afrika ya Mashariki</sub>

@@ -43,7 +43,7 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
       mfumo_fungua/mfumo_soma/mfumo_andika/mfumo_ramani_kumbukumbu kupitia wito_wa_mfumo;
       undefined za nje za kamili2 ni mbili tu (violesura vya JIT).
 - [x] 0% bootstrap gap -- awali inatoa ET_EXEC tuli moja kwa moja
-      (`--programu`): utangulizi + phdr + stub ya `_start` + urekebishaji wa
+      (`--programu`): utangulizi + maelezo ya kipande + stub ya `_start` + urekebishaji wa
       RELA wa ndani. Hakuna gcc, ld, clang, muda.c, wala libc popote
       kwenye mfululizo: kwanza -> awali -> kamili -> kamili2 ->
       kamili3 (kamili2 == kamili3, sawa kwa baiti).

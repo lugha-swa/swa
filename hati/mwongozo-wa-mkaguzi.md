@@ -36,15 +36,15 @@ lugha ya mashine ya Swa (`.swm`) -- unasomeka kama programu, si baiti.
 
 ## Kwa kila programu, kagua
 
-- **Utangulizi wa ELF:** kiingilio (`e_entry`), PT_LOAD moja, `p_filesz` sawa na
-  ukubwa wa faili, `p_memsz` -- vyombo vyote viko ndani yake.
+- **Utangulizi wa ELF:** kiingilio (`kiingilio`), PT_LOAD moja, `ukubwa kwenye faili` sawa na
+  ukubwa wa faili, `ukubwa kwenye kumbukumbu` -- vyombo vyote viko ndani yake.
 - **Kila agizo:** baiti kwenye mstari zinasimba agizo lililoandikwa kwenye
   maoni yake (rejea: Intel SDM Juzuu 2, au disassembler yoyote kama mkaguzi).
 - **Wito wa mfumo:** kabla ya kila `mfumo` (0f 05), thamani ya r0 ni
   mojawapo ya zile kwenye jedwali hapo juu -- hakuna mtandao, hakuna
   kubadilisha ruhusa za kumbukumbu, hakuna kuandika mahali pengine.
 - **Kumbukumbu:** kila uandishi unaenda kwenye chombo kilichotangazwa kwenye
-  maoni ya utangulizi, ndani ya `p_memsz`.
+  maoni ya utangulizi, ndani ya `ukubwa kwenye kumbukumbu`.
 - **Matawi:** kila umbali wa `ruka`/`call` unaelekea mwanzo wa agizo, si
   katikati yake.
 - **Mwisho:** hakuna baiti baada ya msimbo na data zilizoelezwa.

@@ -15,220 +15,220 @@
 7f 45 4c 46             ; ELF: alama ya uchawi
 02 01 01 00             ; biti 64, little-endian, toleo 1, System V
 00 00 00 00 00 00 00 00 ; nafasi tupu
-02 00                   ; e_type: EXEC
-3e 00                   ; e_machine: x86-64
-01 00 00 00             ; e_version: 1
-78 00 40 00 00 00 00 00 ; e_entry: 0x400078
-40 00 00 00 00 00 00 00 ; e_phoff: 64
-00 00 00 00 00 00 00 00 ; e_shoff: hakuna sehemu
-00 00 00 00             ; e_flags
-40 00                   ; e_ehsize: 64
-38 00                   ; e_phentsize: 56
-01 00                   ; e_phnum: 1
-00 00 00 00 00 00       ; e_shentsize, e_shnum, e_shstrndx: 0
+02 00                   ; aina ya faili: EXEC
+3e 00                   ; mashine: x86-64
+01 00 00 00             ; toleo: 1
+78 00 40 00 00 00 00 00 ; kiingilio: 0x400078
+40 00 00 00 00 00 00 00 ; umbali wa maelezo ya vipande: 64
+00 00 00 00 00 00 00 00 ; umbali wa maelezo ya sehemu: hakuna sehemu
+00 00 00 00             ; machaguo ya ELF
+40 00                   ; ukubwa wa utangulizi: 64
+38 00                   ; ukubwa wa maelezo ya kipande: 56
+01 00                   ; idadi ya vipande: 1
+00 00 00 00 00 00       ; ukubwa wa maelezo ya sehemu, idadi ya sehemu, faharisi ya majina ya sehemu: 0
 
 # ---- maelezo ya kipande (baiti 56) ----
-01 00 00 00             ; p_type: PT_LOAD
-07 00 00 00             ; p_flags: soma + andika + tekeleza
-00 00 00 00 00 00 00 00 ; p_offset: 0
-00 00 40 00 00 00 00 00 ; p_vaddr: 0x400000
-00 00 40 00 00 00 00 00 ; p_paddr: 0x400000
-da 02 00 00 00 00 00 00 ; p_filesz: 730
-00 00 40 00 00 00 00 00 ; p_memsz: MB 4 -- kuingiza 0x500000, kutoa 0x600000, jedwali la mahali 0x700000
-00 10 00 00 00 00 00 00 ; p_align: 0x1000
+01 00 00 00             ; aina ya kipande: PT_LOAD
+07 00 00 00             ; ruhusa za kipande: soma + andika + tekeleza
+00 00 00 00 00 00 00 00 ; umbali kwenye faili: 0
+00 00 40 00 00 00 00 00 ; anwani pepe: 0x400000
+00 00 40 00 00 00 00 00 ; anwani halisi: 0x400000
+da 02 00 00 00 00 00 00 ; ukubwa kwenye faili: 730
+00 00 40 00 00 00 00 00 ; ukubwa kwenye kumbukumbu: MB 4 -- kuingiza 0x500000, kutoa 0x600000, jedwali la mahali 0x700000
+00 10 00 00 00 00 00 00 ; mpangilio wa kipande: 0x1000
 
 # ---- msimbo, unaanzia 0x400078 ----
 # anza:
-48 bd 00 00 50 00 00 00 00 00   ; 400078: movabs rbp,0x500000
-49 89 ef                        ; 400082: mov    r15,rbp
+48 bd 00 00 50 00 00 00 00 00   ; 400078: weka r5, 0x500000
+49 89 ef                        ; 400082: hamisha r15, r5
 # soma:
-31 ff                           ; 400085: xor    edi,edi
-4c 89 fe                        ; 400087: mov    rsi,r15
-ba 00 00 01 00                  ; 40008a: mov    edx,0x10000
-31 c0                           ; 40008f: xor    eax,eax
-0f 05                           ; 400091: syscall
-48 85 c0                        ; 400093: test   rax,rax
-7e 05                           ; 400096: jle    25 <imesomwa>
-49 01 c7                        ; 400098: add    r15,rax
-eb e8                           ; 40009b: jmp    d <soma>
+31 ff                           ; 400085: au_pekee    r7d,r7d
+4c 89 fe                        ; 400087: hamisha r6, r15
+ba 00 00 01 00                  ; 40008a: weka r2d, 0x10000
+31 c0                           ; 40008f: au_pekee    r0d,r0d
+0f 05                           ; 400091: mfumo
+48 85 c0                        ; 400093: pima   r0,r0
+7e 05                           ; 400096: ruka_kama_chini_sawa_n    25 <imesomwa>
+49 01 c7                        ; 400098: jumlisha    r15,r0
+eb e8                           ; 40009b: ruka    d <soma>
 # imesomwa:
-49 b9 00 00 70 00 00 00 00 00   ; 40009d: movabs r9,0x700000
-41 be 01 00 00 00               ; 4000a7: mov    r14d,0x1
-e8 2d 00 00 00                  ; 4000ad: call   67 <pitio>
-41 be 02 00 00 00               ; 4000b2: mov    r14d,0x2
-e8 22 00 00 00                  ; 4000b8: call   67 <pitio>
-bf 01 00 00 00                  ; 4000bd: mov    edi,0x1
-48 be 00 00 60 00 00 00 00 00   ; 4000c2: movabs rsi,0x600000
-4c 89 e2                        ; 4000cc: mov    rdx,r12
-b8 01 00 00 00                  ; 4000cf: mov    eax,0x1
-0f 05                           ; 4000d4: syscall
-31 ff                           ; 4000d6: xor    edi,edi
+49 b9 00 00 70 00 00 00 00 00   ; 40009d: weka r9, 0x700000
+41 be 01 00 00 00               ; 4000a7: hamisha    r14d,0x1
+e8 2d 00 00 00                  ; 4000ad: ita   67 <pitio>
+41 be 02 00 00 00               ; 4000b2: hamisha    r14d,0x2
+e8 22 00 00 00                  ; 4000b8: ita   67 <pitio>
+bf 01 00 00 00                  ; 4000bd: weka r7d, 0x1
+48 be 00 00 60 00 00 00 00 00   ; 4000c2: weka r6, 0x600000
+4c 89 e2                        ; 4000cc: hamisha r2, r12
+b8 01 00 00 00                  ; 4000cf: weka r0d, 0x1
+0f 05                           ; 4000d4: mfumo
+31 ff                           ; 4000d6: au_pekee    r7d,r7d
 # toka:
-b8 3c 00 00 00                  ; 4000d8: mov    eax,0x3c
-0f 05                           ; 4000dd: syscall
+b8 3c 00 00 00                  ; 4000d8: weka r0d, 0x3c
+0f 05                           ; 4000dd: mfumo
 # pitio:
-48 89 eb                        ; 4000df: mov    rbx,rbp
-45 31 e4                        ; 4000e2: xor    r12d,r12d
-45 31 db                        ; 4000e5: xor    r11d,r11d
+48 89 eb                        ; 4000df: hamisha r3, r5
+45 31 e4                        ; 4000e2: au_pekee    r12d,r12d
+45 31 db                        ; 4000e5: au_pekee    r11d,r11d
 # p_mzunguko:
-4c 39 fb                        ; 4000e8: cmp    rbx,r15
-0f 83 50 01 00 00               ; 4000eb: jae    1c9 <p_mwisho>
-0f b6 03                        ; 4000f1: movzx  eax,BYTE PTR [rbx]
-48 ff c3                        ; 4000f4: inc    rbx
-83 f8 3b                        ; 4000f7: cmp    eax,0x3b
-74 78                           ; 4000fa: je     fc <p_maoni>
-83 f8 23                        ; 4000fc: cmp    eax,0x23
-74 73                           ; 4000ff: je     fc <p_maoni>
-83 f8 3a                        ; 400101: cmp    eax,0x3a
-0f 84 83 00 00 00               ; 400104: je     115 <p_mahali>
-83 f8 21                        ; 40010a: cmp    eax,0x21
-0f 84 a5 00 00 00               ; 40010d: je     140 <p_rel8>
-83 f8 25                        ; 400113: cmp    eax,0x25
-0f 84 dd 00 00 00               ; 400116: je     181 <p_rel32>
-83 f8 26                        ; 40011c: cmp    eax,0x26
-0f 84 f9 00 00 00               ; 40011f: je     1a6 <p_abs32>
-83 f8 30                        ; 400125: cmp    eax,0x30
-72 be                           ; 400128: jb     70 <p_mzunguko>
-83 f8 39                        ; 40012a: cmp    eax,0x39
-76 19                           ; 40012d: jbe    d0 <p_tarakimu>
-83 f8 41                        ; 40012f: cmp    eax,0x41
-72 b4                           ; 400132: jb     70 <p_mzunguko>
-83 f8 46                        ; 400134: cmp    eax,0x46
-76 14                           ; 400137: jbe    d5 <p_kubwa>
-83 f8 61                        ; 400139: cmp    eax,0x61
-72 aa                           ; 40013c: jb     70 <p_mzunguko>
-83 f8 66                        ; 40013e: cmp    eax,0x66
-77 a5                           ; 400141: ja     70 <p_mzunguko>
-83 e8 57                        ; 400143: sub    eax,0x57
-eb 08                           ; 400146: jmp    d8 <p_nusu>
+4c 39 fb                        ; 4000e8: linganisha    r3,r15
+0f 83 50 01 00 00               ; 4000eb: ruka_kama_juu_sawa_a    1c9 <p_mwisho>
+0f b6 03                        ; 4000f1: soma_a  r0d,n8[r3]
+48 ff c3                        ; 4000f4: inc    r3
+83 f8 3b                        ; 4000f7: linganisha    r0d,0x3b
+74 78                           ; 4000fa: ruka_kama_sawa     fc <p_maoni>
+83 f8 23                        ; 4000fc: linganisha    r0d,0x23
+74 73                           ; 4000ff: ruka_kama_sawa     fc <p_maoni>
+83 f8 3a                        ; 400101: linganisha    r0d,0x3a
+0f 84 83 00 00 00               ; 400104: ruka_kama_sawa     115 <p_mahali>
+83 f8 21                        ; 40010a: linganisha    r0d,0x21
+0f 84 a5 00 00 00               ; 40010d: ruka_kama_sawa     140 <p_rel8>
+83 f8 25                        ; 400113: linganisha    r0d,0x25
+0f 84 dd 00 00 00               ; 400116: ruka_kama_sawa     181 <p_rel32>
+83 f8 26                        ; 40011c: linganisha    r0d,0x26
+0f 84 f9 00 00 00               ; 40011f: ruka_kama_sawa     1a6 <p_abs32>
+83 f8 30                        ; 400125: linganisha    r0d,0x30
+72 be                           ; 400128: ruka_kama_chini_a     70 <p_mzunguko>
+83 f8 39                        ; 40012a: linganisha    r0d,0x39
+76 19                           ; 40012d: ruka_kama_chini_sawa_a    d0 <p_tarakimu>
+83 f8 41                        ; 40012f: linganisha    r0d,0x41
+72 b4                           ; 400132: ruka_kama_chini_a     70 <p_mzunguko>
+83 f8 46                        ; 400134: linganisha    r0d,0x46
+76 14                           ; 400137: ruka_kama_chini_sawa_a    d5 <p_kubwa>
+83 f8 61                        ; 400139: linganisha    r0d,0x61
+72 aa                           ; 40013c: ruka_kama_chini_a     70 <p_mzunguko>
+83 f8 66                        ; 40013e: linganisha    r0d,0x66
+77 a5                           ; 400141: ruka_kama_juu_a     70 <p_mzunguko>
+83 e8 57                        ; 400143: toa    r0d,0x57
+eb 08                           ; 400146: ruka    d8 <p_nusu>
 # p_tarakimu:
-83 e8 30                        ; 400148: sub    eax,0x30
-eb 03                           ; 40014b: jmp    d8 <p_nusu>
+83 e8 30                        ; 400148: toa    r0d,0x30
+eb 03                           ; 40014b: ruka    d8 <p_nusu>
 # p_kubwa:
-83 e8 37                        ; 40014d: sub    eax,0x37
+83 e8 37                        ; 40014d: toa    r0d,0x37
 # p_nusu:
-4d 85 db                        ; 400150: test   r11,r11
-75 0b                           ; 400153: jne    e8 <p_ya_pili>
-49 89 c2                        ; 400155: mov    r10,rax
-41 bb 01 00 00 00               ; 400158: mov    r11d,0x1
-eb 88                           ; 40015e: jmp    70 <p_mzunguko>
+4d 85 db                        ; 400150: pima   r11,r11
+75 0b                           ; 400153: ruka_kama_si_sawa    e8 <p_ya_pili>
+49 89 c2                        ; 400155: hamisha r10, r0
+41 bb 01 00 00 00               ; 400158: hamisha    r11d,0x1
+eb 88                           ; 40015e: ruka    70 <p_mzunguko>
 # p_ya_pili:
-49 c1 e2 04                     ; 400160: shl    r10,0x4
-4c 09 d0                        ; 400164: or     rax,r10
-e8 29 01 00 00                  ; 400167: call   21d <zalisha_baiti>
-45 31 db                        ; 40016c: xor    r11d,r11d
-e9 74 ff ff ff                  ; 40016f: jmp    70 <p_mzunguko>
+49 c1 e2 04                     ; 400160: sogeza_kushoto    r10,0x4
+4c 09 d0                        ; 400164: au     r0,r10
+e8 29 01 00 00                  ; 400167: ita   21d <zalisha_baiti>
+45 31 db                        ; 40016c: au_pekee    r11d,r11d
+e9 74 ff ff ff                  ; 40016f: ruka    70 <p_mzunguko>
 # p_maoni:
-4c 39 fb                        ; 400174: cmp    rbx,r15
-0f 83 c4 00 00 00               ; 400177: jae    1c9 <p_mwisho>
-0f b6 03                        ; 40017d: movzx  eax,BYTE PTR [rbx]
-48 ff c3                        ; 400180: inc    rbx
-83 f8 0a                        ; 400183: cmp    eax,0xa
-75 ec                           ; 400186: jne    fc <p_maoni>
-e9 5b ff ff ff                  ; 400188: jmp    70 <p_mzunguko>
+4c 39 fb                        ; 400174: linganisha    r3,r15
+0f 83 c4 00 00 00               ; 400177: ruka_kama_juu_sawa_a    1c9 <p_mwisho>
+0f b6 03                        ; 40017d: soma_a  r0d,n8[r3]
+48 ff c3                        ; 400180: inc    r3
+83 f8 0a                        ; 400183: linganisha    r0d,0xa
+75 ec                           ; 400186: ruka_kama_si_sawa    fc <p_maoni>
+e9 5b ff ff ff                  ; 400188: ruka    70 <p_mzunguko>
 # p_mahali:
-e8 b0 00 00 00                  ; 40018d: call   1ca <jina>
-41 83 fe 01                     ; 400192: cmp    r14d,0x1
-0f 85 4c ff ff ff               ; 400196: jne    70 <p_mzunguko>
-49 89 31                        ; 40019c: mov    QWORD PTR [r9],rsi
-49 89 51 08                     ; 40019f: mov    QWORD PTR [r9+0x8],rdx
-49 8d 84 24 00 00 40 00         ; 4001a3: lea    rax,[r12+0x400000]
-49 89 41 10                     ; 4001ab: mov    QWORD PTR [r9+0x10],rax
-49 83 c1 18                     ; 4001af: add    r9,0x18
-e9 30 ff ff ff                  ; 4001b3: jmp    70 <p_mzunguko>
+e8 b0 00 00 00                  ; 40018d: ita   1ca <jina>
+41 83 fe 01                     ; 400192: linganisha    r14d,0x1
+0f 85 4c ff ff ff               ; 400196: ruka_kama_si_sawa    70 <p_mzunguko>
+49 89 31                        ; 40019c: hifadhi n64[r9], r6
+49 89 51 08                     ; 40019f: hifadhi n64[r9+0x8], r2
+49 8d 84 24 00 00 40 00         ; 4001a3: anwani    r0,[r12+0x400000]
+49 89 41 10                     ; 4001ab: hifadhi n64[r9+0x10], r0
+49 83 c1 18                     ; 4001af: jumlisha    r9,0x18
+e9 30 ff ff ff                  ; 4001b3: ruka    70 <p_mzunguko>
 # p_rel8:
-e8 85 00 00 00                  ; 4001b8: call   1ca <jina>
-41 83 fe 01                     ; 4001bd: cmp    r14d,0x1
-74 2e                           ; 4001c1: je     179 <p_rel8_ruka>
-e8 96 00 00 00                  ; 4001c3: call   1e6 <tafuta>
-49 8d 8c 24 01 00 40 00         ; 4001c8: lea    rcx,[r12+0x400001]
-48 29 c8                        ; 4001d0: sub    rax,rcx
-48 83 f8 80                     ; 4001d3: cmp    rax,0xffffffffffffff80
-0f 8c f3 00 00 00               ; 4001d7: jl     258 <kosa_mbali>
-48 83 f8 7f                     ; 4001dd: cmp    rax,0x7f
-0f 8f e9 00 00 00               ; 4001e1: jg     258 <kosa_mbali>
-e8 a9 00 00 00                  ; 4001e7: call   21d <zalisha_baiti>
-e9 f7 fe ff ff                  ; 4001ec: jmp    70 <p_mzunguko>
+e8 85 00 00 00                  ; 4001b8: ita   1ca <jina>
+41 83 fe 01                     ; 4001bd: linganisha    r14d,0x1
+74 2e                           ; 4001c1: ruka_kama_sawa     179 <p_rel8_ruka>
+e8 96 00 00 00                  ; 4001c3: ita   1e6 <tafuta>
+49 8d 8c 24 01 00 40 00         ; 4001c8: anwani    r1,[r12+0x400001]
+48 29 c8                        ; 4001d0: toa    r0,r1
+48 83 f8 80                     ; 4001d3: linganisha    r0,0xffffffffffffff80
+0f 8c f3 00 00 00               ; 4001d7: ruka_kama_chini_n     258 <kosa_mbali>
+48 83 f8 7f                     ; 4001dd: linganisha    r0,0x7f
+0f 8f e9 00 00 00               ; 4001e1: ruka_kama_juu_n     258 <kosa_mbali>
+e8 a9 00 00 00                  ; 4001e7: ita   21d <zalisha_baiti>
+e9 f7 fe ff ff                  ; 4001ec: ruka    70 <p_mzunguko>
 # p_rel8_ruka:
-49 ff c4                        ; 4001f1: inc    r12
-e9 ef fe ff ff                  ; 4001f4: jmp    70 <p_mzunguko>
+49 ff c4                        ; 4001f1: ongeza_moja    r12
+e9 ef fe ff ff                  ; 4001f4: ruka    70 <p_mzunguko>
 # p_rel32:
-e8 44 00 00 00                  ; 4001f9: call   1ca <jina>
-41 83 fe 01                     ; 4001fe: cmp    r14d,0x1
-74 34                           ; 400202: je     1c0 <p_neno_ruka>
-e8 55 00 00 00                  ; 400204: call   1e6 <tafuta>
-49 8d 8c 24 04 00 40 00         ; 400209: lea    rcx,[r12+0x400004]
-48 29 c8                        ; 400211: sub    rax,rcx
-e8 94 00 00 00                  ; 400214: call   235 <zalisha_neno4>
-e9 ca fe ff ff                  ; 400219: jmp    70 <p_mzunguko>
+e8 44 00 00 00                  ; 4001f9: ita   1ca <jina>
+41 83 fe 01                     ; 4001fe: linganisha    r14d,0x1
+74 34                           ; 400202: ruka_kama_sawa     1c0 <p_neno_ruka>
+e8 55 00 00 00                  ; 400204: ita   1e6 <tafuta>
+49 8d 8c 24 04 00 40 00         ; 400209: anwani    r1,[r12+0x400004]
+48 29 c8                        ; 400211: toa    r0,r1
+e8 94 00 00 00                  ; 400214: ita   235 <zalisha_neno4>
+e9 ca fe ff ff                  ; 400219: ruka    70 <p_mzunguko>
 # p_abs32:
-e8 1f 00 00 00                  ; 40021e: call   1ca <jina>
-41 83 fe 01                     ; 400223: cmp    r14d,0x1
-74 0f                           ; 400227: je     1c0 <p_neno_ruka>
-e8 30 00 00 00                  ; 400229: call   1e6 <tafuta>
-e8 7a 00 00 00                  ; 40022e: call   235 <zalisha_neno4>
-e9 b0 fe ff ff                  ; 400233: jmp    70 <p_mzunguko>
+e8 1f 00 00 00                  ; 40021e: ita   1ca <jina>
+41 83 fe 01                     ; 400223: linganisha    r14d,0x1
+74 0f                           ; 400227: ruka_kama_sawa     1c0 <p_neno_ruka>
+e8 30 00 00 00                  ; 400229: ita   1e6 <tafuta>
+e8 7a 00 00 00                  ; 40022e: ita   235 <zalisha_neno4>
+e9 b0 fe ff ff                  ; 400233: ruka    70 <p_mzunguko>
 # p_neno_ruka:
-49 83 c4 04                     ; 400238: add    r12,0x4
-e9 a7 fe ff ff                  ; 40023c: jmp    70 <p_mzunguko>
+49 83 c4 04                     ; 400238: jumlisha    r12,0x4
+e9 a7 fe ff ff                  ; 40023c: ruka    70 <p_mzunguko>
 # p_mwisho:
-c3                              ; 400241: ret
+c3                              ; 400241: rudi
 # jina:
-48 89 de                        ; 400242: mov    rsi,rbx
+48 89 de                        ; 400242: hamisha r6, r3
 # j_mzunguko:
-4c 39 fb                        ; 400245: cmp    rbx,r15
-73 0d                           ; 400248: jae    1df <j_mwisho>
-0f b6 03                        ; 40024a: movzx  eax,BYTE PTR [rbx]
-83 f8 20                        ; 40024d: cmp    eax,0x20
-76 05                           ; 400250: jbe    1df <j_mwisho>
-48 ff c3                        ; 400252: inc    rbx
-eb ee                           ; 400255: jmp    1cd <j_mzunguko>
+4c 39 fb                        ; 400245: linganisha    r3,r15
+73 0d                           ; 400248: ruka_kama_juu_sawa_a    1df <j_mwisho>
+0f b6 03                        ; 40024a: soma_a  r0d,n8[r3]
+83 f8 20                        ; 40024d: linganisha    r0d,0x20
+76 05                           ; 400250: ruka_kama_chini_sawa_a    1df <j_mwisho>
+48 ff c3                        ; 400252: inc    r3
+eb ee                           ; 400255: ruka    1cd <j_mzunguko>
 # j_mwisho:
-48 89 da                        ; 400257: mov    rdx,rbx
-48 29 f2                        ; 40025a: sub    rdx,rsi
-c3                              ; 40025d: ret
+48 89 da                        ; 400257: hamisha r2, r3
+48 29 f2                        ; 40025a: toa    r2,r6
+c3                              ; 40025d: rudi
 # tafuta:
-49 b8 00 00 70 00 00 00 00 00   ; 40025e: movabs r8,0x700000
+49 b8 00 00 70 00 00 00 00 00   ; 40025e: weka r8, 0x700000
 # t_mzunguko:
-4d 39 c8                        ; 400268: cmp    r8,r9
-73 59                           ; 40026b: jae    24e <kosa_haipo>
-49 3b 50 08                     ; 40026d: cmp    rdx,QWORD PTR [r8+0x8]
-75 1c                           ; 400271: jne    217 <t_ijayo>
-49 8b 38                        ; 400273: mov    rdi,QWORD PTR [r8]
-31 c9                           ; 400276: xor    ecx,ecx
+4d 39 c8                        ; 400268: linganisha    r8,r9
+73 59                           ; 40026b: ruka_kama_juu_sawa_a    24e <kosa_haipo>
+49 3b 50 08                     ; 40026d: linganisha    r2,n64[r8+0x8]
+75 1c                           ; 400271: ruka_kama_si_sawa    217 <t_ijayo>
+49 8b 38                        ; 400273: soma r7, n64[r8]
+31 c9                           ; 400276: au_pekee    r1d,r1d
 # t_linganisha:
-48 39 d1                        ; 400278: cmp    rcx,rdx
-73 0d                           ; 40027b: jae    212 <t_imepatikana>
-8a 04 0e                        ; 40027d: mov    al,BYTE PTR [rsi+rcx*1]
-3a 04 0f                        ; 400280: cmp    al,BYTE PTR [rdi+rcx*1]
-75 0a                           ; 400283: jne    217 <t_ijayo>
-48 ff c1                        ; 400285: inc    rcx
-eb ee                           ; 400288: jmp    200 <t_linganisha>
+48 39 d1                        ; 400278: linganisha    r1,r2
+73 0d                           ; 40027b: ruka_kama_juu_sawa_a    212 <t_imepatikana>
+8a 04 0e                        ; 40027d: soma r0b, n8[r6+r1*1]
+3a 04 0f                        ; 400280: linganisha    r0b,n8[r7+r1*1]
+75 0a                           ; 400283: ruka_kama_si_sawa    217 <t_ijayo>
+48 ff c1                        ; 400285: inc    r1
+eb ee                           ; 400288: ruka    200 <t_linganisha>
 # t_imepatikana:
-49 8b 40 10                     ; 40028a: mov    rax,QWORD PTR [r8+0x10]
-c3                              ; 40028e: ret
+49 8b 40 10                     ; 40028a: soma r0, n64[r8+0x10]
+c3                              ; 40028e: rudi
 # t_ijayo:
-49 83 c0 18                     ; 40028f: add    r8,0x18
-eb d3                           ; 400293: jmp    1f0 <t_mzunguko>
+49 83 c0 18                     ; 40028f: jumlisha    r8,0x18
+eb d3                           ; 400293: ruka    1f0 <t_mzunguko>
 # zalisha_baiti:
-41 83 fe 02                     ; 400295: cmp    r14d,0x2
-75 0e                           ; 400299: jne    231 <tb_ruka>
-48 b9 00 00 60 00 00 00 00 00   ; 40029b: movabs rcx,0x600000
-42 88 04 21                     ; 4002a5: mov    BYTE PTR [rcx+r12*1],al
+41 83 fe 02                     ; 400295: linganisha    r14d,0x2
+75 0e                           ; 400299: ruka_kama_si_sawa    231 <tb_ruka>
+48 b9 00 00 60 00 00 00 00 00   ; 40029b: weka r1, 0x600000
+42 88 04 21                     ; 4002a5: hifadhi n8[r1+r12*1], r0b
 # tb_ruka:
-49 ff c4                        ; 4002a9: inc    r12
-c3                              ; 4002ac: ret
+49 ff c4                        ; 4002a9: ongeza_moja    r12
+c3                              ; 4002ac: rudi
 # zalisha_neno4:
-41 83 fe 02                     ; 4002ad: cmp    r14d,0x2
-75 0e                           ; 4002b1: jne    249 <tn_ruka>
-48 b9 00 00 60 00 00 00 00 00   ; 4002b3: movabs rcx,0x600000
-42 89 04 21                     ; 4002bd: mov    DWORD PTR [rcx+r12*1],eax
+41 83 fe 02                     ; 4002ad: linganisha    r14d,0x2
+75 0e                           ; 4002b1: ruka_kama_si_sawa    249 <tn_ruka>
+48 b9 00 00 60 00 00 00 00 00   ; 4002b3: weka r1, 0x600000
+42 89 04 21                     ; 4002bd: hifadhi n32[r1+r12*1], r0d
 # tn_ruka:
-49 83 c4 04                     ; 4002c1: add    r12,0x4
-c3                              ; 4002c5: ret
+49 83 c4 04                     ; 4002c1: jumlisha    r12,0x4
+c3                              ; 4002c5: rudi
 # kosa_haipo:
-bf 02 00 00 00                  ; 4002c6: mov    edi,0x2
-e9 08 fe ff ff                  ; 4002cb: jmp    60 <toka>
+bf 02 00 00 00                  ; 4002c6: weka r7d, 0x2
+e9 08 fe ff ff                  ; 4002cb: ruka    60 <toka>
 # kosa_mbali:
-bf 03 00 00 00                  ; 4002d0: mov    edi,0x3
-e9 fe fd ff ff                  ; 4002d5: jmp    60 <toka>
+bf 03 00 00 00                  ; 4002d0: weka r7d, 0x3
+e9 fe fd ff ff                  ; 4002d5: ruka    60 <toka>
