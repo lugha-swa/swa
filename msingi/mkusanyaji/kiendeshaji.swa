@@ -45,7 +45,7 @@ n8 chombo_cha_faili_kuu[16777216];
 n8 chombo_cha_faili_la_sasa[16777216];
 n8 chombo_cha_ukaguzi[16777216];
 
-// Hifadhi ya majina -- safu bapa ya vipande (njia kamili + NUL).
+// Hifadhi ya majina -- safu bapa ya vipande (njia kamili + baiti sifuri).
 // mrundikano ni kwa kutambua mizunguko; zilizotatuliwa ni kwa
 // kutofanya marudio (kila faili linatolewa mara moja tu).
 n8 majina_husisha[262144];
@@ -70,7 +70,7 @@ n32 faili_ipo_swa(n8* njia) {
     rudisha 1;
 }
 
-// soma_faili -- soma faili lote hadi chombo (chenye NUL mwishoni).
+// soma_faili -- soma faili lote hadi chombo (chenye baiti sifuri mwishoni).
 // Rudisha urefu, au -1 kama halifunguki. Kikomo: upeo - 1.
 //
 // Kabla ya kusoma, ukubwa HALISI wa faili unatambuliwa kwa
@@ -146,14 +146,14 @@ n32 tambua_mstari(n8* b, n64 p, n64 urefu) {
             rudisha 2;
         }
         kama (baada == 10) { rudisha 2; }  // mwisho wa mstari
-        kama (baada == 13) { rudisha 2; }  // mwisho wa mstari (CRLF)
+        kama (baada == 13) { rudisha 2; }  // mwisho wa mstari (13 10, mtindo wa Windows)
         rudisha 0;  // "husisha" + herufi nyingine -- si neno kamili
     }
     rudisha 0;
 }
 
 // toa_jina -- toa jina la faili kati ya { } na ulinakili hadi
-// jina_buf (lenye NUL). Rudisha 0 kwa sawa, -1 kwa kosa.
+// chombo cha jina (chenye baiti sifuri mwishoni). Rudisha 0 kwa sawa, -1 kwa kosa.
 n32 toa_jina(n8* b, n64 p, n64 urefu) {
     n64 j = p + 9;  // mara tu baada ya '{'
     wakati (j < p + urefu && (b[j] == 32 || b[j] == 9)) {
@@ -225,19 +225,19 @@ n32 ongeza_jina(n8* jina) {
 // kukusanya programu yoyote yenye husisha ya maktaba.
 n8 saraka_ya_swa[512];
 n32 saraka_ya_swa_hali = 0;  // 0 = haijatafutwa, 1 = ipo, -1 = haipo
-n8* swa_hoja_mstari0 = 0;          // argv[0], hujazwa na anza
+n8* swa_hoja_mstari0 = 0;          // hoja ya 0 ya mstari, hujazwa na anza
 
 n32 saraka_ya_swa_tafuta() {
     kama (saraka_ya_swa_hali != 0) {
         rudisha saraka_ya_swa_hali;
     }
     saraka_ya_swa_hali = -1;
-    // readlink(2) = 89; haiandiki NUL, urefu unarudishwa. Hufuata
-    // viungo (symlink), kwa hiyo /usr/local/bin/swa -> /opt/swa/bin/swa
+    // readlink(2) = 89; haiandiki baiti sifuri, urefu unarudishwa. Hufuata
+    // viungo vya ishara, kwa hiyo /usr/local/bin/swa -> /opt/swa/bin/swa
     // hupata /opt/swa.
     n64 n = wito_wa_mfumo(89, "/proc/self/exe", saraka_ya_swa, 511, 0, 0, 0);
     kama (n <= 0) {
-        // Hakuna /proc (chroot, initramfs): tumia argv[0] likiwa na '/'.
+        // Hakuna /proc (mazingira yaliyofungiwa, kiini kabla ya mfumo wa faili): tumia hoja ya 0 ikiwa na '/'.
         // Njia ya jamaa hupewa "./" ili kuvua ngazi mbili kubaki halali.
         kama (swa_hoja_mstari0 == 0) {
             rudisha -1;
@@ -601,7 +601,7 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         // Awali haihitaji kuielewa -- ni ya kamili pekee (uzalishaji_wasm.swa).
         kama (linganisha_mfuatano(a, "--wasm") == 0) { ni_wasm = 1; faharasa_ya_faili = 2; }
         // --kiini: pato ghafi la .text la x86-64 lisilo na mfumo (Kawira,
-        // ring 0) -- hakuna ELF, hakuna _start/argv, hakuna syscalls.
+        // ngazi 0 ya CPU) -- hakuna ELF, hakuna _start wala hoja za mstari, hakuna wito wa mfumo.
         kama (linganisha_mfuatano(a, "--kiini") == 0) { ni_kiini = 1; faharasa_ya_faili = 2; }
         // --tafsiri: teremsha hadi IR (mteremko.swa) na uitekeleze moja kwa
         // moja (mtafsiri.swa) -- hakuna msimbo wa mashine. --kati: chapisha IR.
@@ -662,7 +662,7 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
 
     chombo_cha_chanzo_kamili[chanzo_urefu] = 0;
 
-    // 1. Changanua chanzo hadi AST
+    // 1. Changanua chanzo hadi mti wa sintaksia
     Msambazaji p = msambazaji_mpya(chombo_cha_chanzo_kamili, chanzo_urefu);
     n32 nodi_ya_programu = changanua(&p);
     kama (p.kosa != 0) {
@@ -690,7 +690,7 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         rudisha 1;
     }
 
-    // 2.5. LICM (loop-invariant msimbo motion). Inafanyika BAADA ya
+    // 2.5. Hamisha nje (hesabu isiyobadilika ndani ya mzunguko huhamishwa nje yake). Inafanyika BAADA ya
     // ukaguzi wa kisemantiki KWA MAKUSUDI (tofauti na kuunganisha
     // kazi ndogo hapo juu): kila nodi ya usemi tayari ina usimbaji
     // iliyothibitishwa na mkaguzi_angalia, hivyo matamko mapya ya
@@ -699,10 +699,10 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     // (angalia maelezo kamili juu ya hamisha_nje_boresha, msambazaji.swa).
     nodi_ya_programu = hamisha_nje_boresha(nodi_ya_programu);
 
-    // 2.6. SSCSE (CSE ya msimbo wa mstari-moja-kwa-moja). Baada ya
-    // LICM kwa makusudi -- inashughulikia usemi unaorudiwa NJE ya
+    // 2.6. Urudufu wa mstari (usemi unaorudiwa kwenye msimbo wa mstari mmoja hukokotolewa mara moja). Baada ya
+    // kuhamisha nje kwa makusudi -- inashughulikia usemi unaorudiwa NJE ya
     // mizunguko (au ndani ya mizunguko lakini usiokuwa isiyobadilika), sehemu
-    // ambayo LICM haigusi kabisa (angalia maelezo kamili juu ya
+    // ambayo kuhamisha nje hakugusi kabisa (angalia maelezo kamili juu ya
     // urudufu_wa_mstari_boresha, msambazaji.swa).
     nodi_ya_programu = urudufu_wa_mstari_boresha(nodi_ya_programu);
 
@@ -728,7 +728,7 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
             // uzalishaji_wasm_kuu inarudisha 1 kwa ujenzi ulio nje ya
             // wigo wa Awamu 1 (angalia uzalishaji_wasm.swa) -- lazima
             // ijulishwe kwa msimbo wa kutoka wa mchakato, sawa na
-            // ukaguzi wa "kosa" hapo juu, la sivyo stdout ingekuwa
+            // ukaguzi wa "kosa" hapo juu, la sivyo mkondo wa matokeo ungekuwa
             // tupu lakini mchakato ungeonekana kufaulu.
             n32 matokeo_wasm = uzalishaji_wasm_kuu(nodi_ya_programu);
             kama (matokeo_wasm != 0) { rudisha 1; }
