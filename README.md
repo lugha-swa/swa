@@ -45,7 +45,7 @@ git clone https://github.com/lugha-swa/swa && cd swa
 ./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> mbegu -> kamili -> bin/swa
 ```
 
-Kwa anayetaka kuthibitisha mzizi bila kuamini `msingi/mjenzi.bin`: `./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi` hujenga mjenzi kutoka chanzo chake kwa mbegu mbili za mkono pekee (`kwanza.bin` na `kizinduzi.bin`), kisha hulinganisha kila binary iliyogandishwa ([hati/mfululizo-huru.md](hati/mfululizo-huru.md)).
+Kwa anayetaka kuthibitisha chanzo bila kuamini `msingi/mjenzi.bin`: `./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi` hujenga mjenzi kutoka chanzo chake kwa mbegu mbili za mkono pekee (`kwanza.bin` na `kizinduzi.bin`), kisha hulinganisha kila binary iliyogandishwa ([hati/mfululizo-huru.md](hati/mfululizo-huru.md)).
 
 `jenga.mapishi` huanzia `msingi/kwanza.bin` (baiti 393 zilizoandikwa kwa mkono): kila hatua ya mfululizo huru hujengwa na iliyo chini yake, kisha `mbegu`, kisha `kamili`, kisha `kamili` hujijenga yenyewe kuwa `bin/swa`. `mjenzi` (kiendeshaji cha mapishi, `msingi/mfululizo/mjenzi.swm`) yenyewe ni programu ya lugha ya mashine ya Swa iliyojengwa kwa mfululizo huo huo; mapishi huthibitisha kwamba `msingi/mjenzi.bin` ni sawa kwa baiti na inayojengwa kutoka chanzo chake.
 
@@ -142,7 +142,7 @@ Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hat
 | `--kiini` (ring 0) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | IR (mtafsiri dhidi ya msimbo wa mashine) | programu 161 sawa kabisa ([hati/ir.md](hati/ir.md)) |
 | Kujikusanya | `kamili2 == kamili3`, sawa kwa baiti |
-| Mbegu (mzizi wa uaminifu) | hujengwa na kujaribiwa kabla ya kila kugandishwa |
+| Mbegu (chanzo cha uaminifu) | hujengwa na kujaribiwa kabla ya kila kugandishwa |
 
 Mipaka inayojulikana imeandikwa wazi kwenye [hati/mipaka.md](hati/mipaka.md); ramani iko kwenye [hati/ramani.md](hati/ramani.md).
 

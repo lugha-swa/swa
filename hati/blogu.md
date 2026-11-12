@@ -120,7 +120,7 @@ Binary ya kujikusanya:
 - Inajikusanya kwa mafanikio (hakuna SIGSEGV)
 - Inapakia na kuchanganua msimbo wake chanzo wenyewe
 - Inachakata faili za maktaba ya msingi
-- Inaripoti kwa usahihi faharasi ya nodi ya mzizi ya AST
+- Inaripoti kwa usahihi faharasi ya nodi kuu ya AST
 - Inakamilika chini ya sekunde 1 (hali ya mtumiaji)
 - Inachanganua vipengele vyote muhimu vya lugha: kazi, mizunguko ya wakati/kwa, kama/sivyo, muundo, taarifa za rudisha, mgao, hesabu, ulinganisho, tathmini fupi, break/continue
 

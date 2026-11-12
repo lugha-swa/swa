@@ -59,7 +59,7 @@ umehamishiwa hazina ya kumbukumbu lugha-swa/swa-dereva. Angalia
 ## Kilichorekebishwa (Agosti 2026)
 
 - **Mbegu -- hesabu za baiti 8**: hitilafu ya FPE kwenye hesabu za N64
-  ilikuwa na mizizi minne (.load_n64 haikuwa na jmp, hesabu za 32-bit pekee,
+  ilikuwa na vyanzo vinne (.load_n64 haikuwa na jmp, hesabu za 32-bit pekee,
   hifadhi ya 32-bit pekee, na kazi_ret_aina iliyowekwa 0). Zote zimetatuliwa
   na mbegu imegandishwa upya.
 - **Literal kamili kama hoja**: literal (k.m. 1000) ilikuwa inapitishwa kama
