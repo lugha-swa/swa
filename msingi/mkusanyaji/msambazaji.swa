@@ -784,11 +784,11 @@ n32 changanua_taarifa_wakati(Msambazaji* p) {
 
 n32 changanua_taarifa_fanya(Msambazaji* p) {
     // ---- fanya { mwili } wakati ( sharti ) ; ----
-    // Kitanzi cha fanya (do-while): mwili hukimbia mara moja kabla
+    // Mzunguko wa fanya (do-while): mwili hukimbia mara moja kabla
     // ya sharti kujaribiwa. Nodi yake ni AST_WAKATI yenye alama
     // -777778 kwenye ast_thamani (0 = wakati, -777777 = kwa yenye
     // hatua) -- uzalishaji ndiye anayesoma alama hiyo, na mkaguzi
-    // anachunguza fanya sawa na wakati (kitanzi: vunja na endelea
+    // anachunguza fanya sawa na wakati (mzunguko: vunja na endelea
     // ni halali ndani yake; endelea inaruka hadi sharti).
     // Muundo ni MKALI -- mabano ya mwili, ya sharti, na nukta-mkato
     // ni ya lazima (sawa na mbegu).
@@ -945,7 +945,7 @@ n32 changanua_taarifa_chagua(Msambazaji* p) {
 }
 
 n32 changanua_taarifa_kwa(Msambazaji* p) {
-    // ---- kwa ( anzisha ; hali ; hatua ) bloku   (kitanzi cha kwa) ----
+    // ---- kwa ( anzisha ; hali ; hatua ) bloku   (mzunguko wa kwa) ----
     kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "kwa")) {
             sogeza(p);
@@ -999,8 +999,8 @@ n32 changanua_taarifa_kwa(Msambazaji* p) {
                 maudhui = changanua_taarifa(p);
             }
 
-            // Ondoa sukari ya kitanzi-cha-kwa kuwa taarifa ya anzisha ikifuatiwa na kitanzi cha wakati.
-            // Kitanzi cha wakati hufunga hali + (mwili + hatua iliyoambatishwa mwishoni mwa mwili).
+            // Ondoa sukari ya mzunguko-wa-kwa kuwa taarifa ya anzisha ikifuatiwa na mzunguko wa wakati.
+            // Mzunguko wa wakati hufunga hali + (mwili + hatua iliyoambatishwa mwishoni mwa mwili).
             // Hatua imefungwa kwenye block-mini yenye alama -777777 kwenye
             // ast_kulia (kulia ya block huwa -1 kamwe -- hakuna mgongano).
             // Uzalishaji_block hurekodi nafasi yake kwa ajili ya endelea
@@ -1317,7 +1317,7 @@ n32 changanua_kazi_vigezo(Msambazaji* p) {
         }
         kama (p->sasa.urefu == 0) { p->kosa = 1; rudisha -1; }
         // Tokeni isiyo aina kwenye orodha ya vigezo ('{' n.k.) ni kosa --
-        // bila ulinzi huu kitanzi hakina mwendo wala toka (hang).
+        // bila ulinzi huu mzunguko hauna mwendo wala toka (hang).
         kama (ni_aina_tokeni(&p->sasa) == 0) { p->kosa = 1; rudisha -1; }
 
         n32 aina_ya_kigezo = changanua_aina_tokeni(p);
@@ -2486,7 +2486,7 @@ n32 changanua_muundo(Msambazaji* p) {
             p->kosa = 1;
             n32 fika = ruka_hadi_kifikisha(p);
             kama (fika == 1) { sogeza(p); endelea; }  // tumia ';', jaribu shamba linalofuata
-            kama (fika == 2) { acha; }  // '}' -- kitanzi kitaiona juu
+            kama (fika == 2) { acha; }  // '}' -- mzunguko utaiona juu
             acha;  // EOF
         }
 
@@ -2901,7 +2901,7 @@ n32 changanua_nje(Msambazaji* p) {
 //      popote ndani ya mwili) -- kuepuka hitaji la kubadilisha
 //      majina ya vigezo vya ndani (jina la PEKEE linalohitaji
 //      kubadilishwa ni jina la paramu).
-//   2. F HAINA kitanzi (AST_WAKATI), tawi la masharti (AST_KAMA), wala
+//   2. F HAINA mzunguko (AST_WAKATI), tawi la masharti (AST_KAMA), wala
 //      chagua (AST_CHAGUA) popote ndani ya mwili -- F ni MSTARI ULIONYOOKA
 //      TU (sequence ya taarifa moja baada ya nyingine, bila tawi
 //      lolote). Hii inaepuka utata mkubwa wa kuiga miundo ya mahali/
@@ -3350,13 +3350,13 @@ n32 kujumuisha_kazi_ndogo(n32 nodi_ya_programu) {
 }
 
 // =========================================================
-// LICM -- kuhamisha hesabu isiyobadilika nje ya kitanzi
+// LICM -- kuhamisha hesabu isiyobadilika nje ya mzunguko
 // (loop-invariant code motion)
 // =========================================================
 //
 // Lengo: kama usemi fulani ndani ya mwili wa "wakati" hutoa MATOKEO
 // SAWA kila mzunguko (hakuna kigezo kinachokitegemea kinachobadilika
-// popote ndani ya mwili), kihesabu MARA MOJA kabla ya kitanzi badala
+// popote ndani ya mwili), kihesabu MARA MOJA kabla ya mzunguko badala
 // ya kukihesabu kila mzunguko.
 //
 // MUHIMU KUHUSU MAHALI PA AWAMU HII KWENYE MRADI (TOFAUTI NA
@@ -3383,9 +3383,9 @@ n32 kujumuisha_kazi_ndogo(n32 nodi_ya_programu) {
 //    huruhusiwa TU kama mizizi/matawi yake yote ni miongoni mwa: +,
 //    -, *, ulinganisho (<,>,<=,>=,==,!=), na biti (&,|,^,<<,>>).
 //    Mgawanyo (/) na modulo (%) HAZIRUHUSIWI KAMWE -- kuhamisha
-//    mgawanyo unaoweza kushindwa (kigawanyaji sifuri) juu ya kitanzi
+//    mgawanyo unaoweza kushindwa (kigawanyaji sifuri) juu ya mzunguko
 //    ambacho huenda kisitekelezwe kamwe kungegeuza programu
-//    isiyoanguka kuwa moja inayoanguka kabla kitanzi hakijaanza.
+//    isiyoanguka kuwa moja inayoanguka kabla mzunguko haujaanza.
 //    (angalia jaribio_hamisha_nje_mgawanyiko_hauhamishwi.swa)
 //
 // 2. HAKUNA OPERAND INAYOGUSA KUMBUKUMBU. Mgombea lazima ujengwe TU
@@ -3400,16 +3400,16 @@ n32 kujumuisha_kazi_ndogo(n32 nodi_ya_programu) {
 //    sababu hatuwezi kamwe kufikia hatua ambapo swali hilo lingekuwa
 //    muhimu. (angalia jaribio_hamisha_nje_kumbukumbu_haihamishwi.swa)
 //
-// 3. KITANZI CHENYE WITO WOWOTE (AST_WITO) POPOTE NDANI YA MWILI WAKE
+// 3. MZUNGUKO wenye WITO WOWOTE (AST_WITO) POPOTE NDANI YA MWILI WAKE
 //    (au sharti lake) HAKIGOMBEI LICM KABISA -- kizuizi kikali lakini
 //    salama dhidi ya uwiano kupitia wito (kazi iliyoitwa inaweza
 //    kubadilisha kigezo cha ulimwengu ambacho usemi "usiobadilika"
 //    unakitegemea). (angalia jaribio_hamisha_nje_wito_huzuia_mzunguko.swa)
 //
-// 4. TABIA YA "KITANZI KINACHOENDESHWA MARA SIFURI" HAIBADILIKI KAMWE.
+// 4. TABIA YA "MZUNGUKO UNAOENDESHWA MARA SIFURI" HAIBADILIKI KAMWE.
 //    Njia salama iliyotumika: HATUONDOI, KUFUTA, WALA KUPANGA UPYA
 //    taarifa yoyote iliyopo ya mtumiaji. Badala yake, tunatengeneza
-//    KIGEZO KIPYA CHA MUDA, tunakihesabu MARA MOJA kabla ya kitanzi,
+//    KIGEZO KIPYA CHA MUDA, tunakihesabu MARA MOJA kabla ya mzunguko,
 //    kisha tunaandika UPYA MAHALI HASA pa tukio la usemi huo ndani ya
 //    mwili (uwanja mmoja wa mzazi -- kushoto AU kulia) kuelekeza kwa
 //    hicho kigezo kipya. Hii ni "usukaji wa ngazi-ya-mti-mdogo"
@@ -3425,25 +3425,25 @@ n32 kujumuisha_kazi_ndogo(n32 nodi_ya_programu) {
 //    wa AST bila kudhania thamani zilizosimbwa (mf. -777777) kuwa
 //    nodi. (angalia jaribio_hamisha_nje_ubadilishaji_ndani_ya_kama.swa)
 //
-// 6. WIGO WA KITANZI: "wakati" TU kwa awamu hii. Tumethibitisha
+// 6. WIGO WA MZUNGUKO: "wakati" TU kwa awamu hii. Tumethibitisha
 //    kuwa "kwa" hufunguliwa (desugared) kuwa NODI ILE ILE ya
 //    AST_WAKATI (angalia changanua_taarifa_kwa) -- kwa hiyo mfululizo
-//    huu wa LICM UNAFANYA KAZI kwa kitanzi cha "kwa" pia MRADI TU
+//    huu wa LICM UNAFANYA KAZI kwa mzunguko wa "kwa" pia MRADI TU
 //    hakina kifungu cha "anzisha" (init, kilichohifadhiwa kwenye
 //    ast_tiga[wakati_node] kwa "kwa"). Kifungu cha "anzisha"
 //    hutekelezwa NDANI YA nodi hiyo hiyo ya AST_WAKATI, KABLA ya
 //    sharti kuangaliwa mara ya kwanza -- kama tungehamisha kigezo cha
-//    muda KABLA ya nodi nzima ya kitanzi (ambako lazima kiende kwa
+//    muda KABLA ya nodi nzima ya mzunguko (ambako lazima kiende kwa
 //    sababu ndipo tunapoandika upya mfululizo wa taarifa unaozunguka),
 //    kigezo hicho kingesoma thamani ya KABLA ya "anzisha" kutekelezwa
 //    -- hitilafu hasa inayofanana na ule "kwa (n=10; i<n; ...)" ambapo n
 //    ingesomwa KABLA haijawekwa. Badala ya kuongeza usanifu wa ziada
 //    kushughulikia mpangilio huu maalum, tunapunguza wigo kwa
-//    makusudi: kitanzi kinastahili LICM TU kama ast_tiga[node] == -1
+//    makusudi: mzunguko unastahili LICM TU kama ast_tiga[node] == -1
 //    (hakuna "anzisha" cha kwa). "fanya" (do-while, ast_thamani ==
 //    -777778 kwenye nodi hiyo hiyo) hakizuiliwi wazi na sharti hili,
 //    lakini pia hakijalengwa kwa makusudi na hakijajaribiwa -- kama
-//    kitanzi cha aina hiyo kikitokea na ast_tiga[node]==-1, kitachukuliwa
+//    mzunguko wa aina hiyo ukitokea na ast_tiga[node]==-1, utachukuliwa
 //    kwa asili (bila kuzingatiwa maalum), kwa sababu usukaji wetu
 //    hautegemei kabisa ni lini sharti linaangaliwa -- lakini hii SI
 //    dai la kuthibitishwa kwa jaribio maalum, ni matokeo ya asili tu
@@ -3451,19 +3451,19 @@ n32 kujumuisha_kazi_ndogo(n32 nodi_ya_programu) {
 //
 // KIZUIZI CHA WIGO CHA ZIADA (kilichochaguliwa kwa makusudi wakati wa
 // utekelezaji, si kwa uzembe): tunatafuta mgombea WA KUHAMISHWA TU
-// ndani ya taarifa za NGAZI YA JUU za mwili wa kitanzi (mfululizo wa
+// ndani ya taarifa za NGAZI YA JUU za mwili wa mzunguko (mfululizo wa
 // moja kwa moja wa ast_nne) ambazo ni AST_ASIMILIA (x = ...) au
 // AST_TANGAZO na kianzio (n32 t = ...) -- SI ndani ya matawi ya
 // "kama" yaliyowekwa ndani ya mwili huo huo (hata kama kinadharia
 // itakuwa salama, kwa sababu shughuli zote zinazoruhusiwa
 // hazishindwi kamwe -- lakini tumeamua kutoipanua zaidi ili kuepuka
-// utata usiohitajika wa usanifu kwa awamu hii). Vitanzi vilivyowekwa
+// utata usiohitajika wa usanifu kwa awamu hii). Mizunguko iliyowekwa
 // ndani (nested wakati) hushughulikiwa KWANZA (mwili wa ndani
 // kabisa kwanza), kisha matokeo yao (ikiwa ni pamoja na matamko
 // mapya ya muda yaliyoongezwa) huwa sehemu ya mfululizo wa ngazi ya
-// juu wa kitanzi cha nje kwa madhumuni ya uchunguzi unaofuata --
-// hivyo hesabu inayobadilika mara mbili (invariant kwa vitanzi vyote
-// viwili) INAWEZA kuhamishwa ngazi MOJA zaidi kwa asili, lakini SI
+// juu wa mzunguko wa nje kwa madhumuni ya uchunguzi unaofuata --
+// hivyo hesabu inayobadilika mara mbili (invariant kwa mizunguko yote
+// miwili) INAWEZA kuhamishwa ngazi MOJA zaidi kwa asili, lakini SI
 // mbili kwa pito moja (kikomo kinachojulikana, kimeandikwa wazi).
 
 n32 hamisha_nje_imetembelewa[1048576];
@@ -3487,7 +3487,7 @@ w0 hamisha_nje_ongeza_badiliko(n8* jina) {
     kama (hamisha_nje_ni_jina_badilishwa(jina)) { rudisha; }
     kama (hamisha_nje_badiliko_idadi >= 64) {
         // Kikomo kimefikiwa -- USIONDOE jina kimya kimya (hilo
-        // lingekuwa hatari, si ulinzi): kata tamaa kwa kitanzi hiki
+        // lingekuwa hatari, si ulinzi): kata tamaa kwa mzunguko huu
         // CHOTE badala yake, ni salama zaidi kutokuhamisha kuliko
         // kuhamisha kimakosa.
         hamisha_nje_acha = 1;
@@ -3497,9 +3497,9 @@ w0 hamisha_nje_ongeza_badiliko(n8* jina) {
     hamisha_nje_badiliko_idadi = hamisha_nje_badiliko_idadi + 1;
 }
 
-// Utembeaji kamili wa mwili wa kitanzi (na sharti lake): hukusanya
+// Utembeaji kamili wa mwili wa mzunguko (na sharti lake): hukusanya
 // majina yote ya vigezo vinavyoandikwa POPOTE (ikiwa ni pamoja na
-// ndani ya matawi ya kama na vitanzi vilivyowekwa ndani), na huweka
+// ndani ya matawi ya kama na mizunguko iliyowekwa ndani), na huweka
 // licm_bail=1 kama wito wowote (AST_WITO) au muundo usiotambuliwa
 // kikamilifu (AST_CHAGUA/AST_MUUNDO/AST_SEHEMU/AST_HALI) unapatikana
 // popote. Inaiga makusudi ruka_tiga/ruka_nne ya kusanya_vigeu_vya_ndani
@@ -3531,7 +3531,7 @@ w0 hamisha_nje_changanua_maudhui(n32 nodi_hii) {
         rudisha;
     }
     kama (aina == NODI_TANGAZO) {
-        // Jina lililotangazwa NDANI ya mwili wa kitanzi lazima litibiwe
+        // Jina lililotangazwa NDANI ya mwili wa mzunguko lazima litibiwe
         // kama "limebadilishwa" -- hata kama lina kianzio kimoja tu kwa
         // kila mzunguko, kianzio hicho MARA NYINGI hutegemea kigezo
         // kinachobadilika (mf. "D64 n_d = n;" ndani ya "wakati (n<=20)")
@@ -3580,7 +3580,7 @@ w0 hamisha_nje_changanua_maudhui(n32 nodi_hii) {
     }
     kama (aina == NODI_KUMBUKA) {
         // &jina -- anwani ya kigezo imechukuliwa. Hakuna wito wowote
-        // unaowezekana ndani ya kitanzi hiki (tayari umezuiliwa juu),
+        // unaowezekana ndani ya mzunguko huu (tayari umezuiliwa juu),
         // hivyo hakuna njia ya kuandika kupitia anwani hii -- lakini
         // tibu kigezo kama kimebadilishwa kwa tahadhari ya ziada,
         // isiyogharimu chochote.
@@ -3607,7 +3607,7 @@ w0 hamisha_nje_changanua_maudhui(n32 nodi_hii) {
 // NA KAMA TU nodi na mti wake mdogo mzima umejengwa peke yake kutoka
 // kwa: (a) namba za moja kwa moja (AST_NAMBARI/AST_HALISI_D), (b)
 // vigezo vya moja kwa moja visivyobadilishwa mahali popote ndani ya
-// kitanzi hiki (angalia licm_ni_jina_badilishwa), (c) +, -, *,
+// mzunguko huu (angalia licm_ni_jina_badilishwa), (c) +, -, *,
 // ulinganisho, na biti -- KAMWE si /, %, TAJA (deref/safu), KUMBUKA
 // (anwani), SEHEMU_DOT/MSHALE, WITO, ASIMILIA, TERNARY, n.k.
 n32 hamisha_nje_ni_operesheni(n32 nodi_hii) {
@@ -3645,7 +3645,7 @@ n32 hamisha_nje_naingiliana(n32 nodi_hii) {
 // KIMUUNDO, kwa sababu baada ya LICM zilikuwa zikirejelea VIGEZO VYA
 // MUDA VYENYE MAJINA TOFAUTI (thibitishwa kwa disassembly -- maagizo
 // yale yale ya kuzidisha yalionekana MARA MBILI mfululizo kabla ya
-// kitanzi). licm_keq (chini) ni ulinganisho wa muundo wa AST -- SI wa
+// mzunguko). licm_keq (chini) ni ulinganisho wa muundo wa AST -- SI wa
 // jina la kigezo cha muda -- unaotumika KUGUNDUA hali hiyo KABLA ya
 // kutengeneza kigezo kipya, ili tokeo la PILI (na lolote linalofuata)
 // litumie TENA kigezo kilichotengenezwa na tokeo la KWANZA badala ya
@@ -3654,14 +3654,14 @@ n32 hamisha_nje_naingiliana(n32 nodi_hii) {
 // USALAMA: kila mgombea anayefikia ulinganisho huu tayari amepitisha
 // licm_ni_operesheni(node) && licm_naingiliana(node) KIVYAKE (yaani
 // tayari amethibitishwa kuwa hauguswi na chochote kilichoandikwa ndani
-// ya kitanzi hiki -- angalia licm_badilisha_kama_inavyowezekana) --
+// ya mzunguko huu -- angalia licm_badilisha_kama_inavyowezekana) --
 // licm_keq HAIONGEZI uthibitisho wowote mpya wa "hauguswi", inaongeza
 // TU uthibitisho wa ziada kuwa MBILI ya vitu tayari-vilivyothibitishwa
 // ni SAWA KIMUUNDO. Kwa hiyo, kuzishiriki kigezo kimoja badala ya
 // viwili ni salama KWA UJENZI: kigezo kimoja kinachokokotolewa MARA
-// MOJA kabla ya kitanzi bado kina thamani SAHIHI kwa matumizi YOTE
+// MOJA kabla ya mzunguko bado kina thamani SAHIHI kwa matumizi YOTE
 // mawili (au zaidi), kwa sababu thamani hiyo tayari imethibitishwa
-// kutobadilika popote ndani ya kitanzi.
+// kutobadilika popote ndani ya mzunguko.
 //
 // WIGO: SAWA KABISA na uwanja wa licm_naingiliana/licm_ni_operesheni
 // (kitambulisho, namba halisi -- n32 NA d64, +, -, *, ulinganisho, na
@@ -3711,7 +3711,7 @@ n32 hamisha_nje_ni_sawa_kimuundo(n32 a, n32 b) {
 }
 
 // Tafuta jina la kigezo cha muda kilichotengenezwa TAYARI kwa usemi
-// unaofanana kimuundo na `node` (ndani ya kitanzi hiki hiki) -- 0 kama
+// unaofanana kimuundo na `node` (ndani ya mzunguko huu huu) -- 0 kama
 // hakuna.
 n8* hamisha_nje_urudufu_tafuta(n32 nodi_hii) {
     n32 i = 0;
@@ -3762,7 +3762,7 @@ n8* hamisha_nje_jina_mpya() {
     rudisha chombo;
 }
 
-// -------- Mfululizo wa matamko mapya ya muda kwa kitanzi cha SASA --------
+// -------- Mfululizo wa matamko mapya ya muda kwa mzunguko wa SASA --------
 n32 hamisha_nje_kabla_ya_mwanzo = -1;
 n32 hamisha_nje_kabla_ya_mwisho = -1;
 
@@ -3772,7 +3772,7 @@ n32 hamisha_nje_kabla_ya_mwisho = -1;
 // hauhitilafiani (invariant) na si jani tupu (jina/namba moja bila
 // operesheni -- kuhamisha hilo halingefaidisha chochote), unasukwa:
 // kigezo kipya cha muda kinatengenezwa, kinahesabiwa mara moja kabla
-// ya kitanzi, na uwanja huo unaelekezwa upya kwenye kigezo hicho.
+// ya mzunguko, na uwanja huo unaelekezwa upya kwenye kigezo hicho.
 // Vinginevyo, tunatafuta ndani ya watoto wa mti huo mdogo kwa fursa
 // ndogo zaidi -- lakini TU kupitia aina za nodi ambazo tumezielewa
 // kikamilifu (angalia maoni ya wigo hapo juu ya kila tawi).
@@ -3786,7 +3786,7 @@ w0 hamisha_nje_badilisha_kama_inavyowezekana(n32 nodi_inayoibeba, n32 ni_kushoto
 
         // CSE (angalia maelezo kamili juu ya licm_keq/licm_cse_tafuta):
         // kama usemi unaofanana KIMUUNDO KABISA na huu tayari
-        // umehamishwa kwa kigezo cha muda kwenye kitanzi hiki hiki,
+        // umehamishwa kwa kigezo cha muda kwenye mzunguko huu huu,
         // tumia TENA jina hilo hilo badala ya kutengeneza kigezo kipya
         // -- hakuna tangazo jipya linalohitajika, tokeo hili linapata
         // TU marejeo mapya kwenye kigezo kilichopo tayari.
@@ -3860,7 +3860,7 @@ w0 hamisha_nje_badilisha_kama_inavyowezekana(n32 nodi_inayoibeba, n32 ni_kushoto
 }
 
 // Jaribu LICM kwa nodi MOJA ya AST_WAKATI -- hurudisha kichwa cha
-// mfululizo mpya wa matamko ya muda ya kuweka KABLA ya kitanzi hiki
+// mfululizo mpya wa matamko ya muda ya kuweka KABLA ya mzunguko huu
 // (au -1 kama hakuna kilichohamishwa/kinachostahili).
 n32 hamisha_nje_jaribu_mzunguko(n32 nodi_hii) {
     hamisha_nje_zamu = hamisha_nje_zamu + 1;
@@ -3890,11 +3890,11 @@ n32 hamisha_nje_jaribu_mzunguko(n32 nodi_hii) {
     rudisha hamisha_nje_kabla_ya_mwanzo;
 }
 
-// Tembea mfululizo wa taarifa (kichwa cha block), ukichakata vitanzi
-// vilivyowekwa ndani KWANZA (mwili wa ndani kabisa kwanza), kisha
+// Tembea mfululizo wa taarifa (kichwa cha block), ukichakata mizunguko
+// iliyowekwa ndani KWANZA (mwili wa ndani kabisa kwanza), kisha
 // ukijaribu LICM kwenye kila AST_WAKATI (isipokuwa "kwa" yenye
 // anzisho, angalia maoni ya wigo juu), ukisuka matamko mapya ya muda
-// KABLA ya nodi ya kitanzi kwenye mfululizo huu huu. Inaiga muundo wa
+// KABLA ya nodi ya mzunguko kwenye mfululizo huu huu. Inaiga muundo wa
 // inl_pitisha_mwili (kuunganisha kazi ndogo) kwa makusudi.
 n32 hamisha_nje_pitisha_maudhui(n32 mwanzo) {
     n32 mwanzo_mpya = -1;
@@ -3956,8 +3956,8 @@ n32 hamisha_nje_boresha(n32 nodi_ya_programu) {
 // common subexpression elimination)
 // =========================================================
 // LICM (juu ya faili hili) inashughulikia usemi usiobadilika ndani
-// ya KITANZI tu -- usemi unaorudiwa nje ya kitanzi (mfano "n32 x =
-// a*b+c; n32 y = a*b-d;", bila kitanzi popote) haugusiki kabisa na
+// ya MZUNGUKO tu -- usemi unaorudiwa nje ya mzunguko (mfano "n32 x =
+// a*b+c; n32 y = a*b-d;", bila mzunguko popote) haugusiki kabisa na
 // LICM, hata ukiwa "a*b" umeandikwa mara mbili mfululizo bila
 // chochote kati yake kinachoweza kubadilisha a wala b. Sehemu hii
 // inashughulikia hali hiyo: kigawanyaji cha "available expressions"
@@ -3992,8 +3992,8 @@ n32 hamisha_nje_boresha(n32 nodi_ya_programu) {
 //      tangazo la kigezo cha muda, na tokeo la PILI (na lolote
 //      linalofuata) linarejelea kigezo hicho hicho.
 //   3. UPENDELEO (invalidation) UNAOFUATA NAFASI, SI ULE WA LICM:
-//      LICM huuliza swali MOJA tu kwa kitanzi kizima ("je, jina hili
-//      linabadilishwa MAHALI POPOTE ndani ya kitanzi?" -- ndiyo au
+//      LICM huuliza swali MOJA tu kwa mzunguko mzima ("je, jina hili
+//      linabadilishwa MAHALI POPOTE ndani ya mzunguko?" -- ndiyo au
 //      hapana, mara moja). Hapa swali ni tofauti KABISA: "je, jina
 //      hili limebadilishwa KATI ya tokeo la kwanza na hapa?" --
 //      swali linalotegemea NAFASI, linalohitaji hali inayoendelea
@@ -4003,10 +4003,10 @@ n32 hamisha_nje_boresha(n32 nodi_ya_programu) {
 //      kushoto ukiwa kitambulisho sahili) -- SI mwishoni mwa block,
 //      bali PALE PALE inapotokea, ili taarifa zinazofuata (SI
 //      zilizotangulia) ziathirike.
-//   4. MPAKA WA TAWI/KITANZI: upatikanaji (availability) HAUVUKI
+//   4. MPAKA WA TAWI/MZUNGUKO: upatikanaji (availability) HAUVUKI
 //      KAMWE mpaka wa AST_KAMA wala AST_WAKATI/KWA -- jedwali
 //      linawekwa upya KABISA (tupu) kila mara tunapoingia ndani ya
-//      mwili wa tawi/kitanzi (jedwali JIPYA, tupu, kwa mwili huo
+//      mwili wa tawi/mzunguko (jedwali JIPYA, tupu, kwa mwili huo
 //      pekee -- angalia cse_pitisha_mwili) NA TENA mara tu
 //      tunapotoka humo kabla ya kuendelea na taarifa zinazofuata za
 //      block la nje. Hii inaepuka KABISA tatizo gumu la "kuunganisha
@@ -4042,8 +4042,8 @@ n32 hamisha_nje_boresha(n32 nodi_ya_programu) {
 // jedwali letu wenyewe la aina). Kuendesha BAADA ya LICM pia kunamaanisha
 // usemi vilivyokwisha hamishwa NA LICM (vikiwa vimebadilishwa kuwa
 // marejeo ya vigezo vya muda vya LICM) havitaonekana tena kama
-// "a*b" ghafi ndani ya vitanzi -- CSE hii inashughulikia KILA KITU
-// KINGINE (nje ya vitanzi, au ndani ya vitanzi lakini kisichokuwa
+// "a*b" ghafi ndani ya mizunguko -- CSE hii inashughulikia KILA KITU
+// KINGINE (nje ya mizunguko, au ndani ya mizunguko lakini kisichokuwa
 // invariant), si kurudia kazi ya LICM.
 
 n32 urudufu_inapatikana_nodi[64];  // nodi ya AST ya usemi wa TOKEO LA KWANZA (bado halali kwa kulinganisha muundo)
@@ -4101,7 +4101,7 @@ n8* urudufu_jina_mpya() {
 // limebadilishwa" (hilo linashughulikiwa kando, kwa nafasi, na
 // cse_kill_zenye_jina) -- ni sawa na licm_naingiliana LAKINI bila
 // sehemu ya "haijabadilishwa", kwa sababu maana ya "haijabadilishwa"
-// hapa ni ya NAFASI (position-dependent), si ya kitanzi kizima.
+// hapa ni ya NAFASI (position-dependent), si ya mzunguko mzima.
 n32 urudufu_ni_safi(n32 nodi_hii) {
     kama (nodi_hii == -1) { rudisha 0; }
     n32 aina = aina_ya_nodi[nodi_hii];

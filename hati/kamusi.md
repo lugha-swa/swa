@@ -38,7 +38,7 @@ inayoruhusiwa kubadilika.
 
 5. **Mpangilio wa asili wa Kiswahili.** Kichwa kwanza, kisha kiunganishi
    kinachokubaliana na ngeli yake: `idadi_ya_mahali` (si `mahali_idadi`),
-   `jina_la_kazi`, `urefu_wa_mfuatano`, `kina_cha_kitanzi`,
+   `jina_la_kazi`, `urefu_wa_mfuatano`, `kina_cha_mzunguko`,
    `umbali_wa_jina_la_kigeu`. Kichwa kinachohesabu huchukua wingi:
    `idadi_ya_vigeu`, `dimbwi_la_majina`. Majina yanayoanza na kitenzi
    (`andika_`, `soma_`, `pata_`) tayari ni ya asili. Viambishi vya nafasi
@@ -183,7 +183,7 @@ mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 | helper | `msaidizi` |
 | registry | `sajili` |
 | thunk | `kipande` |
-| LICM (licm) | `pandisha` (kupandisha kisichobadilika nje ya kitanzi) |
+| LICM (licm) | `pandisha` (kupandisha kisichobadilika nje ya mzunguko) |
 | CSE (cse) | `rudufu` (kuondoa usemi uliorudiwa) |
 | inline (inl) | `pachika` |
 | sret | `matokeo_ya_muundo` (mf. `kazi_inarudisha_muundo`, `umbali_wa_chombo_cha_matokeo`) |

@@ -60,7 +60,7 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 5. **Hakuna bloat.** Kila neno linafanya jambo moja.
 6. **Maneno muhimu 13.** Seti ndogo isiyobadilika; aina za nambari
    hutambuliwa kisintaksia (herufi kubwa), si kama maneno muhimu.
-   (fanya iliongezwa 2026-09: kitanzi cha do-wakati. Maneno:
+   (fanya iliongezwa 2026-09: mzunguko wa do-wakati. Maneno:
    muundo, rudisha, kama, sivyo, wakati, kwa, fanya, acha,
    endelea, chagua, hali, husisha, achilia.)
 7. **Hakuna emoji.**

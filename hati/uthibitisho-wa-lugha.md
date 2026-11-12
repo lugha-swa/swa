@@ -254,7 +254,7 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 | wakati: rahisi, (0), acha, endelea, viota, && mzunguko mfupi, mwili bila mabano, mwili tupu (kesi 9) | SAWA | SAWA | kama hati | SAWA |
 | kwa: rahisi, hali iliyoachwa, (;;), kianzilishi cha tangazo, endelea, acha, viota, mwili bila mabano, mwili tupu (kesi 11) | SAWA | SAWA | kama hati | SAWA |
 | chagua: kila muundo (mikono, sivyo, viota, thamani 0/hasi/N64, selecta ya usemi, rudisha ndani, endelea ndani) (kesi 13) | IMEKATALIWA (mchanganuzi haujui chagua) | SAWA | hati 6.6 | tofauti (kikomo cha mbegu kilichoandikwa) |
-| chagua: thamani ya usemi, thamani ya kigezo, bloku ndani ya mkono, acha nje ya kitanzi, sivyo pekee, hali nje ya chagua | IMEKATALIWA | IMEKATALIWA | kukataliwa kwa sauti | IMEKATALIWA kwa sauti (sawa) |
+| chagua: thamani ya usemi, thamani ya kigezo, bloku ndani ya mkono, acha nje ya mzunguko, sivyo pekee, hali nje ya chagua | IMEKATALIWA | IMEKATALIWA | kukataliwa kwa sauti | IMEKATALIWA kwa sauti (sawa) |
 | hesabu za N32: + - * / % | SAWA | SAWA | 26 14 120 3 2 | SAWA |
 | hesabu za N64 (> 2^31), mgawanyo na modulo | SAWA | SAWA | kama hati | SAWA |
 | modulo na mgawo wa namba hasi (-7 % 3) | SAWA | SAWA | -1; -2 | SAWA (kwa ishara; fomu isiyo na ishara kwenye mbegu kwa %d -- tazama 8.10) |
@@ -295,7 +295,7 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 | kazi yenye mwili tupu { } | SAWA | SAWA | kama hati | SAWA |
 | ++, -- | IMEKATALIWA | IMEKATALIWA | si ya hati | IMEKATALIWA (sawa) |
 | halisi za radiksi (0x10) | IMEKATALIWA | IMEKATALIWA | kukataliwa kwa sauti | SAWA |
-| acha/endelea nje ya kitanzi | JIBU-BAYA (inapuuzwa kimya) | IMEKATALIWA (sauti) | kukataliwa kwa sauti | tofauti (tazama 8.13) |
+| acha/endelea nje ya mzunguko | JIBU-BAYA (inapuuzwa kimya) | IMEKATALIWA (sauti) | kukataliwa kwa sauti | tofauti (tazama 8.13) |
 | sivyo bila kama (pekee) | IMEKATALIWA | IMEKATALIWA | kukataliwa kwa sauti | IMEKATALIWA (sawa) |
 | kama ya nusu: kama (1) kama (0) x=1; sivyo y=2 | SAWA | SAWA | x=0 y=2 | SAWA |
 | sharti la kama ni ugawaji (kama (a = 5)) | SAWA | SAWA | a=5 r=1 | SAWA |
@@ -483,7 +483,7 @@ upya baada yake).
   kimya -- imefunga.
 - 8.12 (t105-t108) -- maneno muhimu kama vitambulisho yalikubaliwa
   kimya -- imefunga.
-- 8.13 (t121, t122) -- acha na endelea nje ya kitanzi zilikubaliwa
+- 8.13 (t121, t122) -- acha na endelea nje ya mzunguko ilikubaliwa
   kimya -- imefunga.
 - 8.14 (a28) -- muundo wenye jina lenye umbo la aina ulikubaliwa
   kimya -- imefunga.
@@ -565,7 +565,7 @@ tabia ya lugha inabadilika kulingana na mfululizo uliotumika.
   viendeshaji vya kiwanja (6).
 - **Mbegu inakubali kimya, uzalishaji unakataa kwa sauti (9 kesi)**
   -- !/~ kwenye D64 (t62), %u/%x katika muundo halisi (t103/t104),
-  acha/endelea nje ya kitanzi (t121/t122), maneno muhimu kama
+  acha/endelea nje ya mzunguko (t121/t122), maneno muhimu kama
   vitambulisho (t105-t108). Mwelekeo wa uzalishaji ndio sahihi.
 - **Mbegu HUANGUKA, uzalishaji SAWA (1 kesi)** -- N32** (9.2).
 - **Mbegu SAWA, uzalishaji JIBU-BAYA (1 kesi)** -- utorokaji \%

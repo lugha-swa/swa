@@ -13,7 +13,7 @@ zinasegfault, chanzo lililokatwa linakubaliwa.
 Sasa: herufi isiyojulikana inalia (`Hitilafu: herufi isiyojulikana`),
 tokeni isiyojulikana kwenye kiwango cha juu inalia (`Hitilafu:
 uliichanganuzi`), mabano yasiyofungwa (block/muundo/husisha) yanalia,
-na kitanzi cha programu kina kinga ya mipaka ya mkondo wa tokeni.
+na mzunguko wa programu una kinga ya mipaka ya mkondo wa tokeni.
 Pia rekebisho la upande: maneno ya lexer sasa huandika mstari_tokeni
 (zamani: maneno yote yalikuwa na mstari 0 -- husisha C:: ilivunjika).
 
@@ -29,7 +29,7 @@ sauti" bado si kamili -- mkusanyaji wa uzalishaji pia anaanguka
 
 ## 2. Mchanganuzi wa .swa: ingizo lililokatwa linaning'inia [IMEREKEBISHWA]
 
-Ilikuwa: kitanzi cha changanua_kazi_vigezo hakikuwa na mwendo wala toka
+Ilikuwa: mzunguko wa changanua_kazi_vigezo haukuwa na mwendo wala toka
 kwa tokeni isiyotarajiwa (`{` baada ya `(`) -- hang bila kikomo. Mabano
 yasiyofungwa yalikubaliwa kimya (rc=0).
 
@@ -72,8 +72,8 @@ Uthibitisho: vikomo hufikiwa kwa KOSA LAUTI, si uharibifu wa kimya.
 
 ## 4b. `endelea` ndani ya `kwa` [IMEREKEBISHWA]
 
-Ilikuwa: endelea inaruka mwanzo wa kitanzi, si hatua -- kitanzi
-kilizunguka milele kama hatua ndiyo njia pekee ya kuendelea.
+Ilikuwa: endelea inaruka mwanzo wa mzunguko, si hatua -- mzunguko
+ulizunguka milele kama hatua ndiyo njia pekee ya kuendelea.
 
 Sasa: semantiki ya C -- hatua imefungwa kwenye block-mini yenye
 alama, uzalishaji_kundi hurekodi nafasi yake, na endelea inaruka
