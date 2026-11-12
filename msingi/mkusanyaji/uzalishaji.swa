@@ -2939,10 +2939,25 @@ n32 ukubwa_wa_kipengele(n32 usimbaji) {
 // enc: usimbaji wa aina (kwa upakiaji sahihi wa upana baadaye)
 // -------------------------------------------------------
 n32 pata_au_unda_kigeu_ukubwa(n8* jina, n32 upana_wa_baiti, n32 usimbaji) {
+    // Sawa na kusanya_vigeu_vya_ndani: aina isiyo na ukubwa (w0 x;) hupata
+    // sloti ya baiti 4, ili tangazo lile lile lisionekane "aina tofauti".
+    kama (upana_wa_baiti == 0) { upana_wa_baiti = 4; }
     n32 i = 0;
     wakati (i < idadi_ya_vigeu) {
         n8* vjina = ghala_la_vigeu + umbali_wa_jina_la_kigeu[i];
-        kama (jina_linganisha(vjina, jina)) { rudisha i; }
+        kama (jina_linganisha(vjina, jina)) {
+            // Sloti ya kigeu ni ya kazi nzima, kwa jina. Tangazo la pili la
+            // jina lile lile (mf. kwenye ubeti jirani) hupata sloti ile ile --
+            // sawa ikiwa aina ni ile ile. Aina ikitofautiana, sloti ya baiti 4
+            // ya n32 ingepokea maandishi ya baiti 8 ya n64 na kuharibu kigeu
+            // kilicho jirani kimya kimya; sasa ni kosa la sauti.
+            kama (ukubwa_wa_kigeu[i] != upana_wa_baiti || (usimbaji != 0 && usimbaji_wa_kigeu[i] != 0 && usimbaji_wa_kigeu[i] != usimbaji)) {
+                andika_kosa("KOSA [%s]: kigeu '%s' kimetangazwa tena kwa aina tofauti ndani ya kazi moja -- tumia jina tofauti\n", kazi_ya_sasa_jina, jina);
+                wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+            }
+            kama (usimbaji_wa_kigeu[i] == 0) { usimbaji_wa_kigeu[i] = usimbaji; }
+            rudisha i;
+        }
         i = i + 1;
     }
     kama (idadi_ya_vigeu >= 64) {
