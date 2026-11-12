@@ -461,7 +461,7 @@ n32 wasm_ni_w0_usimbaji(n32 usimbaji) {
 // sahihi (mfano n32* ingekuwa ikitibiwa kama n32 ya kawaida bila
 // ukaguzi huu -- imepatikana kwa jaribio halisi la n2.swa:
 // "n32* p = 0;" lilipita kimya). `safu_count` (kutoka ast_tiga[nodi]
-// ya AST_TANGAZO, si var_node -- 0 kama si safu, pitisha 0 kwenye
+// ya NODI_TANGAZO, si var_node -- 0 kama si safu, pitisha 0 kwenye
 // paramu ambazo haziwezi kuwa safu kisintaksia) NAYO inakaguliwa:
 // bila hii, "n32 arr[3];" isiyoguswa kamwe ilikuwa ikisajiliwa
 // kimya kama ya ndani MOJA ya i32 (ukubwa mbaya) badala ya kukataliwa
@@ -474,7 +474,7 @@ w0 wasm_kagua_usimbaji_kigezo(n8* jina, n32 usimbaji, n32 idadi_ya_safu) {
 }
 
 // Pasi ya awali: tembea mfululizo wa taarifa ukikusanya kila
-// AST_TANGAZO (11) unaoweza kufikiwa kupitia kama/wakati zilizopachikwa
+// NODI_TANGAZO (11) unaoweza kufikiwa kupitia kama/wakati zilizopachikwa
 // -- WASM inataka vigeu vya ndani vyote zitangazwe KABLA ya agizo lolote la
 // maudhui ya kazi, tofauti na x86-64 (r5-offset polepole).
 w0 wasm_kusanya_vya_ndani(n32 nodi) {
@@ -491,7 +491,7 @@ w0 wasm_kusanya_vya_ndani(n32 nodi) {
         kama (sivyo_nodi != -1) { wasm_kusanya_vya_ndani(nodi_ya_kushoto[sivyo_nodi]); }
     }
     kama (aina == NODI_WAKATI) {
-        // ast_tiga[nodi] ni init ya kwa (inaweza kuwa AST_TANGAZO
+        // ast_tiga[nodi] ni init ya kwa (inaweza kuwa NODI_TANGAZO
         // yenyewe -- kigezo cha kwa(n32 i=0;...) ni ya ndani pia).
         n32 kianzio = tatu_ya_nodi[nodi];
         kama (kianzio != -1 && aina_ya_nodi[kianzio] == NODI_TANGAZO) {
@@ -528,10 +528,10 @@ n32 wasm_ina_hatua[16];      // 1 = kwa yenye hatua (ubeti wa ziada wa endelea b
 w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi);
 w0 wasm_taja_anwani(n32 nodi, n32 nodi_ya_kazi);
 
-// AST_TAJA (29): *kielekezi (faharasa==-1) au arr[faharisi] (faharasa!=-1).
+// NODI_TAJA (29): *kielekezi (faharasa==-1) au arr[faharisi] (faharasa!=-1).
 // Hutoa ANWANI (umbali wa i32 kwenye kumbukumbu) juu ya mrundikano, BILA
 // kupakia thamani -- inatumika na wasm_taja_thamani (kusoma) NA
-// wasm_usemi/wasm_taarifa kwa AST_KUMBUKA (&arr[faharisi]/&*kielekezi) na
+// wasm_usemi/wasm_taarifa kwa NODI_KUMBUKA (&arr[faharisi]/&*kielekezi) na
 // uhifadhi (arr[faharisi] = x). Awamu 2: kipengele cha n32 pekee (baiti
 // 4 kila kimoja) -- hesabu ya faharasa*4 ni ya wazi kila wakati,
 // hakuna aina nyingine ya ukubwa inayoungwa mkono.
@@ -636,7 +636,7 @@ w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi) {
 
         // Herufi halisi (mfuatano) -- inaanza na '"' (34), sawa na
         // uzalishaji_kitambulisho (uzalishaji.swa). Kigeu na mfuatano
-        // ZOTE ni AST_KITAMBULISHO -- hakuna nodi tofauti ya AST.
+        // ZOTE ni NODI_KITAMBULISHO -- hakuna nodi tofauti ya AST.
         kama (jina[0] == 34) {
             n32 umbali_wa_kumbukumbu = wasm_ongeza_mfuatano(jina);
             wasm_kitendo_i32_namba(umbali_wa_kumbukumbu);
@@ -829,7 +829,7 @@ w0 wasm_wakati(n32 nodi, n32 nodi_ya_kazi) {
     wasm_taarifa(maudhui, nodi_ya_kazi);
 
     kama (ina_hatua && wasm_ina_hatua[faharasa_ya_mzunguko] != 0 - 999999) {
-        // AST_BLOCK{-777777} (hatua) ndani ya maudhui tayari ilifunga
+        // NODI_UBETI{-777777} (hatua) ndani ya maudhui tayari ilifunga
         // ubeti wa "endelea" yenyewe (angalia wasm_taarifa) -- hapa
         // hakuna kufanya tena. Alama -999999 = imeshafungwa.
     }
@@ -912,7 +912,7 @@ w0 wasm_taarifa(n32 nodi, n32 nodi_ya_kazi) {
                 wasm_usemi(kulia, nodi_ya_kazi);
                 wasm_kitendo_i32_hifadhi();
                 // MUHIMU: endelea kwenye ndugu inayofuata (ast_nne) --
-                // TOFAUTI na AST_RUDISHA (ambayo KWELI inamaliza
+                // TOFAUTI na NODI_RUDISHA (ambayo KWELI inamaliza
                 // msururu), ugawaji ni taarifa ya KAWAIDA, mfululizo
                 // unaendelea baada yake. `rudisha;` peke yake HAPA (bila
                 // wito huu) ilikuwa ikifuta KIMYA taarifa zote zilizobaki
@@ -955,7 +955,7 @@ w0 wasm_taarifa(n32 nodi, n32 nodi_ya_kazi) {
                 // vinginevyo WASM inakataa moduli (thamani iliyobaki
                 // juu ya mrundikano mwishoni mwa ubeti). MUHIMU: `sivyo`
                 // hapa (SI `rudisha;` peke yake baada ya ubeti wa
-                // kwanza) -- vinginevyo njia ya jumla ya AST_WITO
+                // kwanza) -- vinginevyo njia ya jumla ya NODI_WITO
                 // ingeendelea kutekelezwa BAADAYE kimya, ikizalisha
                 // wasm_usemi mara MBILI (jaribio halisi lilifichua
                 // hitilafu ya "unreachable" wakati wa kukimbia kwa
