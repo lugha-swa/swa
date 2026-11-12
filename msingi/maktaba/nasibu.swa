@@ -1,21 +1,21 @@
 // nasibu.swa -- namba za nasibu (si za usalama), kwa Swa safi.
 //
 // Jenereta ni xorshift64* (Vigna): hali ya biti 64, kipindi 2^64 - 1.
-// Mbegu ile ile hutoa mfuatano ule ule -- kwa majaribio yanayozalika
-// upya. nasibu_kutoka_mfumo() huchukua mbegu kutoka kernel
+// Thamani ya kuanzia ile ile hutoa mfuatano ule ule -- kwa majaribio yanayozalika
+// upya. nasibu_kutoka_mfumo() huchukua thamani ya kuanzia kutoka kernel
 // (getrandom(2), syscall 318) kwa matokeo tofauti kila mara.
 
 n64 nasibu_hali = 88172645463325252;
 
-// Weka mbegu. Mbegu 0 haifai kwa xorshift (ingebaki 0 milele),
+// Weka thamani ya kuanzia. Thamani 0 haifai kwa xorshift (ingebaki 0 milele),
 // kwa hiyo inabadilishwa kuwa thamani isiyo sifuri.
-w0 nasibu_anzisha(n64 mbegu) {
-    kama (mbegu == 0) { mbegu = 88172645463325252; }
-    nasibu_hali = mbegu;
+w0 nasibu_anzisha(n64 thamani_ya_kuanzia) {
+    kama (thamani_ya_kuanzia == 0) { thamani_ya_kuanzia = 88172645463325252; }
+    nasibu_hali = thamani_ya_kuanzia;
 }
 
-// Mbegu kutoka kernel. Hurudisha 1 ikifaulu, 0 kama getrandom
-// haikupatikana (mbegu ya sasa inabaki).
+// Thamani ya kuanzia kutoka kernel. Hurudisha 1 ikifaulu, 0 kama getrandom
+// haikupatikana (thamani ya sasa inabaki).
 n32 nasibu_kutoka_mfumo() {
     n64* b = tenga(8);
     n64 n = wito_wa_mfumo(318, b, 8, 0, 0, 0, 0);

@@ -8,15 +8,15 @@ kilichopo mbali.
 
 | Zana | Hali | Ushahidi |
 |---|---|---|
-| Mkusanyaji wa kujikusanya (mbegu -> kamili -> kamili2 == kamili3) | KAMILI | uthabiti sawa kwa baiti |
+| Mkusanyaji wa kujikusanya (awali -> kamili -> kamili2 == kamili3) | KAMILI | uthabiti sawa kwa baiti |
 | Vipimo rasmi vya lugha | KAMILI | hati/vipimo-vya-lugha.md |
-| Maktaba ya kawaida | KAMILI | jaribio_maktaba_mbegu_exe |
+| Maktaba ya kawaida | KAMILI | jaribio_maktaba_awali_exe |
 | JIT (--papo) ndani ya exe | KAMILI | UND=0; jaribio la CI |
 | Formatter (umbizaji) | INAFANYIKA | zana/umbizaji.swa (kwa Swa yenyewe) |
 
 ## Kilicho karibu (muda wa wiki)
 
-1. **Mfumo wa moduli kwa watumiaji** -- HAKUNA mfululizo (mbegu wala
+1. **Mfumo wa moduli kwa watumiaji** -- HAKUNA mfululizo (awali wala
    .swa) unaosoma husisha { } (chanzo kinapaswa kuunganishwa;
    kilichopimwa 2026-08-27). Hati/vipimo-vya-lugha.md 8 linaeleza
    hili. Kazi: mfululizo ujifunze kupakia viungo vya ndani (msomaji
@@ -35,10 +35,10 @@ kilichopo mbali.
    makosa (error-tolerant) -- mchanganuzi wa sasa unakataa ingizo
    lisilokamilika. Kazi kubwa ya kujitegemea.
 2. **Debugger** -- msaada wa DWARF (mstari, vigezo, mrundikano) kwenye
-   uzalishaji.swa na mbegu. Inahitaji ujumuishaji na gdb/lldb.
+   uzalishaji.swa na awali. Inahitaji ujumuishaji na gdb/lldb.
 3. **Majukwaa zaidi ya x86-64 Linux** -- ARM64 (aarch64) na riscv64.
    Hii inamaanisha: baiti mpya za mkono za kwanza kwa kila usanifu,
-   codegen mpya ya mbegu, na ABI ya jukwaa. Kila usanifu ni mradi
+   codegen mpya ya awali, na ABI ya jukwaa. Kila usanifu ni mradi
    wake mwenyewe.
 4. **Kidhibiti cha vifurushi (package manager)** -- baada ya mfumo wa
    moduli kuwa thabiti.

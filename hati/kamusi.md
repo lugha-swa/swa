@@ -66,9 +66,9 @@ inayoruhusiwa kubadilika.
 | `--wasm`, `--wasm-js` | (zinabaki) | WASM na JS ni majina ya umbizo |
 | `kiendeshaji.swa` | `kiendeshaji.swa` | dereva wa mkusanyaji (hatua 1 ya mnyororo ni `hatua1_maoni`) |
 
-`main`, `andika_kosa` na `call` zinajulikana na mbegu iliyogandishwa
+`main`, `andika_kosa` na `call` zinajulikana na awali iliyogandishwa
 (`msingi/awali.swm`), kwa hiyo sehemu hii hufanywa pamoja na kugandisha
-mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
+awali upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 
 ## Dhana za mkusanyaji
 
@@ -310,11 +310,11 @@ ya faili (`mende`/`mdudu` -> `hitilafu`).
 ## Hatua za kazi
 
 1. Kamusi hii.
-2. Vitambulisho vya ndani vya `msingi/` (si vile vinavyojulikana na mbegu),
+2. Vitambulisho vya ndani vya `msingi/` (si vile vinavyojulikana na awali),
    faili kwa faili -- matokeo sawa kwa baiti.
 3. Maktaba (`msingi/maktaba/`), majaribio, mifano.
 4. Lugha: `anza`, `andika_kosa`, bendera, `kiendeshaji.swa` -- pamoja na
-   kugandisha mbegu upya.
+   kugandisha awali upya.
 5. Maoni, hati, faili za CI (`ci.yml` -> `ukaguzi.yml`), `dom_bandia.js` ->
    `hati_bandia.js`. Faili zinazotakiwa na GitHub kwa jina hilo
    (`README.md`, `LICENSE-*`, `SECURITY.md`, `CONTRIBUTING.md`,

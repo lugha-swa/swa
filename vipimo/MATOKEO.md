@@ -28,7 +28,7 @@ si kudhani).
 ## Mbinu
 
 Kila kipimo kina toleo la Swa na la C, zote mbili zikitekeleza
-ALGORITHM MOJA HASA kwenye DATA MOJA HASA (LCG yenye mbegu ileile
+ALGORITHM MOJA HASA kwenye DATA MOJA HASA (LCG yenye thamani ya kuanzia ileile
 kwa vipimo vinavyohitaji data ya kubahatisha), na kila moja
 imethibitishwa kutoa MATOKEO SAWA KABISA kati ya lugha mbili kabla
 ya kuamini muda wake -- kipimo cha haraka lakini chenye makosa
@@ -728,7 +728,7 @@ Rust/Go ni muktadha wa ushindani, si lengo).
 
 Uthibitisho wa usahihi: KILA lugha (Swa/C/Rust/Go) kwa KILA kipimo
 inatoa checksum SAWA KABISA (si "inayoonekana sahihi" -- imelinganishwa
-neno kwa neno) -- LCG ile ile (mbegu, kizidishi 1103515245, ongezeko
+neno kwa neno) -- LCG ile ile (thamani ya kuanzia, kizidishi 1103515245, ongezeko
 12345, modulo 2^31) inatumika katika lugha zote nne kwa vipimo
 vinavyohitaji data ya nasibu, ili mfuatano wa thamani uwe SAWA kabisa.
 
@@ -930,7 +930,7 @@ ina wito, kina cha xmm zaidi ya 6, upana usiolingana (N8/N16 na N32).
   `jaribio_gawanyo_nguvu_pili_mipaka`, ambayo inatofautiana vilevile kwenye
   mkusanyaji wa zamani (hitilafu inayojulikana ya awali.bin: mgawanyo hasi
   uliokunjwa hukusanywa vibaya kwenye gen1 tu).
-- Programu 3401 za nasibu (mbegu 1..4000; N32, N64, D64; vielekezi na
+- Programu 3401 za nasibu (thamani za kuanzia 1..4000; N32, N64, D64; vielekezi na
   faharasa; ulinganishi) zimeundwa na mkusanyaji wa zamani na mpya --
   matokeo yaliyochapishwa yanafanana kwa zote, sifuri tofauti.
 - Vipimo vyote tisa vinatoa matokeo yaleyale kwa mkusanyaji wa zamani na

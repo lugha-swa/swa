@@ -20,7 +20,7 @@ matokeo yako (hata "nimekagua X, sikuona tatizo") kwenye issue ya hazina.
 | 2 | `mahali` (mahali na matawi) | 730 | `msingi/mfululizo/hatua2_mahali.maoni` | read, write, exit |
 | 3 | `kusanyiko0` (makro) | 1019 | `msingi/mfululizo/hatua3_kusanyiko0.mahali` | read, write, exit |
 
-Jumla: baiti 3381. Mbegu mbili (0 na 0b) ndizo binary pekee zilizogandishwa
+Jumla: baiti 3381. Binari mbili za mwanzo (0 na 0b) ndizo binari pekee zilizogandishwa
 kwenye chanzo; hatua 1-3 hujengwa kutoka faili za maandishi wakati wa kila
 ujenzi. Baada ya hatua 3, msimbo umeandikwa kwa makro (`.kus`) na kisha kwa
 lugha ya mashine ya Swa (`.swm`) -- unasomeka kama programu, si baiti.
@@ -72,7 +72,7 @@ Kisha linganisha disassembly na maoni ya `.maoni` mstari kwa mstari.
 ## Kinachothibitishwa kiotomatiki (hakuhitaji kusomwa)
 
 - `./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi`: hatua zote hujengwa
-  kutoka mbegu mbili, kisha mjenzi uliojengwa kutoka chanzo hulinganisha
+  kutoka binari mbili za mwanzo, kisha mjenzi uliojengwa kutoka chanzo hulinganisha
   kila binary iliyogandishwa (`mjenzi.bin`, `awali.bin`, `kizinduzi.bin` na
   `.heksa` zao). Hatua ya kwanza ya CI.
 - `gharama/jaribu-mfululizo-huru.mapishi`: kila hatua hujijenga yenyewe sawa
@@ -80,11 +80,11 @@ Kisha linganisha disassembly na maoni ya `.maoni` mstari kwa mstari.
 
 ## Mipaka ya ukaguzi huu
 
-- Mbegu haziwezi kujithibitisha zenyewe: mbegu iliyoharibiwa ndiyo
+- Awali haziwezi kujithibitisha zenyewe: awali iliyoharibiwa ndiyo
   inayoendesha ukaguzi wake. Kinga ni ukaguzi wa jicho tu -- ndiyo sababu
   mwongozo huu upo.
 - Mfululizo unaendeshwa juu ya kernel ya Linux na CPU ya x86-64. Hizo
   haziko ndani ya wigo huu.
 - Baada ya hatua 3, chanzo (`hatua4_kusanyiko.kus`, `kusanyiko.swm`,
-  `mbegu.swm`, `mjenzi.swm`) ni maelfu ya mistari. Kinasomeka, lakini
+  `awali.swm`, `mjenzi.swm`) ni maelfu ya mistari. Kinasomeka, lakini
   ukaguzi wake ni kazi kubwa zaidi; anza na chanzo hapa.

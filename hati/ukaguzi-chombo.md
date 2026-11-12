@@ -18,7 +18,7 @@ baada ya kusababisha uharibifu. Kanuni ya kudumu baada ya ukaguzi
 huu: **kila mgawanyo mpya wa ukubwa thabiti lazima uwe na ukaguzi wa
 mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 
-## mbegu.swm (chanzo cha uaminifu)
+## awali.swm (chanzo cha uaminifu)
 
 | Mgawanyo | Ukubwa | Ulinzi | Uamuzi |
 |---|---|---|---|
@@ -69,7 +69,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 
 ## Hitimisho
 
-Ukaguzi wa chombo UMEKAMILIKA kwa chanzo cha uaminifu (mbegu.swm) na
+Ukaguzi wa chombo UMEKAMILIKA kwa chanzo cha uaminifu (awali.swm) na
 maktaba (msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa). Kila mgawanyo wa ukubwa thabiti una ukaguzi
 unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la hitilafu ya
 "ukubwa wa kukisia" limefungwa.
@@ -86,6 +86,6 @@ unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la hitilafu ya
    darasa lilelile lililotokea wakati wa PR #151. Kanuni ya nne ya
    sheria ya chanzo cha uaminifu (angalia fallthrough ya kila mahali)
    inathibitishwa tena. Jaribio la kabla ya kugandisha lililipata.
-3. Majedwali yote ya mbegu sasa yana ukaguzi unaolia au uthibitisho
+3. Majedwali yote ya awali sasa yana ukaguzi unaolia au uthibitisho
    ulioandikwa -- darasa la hitilafu ya "ukubwa wa kukisia" limefungwa
    kwenye chanzo cha uaminifu.
