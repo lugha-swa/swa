@@ -70,7 +70,7 @@ Pipeline ya LLVM inayotumika kwa **kila kazi** (`function` scope):
 
 Itajumuisha O1 pamoja na:
 - Upanuzi wa ndani kwa kazi za jumla (si `always_inline` pekee).
-- Uchambuzi na uboreshaji wa vitanzi (loop unrolling, vectorization).
+- Uchambuzi na uboreshaji wa mizunguko (loop unrolling, vectorization).
 - Uboreshaji wa kati ya kazi (inter-procedural optimization).
 
 ## Athari ya Uboreshaji kwenye Utatuzi

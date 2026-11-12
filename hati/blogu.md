@@ -35,7 +35,7 @@ Wakati kipindi kilipoanza, binary ya kujikusanya ilianguka mara moja kwa **SIGSE
 ### Hitilafu Zilizogunduliwa na Kurekebishwa
 
 **Hitilafu 1: Alloca-in-Loop -> SIGSEGV** (`src/ir/lower.rs`)
-Hitilafu muhimu zaidi. Kiteremshi cha IR kilitoa maagizo ya `alloca` kwenye block ya sasa ya msingi badala ya block ya kuingia ya kazi. Wakati tamko la kigezo cha ndani lilipokuwa ndani ya kitanzi (kama kitanzi cha `wakati` cha mchanganuzi), kila mzunguko uliunda alloca mpya -- ikitumia baiti 16 za rafu kwa kila mzunguko. Baada ya takriban mizunguko 524,000, rafu ya MB 8 ilikuwa imeisha.
+Hitilafu muhimu zaidi. Kiteremshi cha IR kilitoa maagizo ya `alloca` kwenye block ya sasa ya msingi badala ya block ya kuingia ya kazi. Wakati tamko la kigezo cha ndani lilipokuwa ndani ya mzunguko (kama mzunguko wa `wakati` cha mchanganuzi), kila mzunguko uliunda alloca mpya -- ikitumia baiti 16 za rafu kwa kila mzunguko. Baada ya takriban mizunguko 524,000, rafu ya MB 8 ilikuwa imeisha.
 
 **Marekebisho:** Mbinu ya kupitisha mara mbili. Kazi mpya ya `collect_local_decls` inatembea AST kugundua matamko yote ya vigeu vya ndani kabla ya uteuzi wa mwili kuanza. Alloca hizi zinatolewa mapema kwenye block ya kuingia. Wakati wa uteuzi wa mwili, `lower_local_decl` hutafuta `ValueId` iliyotengwa mapema badala ya kuunda alloca mpya.
 
@@ -43,8 +43,8 @@ Hitilafu muhimu zaidi. Kiteremshi cha IR kilitoa maagizo ya `alloca` kwenye bloc
 
 ---
 
-**Hitilafu 2: CFG Dead-Code -> Kitanzi Kisisicho na Mwisho** (`src/ir/lower.rs`, mstari 875)
-Usafiri wa block ya `actual_prev` ulishughulikia tu vivunja vya `Br`. Ulipokutana na `BrCond` (kutoka tathmini fupi ya `&&`/`||`), ulivunja na kurudisha block mbaya. Maagizo yote yaliyofuata yakawa msimbo uliokufa usiofikiwa. Kitanzi cha mchanganuzi kilizunguka milele, kikiunda allocas kila mzunguko hadi rafu ikaisha.
+**Hitilafu 2: CFG Dead-Code -> Mzunguko Usio na Mwisho** (`src/ir/lower.rs`, mstari 875)
+Usafiri wa block ya `actual_prev` ulishughulikia tu vivunja vya `Br`. Ulipokutana na `BrCond` (kutoka tathmini fupi ya `&&`/`||`), ulivunja na kurudisha block mbaya. Maagizo yote yaliyofuata yakawa msimbo uliokufa usiofikiwa. Mzunguko wa mchanganuzi kilizunguka milele, kikiunda allocas kila mzunguko hadi rafu ikaisha.
 
 **Marekebisho:** Mstari mmoja ulioongezwa kushughulikia `BrCond` katika usafiri:
 ```rust
@@ -54,7 +54,7 @@ Terminator::BrCond(_, _, merge) if *merge != b => { b = *merge; }
 ---
 
 **Hitilafu 3: Uharibifu wa Block ya `kama`/`sivyo` Iliyowekwa Ndani** (`src/ir/lower.rs`, `patch_br_if_needed`)
-Kazi ya `patch_br_if_needed` ilifuata tawi la UONGO (false) tu la vivunja vya `BrCond`. Kwa taarifa za `kama`/`sivyo` ambapo tawi la `sivyo` linarudisha thamani, block ya kuunganisha ya tawi la KWELI (true) haikufikiwa kamwe na usafiri. Hii iliacha vitanzi vya kujirudia (`self-loop`) ambavyo awamu ya ukamilishaji ilibadilisha kuwa `ret i32 0`, na kusababisha kazi kama `changanua_bloku` kurudisha 0 mara baada ya kutumia `{`.
+Kazi ya `patch_br_if_needed` ilifuata tawi la UONGO (false) tu la vivunja vya `BrCond`. Kwa taarifa za `kama`/`sivyo` ambapo tawi la `sivyo` linarudisha thamani, block ya kuunganisha ya tawi la KWELI (true) haikufikiwa kamwe na usafiri. Hii iliacha mizunguko ya kujirudia (`self-loop`) ambavyo awamu ya ukamilishaji ilibadilisha kuwa `ret i32 0`, na kusababisha kazi kama `changanua_bloku` kurudisha 0 mara baada ya kutumia `{`.
 
 **Marekebisho:** Fuata MATAWI YOTE mawili ya `BrCond` katika `patch_br_if_needed`.
 
@@ -68,16 +68,16 @@ Wakati taarifa iliyotangulia block ilikuwa `kama` yenye `sivyo` inayorudisha, `a
 ---
 
 **Hitilafu 5: Uharibifu wa Block ya Kutoka ya `wakati`/`kwa`** (`src/ir/lower.rs`, `lower_while`/`lower_for`)
-`exit_blk` iliundwa na kituo cha msingi cha `RetVoid`. Wakati `patch_br_if_needed` ilipotembea kupitia CFG, ilifuata matawi ya `endelea` (continue) kuingia kwenye miili ya vitanzi vilivyozunguka. Ilipata block ya kutoka ya kitanzi cha nje (iliyokuwa na `RetVoid`) na kuitibu kama sehemu ya kuacha. Hii iliacha block ya kutoka ya kitanzi cha ndani ikiwa na kituo kisicho sahihi.
+`exit_blk` iliundwa na kituo cha msingi cha `RetVoid`. Wakati `patch_br_if_needed` ilipotembea kupitia CFG, ilifuata matawi ya `endelea` (continue) kuingia kwenye miili ya mizunguko iliyozunguka. Ilipata block ya kutoka ya mzunguko wa nje (iliyokuwa na `RetVoid`) na kuitibu kama sehemu ya kuacha. Hii iliacha block ya kutoka ya mzunguko wa ndani ikiwa na kituo kisicho sahihi.
 
-**Marekebisho:** Weka kituo cha `exit_blk` kuwa `Br(exit_blk)` (kitanzi cha kujirudia) mara baada ya kuundwa. Hii inahakikisha `walk_branch` inaitambua kama njia ya kupita, si kurudi.
+**Marekebisho:** Weka kituo cha `exit_blk` kuwa `Br(exit_blk)` (mzunguko wa kujirudia) mara baada ya kuundwa. Hii inahakikisha `walk_branch` inaitambua kama njia ya kupita, si kurudi.
 
 ---
 
 **Hitilafu 6: `patch_br_if_needed` Ikifuata Mipaka ya Endelea/Vunja** (`src/ir/lower.rs`)
-Hata baada ya marekebisho ya 5, `patch_br_if_needed` ilifuata block za `endelea` zenye `Br(outer_header)` kuingia kwenye miili ya vitanzi vilivyozunguka. Ilipata block ya kutoka ya kitanzi cha nje (kitanzi cha kujirudia) na kuibadilisha kwa block ya kuunganisha ya `kama` ya ndani -- ikiharibu njia ya kutoka ya kitanzi cha nje. Hii ilisababisha `changanua()` kurudisha `0` badala ya faharasi sahihi ya nodi ya AST ya programu wakati faili nyingi ziliunganishwa.
+Hata baada ya marekebisho ya 5, `patch_br_if_needed` ilifuata block za `endelea` zenye `Br(outer_header)` kuingia kwenye miili ya mizunguko iliyozunguka. Ilipata block ya kutoka ya mzunguko wa nje (mzunguko wa kujirudia) na kuibadilisha kwa block ya kuunganisha ya `kama` ya ndani -- ikiharibu njia ya kutoka ya mzunguko wa nje. Hii ilisababisha `changanua()` kurudisha `0` badala ya faharasi sahihi ya nodi ya AST ya programu wakati faili nyingi ziliunganishwa.
 
-**Marekebisho:** Acha kufuata mipaka ya `Br` ya mbele wakati mahali pa block chanzo panaanza na `continue.` au `break.` -- hizi ni mipaka ya udhibiti wa kitanzi inayoongoza nje ya mwili unaorekebishwa.
+**Marekebisho:** Acha kufuata mipaka ya `Br` ya mbele wakati mahali pa block chanzo panaanza na `continue.` au `break.` -- hizi ni mipaka ya udhibiti wa mzunguko inayoongoza nje ya mwili unaorekebishwa.
 
 ---
 
@@ -91,8 +91,8 @@ W0 ruka_nafasi_na_maelezo(Msomaji* m);
 
 ---
 
-**Hitilafu 8: Uchanganuzi wa Kiiniti cha Kitanzi cha `kwa`** (`msingi/mkusanyaji/msambazaji.swa`)
-Mchanganuzi wa kitanzi cha `kwa` ulijaribu kuchanganua kiiniti kama usemi kupitia `changanua_usemi`. Lakini `N32 i = 0` ni tamko la ndani, si usemi. Ulichanganua `N32` kama kitambulisho na kuacha `i = 0;` bila kutumiwa.
+**Hitilafu 8: Uchanganuzi wa Kiiniti cha Mzunguko wa `kwa`** (`msingi/mkusanyaji/msambazaji.swa`)
+Mchanganuzi wa mzunguko wa `kwa` ulijaribu kuchanganua kiiniti kama usemi kupitia `changanua_usemi`. Lakini `N32 i = 0` ni tamko la ndani, si usemi. Ulichanganua `N32` kama kitambulisho na kuacha `i = 0;` bila kutumiwa.
 
 **Marekebisho:** Jaribu `changanua_taarifa_tangazo` (mchanganuzi wa matamko) kwanza kwa kiiniti cha `kwa`. Rudia kwa uchanganuzi wa usemi ikiwa mchanganuzi wa matamko unarudisha -1.
 
@@ -122,7 +122,7 @@ Binary ya kujikusanya:
 - Inachakata faili za maktaba ya msingi
 - Inaripoti kwa usahihi faharasi ya nodi ya mzizi ya AST
 - Inakamilika chini ya sekunde 1 (hali ya mtumiaji)
-- Inachanganua vipengele vyote muhimu vya lugha: kazi, vitanzi vya wakati/kwa, kama/sivyo, muundo, taarifa za rudisha, mgao, hesabu, ulinganisho, tathmini fupi, break/continue
+- Inachanganua vipengele vyote muhimu vya lugha: kazi, mizunguko ya wakati/kwa, kama/sivyo, muundo, taarifa za rudisha, mgao, hesabu, ulinganisho, tathmini fupi, break/continue
 
 ### Takwimu za Hitilafu
 | Kategoria | Idadi |
@@ -140,7 +140,7 @@ Binary ya kujikusanya:
 - `src/ir/lower.rs` -- mistari 150+ iliyobadilishwa (kiini cha marekebisho ya codegen)
 - `msingi/mkusanyaji/msambazaji.swa` -- mistari 40+ iliyobadilishwa (marekebisho ya mchanganuzi)
 - `kiendeshaji.swa` -- mistari 20 iliyobadilishwa (uboreshaji wa kasi)
-- `src/parser/mod.rs` -- mistari 2 (mpangilio wa AST ya kitanzi cha kwa)
+- `src/parser/mod.rs` -- mistari 2 (mpangilio wa AST ya mzunguko wa kwa)
 - `hati/*.md` -- masasisho ya nyaraka
 
 ## Maana ya Hili
@@ -172,14 +172,14 @@ Codegen ya `lower.rs` na LLVM backend zote zinatumia fomula `ValueId = P + V + I
 Mpangilio huu unamaanisha kwamba maagizo yaliyotolewa kwenye block ya kuingia wakati wa kupitisha awali yanapata ValueId za chini, zinalingana na mpangilio wa block za backend. Maagizo yaliyotolewa wakati wa uteuzi wa mwili yanapata ValueId za juu. Ramani ni thabiti kwa sababu pande zote mbili zinatembea block kwa mpangilio uleule.
 
 ### Kazi ya `patch_br_if_needed`
-Kazi hii ndiyo chanzo cha hitilafu 3 kati ya 6 za codegen. Inatembea CFG kurekebisha vitanzi vya kujirudia kwa malengo sahihi ya kuunganisha. Hitilafu zilitokea kwa sababu:
+Kazi hii ndiyo chanzo cha hitilafu 3 kati ya 6 za codegen. Inatembea CFG kurekebisha mizunguko ya kujirudia kwa malengo sahihi ya kuunganisha. Hitilafu zilitokea kwa sababu:
 1. Ilifuata tawi la UONGO tu la `BrCond` (ilikosa block za kuunganisha za tawi la KWELI)
-2. Ilifuata mipaka ya `Br` ya mbele kuingia kwenye mtiririko wa udhibiti uliozunguka (iliharibu njia za kutoka za vitanzi vya nje)
+2. Ilifuata mipaka ya `Br` ya mbele kuingia kwenye mtiririko wa udhibiti uliozunguka (iliharibu njia za kutoka za mizunguko ya nje)
 3. Iliitwa kwa wakati usiofaa kuhusiana na kuunganisha block
 
 ### Mafunzo Yaliyojifunza
 - **Hakuna hitilafu ndogo.** `sogeza()` iliyokosa sehemu mbili ilionekana ndogo lakini iliharibu taarifa ZOTE za nambari za mistari na kuvunja kishughulikiaji cha maagizo ya `husisha`.
-- **Hitilafu za codegen hufuatana.** Alloca-in-loop ilificha hitilafu ya CFG dead-code, ambayo ilificha hitilafu ya `patch_br_if_needed`, ambayo ilificha hitilafu ya tamko la mbele, ambayo ilificha hitilafu ya kitanzi cha `kwa`. Kila marekebisho ulifunua safu inayofuata.
+- **Hitilafu za codegen hufuatana.** Alloca-in-loop ilificha hitilafu ya CFG dead-code, ambayo ilificha hitilafu ya `patch_br_if_needed`, ambayo ilificha hitilafu ya tamko la mbele, ambayo ilificha hitilafu ya mzunguko wa `kwa`. Kila marekebisho ulifunua safu inayofuata.
 - **Thibitisha kwa majaribio ya mwisho-hadi-mwisho.** Majaribio ya kawaida (unit tests) yalipita kwa hitilafu hizi nyingi. Jaribio la K6 pekee liligundua matatizo halisi.
 
 ## Hatua Zinazofuata

@@ -38,7 +38,7 @@ Mchanganuzi wa kujikusanya ulifichua hitilafu zilizofichika katika `kande` ambaz
 | 6 | Hitilafu ya kuteremsha kwenye ugawaji wa muundo | Kiteremshaji hakikuweza kushughulikia `a = b` kwa miundo | Usimamizi wa tokeni ulivunjika |
 | 7 | Opaque pointer inaharibu usawazishaji wa hifadhi/mzigo | LLVMGetElementType haiaminiki na opaque pointers za LLVM 22 | SIGSEGV nasibu, tokeni zimeharibika |
 | 8 | Msimbo baada ya kama hauwiani kwenye CFG | actual_prev haikufuatilia BrCond; self-loop haikurekebishwa | Taarifa baada ya kama ni msimbo uliokufa kwa sehemu |
-| 9 | Alloca-in-loop inamaliza rafu | Alloca za vigeu vya ndani zinatolewa kwenye block ya sasa badala ya block ya kuingia | SIGSEGV baada ya ~524K mizunguko ya kitanzi |
+| 9 | Alloca-in-loop inamaliza rafu | Alloca za vigeu vya ndani zinatolewa kwenye block ya sasa badala ya block ya kuingia | SIGSEGV baada ya ~524K mizunguko ya mzunguko |
 
 #### Kipindi cha Pili (Marekebisho 3 ya ziada katika mchanganuzi wa kujikusanya)
 
@@ -47,7 +47,7 @@ Baada ya kurekebisha hitilafu za codegen (hasa alloca-in-loop), binary ya kujiku
 | # | Hitilafu | Faili | Athari |
 |---|---------|-------|--------|
 | 10 | Tamko la mbele halikutumia `;` | `msingi/mkusanyaji/msambazaji.swa` | `;` ilivuja hadi kiwango cha juu, ikasababisha hitilafu ya "unexpected element" |
-| 11 | Uchanganuzi wa kitanzi cha `kwa` ulishindwa | `msingi/mkusanyaji/msambazaji.swa` | `N32 i = 0` katika `kwa` ilichanganuliwa kama usemi badala ya tamko |
+| 11 | Uchanganuzi wa mzunguko wa `kwa` ulishindwa | `msingi/mkusanyaji/msambazaji.swa` | `N32 i = 0` katika `kwa` ilichanganuliwa kama usemi badala ya tamko |
 | 12 | Hitilafu mbalimbali za mchanganuzi: `sogeza()` ikikosa sehemu za `mstari`/`safu`, `{` ikitumiwa mara mbili, hakuna rudisha hasi (`-1`), kufurika kwa safu ya AST | `msingi/mkusanyaji/msambazaji.swa`, `msingi/mkusanyaji/msomaji.swa` | Uchanganuzi usio sahihi, kufurika kwa safu |
 
 ### 2.2 Majaribio yote 174 yanapita
@@ -72,7 +72,7 @@ Hati ya Python (`_finish.py`) iliandikwa kutenganisha kazi kubwa za `msambazaji.
 
 ### 3.1 Kinachofanya kazi
 
-- Mkusanyaji wa Rust (`kande`) unakusanya programu rahisi za Swa (hesabu, mtiririko wa udhibiti, miito ya kazi, ufikiaji wa sehemu za muundo, safu, vitanzi) na kuzalisha matokeo sahihi.
+- Mkusanyaji wa Rust (`kande`) unakusanya programu rahisi za Swa (hesabu, mtiririko wa udhibiti, miito ya kazi, ufikiaji wa sehemu za muundo, safu, mizunguko) na kuzalisha matokeo sahihi.
 - Mchanganuzi wa kujikusanya unakusanyika na kuendesha kwenye O0.
 - Msomaji wa kujikusanya unakusanyika na kuendesha kwenye O0.
 - K6 (kujikusanya kamili) inapita: binary ya kujikusanya inajikusanya yenyewe.
@@ -116,7 +116,7 @@ Marekebisho yote yako kwenye tawi kuu (`main`).
 | CFG dead-code (actual_prev, BrCond, self-loop) | `src/ir/lower.rs` | ~40 |
 | Alloca-in-loop (kupitisha mara mbili, pre-allocated locals) | `src/ir/lower.rs` | ~100 |
 | Usomaji wa safu (AST_SAFU, AST_TAJA, faharasa) | `src/parser/mod.rs`, `msingi/mkusanyaji/msambazaji.swa` | ~130 |
-| Kitanzi cha `kwa`, tamko la mbele `;`, sogeza() kamili, unary minus | `msingi/mkusanyaji/msambazaji.swa`, `msingi/mkusanyaji/msomaji.swa` | ~50 |
+| Mzunguko wa `kwa`, tamko la mbele `;`, sogeza() kamili, unary minus | `msingi/mkusanyaji/msambazaji.swa`, `msingi/mkusanyaji/msomaji.swa` | ~50 |
 | Nyongeza za majaribio | `majaribio/` | ~55 |
 | **Jumla** | **Faili ~18** | **~850** |
 
@@ -148,11 +148,11 @@ Safu za ulimwengu zenye ukubwa wa BSS juu ya ~2 MB zinaanguka kabla ya `main` kw
 
 ### 5.6 CFG: Taarifa za udhibiti zinahitaji ushughulikiaji makini wa mwendelezo
 
-Baada ya taarifa ya `kama`, block ya sharti ya `BrCond` haipaswi kuwa kiungo cha mwendelezo kwa taarifa inayofuata. `actual_prev` lazima ifuatilie block ya kuunganisha (`merge`). Kukosa kufanya hivyo kunasababisha msimbo usio na marejeleo (dead code) kwenye CFG na vitanzi vya kujirudia visivyo na mwisho.
+Baada ya taarifa ya `kama`, block ya sharti ya `BrCond` haipaswi kuwa kiungo cha mwendelezo kwa taarifa inayofuata. `actual_prev` lazima ifuatilie block ya kuunganisha (`merge`). Kukosa kufanya hivyo kunasababisha msimbo usio na marejeleo (dead code) kwenye CFG na mizunguko ya kujirudia visivyo na mwisho.
 
 ### 5.7 Alloca za vigeu vya ndani lazima ziwe kwenye block ya kuingia
 
-LLVM inatarajia alloca zote za vigeu vya ndani ziwe kwenye block ya kuingia ya kazi. Kutoa alloca kwenye block ya kitanzi kunasababisha kila mzunguko kugawa nafasi mpya ya rafu bila kuzirejesha. Hii inaisha kwa uharibifu wa rafu (SIGSEGV). Suluhisho ni mbinu ya kupitisha mara mbili: (1) tembea AST mapema kukusanya matamko yote ya vigeu, (2) toa alloca zote kwenye block ya kuingia kabla ya mwili wowote kuchakatwa.
+LLVM inatarajia alloca zote za vigeu vya ndani ziwe kwenye block ya kuingia ya kazi. Kutoa alloca kwenye block ya mzunguko kunasababisha kila mzunguko kugawa nafasi mpya ya rafu bila kuzirejesha. Hii inaisha kwa uharibifu wa rafu (SIGSEGV). Suluhisho ni mbinu ya kupitisha mara mbili: (1) tembea AST mapema kukusanya matamko yote ya vigeu, (2) toa alloca zote kwenye block ya kuingia kabla ya mwili wowote kuchakatwa.
 
 ### 5.8 Mfululizo wa ushughulikiaji wa tokeni
 
@@ -211,7 +211,7 @@ Masuala yote ya awali yamerekebishwa:
 - Alloca-in-loop (SIGSEGV kwenye binary ya kujikusanya) -- IMEREKEBISHWA (kupitisha mara mbili kwenye lower.rs)
 - CFG dead-code (msimbo baada ya kama ni msimbo uliokufa) -- IMEREKEBISHWA
 - Tamko la mbele `;` linavuja -- IMEREKEBISHWA
-- Kitanzi cha `kwa` hakichanganulii -- IMEREKEBISHWA
+- Mzunguko wa `kwa` hauchanganulii -- IMEREKEBISHWA
 - `sogeza()` inakosa sehemu za tokeni -- IMEREKEBISHWA
 - Kufurika kwa safu ya AST -- IMEREKEBISHWA
 - K6 (kujikusanya kamili) -- IMEREKEBISHWA na inapita
@@ -233,14 +233,14 @@ Katika kipindi cha saa 18 cha kurekebisha hitilafu, marekebisho 12 yalifanywa:
 
 - **Marekebisho ya mchanganuzi (4ddb448):**
   - Mfululizo wa `ast_nne` katika `src/parser/mod.rs` -- tembea hadi mwisho kabla ya kuongeza nodi mpya
-  - Ulinzi wa `t->urefu == 0` mwanzoni mwa `neno_ni` kuzuia kitanzi kisicho na mwisho kwenye EOF
+  - Ulinzi wa `t->urefu == 0` mwanzoni mwa `neno_ni` kuzuia mzunguko usio na mwisho kwenye EOF
   - Uainishaji wa ASCII maeneo 49 katika `msambazaji.swa`
   - `StoreTyped` sasa inahakiki aina lengwa ni nambari kamili kabla ya kuita `LLVMGetIntTypeWidth`
   - Const inatumia aina sahihi ya chaguo-msingi kwa Bool (i1), NullPtr (ptr), na Float (double)
 
 - **Marekebisho ya mchanganuzi wa kujikusanya:**
   - Tamko la mbele linatumia `;` kwa usahihi
-  - Kitanzi cha `kwa` kinachanganua tamko kwanza, halafu usemi
+  - Mzunguko wa `kwa` unachanganua tamko kwanza, halafu usemi
   - `sogeza()` inakili sehemu zote 5 za tokeni (si 3 tu)
   - Unary minus unafanya kazi (`rudisha -1`)
   - Safu ya AST iliongezwa hadi 16384 (kutoka 4096)

@@ -1203,7 +1203,7 @@ w0 andika_zidisha_d64_x0_x1() { andika_baiti(242); andika_baiti(15); andika_bait
 w0 andika_gawanya_d64_x0_x1() { andika_baiti(242); andika_baiti(15); andika_baiti(94); andika_baiti(193); }
 
 // === SSE2 -- jozi za d64 (128-bit, elementi mbili kwa wakati mmoja) ===
-// Kutumika PEKEE na uvektishaji wa kitanzi (simd_*, karibu na
+// Kutumika PEKEE na uvektishaji wa mzunguko (simd_*, karibu na
 // uzalishaji_wakati). SSE2 ni sehemu ya msingi ya x86-64 -- CPU YOYOTE
 // ya 64-bit inaiunga mkono bila masharti, hivyo hakuna haja ya kuchunguza
 // uwezo wa CPU wakati wa kuendesha (kinyume na AVX/upana mpana zaidi).
@@ -2063,7 +2063,7 @@ n32 mzunguko_undani = 0;
 
 n32 mahali_papya() {
     // lugha-swa/swa#298 -- hii ilikuwa ikirudisha -1 KIMYA; waitaji
-    // wengi (mfano matamko ya kitanzi cha kwa/wakati) hawaangalii
+    // wengi (mfano matamko ya mzunguko wa kwa/wakati) hawaangalii
     // matokeo kabla ya kuyatumia kama faharisi ya mahali -- sawa na
     // hatari iliyoandikwa kwenye #199 kwa node_mpya(). Sasa
     // inasimamisha ukusanyaji kwenye chanzo badala ya kutegemea kila
@@ -2594,7 +2594,7 @@ w0 duru_ya_kutambua_anwani(n32 nodi) {
                 // kwenye orodha ya ruka_tiga/ruka_nne (isipokuwa 30),
                 // kwa hiyo kuita tambua_anwani_pass(a_w) moja kwa moja
                 // ni SALAMA: itaruka ast_tiga[a_w] chake yenyewe (kiungo
-                // cha hoja, kinachoshughulikiwa na kitanzi hiki), lakini
+                // cha hoja, kinachoshughulikiwa na mzunguko huu), lakini
                 // itatembelea watoto wake halisi (kushoto/kulia/nne
                 // inavyofaa) kwa usahihi -- ikiwemo wito uliopachikwa
                 // (utaingia tena tawi hili la aina==8 kwa mfululizo wake
@@ -3370,8 +3370,8 @@ w0 uzalishaji_kama(n32 nodi, n32 nodi_ya_kazi) {
 }
 
 // -------------------------------------------------------
-// Uvektishaji wa kitanzi (auto-vectorization), awamu ya kwanza --
-// SSE2 packed-double kwa vitanzi vya elementi rahisi vya safu.
+// Uvektishaji wa mzunguko (auto-vectorization), awamu ya kwanza --
+// SSE2 packed-double kwa mizunguko ya elementi rahisi za safu.
 //
 // Huu ni ugunduzi wa muundo MAALUM sana, si ubadilishaji wa AST kama
 // LICM/kuunganisha kazi ndogo -- unatoa MAAGIZO TOFAUTI KABISA
@@ -3386,7 +3386,7 @@ w0 uzalishaji_kama(n32 nodi, n32 nodi_ya_kazi) {
 //
 // Masharti (yote lazima yatimizwe, la sivyo njia ya kawaida ya scalar
 // inatumika bila mabadiliko -- HAKUNA njia ya kati ya "nusu-vektishwa"):
-//   1. Hakuna kianzio cha kwa (ast_tiga[node] == -1), na si kitanzi cha
+//   1. Hakuna kianzio cha kwa (ast_tiga[node] == -1), na si mzunguko wa
 //      hatua/fanya (ast_thamani[node] si -777777 wala -777778) -- LICM
 //      ilikataa kianzio cha kwa kwa sababu ile ile (kianzio hutekelezwa
 //      NDANI ya nodi ile ile kabla ya sharti la kwanza).
@@ -3397,7 +3397,7 @@ w0 uzalishaji_kama(n32 nodi, n32 nodi_ya_kazi) {
 //      bound: masharti #6-7 chini yanahakikisha hilo).
 //   4. i ni n32 hasa (enc == 288) -- si n64, si kielekezi, si desimali.
 //      Hii inaruhusu kutumia maagizo ya 32-bit moja kwa moja bila
-//      matawi ya upana, na inalingana na jinsi vihesabu vya kitanzi
+//      matawi ya upana, na inalingana na jinsi vihesabu vya mzunguko
 //      vinavyoandikwa kwa kawaida kwenye msimbo huu.
 //   5. Mwili ni AST_BLOCK yenye TAARIFA MBILI HASA, kwa mpangilio huu:
 //      (a) c[i] = a[i] OP b[i]  (b) i = i + 1. Mpangilio mwingine
@@ -3409,7 +3409,7 @@ w0 uzalishaji_kama(n32 nodi, n32 nodi_ya_kazi) {
 //   7. Fahirisi ya safu ZOTE TATU ni KITAMBULISHO SAWA na i HASA --
 //      HAKUNA ongezeko (a[i+1] HAIKUBALIWI) na HAKUNA fahirisi tata
 //      (a[i*n+j] HAIKUBALIWI, ndiyo maana matriki HAIENDANI na awamu
-//      hii -- kitanzi chake cha ndani kina fahirisi tata NA
+//      hii -- mzunguko wake wa ndani una fahirisi tata NA
 //      operesheni MBILI zilizounganishwa, angalia MATOKEO.md).
 //   8. Ongezeko ni "i = i + 1" hasa -- si "i += 1" (angalia jinsi hiyo
 //      inavyosambazwa -- kama ni AST_ASIMILIA ile ile ya i=i+1 baada
@@ -3417,12 +3417,12 @@ w0 uzalishaji_kama(n32 nodi, n32 nodi_ya_kazi) {
 //      hatua nyingine yoyote.
 //
 // Bila alama zozote za kuaminika za muundo huu (kwa mfano fahirisi
-// tata au OP zaidi ya moja), kitanzi kizima kinaachwa BILA KUGUSWA --
+// tata au OP zaidi ya moja), mzunguko mzima unaachwa BILA KUGUSWA --
 // hakuna majaribio ya "kuvektisha kwa sehemu".
 // -------------------------------------------------------
 
 // Jina la kipekee la kigezo cha muda kinachohifadhi thamani ya bound
-// (kikomo cha juu cha kitanzi) mara moja tu -- angalia maelezo kwenye
+// (kikomo cha juu cha mzunguko) mara moja tu -- angalia maelezo kwenye
 // simd_zalisha kuhusu kwa nini ni salama kusoma bound mara moja pekee.
 n8 sambamba_chombo_cha_jina[768];  // 32 * 24
 n32 sambamba_jina_idadi = 0;
@@ -3470,15 +3470,15 @@ n32 sambamba_ni_kitambulisho_jina(n32 nodi, n8* jina) {
     rudisha jina_linganisha(ghala_la_majina + umbali_wa_jina_la_nodi[nodi], jina);
 }
 
-// Toa msimbo wa kitanzi kilichovektishwa. Inaitwa TU baada ya
-// simd_jaribu_kitanzi kuthibitisha muundo kikamilifu.
+// Toa msimbo wa mzunguko uliovektishwa. Inaitwa TU baada ya
+// simd_jaribu_mzunguko kuthibitisha muundo kikamilifu.
 w0 sambamba_zalisha(n32 nodi, n32 nodi_ya_mpaka, n32 nodi_ya_kihesabu, n32 lv, n32 a_nodi,
                 n32 b_nodi, n32 aina_ya_kitendo, n32 taarifa1, n32 taarifa2, n32 nodi_ya_kazi) {
     // Hifadhi thamani ya bound MARA MOJA TU kwenye kigezo cha muda cha
     // ndani. Hii ni salama kwa sababu masharti #5-#8 hapo juu
-    // yanahakikisha mwili wa kitanzi hauandiki KAMWE kigezo cha bound
+    // yanahakikisha mwili wa mzunguko hauandiki KAMWE kigezo cha bound
     // (unagusa tu i na kumbukumbu ya safu kupitia c/a/b) -- kwa hiyo
-    // thamani yake haiwezi kubadilika wakati wa kitanzi, tofauti na
+    // thamani yake haiwezi kubadilika wakati wa mzunguko, tofauti na
     // msimbo wa kawaida unaosoma upya sharti kila zunguko.
     n8* bjina = sambamba_jina_mpya();
     n32 faharasa_ya_kigeu_b = pata_au_unda_kigeu_ukubwa(bjina, 4, 288);
@@ -3583,7 +3583,7 @@ n32 sambamba_jaribu_mzunguko(n32 nodi, n32 nodi_ya_kazi) {
 
     n8* jina_la_kihesabu = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kihesabu];
 
-    // MUHIMU: mwili wa kitanzi HAUFUNGWI kwenye AST_BLOCK -- kama
+    // MUHIMU: mwili wa mzunguko HAUFUNGWI kwenye AST_BLOCK -- kama
     // changanua_bloku (msambazaji.swa) inavyoonyesha, taarifa za {}
     // zinaunganishwa MOJA KWA MOJA kupitia ast_nne, bila kifuniko
     // chochote (AST_BLOCK ni alama ya "mwili tupu" TU). Kwa hiyo
@@ -3646,7 +3646,7 @@ n32 sambamba_jaribu_mzunguko(n32 nodi, n32 nodi_ya_kazi) {
     // uzalishaji_asimilia (haitumiki), lakini ZINGATIA: simd_zalisha
     // huita uzalishaji_asimilia moja kwa moja (si uzalishaji_taarifa),
     // hivyo mfululizo wao wa ast_nne (unaoelekeza kwa taarifa
-    // inayofuata NJE ya kitanzi) HAUGUSWI kamwe -- salama.
+    // inayofuata NJE ya mzunguko) HAUGUSWI kamwe -- salama.
     sambamba_zalisha(nodi, nodi_ya_mpaka, nodi_ya_kihesabu, lv, a_nodi, b_nodi, aina_ya_kitendo, taarifa1, taarifa2, nodi_ya_kazi);
     rudisha 1;
 }
@@ -3660,7 +3660,7 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
     kama (sambamba_jaribu_mzunguko(nodi, nodi_ya_kazi)) { rudisha; }
 
     // Toa msimbo wa anzisha (kwa ajili ya kwa loop)
-    // Init inatekelezwa mara moja kabla ya kitanzi
+    // Init inatekelezwa mara moja kabla ya mzunguko
     kama (kianzio != -1) {
         n32 aina_ya_kianzio = aina_ya_nodi[kianzio];
         kama (aina_ya_kianzio == 11) {  // AST_TANGAZO
@@ -3674,7 +3674,7 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
             kama (faharasa_ya_kigeu >= 0) {
                 n32 umbali = umbali_wa_kigeu_chini_ya_r5[faharasa_ya_kigeu];
                 kama (tatu_ya_nodi[kianzio] > 0) {
-                    // Safu ya ndani ndani ya kitanzi-cha-kwa
+                    // Safu ya ndani ndani ya mzunguko-wa-kwa
                     kigeu_ni_safu[faharasa_ya_kigeu] = 1;
                 } sivyo { kama (thamani_ya_kianzio != -1) {
                         uzalishaji_usemi(thamani_ya_kianzio, nodi_ya_kazi);
@@ -3713,24 +3713,24 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
     n32 mahali_pa_maudhui = mahali_papya();
     n32 sharti_la_mahali = mahali_papya();
     n32 mahali_pa_kutoka = mahali_papya();
-    n32 ni_fanya = 0;  // -777778 = kitanzi cha fanya (mwili-kwanza)
+    n32 ni_fanya = 0;  // -777778 = mzunguko wa fanya (mwili-kwanza)
 
     kama (mzunguko_undani >= 16) {
         // lugha-swa/swa#298 -- hii ilikuwa ikiweka text_imefurika=1
         // (bendera iliyokufa, haikuwahi kusomwa) kisha KUENDELEA --
         // mzunguko_lebo_endelea/hatua/toka[16] ingeandikwa nje ya
         // mipaka kimya (au kutumia tena nafasi ya kiwango cha 16,
-        // ikivuruga endelea/vunja za kitanzi cha nje). Sasa inasimamisha
+        // ikivuruga endelea/vunja za mzunguko wa nje). Sasa inasimamisha
         // ukusanyaji mara moja.
-        andika_kosa("KOSA: upeo wa kupandikiza kitanzi (kikomo 16) umefikiwa\n");
+        andika_kosa("KOSA: upeo wa kupandikiza mzunguko (kikomo 16) umefikiwa\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     } sivyo {
-        // Kitanzi cha kwa chenye hatua: endelea inaruka kwenye HATUA
+        // Mzunguko wa kwa wenye hatua: endelea inaruka kwenye HATUA
         // (semantiki ya C), si kwenye hali. Alama ya -777777 kwenye
         // ast_thamani ya wakati ina maana hatua ipo (imewekwa na
         // msambazaji). Mahali pa hatua pametengwa MAPEMA -- kifungio cha
         // hatua kitaweka weka_mahali hapo wakati kinakusanywa.
-        // Alama ya -777778 = kitanzi cha FANYA (do-while): mwili
+        // Alama ya -777778 = mzunguko wa FANYA (do-while): mwili
         // hukimbia mara moja kabla ya sharti -- hakuna kuruka kwa
         // awali hadi sharti (kuweka-mahali kwa mwili ni kuingilia).
         // endelea ndani ya fanya inaruka hadi SHARTI (semantiki ya
@@ -3759,7 +3759,7 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
     weka_mahali(sharti_la_mahali);
     kama (sharti == -1) {
         // Hali iliyoachwa wazi = kweli daima (semantiki ya C):
-        // kwa (i = 0; ; i = i + 1) na kwa (;;) ni vitanzi visivyoisha
+        // kwa (i = 0; ; i = i + 1) na kwa (;;) ni mizunguko isiyoisha
         // hadi vunja au rudisha. Hapo awali -1 ilitolewa kama usemi
         // usiotoa kitu -- mwili haukuwahi kutekelezwa (jibu baya la kimya).
         andika_weka_r0d(1);
@@ -4076,7 +4076,7 @@ w0 kiini_vga_andika_mstari_mpya() {
 // vga_andika("...") -- hoja LAZIMA iwe mfuatano halisi (literal),
 // SI kigezo (toleo la kwanza -- kioo cha jinsi andika() inavyohitaji
 // halisi kwa njia yake ya haraka ya kukusanya). Herufi zinatolewa
-// MOJA BAADA YA NYINGINE (haziungwi kwenye kitanzi cha wakati wa
+// MOJA BAADA YA NYINGINE (haziungwi kwenye mzunguko wa wakati wa
 // kukimbia) -- rahisi na sahihi kwa mfuatano mfupi wa ujumbe wa
 // kernel; utorokaji unaotambuliwa: \n (mstari mpya), \\, \" (herufi
 // halisi) -- nyingine yoyote inatolewa kama herufi iliyofuata
@@ -4243,7 +4243,7 @@ w0 kiini_tumia_marekebisho() {
 // ==========================================================
 // Hoja za namba huchukua rdi, rsi, rdx, rcx, r8, r9; za desimali
 // xmm0-xmm7; zinazozidi huenda rafuni KWA MPANGILIO WA HOJA, bila
-// kujali aina. Kitanzi cha pop cha uzalishaji_wito ni sahihi tu ikiwa
+// kujali aina. Mzunguko wa pop wa uzalishaji_wito ni sahihi tu ikiwa
 // hakuna hoja ya rejesta baada ya hoja ya rafu.
 
 n32 wito_jumla_ya_rejista_namba = 0;
@@ -4424,7 +4424,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
                 kama (jina_linganisha(gjina, jina_a) && data_ulimwengu_ni_safu[gi] == 1) {
                     andika_weka_r0d(data_ulimwengu_idadi_ya_kipengele[gi]);
                     imepatikana = 1;
-                    gi = idadi_ya_data_ya_ulimwengu;  // toka kwenye kitanzi
+                    gi = idadi_ya_data_ya_ulimwengu;  // toka kwenye mzunguko
                 } sivyo {
                     gi = gi + 1;
                 }
@@ -4808,9 +4808,9 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     // vigezo 7 (kielekezi 1 + d64 6) ilipakiwa KAMILI kwenye rejesta
     // (GP 1/6, XMM 6/8, hakuna kilichobaki rafuni), lakini
     // usafishaji ulifanya `add rsp, 8` HALISI YA UONGO kila wito --
-    // ikisogeza rsp juu bila sababu kwa kila wito ndani ya kitanzi,
+    // ikisogeza rsp juu bila sababu kwa kila wito ndani ya mzunguko,
     // hadi kuharibu sehemu za kumbukumbu za mwitaji (rekodi ya
-    // 2026-09: kaunta ya kitanzi cha mwitaji ilibadilika baada ya
+    // 2026-09: kaunta ya mzunguko wa mwitaji ilibadilika baada ya
     // wito 1-2 tu).
     n32 jumla_ya_rejista_namba = 0; n32 jumla_ya_rejista_desimali = 0;
     kama (mwitwa_anarudisha_muundo) { jumla_ya_rejista_namba = 1; }
@@ -4820,7 +4820,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     // kuvuta (pop) kwa mpangilio hakufai -- hoja ya rafu iliyobaki juu
     // ingesomwa kama ile ya rejesta inayofuata. Njia ya System V kamili
     // hupakia kwa umbali na kubana hoja za rafu (hoja_kwa_sysv). Mipangilio
-    // mingine yote hubaki na kitanzi cha pop chini, baiti zile zile.
+    // mingine yote hubaki na mzunguko wa pop chini, baiti zile zile.
     kama (hoja_zimechanganyika(msingi, hoja_n, mwitwa, rejista_ya_namba) != 0) {
         hoja_kwa_sysv(msingi, hoja_n, mwitwa, hoja0_moja, rejista_ya_namba);
         jumla_ya_rejista_namba = wito_jumla_ya_rejista_namba;
@@ -5028,13 +5028,13 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     hoja_undani = hoja_undani - 1;
 }
 
-// Msaada: kusanya kifungio cha hatua ya kitanzi cha kwa kinachofichwa
+// Msaada: kusanya kifungio cha hatua ya mzunguko wa kwa kinachofichwa
 // nyuma ya taarifa zinazomaliza (rudisha/vunja/endelea). Mfululizo wa
 // mwili huisha kwenye taarifa ya kumaliza -- lakini msambazaji huweka
 // kifungio cha hatua (AST_BLOCK yenye ast_kulia == -777777) MWISHONI
 // mwa mfululizo, na endelea inaruka kwenye mahali pake. Kifungio
 // kisipokusanywa, mahali pa hatua hapatolewi kamwe na endelea inaruka
-// mahali pasipowekwa (kitanzi kisichoisha -- jibu la kimya la mwendo
+// mahali pasipowekwa (mzunguko usioisha -- jibu la kimya la mwendo
 // wa muda usio na mwisho). Taarifa zisizofikiwa katikati hazijalishi.
 w0 kusanya_hatua_ya_kwa(n32 nodi, n32 nodi_ya_kazi) {
     n32 nd = nne_ya_nodi[nodi];
@@ -5272,7 +5272,7 @@ w0 uzalishaji_taarifa(n32 nodi, n32 nodi_ya_kazi) {
                         }
 
                         sivyo { kama (aina == 50) {  // AST_BLOCK -- kifungio cha hatua ya kwa
-                                // Kama kifungio hiki ni hatua ya kitanzi cha kwa (alama -777777
+                                // Kama kifungio hiki ni hatua ya mzunguko wa kwa (alama -777777
                                 // kwenye ast_kulia), weka mahali pa hatua HAPA -- endelea inaruka
                                 // kwenye mahali hapa (semantiki ya C).
                                 kama (nodi_ya_kulia[nodi] == -777777) {
@@ -5675,11 +5675,11 @@ n32 su_haja_rejista(n32 nodi) {
     rudisha haja_ya_kushoto_na_kushikwa;
 }
 
-// Idadi ya rejesta za ziada zilizokopwa KWA SASA (kina cha kitanzi
-// cha su_zalisha_ndani kinachoendelea) -- huwekwa upya kuwa 0 MARA
+// Idadi ya rejesta za ziada zilizokopwa KWA SASA (kina cha mzunguko
+// wa su_zalisha_ndani unaoendelea) -- huwekwa upya kuwa 0 MARA
 // MOJA TU, kwenye kiingilio cha juu kabisa (su_jaribu_mzizi hapa
 // chini), KABLA ya kuita su_zalisha_ndani kwa mara ya kwanza.
-// Kitanzi cha ndani cha su_zalisha_ndani HAKIWEKI upya -- kingevuruga
+// Mzunguko wa ndani wa su_zalisha_ndani HAUWEKI upya -- ungevuruga
 // hesabu ya mzazi anayeendelea kushikilia rejesta yake mwenyewe.
 n32 su_zilizokopwa = 0;
 
@@ -5694,24 +5694,24 @@ n32 su_zilizokopwa = 0;
 // su_jaribu_mzizi bado utathibitisha upatikanaji WAKATI WA UZALISHAJI
 // HALISI (haja <= su_rejestwa_idadi) na kurudi kwenye push/pop kwa
 // usemi wowote usiotoshea, hakuna hatari ya usahihi, ni fursa
-// iliyokosekana TU. Usemi WOWOTE nje ya kitanzi (su_kina_kitanzi==0
+// iliyokosekana TU. Usemi WOWOTE nje ya mzunguko (su_kina_mzunguko==0
 // wakati wa pitio) HAUCHANGII kiasi hiki KABISA -- angalia maelezo
-// karibu na tangazo la su_kina_kitanzi hapa chini kwa sababu (kipimo
+// karibu na tangazo la su_kina_mzunguko hapa chini kwa sababu (kipimo
 // halisi cha kupanga/nasibu_ijayo).
 n32 su_upeo_haja_kazi = 0;
 
-// Kina cha sasa cha kitanzi (wakati/kwa, kina zaidi ya 0 = ndani ya
-// angalau kitanzi kimoja) WAKATI wa pitio la awali (hook ndani ya
+// Kina cha sasa cha mzunguko (wakati/kwa, kina zaidi ya 0 = ndani ya
+// angalau mzunguko mmoja) WAKATI wa pitio la awali (hook ndani ya
 // kusanya_vigeu_vya_ndani) -- huwekwa upya kuwa 0 mwanzoni mwa kila
 // kazi, kisha kuongezwa/kupunguzwa na tawi la AST_WAKATI ndani ya
-// kusanya_vigeu_vya_ndani kuzunguka sharti+mwili wa kitanzi (SI
+// kusanya_vigeu_vya_ndani kuzunguka sharti+mwili wa mzunguko (SI
 // kianzio cha kwa wala taarifa inayofuata -- hizo hazirudiwi). Sababu:
 // gharama ya kutenga rejesta za SU (push/pop MOJA kwenye utangulizi/
 // mwisho wa kazi) inalipwa tena (amortized) TU pale usemi
 // unaporudiwa mara nyingi ndani ya wito MMOJA wa kazi hiyo (mfano
-// kitanzi cha djb2() kinachotekeleza usemi wa SU mara moja kwa kila
+// mzunguko wa djb2() unaotekeleza usemi wa SU mara moja kwa kila
 // herufi) -- usemi unaotokea MARA MOJA TU kwa kila wito (nje ya
-// kitanzi chochote, mfano nasibu_ijayo() kwenye kupanga) haupati
+// mzunguko wowote, mfano nasibu_ijayo() kwenye kupanga) haupati
 // nafasi ya kulipa gharama hiyo tena, na kipimo halisi kilionyesha
 // hilo kama upungufu wa kasi wa ~7-10% kabla ya ukaguzi huu kuongezwa.
 n32 su_kina_cha_mzunguko = 0;
@@ -6442,7 +6442,7 @@ n32 uzalishaji_hifadhi_mshale_sib(n32 nodi_ya_kielekezi, n32 umbali, n32 kulia, 
 }
 
 // x = x + namba / x = x - namba kwa kigezo cha n32 chenye ishara (kaunta
-// za vitanzi): badala ya "mov rax,x; cdqe; mov ecx,imm; add eax,ecx; cdqe;
+// za mizunguko): badala ya "mov rax,x; cdqe; mov ecx,imm; add eax,ecx; cdqe;
 // mov x,rax" (maagizo 6, kupitia rax), toa
 //   rejesta:  add r32, imm32 ; movsxd r64, r32  (r64 huhifadhi thamani
 //             iliyopanuliwa kwa ishara -- sheria ya rejesta za kudumu)
@@ -8808,7 +8808,7 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
     // inapoanza kuonekana kwenye maunganisho ya ndani ya mti).
     //
     // SASISHO LA PILI (pia kwa kipimo halisi): hata kwa haja>=2, usemi
-    // unaotokea MARA MOJA TU kwa kila wito wa kazi (nje ya kitanzi
+    // unaotokea MARA MOJA TU kwa kila wito wa kazi (nje ya mzunguko
     // chochote -- mfano nasibu_ijayo() kwenye kupanga: lcg_hali =
     // lcg_hali*1103515245+12345, haja=2, LAKINI inatokea mara moja kwa
     // kila wito) HAUFAIDIKI -- gharama ya kuhifadhi/kurudisha rejesta
@@ -8818,12 +8818,12 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
     // ilipungua kasi kwa ~7-10% na sharti la haja>=2 pekee. Rejesta
     // hufaidika TU pale usemi unaporudiwa MARA NYINGI ndani ya wito
     // MMOJA (kwa mfano djb2() kwenye heshi: usemi wa SU unatekelezwa
-    // MARA MOJA KWA KILA HERUFI ya mfuatano, ndani ya kitanzi kimoja
-    // cha wakati) -- gharama ya kuhifadhi MARA MOJA kwenye utangulizi
+    // MARA MOJA KWA KILA HERUFI ya mfuatano, ndani ya mzunguko mmoja
+    // wa wakati) -- gharama ya kuhifadhi MARA MOJA kwenye utangulizi
     // inasambazwa (amortized) juu ya matumizi mengi. Kwa hiyo:
-    // su_kina_kitanzi (chini) inahesabu KINA cha sasa cha kitanzi
+    // su_kina_mzunguko (chini) inahesabu KINA cha sasa cha mzunguko
     // (wakati/kwa) kinachozunguka nodi hii -- usemi wa SU nje ya
-    // kitanzi chochote (su_kina_kitanzi==0) HAUCHANGII su_max_haja_kazi
+    // mzunguko wowote (su_kina_mzunguko==0) HAUCHANGII su_max_haja_kazi
     // KABISA, hata kama haja yake ni kubwa.
     kama (aina == NODI_JUMLISHA || aina == NODI_TOFAUTI || aina == NODI_ZIDISHA) {
         kama (su_kina_cha_mzunguko > 0) {
@@ -8835,11 +8835,11 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
     }
 
     kama (aina == NODI_WAKATI) {  // 10 -- wakati/kwa (kianzio kiko ast_tiga)
-        // Kina cha kitanzi kinaongezwa TU kuzunguka sharti (kushoto)
+        // Kina cha mzunguko kinaongezwa TU kuzunguka sharti (kushoto)
         // na mwili (kulia) -- HIVI ndivyo vinavyorudiwa kwa kila
         // mzunguko. ast_tiga (kianzio cha kwa, kama kipo) na ast_nne
         // (taarifa inayofuata kwenye block hiyo hiyo) hazipo NDANI ya
-        // kitanzi, hivyo zinatembelewa NJE ya ongezeko -- sawa na
+        // mzunguko, hivyo zinatembelewa NJE ya ongezeko -- sawa na
         // usafiri wa asili wa jumla (angalia ruka_tiga: aina 10 iko
         // ndani ya masafa 6-25, hivyo ast_tiga TAYARI ilikuwa
         // ikirukwa na usafiri wa jumla kabla ya tawi hili -- tabia hii
@@ -9177,7 +9177,7 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
         // tayari inazuia kielekezi/desimali/muundo, hivyo paramu ya
         // rejea ya juu haiwezi kamwe kufika hapa ikiwa "ndiyo") ni
         // wagombea PIA. Hii LAZIMA ifanyike KABLA ya tambua_anwani_pass
-        // kuitwa chini (baada ya kitanzi hiki) ili &paramu itambuliwe
+        // kuitwa chini (baada ya mzunguko huu) ili &paramu itambuliwe
         // sahihi -- tambua_anwani_pass yenyewe HAIHITAJI mabadiliko
         // (inatafuta &jina kwa JINA lolote lililo kwenye
         // rega_kandida_jina, bila kujali kama jina hilo ni la paramu au
@@ -10870,7 +10870,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // inawekwa 1 na andika_baiti() kama chombo_cha_msimbo imefurika, na pia na
     // ukaguzi mwingine wa ndani unaotumia bendera ile ile kama ishara
     // ya jumla ya "uzalishaji wa msimbo umeshindwa kimya" (mfano
-    // vigezo vya ndani vimezidi 64, undani wa kitanzi umezidi 16).
+    // vigezo vya ndani vimezidi 64, undani wa mzunguko umezidi 16).
     // Zamani bendera hii iliandikwa lakini HAIJAWAHI kusomwa popote --
     // ELF iliyokatika/kuharibika ilitolewa HADI stdout na mchakato
     // ukitoka kwa msimbo 0 (mafanikio ya uwongo) -- ona uchunguzi wa

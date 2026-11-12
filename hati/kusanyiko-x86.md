@@ -54,12 +54,12 @@ Kulinganisha hakutoi thamani; huweka hali ambayo kuruka kunafuata -- kama mashin
 ```
 linganisha r0, 5          ; cmp
 pima r1, r1               ; test (biti za pamoja)
-ruka .kitanzi             ; daima
+ruka .mzunguko             ; daima
 ruka .mwisho kama ==      ; == !=
 ruka .chini kama <n       ; < <= > >=  pamoja na familia: n (ishara) au a (bila ishara)
 ruka .kosa kama hasi      ; hasi / si_hasi
 r0b = kama <n             ; weka 1/0 kulingana na hali
-zunguka .kitanzi          ; punguza r1, ruka ikiwa si sifuri
+zunguka .mzunguko          ; punguza r1, ruka ikiwa si sifuri
 ```
 
 Hali inatoka kwa agizo la mwisho lililoiweka (`linganisha`, `pima`, au hesabu kama `r1--`).

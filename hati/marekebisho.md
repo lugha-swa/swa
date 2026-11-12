@@ -126,11 +126,11 @@ Fikiria `N32 ast_aina[2048]` -- safu ya nambari kamili za baiti nne 2048 (jumla 
 
 **Faili:** `src/ir/lower.rs`
 
-**Hitilafu.** Katika `lower_block`, baada ya kutekeleza `lower_if`, kitanzi cha taarifa kiliunganisha taarifa inayofuata moja kwa moja kutoka kwa block iliyorudishwa na `lower_if`. Kabla ya marekebisho, `lower_if` ilirudisha `merge_blk` -- block ya kuunganisha baada ya sharti na mwili wa `kama`. Hii ilifanya taarifa inayofuata ianze kutoka kwenye block ya kuunganisha, ambayo ilikuwa sahihi kwa mtiririko.
+**Hitilafu.** Katika `lower_block`, baada ya kutekeleza `lower_if`, mzunguko wa taarifa uliunganisha taarifa inayofuata moja kwa moja kutoka kwa block iliyorudishwa na `lower_if`. Kabla ya marekebisho, `lower_if` ilirudisha `merge_blk` -- block ya kuunganisha baada ya sharti na mwili wa `kama`. Hii ilifanya taarifa inayofuata ianze kutoka kwenye block ya kuunganisha, ambayo ilikuwa sahihi kwa mtiririko.
 
 Lakini tatizo kubwa zaidi lilikuwa kwamba `lower_if` ilirudisha `cond_blk` baada ya kubadilisha muundo (marekebisho ya 8a), na `lower_block` haikuwa na mantiki ya kufuatilia block halisi ya mwendelezo. Baada ya sharti la `BrCond`, block inayofuata katika mfululizo inapaswa kuwa `merge_blk` (block ya kuunganisha), si `cond_blk` (block ya sharti). Bila ufuatiliaji huu, taarifa baada ya `kama` ilikuwa haiwezi kufikiwa kutoka kwenye njia za `then` na `else`, na block ya sharti ilianguka moja kwa moja kwenye taarifa inayofuata bila kupitia `merge_blk`.
 
-Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (kitanzi cha kujirudia) havikuwa na urekebishaji wa kutosha. Baada ya kazi kukamilika, block iliyokuwa na kituo cha `Br(self)` ilibaki kwenye mzunguko usio na mwisho badala ya kurejea kwa `RetVoid` au `Ret` sahihi.
+Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (mzunguko wa kujirudia) havikuwa na urekebishaji wa kutosha. Baada ya kazi kukamilika, block iliyokuwa na kituo cha `Br(self)` ilibaki kwenye mzunguko usio na mwisho badala ya kurejea kwa `RetVoid` au `Ret` sahihi.
 
 **Marekebisho.**
 
@@ -151,9 +151,9 @@ Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (kitanzi cha kujirudia) h
    Vitalu vyenye `Br(jikite)` hubadilishwa wakati wa ukamilishaji wa kazi:
    - Kwa kazi za `W0` (void): badilisha kwa `RetVoid`
    - Kwa kazi zenye thamani ya kurudi: badilisha kwa `Ret(0)` (thamani chaguo-msingi)
-   Hii inahakikisha hakuna block iliyoachwa kwenye kitanzi kisicho na mwisho.
+   Hii inahakikisha hakuna block iliyoachwa kwenye mzunguko usio na mwisho.
 
-**Athari.** Marekebisho haya yalirekebisha utiririkaji wa udhibiti baada ya taarifa za `kama`. Kabla ya marekebisho, mchanganuzi wa kujikusanya ulizalisha CFG isiyo sahihi ambapo taarifa baada ya `kama` haikuwiani vizuri, na msimbo uliokuwa nyuma ya sharti ulikuwa msimbo uliokufa kwa sehemu. Pia ulirekebisha tabia ya kazi kukwama kwenye vitanzi visivyo na mwisho badala ya kurejea ipasavyo.
+**Athari.** Marekebisho haya yalirekebisha utiririkaji wa udhibiti baada ya taarifa za `kama`. Kabla ya marekebisho, mchanganuzi wa kujikusanya ulizalisha CFG isiyo sahihi ambapo taarifa baada ya `kama` haikuwiani vizuri, na msimbo uliokuwa nyuma ya sharti ulikuwa msimbo uliokufa kwa sehemu. Pia ulirekebisha tabia ya kazi kukwama kwenye mizunguko isiyo na mwisho badala ya kurejea ipasavyo.
 
 ---
 
@@ -161,7 +161,7 @@ Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (kitanzi cha kujirudia) h
 
 **Faili:** `src/ir/lower.rs`
 
-**Hitilafu.** Mbinu ya `lower_local_decl` ilikuwa ikitoa alloca (nafasi ya rafu) kwa vigeu vya ndani kwenye block ya sasa ya kuteremsha. Kwa mpangilio wa mstari, hii inafanya kazi kwa usahihi -- kila kigezo kina alloca yake kwenye block moja. Lakini ndani ya kitanzi (`wakati`), kila mzunguko uligawa *alloca mpya* kwenye block ya kitanzi, na alloca za zamani hazikuwekwa huru. Baada ya takriban mizunguko 524,288, rafu ya MB 8 iliisha na kugonga ukurasa wa ulinzi, na kusababisha SIGSEGV.
+**Hitilafu.** Mbinu ya `lower_local_decl` ilikuwa ikitoa alloca (nafasi ya rafu) kwa vigeu vya ndani kwenye block ya sasa ya kuteremsha. Kwa mpangilio wa mstari, hii inafanya kazi kwa usahihi -- kila kigezo kina alloca yake kwenye block moja. Lakini ndani ya mzunguko (`wakati`), kila mzunguko uligawa *alloca mpya* kwenye block ya mzunguko, na alloca za zamani hazikuwekwa huru. Baada ya takriban mizunguko 524,288, rafu ya MB 8 iliisha na kugonga ukurasa wa ulinzi, na kusababisha SIGSEGV.
 
 Uchunguzi wa gdb ulionyesha kuanguka kwenye `changanua()+54`:
 ```
@@ -173,7 +173,7 @@ Rejesta zilionyesha:
 - `i` = 36794 (faharisi ya elementi -- inapaswa kuwa 0 kwa tokeni ya kitambulisho kimoja)
 - Tofauti 36794 = 36797 - 3 ilionyesha kwamba urefu wa tokeni ulikuwa umeharibika
 
-Chanzo cha msingi: Kila mzunguko wa kitanzi cha `wakati` katika `changanua()` uligawa baiti 16 za alloca kwa vigeu vya ndani kwenye block ya kitanzi, na alloca hizi hazikuwekwa huru wakati mzunguko ulipomalizika. Rafu ilikua hadi ikagonga ukurasa wa ulinzi.
+Chanzo cha msingi: Kila marudio ya mzunguko wa `wakati` katika `changanua()` uligawa baiti 16 za alloca kwa vigeu vya ndani kwenye block ya mzunguko, na alloca hizi hazikuwekwa huru wakati mzunguko ulipomalizika. Rafu ilikua hadi ikagonga ukurasa wa ulinzi.
 
 **Marekebisho.** Suluhisho linatumia mbinu ya kupitisha mara mbili katika `lower_function`:
 
@@ -191,7 +191,7 @@ Chanzo cha msingi: Kila mzunguko wa kitanzi cha `wakati` katika `changanua()` ul
    ```
    Hii inahakikisha kwamba wakati block ina kituo cha masharti, ufuatiliaji unaendelea kutoka kwenye block ya kuunganisha badala ya kukwama.
 
-**Athari.** Marekebisho haya yalirekebisha hitilafu ya SIGSEGV kwenye jaribio la K6 (kujikusanya kamili). Kabla ya marekebisho, binary ya kujikusanya ilianguka mara moja kwa SIGSEGV wakati wa kutekelezwa kwa sababu rafu iliisha ndani ya kitanzi cha `changanua()`. Baada ya marekebisho, binary ya kujikusanya iliendelea hadi kwenye hitilafu ya uchanganuzi tofauti (tokeni iliyobaki ya `}`), ambayo pia ilirekebishwa hatimaye.
+**Athari.** Marekebisho haya yalirekebisha hitilafu ya SIGSEGV kwenye jaribio la K6 (kujikusanya kamili). Kabla ya marekebisho, binary ya kujikusanya ilianguka mara moja kwa SIGSEGV wakati wa kutekelezwa kwa sababu rafu iliisha ndani ya mzunguko wa `changanua()`. Baada ya marekebisho, binary ya kujikusanya iliendelea hadi kwenye hitilafu ya uchanganuzi tofauti (tokeni iliyobaki ya `}`), ambayo pia ilirekebishwa hatimaye.
 
 ---
 
@@ -209,11 +209,11 @@ W0 ruka_nafasi_na_maelezo(Msomaji* m);
 
 ---
 
-## 11. Kitanzi cha `kwa` (For) Kinashindwa Kuchanganua Kiiniti
+## 11. Mzunguko wa `kwa` (For) Unashindwa Kuchanganua Kiiniti
 
 **Faili:** `msingi/mkusanyaji/msambazaji.swa`
 
-**Hitilafu.** Mchanganuzi wa kitanzi cha `kwa` ulijaribu kuchanganua kiiniti kama usemi kupitia `changanua_usemi`. Lakini `N32 i = 0` ni tamko la ndani, si usemi. Mchanganuzi ulichanganua `N32` kama kitambulisho na kuacha `i = 0;` bila kutumiwa.
+**Hitilafu.** Mchanganuzi wa mzunguko wa `kwa` ulijaribu kuchanganua kiiniti kama usemi kupitia `changanua_usemi`. Lakini `N32 i = 0` ni tamko la ndani, si usemi. Mchanganuzi ulichanganua `N32` kama kitambulisho na kuacha `i = 0;` bila kutumiwa.
 
 **Marekebisho.** Jaribu `changanua_taarifa_tangazo` (mchanganuzi wa matamko) kwanza kwa kiiniti cha `kwa`. Rudia kwa uchanganuzi wa usemi ikiwa mchanganuzi wa matamko unarudisha -1.
 
@@ -260,10 +260,10 @@ Safu ya AST (AST_SAFU) yenye elementi 4096 haikutosha kwa faili zote za maktaba 
 | 5 | width_bytes ya muundo inakosa padding | `src/ir/types.rs` | Allocas za sret ndogo sana | Hakuna padding ya mpangilio wa mwisho |
 | 6 | Safu za ulimwengu zimeainishwa kama [Nxi8] | `src/ir/mod.rs`, `lower.rs`, `llvm/mod.rs` | Vigezo vya karibu vya ulimwengu vimeharibika | IrGlobal ilikosa sehemu ya aina |
 | 7 | Opaque pointer inaharibu usawazishaji wa hifadhi | `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs` | Hitilafu za sehemu nasibu, ulinganifu wa tokeni unashindwa | LLVMGetElementType haiaminiki na opaque pointers |
-| 8 | Msimbo baada ya kama hauwiani kwenye CFG | `src/ir/lower.rs` | Taarifa baada ya kama ni msimbo uliokufa, vitanzi vya kujirudia | actual_prev haikufuatilia BrCond; self-loop haikurekebishwa |
-| 9 | Alloca-in-loop inamaliza rafu | `src/ir/lower.rs` | SIGSEGV kwenye kitanzi cha wakati (rafu inaisha) | Alloca za vigeu vya ndani zinatolewa kwenye block ya sasa badala ya block ya kuingia |
+| 8 | Msimbo baada ya kama hauwiani kwenye CFG | `src/ir/lower.rs` | Taarifa baada ya kama ni msimbo uliokufa, mizunguko ya kujirudia | actual_prev haikufuatilia BrCond; self-loop haikurekebishwa |
+| 9 | Alloca-in-loop inamaliza rafu | `src/ir/lower.rs` | SIGSEGV kwenye mzunguko wa wakati (rafu inaisha) | Alloca za vigeu vya ndani zinatolewa kwenye block ya sasa badala ya block ya kuingia |
 | 10 | Tamko la mbele halitumii `;` | `msingi/mkusanyaji/msambazaji.swa` | Hitilafu ya "unexpected element" | Nukta mkato inavuja hadi kiwango cha juu |
-| 11 | Kitanzi cha `kwa` kinashindwa | `msingi/mkusanyaji/msambazaji.swa` | `N32 i = 0` haichanganuliwi | Mchanganuzi unatumia usemi badala ya tamko |
+| 11 | Mzunguko wa `kwa` unashindwa | `msingi/mkusanyaji/msambazaji.swa` | `N32 i = 0` haichanganuliwi | Mchanganuzi unatumia usemi badala ya tamko |
 | 12a | `sogeza()` inakosa sehemu za tokeni | `msingi/mkusanyaji/msambazaji.swa`, `msingi/mkusanyaji/msomaji.swa` | Nambari za mistari ni 1 kila wakati | Kunakili sehemu 3 kati ya 5 tu |
 | 12b | Matumizi maradufu ya `{` | `msingi/mkusanyaji/msambazaji.swa` | Mwili wa kazi hauchanganuliwi | `{` inatumiwa katika vigezo |
 | 12c | Hakuna unary minus | `msingi/mkusanyaji/msambazaji.swa` | `rudisha -1` haichanganuliwi | Alama ya `-` inaachwa |

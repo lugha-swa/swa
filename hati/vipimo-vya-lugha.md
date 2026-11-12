@@ -74,8 +74,8 @@ Kilichopimwa (2026-09-04): madai ya zamani kwamba dereva wa Rust
 leksia na sarufi -- dereva wa Rust huchambua maneno ya taarifa
 yale yale kama mkusanyaji wa uzalishaji. Kila neno la orodha hiyo
 ya zamani ni jambo jingine:
-- `fanya` ni neno muhimu kamili -- kitanzi cha mwili-kwanza
-  (sehemu 6.8). Kitanzi chenyewe bado hakijatekelezwa na sarufi
+- `fanya` ni neno muhimu kamili -- mzunguko wa mwili-kwanza
+  (sehemu 6.8). Mzunguko wenyewe bado haujatekelezwa na sarufi
   ya mwisho wa Rust (kilichopimwa 2026-09-04) -- leksia pekee
   haitengenezi neno muhimu.
 - `kutoka` si neno la taarifa -- kwenye mchanganuzi wa Rust wa
@@ -470,8 +470,8 @@ kwa (kianzilishi; sharti; hatua) { ... }
 ```
 
 Sehemu zote tatu ni za hiari; hali iliyoachwa wazi ina maana KWELI
-DAIMA -- `kwa (i = 0; ; i = i + 1)` na `kwa (;;)` ni vitanzi
-visivyoisha hadi `acha` au `rudisha` (semantiki ya C).
+DAIMA -- `kwa (i = 0; ; i = i + 1)` na `kwa (;;)` ni mizunguko
+isiyoisha hadi `acha` au `rudisha` (semantiki ya C).
 **Semantiki ya `endelea`:** inaruka kwenye HATUA (ya tatu), si
 kwenye sharti -- semantiki ya C, katika mbegu NA mfululizo wa .swa
 (uliowiana 2026-08; angalia mipaka.md 4b).
@@ -479,7 +479,7 @@ kwenye sharti -- semantiki ya C, katika mbegu NA mfululizo wa .swa
 Kilichopimwa (2026-08-31): `endelea` kama taarifa ya MOJA KWA MOJA
 ndani ya mwili wa `kwa` (pamoja na taarifa ya mwisho) imefungwa
 kwenye mfululizo wa uzalishaji. Zamani mfululizo ulikwama kwenye
-`endelea` wa mwisho (kitanzi kisichoisha, msimbo wa kutoka 124 --
+`endelea` wa mwisho (mzunguko usioisha, msimbo wa kutoka 124 --
 kosa lililoelezwa kwenye hati/uthibitisho-wa-lugha.md 4.2 namba
 16), na hali iliyoachwa ilichukuliwa kama uongo (mwili haukutekelezwa
 kamwe). Majaribio: jaribio_hitilafu_endelea_moja_kwa_moja,
@@ -517,12 +517,12 @@ wa mkono hadi mkono (fall-through) kwenye `chagua`. Kila mkono wa
 (sawa na `acha` ya kimya ya C); mkono usio na taarifa yoyote
 haufanyi chochote; mkono wa `sivyo` (chaguo-msingi) unatekelezwa
 ikiwa hali ZOTE hazikulingana. `acha` ndani ya mkono wa `chagua`
-inamaliza KITANZI cha ndani kabisa (wakati au kwa -- semantiki ya
+inamaliza MZUNGUKO wa ndani kabisa (wakati au kwa -- semantiki ya
 6.7), si `chagua` chenyewe; `acha` ndani ya `chagua` isiyo ndani
-ya kitanzi inakataliwa na mkaguzi kwa sauti. Sababu: vipimo vya
+ya mzunguko unakataliwa na mkaguzi kwa sauti. Sababu: vipimo vya
 awali havikutaja mwanguko wowote; mwanguko wa C ni chanzo cha
 makosa ya kawaida; na lugha hii haina njia ya kusimamisha mkono
-moja kwa moja (`acha` ni ya vitanzi pekee) -- kukubali mwanguko
+moja kwa moja (`acha` ni ya mizunguko pekee) -- kukubali mwanguko
 bila njia ya kuusimamisha kungeacha tabia isiyo na udhibiti.
 Majaribio: jaribio_hitilafu_chagua_bila_mwanguko,
 jaribio_hitilafu_chagua_acha_ndani_ya_mzunguko,
@@ -541,7 +541,7 @@ jaribio_hitilafu_kata_acha_ndani_ya_chagua_nje.
 fanya { mwili } wakati (sharti);
 ```
 
-Kitanzi cha fanya hutekeleza mwili MARA MOJA kabla ya sharti
+Mzunguko wa fanya hutekeleza mwili MARA MOJA kabla ya sharti
 kujaribiwa, kisha kurudia mwili mradi sharti ni kweli (semantiki
 ya C ya do-while). Mwili hukimbia angalau mara moja -- hata sharti
 la uwongo tangu mwanzo haliuzuii mwendo wa kwanza. Muundo ni
@@ -551,17 +551,17 @@ wa mwisho ni ya lazima (sawa na mbegu).
 `endelea` ndani ya fanya inaruka hadi SHARTI: taarifa zilizobaki
 za mwili zinarukwa kwenye mwendo huo, na sharti linajaribiwa upya
 (semantiki ya C ya do-while -- tofauti na `kwa`, ambapo endelea
-inaruka hadi HATUA, 6.5). `acha` inaondoka kwenye kitanzi mara
+inaruka hadi HATUA, 6.5). `acha` inaondoka kwenye mzunguko mara
 moja bila kujaribu sharti tena. acha na endelea ndani ya fanya
 zinahesabiwa kama zilivyo ndani ya wakati kwa ukaguzi wa
-"acha/endelea nje ya kitanzi" (6.7).
+"acha/endelea nje ya mzunguko" (6.7).
 
 Majaribio: jaribio_fanya_hukimbia_mara_moja,
 jaribio_fanya_hali_ya_uwongo, jaribio_fanya_endelea,
 jaribio_fanya_acha, na jaribio_fanya_kama_jina_la_kigezo (KATA --
 neno muhimu kama jina linakataliwa, 2.2). Kilichopimwa
 (2026-09-04): fanya inafanya kazi kwenye mifululizo YOTE MIWILI --
-mbegu iliyogandishwa 2026-09-04 ina kitanzi cha fanya (mwili
+mbegu iliyogandishwa 2026-09-04 ina mzunguko wa fanya (mwili
 hukimbia mara moja, `endelea` inaruka hadi sharti, `acha` inaondoka
 mara moja, viota ndani ya `kwa` -- vyote sawa na mfululizo wa
 uzalishaji). Kumbuka la zamani la "majaribio ni ya kamili pekee

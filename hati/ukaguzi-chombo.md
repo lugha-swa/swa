@@ -23,7 +23,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 | Mgawanyo | Ukubwa | Ulinzi | Uamuzi |
 |---|---|---|---|
 | chombo_cha_faili_la_sasa | 4 MB | sys_read(mpaka) + kosa la sauti | SALAMA KWA SAUTI |
-| token_* | 262,144 | kikomo cha kitanzi + kosa la sauti (`Hitilafu: chanzo kina tokeni nyingi mno`) | SALAMA KWA SAUTI (ilirekebishwa -- ukataji wa kimya umefungwa; hati/mipaka.md #3) |
+| token_* | 262,144 | kikomo cha mzunguko + kosa la sauti (`Hitilafu: chanzo kina tokeni nyingi mno`) | SALAMA KWA SAUTI (ilirekebishwa -- ukataji wa kimya umefungwa; hati/mipaka.md #3) |
 | ast_* | 262,144 | node_mpya -> kosa la sauti | SALAMA KWA SAUTI |
 | dimbwi_mfuatano | 1 MB | .furika_mfuatano -> kosa la sauti (ilikuwa kimya) | SALAMA KWA SAUTI (ilirekebishwa) |
 | chombo_cha_msimbo | 1 MB | .furika za waandishi -> kosa la sauti (zilikuwa kimya) | SALAMA KWA SAUTI (ilirekebishwa) |
