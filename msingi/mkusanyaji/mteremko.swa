@@ -769,8 +769,12 @@ n32 tm_wito(n32 nodi_hii) {
     n32 h = nodi_ya_kulia[nodi_hii];
     wakati (h != -1) {
         kama (idadi >= 64) { tm_haijaungwa("hoja zaidi ya 64", nodi_hii); rudisha tm_namba(0); }
-        n32 usimbaji_h = aina_ya_usemi(h);
-        kama (tm_inaungwa(usimbaji_h, h) == 0) { rudisha tm_namba(0); }
+        // Mfuatano halisi ni nodi ya kitambulisho inayoanza na '"'; aina_ya_usemi
+        // haina aina yake, kwa hiyo usiipime kama muundo -- tm_usemi huishughulikia.
+        n32 ni_mfuatano_halisi = aina_ya_nodi[h] == NODI_KITAMBULISHO && tm_jina(h)[0] == 34;
+        kama (ni_mfuatano_halisi == 0) {
+            kama (tm_inaungwa(aina_ya_usemi(h), h) == 0) { rudisha tm_namba(0); }
+        }
         vhoja[idadi] = tm_usemi(h);
         idadi = idadi + 1;
         h = tatu_ya_nodi[h];

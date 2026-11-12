@@ -10,3 +10,12 @@ endesha jengo/jaribu_ir bin/swa majaribio/ir/WIGO.txt riscv64
 ; kisichoungwa mkono na IR hukataliwa kwa sauti, kutoka 2
 endesha_kosa 2 bin/swa --riscv64 majaribio/ir/nje_ya_wigo_muundo.swa > jengo/rv-nje 2> jengo/rv-nje.kosa
 ina jengo/rv-nje.kosa "IR: haijaungwa mkono: muundo"
+; hoja za mstari na wito wa mfumo uliogeuzwa (open/mkdir/unlink/access/
+; readlink/dup2/pipe/fork) -- WIGO.txt haizigusi; x86-64 na RV64 lazima
+; vitoe matokeo sawa kwa hoja zile zile
+endesha bin/swa --programu majaribio/riscv64/hoja_na_mfumo.swa > jengo/rv-x86
+endesha bin/swa --riscv64 majaribio/riscv64/hoja_na_mfumo.swa > jengo/rv-rv
+endesha_kosa 3 jengo/rv-x86 moja "mbili tatu" > jengo/rv-x86.towe
+endesha_kosa 3 qemu-riscv64 jengo/rv-rv moja "mbili tatu" > jengo/rv-rv.towe
+sawa jengo/rv-x86.towe jengo/rv-rv.towe
+ina jengo/rv-rv.towe "fork+wait4: 7"
