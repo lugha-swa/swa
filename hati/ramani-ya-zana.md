@@ -34,7 +34,7 @@ kilichopo mbali.
    majina, ufafanuzi, rejeleo. Inahitaji: mchanganuzi wa kuvumilia
    makosa (error-tolerant) -- mchanganuzi wa sasa unakataa ingizo
    lisilokamilika. Kazi kubwa ya kujitegemea.
-2. **Debugger** -- msaada wa DWARF (mstari, vigezo, rafu) kwenye
+2. **Debugger** -- msaada wa DWARF (mstari, vigezo, mrundikano) kwenye
    uzalishaji.swa na mbegu. Inahitaji ujumuishaji na gdb/lldb.
 3. **Majukwaa zaidi ya x86-64 Linux** -- ARM64 (aarch64) na riscv64.
    Hii inamaanisha: baiti mpya za mkono za kwanza kwa kila usanifu,

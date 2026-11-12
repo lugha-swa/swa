@@ -404,7 +404,7 @@ n64 ukubwa_wa_tupu   ; ukubwa wa jumla wa .bss
 
 ; ---------- Vigezo vya ndani (kwa kazi ya sasa) ----------
 n64 jina_ndani[UPEO_NDANI]   ; anwani ya jina
-n32 umbali_ndani[UPEO_NDANI]   ; umbali wa rafu (kutoka rbp, hasi)
+n32 umbali_ndani[UPEO_NDANI]   ; umbali wa mrundikano (kutoka rbp, hasi)
 n32 ukubwa_ndani[UPEO_NDANI]   ; ukubwa kwa baiti
 n32 aina_msingi_ndani[UPEO_NDANI]   ; aina msingi: N8=1, N16=2, N32=3, N64=4, W0=5, muundo=6+
 n32 ndani_nyota_idadi[UPEO_NDANI]   ; idadi ya nyota: 0=kawaida, 1=nyota moja, 2=nyota mbili, n.k.
@@ -412,7 +412,7 @@ n64 ndani_idadi
 
 ; ---------- Kina cha mzunguko ----------
 n64 kina_mzunguko
-n64 mahali_acha_mzunguko[16]   ; mahali pa vunja (ufungwaji wa mipaka ya rafu)
+n64 mahali_acha_mzunguko[16]   ; mahali pa vunja (ufungwaji wa mipaka ya mrundikano)
 n32 urekebishaji_wa_acha_wapi[65536]   ; nafasi za marekebisho ya vunja
 n64 cl_hatua   ; nafasi ya hatua ya kwa (semantiki ya C ya endelea)
 n64 cl_lengo   ; lengo la sasa la endelea
@@ -449,7 +449,7 @@ n32 ndani_muundo_namba[UPEO_NDANI]   ; faharisi ya muundo wa kigezo au -1
 n32 ndani_muundo_ukubwa[UPEO_NDANI]   ; ukubwa wa muundo wa paramu (kwa hifadhi)
 n32 ndani_kwa_rejea[UPEO_NDANI]   ; 1 = paramu ya muundo mkubwa (>8B) kwa rejea
 n32 ukubwa_safu_ndani[UPEO_NDANI]   ; idadi ya elementi za safu ya ndani au 0
-n64 kiunzi_wapi   ; umbali unaofuata wa fremu ya rafu
+n64 kiunzi_wapi   ; umbali unaofuata wa fremu ya mrundikano
 n32 ak_kipengele_ni_muundo   ; alama: kipengele cha safu ni muundo (assign_kielelezo)
 n32 ak_kipengele_ni_d64   ; alama: kipengele cha safu ni D64 (hifadhi xmm0)
 
@@ -3514,7 +3514,7 @@ changanua_taarifa:
         linganisha n32[aina_tokeni + r7*4], TOKENI_NUKTA_MKATO
         ruka .kosa_taarifa_aina_pekee kama ==
 
-        ; Hifadhi jina la muundo ndani kwenye rafu (ikiwa aina ni muundo)
+        ; Hifadhi jina la muundo ndani kwenye mrundikano (ikiwa aina ni muundo)
         r4 -= 8
         n64[r4] = -1
         linganisha r12d, 6
@@ -3569,7 +3569,7 @@ changanua_taarifa:
         ; Unda nodi ya MTI_TANGAZO
         ; kushoto = kianzilishi, kulia = nyota, thamani = aina, jina_off = jina
         ; tiga = umbali wa jina la muundo (au -1)
-        vuta r11   ; umbali wa muundo kutoka rafu
+        vuta r11   ; umbali wa muundo kutoka mrundikano
         r8d = NODI_TANGAZO
         r9d = r15d   ; kushoto = kianzilishi
         r10d = r13d   ; kulia = nyota
@@ -3800,7 +3800,7 @@ changanua_vigezo:
         r15d = r0d
         r14d = r3d   ; hifadhi nyota
 
-        ; Hifadhi jina la muundo ndani kwenye rafu (ikiwa aina ni muundo)
+        ; Hifadhi jina la muundo ndani kwenye mrundikano (ikiwa aina ni muundo)
         r4 -= 8
         n64[r4] = -1
         linganisha r15d, 6
@@ -4242,7 +4242,7 @@ changanua_muundo:
         r12d = r0d   ; aina msingi (1-6)
         r14d = r3d   ; nyota
 
-        ; Hifadhi jina la muundo ndani kwenye rafu (ikiwa aina ni muundo)
+        ; Hifadhi jina la muundo ndani kwenye mrundikano (ikiwa aina ni muundo)
         r4 -= 8
         n64[r4] = -1
         linganisha r12d, 6
@@ -4380,7 +4380,7 @@ changanua_muundo:
 .pangilio_sawa:
 
         ; Ukubwa wa mwisho: hakuna kuzungusha (mpangilio umejaa --
-        ; 8.23); sloti za rafu huzungushwa hadi 8 katika uzalishaji.
+        ; 8.23); sloti za mrundikano huzungushwa hadi 8 katika uzalishaji.
 
         ; Rekodi ukubwa, pangilio, na mwisho wa nyuga
         r0 = n64[muundo_idadi]
@@ -5070,7 +5070,7 @@ uzalishaji_tangazo:
         ; Hifadhi jina
         r7 = &[ghala_la_mifuatano + r14]
         n64[jina_ndani + r1*8] = r7
-        ; Umbali wa rafu kutoka kiunzi_wapi (baada ya vigezo vyote)
+        ; Umbali wa mrundikano kutoka kiunzi_wapi (baada ya vigezo vyote)
         r8d = n32[kiunzi_wapi]
         n32[umbali_ndani + r1*4] = r8d
         ; Hifadhi aina msingi na idadi ya nyota
@@ -5117,7 +5117,7 @@ uzalishaji_tangazo:
         ita mfumo_toka
 .ndani_sajiliwa:
 
-        ; Safu ya ndani: sehemu ya rafu = N x ukubwa wa elementi,
+        ; Safu ya ndani: sehemu ya mrundikano = N x ukubwa wa elementi,
         ; imepangiliwa kwa 8; umbali ni msingi wa eneo (kama muundo)
         r10d = n32[ukubwa_safu_ndani + r1*4]
         pima r10d, r10d
@@ -5158,7 +5158,7 @@ uzalishaji_tangazo:
         ruka .tundu_kwisha
 .sio_safu_tundu:
 
-        ; Amua ukubwa wa sehemu ya rafu
+        ; Amua ukubwa wa sehemu ya mrundikano
         ; Muundo bila nyota: ukubwa wa muundo uliopangiliwa kwa 8
         r10d = n32[aina_msingi_ndani + r1*4]
         linganisha r10d, 6
@@ -5213,7 +5213,7 @@ uzalishaji_tangazo:
         r7d = r8d
         r7d = -r7d
         ita zalisha_neno4
-        ; Hifadhi anwani ya lengo kwenye rafu (push rax)
+        ; Hifadhi anwani ya lengo kwenye mrundikano (push rax)
         r0b = 0x50
         ita zalisha_baiti
         ; Tathmini kianzilishi -- anwani ya chanzo inabaki kwenye rax
@@ -5532,7 +5532,7 @@ uzalishaji_jina:
         ruka .tafuta_mzunguko
 
 .imepatikana:
-        ; Kigezo kiko kwenye rafu
+        ; Kigezo kiko kwenye mrundikano
         r7d = n32[umbali_ndani + r13*4]
         r7d = -r7d   ; edi = hasi (kwa [rbp + disp32])
 
@@ -6288,7 +6288,7 @@ zalisha_kielelezo:
         ita zalisha_baiti
         r0b = 0x98
         ita zalisha_baiti
-        ; push rax -- hifadhi faharisi kwenye rafu ya utekelezaji
+        ; push rax -- hifadhi faharisi kwenye mrundikano wa utekelezaji
         r0b = 0x50
         ita zalisha_baiti
         ; Tathmini usemi wa msingi
@@ -7733,7 +7733,7 @@ uzalishaji_kauli_ya_mbili:
 
         ; Hesabu za kuelea (D64): kama operanda yoyote (kushoto AU
         ; kulia) ni ya kuelea, chukua njia ya SSE -- thamani husafiri
-        ; kupitia rafu kama baiti 8 (movq) na oparesheni hutumia
+        ; kupitia mrundikano kama baiti 8 (movq) na oparesheni hutumia
         ; xmm0/xmm1 (8.6: 2.5 < 3 na 3 == 3.0 ni za kuelea).
         ; Upana: operesheni ni ya baiti 8 (N64 au kielekezi) kwenye
         ; PANDE ZOTE MBILI -- ili ugawanyo utumie cqo/idiv rcx badala
@@ -7827,7 +7827,7 @@ uzalishaji_kauli_ya_mbili:
         ita mfumo_toka
 .sio_kuelea:
 
-        ; Hifadhi upana wa operesheni (baiti 4 au 8) kwenye rafu kabla ya
+        ; Hifadhi upana wa operesheni (baiti 4 au 8) kwenye mrundikano kabla ya
         ; kutathmini operanda. Kutathmini kunaweza kurudia kwa ndani
         ; uzalishaji_kauli_ya_mbili na kuharibu zalisha_tendo_biti64; hivyo
         ; lazima tuuhifadhi kwa ajili ya operesheni hii tu.
@@ -7929,7 +7929,7 @@ uzalishaji_kauli_ya_mbili:
         ita zalisha_baiti
         vuta r0
 
-        ; Rejesha upana wa operesheni hii kutoka rafu, ili .do_* watumie
+        ; Rejesha upana wa operesheni hii kutoka mrundikano, ili .do_* watumie
         ; upana sahihi badala ya ule wa operesheni iliyopandwa ndani.
         vuta r2
         n32[zalisha_tendo_biti64] = r2d
@@ -8095,7 +8095,7 @@ uzalishaji_kauli_ya_mbili:
         r3d--   ; kipengele = nyota - 1
 .hesa_np_anwani:
         ; Kushoto (n) lazima kiwe kamili rahisi 1..4 -- aina yake
-        ; iko chini ya r14/r9/r8 kwenye rafu (r8d = aina ya kushoto)
+        ; iko chini ya r14/r9/r8 kwenye mrundikano (r8d = aina ya kushoto)
         r10d = n32[r4 + 16]
         linganisha r10d, 1
         ruka .hesa_np_sio kama <a
@@ -8188,10 +8188,10 @@ uzalishaji_kauli_ya_mbili:
         vuta r8
 .hesa_pn_sio_rahisi:
         ; Hakuna kizidisho (kushoto kamili na TENDO_TOA, au kulia si
-        ; anwani) -- sawazisha rafu na urudi kwenye jumlisho la zamani
+        ; anwani) -- sawazisha mrundikano na urudi kwenye jumlisho la zamani
         ruka .hesa_rejesha
 .hesa_pn_sio:
-        ; Kulia si kamili rahisi -- hakuna kizidisho; sawazisha rafu
+        ; Kulia si kamili rahisi -- hakuna kizidisho; sawazisha mrundikano
         vuta r14
         vuta r9
         vuta r8
@@ -8831,7 +8831,7 @@ uzalishaji_kauli_ya_mbili:
 .fanya_huu:
         ; Uchaguzi ?: -- r13d = sharti, r14d = mfuatano (kweli, uwongo)
         ; Aina ya matokeo (8.6): D64 ikiwa tawi lolote ni D64 --
-        ; hifadhi alama kwenye rafu kwa matawi yote mawili.
+        ; hifadhi alama kwenye mrundikano kwa matawi yote mawili.
         sukuma r12
         r12d = n32[nodi_ya_kushoto + r14*4]
         ita fumbua_aina
@@ -9070,7 +9070,7 @@ uzalishaji_kauli_ya_mbili:
         ; kielekezi (nyota > 0) na jina la safu (lea) si thamani ya
         ; hesabu; ?: (TENDO_HUU) pia haijumuishwi kwa sababu fumbua_aina
         ; huukadiria kwa aina ya sharti, si ya matokeo.
-        sukuma r8   ; hifadhi CT ya RHS kwenye rafu
+        sukuma r8   ; hifadhi CT ya RHS kwenye mrundikano
         r7d = r14d
         ita panua_ishara_ya_kauli
         vuta r8
@@ -9597,7 +9597,7 @@ uzalishaji_kauli_ya_mbili:
         r0b = 0x98
         ita zalisha_baiti
 
-        ; push rax -- hifadhi faharisi kwenye rafu ya utekelezaji
+        ; push rax -- hifadhi faharisi kwenye mrundikano wa utekelezaji
         r0b = 0x50
         ita zalisha_baiti
 
@@ -10041,7 +10041,7 @@ uzalishaji_kauli_ya_mbili:
         vuta r9
         vuta r8
 
-        ; pop rcx -- rudisha thamani kutoka kwenye rafu
+        ; pop rcx -- rudisha thamani kutoka kwenye mrundikano
         r0b = 0x59
         ita zalisha_baiti
 
@@ -10111,7 +10111,7 @@ uzalishaji_kauli_ya_mbili:
         ruka .kwisha
 
 .am_nakala:
-        ; Nakala ya muundo mzima: chanzo (anwani) iko kwenye rafu,
+        ; Nakala ya muundo mzima: chanzo (anwani) iko kwenye mrundikano,
         ; lengo ni anwani ya mwanachama
         sukuma r8
         sukuma r11
@@ -10451,7 +10451,7 @@ uzalishaji_kauli_ya_mbili:
 ; Njia za hesabu za kuelea (D64) -- xmm0/xmm1
 ; -----------------------------------------------------------
 .fl_kulia:
-        ; Tathmini kulia -> xmm0; hifadhi kwenye rafu kama baiti 8.
+        ; Tathmini kulia -> xmm0; hifadhi kwenye mrundikano kama baiti 8.
         sukuma r12
         sukuma r15
         r12d = r14d
@@ -10927,7 +10927,7 @@ uzalishaji_wambile:
 .idadi_iko:
         ; --- Ukaguzi wa idadi ya hoja (8.16) ---
         ; Tafuta kazi kwenye jedwali la func_ret_* (r13 = jina).
-        ; Faharisi inahifadhiwa kwenye rafu kwa ukaguzi wa vigezo
+        ; Faharisi inahifadhiwa kwenye mrundikano kwa ukaguzi wa vigezo
         ; (8.15) na mpaka wa D64 kwenye hoja (8.6); -1 ikiwa kazi
         ; haijulikani (nje au builtin).
         ; Wito wa KIELEKEZI hauna saini (4.3): ruka utafutaji huu --
@@ -10984,7 +10984,7 @@ uzalishaji_wambile:
         ruka .hoja_idadi_sawa kama ==
         ; Kosa: idadi si sahihi -- "Hitilafu: idadi ya hoja kwa 'f' si
         ; sahihi (N badala ya M)". edx (idadi inayotarajiwa) huhifadhiwa
-        ; kwenye rafu -- andika_mfuatano inaharibu rdx (zamani ujumbe
+        ; kwenye mrundikano -- andika_mfuatano inaharibu rdx (zamani ujumbe
         ; ulichapisha nambari ya takataka).
         sukuma r9
         sukuma r2
@@ -11022,7 +11022,7 @@ uzalishaji_wambile:
         ; 8.16). Zaidi ya hapo ni kosa la sauti, si kuacha kimya.
         linganisha r15d, 16
         ruka .hoja16_kosa kama >a
-        ; Tathmini kila hoja na kusukuma matokeo kwenye rafu
+        ; Tathmini kila hoja na kusukuma matokeo kwenye mrundikano
         r8d = r14d
         r9d ^= r9d
         n64[hoja_jumla] = 0
@@ -11030,7 +11030,7 @@ uzalishaji_wambile:
 .tathmini_mzunguko:
         linganisha r8d, -1
         ruka .vuta_hoja kama ==
-        ; Hoja zote zinatathminiwa na kusukumwa -- hoja 7+ zitabaki rafu
+        ; Hoja zote zinatathminiwa na kusukumwa -- hoja 7+ zitabaki mrundikano
 
         sukuma r12
         sukuma r13
@@ -11078,7 +11078,7 @@ uzalishaji_wambile:
         vuta r0
 .hoja_panua_n32_isha:
         ; --- Ukaguzi wa aina ya hoja (8.15) na mpaka wa D64 (8.6) ---
-        ; Rafu: [rsp]=aina hoja, [rsp+8]=nyota hoja, [rsp+16]=r9,
+        ; Mrundikano: [rsp]=aina hoja, [rsp+8]=nyota hoja, [rsp+16]=r9,
         ; [rsp+24]=r8 (nodi), ... [rsp+64]=faharisi ya kazi (au -1)
         sukuma r3   ; nyota ya hoja
         sukuma r0   ; aina ya hoja
@@ -11266,7 +11266,7 @@ uzalishaji_wambile:
         r4 += 16   ; toa param_aina na param_nyota
 .hoja_kigezo_acha:
         ; Hakuna ukaguzi (kazi isiyojulikana, mkia wa kutofautiana)
-        ; -- rejesha aina na nyota za hoja (rafu: [rsp]=aina, [rsp+8]=nyota)
+        ; -- rejesha aina na nyota za hoja (mrundikano: [rsp]=aina, [rsp+8]=nyota)
         vuta r0   ; aina ya hoja (inayofaa)
         vuta r3   ; nyota ya hoja
         n8[hoja_d64 + r10] = 0
@@ -11469,7 +11469,7 @@ uzalishaji_wambile:
         r11 = n64[hoja_jumla]
         n8[hoja_rejista + r10] = r11b
         n64[hoja_jumla]++
-        ; Sukuma matokeo kwenye rafu ya utekelezaji (push rax = 0x50)
+        ; Sukuma matokeo kwenye mrundikano wa utekelezaji (push rax = 0x50)
         r0b = 0x50
         ita zalisha_baiti
 .hoja_sukumwa:
@@ -11486,38 +11486,38 @@ uzalishaji_wambile:
         ruka .tathmini_mzunguko
 
 .vuta_hoja:
-        ; Toa hoja kutoka rafu na kuziweka kwenye rejista
+        ; Toa hoja kutoka mrundikano na kuziweka kwenye rejista
         ; Hoja zilisukumwa kwa mpangilio: arg1, arg2, ..., argN
-        ; Rafu sasa: [argN, ..., arg2, arg1] (juu kwenda chini)
+        ; Mrundikano sasa: [argN, ..., arg2, arg1] (juu kwenda chini)
         ;
         ; Makubaliano ya mpokeaji (na ya ABI): rejista = hoja 1..6
-        ; (rdi, rsi, rdx, rcx, r8, r9); hoja 7..N kwenye rafu kwa
+        ; (rdi, rsi, rdx, rcx, r8, r9); hoja 7..N kwenye mrundikano kwa
         ; mpangilio wa kinyume, arg7 juu kabisa wakati wa wito.
         ;
         ; Kwa N > 6: toa hoja za ziada (argN..arg7) kwenye rejista za
         ; muda (rax, r10, r11), kisha toa sita kwenye r9..rdi, kisha
         ; rudisha za ziada kwa mpangilio wa kutoa ili arg7 ibaki juu.
         ; Rejista za muda hazina thamani hai hapa: matokeo ya hoja
-        ; yako rafu, na lea ya sret hutolewa baadaye kwenye .fanya_wito.
+        ; yako mrundikano, na lea ya sret hutolewa baadaye kwenye .fanya_wito.
 
         linganisha r15d, 6
         ruka .vuta_rejista kama <=a
-        ; Hoja 7+: ABI ya rafu. D64 iliyochanganywa na hoja 7+
+        ; Hoja 7+: ABI ya mrundikano. D64 iliyochanganywa na hoja 7+
         ; haisaidiwi (mfululizo wa .swa hauhitaji).
         linganisha n64[hoja_kuelea], 0
         ruka .d64_hoja8_kosa kama !=
         ; Hoja 7-9: rejista tatu za muda (rax, r10, r11) -- njia ya
-        ; zamani. Hoja 10-16: zile za ziada huhamishwa chini ya rafu.
+        ; zamani. Hoja 10-16: zile za ziada huhamishwa chini ya mrundikano.
         linganisha r15d, 9
         ruka .muda_vuta kama <=a
 .ziada16:
-        ; Hoja za ziada (E = r15d - 6) ziko juu ya rafu kwa mpangilio
+        ; Hoja za ziada (E = r15d - 6) ziko juu ya mrundikano kwa mpangilio
         ; wa kinyume (argN juu). Zinatolewa moja-moja na kuwekwa
-        ; CHINI ya rafu kwa mpangilio sahihi (arg7 chini kabisa):
+        ; CHINI ya mrundikano kwa mpangilio sahihi (arg7 chini kabisa):
         ; pop rax kisha mov [rsp + hasi], rax -- jozi inayotumia
         ; umbali -16j (j = nambari ya jozi). Rejesta tatu za muda
-        ; hazitoshi kwa hoja 10-16, kwa hiyo rafu yenyewe ni eneo la
-        ; kuhifadhia (nafuu: rafu inakua chini kama kawaida).
+        ; hazitoshi kwa hoja 10-16, kwa hiyo mrundikano wenyewe ni eneo la
+        ; kuhifadhia (nafuu: mrundikano unakua chini kama kawaida).
         ; Jozi 1 (argN) -- umbali -16
         r0b = 0x58
         ita zalisha_baiti
@@ -11679,7 +11679,7 @@ uzalishaji_wambile:
         ita mfumo_toka
 .h9_ya_asili:
         ; Builtin (ukubwa/wito_wa_mfumo/tekeleza) yenye hoja 10+ --
-        ; ABI yao maalum haipangiki na rafu ya .extras16
+        ; ABI yao maalum haipangiki na mrundikano wa .extras16
         r7 = &[ujumbe_hoja9]
         ita andika_mfuatano
         r7d = 1
@@ -11781,7 +11781,7 @@ uzalishaji_wambile:
 
 .fanya_wito:
         ; Hoja 10-16 (njia ya .extras16): hoja za ziada zimekwisha
-        ; kuhamishwa chini -- sawazisha rafu hadi arg7: sub rsp,
+        ; kuhamishwa chini -- sawazisha mrundikano hadi arg7: sub rsp,
         ; (16E + 48) ambapo E = r15d - 6 (48 81 EC + d32).
         linganisha r15d, 10
         ruka .fanya_wito_zamani kama <a
@@ -11798,8 +11798,8 @@ uzalishaji_wambile:
         ita zalisha_neno4
         ruka .sio_rudisha
 .fanya_wito_zamani:
-        ; Rudisha hoja za ziada kwenye rafu kwa mpangilio uleule wa kutoa:
-        ; kusukuma argN kwanza, arg7 mwisho, ili arg7 ibaki juu ya rafu.
+        ; Rudisha hoja za ziada kwenye mrundikano kwa mpangilio uleule wa kutoa:
+        ; kusukuma argN kwanza, arg7 mwisho, ili arg7 ibaki juu ya mrundikano.
         linganisha r15d, 6
         ruka .sio_rudisha kama <=a
         ; push rax = 50
@@ -11835,7 +11835,7 @@ uzalishaji_wambile:
         r8d = n32[aina_ya_nodi + r14*4]
         linganisha r8d, NODI_JINA
         ruka .sio_asili_ukubwa kama !=
-        ; Ukubwa unachukua hoja moja pekee -- hoja 10+ (rafu ya
+        ; Ukubwa unachukua hoja moja pekee -- hoja 10+ (mrundikano wa
         ; .extras16) hazipangiki na njia hii ya haraka
         linganisha r15d, 10
         ruka .h9_ya_asili kama >=a
@@ -11903,7 +11903,7 @@ uzalishaji_wambile:
 .ukubwa_toa_sio_muundo:
         r15d = 4
 .ukubwa_toa:
-        ; Hoja tayari imetolewa na .vuta_hoja (pop rdi) -- rafu iko sawia.
+        ; Hoja tayari imetolewa na .vuta_hoja (pop rdi) -- mrundikano uko sawia.
         ; mov eax, imm32 -- B8 + d32
         r0b = 0xB8
         ita zalisha_baiti
@@ -11921,7 +11921,7 @@ uzalishaji_wambile:
         linganisha r0d, 0
         ruka .sio_asili_wito_mfumo kama !=
         ; ABI ya syscall inachukua hoja 7 pekee (saini ya maktaba) --
-        ; hoja 10+ (rafu ya .extras16) hazipangiki hapa
+        ; hoja 10+ (mrundikano wa .extras16) hazipangiki hapa
         linganisha r15d, 10
         ruka .h9_ya_asili kama >=a
         ; mov r10, r8 -- 4D 89 C2 (a4: hoja ya 5)
@@ -11970,9 +11970,9 @@ uzalishaji_wambile:
         ita zalisha_baiti
         ; pop r9 -- 41 59 (hoja ya 7: umbali, daima 0 kwenye maktaba).
         ; KWA MASHARTI: r9 inatolewa tu wakati hoja ya 7 ipo (r15d >= 7).
-        ; Awali ilitolewa bila masharti -- kwa wito wenye hoja < 7, rafu
+        ; Awali ilitolewa bila masharti -- kwa wito wenye hoja < 7, mrundikano
         ; iliteleza +8 kwa kila wito na push zilizofuata ziliandika
-        ; kwenye sloti za vigezo vya ndani (uharibifu wa rafu).
+        ; kwenye sloti za vigezo vya ndani (uharibifu wa mrundikano).
         linganisha r15d, 7
         ruka .wito_mfumo_hoja7_hamna kama <n
         r0b = 0x41
@@ -11985,7 +11985,7 @@ uzalishaji_wambile:
         ita zalisha_baiti
         r0b = 0x05
         ita zalisha_baiti
-        ; Safisha hoja 8+ zilizobaki kwenye rafu (add rsp, (r15d-7)*8).
+        ; Safisha hoja 8+ zilizobaki kwenye mrundikano (add rsp, (r15d-7)*8).
         ; .fanya_wito ilisukuma a7 juu -- pop r9 tayari imeondoa a7, kwa
         ; hivyo a8..aN (N-7 maneno) zinaondolewa hapa.
         linganisha r15d, 8
@@ -12149,7 +12149,7 @@ uzalishaji_wambile:
 
         ; --- Wito wa kielekezi: badala ya "call rel32" ya kazi, pakia
         ; anwani ya kigezo kwenye r11 na toa "call r11" (41 FF D3) ---
-        ; Rafu: [rsp] = faharisi ya kazi, [rsp+8] = alama ya mwitaji.
+        ; Mrundikano: [rsp] = faharisi ya kazi, [rsp+8] = alama ya mwitaji.
         linganisha n32[r4 + 8], 0
         ruka .wito_moja_kwa_moja kama ==
         linganisha n32[r4 + 8], 1
@@ -12239,8 +12239,8 @@ uzalishaji_wambile:
         ita mfumo_toka
 .wito_urekebishaji_endelea:
 
-        ; Safisha hoja za rafu zaidi ya sita baada ya wito
-        ; Hoja 7+ zilibaki rafu wakati wa call -- ziondoe sasa
+        ; Safisha hoja za mrundikano zaidi ya sita baada ya wito
+        ; Hoja 7+ zilibaki mrundikano wakati wa call -- ziondoe sasa
         linganisha r15d, 6
         ruka .sio_kusafisha kama <=a
         ; add rsp, imm32 = 48 81 C4 + (r15d - 6) * 8
@@ -12250,7 +12250,7 @@ uzalishaji_wambile:
         ita zalisha_baiti
         r0b = 0xC4
         ita zalisha_baiti
-        ; Hoja 10-16 (njia ya .extras16): rafu ya ziada iko chini --
+        ; Hoja 10-16 (njia ya .extras16): mrundikano wa ziada iko chini --
         ; usawa ni (16E + 48) = 16(r15d-6) + 48
         linganisha r15d, 10
         ruka .kusafisha_zamani kama <a
@@ -12582,7 +12582,7 @@ uzalishaji_wakati:
         n64[cl_lengo] = r0
 .sio_hatua_lengo:
 
-        ; Toa mipaka ya awali kutoka rafu
+        ; Toa mipaka ya awali kutoka mrundikano
         vuta r14   ; base ya endelea
         vuta r13   ; base ya vunja
 
@@ -12644,7 +12644,7 @@ uzalishaji_wakati:
 ;   ya kutoka; jmp ya mwisho inarudi mwanzo wa mwili. endelea
 ;   inaruka hadi hali (semantiki ya C ya fanya..wakati); vunja
 ;   inaruka hadi mwisho wa mzunguko. Hufuata muundo wa
-;   uzalishaji_wakati: mipaka ya urekebishaji iko kwenye rafu.
+;   uzalishaji_wakati: mipaka ya urekebishaji iko kwenye mrundikano.
 ; -------------------------------------------------------
 uzalishaji_fanya:
         sukuma r12
@@ -12731,7 +12731,7 @@ uzalishaji_fanya:
         ita zalisha_neno4   ; andika umbali sahihi wa jz
         n32[chombo_cha_msimbo_wapi] = r10d
 
-        ; Toa mipaka ya awali kutoka rafu
+        ; Toa mipaka ya awali kutoka mrundikano
         vuta r14   ; base ya endelea
         vuta r13   ; base ya vunja
 
@@ -12981,7 +12981,7 @@ uzalishaji_kazi:
         r0b = 0xe5
         ita zalisha_baiti
 
-        ; Tenga nafasi ya rafu kwa vigezo vya ndani
+        ; Tenga nafasi ya mrundikano kwa vigezo vya ndani
         ; sub rsp, imm32 -- tutaweka baada ya kujua ukubwa
         ; Kwa sasa, weka nafasi ya baiti 4 kwa imm32
         r8d = n32[chombo_cha_msimbo_wapi]   ; hifadhi nafasi ya kurekebisha
@@ -13001,13 +13001,13 @@ uzalishaji_kazi:
         r0b = 0
         ita zalisha_baiti
 
-        ; Hifadhi vigezo vya kazi (parameters) kwenye rafu
+        ; Hifadhi vigezo vya kazi (parameters) kwenye mrundikano
         sukuma r14   ; hifadhi nodi ya mwili
         sukuma r13   ; hifadhi faharisi ya mahali
 
         r10d = n32[nodi_ya_kushoto + r12*4]   ; orodha ya vigezo
         r11d ^= r11d   ; faharisi ya hoja (0-5)
-        ; r13 (imehifadhiwa kwenye rafu hapo juu) ni kikaunzi cha
+        ; r13 (imehifadhiwa kwenye mrundikano hapo juu) ni kikaunzi cha
         ; rejesta ya GP inayofuata: hoja za GP huchukua rdi, rsi, rdx,
         ; rcx, r8, r9 kwa mpangilio (ABI ya System V), hoja za D64
         ; huchukua xmm0-xmm7 kando yake.
@@ -13015,7 +13015,7 @@ uzalishaji_kazi:
 .kigezo_mzunguko:
         linganisha r10d, -1
         ruka .vigezo_kwisha kama ==
-        ; Hoja zote zinasajiliwa -- zaidi ya 6 zimekuja kupitia rafu ya mwitaji
+        ; Hoja zote zinasajiliwa -- zaidi ya 6 zimekuja kupitia mrundikano wa mwitaji
 
         ; Sajili kigezo kwenye orodha ya ndani
         r7 = n64[ndani_idadi]
@@ -13023,7 +13023,7 @@ uzalishaji_kazi:
         r1 = &[ghala_la_mifuatano + r15]
         n64[jina_ndani + r7*8] = r1
 
-        ; Kokotoa umbali wa rafu: (ndani_idadi + 1) * 8
+        ; Kokotoa umbali wa mrundikano: (ndani_idadi + 1) * 8
         r8d = r7d
         r8d++
         r8d = r8d * 8
@@ -13079,11 +13079,11 @@ uzalishaji_kazi:
         vuta r7
         n64[ndani_idadi]++
 
-        ; Toa maelekezo ya kuhifadhi hoja kwenye rafu
+        ; Toa maelekezo ya kuhifadhi hoja kwenye mrundikano
         ; Amua kama tunahitaji kuhifadhi baiti 8 (nyota/N64/W0) au 4 (N32/chaguo-msingi)
         r8d = -r8d   ; umbali hasi kwa rbp
 
-        ; Hoja ya 7 au zaidi inakaa kwenye rafu ya mwitaji, si kwenye rejista
+        ; Hoja ya 7 au zaidi inakaa kwenye mrundikano wa mwitaji, si kwenye rejista
         linganisha r11d, 6
         ruka .hifadhi_mrundikano_kigezo kama >=a
 
@@ -13206,7 +13206,7 @@ uzalishaji_kazi:
         ruka .kigezo_ifuatayo
 
 ; -------------------------------------------------------
-; Hoja ya 7 au zaidi: haziko kwenye rejista bali kwenye rafu
+; Hoja ya 7 au zaidi: haziko kwenye rejista bali kwenye mrundikano
 ; ya mwitaji. Baada ya push rbp (na push r10 kwa sret):
 ; hoja i (1-basi) iko kwenye [rbp + 8*(i-5) + (sret ? 8 : 0)]
 ; -------------------------------------------------------
@@ -13382,13 +13382,13 @@ uzalishaji_kazi:
         vuta r12
 .hapana_maudhui:
 
-        ; Rekebisha ukubwa wa rafu
+        ; Rekebisha ukubwa wa mrundikano
         vuta r8
         r7 = n64[kiunzi_wapi]
         r7 += 15
         r7 &= ~15   ; pangilia kwa 16
 
-        ; Hoja za rafu zaidi ya 6: ikiwa idadi yao ni isiyo ya kawaida,
+        ; Hoja za mrundikano zaidi ya 6: ikiwa idadi yao ni isiyo ya kawaida,
         ; mwito uliingia na rsp iliyobadilika kwa 8 -- rekebisha fremu
         ; ili rsp iwe 16-aligned kabla ya miito ya ndani
         r9d = 0
@@ -13405,7 +13405,7 @@ uzalishaji_kazi:
         r9d -= 6
         pima r9b, 1
         ruka .fr_hakuna_jaza kama ==
-        ; Hoja za rafu zisizo za kawaida: non-sret anahitaji +8,
+        ; Hoja za mrundikano zisizo za kawaida: non-sret anahitaji +8,
         ; sret anaingia tayari aligned -- hakuna nyongeza kwake
         linganisha n32[kazi_rudisha_muundo_namba], 0
         ruka .fr_imepita kama >=n

@@ -120,7 +120,7 @@ mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 | constant / const | `kisichobadilika` |
 | global | `ulimwengu` |
 | local / locals | `ndani` / `vya_ndani` |
-| stack | `rafu` |
+| stack | `mrundikano` |
 | heap | `lundo` |
 | slot | `sloti` |
 | label | `mahali` |

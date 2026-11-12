@@ -107,7 +107,7 @@ Hali ya Agosti 2026 (kuelekea 1.0):
    kama kilichobaki tena.
 6. **Mfumo wa moduli** -- IMEFANYIKA (2026-09) -- husisha ni kiungo
    halisi ndani ya mkusanyaji; msingi/maktaba/ na msingi/mkusanyaji/
-   ndizo rafu mbili za maktaba moja.
+   ndiyo mirundikano miwili ya maktaba moja.
 7. **Uzingatiaji uliopimwa** -- rekodi kamili (hati/
    uthibitisho-wa-lugha.md) inahesabu kila kipengele kilichojaribiwa;
    majibu mabaya ya kimya ya uzalishaji yamepungua kutoka 96 hadi

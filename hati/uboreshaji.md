@@ -34,7 +34,7 @@ wa amri:
 Pipeline ya LLVM inayotumika kwa **kila kazi** (`function` scope):
 
 1. **mem2reg** -- Pandisha `alloca` hadi SSA (Static Single Assignment).
-   Hubadilisha uhifadhi wa rafu kuwa rejista za LLVM, kuwezesha uboreshaji
+   Hubadilisha uhifadhi wa mrundikano kuwa rejista za LLVM, kuwezesha uboreshaji
    unaofuata.
 
 2. **instcombine** (`no-verify-uthabiti`) -- Uchanganyaji wa maagizo
@@ -78,7 +78,7 @@ Itajumuisha O1 pamoja na:
 - **O0**: Msimbo unalingana na chanzo -- unaweza kutumia `printf`/`andika`
   kufuatilia utekelezaji. Mistari ya chanzo inalingana na maagizo ya mkutano.
 - **O1**: Vigezo vya ndani vinaweza kupandishwa hadi rejista (kuondolewa
-  kutoka rafu). Mistari ya chanzo bado inalingana lakini utaratibu wa
+  kutoka mrundikano). Mistari ya chanzo bado inalingana lakini utaratibu wa
   maagizo unaweza kubadilika. Msimbo uliokufa unaondolewa.
 
 ## Utekelezaji

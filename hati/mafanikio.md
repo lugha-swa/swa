@@ -38,7 +38,7 @@ Mchanganuzi wa kujikusanya ulifichua hitilafu zilizofichika katika `kande` ambaz
 | 6 | Hitilafu ya kuteremsha kwenye ugawaji wa muundo | Kiteremshaji hakikuweza kushughulikia `a = b` kwa miundo | Usimamizi wa tokeni ulivunjika |
 | 7 | Opaque pointer inaharibu usawazishaji wa hifadhi/mzigo | LLVMGetElementType haiaminiki na opaque pointers za LLVM 22 | SIGSEGV nasibu, tokeni zimeharibika |
 | 8 | Msimbo baada ya kama hauwiani kwenye CFG | actual_prev haikufuatilia BrCond; self-loop haikurekebishwa | Taarifa baada ya kama ni msimbo uliokufa kwa sehemu |
-| 9 | Alloca-in-loop inamaliza rafu | Alloca za vigeu vya ndani zinatolewa kwenye block ya sasa badala ya block ya kuingia | SIGSEGV baada ya ~524K mizunguko ya mzunguko |
+| 9 | Alloca-in-loop inamaliza mrundikano | Alloca za vigeu vya ndani zinatolewa kwenye block ya sasa badala ya block ya kuingia | SIGSEGV baada ya ~524K mizunguko ya mzunguko |
 
 #### Kipindi cha Pili (Marekebisho 3 ya ziada katika mchanganuzi wa kujikusanya)
 
@@ -152,7 +152,7 @@ Baada ya taarifa ya `kama`, block ya sharti ya `BrCond` haipaswi kuwa kiungo cha
 
 ### 5.7 Alloca za vigeu vya ndani lazima ziwe kwenye block ya kuingia
 
-LLVM inatarajia alloca zote za vigeu vya ndani ziwe kwenye block ya kuingia ya kazi. Kutoa alloca kwenye block ya mzunguko kunasababisha kila mzunguko kugawa nafasi mpya ya rafu bila kuzirejesha. Hii inaisha kwa uharibifu wa rafu (SIGSEGV). Suluhisho ni mbinu ya kupitisha mara mbili: (1) tembea AST mapema kukusanya matamko yote ya vigeu, (2) toa alloca zote kwenye block ya kuingia kabla ya mwili wowote kuchakatwa.
+LLVM inatarajia alloca zote za vigeu vya ndani ziwe kwenye block ya kuingia ya kazi. Kutoa alloca kwenye block ya mzunguko kunasababisha kila mzunguko kugawa nafasi mpya ya mrundikano bila kuzirejesha. Hii inaisha kwa uharibifu wa mrundikano (SIGSEGV). Suluhisho ni mbinu ya kupitisha mara mbili: (1) tembea AST mapema kukusanya matamko yote ya vigeu, (2) toa alloca zote kwenye block ya kuingia kabla ya mwili wowote kuchakatwa.
 
 ### 5.8 Mfululizo wa ushughulikiaji wa tokeni
 

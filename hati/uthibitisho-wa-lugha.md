@@ -340,9 +340,9 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 | Safu ya kamba (N8*[3]) | SAWA | SAWA | kama hati | SAWA |
 | Faharisi nje ya mipaka (ndani ya ukurasa -- kimya; mbali -- SEGV) | SAWA (kama inavyotarajiwa) | SAWA (kama inavyotarajiwa) | hakuna ukaguzi unaoahidiwa | SAWA |
 | Hoja 0-9 | SAWA | SAWA | kama hati | SAWA |
-| Hoja 10-16 (mpaka wa rafu) | IMEKATALIWA (zaidi ya 9) | SAWA | kama hati | tofauti (kikomo cha mbegu) |
+| Hoja 10-16 (mpaka wa mrundikano) | IMEKATALIWA (zaidi ya 9) | SAWA | kama hati | tofauti (kikomo cha mbegu) |
 | Hoja 17 (ya 17 inatupwa kimya) | IMEKATALIWA (zaidi ya 9) | IMEKATALIWA (sauti: "kikomo ni 16") | kukataliwa | imefunga kwenye uzalishaji (zamani JIBU-BAYA) |
-| Hoja 7 za N64 (rafu) | SAWA | SAWA | kama hati | SAWA |
+| Hoja 7 za N64 (mrundikano) | SAWA | SAWA | kama hati | SAWA |
 | Wito wa mbele (kabla ya ufafanuzi) | SAWA | SAWA | kama hati | SAWA |
 | Kujirudia (kipengele 6), kirefu (kina 40,000 na 100,000), pande mbili | SAWA | SAWA | kama hati | SAWA (rekodi ya zamani SEGV haishikiki) |
 | W0: `rudisha;` tupu, wito wa W0 | SAWA | SAWA | kama hati | SAWA |
@@ -354,7 +354,7 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 | tenga msingi, nyingi, kubwa (500,000B), inayozidi arena inarudisha 0 | SAWA | SAWA | kama hati | SAWA |
 | badili (kukua, data inahifadhiwa) | SAWA | SAWA | kama hati | SAWA (rekodi ya zamani SEGV haishikiki) |
 | achilia (no-op, hakuna anguko) | SAWA | SAWA | kama hati | SAWA |
-| wito_wa_mfumo hoja 1/2/3/6/8; rafu baada ya wito; O_CREAT mode 0644 | SAWA | SAWA | kama hati | SAWA |
+| wito_wa_mfumo hoja 1/2/3/6/8; mrundikano baada ya wito; O_CREAT mode 0644 | SAWA | SAWA | kama hati | SAWA |
 | mfuatano: urefu, linganisha, nakili, unganisha, tafuta, kata_nafasi, geuza, juu/chini, heshi (moduli nzima) | SAWA (isipokuwa nambari_kwa_mfuatano_n64 hasi) | SAWA | kama hati | SAWA kwa uzalishaji; mbegu inavunjika kwa N64 hasi (tazama 8.17) |
 | hesabu: kamili/ndogo/kubwa/dogo, neneo_n32, gcd, lcm, pow, isqrt, fibonacci, kipengele, kuu, pow_mod | SAWA | SAWA | kama hati | SAWA |
 | neneo_n64 (kubwa hasi) | JIBU-BAYA (3589934592) | SAWA (5000000000) | 5000000000 | tofauti (kikomo cha mbegu: N64 hasi kubwa) |

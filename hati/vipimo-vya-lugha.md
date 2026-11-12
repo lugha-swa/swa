@@ -360,7 +360,7 @@ Wito kupitia kielekezi -- `kigezo(hoja...)` -- jina ambalo SI kazi
 linalinganishwa na kigeu/paramu/kigeu cha ulimwengu:
 
 - ABI ni ile ya wito wa kawaida: hoja 1-6 kwa rejesta (rdi..r9 kwa
-  namba/kielekezi, xmm0..xmm7 kwa d64/d32), hoja 7+ kwenye rafu,
+  namba/kielekezi, xmm0..xmm7 kwa d64/d32), hoja 7+ kwenye mrundikano,
   matokeo kwenye rax/eax (na xmm0 kwa desimali). Kielekezi hupakiwa
   kwenye r11 na wito hutolewa kwa `call r11`.
 - Aina za hoja huamuliwa na USEMI wa hoja kwenye wito (saini ya kazi
@@ -408,7 +408,7 @@ n32 anza() {
   thamani).
 - `rudisha <usemi>;` kwa kazi yenye thamani; `rudisha;` kwa w0.
 - Wito wa kujirudia na wito wa mbele unasaidiwa.
-- Hoja zinazozidi rejesta (namba 6, desimali 8) huenda rafuni kwa
+- Hoja zinazozidi rejesta (namba 6, desimali 8) huenda kwenye mrundikano kwa
   mpangilio wa hoja (System V), hata hoja za rejesta zikizifuata
   (rekebisho la 2026-11-09; mbegu bado haina -- `jaribio_hoja_mrundikano_mchanganyiko`
   ni ya kamili pekee).
@@ -430,7 +430,7 @@ n32 anza() {
 
 `n32 x = 5;` -- ndani ya block. Kianzilishi ni cha hiari
 (`n32 x;` inaruhusiwa) lakini thamani ya kigezo kisichoanzishwa ni
-ISYOFANULIWA (kumbukumbu ya rafu isiyoanzishwa) -- usiisome kabla ya
+ISYOFANULIWA (kumbukumbu ya mrundikano isiyoanzishwa) -- usiisome kabla ya
 kuigawa.
 
 ### 6.2 Ugawi
@@ -661,7 +661,7 @@ nje "libm.so.6" {
   hakuna kiungo. Programu isiyo na `nje` haibadiliki hata baiti moja.
 - Maktaba au alama isiyopatikana hukataliwa na kipakiaji cha mfumo
   wakati wa kuanza (kutoka 127).
-- Hoja za rafu zinaruhusiwa (mpaka ni hoja 16, kama wito wote wa Swa).
+- Hoja za mrundikano zinaruhusiwa (mpaka ni hoja 16, kama wito wote wa Swa).
 - `...` kama kigezo cha mwisho (ndani ya `nje` pekee) huruhusu hoja za
   ziada: `n32 andika_kwa_umbo(n8* b, n64 u, n8* umbo, ...) = "snprintf";`.
   Hoja ya ziada ya `d32` ni kosa -- tumia `d64`.
@@ -696,7 +696,7 @@ nje "libm.so.6" {
   ya 7 ("idadi ya hoja kwa 'wito_wa_mfumo' si sahihi (kikomo ni 7,
   imepokea 8)") -- hitilafu ya zamani (hoja za ziada zilimezwa kimya)
   umefunga. Mbegu bado inakubali wito wa hoja 8+ na kusawazisha
-  rafu (hoja ya 7 inachukuliwa na pop r9, hoja 8+ zinafutwa, hakuna
+  mrundikano (hoja ya 7 inachukuliwa na pop r9, hoja 8+ zinafutwa, hakuna
   uharibifu wa vigezo vya ndani -- kilichopimwa 2026-09-04) --
   inarekebishwa (mgandisho ujao wa mbegu).
 - `tekeleza(n8* kazi, n32 argc, n8** argv, n32 umbali)` na

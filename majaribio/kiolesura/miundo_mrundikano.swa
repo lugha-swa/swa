@@ -1,5 +1,5 @@
-// Kiolesura cha mashine, awamu 3: muundo kwenye rafu na mipaka ya rejesta.
-// snprintf husoma hoja zake za ziada kutoka rejesta kisha rafu kwa
+// Kiolesura cha mashine, awamu 3: muundo kwenye mrundikano na mipaka ya rejesta.
+// snprintf husoma hoja zake za ziada kutoka rejesta kisha mrundikano kwa
 // mpangilio wa System V, hivyo maandishi yake yanaonyesha hasa kila
 // baiti-8 ilipowekwa. Vichwa ni vya kudumu (bila `...`); al huwekwa na
 // kipande kwa idadi ya xmm zilizotumika.
@@ -33,13 +33,13 @@ nje "libc.so.6" {
 n32 anza() {
     n8* b = tenga(256);
 
-    // MEMORY: nakala ya baiti 24 rafuni baada ya rcx, r8, r9
+    // MEMORY: nakala ya baiti 24 kwenye mrundikano baada ya rcx, r8, r9
     Tatu t;
     t.a = 4; t.b = 5; t.c = 6;
     andika_tatu(b, 256, "%ld %ld %ld %ld %ld %ld", 1, 2, 3, t);
     kama (linganisha_c(b, "1 2 3 4 5 6") != 0) { andika("[%s]\n", b); rudisha 1; }
 
-    // Jozi inahitaji GP 2, imebaki 1 (r9): muundo mzima rafuni,
+    // Jozi inahitaji GP 2, imebaki 1 (r9): muundo mzima kwenye mrundikano,
     // lakini z inayofuata bado inapata r9.
     Jozi j;
     j.a = 40; j.b = 50;
@@ -64,7 +64,7 @@ n32 anza() {
     andika_pamoja_d(b, 256, "%lx %ld", pd, 77);
     kama (linganisha_c(b, "13f800000 77") != 0) { andika("[%s]\n", b); rudisha 8; }
 
-    // MEMORY hata rejesta zikiwa wazi: t rafuni, x y z kwenye rcx r8 r9
+    // MEMORY hata rejesta zikiwa wazi: t kwenye mrundikano, x y z kwenye rcx r8 r9
     andika_tatu_kwanza(b, 256, "%ld %ld %ld %ld %ld %ld", t, 1, 2, 3);
     kama (linganisha_c(b, "1 2 3 4 5 6") != 0) { andika("[%s]\n", b); rudisha 9; }
 
@@ -74,20 +74,20 @@ n32 anza() {
     Tatu tn = nakili_tatu(&t, 24);
     kama (tn.a != 4 || tn.b != 5 || tn.c != 6) { rudisha 11; }
 
-    // xmm 8 zimejaa: Tata yote rafuni
+    // xmm 8 zimejaa: Tata yote kwenye mrundikano
     Tata tt;
     tt.x = 9.0; tt.y = 10.0;
     andika_tata(b, 256, "%.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f", 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, tt);
     kama (linganisha_c(b, "1 2 3 4 5 6 7 8 9 10") != 0) { andika("[%s]\n", b); rudisha 5; }
 
-    // Desimali ya 9 inafika kutoka rafu ya Swa; sloti 3 za System V
-    // (witiri) pamoja na al = 8 -- movaps ya snprintf inahitaji rafu
+    // Desimali ya 9 inafika kutoka mrundikano wa Swa; sloti 3 za System V
+    // (witiri) pamoja na al = 8 -- movaps ya snprintf inahitaji mrundikano
     // iliyopangiliwa kwa 16.
     andika_tata_tisa(b, 256, "%.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f", 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, tt, 11.0);
     kama (linganisha_c(b, "1 2 3 4 5 6 7 8 9 10 11") != 0) { andika("[%s]\n", b); rudisha 10; }
 
-    // Miundo inayofika kutoka rafu ya Swa: Jozi (kielekezi rafuni) na
-    // Ndogo (baiti zake rafuni) -- kwa System V zote mbili ni rafuni.
+    // Miundo inayofika kutoka mrundikano wa Swa: Jozi (kielekezi kwenye mrundikano) na
+    // Ndogo (baiti zake kwenye mrundikano) -- kwa System V zote mbili ni kwenye mrundikano.
     Ndogo d;
     d.a = 1; d.b = 2;
     andika_swa_mrundikano(b, 256, "%ld %ld %ld %ld %ld %ld %lx", 1, 2, 3, 4, j, d);
