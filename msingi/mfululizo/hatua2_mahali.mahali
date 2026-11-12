@@ -1,14 +1,14 @@
 # hatua2_mahali.mahali -- hatua ya 2 ya mfululizo huru: heksa yenye mahali. (mahali hujijenga yenyewe)
 #
 #   ; au #  maoni hadi mwisho wa mstari
-#   :jina   fafanua mahali kwenye anwani ya sasa (0x400000 + ofseti)
+#   :jina   fafanua mahali kwenye anwani ya sasa (0x400000 + umbali)
 #   !jina   umbali wa baiti 1 hadi mahali, kutoka mwisho wa sehemu
 #   %jina   umbali wa baiti 4 hadi mahali, kutoka mwisho wa sehemu
 #   &jina   anwani kamili ya mahali, baiti 4
 #   heksa     jozi za tarakimu -> baiti
 # Mapitio mawili juu ya stdin yote. Lebo haijulikani: kutoka 2; !jina
 # nje ya -128..127: kutoka 3. Rejista: rbp/r15 mwanzo/mwisho wa kuingiza,
-# r12 ofseti ya kutoa, r14 pitio (1/2), r9 mwisho wa jedwali la mahali,
+# r12 umbali wa kutoa, r14 pitio (1/2), r9 mwisho wa jedwali la mahali,
 # r10/r11 baiti inayojengwa na nusu yake.
 
 # ---- kichwa cha ELF (baiti 64) ----
@@ -38,7 +38,7 @@ da 02 00 00 00 00 00 00 ; p_filesz: 730
 00 10 00 00 00 00 00 00 ; p_align: 0x1000
 
 # ---- msimbo, unaanzia 0x400078 ----
-:_start
+:anza
 48 bd 00 00 50 00 00 00 00 00   ; movabs rbp,0x500000
 49 89 ef                        ; mov    r15,rbp
 :soma
@@ -115,7 +115,7 @@ eb !p_kitanzi                   ; jmp    70 <p_kitanzi>
 :p_ya_pili
 49 c1 e2 04                     ; shl    r10,0x4
 4c 09 d0                        ; or     rax,r10
-e8 %toa_baiti                   ; call   21d <toa_baiti>
+e8 %zalisha_baiti                   ; call   21d <zalisha_baiti>
 45 31 db                        ; xor    r11d,r11d
 e9 %p_kitanzi                   ; jmp    70 <p_kitanzi>
 :p_maoni
@@ -147,7 +147,7 @@ e8 %tafuta                      ; call   1e6 <tafuta>
 0f 8c %kosa_mbali               ; jl     258 <kosa_mbali>
 48 83 f8 7f                     ; cmp    rax,0x7f
 0f 8f %kosa_mbali               ; jg     258 <kosa_mbali>
-e8 %toa_baiti                   ; call   21d <toa_baiti>
+e8 %zalisha_baiti                   ; call   21d <zalisha_baiti>
 e9 %p_kitanzi                   ; jmp    70 <p_kitanzi>
 :p_rel8_ruka
 49 ff c4                        ; inc    r12
@@ -159,14 +159,14 @@ e8 %jina                        ; call   1ca <jina>
 e8 %tafuta                      ; call   1e6 <tafuta>
 49 8d 8c 24 04 00 40 00         ; lea    rcx,[r12+0x400004]
 48 29 c8                        ; sub    rax,rcx
-e8 %toa_neno4                   ; call   235 <toa_neno4>
+e8 %zalisha_neno4                   ; call   235 <zalisha_neno4>
 e9 %p_kitanzi                   ; jmp    70 <p_kitanzi>
 :p_abs32
 e8 %jina                        ; call   1ca <jina>
 41 83 fe 01                     ; cmp    r14d,0x1
 74 !p_neno_ruka                 ; je     1c0 <p_neno_ruka>
 e8 %tafuta                      ; call   1e6 <tafuta>
-e8 %toa_neno4                   ; call   235 <toa_neno4>
+e8 %zalisha_neno4                   ; call   235 <zalisha_neno4>
 e9 %p_kitanzi                   ; jmp    70 <p_kitanzi>
 :p_neno_ruka
 49 83 c4 04                     ; add    r12,0x4
@@ -210,7 +210,7 @@ c3                              ; ret
 :t_ijayo
 49 83 c0 18                     ; add    r8,0x18
 eb !t_kitanzi                   ; jmp    1f0 <t_kitanzi>
-:toa_baiti
+:zalisha_baiti
 41 83 fe 02                     ; cmp    r14d,0x2
 75 !tb_ruka                     ; jne    231 <tb_ruka>
 48 b9 00 00 60 00 00 00 00 00   ; movabs rcx,0x600000
@@ -218,7 +218,7 @@ eb !t_kitanzi                   ; jmp    1f0 <t_kitanzi>
 :tb_ruka
 49 ff c4                        ; inc    r12
 c3                              ; ret
-:toa_neno4
+:zalisha_neno4
 41 83 fe 02                     ; cmp    r14d,0x2
 75 !tn_ruka                     ; jne    249 <tn_ruka>
 48 b9 00 00 60 00 00 00 00 00   ; movabs rcx,0x600000
