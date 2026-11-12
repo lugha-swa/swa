@@ -29,22 +29,22 @@
 // Sehemu 0: Chombo na visaidizi vya msingi vya baiti
 //
 // WASM inahitaji urefu wa LEB128 kabla ya maudhui ya kila sehemu na
-// kila mwili wa kazi -- urefu HAUJULIKANI mpaka maudhui yamalizike.
+// kila maudhui ya kazi -- urefu HAUJULIKANI mpaka maudhui yamalizike.
 // x86-64 haihitaji hili (jump offsets ni fixed-width, zinaweza
 // kurekebishwa baadaye kwa urekebishaji). Sehemu za Type na Code LAZIMA
 // zisitangamane -- entries za aina zote pamoja kwenye SEHEMU MOJA
-// (Type section), na miili ya kazi zote pamoja kwenye SEHEMU NYINGINE
+// (Type section), na maudhui ya kazi zote pamoja kwenye SEHEMU NYINGINE
 // (Code section) -- hivyo vyombo vinne, si moja:
-//   wasm_fn_buf    -- mwili wa kazi MOJA ya SASA (locals+maagizo+0x0B),
+//   wasm_fn_buf    -- maudhui ya kazi MOJA ya SASA (locals+maagizo+0x0B),
 //                     inasafishwa kwa kila kazi
 //   wasm_type_buf  -- inakusanya entries za AINA za kazi ZOTE (functype
 //                     bytes, hazihitaji urefu wa mtu binafsi -- kila
 //                     moja ni self-delimiting kwa hesabu zake wenyewe),
 //                     KATIKA MZUNGUKO MZIMA wa kazi zote, si kwa kazi
 //                     moja pekee
-//   wasm_sec_buf   -- inakusanya entries za MWILI za kazi ZOTE (Code
+//   wasm_sec_buf   -- inakusanya entries za MAUDHUI za kazi ZOTE (Code
 //                     section -- kila entry INAHITAJI urefu wake kwa
-//                     sababu miili ina urefu tofauti-tofauti), KATIKA
+//                     sababu maudhui ina urefu tofauti-tofauti), KATIKA
 //                     MZUNGUKO MZIMA wa kazi zote
 //   wasm_bafu      -- moduli ya mwisho, inatolewa MARA MOJA mwishoni
 // -------------------------------------------------------
@@ -70,7 +70,7 @@ n32 wasm_chombo_sasa = 0;
 // mfuatano lililokusanywa. TOFAUTI na wasm_baiti/wasm_bafu_sasa
 // zilizopo: wasm_data_buf HUANDIKWA MOJA KWA MOJA kwa faharisi (SI
 // kupitia wasm_baiti) kwa sababu mkusanyiko wa mfuatano hutokea
-// KATIKATI ya uzalishaji wa mwili wa kazi (wasm_bafu_sasa==1 wakati
+// KATIKATI ya uzalishaji wa maudhui ya kazi (wasm_bafu_sasa==1 wakati
 // huo) -- kupitia wasm_baiti kungeharibu hali ya kimataifa ya chombo
 // kinachoshughulikiwa.
 // -------------------------------------------------------
@@ -476,7 +476,7 @@ w0 wasm_kagua_usimbaji_kigezo(n8* jina, n32 usimbaji, n32 idadi_ya_safu) {
 // Pasi ya awali: tembea mfululizo wa taarifa ukikusanya kila
 // AST_TANGAZO (11) unaoweza kufikiwa kupitia kama/wakati zilizopachikwa
 // -- WASM inataka locals ZOTE zitangazwe KABLA ya agizo lolote la
-// mwili wa kazi, tofauti na x86-64 (rbp-offset polepole).
+// maudhui ya kazi, tofauti na x86-64 (rbp-offset polepole).
 w0 wasm_kusanya_vya_ndani(n32 nodi) {
     kama (nodi == -1) { rudisha; }
     n32 aina = aina_ya_nodi[nodi];
@@ -499,7 +499,7 @@ w0 wasm_kusanya_vya_ndani(n32 nodi) {
             wasm_kagua_usimbaji_kigezo(ghala_la_majina + umbali_wa_jina_la_nodi[kigeu_nodi2], thamani_ya_nodi[kigeu_nodi2], tatu_ya_nodi[kianzio]);
             wasm_ongeza_cha_ndani(ghala_la_majina + umbali_wa_jina_la_nodi[kigeu_nodi2]);
         }
-        wasm_kusanya_vya_ndani(nodi_ya_kulia[nodi]);  // mwili
+        wasm_kusanya_vya_ndani(nodi_ya_kulia[nodi]);  // maudhui
     }
     kama (aina == NODI_UBETI) {
         wasm_kusanya_vya_ndani(nodi_ya_kushoto[nodi]);
@@ -805,8 +805,8 @@ w0 wasm_wakati(n32 nodi, n32 nodi_ya_kazi) {
     wasm_ina_hatua[faharasa_ya_mzunguko] = ina_hatua;
 
     // block $vunja { loop $juu { <sharti>; eqz; br_if (kwenda $vunja);
-    //   [block $endelea { <mwili> }]  <-- pekee kama ina_hatua
-    //   <mwili>                       <-- kama HAINA hatua
+    //   [block $endelea { <maudhui> }]  <-- pekee kama ina_hatua
+    //   <maudhui>                       <-- kama HAINA hatua
     //   br (kwenda $juu) } }
     wasm_kitendo_ubeti(WASM_UBETI_TUPU); wasm_kina = wasm_kina + 1;
     wasm_kina_cha_acha[faharasa_ya_mzunguko] = wasm_kina;
@@ -829,7 +829,7 @@ w0 wasm_wakati(n32 nodi, n32 nodi_ya_kazi) {
     wasm_taarifa(maudhui, nodi_ya_kazi);
 
     kama (ina_hatua && wasm_ina_hatua[faharasa_ya_mzunguko] != 0 - 999999) {
-        // AST_BLOCK{-777777} (hatua) ndani ya mwili tayari ilifunga
+        // AST_BLOCK{-777777} (hatua) ndani ya maudhui tayari ilifunga
         // block ya "endelea" yenyewe (angalia wasm_taarifa) -- hapa
         // hakuna kufanya tena. Alama -999999 = imeshafungwa.
     }
@@ -1008,7 +1008,7 @@ w0 wasm_taarifa(n32 nodi, n32 nodi_ya_kazi) {
 }
 
 // -------------------------------------------------------
-// Sehemu 7: Kazi moja -- pasi ya locals + mwili -> entry ya Type
+// Sehemu 7: Kazi moja -- pasi ya locals + maudhui -> entry ya Type
 // (kwenye wasm_type_buf, YA PAMOJA na kazi zote) na entry ya Code
 // (kwenye wasm_sec_buf, YA PAMOJA na kazi zote) -- HAZICHANGANYIKI
 // (angalia maelezo ya Sehemu 0).
@@ -1056,8 +1056,8 @@ w0 wasm_jenga_kazi(n32 nodi_ya_kazi) {
         wasm_baiti(WASM_I32);
     }
 
-    // ---- Code entry: locals + mwili -- jengwa kwenye wasm_fn_buf
-    // (mwili wa kazi HII PEKEE), kisha kunakiliwa (na urefu wake wa
+    // ---- Code entry: locals + maudhui -- jengwa kwenye wasm_fn_buf
+    // (maudhui ya kazi HII PEKEE), kisha kunakiliwa (na urefu wake wa
     // LEB128 mbele) kuingia wasm_sec_buf, INAYOENDELEA kati ya kazi.
     wasm_chombo_sasa = 1;
     wasm_kazi_wapi = 0;
@@ -1086,7 +1086,7 @@ w0 wasm_jenga_kazi(n32 nodi_ya_kazi) {
     kama (ni_w0 == 0) { wasm_kitendo_haifikiki(); }
     wasm_kitendo_mwisho();
 
-    // Nakili mwili wa kazi (wasm_fn_buf) kuingia sec_buf ikiwa na
+    // Nakili maudhui ya kazi (wasm_fn_buf) kuingia sec_buf ikiwa na
     // urefu wake wa LEB128 mbele -- hii NDIYO "backpatch" ya WASM.
     wasm_chombo_sasa = 2;
     wasm_hamisha_kutoka_kazi();
@@ -1490,7 +1490,7 @@ n32 uzalishaji_wasm_kuu(n32 nodi_ya_programu) {
     wasm_andika_aina_uingizaji();
 
     // Pitio la 1: sajili kazi ZOTE za ngazi ya juu (kwa faharisi za
-    // `call`) KABLA ya kuzalisha mwili wowote -- wito wa mbele
+    // `call`) KABLA ya kuzalisha maudhui yoyote -- wito wa mbele
     // unahitaji hili.
     n8 ghala_la_majina_ndani[16384];
     wasm_ghala_la_majina_ya_kazi = ghala_la_majina_ndani;

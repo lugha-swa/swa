@@ -39,7 +39,7 @@ Kazi (`irk_*`) zina amri zao `[irk_mwanzo, irk_mwisho)`, idadi ya vreg, ukubwa w
 
 - Upande wa **kulia** wa tendo hutathminiwa kwanza, kisha kushoto.
 - `x op= y`: anwani ya `x` hukokotolewa mara moja, kabla ya `y`.
-- `kwa`: `endelea` huruka kwenye hatua; `fanya { } wakati (s);` hutekeleza mwili kwanza.
+- `kwa`: `endelea` huruka kwenye hatua; `fanya { } wakati (s);` hutekeleza maudhui kwanza.
 - Baada ya `rudisha`/`acha`/`endelea` ndugu wa kifungu hawatolewi, isipokuwa hatua ya `kwa`.
 - `andika`: umbo hugawanywa wakati wa kuteremsha; `%d` ya aina ndogo kuliko baiti 8 hupanuliwa kutoka biti 32 zenye ishara.
 

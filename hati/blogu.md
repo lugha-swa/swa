@@ -37,7 +37,7 @@ Wakati kipindi kilipoanza, binary ya kujikusanya ilianguka mara moja kwa **SIGSE
 **Hitilafu 1: Alloca-in-Loop -> SIGSEGV** (`src/ir/lower.rs`)
 Hitilafu muhimu zaidi. Kiteremshi cha IR kilitoa maagizo ya `alloca` kwenye block ya sasa ya msingi badala ya block ya kuingia ya kazi. Wakati tamko la kigezo cha ndani lilipokuwa ndani ya mzunguko (kama mzunguko wa `wakati` cha mchanganuzi), kila mzunguko uliunda alloca mpya -- ikitumia baiti 16 za mrundikano kwa kila mzunguko. Baada ya takriban mizunguko 524,000, mrundikano wa MB 8 ilikuwa imeisha.
 
-**Marekebisho:** Mbinu ya kupitisha mara mbili. Kazi mpya ya `collect_local_decls` inatembea AST kugundua matamko yote ya vigeu vya ndani kabla ya uteuzi wa mwili kuanza. Alloca hizi zinatolewa mapema kwenye block ya kuingia. Wakati wa uteuzi wa mwili, `lower_local_decl` hutafuta `ValueId` iliyotengwa mapema badala ya kuunda alloca mpya.
+**Marekebisho:** Mbinu ya kupitisha mara mbili. Kazi mpya ya `collect_local_decls` inatembea AST kugundua matamko yote ya vigeu vya ndani kabla ya uteuzi wa maudhui kuanza. Alloca hizi zinatolewa mapema kwenye block ya kuingia. Wakati wa uteuzi wa maudhui, `lower_local_decl` hutafuta `ValueId` iliyotengwa mapema badala ya kuunda alloca mpya.
 
 **Athari:** Binary haianguki tena. Faili zote za maktaba zinachanganuliwa kwa mafanikio.
 
@@ -68,16 +68,16 @@ Wakati taarifa iliyotangulia block ilikuwa `kama` yenye `sivyo` inayorudisha, `a
 ---
 
 **Hitilafu 5: Uharibifu wa Block ya Kutoka ya `wakati`/`kwa`** (`src/ir/lower.rs`, `lower_while`/`lower_for`)
-`exit_blk` iliundwa na kituo cha msingi cha `RetVoid`. Wakati `patch_br_if_needed` ilipotembea kupitia CFG, ilifuata matawi ya `endelea` (continue) kuingia kwenye miili ya mizunguko iliyozunguka. Ilipata block ya kutoka ya mzunguko wa nje (iliyokuwa na `RetVoid`) na kuitibu kama sehemu ya kuacha. Hii iliacha block ya kutoka ya mzunguko wa ndani ikiwa na kituo kisicho sahihi.
+`exit_blk` iliundwa na kituo cha msingi cha `RetVoid`. Wakati `patch_br_if_needed` ilipotembea kupitia CFG, ilifuata matawi ya `endelea` (continue) kuingia kwenye maudhui ya mizunguko iliyozunguka. Ilipata block ya kutoka ya mzunguko wa nje (iliyokuwa na `RetVoid`) na kuitibu kama sehemu ya kuacha. Hii iliacha block ya kutoka ya mzunguko wa ndani ikiwa na kituo kisicho sahihi.
 
 **Marekebisho:** Weka kituo cha `exit_blk` kuwa `Br(exit_blk)` (mzunguko wa kujirudia) mara baada ya kuundwa. Hii inahakikisha `walk_branch` inaitambua kama njia ya kupita, si kurudi.
 
 ---
 
 **Hitilafu 6: `patch_br_if_needed` Ikifuata Mipaka ya Endelea/Vunja** (`src/ir/lower.rs`)
-Hata baada ya marekebisho ya 5, `patch_br_if_needed` ilifuata block za `endelea` zenye `Br(outer_header)` kuingia kwenye miili ya mizunguko iliyozunguka. Ilipata block ya kutoka ya mzunguko wa nje (mzunguko wa kujirudia) na kuibadilisha kwa block ya kuunganisha ya `kama` ya ndani -- ikiharibu njia ya kutoka ya mzunguko wa nje. Hii ilisababisha `changanua()` kurudisha `0` badala ya faharasi sahihi ya nodi ya AST ya programu wakati faili nyingi ziliunganishwa.
+Hata baada ya marekebisho ya 5, `patch_br_if_needed` ilifuata block za `endelea` zenye `Br(outer_header)` kuingia kwenye maudhui ya mizunguko iliyozunguka. Ilipata block ya kutoka ya mzunguko wa nje (mzunguko wa kujirudia) na kuibadilisha kwa block ya kuunganisha ya `kama` ya ndani -- ikiharibu njia ya kutoka ya mzunguko wa nje. Hii ilisababisha `changanua()` kurudisha `0` badala ya faharasi sahihi ya nodi ya AST ya programu wakati faili nyingi ziliunganishwa.
 
-**Marekebisho:** Acha kufuata mipaka ya `Br` ya mbele wakati mahali pa block chanzo panaanza na `continue.` au `break.` -- hizi ni mipaka ya udhibiti wa mzunguko inayoongoza nje ya mwili unaorekebishwa.
+**Marekebisho:** Acha kufuata mipaka ya `Br` ya mbele wakati mahali pa block chanzo panaanza na `continue.` au `break.` -- hizi ni mipaka ya udhibiti wa mzunguko inayoongoza nje ya maudhui unaorekebishwa.
 
 ---
 
@@ -87,7 +87,7 @@ Kazi ya `changanua_kazi` katika mchanganuzi wa kujikusanya haikutumia `;` iliyof
 W0 ruka_nafasi_na_maelezo(Msomaji* m);
 ```
 
-**Marekebisho:** Baada ya `changanua_kazi_mwili` kurudisha -1 (hakuna mwili), tumia `;` inayofuata.
+**Marekebisho:** Baada ya `changanua_kazi_maudhui` kurudisha -1 (hakuna maudhui), tumia `;` inayofuata.
 
 ---
 
@@ -100,7 +100,7 @@ Mchanganuzi wa mzunguko wa `kwa` ulijaribu kuchanganua kiiniti kama usemi kupiti
 
 **Hitilafu 9-12: Hitilafu za Ziada za Mchanganuzi wa Kujikusanya**
 - **`sogeza()` inakosa `mstari`/`safu`** -- ilinakili sehemu 3 tu kati ya 5 za tokeni, na kusababisha nambari za mistari kuripotiwa kama 1 kila wakati
-- **Matumizi maradufu ya `{`** katika `changanua_kazi_vigezo` -- ilitumia `{` iliyowekwa ndani ambayo ilikuwa ya mwili wa kazi
+- **Matumizi maradufu ya `{`** katika `changanua_kazi_vigezo` -- ilitumia `{` iliyowekwa ndani ambayo ilikuwa ya maudhui ya kazi
 - **Hakuna rudisha hasi** -- `rudisha -1;` iliacha `-` bila kutumiwa
 - **Kufurika kwa safu ya AST** -- elementi 4096 hazikutosha kwa faili zote za maktaba ya msingi zilizounganishwa; iliongezwa hadi 16384
 
@@ -169,7 +169,7 @@ Codegen ya `lower.rs` na LLVM backend zote zinatumia fomula `ValueId = P + V + I
 - `V` = idadi ya vipatanishi (constants)
 - `I` = kidhibiti cha maagizo cha kimataifa (kinachoongezeka kwa mpangilio katika block zote)
 
-Mpangilio huu unamaanisha kwamba maagizo yaliyotolewa kwenye block ya kuingia wakati wa kupitisha awali yanapata ValueId za chini, zinalingana na mpangilio wa block za backend. Maagizo yaliyotolewa wakati wa uteuzi wa mwili yanapata ValueId za juu. Ramani ni thabiti kwa sababu pande zote mbili zinatembea block kwa mpangilio uleule.
+Mpangilio huu unamaanisha kwamba maagizo yaliyotolewa kwenye block ya kuingia wakati wa kupitisha awali yanapata ValueId za chini, zinalingana na mpangilio wa block za backend. Maagizo yaliyotolewa wakati wa uteuzi wa maudhui yanapata ValueId za juu. Ramani ni thabiti kwa sababu pande zote mbili zinatembea block kwa mpangilio uleule.
 
 ### Kazi ya `patch_br_if_needed`
 Kazi hii ndiyo chanzo cha hitilafu 3 kati ya 6 za codegen. Inatembea CFG kurekebisha mizunguko ya kujirudia kwa malengo sahihi ya kuunganisha. Hitilafu zilitokea kwa sababu:

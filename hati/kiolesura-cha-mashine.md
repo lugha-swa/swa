@@ -38,7 +38,7 @@ Kanuni:
 
 1. `nje "<maktaba>" { ... }` ni tangazo la ngazi ya juu. Mfuatano ni
    jina la maktaba kama mfumo unavyoliita (data yao, si jina letu).
-2. Kila mstari ni kichwa cha kazi ya Swa bila mwili. `= "<alama>"`
+2. Kila mstari ni kichwa cha kazi ya Swa bila maudhui. `= "<alama>"`
    huunganisha jina letu na jina lao. Bila `=`, alama ni jina la Swa
    lenyewe.
 3. **Majina yetu ni ya Kiswahili kwa maana; majina yao ni mifuatano.**

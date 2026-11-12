@@ -12,15 +12,15 @@ kazi hiyo.
 
 **Faili:** `src/ir/lower.rs`
 
-**Hitilafu.** Wakati kiteremshaji cha IR kilipokutana na *tangazo la mbele* -- saini ya kazi isiyo na mwili, k.m.
+**Hitilafu.** Wakati kiteremshaji cha IR kilipokutana na *tangazo la mbele* -- saini ya kazi isiyo na maudhui, k.m.
 
 ```c
 N32 foo(Msambazaji* p);
 ```
 
-ilitoa ufafanuzi wa kazi ya LLVM bila masharti. Kwa kazi ambazo hazikuwa na mwili katika kitengo cha sasa cha utafsiri, hii ilizalisha *mwili tupu wa kazi* (ufafanuzi usio na vitalu vya msingi). Ikiwa ufafanuzi halisi wa kazi hiyo hiyo ulionekana baadaye katika kitengo cha utafsiri, kijisabuni tupu *kilifunika* -- kiunganishi cha LLVM kingeona ufafanuzi mbili kwa alama hiyo hiyo na kuchagua ya kwanza (tupu). Utekelezaji halisi ulikuwa msimbo uliokufa.
+ilitoa ufafanuzi wa kazi ya LLVM bila masharti. Kwa kazi ambazo hazikuwa na maudhui katika kitengo cha sasa cha utafsiri, hii ilizalisha *maudhui matupu ya kazi* (ufafanuzi usio na vitalu vya msingi). Ikiwa ufafanuzi halisi wa kazi hiyo hiyo ulionekana baadaye katika kitengo cha utafsiri, kijisabuni tupu *kilifunika* -- kiunganishi cha LLVM kingeona ufafanuzi mbili kwa alama hiyo hiyo na kuchagua ya kwanza (tupu). Utekelezaji halisi ulikuwa msimbo uliokufa.
 
-**Marekebisho.** Uchunguzi wa awali wa AST uliongezwa ili kukusanya seti ya majina ya kazi ambazo *zina* miili. Katika `lower_function`, ukaguzi uliingizwa: ikiwa kazi haina mwili **na** kazi yenye jina sawa na mwili ipo mahali pengine, kijisabuni tupu kinarukwa na ufafanuzi halisi pekee ndio unaotolewa.
+**Marekebisho.** Uchunguzi wa awali wa AST uliongezwa ili kukusanya seti ya majina ya kazi ambazo *zina* maudhui. Katika `lower_function`, ukaguzi uliingizwa: ikiwa kazi haina maudhui **na** kazi yenye jina sawa na maudhui ipo mahali pengine, kijisabuni tupu kinarukwa na ufafanuzi halisi pekee ndio unaotolewa.
 
 ---
 
@@ -126,7 +126,7 @@ Fikiria `N32 ast_aina[2048]` -- safu ya nambari kamili za baiti nne 2048 (jumla 
 
 **Faili:** `src/ir/lower.rs`
 
-**Hitilafu.** Katika `lower_block`, baada ya kutekeleza `lower_if`, mzunguko wa taarifa uliunganisha taarifa inayofuata moja kwa moja kutoka kwa block iliyorudishwa na `lower_if`. Kabla ya marekebisho, `lower_if` ilirudisha `merge_blk` -- block ya kuunganisha baada ya sharti na mwili wa `kama`. Hii ilifanya taarifa inayofuata ianze kutoka kwenye block ya kuunganisha, ambayo ilikuwa sahihi kwa mtiririko.
+**Hitilafu.** Katika `lower_block`, baada ya kutekeleza `lower_if`, mzunguko wa taarifa uliunganisha taarifa inayofuata moja kwa moja kutoka kwa block iliyorudishwa na `lower_if`. Kabla ya marekebisho, `lower_if` ilirudisha `merge_blk` -- block ya kuunganisha baada ya sharti na maudhui ya `kama`. Hii ilifanya taarifa inayofuata ianze kutoka kwenye block ya kuunganisha, ambayo ilikuwa sahihi kwa mtiririko.
 
 Lakini tatizo kubwa zaidi lilikuwa kwamba `lower_if` ilirudisha `cond_blk` baada ya kubadilisha muundo (marekebisho ya 8a), na `lower_block` haikuwa na mantiki ya kufuatilia block halisi ya mwendelezo. Baada ya sharti la `BrCond`, block inayofuata katika mfululizo inapaswa kuwa `merge_blk` (block ya kuunganisha), si `cond_blk` (block ya sharti). Bila ufuatiliaji huu, taarifa baada ya `kama` ilikuwa haiwezi kufikiwa kutoka kwenye njia za `then` na `else`, na block ya sharti ilianguka moja kwa moja kwenye taarifa inayofuata bila kupitia `merge_blk`.
 
@@ -136,7 +136,7 @@ Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (mzunguko wa kujirudia) h
 
 1. **`lower_if` inarudisha `cond_blk` badala ya `merge_blk`**:
    - `lower_block` sasa inaunganisha kianzio cha kitalu -> block ya sharti, si kianzio -> block ya kuunganisha.
-   - Hii inahakikisha kwamba sharti linatathminiwa kabla ya mwili wowote wa `kama` au `sivyo`.
+   - Hii inahakikisha kwamba sharti linatathminiwa kabla ya maudhui yoyote ya `kama` au `sivyo`.
 
 2. **`lower_block` inafuatilia `actual_prev` kutoka `BrCond`**:
    ```rust
@@ -177,9 +177,9 @@ Chanzo cha msingi: Kila marudio ya mzunguko wa `wakati` katika `changanua()` uli
 
 **Marekebisho.** Suluhisho linatumia mbinu ya kupitisha mara mbili katika `lower_function`:
 
-1. **Kupitisha awali (pre-pass) -- `collect_local_decls`**: Mbinu mpya inatembea AST ya mwili wa kazi na kukusanya nodi zote za `AST_TANGAZO` (matamko ya vigeu vya ndani) pamoja na aina zao zilizotatuliwa. Inajirudia kupitia `kushoto`, `kulia`, `tatu`, na `nne` ili kupata matamko yaliyowekwa ndani.
+1. **Kupitisha awali (pre-pass) -- `collect_local_decls`**: Mbinu mpya inatembea AST ya maudhui ya kazi na kukusanya nodi zote za `AST_TANGAZO` (matamko ya vigeu vya ndani) pamoja na aina zao zilizotatuliwa. Inajirudia kupitia `kushoto`, `kulia`, `tatu`, na `nne` ili kupata matamko yaliyowekwa ndani.
 
-2. **Utoaji wa alloca mapema**: Baada ya kupitisha awali, `lower_function` inatoa Alloca kwa kila kigezo cha ndani kwenye *block ya kuingia* (entry block) -- kabla ya mwili wowote kuchakatwa. Hii inahakikisha kwamba alloca zote za vigeu vya ndani ziko kwenye block ya kuingia, ambako zinatolewa mara moja tu kwa mzigo wote wa kazi. Ramani ya `pre_allocated_locals: HashMap<i32, ValueId>` inahifadhi uhusiano kati ya faharisi ya nodi ya AST na alloca ValueId.
+2. **Utoaji wa alloca mapema**: Baada ya kupitisha awali, `lower_function` inatoa Alloca kwa kila kigezo cha ndani kwenye *block ya kuingia* (entry block) -- kabla ya maudhui yoyote kuchakatwa. Hii inahakikisha kwamba alloca zote za vigeu vya ndani ziko kwenye block ya kuingia, ambako zinatolewa mara moja tu kwa mzigo wote wa kazi. Ramani ya `pre_allocated_locals: HashMap<i32, ValueId>` inahifadhi uhusiano kati ya faharisi ya nodi ya AST na alloca ValueId.
 
 3. **`lower_local_decl` inatumia alloca iliyotanguliwa**: Badala ya kutoa `Instruction::Alloca` mpya, `lower_local_decl` sasa inaangalia ramani ya `pre_allocated_locals` na kutumia ValueId iliyotengwa mapema. Kwa miundo ya sret, inaendelea kutumia kielekezi cha sret moja kwa moja (hakuna alloca ya ziada inayohitajika).
 
@@ -205,7 +205,7 @@ Chanzo cha msingi: Kila marudio ya mzunguko wa `wakati` katika `changanua()` uli
 W0 ruka_nafasi_na_maelezo(Msomaji* m);
 ```
 
-**Marekebisho.** Baada ya `changanua_kazi_mwili` kurudisha -1 (hakuna mwili), tumia `;` inayofuata.
+**Marekebisho.** Baada ya `changanua_kazi_maudhui` kurudisha -1 (hakuna maudhui), tumia `;` inayofuata.
 
 ---
 
@@ -231,7 +231,7 @@ W0 ruka_nafasi_na_maelezo(Msomaji* m);
 
 ### 12.2 Matumizi Maradufu ya `{`
 
-`changanua_kazi_vigezo` ilitumia `{` iliyowekwa ndani wakati wa kuchanganua vigezo vya kazi -- `{` hii ilikuwa ya mwili wa kazi.
+`changanua_kazi_vigezo` ilitumia `{` iliyowekwa ndani wakati wa kuchanganua vigezo vya kazi -- `{` hii ilikuwa ya maudhui ya kazi.
 
 **Marekebisho.** Usitumie `{` katika `changanua_kazi_vigezo` ikiwa `{` si sehemu ya vigezo.
 
@@ -253,7 +253,7 @@ Safu ya AST (AST_SAFU) yenye elementi 4096 haikutosha kwa faili zote za maktaba 
 
 | # | Hitilafu | Faili | Dalili | Sababu Kuu |
 |---|---------|-------|--------|------------|
-| 1 | Matamko ya mbele yanatoa vijisabuni vitupu | `src/ir/lower.rs` | Utekelezaji halisi umefunikwa | Hakuna ukaguzi wa kuwepo kwa mwili |
+| 1 | Matamko ya mbele yanatoa vijisabuni vitupu | `src/ir/lower.rs` | Utekelezaji halisi umefunikwa | Hakuna ukaguzi wa kuwepo kwa maudhui |
 | 2 | Hifadhi ya i64 kwa alloca ya i32 | `src/codegen/llvm/mod.rs` | Vigezo vya karibu vya mrundikano vimeharibika | Hakuna usawazishaji wa upana kwenye hifadhi |
 | 3 | Hifadhi ya i32 kwa sehemu ya muundo ya i64 | `src/codegen/llvm/mod.rs` | Takataka katika baiti 4 za juu | Ukaguzi wa upana ulitumia `>` badala ya `!=` |
 | 4 | FieldAddr inapuuza mpangilio | `src/codegen/llvm/mod.rs` | Sehemu isiyo sahihi ya muundo imefikiwa | Vianzio vimejumlishwa bila mpangilio |
@@ -265,6 +265,6 @@ Safu ya AST (AST_SAFU) yenye elementi 4096 haikutosha kwa faili zote za maktaba 
 | 10 | Tamko la mbele halitumii `;` | `msingi/mkusanyaji/msambazaji.swa` | Hitilafu ya "unexpected element" | Nukta mkato inavuja hadi kiwango cha juu |
 | 11 | Mzunguko wa `kwa` unashindwa | `msingi/mkusanyaji/msambazaji.swa` | `N32 i = 0` haichanganuliwi | Mchanganuzi unatumia usemi badala ya tamko |
 | 12a | `sogeza()` inakosa sehemu za tokeni | `msingi/mkusanyaji/msambazaji.swa`, `msingi/mkusanyaji/msomaji.swa` | Nambari za mistari ni 1 kila wakati | Kunakili sehemu 3 kati ya 5 tu |
-| 12b | Matumizi maradufu ya `{` | `msingi/mkusanyaji/msambazaji.swa` | Mwili wa kazi hauchanganuliwi | `{` inatumiwa katika vigezo |
+| 12b | Matumizi maradufu ya `{` | `msingi/mkusanyaji/msambazaji.swa` | Maudhui ya kazi hayachanganuliwi | `{` inatumiwa katika vigezo |
 | 12c | Hakuna unary minus | `msingi/mkusanyaji/msambazaji.swa` | `rudisha -1` haichanganuliwi | Alama ya `-` inaachwa |
 | 12d | Kufurika kwa safu ya AST | `msingi/mkusanyaji/msambazaji.swa` | Kufurika kwa safu kwenye faili nyingi | AST_SAFU (4096) ni ndogo sana |

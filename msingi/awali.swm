@@ -69,7 +69,7 @@ fafanua NODI_KIGEZO = 11
 fafanua NODI_KAMA = 12
 fafanua NODI_WAKATI = 13
 fafanua NODI_KWA = 14
-fafanua NODI_FANYA = 48   ; fanya..wakati -- mzunguko wa mwili-kwanza
+fafanua NODI_FANYA = 48   ; fanya..wakati -- mzunguko wa maudhui-kwanza
 fafanua NODI_ACHA = 15
 fafanua NODI_ENEKEZA = 16
 fafanua NODI_LINGA = 17
@@ -3246,7 +3246,7 @@ changanua_taarifa:
         ita changanua_kundi
         r14d = r0d
 .hapana_sivyo:
-        ; Unda nodi ya kama: kushoto=hali, kulia=mwili, tiga=sivyo
+        ; Unda nodi ya kama: kushoto=hali, kulia=maudhui, tiga=sivyo
         r8d = NODI_KAMA
         r9d = r12d
         r10d = r13d
@@ -3331,9 +3331,9 @@ changanua_taarifa:
         n64[kina_mzunguko]++   ; mzunguko umefunguka (8.13)
         ita changanua_kundi
         n64[kina_mzunguko]--
-        r9d = r0d   ; mwili asili (au -1)
+        r9d = r0d   ; maudhui asili (au -1)
 
-        ; Funga mwili kwenye MTI_KUNDI (mfululizo uko kwenye mti_kushoto)
+        ; Funga maudhui kwenye MTI_KUNDI (mfululizo uko kwenye mti_kushoto)
         r10d = -1
         r11d = -1
         r8d = NODI_KUNDI
@@ -3375,7 +3375,7 @@ changanua_taarifa:
         n32[nne_ya_nodi + r9*4] = r15d
 .kwa_hakuna_hatua_p:
 
-        ; MTI_WAKATI: kushoto=hali, kulia=mwili, tiga=anzisha
+        ; MTI_WAKATI: kushoto=hali, kulia=maudhui, tiga=anzisha
         r9d = r14d
         r10d = r8d
         r11d = r13d
@@ -3384,8 +3384,8 @@ changanua_taarifa:
         ruka .kwisha
 
 .sio_kwa:
-        ; Angalia ikiwa ni "fanya" (fanya { mwili } wakati (sharti); --
-        ; mwili hutekelezwa mara moja kabla ya sharti kujaribiwa)
+        ; Angalia ikiwa ni "fanya" (fanya { maudhui } wakati (sharti); --
+        ; maudhui hutekelezwa mara moja kabla ya sharti kujaribiwa)
         r2 = &[kw_fanya]
         ita linganisha_neno_muhimu
         linganisha r0d, 0
@@ -3393,7 +3393,7 @@ changanua_taarifa:
 
         n64[mahali_tokeni]++   ; tumia "fanya"
 
-        ; Mwili wa fanya: { ... } -- mabano ya mwili ni ya lazima.
+        ; Maudhui ya fanya: { ... } -- mabano ya maudhui ni ya lazima.
         ; Angalia tu (bila kula) -- changanua_kundi ndicho hula {
         r7 = n64[mahali_tokeni]
         linganisha n32[aina_tokeni + r7*4], TOKENI_FUNGO
@@ -3402,9 +3402,9 @@ changanua_taarifa:
         n64[kina_mzunguko]++   ; mzunguko umefunguka (8.13)
         ita changanua_kundi
         n64[kina_mzunguko]--
-        r13d = r0d   ; r13 = mwili (MTI_KUNDI)
+        r13d = r0d   ; r13 = maudhui (MTI_KUNDI)
 
-        ; Sharti la fanya: neno "wakati" (hali baada ya mwili)
+        ; Sharti la fanya: neno "wakati" (hali baada ya maudhui)
         r7 = n64[mahali_tokeni]
         linganisha n32[aina_tokeni + r7*4], TOKENI_NENO
         ruka .fanya_kosa kama !=
@@ -3427,7 +3427,7 @@ changanua_taarifa:
         linganisha r0d, 1
         ruka .fanya_kosa kama !=
 
-        ; MTI_FANYA: kushoto=hali, kulia=mwili (sawa na MTI_WAKATI);
+        ; MTI_FANYA: kushoto=hali, kulia=maudhui (sawa na MTI_WAKATI);
         ; tiga haitumiki
         r8d = NODI_FANYA
         r9d = r14d
@@ -3437,7 +3437,7 @@ changanua_taarifa:
         ruka .tarajia_nukta_mkato
 
 .fanya_kosa:
-        ; Fanya yenye muundo mbovu (mwili umeshamezwa) -- kosa la
+        ; Fanya yenye muundo mbovu (maudhui yameshamezwa) -- kosa la
         ; sauti, si kurudi nyuma
         r7 = &[ujumbe_kosa_changanua]
         ita andika_mfuatano
@@ -4016,19 +4016,19 @@ changanua_kazi:
         linganisha r0d, 1
         ruka .shindwa_funga_mabano kama !=
 
-        ; Angalia ikiwa ni tangazo la mbele (;) au mwili ({)
+        ; Angalia ikiwa ni tangazo la mbele (;) au maudhui ({)
         r7 = n64[mahali_tokeni]
         linganisha n32[aina_tokeni + r7*4], TOKENI_NUKTA_MKATO
         ruka .tangazo_mbele kama ==
 
-        ; Changanua mwili (block)
+        ; Changanua maudhui (block)
         ita changanua_kundi
-        r14d = r0d   ; mwili
+        r14d = r0d   ; maudhui
 
         ; Unda nodi ya kazi
         r8d = NODI_KAZI
         r9d = r13d   ; vigezo
-        r10d = r14d   ; mwili
+        r10d = r14d   ; maudhui
         r11d = -1
         ita nodi_mpya
         r1 = n64[idadi_ya_nodi]
@@ -4056,10 +4056,10 @@ changanua_kazi:
 
 .tangazo_mbele:
         n64[mahali_tokeni]++   ; tumia ;
-        ; Unda nodi ya kazi isiyo na mwili
+        ; Unda nodi ya kazi isiyo na maudhui
         r8d = NODI_KAZI
         r9d = r13d
-        r10d = -1   ; mwili = -1
+        r10d = -1   ; maudhui = -1
         r11d = -1
         ita nodi_mpya
         r1 = n64[idadi_ya_nodi]
@@ -12359,7 +12359,7 @@ uzalishaji_kama:
 
         r12d = r12d
         r13d = n32[nodi_ya_kushoto + r12*4]   ; hali
-        r14d = n32[nodi_ya_kulia + r12*4]   ; mwili
+        r14d = n32[nodi_ya_kulia + r12*4]   ; maudhui
         r15d = n32[tatu_ya_nodi + r12*4]   ; sivyo (au -1)
 
         ; Zalisha hali -> matokeo kwenye eax
@@ -12385,7 +12385,7 @@ uzalishaji_kama:
         r7d ^= r7d
         ita zalisha_neno4   ; andika baiti 4 za 0 (kishikilia)
 
-        ; Zalisha mwili wa kama
+        ; Zalisha maudhui ya kama
         sukuma n64[ndani_idadi]   ; upeo wa kizuizi: hifadhi hesabu ya vigezo vya ndani
         sukuma r12
         sukuma r8   ; hifadhi r8d (nafasi ya urekebishaji ya je) -- uzalishaji_mti inaharibu r8d
@@ -12400,15 +12400,15 @@ uzalishaji_kama:
         ruka .hapana_sivyo kama ==
 
         ; ===== Kuna sivyo =====
-        ; Toa jmp isiyo na masharti kuruka juu ya mwili wa sivyo
+        ; Toa jmp isiyo na masharti kuruka juu ya maudhui ya sivyo
         r0b = 0xe9   ; jmp rel32
         ita zalisha_baiti
         r9d = n32[chombo_cha_msimbo_wapi]   ; hifadhi nafasi ya urekebishaji ya jmp
         r7d ^= r7d
         ita zalisha_neno4   ; kishikilia cha jmp
 
-        ; Rekebisha je: elekeza kwenye mwanzo wa mwili wa sivyo
-        r7d = n32[chombo_cha_msimbo_wapi]   ; hapa ndipo mwili wa sivyo unaanzia
+        ; Rekebisha je: elekeza kwenye mwanzo wa maudhui ya sivyo
+        r7d = n32[chombo_cha_msimbo_wapi]   ; hapa ndipo maudhui ya sivyo yanaanzia
         r7d -= r8d   ; umbali kutoka urekebishaji
         r7d -= 4   ; toa ukubwa wa kishikilia chenyewe
 
@@ -12417,7 +12417,7 @@ uzalishaji_kama:
         ita zalisha_neno4   ; andika umbali sahihi wa je
         n32[chombo_cha_msimbo_wapi] = r10d   ; rejesha nafasi
 
-        ; Zalisha mwili wa sivyo
+        ; Zalisha maudhui ya sivyo
         sukuma n64[ndani_idadi]   ; upeo wa kizuizi: hifadhi hesabu ya vigezo vya ndani
         sukuma r12
         sukuma r9   ; hifadhi r9d (nafasi ya urekebishaji ya jmp) -- uzalishaji_mti inaharibu r9d
@@ -12427,8 +12427,8 @@ uzalishaji_kama:
         vuta r12
         vuta n64[ndani_idadi]   ; rejesha upeo wa nje
 
-        ; Rekebisha jmp: elekeza baada ya mwili wa sivyo
-        r7d = n32[chombo_cha_msimbo_wapi]   ; mwisho wa mwili wa sivyo
+        ; Rekebisha jmp: elekeza baada ya maudhui ya sivyo
+        r7d = n32[chombo_cha_msimbo_wapi]   ; mwisho wa maudhui ya sivyo
         r7d -= r9d   ; umbali kutoka urekebishaji ya jmp
         r7d -= 4   ; toa ukubwa wa kishikilia
 
@@ -12440,8 +12440,8 @@ uzalishaji_kama:
         ruka .kwisha
 
 .hapana_sivyo:
-        ; Rekebisha je: elekeza baada ya mwili wa kama
-        r7d = n32[chombo_cha_msimbo_wapi]   ; mwisho wa mwili
+        ; Rekebisha je: elekeza baada ya maudhui ya kama
+        r7d = n32[chombo_cha_msimbo_wapi]   ; mwisho wa maudhui
         r7d -= r8d   ; umbali kutoka urekebishaji
         r7d -= 4   ; toa ukubwa wa kishikilia
 
@@ -12469,7 +12469,7 @@ uzalishaji_wakati:
         sukuma r15
 
         r13d = n32[nodi_ya_kushoto + r12*4]   ; hali ya mzunguko
-        r14d = n32[nodi_ya_kulia + r12*4]   ; mwili wa mzunguko
+        r14d = n32[nodi_ya_kulia + r12*4]   ; maudhui ya mzunguko
 
         ; Anzisha ya kwa (mti_tiga) -- itolewe kabla ya mzunguko
         r15d = n32[tatu_ya_nodi + r12*4]
@@ -12498,7 +12498,7 @@ uzalishaji_wakati:
         ; Kama hapo juu: hesabu inakuwa base, hairejeshwi kwenye 0
         r0 = n64[endelea_rekebisho_idadi]
         sukuma r0
-        ; Alama ya has_step ya kwa (kulia ya block ya mwili)
+        ; Alama ya has_step ya kwa (kulia ya block ya maudhui)
         r9d = 0
         linganisha n32[nodi_ya_kulia + r14*4], -777777
         ruka .sio_hatua_mzunguko kama !=
@@ -12531,7 +12531,7 @@ uzalishaji_wakati:
 
 .mzunguko_kipofu:
 
-        ; Zalisha mwili wa mzunguko
+        ; Zalisha maudhui ya mzunguko
         sukuma n64[ndani_idadi]   ; upeo wa kizuizi: hifadhi hesabu ya vigezo vya ndani
         sukuma r12
         sukuma r8
@@ -12561,7 +12561,7 @@ uzalishaji_wakati:
 
         ; Rekebisha jz: elekeza mwisho wa mzunguko
         ; (mzunguko kipofu: hakuna jz -- ruka; hali inasomwa upya kutoka AST
-        ; kwa sababu r13d imeharibiwa na mkusanyaji wa mwili)
+        ; kwa sababu r13d imeharibiwa na mkusanyaji wa maudhui)
         linganisha n32[nodi_ya_kushoto + r12*4], -1
         ruka .mzunguko_kipofu_sifuri_kwisha kama ==
         r7d = n32[chombo_cha_msimbo_wapi]   ; mwisho wa mzunguko
@@ -12639,9 +12639,9 @@ uzalishaji_wakati:
 
 ; -------------------------------------------------------
 ; uzalishaji_fanya: zalisha msimbo kwa mzunguko wa fanya..wakati
-;   r12d = faharisi ya nodi (kushoto=hali, kulia=mwili)
-;   Mpangilio: mwili huzalishwa KWANZA, kisha hali, kisha jz
-;   ya kutoka; jmp ya mwisho inarudi mwanzo wa mwili. endelea
+;   r12d = faharisi ya nodi (kushoto=hali, kulia=maudhui)
+;   Mpangilio: maudhui huzalishwa KWANZA, kisha hali, kisha jz
+;   ya kutoka; jmp ya mwisho inarudi mwanzo wa maudhui. endelea
 ;   inaruka hadi hali (semantiki ya C ya fanya..wakati); vunja
 ;   inaruka hadi mwisho wa mzunguko. Hufuata muundo wa
 ;   uzalishaji_wakati: mipaka ya urekebishaji iko kwenye mrundikano.
@@ -12653,7 +12653,7 @@ uzalishaji_fanya:
         sukuma r15
 
         r13d = n32[nodi_ya_kushoto + r12*4]   ; hali ya mzunguko
-        r14d = n32[nodi_ya_kulia + r12*4]   ; mwili wa mzunguko
+        r14d = n32[nodi_ya_kulia + r12*4]   ; maudhui ya mzunguko
 
         ; Hifadhi hali ya vunja ya awali (kwa mizunguko iliyo ndani)
         r0 = n64[acha_rekebisho_idadi]
@@ -12662,10 +12662,10 @@ uzalishaji_fanya:
         r0 = n64[endelea_rekebisho_idadi]
         sukuma r0
 
-        ; Rekodi mwanzo wa mwili -- lengo la jmp ya kurudi nyuma
-        r15d = n32[chombo_cha_msimbo_wapi]   ; mwili_pos
+        ; Rekodi mwanzo wa maudhui -- lengo la jmp ya kurudi nyuma
+        r15d = n32[chombo_cha_msimbo_wapi]   ; maudhui_pos
 
-        ; Zalisha mwili -- mwili hutekelezwa mara moja kabla ya hali
+        ; Zalisha maudhui -- maudhui hutekelezwa mara moja kabla ya hali
         sukuma n64[ndani_idadi]   ; upeo wa kizuizi: hifadhi hesabu ya vigezo vya ndani
         sukuma r12
         sukuma r15
@@ -12676,11 +12676,11 @@ uzalishaji_fanya:
         vuta n64[ndani_idadi]   ; rejesha upeo wa nje
 
         ; Lengo la endelea ni hali: endelea inaruka hadi tathmini
-        ; ya sharti, si mwisho wa mwili (semantiki ya C)
+        ; ya sharti, si mwisho wa maudhui (semantiki ya C)
         r0 = n64[chombo_cha_msimbo_wapi]   ; hali_pos
         n64[cl_lengo] = r0
 
-        ; Zalisha hali -- faharisi yake imeharibiwa iwapo na mwili;
+        ; Zalisha hali -- faharisi yake imeharibiwa iwapo na maudhui;
         ; isome upya kutoka AST
         sukuma r12
         sukuma r13
@@ -12706,17 +12706,17 @@ uzalishaji_fanya:
         r7d ^= r7d
         ita zalisha_neno4   ; kishikilia cha baiti 4
 
-        ; jmp rel32 kurudi mwanzo wa mwili
+        ; jmp rel32 kurudi mwanzo wa maudhui
         r0b = 0xe9
         ita zalisha_baiti
         r9d = n32[chombo_cha_msimbo_wapi]   ; nafasi ya urekebishaji ya jmp
         r7d ^= r7d
         ita zalisha_neno4   ; kishikilia cha baiti 4
 
-        ; Kokotoa umbali wa kuruka nyuma: mwili_pos - urekebishaji_pos - 4
-        r7d = r15d   ; mwili_pos
-        r7d -= r9d   ; mwili_pos - urekebishaji_pos
-        r7d -= 4   ; mwili_pos - urekebishaji_pos - 4
+        ; Kokotoa umbali wa kuruka nyuma: maudhui_pos - urekebishaji_pos - 4
+        r7d = r15d   ; maudhui_pos
+        r7d -= r9d   ; maudhui_pos - urekebishaji_pos
+        r7d -= 4   ; maudhui_pos - urekebishaji_pos - 4
         r10d = n32[chombo_cha_msimbo_wapi]
         n32[chombo_cha_msimbo_wapi] = r9d
         ita zalisha_neno4   ; andika umbali sahihi wa jmp
@@ -12837,7 +12837,7 @@ uzalishaji_kazi:
 
         r12d = r12d
         r13d = n32[thamani_ya_nodi + r12*4]   ; aina ya kurudi
-        r14d = n32[nodi_ya_kulia + r12*4]   ; mwili
+        r14d = n32[nodi_ya_kulia + r12*4]   ; maudhui
         r15d = n32[umbali_wa_jina_la_nodi + r12*4]   ; umbali wa jina
 
         ; Tambua kazi inayorudisha muundo (sret)
@@ -12866,7 +12866,7 @@ uzalishaji_kazi:
         r6 = &[ghala_la_mifuatano + r15]
 
         ; Kagua marudio ya jina la kazi. Swa haina maeneo ya majina:
-        ; jina la ngazi ya juu (kazi yenye mwili, kigezo cha ulimwengu,
+        ; jina la ngazi ya juu (kazi yenye maudhui, kigezo cha ulimwengu,
         ; au muundo) ni la ulimwengu. Zamani ufafanuzi wa pili ulipita
         ; kimya na wa kwanza ukashinda -- hatari kwa maktaba zilizo-
         ; unganishwa kwa cat. Sasa ni kosa la kufa, sawa na mfululizo
@@ -13002,7 +13002,7 @@ uzalishaji_kazi:
         ita zalisha_baiti
 
         ; Hifadhi vigezo vya kazi (parameters) kwenye mrundikano
-        sukuma r14   ; hifadhi nodi ya mwili
+        sukuma r14   ; hifadhi nodi ya maudhui
         sukuma r13   ; hifadhi faharisi ya mahali
 
         r10d = n32[nodi_ya_kushoto + r12*4]   ; orodha ya vigezo
@@ -13365,7 +13365,7 @@ uzalishaji_kazi:
         ruka .kigezo_mzunguko
 .vigezo_kwisha:
         vuta r13   ; rejesha faharisi ya mahali
-        vuta r14   ; rejesha nodi ya mwili
+        vuta r14   ; rejesha nodi ya maudhui
 
         ; kiunzi_wapi: sehemu ya kwanza ya ndani ni baada ya vigezo vyote
         r7 = n64[ndani_idadi]
@@ -13373,7 +13373,7 @@ uzalishaji_kazi:
         r7 = r7 * 8
         n64[kiunzi_wapi] = r7
 
-        ; Zalisha mwili
+        ; Zalisha maudhui
         linganisha r14d, -1
         ruka .hapana_maudhui kama ==
         sukuma r12
@@ -13412,7 +13412,7 @@ uzalishaji_kazi:
         r7 += 8
         ruka .fr_imepita
 .fr_hakuna_jaza:
-        ; Kwa sret, push r10 tayari imetumia baiti 8 -- ongeza ili mwili ubaki 16-aligned
+        ; Kwa sret, push r10 tayari imetumia baiti 8 -- ongeza ili maudhui yabaki 16-aligned
         linganisha n32[kazi_rudisha_muundo_namba], 0
         ruka .fr_imepita kama <n
         r7 += 8
@@ -14417,7 +14417,7 @@ anza:
         linganisha n32[aina_ya_nodi + r13*4], NODI_KAZI
         ruka .zalisha_ifuatayo kama !=
 
-        ; Angalia ikiwa kazi ina mwili (sio tangazo la mbele)
+        ; Angalia ikiwa kazi ina maudhui (sio tangazo la mbele)
         linganisha n32[nodi_ya_kulia + r13*4], -1
         ruka .zalisha_ifuatayo kama ==
 
