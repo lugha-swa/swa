@@ -1,5 +1,5 @@
 ; =============================================================================
-; kusanyiko.swm -- assembler ya lugha ya mashine ya Swa (hati/kusanyiko-x86.md),
+; kusanyiko.swm -- kusanyiko la lugha ya mashine ya Swa (hati/kusanyiko-x86.md),
 ; imeandikwa kwa lugha hiyo hiyo.
 ;
 ; Ujenzi (mfululizo huru, hati/mfululizo-huru.md):
@@ -1094,7 +1094,7 @@ nr_ndiyo:
 nr_m:
         rudi
 
-; rex: r7d = W(0/1), r6d = reg (R), r2d = rm (B), r1d = upana; huandika REX ikihitajika.
+; rex: r7d = W(0/1), r6d = rejista (R), r2d = rm (B), r1d = upana; huandika REX ikihitajika.
 ; Rejista za baiti 4-7 (r4b..r7b) zinahitaji REX tupu (0x40).
 zalisha_rex:
         r0d ^= r0d
@@ -1625,7 +1625,7 @@ usemi_ya_tokeni_zidisha:
         n64[r15+V_MAHALI_SASA] = r7
         ruka usemi_zidisha
 
-; zalisha_rex_hoja: r7d = W, r6d = sehemu ya reg, r2 = rekodi ya r/m, r1d = upana
+; zalisha_rex_hoja: r7d = W, r6d = sehemu ya rejista, r2 = rekodi ya r/m, r1d = upana
 ; (rejista za baiti 4-7 zinahitaji REX tupu).
 zalisha_rex_hoja:
         r0d ^= r0d
@@ -1675,7 +1675,7 @@ trh_8:
         ruka trh_zalisha kama <a
         linganisha r6d, 8
         ruka trh_zalisha kama >=a
-        linganisha n32[r15+V_REJISTA_BAITI], 1   ; sehemu ya reg ni rejista ya baiti
+        linganisha n32[r15+V_REJISTA_BAITI], 1   ; sehemu ya rejista ni rejista ya baiti
         ruka trh_zalisha kama !=
         r0d |= 0x40
 trh_zalisha:
@@ -1688,7 +1688,7 @@ trh_zalisha:
 trh_m:
         rudi
 
-; zalisha_modrm: r6d = sehemu ya reg (biti 3 za chini), r2 = rekodi, r1d = baiti
+; zalisha_modrm: r6d = sehemu ya rejista (biti 3 za chini), r2 = rekodi, r1d = baiti
 ; za namba zinazofuata (kwa kutoka agizo).
 zalisha_modrm:
         r9d = r6d
@@ -1836,7 +1836,7 @@ kb_m:
         rudi
 
 ; agizo_rm: agizo lenye ModRM. Hoja: r12d = upana (baiti), r6d = sehemu ya
-; reg, r2 = rekodi ya r/m, r13d = opkodi (baiti 1, au 0x0Fxx kwa baiti 2:
+; rejista, r2 = rekodi ya r/m, r13d = opkodi (baiti 1, au 0x0Fxx kwa baiti 2:
 ; 0x0F00 | xx), r1d = baiti za namba zinazofuata (kutoka agizo). Huandika 66, REX,
 ; opkodi, ModRM/SIB/umbali.
 agizo_rm:
@@ -1989,7 +1989,7 @@ hesabu_kawaida:
         ruka hesabu_namba kama ==
         linganisha n64[r7], 1
         ruka hesabu_r_m kama !=
-; chanzo ni rejista: r/m, reg  (op*8 + 1, au +0 kwa baiti)
+; chanzo ni rejista: r/m, rejista  (op*8 + 1, au +0 kwa baiti)
         r6d = n32[r7+8]
         r2 = r3
         linganisha r12d, 1
@@ -2003,7 +2003,7 @@ hesabu_kawaida:
         r1d ^= r1d
         ruka agizo_rm
 hesabu_r_m:
-; lengo rejista, chanzo kumbukumbu: reg, r/m (op*8 + 3, au +2)
+; lengo rejista, chanzo kumbukumbu: rejista, r/m (op*8 + 3, au +2)
         linganisha n64[r3], 1
         ruka kosa_sintaksia kama !=
         r6d = n32[r3+8]
@@ -2157,7 +2157,7 @@ sg_ib:
         vuta r0
         ruka zalisha_baiti
 
-; *= : 0F AF /r (reg, r/m)
+; *= : 0F AF /r (rejista, r/m)
 ag_zidisha:
         ita upana_ab
         r3 = hoja_lengo
@@ -2209,7 +2209,7 @@ ag_hamisha:
         ruka hm_panua kama >a
         ruka kosa_upana
 hm_hamisha_rm:
-; reg = r/m : 8B /r (8A baiti)
+; rejista = r/m : 8B /r (8A baiti)
         ita upana_ab
         r6d = n32[r3+8]
         r2 = r7
@@ -2362,7 +2362,7 @@ hm_r_namba:
         r0 = n64[r7+48]
         ruka hamisha_namba
 hm_anwani:
-; reg = &kum : 8D /r (lea, biti 64)
+; rejista = &kum : 8D /r (lea, biti 64)
         linganisha n64[r3], 1
         ruka kosa_sintaksia kama !=
         r12d = n32[r3+16]
@@ -2604,7 +2604,7 @@ agizo_pima:
         r7 = hoja_chanzo
         linganisha n64[r7], 3
         ruka pm_namba kama ==
-; 85 /r (84 baiti): r/m = A, reg = B
+; 85 /r (84 baiti): r/m = A, rejista = B
         r6d = n32[r7+8]
         r2 = r3
         n32[r15+V_REJISTA_BAITI] = 1

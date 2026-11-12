@@ -53,7 +53,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 | kazi_param_enc[4096] (mkaguzi) | 4096 | kama < 4096 tu | SALAMA KWA UTHIBITISHO (vigezo vya kazi <= 8) |
 | ast_*[65536] (msambazaji) | 65,536 | inachapisha + rudisha -1 | SALAMA KWA SAUTI (inachapisha) |
 | ast_pool (msambazaji) | 4 MB | inachapisha + rudisha | SALAMA KWA SAUTI (inachapisha) |
-| chombo_cha_msimbo (uzalishaji) | 512 KB | andika_baiti -> KOSA kwa sauti + flag | SALAMA KWA SAUTI |
+| chombo_cha_msimbo (uzalishaji) | 512 KB | andika_baiti -> KOSA kwa sauti + kiashiria | SALAMA KWA SAUTI |
 | chombo_cha_data (uzalishaji) | 256 KB | kama hapo juu | SALAMA KWA SAUTI |
 | lebo_*[2048] (uzalishaji) | 2048 | idadi_ya_mahali < 2048 | SALAMA KWA UTHIBITISHO (kazi ~350) |
 | urekebishaji_*[65536] (uzalishaji) | 65,536 | urekebishaji_idadi < 65536 | SALAMA KWA UTHIBITISHO (urekebishaji <= mahali ~2048) |
@@ -84,7 +84,7 @@ unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la hitilafu ya
 2. **Ukaguzi wa kwanza wa "abort za sauti" ulikuwa na hitilafu ya
    makutano** (njia ya kawaida iliangukia kwenye mahali pa abort) --
    darasa lilelile lililotokea wakati wa PR #151. Kanuni ya nne ya
-   sheria ya chanzo cha uaminifu (angalia fallthrough ya kila mahali)
+   sheria ya chanzo cha uaminifu (angalia mwanguko ya kila mahali)
    inathibitishwa tena. Jaribio la kabla ya kugandisha lililipata.
 3. Majedwali yote ya awali sasa yana ukaguzi unaolia au uthibitisho
    ulioandikwa -- darasa la hitilafu ya "ukubwa wa kukisia" limefungwa

@@ -105,7 +105,7 @@ nje utaita Swa. Swa lazima:
     huweka `r11 = sloti za mrundikano` na `r0d = rejesta za xmm zilizotumika`
     (r0b ya System V, kikomo 8) mara kabla ya `ita`; kipande hunakili
     sloti r11 kwa mzunguko. Hoja ya ziada ya `d32` ni kosa: C hupandisha
-    float kuwa double, hivyo `d64` itumike.
+    desimali kuwa d64, hivyo `d64` itumike.
   - Data ya maktaba (awamu 2): `n8* mkondo = "stdout";` ndani ya `nje`
     ni kigezo cha ulimwengu cha Swa kwenye .data (kianzio 0). Alama yake
     imefafanuliwa kwenye dynsym (STT_OBJECT, SHN_ABS, ukubwa wake), na
@@ -132,7 +132,7 @@ Swa na System V hupitisha muundo kwa njia tofauti:
 
 Darasa la baiti-8: INTEGER ikiwa sehemu yoyote ndani yake si desimali
 (kielekezi na namba ni INTEGER), SSE vinginevyo; `{ n32; d32; }` ni
-INTEGER moja, `{ d32; d32; }` ni SSE moja (float mbili ndani ya xmm
+INTEGER moja, `{ d32; d32; }` ni SSE moja (desimali mbili ndani ya xmm
 moja). Muundo ndani ya muundo huainishwa kwa sehemu zake za ndani.
 Muundo wa baiti <= 16 usiopata rejesta za kutosha kwa baiti-8 zake
 zote huenda kwenye mrundikano wote -- lakini hoja zinazofuata bado hupata rejesta

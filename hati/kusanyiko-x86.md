@@ -1,6 +1,6 @@
 # Lugha ya mashine ya Swa (x86-64) -- hatua 4 ya mfululizo huru
 
-Lugha ambayo `awali` itaandikwa nayo, na ambayo assembler ya hatua 4 husoma. Si tafsiri ya majina ya Intel: imebuniwa kwa **maana**, kwa familia za aina za Swa.
+Lugha ambayo `awali` itaandikwa nayo, na ambayo kusanyiko la hatua 4 husoma. Si tafsiri ya majina ya Intel: imebuniwa kwa **maana**, kwa familia za aina za Swa.
 
 ## Kanuni
 
@@ -93,7 +93,7 @@ Mahali: `jina:` na za ndani `.jina:` (za wigo wa mahali palipotangulia). Program
 
 ## Picha tambarare na biti 32
 
-Kwa kianzio cha kernel (Multiboot) na programu zisizo na mfumo wa uendeshaji:
+Kwa kianzio cha kiini (Multiboot) na programu zisizo na mfumo wa uendeshaji:
 
 | Agizo | Maana |
 |---|---|

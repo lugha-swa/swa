@@ -12,10 +12,10 @@
 
 ## Hatua ya 0: Mkusanyaji wa Bootstrap wa Rust [PASS] IMEFANIKIWA
 
-- [x] Lexer, parser, semantic analyzer
+- [x] Lexer, mchanganuzi, semantic analyzer
 - [x] IR lowering (AST -> Swa IR)
-- [x] LLVM codegen (x86-64 native binaries)
-- [x] ABI classification (sret, struct returns)
+- [x] LLVM uzalishaji (x86-64 native binari)
+- [x] ABI classification (matokeo ya muundo, struct returns)
 - [x] Majaribio 265/265 mfululizo wa Swa + 232/232 Rust
 
 ## Hatua ya 1: Kujikusanya kwa Msingi [PASS] IMEFANIKIWA
@@ -25,14 +25,14 @@
 - [x] Mkaguzi wa kisemantiki (`mkaguzi.swa`) -- makosa 0 kwenye kujikusanya
 - [x] Kizalishaji cha native x86-64 (`uzalishaji.swa`)
 - [x] Binary inajikusanya (K6 inapita)
-- [x] Vipengele vya lugha vinavyotumika: functions, loops (wakati/hali), if/else, structs, heap, unary minus, break/continue, short-circuit evaluation, assignment, bitwise ops, ternary
-- [x] Safu za ndani, hoja za mrundikano (7+), disp32, sret, vigezo vya ulimwengu kwa RIP-relative
+- [x] Vipengele vya lugha vinavyotumika: functions, mizunguko (wakati/hali), if/else, structs, lundo, unary minus, break/continue, short-circuit evaluation, assignment, bitwise ops, ternary
+- [x] Safu za ndani, hoja za mrundikano (7+), disp32, matokeo ya muundo, vigezo vya ulimwengu kwa RIP-relative
 
 ## Hatua ya 2: Mkusanyaji Kamili wa Kujikusanya [PASS] IMEFANIKIWA
 
 ### Mfululizo wa Kujikusanya wa Sasa
 
-1. `kwanza.bin` (baiti za mkono, hex -> binary) hutoa `awali.bin` kutoka `awali.heksa`
+1. `kwanza.bin` (baiti za mkono, heksa -> binari) hutoa `awali.bin` kutoka `awali.heksa`
 2. `awali --programu` (syscalls pekee, hakuna kiunganishi) hukusanya `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` -> `kamili`
 3. `kamili --programu` inajikusanya maktaba -> `kamili2`
 4. `kamili2 --programu` inajikusanya -> `kamili3`
@@ -90,7 +90,7 @@ asilia (awali/exe) -- uzalishaji unakataa kwa sauti, awali kimya.
 ## Hatua ya 3: Kuondoa Utegemezi wa Rust [PASS] IMEFANIKIWA
 
 - [x] Mkusanyaji wa Swa unajikusanya **bila kutumia kande**
-- [x] Bootstrap inafungwa: awali -> Swa -> Swa -> binary
+- [x] Bootstrap inafungwa: awali -> Swa -> Swa -> binari
 - [x] Uthibitisho: kamili2 == kamili3 sawa kwa baiti
 - [!] Rust `kande` inabaki kama chombo cha vipimo na ukuzaji (CI) tu --
       si sehemu ya mfululizo wa uzalishaji
@@ -98,16 +98,16 @@ asilia (awali/exe) -- uzalishaji unakataa kwa sauti, awali kimya.
 
 ## Hatua ya 4: Kuondoa Utegemezi wa LLVM [PASS kwa mfululizo] IMEFANIKIWA
 
-- [x] Native x86-64 backend (uzalishaji.swa) inazalisha binary bila LLVM
+- [x] Native x86-64 backend (uzalishaji.swa) inazalisha binari bila LLVM
 - [x] Mfululizo wa kujikusanya haugusi LLVM kabisa
-- [x] Uthibitisho: Swa inajikusanya kupitia mfululizo kamili wa Swa -> Swa -> binary
+- [x] Uthibitisho: Swa inajikusanya kupitia mfululizo kamili wa Swa -> Swa -> binari
 - [!] LLVM inabaki ndani ya dereva wa Rust wa vipimo pekee
       (2026-09-05: imehamishiwa lugha-swa/swa-dereva)
 
 ## Hatua ya 5: Kuziba Pengo la Mwisho la Bootstrap [IMEFANYIKA]
 
 - [x] **Baiti za mkono:** Kwanza (msingi/kwanza.bin) -- baiti 393 zilizoandikwa
-      kwa mkono (ELF 64 + maelezo ya kipande 56 + msimbo 273) hubadilisha hex hadi binary.
+      kwa mkono (ELF 64 + maelezo ya kipande 56 + msimbo 273) hubadilisha heksa hadi binari.
       Inajijenga (kwanza.heksa -> kwanza.bin) na inazalisha awali.bin kutoka
       awali.heksa -- NASM si sehemu ya mfululizo wa uzalishaji tena.
       Uthibitisho: gharama/mfululizo.mapishi (pia kwenye CI).
@@ -115,10 +115,10 @@ asilia (awali/exe) -- uzalishaji unakataa kwa sauti, awali kimya.
       tuli (syscalls pekee, hakuna maelezo ya sehemu) -- kamili2
       inajijenga yenyewe sawa kwa baiti (kamili3) bila ld/gcc/libc.
       Marejeo ya ndani yanatatuliwa na mkusanyaji mwenyewe (RELA-patch
-      + jedwali la mahali); `_start` inaitwa moja kwa moja na kernel.
+      + jedwali la mahali); `_start` inaitwa moja kwa moja na kiini.
 - [x] **Runtime ya syscalls:** mkusanyaji hautekelezi kupitia libc tena
       (PR #149) -- faili, mmap, na uchapishaji kupitia syscalls.
-- [x] **0% bootstrap gap:** awali inatoa ET_EXEC tuli moja kwa moja
+- [x] **0% kujianzisha gap:** awali inatoa ET_EXEC tuli moja kwa moja
       (`--programu`) -- utangulizi (64) + maelezo ya kipande (56) + stub ya `_start` (28) +
       urekebishaji wa RELA wa ndani (ulimwengu, tungo, na wito wa
       mbele) -- hakuna gcc/ld/clang/muda.c/libc popote kwenye mfululizo.
@@ -143,22 +143,22 @@ Angalia [`CONTRIBUTING.md`](../CONTRIBUTING.md). Masuala yenye lebo `good-first-
 ## Vipaumbele vya Sasa (Agosti 2026)
 
 1. ~~Baiti za mkono~~ -- IMESHAFANYIKA (PR #147): Kwanza (baiti 393)
-   inazalisha awali.bin kutoka hex; NASM imeondolewa kwenye mfululizo
+   inazalisha awali.bin kutoka heksa; NASM imeondolewa kwenye mfululizo
 2. ~~Kiunganishi cha kujitegemea~~ -- IMESHAFANYIKA: `--programu` inatoa ET_EXEC
    tuli inayojijenga yenyewe bila ld/gcc/libc (kamili2 == kamili3)
 3. ~~Runtime ya syscalls~~ -- IMESHAFANYIKA (PR #149): syscalls moja kwa moja
 4. ~~Kuziba hatua ya kamili~~ -- IMESHAFANYIKA: awali inatoa kamili
-   moja kwa moja (`--programu`) -- 0% bootstrap gap imefungwa
+   moja kwa moja (`--programu`) -- 0% kujianzisha gap imefungwa
 5. ~~Uthabiti wa makosa ya mchanganuzi~~ -- IMESHAFANYIKA: awali na
    mchanganuzi wa .swa dhidi ya ingizo baya (hati/mipaka.md sehemu 1-2)
-6. ~~JIT ndani ya exe~~ -- IMESHAFANYIKA: tekeleza kama builtin,
+6. ~~JIT ndani ya programu~~ -- IMESHAFANYIKA: tekeleza kama kazi asili,
    anwani_ya_kazi ya ndani (jedwali la anwani 0x400078+umbali) --
-   exe haina alama za nje kabisa
+   programu haina alama za nje kabisa
 7. ~~ABI ya wito wa kazi za D64~~ -- IMESHAFANYIKA kwenye mifululizo
    yote miwili (kilichopimwa 2026-08-27 -- mipaka.md 4c imerekebishwa).
    Kilichobaki: mpaka wa D64 na nambari kamili (jibu baya) na D32
    (poromoko)
-8. ~~Dereva wa Rust~~ -- IMESHAFANYIKA: desimali katika codegen ya LLVM
+8. ~~Dereva wa Rust~~ -- IMESHAFANYIKA: desimali katika uzalishaji wa LLVM
    (suala #135; jaribio_hitilafu_135_desimali -- mipaka.md 4c)
 9. **Uamuzi wa mteremko.swa** -- kuifuta au kuikamilisha
 

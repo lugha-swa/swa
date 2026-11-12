@@ -48,7 +48,7 @@ ilitoa ufafanuzi wa kazi ya LLVM bila masharti. Kwa kazi ambazo hazikuwa na maud
 
 **Faili:** `src/codegen/llvm/mod.rs`
 
-**Hitilafu.** Kidhibiti cha `FieldAddr` kilikokotoa vianzio vya baiti kwenye aina za mkusanyiko za LLVM kwa kujumlisha *ukubwa mbichi wa elementi* za sehemu zilizotangulia bila kutumia padding ya mpangilio. Mpangilio wa muundo wa LLVM unahitaji kila sehemu ipangiliwe kwa mpangilio wake wa asili; mkusanyaji alikuwa akiweka sehemu kwenye kianzio kisichopangiliwa.
+**Hitilafu.** Kidhibiti cha `FieldAddr` kilikokotoa vianzio vya baiti kwenye aina za mkusanyiko za LLVM kwa kujumlisha *ukubwa mbichi wa elementi* za sehemu zilizotangulia bila kutumia kujaza kwa mpangilio. Mpangilio wa muundo wa LLVM unahitaji kila sehemu ipangiliwe kwa mpangilio wake wa asili; mkusanyaji alikuwa akiweka sehemu kwenye kianzio kisichopangiliwa.
 
 Kwa mfano, kwa muundo `{i32, ptr, i64}`:
 - `i32` kwenye kianzio 0 (ukubwa 4)
@@ -65,7 +65,7 @@ Mkusanyaji alikokotoa `4 + 8 = 12` kwa kianzio cha sehemu ya `i64`, lakini mpang
 
 **Faili:** `src/ir/types.rs`
 
-**Hitilafu.** Mbinu ya `width_bytes()` kwenye aina za muundo ilikokotoa ukubwa wote kwa kujumlisha upana mbichi wa kila sehemu, bila padding kati au baada ya sehemu. Kwa mfano, muundo `Tokeni { i32, i8*, i64, i32, i32 }` una sehemu:
+**Hitilafu.** Mbinu ya `width_bytes()` kwenye aina za muundo ilikokotoa ukubwa wote kwa kujumlisha upana mbichi wa kila sehemu, bila kujaza kati au baada ya sehemu. Kwa mfano, muundo `Tokeni { i32, i8*, i64, i32, i32 }` una sehemu:
 
 | sehemu | ukubwa | mpangilio wa asili |
 |-------|--------|---------------------|
@@ -77,18 +77,18 @@ Mkusanyaji alikokotoa `4 + 8 = 12` kwa kianzio cha sehemu ya `i64`, lakini mpang
 
 Kwa mpangilio (mpangilio wa juu = 8): `4 + 4(pad) + 8 + 8 + 4 + 4 + 4(pad) = 36...` kwa kweli:
 - i32 kwenye 0..4
-- padding 4..8
+- kujaza 4..8
 - i8* kwenye 8..16
 - i64 kwenye 16..24
 - i32 kwenye 24..28
 - i32 kwenye 28..32
-- padding ya mwisho kwa kizidishio cha 8: 32
+- kujaza kwa mwisho kwa kizidishio cha 8: 32
 
-Hivyo muundo ni baiti 32. `width_bytes()` bila padding ilirudisha 28 (4+8+8+4+4).
+Hivyo muundo ni baiti 32. `width_bytes()` bila kujaza ilirudisha 28 (4+8+8+4+4).
 
 Hii ilisababisha allocas za `sret` (kurejesha muundo) kuwa na ukubwa mdogo. Wakati kazi iliporudisha muundo kwa kielekezi kilichofichwa, mpigaji aligawa nafasi kulingana na `width_bytes()` -- ndogo sana -- na mpigiwa aliandika kupita mgao.
 
-**Marekebisho.** `width_bytes()` iliandikwa upya ili kukokotoa ukubwa kwa mpangilio sahihi: kianzio cha kila sehemu kinapangiliwa kwa mpangilio wa asili wa sehemu kabla ya kuiweka, na ukubwa wote unapigwa padding kwa kizidishio cha mpangilio wa juu wa sehemu ya muundo. Hii inalingana na upangaji wa `DataLayout` ya LLVM.
+**Marekebisho.** `width_bytes()` iliandikwa upya ili kukokotoa ukubwa kwa mpangilio sahihi: kianzio cha kila sehemu kinapangiliwa kwa mpangilio wa asili wa sehemu kabla ya kuiweka, na ukubwa wote unapigwa kujaza kwa kizidishio cha mpangilio wa juu wa sehemu ya muundo. Hii inalingana na upangaji wa `DataLayout` ya LLVM.
 
 ---
 
@@ -108,11 +108,11 @@ Fikiria `N32 ast_aina[2048]` -- safu ya nambari kamili za baiti nne 2048 (jumla 
 
 **Faili:** `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs`
 
-**Hitilafu.** LLVM 22.1 kwenye Arch Linux inatumia opaque pointers kwa chaguo-msingi. Kazi ya API ya C ya `LLVMGetElementType`, ambayo usawazishaji wa upana wa hifadhi ulitegemea, inarudisha matokeo yasiyoaminika na opaque pointers. Hii ilisababisha:
+**Hitilafu.** LLVM 22.1 kwenye Arch Linux inatumia opaque vielekezi kwa chaguo-msingi. Kazi ya API ya C ya `LLVMGetElementType`, ambayo usawazishaji wa upana wa hifadhi ulitegemea, inarudisha matokeo yasiyoaminika na opaque vielekezi. Hii ilisababisha:
 
 - Vigezo vya `i64` vilikatwa hadi `i32` wakati wa kuhifadhiwa kwenye alloca, na kusababisha kufurika kwa bwawa katika `hifadhi_jina` na hitilafu za sehemu nasibu
 - Nakala za sehemu za muundo katika `sogeza()` ziliharibu hali ya tokeni, na kufanya ulinganifu wa `== TOKENI_ISHARA` ushindwe
-- Mizigo ilisoma upana usio sahihi kutoka kwa opaque pointers
+- Mizigo ilisoma upana usio sahihi kutoka kwa opaque vielekezi
 
 **Marekebisho.**
 - Hifadhi za vigezo zilibadilishwa kutoka `Instruction::Store` hadi `Instruction::StoreTyped`, ambayo hubeba IrType kwa uwazi na inapita API iliyopitwa na wakati
@@ -126,16 +126,16 @@ Fikiria `N32 ast_aina[2048]` -- safu ya nambari kamili za baiti nne 2048 (jumla 
 
 **Faili:** `src/ir/lower.rs`
 
-**Hitilafu.** Katika `lower_block`, baada ya kutekeleza `lower_if`, mzunguko wa taarifa uliunganisha taarifa inayofuata moja kwa moja kutoka kwa block iliyorudishwa na `lower_if`. Kabla ya marekebisho, `lower_if` ilirudisha `merge_blk` -- block ya kuunganisha baada ya sharti na maudhui ya `kama`. Hii ilifanya taarifa inayofuata ianze kutoka kwenye block ya kuunganisha, ambayo ilikuwa sahihi kwa mtiririko.
+**Hitilafu.** Katika `lower_block`, baada ya kutekeleza `lower_if`, mzunguko wa taarifa uliunganisha taarifa inayofuata moja kwa moja kutoka kwa ubeti uliorudishwa na `lower_if`. Kabla ya marekebisho, `lower_if` ilirudisha `merge_blk` -- ubeti wa kuunganisha baada ya sharti na maudhui ya `kama`. Hii ilifanya taarifa inayofuata ianze kutoka kwenye ubeti wa kuunganisha, ambayo ilikuwa sahihi kwa mtiririko.
 
-Lakini tatizo kubwa zaidi lilikuwa kwamba `lower_if` ilirudisha `cond_blk` baada ya kubadilisha muundo (marekebisho ya 8a), na `lower_block` haikuwa na mantiki ya kufuatilia block halisi ya mwendelezo. Baada ya sharti la `BrCond`, block inayofuata katika mfululizo inapaswa kuwa `merge_blk` (block ya kuunganisha), si `cond_blk` (block ya sharti). Bila ufuatiliaji huu, taarifa baada ya `kama` ilikuwa haiwezi kufikiwa kutoka kwenye njia za `then` na `else`, na block ya sharti ilianguka moja kwa moja kwenye taarifa inayofuata bila kupitia `merge_blk`.
+Lakini tatizo kubwa zaidi lilikuwa kwamba `lower_if` ilirudisha `cond_blk` baada ya kubadilisha muundo (marekebisho ya 8a), na `lower_block` haikuwa na mantiki ya kufuatilia ubeti halisi wa mwendelezo. Baada ya sharti la `BrCond`, ubeti unaofuata katika mfululizo unapaswa kuwa `merge_blk` (ubeti wa kuunganisha), si `cond_blk` (ubeti wa sharti). Bila ufuatiliaji huu, taarifa baada ya `kama` ilikuwa haiwezi kufikiwa kutoka kwenye njia za `then` na `else`, na ubeti wa sharti ulianguka moja kwa moja kwenye taarifa inayofuata bila kupitia `merge_blk`.
 
-Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (mzunguko wa kujirudia) havikuwa na urekebishaji wa kutosha. Baada ya kazi kukamilika, block iliyokuwa na kituo cha `Br(self)` ilibaki kwenye mzunguko usio na mwisho badala ya kurejea kwa `RetVoid` au `Ret` sahihi.
+Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (mzunguko wa kujirudia) havikuwa na urekebishaji wa kutosha. Baada ya kazi kukamilika, ubeti uliokuwa na kituo cha `Br(self)` ulibaki kwenye mzunguko usio na mwisho badala ya kurejea kwa `RetVoid` au `Ret` sahihi.
 
 **Marekebisho.**
 
 1. **`lower_if` inarudisha `cond_blk` badala ya `merge_blk`**:
-   - `lower_block` sasa inaunganisha kianzio cha kitalu -> block ya sharti, si kianzio -> block ya kuunganisha.
+   - `lower_block` sasa inaunganisha kianzio cha kitalu -> ubeti wa sharti, si kianzio -> ubeti wa kuunganisha.
    - Hii inahakikisha kwamba sharti linatathminiwa kabla ya maudhui yoyote ya `kama` au `sivyo`.
 
 2. **`lower_block` inafuatilia `actual_prev` kutoka `BrCond`**:
@@ -145,13 +145,13 @@ Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (mzunguko wa kujirudia) h
        _ => stmt_blk,
    };
    ```
-   Baada ya `kama`, taarifa inayofuata inaunganishwa kutoka `merge_blk`, si kutoka `cond_blk`. Hii inazuia msimbo usio na marejeleo (dead code) na inahakikisha mtiririko sahihi wa CFG.
+   Baada ya `kama`, taarifa inayofuata inaunganishwa kutoka `merge_blk`, si kutoka `cond_blk`. Hii inazuia msimbo usio na marejeleo (msimbo mfu) na inahakikisha mtiririko sahihi wa CFG.
 
 3. **Urekebishaji wa kituo cha kujirudia (self-loop)**:
    Vitalu vyenye `Br(jikite)` hubadilishwa wakati wa ukamilishaji wa kazi:
    - Kwa kazi za `W0` (void): badilisha kwa `RetVoid`
    - Kwa kazi zenye thamani ya kurudi: badilisha kwa `Ret(0)` (thamani chaguo-msingi)
-   Hii inahakikisha hakuna block iliyoachwa kwenye mzunguko usio na mwisho.
+   Hii inahakikisha hakuna ubeti ulioachwa kwenye mzunguko usio na mwisho.
 
 **Athari.** Marekebisho haya yalirekebisha utiririkaji wa udhibiti baada ya taarifa za `kama`. Kabla ya marekebisho, mchanganuzi wa kujikusanya ulizalisha CFG isiyo sahihi ambapo taarifa baada ya `kama` haikuwiani vizuri, na msimbo uliokuwa nyuma ya sharti ulikuwa msimbo uliokufa kwa sehemu. Pia ulirekebisha tabia ya kazi kukwama kwenye mizunguko isiyo na mwisho badala ya kurejea ipasavyo.
 
@@ -161,7 +161,7 @@ Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (mzunguko wa kujirudia) h
 
 **Faili:** `src/ir/lower.rs`
 
-**Hitilafu.** Mbinu ya `lower_local_decl` ilikuwa ikitoa alloca (nafasi ya mrundikano) kwa vigeu vya ndani kwenye block ya sasa ya kuteremsha. Kwa mpangilio wa mstari, hii inafanya kazi kwa usahihi -- kila kigezo kina alloca yake kwenye block moja. Lakini ndani ya mzunguko (`wakati`), kila mzunguko uligawa *alloca mpya* kwenye block ya mzunguko, na alloca za zamani hazikuwekwa huru. Baada ya takriban mizunguko 524,288, mrundikano wa MB 8 iliisha na kugonga ukurasa wa ulinzi, na kusababisha SIGSEGV.
+**Hitilafu.** Mbinu ya `lower_local_decl` ilikuwa ikitoa alloca (nafasi ya mrundikano) kwa vigeu vya ndani kwenye ubeti wa sasa wa kuteremsha. Kwa mpangilio wa mstari, hii inafanya kazi kwa usahihi -- kila kigezo kina alloca yake kwenye ubeti moja. Lakini ndani ya mzunguko (`wakati`), kila mzunguko uligawa *alloca mpya* kwenye ubeti wa mzunguko, na alloca za zamani hazikuwekwa huru. Baada ya takriban mizunguko 524,288, mrundikano wa MB 8 iliisha na kugonga ukurasa wa ulinzi, na kusababisha SIGSEGV.
 
 Uchunguzi wa gdb ulionyesha kuanguka kwenye `changanua()+54`:
 ```
@@ -173,25 +173,25 @@ Rejesta zilionyesha:
 - `i` = 36794 (faharisi ya elementi -- inapaswa kuwa 0 kwa tokeni ya kitambulisho kimoja)
 - Tofauti 36794 = 36797 - 3 ilionyesha kwamba urefu wa tokeni ulikuwa umeharibika
 
-Chanzo cha msingi: Kila marudio ya mzunguko wa `wakati` katika `changanua()` uligawa baiti 16 za alloca kwa vigeu vya ndani kwenye block ya mzunguko, na alloca hizi hazikuwekwa huru wakati mzunguko ulipomalizika. Mrundikano ulikua hadi ukagonga ukurasa wa ulinzi.
+Chanzo cha msingi: Kila marudio ya mzunguko wa `wakati` katika `changanua()` uligawa baiti 16 za alloca kwa vigeu vya ndani kwenye ubeti wa mzunguko, na alloca hizi hazikuwekwa huru wakati mzunguko ulipomalizika. Mrundikano ulikua hadi ukagonga ukurasa wa ulinzi.
 
 **Marekebisho.** Suluhisho linatumia mbinu ya kupitisha mara mbili katika `lower_function`:
 
 1. **Kupitisha awali (pre-pass) -- `collect_local_decls`**: Mbinu mpya inatembea AST ya maudhui ya kazi na kukusanya nodi zote za `AST_TANGAZO` (matamko ya vigeu vya ndani) pamoja na aina zao zilizotatuliwa. Inajirudia kupitia `kushoto`, `kulia`, `tatu`, na `nne` ili kupata matamko yaliyowekwa ndani.
 
-2. **Utoaji wa alloca mapema**: Baada ya kupitisha awali, `lower_function` inatoa Alloca kwa kila kigezo cha ndani kwenye *block ya kuingia* (entry block) -- kabla ya maudhui yoyote kuchakatwa. Hii inahakikisha kwamba alloca zote za vigeu vya ndani ziko kwenye block ya kuingia, ambako zinatolewa mara moja tu kwa mzigo wote wa kazi. Ramani ya `pre_allocated_locals: HashMap<i32, ValueId>` inahifadhi uhusiano kati ya faharisi ya nodi ya AST na alloca ValueId.
+2. **Utoaji wa alloca mapema**: Baada ya kupitisha awali, `lower_function` inatoa Alloca kwa kila kigezo cha ndani kwenye *ubeti wa kuingia* (entry ubeti) -- kabla ya maudhui yoyote kuchakatwa. Hii inahakikisha kwamba alloca zote za vigeu vya ndani ziko kwenye ubeti wa kuingia, ambako zinatolewa mara moja tu kwa mzigo wote wa kazi. Ramani ya `pre_allocated_locals: HashMap<i32, ValueId>` inahifadhi uhusiano kati ya faharisi ya nodi ya AST na alloca ValueId.
 
-3. **`lower_local_decl` inatumia alloca iliyotanguliwa**: Badala ya kutoa `Instruction::Alloca` mpya, `lower_local_decl` sasa inaangalia ramani ya `pre_allocated_locals` na kutumia ValueId iliyotengwa mapema. Kwa miundo ya sret, inaendelea kutumia kielekezi cha sret moja kwa moja (hakuna alloca ya ziada inayohitajika).
+3. **`lower_local_decl` inatumia alloca iliyotanguliwa**: Badala ya kutoa `Instruction::Alloca` mpya, `lower_local_decl` sasa inaangalia ramani ya `pre_allocated_locals` na kutumia ValueId iliyotengwa mapema. Kwa miundo ya matokeo ya muundo, inaendelea kutumia kielekezi cha matokeo ya muundo moja kwa moja (hakuna alloca ya ziada inayohitajika).
 
 4. **Uboreshaji wa `collect_constants`**: Kupitisha awali pia kuliboresha `collect_constants` ili kushughulikia `AST_KWELI` (Bool true), `AST_UONGO` (Bool false), na `AST_TUPU` (NullPtr) kwa kuweka constants zao kwenye `intern_const`, na kuhakikisha constants hizi hazijakosa wakati wa uteuzi wa kabla ya utoaji wa alloca.
 
-5. **BrCond kwenye ufuatiliaji wa `actual_prev`**: Katika mfululizo wa ufuatiliaji wa block (sehemu ya utaratibu wa `actual_prev`), sasa `BrCond` inafuatiliwa kwa block ya kuunganisha (`merge`):
+5. **BrCond kwenye ufuatiliaji wa `actual_prev`**: Katika mfululizo wa ufuatiliaji wa ubeti (sehemu ya utaratibu wa `actual_prev`), sasa `BrCond` inafuatiliwa kwa ubeti wa kuunganisha (`merge`):
    ```rust
    Terminator::BrCond(_, _, merge) if *merge != b => { b = *merge; }
    ```
-   Hii inahakikisha kwamba wakati block ina kituo cha masharti, ufuatiliaji unaendelea kutoka kwenye block ya kuunganisha badala ya kukwama.
+   Hii inahakikisha kwamba wakati ubeti una kituo cha masharti, ufuatiliaji unaendelea kutoka kwenye ubeti wa kuunganisha badala ya kukwama.
 
-**Athari.** Marekebisho haya yalirekebisha hitilafu ya SIGSEGV kwenye jaribio la K6 (kujikusanya kamili). Kabla ya marekebisho, binary ya kujikusanya ilianguka mara moja kwa SIGSEGV wakati wa kutekelezwa kwa sababu mrundikano uliisha ndani ya mzunguko wa `changanua()`. Baada ya marekebisho, binary ya kujikusanya iliendelea hadi kwenye hitilafu ya uchanganuzi tofauti (tokeni iliyobaki ya `}`), ambayo pia ilirekebishwa hatimaye.
+**Athari.** Marekebisho haya yalirekebisha hitilafu ya SIGSEGV kwenye jaribio la K6 (kujikusanya kamili). Kabla ya marekebisho, binari ya kujikusanya ilianguka mara moja kwa SIGSEGV wakati wa kutekelezwa kwa sababu mrundikano uliisha ndani ya mzunguko wa `changanua()`. Baada ya marekebisho, binari ya kujikusanya iliendelea hadi kwenye hitilafu ya uchanganuzi tofauti (tokeni iliyobaki ya `}`), ambayo pia ilirekebishwa hatimaye.
 
 ---
 
@@ -257,11 +257,11 @@ Safu ya AST (AST_SAFU) yenye elementi 4096 haikutosha kwa faili zote za maktaba 
 | 2 | Hifadhi ya i64 kwa alloca ya i32 | `src/codegen/llvm/mod.rs` | Vigezo vya karibu vya mrundikano vimeharibika | Hakuna usawazishaji wa upana kwenye hifadhi |
 | 3 | Hifadhi ya i32 kwa sehemu ya muundo ya i64 | `src/codegen/llvm/mod.rs` | Takataka katika baiti 4 za juu | Ukaguzi wa upana ulitumia `>` badala ya `!=` |
 | 4 | FieldAddr inapuuza mpangilio | `src/codegen/llvm/mod.rs` | Sehemu isiyo sahihi ya muundo imefikiwa | Vianzio vimejumlishwa bila mpangilio |
-| 5 | width_bytes ya muundo inakosa padding | `src/ir/types.rs` | Allocas za sret ndogo sana | Hakuna padding ya mpangilio wa mwisho |
+| 5 | width_bytes ya muundo inakosa kujaza | `src/ir/types.rs` | Allocas za matokeo ya muundo ndogo sana | Hakuna kujaza kwa mpangilio wa mwisho |
 | 6 | Safu za ulimwengu zimeainishwa kama [Nxi8] | `src/ir/mod.rs`, `lower.rs`, `llvm/mod.rs` | Vigezo vya karibu vya ulimwengu vimeharibika | IrGlobal ilikosa sehemu ya aina |
-| 7 | Opaque pointer inaharibu usawazishaji wa hifadhi | `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs` | Hitilafu za sehemu nasibu, ulinganifu wa tokeni unashindwa | LLVMGetElementType haiaminiki na opaque pointers |
+| 7 | Opaque kielekezi kinaharibu usawazishaji wa hifadhi | `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs` | Hitilafu za sehemu nasibu, ulinganifu wa tokeni unashindwa | LLVMGetElementType haiaminiki na opaque vielekezi |
 | 8 | Msimbo baada ya kama hauwiani kwenye CFG | `src/ir/lower.rs` | Taarifa baada ya kama ni msimbo uliokufa, mizunguko ya kujirudia | actual_prev haikufuatilia BrCond; self-loop haikurekebishwa |
-| 9 | Alloca-in-loop inamaliza mrundikano | `src/ir/lower.rs` | SIGSEGV kwenye mzunguko wa wakati (mrundikano unaisha) | Alloca za vigeu vya ndani zinatolewa kwenye block ya sasa badala ya block ya kuingia |
+| 9 | Alloca-in-loop inamaliza mrundikano | `src/ir/lower.rs` | SIGSEGV kwenye mzunguko wa wakati (mrundikano unaisha) | Alloca za vigeu vya ndani zinatolewa kwenye ubeti wa sasa badala ya ubeti wa kuingia |
 | 10 | Tamko la mbele halitumii `;` | `msingi/mkusanyaji/msambazaji.swa` | Hitilafu ya "unexpected element" | Nukta mkato inavuja hadi kiwango cha juu |
 | 11 | Mzunguko wa `kwa` unashindwa | `msingi/mkusanyaji/msambazaji.swa` | `N32 i = 0` haichanganuliwi | Mchanganuzi unatumia usemi badala ya tamko |
 | 12a | `sogeza()` inakosa sehemu za tokeni | `msingi/mkusanyaji/msambazaji.swa`, `msingi/mkusanyaji/msomaji.swa` | Nambari za mistari ni 1 kila wakati | Kunakili sehemu 3 kati ya 5 tu |

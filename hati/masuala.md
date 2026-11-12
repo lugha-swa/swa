@@ -20,7 +20,7 @@ nambari kamili (jibu baya kwa mifululizo yote miwili) na D32
 ### 2. Maneno halisi 64-bit (awali na dereva wa Rust)
 
 Mfululizo wa .swa umerekebishwa 2026-08-25 -- maneno halisi hadi N64
-kwa [2^31, 2^63) pekee (mipaka.md 5). Kilichobaki: awali (bootstrap
+kwa [2^31, 2^63) pekee (mipaka.md 5). Kilichobaki: awali (kujianzisha
 pekee) na dereva wa Rust bado zinachanganua maneno halisi kama 32-bit
 -- `2147483648` inatafsiriwa kama `-2147483648` (biti zinahifadhiwa,
 ishara inaenea); halisi >= 2^63 zinakatwa KIMYA hadi biti 32 kwa
@@ -62,7 +62,7 @@ umehamishiwa hazina ya kumbukumbu lugha-swa/swa-dereva. Angalia
   ilikuwa na vyanzo vinne (.load_n64 haikuwa na jmp, hesabu za 32-bit pekee,
   hifadhi ya 32-bit pekee, na kazi_ret_aina iliyowekwa 0). Zote zimetatuliwa
   na awali imegandishwa upya.
-- **Literal kamili kama hoja**: literal (k.m. 1000) ilikuwa inapitishwa kama
+- **Literal kamili kama hoja**: halisi (k.m. 1000) ilikuwa inapitishwa kama
   desimali kwenye wito wa kazi. Imerekebishwa.
 - **Sintaksia**: maneno `kamasivyo` na `sivyo kama` yameondolewa -- tawi-jingine
   huandikwa kwa kuingiza `kama` ndani ya `sivyo`. Dereva wa Rust na mchanganuzi

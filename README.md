@@ -20,9 +20,9 @@
 </div>
 <br>
 
-**Swa** ni lugha ya kupanga ya mifumo yenye sintaksia kamili ya Kiswahili. Mkusanyaji wake umeandikwa kwa Swa yenyewe na hutoa ELF ya x86-64 moja kwa moja -- bila LLVM, bila assembler, bila kiunganishi, bila libc. Mfululizo mzima wa kujikusanya huanzia **baiti 393 za mkono** na hujifunga hadi `kamili2 == kamili3`, sawa kwa baiti.
+**Swa** ni lugha ya kupanga ya mifumo yenye sintaksia kamili ya Kiswahili. Mkusanyaji wake umeandikwa kwa Swa yenyewe na hutoa ELF ya x86-64 moja kwa moja -- bila LLVM, bila kusanyiko, bila kiunganishi, bila libc. Mfululizo mzima wa kujikusanya huanzia **baiti 393 za mkono** na hujifunga hadi `kamili2 == kamili3`, sawa kwa baiti.
 
-Swa hiyo hiyo inakusanya pia kwenda **WebAssembly** (kivinjari) na kwenda **ring 0** ([Kawira](https://github.com/lugha-swa/kawira), kernel iliyoandikwa kwa Swa).
+Swa hiyo hiyo inakusanya pia kwenda **WebAssembly** (kivinjari) na kwenda **ring 0** ([Kawira](https://github.com/lugha-swa/kawira), kiini kilichoandikwa kwa Swa).
 
 ## Nyaraka
 
@@ -45,7 +45,7 @@ git clone https://github.com/lugha-swa/swa && cd swa
 ./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> awali -> kamili -> bin/swa
 ```
 
-Kwa anayetaka kuthibitisha chanzo bila kuamini `msingi/mjenzi.bin`: `./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi` hujenga mjenzi kutoka chanzo chake kwa binari mbili za mwanzo pekee (`kwanza.bin` na `kizinduzi.bin`), kisha hulinganisha kila binary iliyogandishwa ([hati/mfululizo-huru.md](hati/mfululizo-huru.md)).
+Kwa anayetaka kuthibitisha chanzo bila kuamini `msingi/mjenzi.bin`: `./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi` hujenga mjenzi kutoka chanzo chake kwa binari mbili za mwanzo pekee (`kwanza.bin` na `kizinduzi.bin`), kisha hulinganisha kila binari iliyogandishwa ([hati/mfululizo-huru.md](hati/mfululizo-huru.md)).
 
 `jenga.mapishi` huanzia `msingi/kwanza.bin` (baiti 393 zilizoandikwa kwa mkono): kila hatua ya mfululizo huru hujengwa na iliyo chini yake, kisha `awali`, kisha `kamili`, kisha `kamili` hujijenga yenyewe kuwa `bin/swa`. `mjenzi` (kiendeshaji cha mapishi, `msingi/mfululizo/mjenzi.swm`) yenyewe ni programu ya lugha ya mashine ya Swa iliyojengwa kwa mfululizo huo huo; mapishi huthibitisha kwamba `msingi/mjenzi.bin` ni sawa kwa baiti na inayojengwa kutoka chanzo chake.
 
@@ -155,7 +155,7 @@ Mipaka inayojulikana imeandikwa wazi kwenye [hati/mipaka.md](hati/mipaka.md); ra
 | [`msingi/awali.swm`](msingi) | awali -- mkusanyaji mdogo uliogandishwa, kwa lugha ya mashine ya Swa; hujengwa na mfululizo huru |
 | [`msingi/mkusanyaji/`](msingi/mkusanyaji) | msomaji, mchanganuzi, mkaguzi, uzalishaji (x86-64 na WASM) |
 | [`msingi/maktaba/`](msingi/maktaba) | kumbukumbu, mfuatano, orodha, ramani, faili, hesabu, takwimu, ... |
-| [`majaribio/`](majaribio) | majaribio ya programu, WASM na kernel |
+| [`majaribio/`](majaribio) | majaribio ya programu, WASM na kiini |
 | [`gharama/`](gharama) | ujenzi na wakimbiaji wa majaribio |
 | [`hati/`](hati) | uthibitisho wa lugha, mipaka, ramani |
 
@@ -164,7 +164,7 @@ Mipaka inayojulikana imeandikwa wazi kwenye [hati/mipaka.md](hati/mipaka.md); ra
 | Hazina | Maelezo |
 |---|---|
 | [lugha-swa/swa](https://github.com/lugha-swa/swa) | mkusanyaji na maktaba ya msingi -- hazina hii |
-| [lugha-swa/kawira](https://github.com/lugha-swa/kawira) | Swa kwenye ring 0 -- kernel inayoanzisha, iliyoandikwa kwa Swa |
+| [lugha-swa/kawira](https://github.com/lugha-swa/kawira) | Swa kwenye ring 0 -- kiini kinachoanzisha, iliyoandikwa kwa Swa |
 | [lugha-swa/uchapaji-swa](https://github.com/lugha-swa/uchapaji-swa) | msomaji wa TrueType na kijazaji cha glyph, bila FreeType |
 | [lugha-swa/tree-sitter-swa](https://github.com/lugha-swa/tree-sitter-swa) | sarufi ya Tree-sitter -- rangi za sintaksia kwenye vihariri |
 | [lugha-swa.github.io](https://github.com/lugha-swa/lugha-swa.github.io) | tovuti na mwongozo wa lugha |

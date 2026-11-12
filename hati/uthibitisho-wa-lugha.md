@@ -15,7 +15,7 @@ HEAD 7399e97.
 
 Mifululizo iliyopimwa:
 
-- **awali** -- `msingi/awali.bin`, mkusanyaji wa bootstrap. Kipimo cha
+- **awali** -- `msingi/awali.bin`, mkusanyaji wa kujianzisha. Kipimo cha
   awali kilitumia gandisho f12e134 (2026-09-01 12:03); kundi la
   marekebisho f13416d (2026-09-02) lilifunga vipengee vya awali
   vilivyoorodheshwa katika sehemu ya 8 na 9, na awali iligandishwa
@@ -91,7 +91,7 @@ chmod +x matokeo.bin
 
 Kesi zinazotumia `andika` zinaunganishwa na `msingi/maktaba/kumbukumbu.swa`
 (njia ya `cat`, kama hati 8). Kipimo kwenye mfululizo wa awali
-kinatumia binary iliyogandishwa; kipimo kwenye mfululizo wa
+kinatumia binari iliyogandishwa; kipimo kwenye mfululizo wa
 uzalishaji kinatumia kamili iliyojengwa siku ya kipimo kutoka
 `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` vya sasa.
 
@@ -110,22 +110,22 @@ kila kirejeshi kilipimwa tena leo na uthibitisho uliobainishwa:
 
 1. **Mstari wowote unaoanza na "hu" ulifutwa kimya** (dereva
    alifuta mstari WOWOTE wenye kiambishi "hu", si mstari wa
-   `husisha` pekee) -- kimefunga (commit 3bbe422). Imepimwa leo:
+   `husisha` pekee) -- kimefunga (badiliko 3bbe422). Imepimwa leo:
    `huduma = 6;` (bila kufanya nafasi) inasalimika kwenye mifululizo
    yote miwili.
 2. **Muundo > baiti 8 kwa thamani haukunakiliwa** (ubadilishaji
-   ndani ya kazi ulimwengu mwitaji), **sret kwa mfululizo ilitoa
+   ndani ya kazi ulimwengu mwitaji), **matokeo ya muundo kwa mfululizo ilitoa
    takataka** (`g(f())`), na **ufikiaji wa sehemu ya muundo wa
-   ulimwengu ulianguka SEGV** -- vyote vimefunga (commit 1eb55b0).
+   ulimwengu ulianguka SEGV** -- vyote vimefunga (badiliko 1eb55b0).
    Imepimwa leo: kirejeshi cha a09 (rc=0 kwa zote mbili), kirejeshi
    cha J7 `rudisha g(f());` (rc=7 kwa zote mbili), na muundo wa
    ulimwengu (rc=12 kwenye uzalishaji). Kumbuka: mchanganyiko wa
-   hoja kwa thamani NA sret pamoja (a19) BADO umevunjika -- tazama
+   hoja kwa thamani NA matokeo ya muundo pamoja (a19) BADO umevunjika -- tazama
    sehemu ya 8, kipengee 8.1.
 3. **Mgawanyo bila ishara wenye biti ya juu ulianguka FPE** (A32,
    B32, W32, A64), **upanuzi wa sifuri kwa N8/N16 hasi** ulitoa
    jibu baya, na **upana usioahidiwa (N128, A128, D80) ulikubaliwa
-   kimya** -- vyote vimefunga (commit 57d9694). Imepimwa leo:
+   kimya** -- vyote vimefunga (badiliko 57d9694). Imepimwa leo:
    `A32 x = 3000000000; x / 2` inatoa 1500000000 (rc=1),
    `A64` za biti ya juu zote tatu (rc=1), `N8 x = -1; N32 y = x;`
    inatoa -1 (rc=1), na `N128 x = 5;` inakataliwa kwa sauti
@@ -135,7 +135,7 @@ kila kirejeshi kilipimwa tena leo na uthibitisho uliobainishwa:
    yalikubaliwa**, **wito wenye hoja 17+ ulitupa hoja za ziada
    kimya**, **maudhui ya `sivyo` yasiyo na mabano yalitekelezwa daima**,
    na **%u/%x za thamani hasi zilichapisha takataka** -- vyote
-   vimefunga (commit b827c91, pamoja na ufuatiliaji wa halisi
+   vimefunga (badiliko b827c91, pamoja na ufuatiliaji wa halisi
    kwa kielekezi). Imepimwa leo: hoja za kielekezi/N32 zinakataliwa
    kwa sauti ("kielekezi dhidi ya namba"), maneno muhimu
    yanakataliwa ("'muundo' ni neno muhimu"), hoja 17 inakataliwa
@@ -143,12 +143,12 @@ kila kirejeshi kilipimwa tena leo na uthibitisho uliobainishwa:
    na %u ya -1 inachapisha 18446744073709551615 kwenye uzalishaji.
 5. **Awali: upanuzi wa ishara kwa matokeo ya hesabu ya jozi**
    (`N64 y = 0 - 90` ilitoa 0x00000000FFFFFFA6 badala ya kueneza
-   ishara) -- kimefunga katika awali iliyogandishwa (commit
+   ishara) -- kimefunga katika awali iliyogandishwa (badiliko
    f12e134). Imepimwa leo: `N64 x = 0 - 90; kama (x == -90)`
    inatoa rc=1 kwenye awali na uzalishaji.
 
 Kesi za kirejeshi zilizopimwa upya leo, zote zikiwa na hali hiyo
-iliyobainishwa: f01 (hu), f02 (muundo kwa thamani), f03 (sret
+iliyobainishwa: f01 (hu), f02 (muundo kwa thamani), f03 (matokeo ya muundo
 mfululizo), f04 (muundo wa ulimwengu), f05 + halisi_2p63_a64 +
 halisi_2p64m1_a64 + halisi_2p64m1_a64_gawanya2 (mgawanyo bila
 ishara), f06 (upanuzi wa ishara N8), f07 + uchunguzi_a128_ndani +
@@ -159,7 +159,7 @@ _t141 (sivyo bila mabano), f14/f15 + t99 (umbizo %u/%x), f16
 (ishara ya jozi ya awali), f17 (N32;), _w0_kigezo, _w0_thamani,
 _d32_ulimwengu, _lit_kielekezi/_lit_kielekezi0 (halisi kwa
 kielekezi), _a19/_a19b/_a19c/_a19d (mchanganyiko wa kwa-thamani
-na sret), _t75, _t94, _b12, _n2/_n3 (utorokaji \n katika kamba),
+na matokeo ya muundo), _t75, _t94, _b12, _n2/_n3 (utorokaji \n katika kamba),
 _halisi63 (halisi 2^63-1), na kiunganishi cha dereva (kande).
 
 ## 4. Jedwali la Mfumo wa Aina (kesi 191 kwa kila mfululizo)
@@ -233,8 +233,8 @@ yamewekwa kwenye jedwali hili.
 | Miundo: ndani, sehemu | SAWA | SAWA | muundo | SAWA |
 | Miundo: ulimwengu (`Nukta G;`) | IMEKATALIWA (sauti: mchanganuzi) | SAWA (12) | muundo wa ulimwengu | imefunga kwenye uzalishaji (zamani HUANGUKA SEGV); awali bado inakataa |
 | Muundo kwa thamani kama hoja (baiti 8 na 16) | SAWA | SAWA | muundo kwa thamani | SAWA (rekodi ya zamani haishikiki) |
-| Muundo kurejeshwa (sret; baiti 8 na 16) | SAWA | SAWA | sret | SAWA |
-| sret inayopitishwa moja kwa moja kwa kazi (`g(f())`) | SAWA (7; 33) | SAWA (7; 33) | 7; 33 | imefunga kwenye uzalishaji (zamani JIBU-BAYA) |
+| Muundo kurejeshwa (matokeo ya muundo; baiti 8 na 16) | SAWA | SAWA | matokeo ya muundo | SAWA |
+| matokeo ya muundo inayopitishwa moja kwa moja kwa kazi (`g(f())`) | SAWA (7; 33) | SAWA (7; 33) | 7; 33 | imefunga kwenye uzalishaji (zamani JIBU-BAYA) |
 | Ugawi wa muundo (`b = a;`) | SAWA | SAWA | nakala | SAWA (rekodi ya zamani haishikiki) |
 | Safu ya miundo (`s[i].x`) | SAWA | SAWA | aina halali | SAWA (rekodi ya zamani SEGV haishikiki) |
 | Sehemu za N64 na D64 ndani ya muundo | SAWA | SAWA | muundo | SAWA |
@@ -313,18 +313,18 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 | Tangazo la muundo, sehemu kwa thamani `p.x`, `->`, upachikaji, `&p.x`, `&(q->x)`, nukta ya mwisho `};` | SAWA | SAWA | muundo | SAWA |
 | Hoja kwa thamani, baiti 8/12/16/20/24 (usomaji) | SAWA | SAWA | kama hati | SAWA |
 | Hoja kwa thamani, kubadilishwa ndani ya kazi (a09, baiti 12) | SAWA | SAWA (0) | chanzo kisibadilike | imefunga kwenye uzalishaji (zamani JIBU-BAYA) |
-| Hoja kwa thamani + kurudisha sret pamoja (a19) | SAWA (0) | JIBU-BAYA (1; t.a=1541242656, takataka) | 0 | BADO JIBU-BAYA kwenye uzalishaji (tazama 8.1) |
-| Muundo kurejeshwa kwa thamani (sret), baiti 8/12/16/20/24 | SAWA | SAWA | sret | SAWA |
-| sret ndani ya hoja ya wito mwingine (`jumlisha(tengeneza(10))`) | HUANGUKA (SEGV 139) | SAWA (46) | 46 | awali inaanguka (tazama 9.2) |
+| Hoja kwa thamani + kurudisha matokeo ya muundo pamoja (a19) | SAWA (0) | JIBU-BAYA (1; t.a=1541242656, takataka) | 0 | BADO JIBU-BAYA kwenye uzalishaji (tazama 8.1) |
+| Muundo kurejeshwa kwa thamani (matokeo ya muundo), baiti 8/12/16/20/24 | SAWA | SAWA | matokeo ya muundo | SAWA |
+| matokeo ya muundo ndani ya hoja ya wito mwingine (`jumlisha(tengeneza(10))`) | HUANGUKA (SEGV 139) | SAWA (46) | 46 | awali inaanguka (tazama 9.2) |
 | Safu za miundo (vipengele 12/16/20/24), anwani ya kipengele | SAWA | SAWA | kama hati | SAWA (rekodi ya zamani SEGV haishikiki) |
 | Safu ya miundo kama hoja ya kazi | JIBU-BAYA (mwendo mbovu: 1563515763) | SAWA (20) | 20 | tofauti (kikomo cha awali) |
-| Muundo kwenye tenga (heap), kielekezi | SAWA | SAWA | kama hati | SAWA |
+| Muundo kwenye tenga (lundo), kielekezi | SAWA | SAWA | kama hati | SAWA |
 | Ugawaji wa muundo `t = s` (nakala) | SAWA | SAWA | nakala | SAWA (rekodi ya zamani haishikiki) |
 | `ukubwa()` kwa miundo ya upana mmoja | SAWA | SAWA | kama hati | SAWA |
 | `ukubwa()` kwa muundo mchanganyiko (N8+N16+N32) | JIBU-BAYA (8; mpangilio 1-0-2-0-3) | SAWA (7; mpangilio 1-2-0-3-0) | 7 | tofauti: mpangilio wa sehemu ni tofauti kati ya mifululizo (hati haina ahadi) |
 | Muundo wa ulimwengu (kigezo cha kimataifa) | IMEKATALIWA (sauti: mchanganuzi) | SAWA (12) | muundo wa ulimwengu | imefunga kwenye uzalishaji (zamani HUANGUKA); awali bado inakataa |
 | Muundo uliowekwa kama hoja (`jumlisha(s.nd)`) | SAWA | SAWA | kama hati | SAWA |
-| Muundo wenye padding N8/N64/N8 | SAWA | SAWA | kama hati | SAWA |
+| Muundo wenye kujaza N8/N64/N8 | SAWA | SAWA | kama hati | SAWA |
 | Muundo kutumika KABLA ya tangazo lake | IMEKATALIWA | SAWA | kama hati | tofauti (kikomo cha awali) |
 | Muundo wenye jina lenye umbo la aina (`B12`) | JIBU-BAYA (inakubali kama muundo, 18) | IMEKATALIWA (sauti: "aina isiyojulikana: B12") | kukataliwa au kufanya kazi | maboresho kwenye uzalishaji (zamani SEGV); awali inakubali kimya (tazama 8.14) |
 | Anwani `&x`, kunyoosha `*p`, ugawaji kupitia `*p` | SAWA | SAWA | kama hati | SAWA |
@@ -333,7 +333,7 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 | Kielekezi kwa kielekezi N32** | HUANGUKA (SEGV 139) | SAWA | kama hati | awali inaanguka (tazama 9.2) |
 | Kielekezi cha N8, hesabu ya herufi | SAWA | SAWA | kama hati | SAWA |
 | Null: `p == 0`, `p != 0`, kugawa 0 | SAWA | SAWA | kama hati | SAWA |
-| Kunyoosha null (`*p = 5` na p=0) | SAWA (SEGV kama inavyotarajiwa) | SAWA (SEGV kama inavyotarajiwa) | anguko (hakuna ulinzi) | SAWA (kama C) |
+| Kunyoosha sifuri (`*p = 5` na p=0) | SAWA (SEGV kama inavyotarajiwa) | SAWA (SEGV kama inavyotarajiwa) | anguko (hakuna ulinzi) | SAWA (kama C) |
 | Kielekezi kwa N32 na N32 kwa kielekezi kama hoja (d30, d31) | JIBU-BAYA (inakubali kimya; N32 kwa kielekezi inaanguka SEGV wakati wa kukimbia) | IMEKATALIWA (sauti: "kielekezi dhidi ya namba") | kukataliwa (aina inakaguliwa) | imefunga kwenye uzalishaji; awali bado inakubali kimya (tazama 8.15) |
 | Halisi kwa kigezo cha kielekezi (`kazi_p(5)`, `kazi_p(0)`) | HUANGUKA (SEGV 139 wakati wa kukimbia) | IMEKATALIWA (sauti) | kukataliwa | imefunga kwenye uzalishaji; awali inakubali na kuanguka (tazama 8.15) |
 | Safu ya ndani, ulimwengu, kuoza kama hoja, safu ya N64 | SAWA | SAWA | kama hati | SAWA |
@@ -367,7 +367,7 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 | andika: %u | SAWA (kwa chanya) | IMEKATALIWA (sauti kwenye muundo halisi) | si ya hati | uzalishaji mkali kwa muundo halisi |
 | andika: %f (isiyosaidiwa) | SAWA (inachapisha "%f") | IMEKATALIWA (sauti) | passthrough | tofauti (uzalishaji mkali) |
 | nasibu, wakati (zinahitaji libc) | IMEKATALIWA | IMEKATALIWA | zinahitaji libc | hazifanyi kazi kwenye mfululizo asilia (zimeandikwa) |
-| Mstari wa chanzo unaoanza na "hu" (sio husisha) | SAWA (mstari unasalimika) | SAWA (mstari unasalimika) | mstari usifutwe | imefunga kwenye uzalishaji (zamani JIBU-BAYA, commit 3bbe422) |
+| Mstari wa chanzo unaoanza na "hu" (sio husisha) | SAWA (mstari unasalimika) | SAWA (mstari unasalimika) | mstari usifutwe | imefunga kwenye uzalishaji (zamani JIBU-BAYA, badiliko 3bbe422) |
 | Utorokaji `\n` katika kamba ya DATA ya ndani | SAWA (0x0A) | JIBU-BAYA (5c 6e -- herufi halisi) | 0x0A (hati 2.3) | BADO JIBU-BAYA kwenye uzalishaji (tazama 8.18) |
 | Utorokaji `\n` katika kamba ya DATA ya ULIMWENGU | IMEKATALIWA (kimya) | IMEKATALIWA (sauti: "kianzio cha ulimwengu lazima kiwe halisi ya nambari") | 0x0A | mabadiliko: sasa inakataliwa kwa sauti kwenye uzalishaji (zamani 5c 6e kimya) |
 
@@ -376,7 +376,7 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 Kinachofanya kazi kwa mifululizo yote miwili, kilichopimwa leo:
 kama/sivyo kwa kila muundo, wakati, kwa, acha na endelea, hesabu
 na ulinganisho za N32 na N64, mzunguko mfupi wa && na ||, ternary,
-ugawi, kurudia na wito wa mbele, miundo kwa thamani, kwa sret na
+ugawi, kurudia na wito wa mbele, miundo kwa thamani, kwa matokeo ya muundo na
 kwa mchanganyiko wao, safu za miundo, muundo wa ulimwengu
 (kwenye uzalishaji), D64 ndani ya ulimwengu wake (pamoja na wito wa
 kazi), familia A/B/W na D32 kwenye uzalishaji, tenga/badili/achilia,
@@ -384,8 +384,8 @@ orodha inayokua, ramani, faili, mfuatano na hesabu (kwa uzalishaji),
 na maoni ya `//`.
 
 Marekebisho ya ziada (kipindi cha 2026-09) yamefunga vipengee 21
-vilivyokuwa vimeorodheshwa katika sehemu ya 8 na 9: 8.1 (commit
-1d4648f) na 8.2/8.7/8.18 (commit b93b2b2, vipimo a9af87a) kwenye
+vilivyokuwa vimeorodheshwa katika sehemu ya 8 na 9: 8.1 (badiliko
+1d4648f) na 8.2/8.7/8.18 (badiliko b93b2b2, vipimo a9af87a) kwenye
 uzalishaji, na vipengee vyote vya awali vikiwemo 9.2 (kundi
 f13416d, 2026-09-02 -- awali imegandishwa upya baada yake).
 JIBU-BAYA tatu zimebaki: 8.3 na 8.9 kwenye mifululizo yote miwili,
@@ -461,7 +461,7 @@ upya baada yake).
 
 **Uzalishaji:**
 
-- 8.1 (a19) -- muundo kwa thamani + sret pamoja ulitoa takataka
+- 8.1 (a19) -- muundo kwa thamani + matokeo ya muundo pamoja ulitoa takataka
   kwenye matokeo -- imefunga (1d4648f).
 - 8.2 (t94) -- utorokaji \% katika muundo halisi ulikula asilimia --
   imefunga (b93b2b2).
@@ -499,7 +499,7 @@ upya baada yake).
   imefunga.
 - 8.23 (a23) -- ukubwa na mpangilio wa muundo mchanganyiko ulikuwa
   tofauti kati ya mifululizo -- imefunga.
-- 9.2 (t73, b03, a26) -- kielekezi kwa kielekezi N32** na sret
+- 9.2 (t73, b03, a26) -- kielekezi kwa kielekezi N32** na matokeo ya muundo
   ndani ya hoja ya wito mwingine zilianguka SEGV kwenye awali --
   zimefunga.
 
@@ -586,12 +586,12 @@ tabia ya lugha inabadilika kulingana na mfululizo uliotumika.
   wa ulimwengu (uzalishaji umefunga; awali inakataa), na muundo
   wenye jina la aina (a28, 8.14).
 - **Awali HUANGUKA, uzalishaji SAWA (2 kesi)** -- N32** (b03),
-  sret ndani ya hoja (a26) -- 9.2.
+  matokeo ya muundo ndani ya hoja (a26) -- 9.2.
 - **Awali inakubali kimya, uzalishaji unakataa kwa sauti (2 kesi)**
   -- kielekezi na N32 kama hoja (d30/d31, 8.15): mwelekeo wa
   uzalishaji ndio sahihi.
 - **Awali SAWA, uzalishaji JIBU-BAYA (1 kesi)** -- hoja kwa thamani
-  + sret pamoja (a19, 8.1): hitilafu iko kwenye uzalishaji.
+  + matokeo ya muundo pamoja (a19, 8.1): hitilafu iko kwenye uzalishaji.
 - **Awali SAWA, uzalishaji IMEKATALIWA (1 kesi)** -- %f kwenye
   andika (passthrough ya awali dhidi ya kata ya uzalishaji).
 
@@ -648,8 +648,8 @@ hiki -- unatoa ELF moja kwa moja.
 13. **Hati 10 -- nasibu/wakati**: zinahitaji libc; hazifanyi kazi
     kwenye mfululizo asilia (kukataliwa kwa sauti kwenye uzalishaji).
 14. **Hati 7 -- "KUPITISHWA kwa thamani"**: miundo > baiti 8 kwa
-    hoja (a09), sret kwa mfululizo (J7) na muundo wa ulimwengu
-    zimefunga; mpaka uliobaki ni hoja kwa thamani + sret pamoja
+    hoja (a09), matokeo ya muundo kwa mfululizo (J7) na muundo wa ulimwengu
+    zimefunga; mpaka uliobaki ni hoja kwa thamani + matokeo ya muundo pamoja
     (a19, 8.1) -- sehemu ya hati haijafunikwa na hitilafu hii.
 
 ## 12. Hesabu za mwisho
@@ -666,7 +666,7 @@ ya sehemu ya 3 kwa vitu vilivyoorodheshwa katika sehemu hiyo.
 | **Uzalishaji** | 170 | 2 | 0 | 19 | 191 |
 
 Marekebisho yaliyoathiri hesabu hizi (aina za kesi zilizopimwa
-tena leo): sret kwa mfululizo (2 kesi: JIBU-BAYA inakuwa SAWA),
+tena leo): matokeo ya muundo kwa mfululizo (2 kesi: JIBU-BAYA inakuwa SAWA),
 upanuzi wa ishara N8/N16 (5 kesi: JIBU-BAYA inakuwa SAWA),
 mgawanyo bila ishara (6 kesi: HUANGUKA inakuwa SAWA), muundo wa
 ulimwengu (2 kesi: HUANGUKA inakuwa SAWA), upana usioahidiwa
@@ -725,7 +725,7 @@ na linabaki kama hivyo, kwa maelezo ya 8.14.
   _a19/_a19b/_a19c/_a19d (8.1: bado jibu baya kwenye uzalishaji),
   _n2/_n3 (8.18), _halisi63 (SAWA zote mbili), na kiunganishi cha
   kande (10.5: kinashindwa).
-- Awali haijabadilika tangu skani (commit f12e134 ndio gandisho
+- Awali haijabadilika tangu skani (badiliko f12e134 ndio gandisho
   la mwisho la `msingi/awali.bin`); hesabu zake zinasimama kama
   zilivyopimwa. Tofauti moja ya mbinu: kesi t99 (muundo wa nguvu
   %u) katika skani ya udhibiti ililinganishwa dhidi ya pato la

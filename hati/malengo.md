@@ -2,7 +2,7 @@
 
 ## Lengo Kuu
 
-**Swa itakuwa lugha ya kwanza duniani yenye uhuru kamili (0% bootstrap gap).**
+**Swa itakuwa lugha ya kwanza duniani yenye uhuru kamili (0% kujianzisha gap).**
 Hakuna Rust, hakuna LLVM, hakuna GNU as, hakuna lugha nyingine yoyote
 iliyowahi kuhusika katika mfululizo wake. Binary mbichi inayojitengeneza
 yenyewe kupitia baiti za mkono.
@@ -10,39 +10,39 @@ yenyewe kupitia baiti za mkono.
 ## Jinsi Tutakavyofika
 
 ### Hatua ya 1: Kufa kwa LLVM [IMEFANIKIWA]
-`uzalishaji.swa` inatoa **binary mbichi (.o)** moja kwa moja.
+`uzalishaji.swa` inatoa **binari mbichi (.o)** moja kwa moja.
 Hakuna assembly. Hakuna GNU as.
-- [x] ELF header + machine code (opcodes za x86-64)
+- [x] ELF header + machine msimbo (opcodes za x86-64)
 - [x] Inachukua nafasi ya mteremko.swa (LLVM) KABISA katika mfululizo wa kujikusanya
-- [x] `N32 anza() { rudisha 42; }` -> ELF binary inayofanya kazi
+- [x] `N32 anza() { rudisha 42; }` -> ELF binari inayofanya kazi
 - [x] Mfululizo mzima unajithibitisha: kamili2 == kamili3 (sawa kwa baiti)
 
 ### Hatua ya 2: JIT halisi (kama HolyC) [IMEFANYIKA]
 Swa inatoa maelekezo moja kwa moja kwenye kumbukumbu na kuyatekeleza.
-Hakuna faili. Hakuna binary. Hakuna OS kati.
+Hakuna faili. Hakuna binari. Hakuna OS kati.
 - [x] `mmap()` -> andika opcodes -> rukia (PR #143)
 - [x] Stub ya `ruka main` na tungo mwishoni mwa chombo
 - [x] Thamani ya kurudi inarudi kwa usahihi (vipimo 5/5 vya JIT)
 - [x] Wito wa kazi za ndani ndani ya msimbo wa JIT (jedwali la anwani
-      la exe -- anwani_ya_kazi ya ndani + tekeleza kama builtin) na
-      kupitisha argv; exe haina alama za nje kabisa
+      la programu -- anwani_ya_kazi ya ndani + tekeleza kama kazi asili) na
+      kupitisha argv; programu haina alama za nje kabisa
 
-### Hatua ya 3: Kuziba pengo la bootstrap [IMEFANYIKA KWA AWALI]
+### Hatua ya 3: Kuziba pengo la kujianzisha [IMEFANYIKA KWA AWALI]
 Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - [x] Kwanza (msingi/kwanza.bin): baiti 393 zilizoandikwa kwa mkono
       (utangulizi wa ELF 64 + maelezo ya kipande 56 + msimbo 273) -- hubadilisha
-      hex hadi binary na inajijenga yenyewe (kwanza.heksa -> kwanza.bin)
+      heksa hadi binari na inajijenga yenyewe (kwanza.heksa -> kwanza.bin)
 - [x] awali.bin inazalika kutoka awali.heksa kupitia Kwanza -- NASM
       si sehemu ya mfululizo tena; tangu 2026-11-03 awali.bin yenyewe hujengwa
       kutoka awali.swm na mfululizo huru (hati/mfululizo-huru.md)
 - [x] Kiunganishi cha kujitegemea: bendera ya `--programu` inatoa **ET_EXEC
       tuli** (bila maelezo ya sehemu, bila PT_INTERP) -- mfululizo wa
-      kujikusanya wa exe ni safi kabisa: kamili2 == kamili3
+      kujikusanya wa programu ni safi kabisa: kamili2 == kamili3
       (sawa kwa baiti) bila ld, gcc, wala libc.
 - [x] Runtime ya syscalls: mkusanyaji hautekelezi kupitia libc tena --
       mfumo_fungua/mfumo_soma/mfumo_andika/mfumo_ramani_kumbukumbu kupitia wito_wa_mfumo;
       undefined za nje za kamili2 ni mbili tu (violesura vya JIT).
-- [x] 0% bootstrap gap -- awali inatoa ET_EXEC tuli moja kwa moja
+- [x] 0% kujianzisha gap -- awali inatoa ET_EXEC tuli moja kwa moja
       (`--programu`): utangulizi + maelezo ya kipande + stub ya `_start` + urekebishaji wa
       RELA wa ndani. Hakuna gcc, ld, clang, muda.c, wala libc popote
       kwenye mfululizo: kwanza -> awali -> kamili -> kamili2 ->
@@ -55,7 +55,7 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 
 1. **Hakuna lugha nyingine.** Swa inajitegemea kabisa.
 2. **Hakuna LLVM.** Inakufa mara tu uzalishaji.swa inapokamilika.
-3. **Hakuna assembly/GNU as.** Machine code moja kwa moja.
+3. **Hakuna assembly/GNU as.** Machine msimbo mmoja kwa moja.
 4. **Kiswahili pekee.** Maoni yote, majina ya faili, maneno muhimu.
 5. **Hakuna bloat.** Kila neno linafanya jambo moja.
 6. **Maneno muhimu 13.** Seti ndogo isiyobadilika; aina za nambari
@@ -72,9 +72,9 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - `hati/ramani.md` -- ramani ya mradi
 - `hati/malengo.md` -- huu hapa (lengo letu halisi)
 - `hati/mipaka.md` -- mipaka inayojulikana (kwa ukali)
-- `msingi/mkusanyaji/uzalishaji.swa` -- codegen asilia (inajikusanya)
+- `msingi/mkusanyaji/uzalishaji.swa` -- uzalishaji asilia (inajikusanya)
 - `msingi/mkusanyaji/mteremko.swa` -- kiteremshi cha AST->IR ya mstari (hati/ir.md); `mtafsiri.swa` huitekeleza (`swa --tafsiri`), na ndiyo msingi wa sehemu za nyuma zijazo
-- `msingi/mkusanyaji/kiendeshaji.swa` -- kiendeshi cha bootstrap
+- `msingi/mkusanyaji/kiendeshaji.swa` -- kiendeshi cha kujianzisha
 - `msingi/awali.swm` -- awali kwa lugha ya mashine ya Swa; hujengwa na
   mfululizo huru kutoka kwanza.bin (baiti 393), bila NASM wala ld
 
