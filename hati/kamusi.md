@@ -79,7 +79,7 @@ mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 | IR | `kati` |
 | enc / encoding | `usimbaji` (kifupisho `usb`) |
 | offset / off | `ofseti` |
-| buffer / buf | `bafa` |
+| buffer / buf | `chombo` |
 | pool | `dimbwi` |
 | index / idx | `faharasa` (kifupisho `fah`) |
 | position / pos | `nafasi` |
@@ -186,7 +186,7 @@ mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 | LICM (licm) | `pandisha` (kupandisha kisichobadilika nje ya kitanzi) |
 | CSE (cse) | `rudufu` (kuondoa usemi uliorudiwa) |
 | inline (inl) | `pachika` |
-| sret | `matokeo_ya_muundo` (mf. `kazi_inarudisha_muundo`, `ofseti_ya_bafa_ya_matokeo`) |
+| sret | `matokeo_ya_muundo` (mf. `kazi_inarudisha_muundo`, `umbali_wa_chombo_cha_matokeo`) |
 | SIMD (simd) | `sambamba` |
 | syscall / sys_ | `mfumo` / `mfumo_` (mf. `sys_fork` -> `mfumo_gawanyika`) |
 | argc / argv / envp | `idadi_ya_hoja` / `hoja_za_mstari` / `mazingira` |

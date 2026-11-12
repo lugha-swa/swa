@@ -43,8 +43,8 @@ uthabiti wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti
 (angalia hati/mipaka.md).
 
 **JIT inafanya kazi (PR #143):** mmap -> opcodes -> rukia, na thamani ya
-kurudi inarudi kwa usahihi. Stub ya `jmp main`, tungo mwishoni mwa bafa,
-na kiolesura cha C `tekeleza` kwa wito wa bafa (mbegu hana wito wa kielekezi).
+kurudi inarudi kwa usahihi. Stub ya `jmp main`, tungo mwishoni mwa chombo,
+na kiolesura cha C `tekeleza` kwa wito wa chombo (mbegu hana wito wa kielekezi).
 
 **Uchunguzi muhimu wa usanifu:** `uzalishaji.swa` (mistari ~3,900) hukusanya
 moja kwa moja kutoka AST, SI kutoka IR. `mteremko.swa` hutoa IR lakini

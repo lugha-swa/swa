@@ -65,7 +65,7 @@ Vikomo viliinuliwa Agosti 2026 (4x) ili kupunguza mzunguko:
   (UPEO_LEBO 65,536), na la AST (UPEO_NODI_MTI 262,144)
 - chanzo kikubwa kuliko baiti 4,194,304 (UPEO_CHANZO) -- mbegu inalia
   kwa sauti badala ya kusoma sehemu tu
-- tokeni (UPEO_TOKENI 262,144), msimbo (UKUBWA_BAFA_MSIMBO 1,048,576),
+- tokeni (UPEO_TOKENI 262,144), msimbo (UKUBWA_CHOMBO_MSIMBO 1,048,576),
   na bwawa la herufi (UKUBWA_DIMBWI_MFUATANO 1,048,576)
 
 Uthibitisho: vikomo hufikiwa kwa KOSA LAUTI, si uharibifu wa kimya.
@@ -156,7 +156,7 @@ mfululizo wa .swa ni finyu kuliko ilivyoandikwa:
 Zamani: FastISel ya LLVM (O0) iliacha kimyakimya vizuizi zaidi ya
 ~50 (k.m. `ni_neno_muhimu` -- 247) -- mkusanyaji wa LLVM ulitoa .o
 BILA alama na usio na uthibitisho. Ukali wake ulilingana na hitilafu za
-bafa za ukubwa wa kukisia: matokeo mabaya KIMYA bila kosa.
+vyombo vya ukubwa wa kukisia: matokeo mabaya KIMYA bila kosa.
 
 Sasa:
 - O0 (FastISel) inakataa kwa KOSA LAUTI kazi yenye vizuizi zaidi ya

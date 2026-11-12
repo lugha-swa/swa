@@ -35,8 +35,8 @@ static const char *kamusi_neno(int idx) {
 }
 
 int main(void) {
-    long long ukubwa_bafa = ((long long)IDADI_MANENO * (URUFU_JUU_NENO + 1)) + 1;
-    char *maandishi = malloc((size_t)ukubwa_bafa);
+    long long ukubwa_wa_chombo = ((long long)IDADI_MANENO * (URUFU_JUU_NENO + 1)) + 1;
+    char *maandishi = malloc((size_t)ukubwa_wa_chombo);
     long long wapi = 0;
     for (int w = 0; w < IDADI_MANENO; w++) {
         int idx = nasibu_ijayo() % IDADI_KAMUSI;

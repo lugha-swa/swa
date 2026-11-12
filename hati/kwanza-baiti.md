@@ -40,11 +40,11 @@ Uthibitisho: `gharama/kusanyiko.mapishi` (kwanza hujijenga yenyewe, kisha mfulul
 | 04-07 | 07 00 00 00 | ruhusa: kusoma + kuandika + kutekeleza |
 | 10-17 | 00 00 40 00 | anwani ya kuanza: 0x400000 |
 | 32-39 | ukubwa wa faili | baiti za faili (393) |
-| 40-47 | 00 09 00 00 | kumbukumbu yote: 0x900 (inajumuisha bafa) |
+| 40-47 | 00 09 00 00 | kumbukumbu yote: 0x900 (inajumuisha chombo) |
 
-Kumbukumbu baada ya msimbo ni bafa iliyoandikwa sifuri:
-- `0x400300-0x4006ff` -- bafa ya kusoma (baiti 1024)
-- `0x400700-0x4008ff` -- bafa ya kuandika (baiti 512)
+Kumbukumbu baada ya msimbo ni chombo kilichoandikwa sifuri:
+- `0x400300-0x4006ff` -- chombo cha kusoma (baiti 1024)
+- `0x400700-0x4008ff` -- chombo cha kuandika (baiti 512)
 
 ### Msimbo (baiti 273, kuanzia 0x400078)
 
@@ -52,17 +52,17 @@ Msimbo unasoma heksa kutoka stdin, unaruka herufi zisizo heksa
 (nafasi, mistari mipya), unachanganya nibble mbili kuwa baiti moja,
 na unaandika matokeo kwenye stdout.
 
-Rejesta: `r12` -- kielekezi cha bafa ya kuandika; `r13` -- nibble ya
+Rejesta: `r12` -- kielekezi cha chombo cha kuandika; `r13` -- nibble ya
 kwanza; `r14` -- hali ya nibble. (`rcx` na `r11` hazitumiki: syscall
 huwaharibu.)
 
 | Baiti | Maana |
 |---|---|
-| 49 bc 00 07 40 00 00 00 00 00 | r12 = 0x400700 (bafa ya kuandika, mara moja tu) |
+| 49 bc 00 07 40 00 00 00 00 00 | r12 = 0x400700 (chombo cha kuandika, mara moja tu) |
 | 45 31 ed | r13d = 0 (nibble ya kwanza) |
 | 45 31 f6 | r14d = 0 (hali ya nibble) |
 | 31 ff | edi = 0 (stdin) |
-| 48 be 00 03 40 00 00 00 00 00 | rsi = 0x400300 (bafa ya kusoma) |
+| 48 be 00 03 40 00 00 00 00 00 | rsi = 0x400300 (chombo cha kusoma) |
 | ba 00 04 00 00 | edx = 1024 (ukubwa wa kusoma) |
 | b8 00 00 00 00 | eax = 0 (sys_read) |
 | 0f 05 | syscall |
@@ -103,14 +103,14 @@ huwaharibu.)
 | 49 09 c5 | r13 |= rax (unga nibble ya pili) |
 | 45 88 2c 24 | [r12] = r13b (toa baiti kamili) |
 | 49 ff c4 | r12++ |
-| 49 81 fc 00 09 40 00 | linganisha r12 na mwisho wa bafa |
+| 49 81 fc 00 09 40 00 | linganisha r12 na mwisho wa chombo |
 | 72 xx | chini -- endelea |
 | bf 01 00 00 00 | edi = 1 (stdout) |
 | 48 be 00 07 40 00 00 00 00 00 | rsi = 0x400700 |
 | ba 00 02 00 00 | edx = 512 (ukubwa wa kuandika) |
 | b8 01 00 00 00 | eax = 1 (sys_write) |
 | 0f 05 | syscall |
-| 49 bc 00 07 40 00 00 00 00 00 | r12 = 0x400700 (anza bafa upya) |
+| 49 bc 00 07 40 00 00 00 00 00 | r12 = 0x400700 (anza chombo upya) |
 | 4d 31 f6 | r14 = 0 (anza jozi mpya) |
 | 4d 31 ed | r13 = 0 |
 | e9 xx xx xx xx | ruka hadi mzunguko |
@@ -136,7 +136,7 @@ mahali pa ndani -- zinaonekana kwenye `kwanza.heksa`.
 2. `mov r14d, imm32` inahitaji modrm `be` (si `ba` -- hiyo ni edx).
 3. Kuruka kwa masharti juu ya `jmp rel32` inahitaji skip ya **baiti 5**
    (si 2): `jg 05; jmp ...`.
-4. Uanzishaji wa bafa ya kuandika ufanyike **mara moja tu** -- katika
+4. Uanzishaji wa chombo cha kuandika ufanyike **mara moja tu** -- katika
    kila mzunguko wa kusoma ulikuwa unafuta pato lililojazwa.
 5. Maoni katika faili la heksa hayaruhusiwi kuwa na tarakimu au herufi
    a-f -- yangechakatwa kama nibbles. Kwanza.heksa ni heksa safi.

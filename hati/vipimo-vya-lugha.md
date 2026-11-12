@@ -25,7 +25,7 @@ Programu ya Swa ni mfuatano wa tangazo la kiwango cha juu:
 - Tangazo la kazi (`n32 jumlisha(n32 a, n32 b) { ... }`)
 - Tangazo la muundo (`muundo Nukta { n32 x; n32 y; };`)
 - Tangazo la kigezo cha ulimwengu (`n32 KIKOMO = 0;` na safu za
-  ulimwengu `n8 bafa[1024];`)
+  ulimwengu `n8 chombo[1024];`)
 - Tangazo la utegemezi (`husisha { faili.swa }`) -- kwenye mfululizo
   wa uzalishaji ni kiungo HALISI: faili linatatuliwa na kujumuishwa
   kwa mpangilio wa utegemezi (sehemu 8). Mbegu haitatui -- inaruka

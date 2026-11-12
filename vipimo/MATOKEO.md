@@ -291,7 +291,7 @@ nakala ya pili + pop hulingana kabisa, hakuna athari).
 
 **Njia**: badala ya kuandika upya baiti ZILIZOKWISHA-ANDIKWA (tatizo
 la uhamishaji/relocation la kweli -- lebo/urekebishaji/rela zote hurekodi
-`bafa_text_wapi` moja kwa moja), `andika_push_rax`/`andika_push_rcx`
+`chombo_cha_msimbo_wapi` moja kwa moja), `andika_push_rax`/`andika_push_rcx`
 sasa HUAHIRISHA push MOJA (haiandiki baiti mara moja, huweka tu
 `png_akiba_reg`). `andika_pop_rax`/`andika_pop_rcx` hukagua hali hiyo:
 rejesta ile ile = hakuna athari (haiandiki KABISA); rejesta tofauti =
@@ -301,7 +301,7 @@ inayosubiri KABLA ya kuandika baiti yoyote nyingine -- hii
 inashughulikia KILA agizo linaloweza kutokea kati ya push na pop
 (jumlisha, wito, kuruka, LEBO) bila kuhitaji kila kazi ya `andika_*`
 (kuna mamia) kujua kuhusu kipengele hiki. Kazi zinazorekodi
-`bafa_text_wapi` nje ya `andika_baiti` (`weka_lebo`, `weka_fixup`,
+`chombo_cha_msimbo_wapi` nje ya `andika_baiti` (`weka_lebo`, `weka_fixup`,
 `lebo_hifadhi`, `andika_rela_ulimwengu`, nafasi za mwisho za
 `uzalishaji_kuu`/`uzalishaji_jit`) zote husafisha eksplisiti pia --
 uhakika, si dhana ya mpangilio wa wito.
