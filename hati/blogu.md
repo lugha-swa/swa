@@ -77,7 +77,7 @@ Wakati taarifa iliyotangulia block ilikuwa `kama` yenye `sivyo` inayorudisha, `a
 **Hitilafu 6: `patch_br_if_needed` Ikifuata Mipaka ya Endelea/Vunja** (`src/ir/lower.rs`)
 Hata baada ya marekebisho ya 5, `patch_br_if_needed` ilifuata block za `endelea` zenye `Br(outer_header)` kuingia kwenye miili ya vitanzi vilivyozunguka. Ilipata block ya kutoka ya kitanzi cha nje (kitanzi cha kujirudia) na kuibadilisha kwa block ya kuunganisha ya `kama` ya ndani -- ikiharibu njia ya kutoka ya kitanzi cha nje. Hii ilisababisha `changanua()` kurudisha `0` badala ya faharasi sahihi ya nodi ya AST ya programu wakati faili nyingi ziliunganishwa.
 
-**Marekebisho:** Acha kufuata mipaka ya `Br` ya mbele wakati lebo ya block chanzo inaanza na `continue.` au `break.` -- hizi ni mipaka ya udhibiti wa kitanzi inayoongoza nje ya mwili unaorekebishwa.
+**Marekebisho:** Acha kufuata mipaka ya `Br` ya mbele wakati mahali pa block chanzo panaanza na `continue.` au `break.` -- hizi ni mipaka ya udhibiti wa kitanzi inayoongoza nje ya mwili unaorekebishwa.
 
 ---
 

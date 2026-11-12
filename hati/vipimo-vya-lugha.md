@@ -499,15 +499,15 @@ chagua (usemi) {
 Kilichopimwa (2026-08-27): mbegu inakataa `chagua` kabisa (kosa la
 mchanganuzi -- hata kwa selecta ya n32 rahisi, "ulichanganuzi";
 imepimwa tena 2026-09-04: bado inakataa). Mfululizo wa uzalishaji
-unafanya kazi kwa hali za nambari halisi ndogo; lebo hasi (`hali
--3`), lebo za n64 kubwa (> 2^31) na lebo za usemi au kigezo
-zinakubaliwa LAKINI hazilingani kamwe (lebo inakuwa 0 kwenye
-kizazi) -- jibu baya la kimya; lebo maradufu: ya kwanza inashinda
+unafanya kazi kwa hali za nambari halisi ndogo; thamani hasi (`hali
+-3`), thamani za n64 kubwa (> 2^31) na thamani za usemi au kigezo
+zinakubaliwa LAKINI hazilingani kamwe (thamani inakuwa 0 kwenye
+kizazi) -- jibu baya la kimya; thamani maradufu: ya kwanza inashinda
 bila kosa; `kama` + `sivyo` ndani ya mkono wa `chagua` na bloku
 `{ }` ndani ya mkono zinakataliwa na uzalishaji.
 Kilichopimwa (2026-08-31): mfululizo wa uzalishaji unalinganisha
-lebo hasi na lebo za n64 kwa usahihi (kwa upana wa selecta); lebo
-za usemi au kigezo zinakataliwa kwa sauti na mkaguzi ("lebo ya
+thamani hasi na thamani za n64 kwa usahihi (kwa upana wa selecta); thamani
+za usemi au kigezo zinakataliwa kwa sauti na mkaguzi ("thamani ya
 hali lazima iwe halisi ya nambari"). Mbegu bado inakataa `chagua`
 kabisa (kilichopimwa 2026-09-04).
 

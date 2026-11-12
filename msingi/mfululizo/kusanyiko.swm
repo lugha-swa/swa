@@ -3,13 +3,13 @@
 ; imeandikwa kwa lugha hiyo hiyo.
 ;
 ; Ujenzi (mfululizo huru, hati/mfululizo-huru.md):
-;   kwanza.bin -> maoni -> lebo -> kusanyiko0 -> kusanyiko (kutoka
+;   kwanza.bin -> maoni -> mahali -> kusanyiko0 -> kusanyiko (kutoka
 ;   hatua4_kusanyiko.kus) -> kusanyiko < kusanyiko.swm -> kusanyiko2
 ;   kusanyiko2 < kusanyiko.swm lazima itoe kusanyiko2 yenyewe (sehemu thabiti).
 ;
 ; Matumizi:  kusanyiko < chanzo.swm > programu   (ELF x86-64, tuli)
 ;   Kosa: "kosa MSTARI:AINA" kwenye stderr, kutoka 1. AINA: 1 sintaksia,
-;   2 agizo, 3 lebo, 4 marudio, 5 upana, 6 mapitio, 7 ndani.
+;   2 agizo, 3 mahali, 4 marudio, 5 upana, 6 mapitio, 7 ndani.
 ;
 ; Kumbukumbu: maeneo tupu mwishoni mwa faili hili (eneo_chanzo MB 16,
 ; eneo_msimbo MB 4, eneo_data MB 4, eneo_alama: rekodi za baiti 32 --
@@ -81,7 +81,7 @@ pitio_tena:
         n64[r15+V_PITIO_LA_KUANDIKA] = 0
         ita pitio
         linganisha n64[r15+V_PITIO], 2
-        ruka pitio_tena kama <=a   ; 1: lebo; 2: ukubwa halisi wa maagizo mengine
+        ruka pitio_tena kama <=a   ; 1: mahali; 2: ukubwa halisi wa maagizo mengine
         linganisha n64[r15+V_IMEBADILIKA], 0
         ruka pitio_tena kama !=
         n64[r15+V_PITIO_LA_KUANDIKA] = 1   ; imetulia: pitio la kuandika
@@ -154,7 +154,7 @@ mstari:
         ruka ms_mwisho kama ==
         linganisha n64[r15+V_AINA_TOKENI], 1
         ruka kosa_sintaksia kama !=
-; lebo? kitambulisho kinachofuatwa na ':'
+; mahali? kitambulisho kinachofuatwa na ':'
         r0 = n64[r15+V_MAHALI_SASA]
         linganisha r0, n64[r15+V_MWISHO_MSTARI]
         ruka ms_si_mahali kama >=a
@@ -479,9 +479,9 @@ tarajia_alama:
         rudi
 
 ; ---------------------------------------------------------------
-; Alama (lebo na thamani)
-; jina_kamili: tokeni ya sasa -> r6, r2 = jina kamili (lebo ya ndani
-; '.x' huunganishwa na lebo ya kawaida iliyotangulia: "kuu.x").
+; Alama (mahali na thamani)
+; jina_kamili: tokeni ya sasa -> r6, r2 = jina kamili (mahali pa ndani
+; '.x' huunganishwa na mahali pa kawaida palipotangulia: "kuu.x").
 jina_kamili:
         r6 = n64[r15+V_ANWANI_TOKENI]
         r2 = n64[r15+V_UREFU_TOKENI]
@@ -877,7 +877,7 @@ kauli_data:
         ruka kd_endeleza kama ==
         linganisha n64[r15+V_AINA_TOKENI], 1
         ruka kosa_sintaksia kama !=
-; jina la data ni lebo ya kawaida: huanzisha wigo wa lebo za ndani (kama NASM)
+; jina la data ni mahali pa kawaida: huanzisha wigo wa mahali pa ndani (kama NASM)
         r0 = n64[r15+V_ANWANI_TOKENI]
         n64[r15+V_ANWANI_MAHALI_KUU] = r0
         r0 = n64[r15+V_UREFU_TOKENI]
@@ -1245,7 +1245,7 @@ usemi_ya_tokeni:
         n64[r15+V_MAHALI_SASA] = r7
         ruka usemi
 
-; ruka LEBO [kama HALI]
+; ruka MAHALI [kama HALI]
 agizo_ruka:
         ita tokeni
         ita usemi_ya_tokeni
@@ -1262,9 +1262,9 @@ agizo_ruka:
         r12d = r0d
 ar_ukubwa:
 ; Ukubwa wa tawi (sheria ya NASM): kila pitio huamua upya -- fupi ikiwa
-; umbali wa SASA (lebo ya nyuma: thamani ya pitio hili; ya mbele: ya
+; umbali wa SASA (mahali pa nyuma: thamani ya pitio hili; ya mbele: ya
 ; pitio lililopita) unatosha baiti 1; lengo lisilojulikana ni fupi.
-; Matawi yanaweza kurefuka au kufupika; mapitio huisha lebo zikitulia.
+; Matawi yanaweza kurefuka au kufupika; mapitio huisha mahali pakitulia.
         vuta r0   ; lengo
         r1 = n64[r15+V_MAHALI_MSIMBO]
         r1 += n64[r15+V_MSINGI_MSIMBO]
@@ -1514,7 +1514,7 @@ sh_si_mabano:
         r7d = 0x5b
         ita tokeni_ni_alama
         ruka sh_anw_kum kama ==
-; &lebo -> [lebo] (kutoka agizo)
+; &mahali -> [mahali] (kutoka agizo)
         ita usemi_ya_tokeni
         n64[r3+48] = r0
         r0 = n64[r15+V_HAIJATATULIWA]
@@ -1587,7 +1587,7 @@ sk_usemi:
         n64[r3+48] += r0
         r0 = n64[r15+V_HAIJATATULIWA]
         n64[r3+72] |= r0
-        n64[r3+56] = 1   ; lebo/umbali: kutoka agizo ikiwa hakuna rejista
+        n64[r3+56] = 1   ; mahali/umbali: kutoka agizo ikiwa hakuna rejista
 sk_ijayo:
         ita tokeni
         r12d = 1
@@ -2428,7 +2428,7 @@ hamisha_namba:
         r14 = r0
         linganisha r13d, 8
         ruka hn_ndogo kama !=
-; 64: thamani yenye lebo -> REX.W B8+r io (anwani kamili, kama NASM)
+; 64: thamani yenye mahali -> REX.W B8+r io (anwani kamili, kama NASM)
         linganisha n64[r15+V_NI_MAHALI], 0
         ruka hn_64 kama !=
 ; 64: 0..0xffffffff -> B8+r id (biti 32, hupanua kwa sifuri)
@@ -2771,7 +2771,7 @@ pn_99:
         r0d = 0x99
         ruka zalisha_baiti
 
-; zunguka LEBO : E2 rel8
+; zunguka MAHALI : E2 rel8
 agizo_zunguka:
         ita tokeni
         ita usemi_ya_tokeni
@@ -2882,7 +2882,7 @@ as_m:
 ; ---------------------------------------------------------------
 ; Makosa: "kosa, mstari N: <ujumbe>" kwenda stderr, kutoka 1.
 ; Ujumbe ni namba fupi ya kosa (bila maandishi ndani ya msimbo):
-;   1 sintaksia  2 agizo halijulikani  3 lebo haijulikani
+;   1 sintaksia  2 agizo halijulikani  3 mahali hapajulikani
 ;   4 jina limerudiwa  5 upana haulingani  6 mapitio mengi  7 ndani
 ;   8 faili la jumuisha haliwezi kusomwa
 kosa_sintaksia:
@@ -3134,7 +3134,7 @@ agizo_pakia_jedwali:
         r0d = 1
         rudi
 
-; ruka_mbali SEHEMU, LEBO: ruka mbali (EA ptr16:32) -- biti 32 tu
+; ruka_mbali SEHEMU, MAHALI: ruka mbali (EA ptr16:32) -- biti 32 tu
 agizo_ruka_mbali:
         linganisha n64[r15+V_BITI32], 0
         ruka kosa_agizo kama ==

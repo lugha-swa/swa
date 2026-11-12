@@ -290,7 +290,7 @@ push rax; pop rax` (kashe ya anwani ya kiwanja, PR #239/#240 --
 nakala ya pili + pop hulingana kabisa, hakuna athari).
 
 **Njia**: badala ya kuandika upya baiti ZILIZOKWISHA-ANDIKWA (tatizo
-la uhamishaji/relocation la kweli -- lebo/urekebishaji/rela zote hurekodi
+la uhamishaji/relocation la kweli -- mahali/urekebishaji/rela zote hurekodi
 `chombo_cha_msimbo_wapi` moja kwa moja), `andika_push_rax`/`andika_push_rcx`
 sasa HUAHIRISHA push MOJA (haiandiki baiti mara moja, huweka tu
 `png_akiba_reg`). `andika_pop_rax`/`andika_pop_rcx` hukagua hali hiyo:
@@ -299,10 +299,10 @@ rejesta ile ile = hakuna athari (haiandiki KABISA); rejesta tofauti =
 njia cha PEKEE kinachopitiwa na kila agizo lingine) husafisha push
 inayosubiri KABLA ya kuandika baiti yoyote nyingine -- hii
 inashughulikia KILA agizo linaloweza kutokea kati ya push na pop
-(jumlisha, wito, kuruka, LEBO) bila kuhitaji kila kazi ya `andika_*`
+(jumlisha, wito, kuruka, MAHALI) bila kuhitaji kila kazi ya `andika_*`
 (kuna mamia) kujua kuhusu kipengele hiki. Kazi zinazorekodi
-`chombo_cha_msimbo_wapi` nje ya `andika_baiti` (`weka_lebo`, `weka_fixup`,
-`lebo_hifadhi`, `andika_rela_ulimwengu`, nafasi za mwisho za
+`chombo_cha_msimbo_wapi` nje ya `andika_baiti` (`weka_mahali`, `weka_fixup`,
+`hifadhi_mahali`, `andika_rela_ulimwengu`, nafasi za mwisho za
 `uzalishaji_kuu`/`uzalishaji_jit`) zote husafisha eksplisiti pia --
 uhakika, si dhana ya mpangilio wa wito.
 
@@ -317,15 +317,15 @@ ikavurugika). Rekebisho: futa hali KWANZA, kisha ita `andika_mov_*`
 -- muundo uleule uliokuwa tayari sahihi kwenye `png_safisha`.
 Iligunduliwa kwa disassembly ya kesi ndogo (`c[i*n+j]+=7`), si dhana.
 
-**Usalama uliothibitishwa**: jaribio maalum la hatari kuu (lebo halisi
+**Usalama uliothibitishwa**: jaribio maalum la hatari kuu (mahali halisi
 kutoka `&&`/`||` NDANI ya usemi wenye push inayosubiri) limejengwa na
 kuthibitishwa kwa disassembly -- push hutolewa kikamilifu KABLA ya
-lebo yoyote, mtiririko wa udhibiti hauwezi kamwe kuruka juu ya push
+mahali popote, mtiririko wa udhibiti hauwezi kamwe kuruka juu ya push
 isiyotolewa.
 
 **Majaribio 4 mapya**: mfululizo mrefu wa jozi HURU za push/pop (=96),
 kesi maalum push;push;pop kutoka kiwanja_tail (fahirisi tata i*n+j),
-lebo katikati ya usemi (&&/||, =6), wito wa kazi katikati ya usemi
+mahali katikati ya usemi (&&/||, =6), wito wa kazi katikati ya usemi
 wenye push inayosubiri (=23). 381/381 (377+4), uthabiti na gen1/gen2
 vyote vinapita, imethibitishwa mara 4 kutoka kwa ujenzi safi (idadi
 kubwa kimakusudi kutokana na wigo mpana wa mabadiliko haya).
@@ -596,11 +596,11 @@ ujenzi safi.
 Disassembly ya jaribio_naau_vinodi_sita imefuatiliwa KIPOFU (baiti
 kwanza, chanzo baadaye): leg za && (== na !=) zinatumia jcc ya
 KINYUME sahihi (jne kwa ==, je kwa !=), zote mbili zikiruka kwenda
-lebo ya pamoja ya "sivyo kweli" ya kama isiyo na else (inayolingana
+mahali pa pamoja pa "sivyo kweli" ya kama isiyo na else (inayolingana
 na mwisho wa mwili wa then -- muunganiko sahihi wa udhibiti). Leg za
 || (!= na >) zinatumia mchanganyiko sahihi wa jcc ya MOJA KWA MOJA
-(leg ya kwanza, kuruka kwenda lebo_kweli_mapema mbele ya mwili wa
-then) na jcc ya KINYUME (leg ya pili, kuruka kwenda lebo ya "sivyo
+(leg ya kwanza, kuruka kwenda mahali_pa_kweli_mapema mbele ya mwili wa
+then) na jcc ya KINYUME (leg ya pili, kuruka kwenda mahali pa "sivyo
 kweli" ya jumla). SIFURI setcc/movzbl popote kwenye binary hiyo.
 
 ### Utendaji

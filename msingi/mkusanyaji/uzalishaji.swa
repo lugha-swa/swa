@@ -73,14 +73,14 @@ w0 andika_sukuma_r1_halisi() { andika_baiti(81); }
 
 // Toa push YOYOTE inayosubiri kama baiti halisi, kisha futa hali.
 // LAZIMA iitwe kabla ya JAMBO LOLOTE linalosoma chombo_cha_msimbo_wapi kwa
-// madhumuni ya kuhifadhi nafasi (lebo, urekebishaji, rela, anwani ya kazi/
+// madhumuni ya kuhifadhi nafasi (mahali, urekebishaji, rela, anwani ya kazi/
 // data) au kabla ya kutoa chombo_cha_msimbo nje -- vinginevyo push
 // iliyoahirishwa ingepotea kimya (haijaandikwa kamwe) au nafasi
 // iliyohifadhiwa ingekuwa MBAYA kwa baiti moja. Ni salama kuita hata
 // kama hakuna kinachosubiri (haifanyi kitu). andika_baiti YENYEWE
 // (chini) pia huita hii kabla ya kuandika baiti YOYOTE mpya -- hii
 // inashughulikia KILA agizo lingine linaloandikwa kati ya push na
-// pop inayotarajiwa (jumlisha, wito, kuruka, lebo, chochote), bila
+// pop inayotarajiwa (jumlisha, wito, kuruka, mahali, chochote), bila
 // kuhitaji kila kazi ya andika_* nyingine (kuna mamia) kujua kuhusu
 // kipengele hiki -- andika_baiti ndiyo KIZUIA-NJIA cha PEKEE
 // kinachopitiwa na kila agizo, hivyo ni mahali salama pa KUFUNGA
@@ -181,13 +181,13 @@ w0 andika_sukuma_r7() {
 // push rax (50) -- HUAHIRISHWA (haiandiki baiti mara moja). Sababu
 // (imefikiriwa kwa makini, hii ndiyo hatari kuu ya kazi hii yote):
 // mkusanyaji huu hutoa ELF moja kwa moja BILA kusanisi/kiungo
-// tofauti -- lebo/urekebishaji/rela HUREKODI nafasi HALISI ya baiti
+// tofauti -- mahali/urekebishaji/rela HUREKODI nafasi HALISI ya baiti
 // (chombo_cha_msimbo_wapi) moja kwa moja. Kuahirisha push (badala ya
 // kuiandika mara moja) kungebadilisha nafasi hizo ISIPOKUWA kila
 // kazi inayosoma chombo_cha_msimbo_wapi kwa madhumuni ya "hii ndiyo nafasi
 // ya sasa" IPIGE png_safisha() KWANZA. Kwa hiyo: KILA kazi ya
 // uzalishaji.swa inayosoma chombo_cha_msimbo_wapi nje ya andika_baiti
-// yenyewe (weka_lebo, weka_fixup, lebo_hifadhi,
+// yenyewe (weka_mahali, weka_fixup, hifadhi_mahali,
 // andika_rela_ulimwengu, na nafasi za mwisho za uzalishaji_kuu/
 // uzalishaji_jit) sasa huanza kwa png_safisha() -- imethibitishwa
 // kwa kusoma kila mstari unaosoma chombo_cha_msimbo_wapi kwenye faili hili
@@ -597,7 +597,7 @@ n32 kazi_nafasi_kwa_jina(n8* jina) {
 
 // anwani_ya_kazi -- jedwali la anwani za ndani kwa JIT (badala ya dlsym).
 // Kwenye exe ya kujitegemea (.text wenye msingi 4194424 = 0x400078),
-// kazi za ndani zinapatikana kupitia lebo_nafasi; kwenye .o
+// kazi za ndani zinapatikana kupitia nafasi_ya_mahali; kwenye .o
 // iliyounganishwa na ld, anwani ni za ld -- haziwezi kukokotolewa hapa
 // (0 -> JIT-RELA itaonya). Utambuzi wa modi: exe ina .bss mara baada
 // ya .text (< 5242880 = 0x500000); .o ya -no-pie ina .bss kwenye
@@ -613,7 +613,7 @@ n8* anwani_ya_kazi(n8* jina) {
 }
 
 // Sehemu ya tungo: nakili kwenye chombo cha sehemu (kwa utorokaji wa \n na \\)
-// na urudishe lebo ya ndani ya chombo cha .text.
+// na urudishe mahali pa ndani ya chombo cha .text.
 n32 sehemu_tungo_hifadhi(n8* mwanzo, n32 urefu) {
     kama (idadi_ya_sehemu >= 65536) {
         andika_kosa("KOSA: jedwali la sehemu za andika (sehemu_*) limejaa (kikomo cha idadi 65536)\n");
@@ -646,10 +646,10 @@ n32 sehemu_tungo_hifadhi(n8* mwanzo, n32 urefu) {
     rudisha namba_ya_mahali_pa_sehemu[idadi_ya_sehemu - 1];
 }
 
-// Toa wito wa andika_sehemu(fd, lebo, urefu) -- wito wa ndani
+// Toa wito wa andika_sehemu(fd, mahali, urefu) -- wito wa ndani
 w0 andika_wito_sehemu(n32 kishikio, n32 mahali, n32 urefu) {
     andika_baiti(191); andika_neno4(kishikio);  // mov edi, fd
-    zalisha_anwani_r0_kwa_mahali(mahali);  // lea rax, [rip+lebo]
+    zalisha_anwani_r0_kwa_mahali(mahali);  // lea rax, [rip+mahali]
     andika_hamisha_r6_r0_b();  // mov rsi, rax
     andika_baiti(186); andika_neno4(urefu);  // mov edx, urefu
     n32 nafasi = kazi_nafasi_kwa_jina("andika_sehemu");
@@ -692,7 +692,7 @@ w0 andika_wito_baiti(n32 kishikio) {
     andika_neno4(umbali);
 }
 
-// Toa sehemu zote za tungo mwishoni mwa .text na uweke lebo zao
+// Toa sehemu zote za tungo mwishoni mwa .text na uweke mahali pao
 w0 andika_sehemu_halisi() {
     n32 i = 0;
     wakati (i < idadi_ya_sehemu) {
@@ -1980,9 +1980,9 @@ w0 andika_anwani_r0_kutoka_agizo_tupu() {
     andika_baiti(5);
 }
 
-// Toa lea rax, [rip + disp32] kwa lebo, ikiwa ni pamoja na kurekebisha kuruka mbele
+// Toa lea rax, [rip + disp32] kwa mahali, ikiwa ni pamoja na kurekebisha kuruka mbele
 // -------------------------------------------------------
-// Lebo za kazi (kwa jedwali la alama)
+// Mahali pa kazi (kwa jedwali la alama)
 // -------------------------------------------------------
 
 // lugha-swa/swa#298 -- ukubwa wa ZAMANI (2048) ulikuwa karibu sana na
@@ -2007,16 +2007,16 @@ w0 hifadhi_mahali(n8* jina, n32 usimbaji_wa_matokeo) {
     } sivyo {
         // lugha-swa/swa#298 -- hii ilikuwa ikichapisha KOSA kisha
         // kuendelea kimya (kazi haikusajiliwa KABISA kwenye jedwali
-        // la lebo, ikisababisha wito wowote kwake baadaye kuonekana
-        // "haijafafanuliwa" kimakosa, au mbaya zaidi, lebo_idadi
+        // la mahali, ikisababisha wito wowote kwake baadaye kuonekana
+        // "haijafafanuliwa" kimakosa, au mbaya zaidi, idadi_ya_mahali
         // ikibaki ikilingana na kazi tofauti). Sasa inasimamisha.
-        andika_kosa("KOSA: jedwali la lebo za kazi (lebo_*) limejaa (kikomo 65536) kwenye kazi '%s' -- mradi una kazi nyingi mno\n", jina);
+        andika_kosa("KOSA: jedwali la mahali pa kazi (lebo_*) limejaa (kikomo 65536) kwenye kazi '%s' -- mradi una kazi nyingi mno\n", jina);
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
 }
 
 // -------------------------------------------------------
-// Lebo za kuruka (za mtiririko wa udhibiti ndani ya kazi)
+// Mahali pa kuruka (pa mtiririko wa udhibiti ndani ya kazi)
 // -------------------------------------------------------
 
 n32 nafasi_ya_chombo_cha_mahali[65536];
@@ -2043,33 +2043,33 @@ w0 weka_urekebishaji(n32 namba_ya_mahali) {
         // lugha-swa/swa#298 -- kuendelea kimya hapa kunaacha agizo la
         // LEA lililotolewa hivi punde (toa_lea_rax_kwa_lebo) likiwa
         // na disp32 ya 0 (ya muda) MILELE -- haitafikiwa kamwe na
-        // weka_lebo, ikisababisha anwani YA UONGO kuandikwa kimya.
+        // weka_mahali, ikisababisha anwani YA UONGO kuandikwa kimya.
         andika_kosa("KOSA: jedwali la urekebishaji (urekebishaji_*) limejaa (kikomo 65536)\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
 }
 
-// Toa lea rax, [rip + disp32] kwa lebo, ikiwa ni pamoja na kurekebisha kuruka mbele
+// Toa lea rax, [rip + disp32] kwa mahali, ikiwa ni pamoja na kurekebisha kuruka mbele
 w0 zalisha_anwani_r0_kwa_mahali(n32 namba_ya_mahali) {
     andika_anwani_r0_kutoka_agizo_tupu();  // 48 8D 05
     weka_urekebishaji(namba_ya_mahali);
-    andika_neno4(0);  // thamani ya muda; itarekebishwa na weka_lebo
+    andika_neno4(0);  // thamani ya muda; itarekebishwa na weka_mahali
 }
 
 n32 mzunguko_mahali_pa_kuendelea[16];
-n32 mzunguko_mahali_pa_hatua[16];  // lebo ya hatua ya kwa (semantiki ya C ya endelea)
+n32 mzunguko_mahali_pa_hatua[16];  // mahali pa hatua ya kwa (semantiki ya C ya endelea)
 n32 mzunguko_mahali_pa_kutoka[16];
 n32 mzunguko_undani = 0;
 
 n32 mahali_papya() {
     // lugha-swa/swa#298 -- hii ilikuwa ikirudisha -1 KIMYA; waitaji
     // wengi (mfano matamko ya kitanzi cha kwa/wakati) hawaangalii
-    // matokeo kabla ya kuyatumia kama faharisi ya lebo -- sawa na
+    // matokeo kabla ya kuyatumia kama faharisi ya mahali -- sawa na
     // hatari iliyoandikwa kwenye #199 kwa node_mpya(). Sasa
     // inasimamisha ukusanyaji kwenye chanzo badala ya kutegemea kila
     // mwitaji kukagua.
     kama (idadi_ya_chombo_cha_mahali >= 65536) {
-        andika_kosa("KOSA: jedwali la lebo za kuruka (lebo_buf_*) limejaa (kikomo 65536)\n");
+        andika_kosa("KOSA: jedwali la mahali pa kuruka (lebo_buf_*) limejaa (kikomo 65536)\n");
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
     n32 kitambulisho = idadi_ya_chombo_cha_mahali;
@@ -2078,7 +2078,7 @@ n32 mahali_papya() {
     rudisha kitambulisho;
 }
 
-// Weka lebo mahali pa sasa na rekebisha marekebisho yanayoiendea
+// Weka mahali kwenye nafasi ya sasa na rekebisha marekebisho yanayoiendea
 w0 weka_mahali(n32 namba_ya_mahali) {
     // MUHIMU ZAIDI ya nafasi zote za png_safisha (angalia maelezo
     // kamili mwanzo wa faili hili): hii ndiyo hasa mahali ambapo
@@ -2086,7 +2086,7 @@ w0 weka_mahali(n32 namba_ya_mahali) {
     // kusafishwa hapa, mtiririko wa udhibiti ungeweza kuruka MOJA KWA
     // MOJA kati ya push (isiyotolewa) na pop inayotarajiwa --
     // ikisoma thamani isiyokusudiwa kutoka rafuni. png_safisha
-    // kabla ya kurekodi chombo_cha_msimbo_wapi inahakikisha lebo HAIWEZI
+    // kabla ya kurekodi chombo_cha_msimbo_wapi inahakikisha mahali HAPAWEZI
     // KAMWE kuangukia katikati ya push/pop iliyoahirishwa.
     kidirisha_safisha();
     nafasi_ya_chombo_cha_mahali[namba_ya_mahali] = chombo_cha_msimbo_wapi;
@@ -2105,7 +2105,7 @@ w0 weka_mahali(n32 namba_ya_mahali) {
     }
 }
 
-// Toa je rel32 kwa lebo (inashughulikia kuruka nyuma na mbele)
+// Toa je rel32 kwa mahali (inashughulikia kuruka nyuma na mbele)
 w0 zalisha_ruka_kama_sawa_mahali(n32 namba_ya_mahali) {
     andika_baiti(15); andika_baiti(132);
     kama (mahali_pamewekwa[namba_ya_mahali]) {
@@ -2117,7 +2117,7 @@ w0 zalisha_ruka_kama_sawa_mahali(n32 namba_ya_mahali) {
     }
 }
 
-// Toa jne rel32 kwa lebo
+// Toa jne rel32 kwa mahali
 w0 zalisha_ruka_kama_si_sawa_mahali(n32 namba_ya_mahali) {
     andika_baiti(15); andika_baiti(133);
     kama (mahali_pamewekwa[namba_ya_mahali]) {
@@ -2129,7 +2129,7 @@ w0 zalisha_ruka_kama_si_sawa_mahali(n32 namba_ya_mahali) {
     }
 }
 
-// Toa jmp rel32 kwa lebo
+// Toa jmp rel32 kwa mahali
 w0 zalisha_ruka_mahali(n32 namba_ya_mahali) {
     andika_baiti(233);
     kama (mahali_pamewekwa[namba_ya_mahali]) {
@@ -2687,7 +2687,7 @@ n32 idadi_ya_marekebisho = 0;
 // Herufi halisi (string literals) zilizokusanywa
 // -------------------------------------------------------
 
-// lugha-swa/swa#295 -- ukubwa wa ZAMANI (str_off/str_len/str_lebo_id[1024],
+// lugha-swa/swa#295 -- ukubwa wa ZAMANI (str_off/str_len/namba_ya_mahali_pa_mfuatano[1024],
 // str_buf[16384]) ulikuwa mdogo mno kwa miradi mikubwa: mradi halisi
 // (Dominion's mchezo.swa, ~1136 kazi) hufikia zaidi ya herufi halisi
 // 1024 za KIPEKEE kwa urahisi. Kulikuwa na ukaguzi wa kufurika
@@ -2720,7 +2720,7 @@ n32 namba_ya_mahali_pa_mfuatano[65536];
 // hurudisha -1 KIMYA (bila ujumbe wa hitilafu, tofauti na jedwali
 // dada kwenye faili hili) -- -1 hupitishwa kama lebo_id kwenye
 // weka_fixup, ikiandika kiingilio cha urekebishaji kisichoweza KUFAFANULIWA
-// kamwe (hakuna lebo halisi ni -1), kwa hiyo displacement ya
+// kamwe (hakuna mahali halisi ni -1), kwa hiyo displacement ya
 // rip-relative ya `movsd xmm0,[rip+disp32]` YA HERUFI HIYO HUBAKI 0
 // (thamani ya muda) MILELE -- ikisoma baiti za maagizo yanayofuata
 // kama nambari, kimya kimya, bila hitilafu ya kukusanya wala
@@ -2739,7 +2739,7 @@ n32 idadi_ya_desimali = 0;
 // (imewekwa upya mara MOJA tu, kwenye uzalishaji_kuu/uzalishaji_jit --
 // angalia chini ya faili hili). Ilikuwa 4096 baiti / sehemu 1024, na
 // sehemu_tungo_hifadhi() ilipofurika ilirudisha -1 KIMYA (tovuti za
-// wito zinaziruka sehemu bila onyo lolote wakati lebo < 0). Kwa
+// wito zinaziruka sehemu bila onyo lolote wakati mahali < 0). Kwa
 // programu ndogo hii haikuwahi kufikiwa, lakini kukusanya mkusanyaji
 // huu MWENYEWE (zima.swa, mamia ya wito wa andika_kosa wenye
 // maandishi ya makosa marefu katika msambazaji.swa, mkaguzi.swa,
@@ -2804,7 +2804,7 @@ n32 umbali_wa_majina_ya_nje[2048];
 // Anwani za kazi (&jina_la_kazi) -- marekebisho ya mwishoni
 // -------------------------------------------------------
 // &jina_la_kazi linatoa lea rax, [rip + disp32] na disp32 (sifuri kwa
-// muda) likaandikishwa hapa. Lebo zote za kazi zinajulikana mwishoni
+// muda) likaandikishwa hapa. Mahali pote pa kazi panajulikana mwishoni
 // mwa kukusanya (baada ya kazi zote kutolewa) -- rekebisha_anwani_za_kazi
 // hukokotoa disp32 = nafasi_ya_lebo - (nafasi + 4). Rip-relatif ya
 // ndani ya chombo kinafanya kazi kwa hali zote (exe, .o na JIT) kwa
@@ -2821,7 +2821,7 @@ n32 idadi_ya_anwani_za_kazi = 0;
 // Kianzio cha ulimwengu cha anwani ya kazi (&jina_la_kazi) -- slot ya
 // baiti 8 katika chombo_cha_data (sifuri kwa muda). Rip-relatif haiwezekani
 // kwenye .data (sehemu tofauti na .text): rekebisha_anwani_za_data
-// huiandikia anwani kamili ya exe (4194424 + nafasi ya lebo) mwishoni
+// huiandikia anwani kamili ya exe (4194424 + nafasi ya mahali) mwishoni
 // mwa kukusanya -- kwa hiyo hali ya .o haikubaliwi (uchunguzi wa awali).
 n32 nafasi_ya_anwani_ya_data[512];  // nafasi ya slot (baiti 8) katika chombo_cha_data
 n8* jina_la_anwani_ya_data[512];  // jina la kazi (kielekezi katika ast_pool)
@@ -2836,7 +2836,7 @@ n32 urefu_wa_jina(n8* s) {
 }
 
 // Rekebisha disp32 zote za anwani za kazi (&jina_la_kazi). Huitwa
-// mwishoni mwa kukusanya -- baada ya kazi ZOTE (na lebo zao) kutolewa,
+// mwishoni mwa kukusanya -- baada ya kazi ZOTE (na mahali pao) kutolewa,
 // kabla ya kuandika sehemu za pato. &jina la kazi lisilojulikana linalia
 // kwa sauti, sawa na wito wa kazi isiyofafanuliwa.
 w0 rekebisha_anwani_za_kazi() {
@@ -2855,7 +2855,7 @@ w0 rekebisha_anwani_za_kazi() {
 // Rekebisha kianzio cha ulimwengu cha anwani ya kazi (&jina_la_kazi):
 // slot ya chombo_cha_data inapata anwani kamili ya msimbo wa kazi =
 // 4194424 (0x400078 -- msingi wa .text wa exe, kama RELA za wito wa
-// nje katika uzalishaji_programu) + nafasi ya lebo. Hali ya .o haifiki
+// nje katika uzalishaji_programu) + nafasi ya mahali. Hali ya .o haifiki
 // hapa (uchunguzi wa awali unaikataa -- inahitaji RELA ya kiunganishi).
 w0 rekebisha_anwani_za_data() {
     n32 fi = 0;
@@ -3048,7 +3048,7 @@ n32 kusanya_herufi(n8* ghafi) {
     // zamani isiyohusiana (anwani ya mfuatano mwingine uliotangulia),
     // ikitoa "PASS: B" badala ya maandishi sahihi (angalia #295).
     // Namba hizi mbili (65536/1048576) LAZIMA zilingane na ukubwa wa
-    // tangazo la str_off/str_len/str_lebo_id na str_buf juu ya faili
+    // tangazo la str_off/str_len/namba_ya_mahali_pa_mfuatano na str_buf juu ya faili
     // hili (Swa haina sizeof/lengthof -- kumbuka #197).
     kama (idadi_ya_mifuatano >= 65536 || chombo_cha_mfuatano_wapi + urefu + 1 >= 1048576) {
         andika_kosa("KOSA: jedwali la mfuatano halisi (str_*) limejaa (kikomo cha idadi 65536, au chombo cha baiti 1048576) -- programu hii ina herufi halisi nyingi mno kwa jumla\n");
@@ -3136,7 +3136,7 @@ w0 zalisha_ulinganisho(n32 nodi, n32 nodi_ya_kazi) {
     zalisha_linganisha_pande_mbili(nodi, nodi_ya_kazi, usimbaji);
 }
 
-// Msingi wa PEKEE kwa kutoa jcc yoyote ya rel32 kwa lebo (mfululizo
+// Msingi wa PEKEE kwa kutoa jcc yoyote ya rel32 kwa mahali (mfululizo
 // ule ule wa kuruka nyuma/mbele unaotumika na toa_je_lebo/
 // toa_jne_lebo zilizopo -- kila jcc ya 2-baiti-opcode (0F 8x)
 // hutumia utaratibu ule ule wa lebo_buf_imewekwa/weka_fixup). Baiti
@@ -3205,7 +3205,7 @@ w0 zalisha_ruka_kama_moja_kwa_moja_mahali(n32 nodi, n32 namba_ya_mahali) {
 // pale sharti ni SIVYO (tawi la kama -- ruka kwenda else/mwisho
 // pale sharti halikutimia). Kinyume cha kila uhusiano: < <-> >=,
 // > <-> <=, == <-> !=. Jedwali kamili (limekaguliwa mara mbili
-// dhidi ya jedwali la toa_jcc_moja_kwa_moja_lebo hapo juu):
+// dhidi ya jedwali la zalisha_ruka_kama_moja_kwa_moja_mahali hapo juu):
 //   AST_SAWA        -> jne (0F 85)   [kinyume cha je]
 //   AST_TOFAUTI_SI  -> je  (0F 84)   [kinyume cha jne]
 //   AST_CHINI       -> jge (0F 8D) / jae (0F 83)   [kinyume cha </jb]
@@ -3254,13 +3254,13 @@ w0 zalisha_ruka_kama_kinyume_mahali(n32 nodi, n32 namba_ya_mahali) {
 // kwa leg yoyote ambayo SI ulinganishi wa moja kwa moja -- fursa
 // iliyokosekana TU (kizazi cha polepole zaidi), si hatari ya usahihi.
 //
-// toa_leg_na_shindwa: "ruka kwenda lebo_shindwa ikiwa leg hii ni
+// toa_leg_na_shindwa: "ruka kwenda mahali_pa_kushindwa ikiwa leg hii ni
 // SIVYO" -- semantiki ya && (kila leg lazima iwe kweli, la sivyo
 // jumla ni sivyo mara moja, ikifunga mzunguko mfupi). Kutumika kwa
-// (1) kila leg ya kama (A && B) [lebo_shindwa = lebo_sivyo_kweli], (2)
-// leg ya KWANZA ya wakati/kwa (A && B) [lebo_shindwa = lebo_exit], na
-// (3) leg ya PILI ya kama/wakati (A || B) [lebo_shindwa = lebo
-// inayowakilisha "jumla ni sivyo" ya muktadha huo -- angalia matumizi
+// (1) kila leg ya kama (A && B) [mahali_pa_kushindwa = mahali_pa_sivyo_kweli], (2)
+// leg ya KWANZA ya wakati/kwa (A && B) [mahali_pa_kushindwa = mahali_pa_kutoka], na
+// (3) leg ya PILI ya kama/wakati (A || B) [mahali_pa_kushindwa = mahali
+// panapowakilisha "jumla ni sivyo" ya muktadha huo -- angalia matumizi
 // kwenye uzalishaji_kama/uzalishaji_wakati chini].
 w0 zalisha_upande_na_shindwa(n32 upande, n32 mahali_pa_kushindwa, n32 nodi_ya_kazi) {
     kama (ni_ulinganisho_moja_kwa_moja(upande)) {
@@ -3273,14 +3273,14 @@ w0 zalisha_upande_na_shindwa(n32 upande, n32 mahali_pa_kushindwa, n32 nodi_ya_ka
     }
 }
 
-// toa_leg_au_kweli: "ruka kwenda lebo_kweli ikiwa leg hii ni KWELI" --
+// toa_leg_au_kweli: "ruka kwenda mahali_pa_kweli ikiwa leg hii ni KWELI" --
 // semantiki ya || (leg YOYOTE ikiwa kweli, jumla ni kweli mara moja,
 // ikifunga mzunguko mfupi). Kioo cha toa_leg_na_shindwa hapo juu.
-// Kutumika kwa (1) kila leg ya wakati/kwa (A || B) [lebo_kweli =
-// lebo_body moja kwa moja], (2) leg ya KWANZA ya kama (A || B)
-// [lebo_kweli = lebo mpya "lebo_kweli_mapema" iliyowekwa mbele ya
+// Kutumika kwa (1) kila leg ya wakati/kwa (A || B) [mahali_pa_kweli =
+// mahali_pa_maudhui moja kwa moja], (2) leg ya KWANZA ya kama (A || B)
+// [mahali_pa_kweli = mahali papya "mahali_pa_kweli_mapema" palipowekwa mbele ya
 // mwili wa then -- angalia uzalishaji_kama], na (3) leg ya PILI ya
-// wakati/kwa (A && B) [lebo_kweli = lebo_body, ikiwa leg ya kwanza
+// wakati/kwa (A && B) [mahali_pa_kweli = mahali_pa_maudhui, ikiwa leg ya kwanza
 // tayari imethibitika kweli].
 w0 zalisha_upande_au_kweli(n32 upande, n32 mahali_pa_kweli, n32 nodi_ya_kazi) {
     kama (ni_ulinganisho_moja_kwa_moja(upande)) {
@@ -3315,7 +3315,7 @@ w0 uzalishaji_kama(n32 nodi, n32 nodi_ya_kazi) {
         zalisha_ruka_kama_kinyume_mahali(sharti, mahali_pa_sivyo_kweli);
     } sivyo { kama (aina_ya_sharti == NODI_NA) {
             // A && B (angalia maelezo kamili juu ya toa_leg_na_shindwa):
-            // kila leg ikiruka kwenda lebo_sivyo_kweli ikiwa ni SIVYO --
+            // kila leg ikiruka kwenda mahali_pa_sivyo_kweli ikiwa ni SIVYO --
             // B haitathminiwi kabisa ikiwa A tayari ni sivyo (mzunguko
             // mfupi). Zote mbili zikiwa kweli, tunaanguka moja kwa
             // moja kwenye mwili wa then (sawa kabisa na muundo wa
@@ -3325,12 +3325,12 @@ w0 uzalishaji_kama(n32 nodi, n32 nodi_ya_kazi) {
         } sivyo { kama (aina_ya_sharti == NODI_AU) {
             // A || B (angalia maelezo kamili juu ya toa_leg_au_kweli):
             // A ikiwa kweli inaruka moja kwa moja kwenda
-            // lebo_kweli_mapema (lebo MPYA, iliyowekwa mbele kabisa ya
+            // mahali_pa_kweli_mapema (mahali papya, palipowekwa mbele kabisa ya
             // mwili wa then hapa chini) -- B HAITATHMINIWI kabisa
             // (mzunguko mfupi). B (ikiwa A ni sivyo) ndiyo inayoamua
             // matokeo ya mwisho kikamilifu -- ikiwa B pia ni sivyo,
-            // ruka kwenda lebo_sivyo_kweli; ikiwa B ni kweli, anguka
-            // moja kwa moja kwenye lebo_kweli_mapema (iko mstari
+            // ruka kwenda mahali_pa_sivyo_kweli; ikiwa B ni kweli, anguka
+            // moja kwa moja kwenye mahali_pa_kweli_mapema (iko mstari
             // mmoja tu chini).
             n32 mahali_pa_kweli_mapema = mahali_papya();
             zalisha_upande_au_kweli(nodi_ya_kushoto[sharti], mahali_pa_kweli_mapema, nodi_ya_kazi);
@@ -3713,11 +3713,11 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
         // Kitanzi cha kwa chenye hatua: endelea inaruka kwenye HATUA
         // (semantiki ya C), si kwenye hali. Alama ya -777777 kwenye
         // ast_thamani ya wakati ina maana hatua ipo (imewekwa na
-        // msambazaji). Lebo ya hatua imetengwa MAPEMA -- kifungio cha
-        // hatua kitaweka weka_lebo hapo wakati kinakusanywa.
+        // msambazaji). Mahali pa hatua pametengwa MAPEMA -- kifungio cha
+        // hatua kitaweka weka_mahali hapo wakati kinakusanywa.
         // Alama ya -777778 = kitanzi cha FANYA (do-while): mwili
         // hukimbia mara moja kabla ya sharti -- hakuna kuruka kwa
-        // awali hadi sharti (kuweka-lebo kwa mwili ni kuingilia).
+        // awali hadi sharti (kuweka-mahali kwa mwili ni kuingilia).
         // endelea ndani ya fanya inaruka hadi SHARTI (semantiki ya
         // C ya do-while) -- lebo_cond hapa chini.
         n32 ina_hatua = (thamani_ya_nodi[nodi] == -777777);
@@ -3763,19 +3763,19 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
                 // A && B (angalia maelezo juu ya toa_leg_na_shindwa/
                 // toa_leg_au_kweli, kabla ya uzalishaji_kama): A ikiwa
                 // sivyo, jumla ni sivyo mara moja -- ruka moja kwa
-                // moja kwenda lebo_exit (mzunguko mfupi, B
+                // moja kwenda mahali_pa_kutoka (mzunguko mfupi, B
                 // HAITATHMINIWI kabisa). B (ikiwa A tayari ni kweli)
                 // ndiyo inayoamua -- ikiwa B ni kweli, ruka kwenda
-                // lebo_body; ikiwa B ni sivyo, anguka moja kwa moja
-                // kwenye lebo_exit (weka_lebo yake iko mara moja chini
+                // mahali_pa_maudhui; ikiwa B ni sivyo, anguka moja kwa moja
+                // kwenye mahali_pa_kutoka (weka_mahali yake iko mara moja chini
                 // ya kizuizi hiki).
                 zalisha_upande_na_shindwa(nodi_ya_kushoto[sharti], mahali_pa_kutoka, nodi_ya_kazi);
                 zalisha_upande_au_kweli(nodi_ya_kulia[sharti], mahali_pa_maudhui, nodi_ya_kazi);
             } sivyo { kama (sharti_aina2 == NODI_AU) {
                 // A || B: leg YOYOTE ikiwa kweli inaruka moja kwa moja
-                // kwenda lebo_body (mzunguko mfupi -- B haitathminiwi
+                // kwenda mahali_pa_maudhui (mzunguko mfupi -- B haitathminiwi
                 // ikiwa A tayari ni kweli). Zote mbili zikiwa sivyo,
-                // tunaanguka moja kwa moja kwenye lebo_exit.
+                // tunaanguka moja kwa moja kwenye mahali_pa_kutoka.
                 zalisha_upande_au_kweli(nodi_ya_kushoto[sharti], mahali_pa_maudhui, nodi_ya_kazi);
                 zalisha_upande_au_kweli(nodi_ya_kulia[sharti], mahali_pa_maudhui, nodi_ya_kazi);
             } sivyo {
@@ -3795,7 +3795,7 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
 // Hutumia mfululizo wa kama-ikiwa (if-else chain)
 // -------------------------------------------------------
 
-// Toa thamani ya lebo ya hali kwenye rax. Mkaguzi ameidhinisha lebo
+// Toa thamani ya hali kwenye rax. Mkaguzi ameidhinisha thamani hiyo
 // kuwa halisi ya nambari (chanya au hasi); hii inashughulikia n32,
 // n64 (alama ast_kulia == 1), na toa-unari (-N). Kwa kinga, usemi
 // mwingine wowote unatathminiwa kama usemi wa kawaida.
@@ -3826,7 +3826,7 @@ w0 uzalishaji_mahali_pa_hali(n32 nodi_ya_mahali, n32 nodi_ya_kazi) {
         }
         rudisha;
     }
-    // Kinga pekee -- mkaguzi hukataa lebo zisizo halisi kwa sauti.
+    // Kinga pekee -- mkaguzi hukataa thamani zisizo halisi kwa sauti.
     uzalishaji_usemi(nodi_ya_mahali, nodi_ya_kazi);
 }
 
@@ -3843,13 +3843,13 @@ w0 uzalishaji_chagua(n32 nodi, n32 nodi_ya_kazi) {
 
     // Upana wa ulinganisho unafuatwa na aina ya skrutini: n64 (na
     // kielekezi) zinalinganishwa kwa 64-bit; n8/n16/n32 kwa 32-bit.
-    // Ulinganisho wa 32-bit kwa lebo za n64 unakata kwa sifuri --
-    // semantiki ya C (lebo inabadilishwa hadi aina ya skrutini).
+    // Ulinganisho wa 32-bit kwa thamani ya n64 unakata kwa sifuri --
+    // semantiki ya C (thamani inabadilishwa hadi aina ya skrutini).
     n32 ukubwa_wa_kiteuzi = ukubwa_kutoka_usimbaji(aina_ya_usemi(imepimwa_nodi));
     n32 ni_pana = 0;
     kama (ukubwa_wa_kiteuzi >= 8) { ni_pana = 1; }
 
-    // Tengeneza lebo za mwisho na chaguo-msingi
+    // Tengeneza mahali pa mwisho na chaguo-msingi
     n32 mwisho_wa_mahali = mahali_papya();
     n32 mahali_pa_chaguo_msingi = mahali_papya();
 
@@ -3859,16 +3859,16 @@ w0 uzalishaji_chagua(n32 nodi, n32 nodi_ya_kazi) {
         n32 nodi_ya_mahali = nodi_ya_kushoto[ukaguzi];
         n32 maudhui_ya_hali = nodi_ya_kulia[ukaguzi];
 
-        // Tathmini thamani ya lebo kwenye rax (halisi au toa-unari)
+        // Tathmini thamani ya hali kwenye rax (halisi au toa-unari)
         uzalishaji_mahali_pa_hali(nodi_ya_mahali, nodi_ya_kazi);
-        andika_sukuma_r0();  // hifadhi thamani ya lebo
+        andika_sukuma_r0();  // hifadhi thamani ya hali
 
         // Linganisha thamani ya skrutini na thamani ya hali.
-        // Skrutini iko kwenye rafu ([rsp]); lebo inatolewa kwenye rcx,
+        // Skrutini iko kwenye rafu ([rsp]); thamani ya hali inatolewa kwenye rcx,
         // skrutini kwenye rax, ikilinganishwa, kisha skrutini
         // inarudishwa kwenye rafu kwa rax -- hali inayofuata
-        // inalinganishwa na skrutini, si na lebo ya zamani.
-        andika_vuta_r1();  // rcx = thamani ya lebo
+        // inalinganishwa na skrutini, si na thamani ya zamani.
+        andika_vuta_r1();  // rcx = thamani ya hali
         andika_vuta_r0();  // rax = thamani ya skrutini
         kama (ni_pana) { andika_linganisha_r0_r1(); }
         sivyo { andika_linganisha_r0d_r1d(); }
@@ -3883,7 +3883,7 @@ w0 uzalishaji_chagua(n32 nodi, n32 nodi_ya_kazi) {
         }
         zalisha_ruka_mahali(mwisho_wa_mahali);  // ruka hadi mwisho baada ya hali
 
-        weka_mahali(mahali_pa_hali);  // lebo ya kulinganisha inayofuata
+        weka_mahali(mahali_pa_hali);  // mahali pa kulinganisha inayofuata
 
         ukaguzi = nne_ya_nodi[ukaguzi];
     }
@@ -4560,7 +4560,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
         l = l + 1;
     }
     // Kazi ya nje: kipande chake huandikwa baada ya kazi zote, hivyo
-    // lebo yake haipo bado -- matokeo ya muundo hujulikana kutoka kichwa.
+    // mahali pake bado hapajawekwa -- matokeo ya muundo hujulikana kutoka kichwa.
     kama (ni_ndani == 0) {
         n32 kg_k = kigeni_kazi_kwa_jina(mwitwa);
         kama (kg_k >= 0) {
@@ -5017,9 +5017,9 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
 // nyuma ya taarifa zinazomaliza (rudisha/vunja/endelea). Mfululizo wa
 // mwili huisha kwenye taarifa ya kumaliza -- lakini msambazaji huweka
 // kifungio cha hatua (AST_BLOCK yenye ast_kulia == -777777) MWISHONI
-// mwa mfululizo, na endelea inaruka kwenye lebo yake. Kifungio
-// kisipokusanywa, lebo ya hatua haitolewi kamwe na endelea inaruka
-// mahali pasipo lebo (kitanzi kisichoisha -- jibu la kimya la mwendo
+// mwa mfululizo, na endelea inaruka kwenye mahali pake. Kifungio
+// kisipokusanywa, mahali pa hatua hapatolewi kamwe na endelea inaruka
+// mahali pasipowekwa (kitanzi kisichoisha -- jibu la kimya la mwendo
 // wa muda usio na mwisho). Taarifa zisizofikiwa katikati hazijalishi.
 w0 kusanya_hatua_ya_kwa(n32 nodi, n32 nodi_ya_kazi) {
     n32 nd = nne_ya_nodi[nodi];
@@ -5137,7 +5137,7 @@ w0 uzalishaji_taarifa(n32 nodi, n32 nodi_ya_kazi) {
         kama (fremu_imeanzishwa) { andika_acha_fremu(); }
         andika_matokeo();
         // Hatua ya kwa inayofuata taarifa ya kumaliza ni msimbo wa
-        // kufa -- lakini lebo yake inahitajika na endelea iliyotangulia.
+        // kufa -- lakini mahali pake panahitajika na endelea iliyotangulia.
         kusanya_hatua_ya_kwa(nodi, nodi_ya_kazi);
         rudisha;
     }
@@ -5258,8 +5258,8 @@ w0 uzalishaji_taarifa(n32 nodi, n32 nodi_ya_kazi) {
 
                         sivyo { kama (aina == 50) {  // AST_BLOCK -- kifungio cha hatua ya kwa
                                 // Kama kifungio hiki ni hatua ya kitanzi cha kwa (alama -777777
-                                // kwenye ast_kulia), weka lebo ya hatua HAPA -- endelea inaruka
-                                // kwenye lebo hii (semantiki ya C).
+                                // kwenye ast_kulia), weka mahali pa hatua HAPA -- endelea inaruka
+                                // kwenye mahali hapa (semantiki ya C).
                                 kama (nodi_ya_kulia[nodi] == -777777) {
                                     kama (mzunguko_undani > 0) {
                                         weka_mahali(mzunguko_mahali_pa_hatua[mzunguko_undani - 1]);
@@ -8371,8 +8371,8 @@ w0 uzalishaji_anwani_ya(n32 nodi, n32 nodi_ya_kazi) {
         }
         // &jina_la_kazi -- anwani ya msimbo wa kazi (kielekezi cha kazi).
         // lea rax, [rip + 0] kisha disp32 inarekebishwa na
-        // rekebisha_anwani_za_kazi mwishoni mwa kukusanya (lebo zote
-        // zinajulikana hapo -- wito wa mbele unafanya kazi vilevile).
+        // rekebisha_anwani_za_kazi mwishoni mwa kukusanya (mahali pote
+        // panajulikana hapo -- wito wa mbele unafanya kazi vilevile).
         kama (idadi_ya_anwani_za_kazi < 8192) {
             andika_anwani_r0_kutoka_agizo_tupu();
             nafasi_ya_anwani_ya_kazi[idadi_ya_anwani_za_kazi] = chombo_cha_msimbo_wapi;
@@ -9409,7 +9409,7 @@ n32 desimali_halisi_hifadhi(n32 umbali) {
         idadi_ya_desimali = idadi_ya_desimali + 1;
         rudisha namba_ya_mahali_pa_desimali[idadi_ya_desimali - 1];
     }
-    // lugha-swa/swa#298 -- hii ni jedwali dada la str_off/str_lebo_id
+    // lugha-swa/swa#298 -- hii ni jedwali dada la str_off/namba_ya_mahali_pa_mfuatano
     // (#295) lililoachwa bila hard-fail wakati ule ule. Kurudisha -1
     // kimya kungesababisha urekebishaji isiyoweza kufafanuliwa kamwe (sawa
     // na #192: disp32 ya movsd inabaki 0 milele, ikisoma baiti za
@@ -9432,7 +9432,7 @@ w0 uzalishaji_halisi_d(n32 nodi, n32 nodi_ya_kazi) {
     zalisha_soma_d64_x0_kwa_mahali(namba_ya_mahali);
 }
 
-// Toa constants zote za desimali mwishoni mwa .text na uweke lebo zao
+// Toa constants zote za desimali mwishoni mwa .text na uweke mahali pao
 w0 andika_desimali_halisi() {
     n32 i = 0;
     wakati (i < idadi_ya_desimali) {
@@ -9526,7 +9526,7 @@ w0 uzalishaji_programu(n32 ukubwa_wa_msimbo, n32 ukubwa_wa_data, n32 ukubwa_wa_t
     n32 anwani_pepe_ya_data = anwani_pepe_ya_msimbo + ukubwa_wa_msimbo;
 
     // Rekebisha marejeo yote (RELA) moja kwa moja -- hakuna ld.
-    // Ulimwengu -> data_vaddr (+data_size kwa bss); nje -> lebo ya
+    // Ulimwengu -> data_vaddr (+data_size kwa bss); nje -> mahali pa
     // ndani kwa jina (wito wa mbele uliandikwa kama nje).
     n32 ri = 0;
     wakati (ri < idadi_ya_marekebisho) {
@@ -10740,7 +10740,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
         }
         nodi = nne_ya_nodi[nodi];
     }
-    // 1b. Vipande vya wito wa kazi za nje (kila kimoja na lebo ya jina la Swa)
+    // 1b. Vipande vya wito wa kazi za nje (kila kimoja na mahali pa jina la Swa)
     kigeni_andika_vipande();
 
     // 2. Toa herufi halisi mwishoni mwa buffer ya .text
@@ -10748,7 +10748,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     andika_desimali_halisi();
     andika_sehemu_halisi();
 
-    // 2b. Rekebisha anwani za kazi (&jina) -- lebo zote zinajulikana sasa
+    // 2b. Rekebisha anwani za kazi (&jina) -- mahali pote panajulikana sasa
     rekebisha_anwani_za_kazi();
     rekebisha_anwani_za_data();
 
@@ -10763,7 +10763,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     kama (hali_ya_towe == 1) { kigeni_andika_jedwali(ukubwa_wa_msimbo, tupu_wapi); }
 
     // 3. Hesabu umbali wa sehemu
-    // Jenga ramani ya kuondoa nje zinazofanana na lebo
+    // Jenga ramani ya kuondoa nje zinazofanana na mahali
     n32 nje_mpya_umbali[2048];
     n32 nje_halisi = 0;
     n32 ni = 0;
@@ -10778,7 +10778,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
         sivyo { nje_mpya_umbali[ni] = nje_halisi; nje_halisi = nje_halisi + 1; }
         ni = ni + 1;
     }
-    // .symtab: 1 (null) + lebo_idadi (kazi zote) + data_ulimwengu_idadi (vigeu vya ulimwengu) + nje_halisi (nje zisizo dup)
+    // .symtab: 1 (null) + idadi_ya_mahali (kazi zote) + data_ulimwengu_idadi (vigeu vya ulimwengu) + nje_halisi (nje zisizo dup)
     n32 maingizo_ya_jedwali_la_alama = 1 + idadi_ya_mahali + idadi_ya_data_ya_ulimwengu + nje_halisi;
     n32 ukubwa_wa_jedwali_la_alama = 24 * maingizo_ya_jedwali_la_alama;
 
@@ -10985,7 +10985,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // Majina ya nje
     i = 0;
     wakati (i < nje_idadi) {
-        // Ruka nakala rudufu (tayari zipo kwenye lebo)
+        // Ruka nakala rudufu (tayari zipo kwenye mahali)
         kama (nje_mpya_umbali[i] >= 0) {
             n8* njina = nje_ghala + nje_jina_umbali[i];
             n32 j = 0;
@@ -11003,7 +11003,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
         n32 faharasa_ya_alama;
         kama (nje_faharasa == -1) {
             // Urekebishaji wa kigezo cha ulimwengu
-            // Alama za ulimwengu ziko baada ya lebo zote
+            // Alama za ulimwengu ziko baada ya mahali pote
             faharasa_ya_alama = idadi_ya_mahali + 1 + faharasa_ya_ulimwengu_ya_urekebishaji[i];
         } sivyo { kama (nje_mpya_umbali[nje_faharasa] < 0) {
                 // Ni dup -- tafuta kwenye lebo_jina
@@ -11014,7 +11014,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
                     fl = fl + 1;
                 }
             } sivyo {
-                // Alama za nje ziko baada ya lebo na vigeu vya ulimwengu
+                // Alama za nje ziko baada ya mahali na vigeu vya ulimwengu
                 faharasa_ya_alama = idadi_ya_mahali + 1 + idadi_ya_data_ya_ulimwengu + nje_mpya_umbali[nje_faharasa];
             } }
         andika_neno8_moja_kwa_moja(umbali, 0);
@@ -11079,7 +11079,7 @@ w0 uzalishaji_papo(n32 nodi_ya_programu, n32 idadi_hoja_papo, n8** hoja_mstari_p
     hakiki_marudio_ya_ngazi_ya_juu(nodi_ya_programu);
 
     // Stub ya kuingia: jmp main -- inatengenezwa baada ya kukusanya
-    // kwani lebo_nafasi ya main inajulikana mwishoni.
+    // kwani nafasi_ya_mahali ya main inajulikana mwishoni.
     andika_baiti(233);  // jmp rel32
     andika_neno4(0);
 
@@ -11087,20 +11087,20 @@ w0 uzalishaji_papo(n32 nodi_ya_programu, n32 idadi_hoja_papo, n8** hoja_mstari_p
     wakati (nodi != -1) {
         kama (aina_ya_nodi[nodi] == 2) {
             // Ruka matamko ya mbele (hayana mwili) -- sawa na mfululizo
-            // wa exe. Zamani tangazo lilipata lebo yake ya tupu na
+            // wa exe. Zamani tangazo lilipata mahali pake pa tupu na
             // wito ukaelekea hiyo badala ya ufafanuzi halisi.
             kama (tatu_ya_nodi[nodi] != -1) { uzalishaji_kazi(nodi); }
         }
         nodi = nne_ya_nodi[nodi];
     }
 
-    // Ongeza tungo mwishoni mwa msimbo na uweke lebo zao --
+    // Ongeza tungo mwishoni mwa msimbo na uweke mahali pao --
     // hii pia hurekebisha urekebishaji zote zilizobaki.
     andika_herufi_halisi();
     andika_desimali_halisi();
     andika_sehemu_halisi();
 
-    // Rekebisha anwani za kazi (&jina) -- lebo zote zinajulikana sasa
+    // Rekebisha anwani za kazi (&jina) -- mahali pote panajulikana sasa
     rekebisha_anwani_za_kazi();
     rekebisha_anwani_za_data();
 

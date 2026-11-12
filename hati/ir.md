@@ -27,8 +27,8 @@ Kila amri ina `ir_amri`, `ir_lengo` (vreg ya matokeo au -1), `ir_a`, `ir_b`, `ir
 | `hifadhi` | `kumbukumbu[v[a]] = v[b]` kwa upana |
 | `fremu` | `lengo = fremu + ir_namba` -- anwani ya nafasi ya kigeu cha ndani au kigezo |
 | `anwani` | `lengo = ir_namba` -- anwani halisi ya kigeu cha ulimwengu au mfuatano halisi |
-| `lebo` / `ruka` | lebo `a`; ruka hadi lebo `a` |
-| `ruka_kama` / `ruka_sivyo` | ruka hadi lebo `b` kama `v[a] != 0` / `== 0` |
+| `mahali` / `ruka` | mahali `a`; ruka hadi mahali `a` |
+| `ruka_kama` / `ruka_sivyo` | ruka hadi mahali `b` kama `v[a] != 0` / `== 0` |
 | `wito` | `lengo = kazi a(v[ir_hoja[b..b+c]])`; matokeo husawazishwa kwa aina ya kurudi |
 | `wito_asili` | kazi ya asili `a`: `wito_wa_mfumo`, `tenga`, `achilia`, na vipande vya `andika` (sehemu ya maandishi, namba, mfuatano, herufi) |
 | `rudisha` | rudisha `v[a]` (`a = -1`: 0) |

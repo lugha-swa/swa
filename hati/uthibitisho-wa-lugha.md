@@ -253,8 +253,8 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 | mfululizo wa sivyo-kama bila mabano (t141) | SAWA (a=1) | SAWA (a=1) | a=1 | imefunga kwenye uzalishaji |
 | wakati: rahisi, (0), acha, endelea, viota, && mzunguko mfupi, mwili bila mabano, mwili tupu (kesi 9) | SAWA | SAWA | kama hati | SAWA |
 | kwa: rahisi, hali iliyoachwa, (;;), kianzilishi cha tangazo, endelea, acha, viota, mwili bila mabano, mwili tupu (kesi 11) | SAWA | SAWA | kama hati | SAWA |
-| chagua: kila muundo (mikono, sivyo, viota, lebo 0/hasi/N64, selecta ya usemi, rudisha ndani, endelea ndani) (kesi 13) | IMEKATALIWA (mchanganuzi haujui chagua) | SAWA | hati 6.6 | tofauti (kikomo cha mbegu kilichoandikwa) |
-| chagua: lebo ya usemi, lebo ya kigezo, bloku ndani ya mkono, acha nje ya kitanzi, sivyo pekee, hali nje ya chagua | IMEKATALIWA | IMEKATALIWA | kukataliwa kwa sauti | IMEKATALIWA kwa sauti (sawa) |
+| chagua: kila muundo (mikono, sivyo, viota, thamani 0/hasi/N64, selecta ya usemi, rudisha ndani, endelea ndani) (kesi 13) | IMEKATALIWA (mchanganuzi haujui chagua) | SAWA | hati 6.6 | tofauti (kikomo cha mbegu kilichoandikwa) |
+| chagua: thamani ya usemi, thamani ya kigezo, bloku ndani ya mkono, acha nje ya kitanzi, sivyo pekee, hali nje ya chagua | IMEKATALIWA | IMEKATALIWA | kukataliwa kwa sauti | IMEKATALIWA kwa sauti (sawa) |
 | hesabu za N32: + - * / % | SAWA | SAWA | 26 14 120 3 2 | SAWA |
 | hesabu za N64 (> 2^31), mgawanyo na modulo | SAWA | SAWA | kama hati | SAWA |
 | modulo na mgawo wa namba hasi (-7 % 3) | SAWA | SAWA | -1; -2 | SAWA (kwa ishara; fomu isiyo na ishara kwenye mbegu kwa %d -- tazama 8.10) |

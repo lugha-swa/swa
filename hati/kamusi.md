@@ -37,7 +37,7 @@ inayoruhusiwa kubadilika.
    chake kilichoamuliwa hapa.
 
 5. **Mpangilio wa asili wa Kiswahili.** Kichwa kwanza, kisha kiunganishi
-   kinachokubaliana na ngeli yake: `idadi_ya_lebo` (si `lebo_idadi`),
+   kinachokubaliana na ngeli yake: `idadi_ya_mahali` (si `mahali_idadi`),
    `jina_la_kazi`, `urefu_wa_mfuatano`, `kina_cha_kitanzi`,
    `umbali_wa_jina_la_kigeu`. Kichwa kinachohesabu huchukua wingi:
    `idadi_ya_vigeu`, `dimbwi_la_majina`. Majina yanayoanza na kitenzi
@@ -123,7 +123,7 @@ mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 | stack | `rafu` |
 | heap | `lundo` |
 | slot | `sloti` |
-| label | `lebo` |
+| label | `mahali` |
 | fixup / relocation | `urekebishaji` |
 | target / tgt | `lengo` |
 | source / src | `chanzo` |
