@@ -171,7 +171,7 @@ Mipaka inayojulikana imeandikwa wazi kwenye [hati/mipaka.md](hati/mipaka.md); ra
 
 ## Changia
 
-Michango inakaribishwa -- kila kitu kwenye mradi (msimbo, maoni, commits, PR) kiko kwa Kiswahili. Soma [CONTRIBUTING.md](CONTRIBUTING.md), kisha angalia [masuala ya waanzishaji](https://github.com/lugha-swa/swa/labels/good-first-issue). Mabadiliko yote huingia kupitia PR; `main` inalindwa na CI lazima iwe kijani.
+Michango inakaribishwa -- kila kitu kwenye mradi (msimbo, maoni, mabadiliko, PR) kiko kwa Kiswahili. Soma [CONTRIBUTING.md](CONTRIBUTING.md), kisha angalia [masuala ya waanzishaji](https://github.com/lugha-swa/swa/labels/good-first-issue). Mabadiliko yote huingia kupitia PR; `main` inalindwa na CI lazima iwe kijani.
 
 Ripoti hitilafu kwenye [Issues](https://github.com/lugha-swa/swa/issues), uliza swali kwenye [Discussions](https://github.com/lugha-swa/swa/discussions). Masuala ya usalama: [SECURITY.md](SECURITY.md).
 

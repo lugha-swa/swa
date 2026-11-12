@@ -224,7 +224,7 @@ yamewekwa kwenye jedwali hili.
 | Halisi za radiksi (`0x10`) | IMEKATALIWA (sauti) | IMEKATALIWA (sauti) | 16 au kukataliwa kwa sauti | SAWA (maboresho dhidi ya rekodi) |
 | N8 hadi N32 (chanya) | SAWA | SAWA | upanuzi | SAWA |
 | N8/N16 hasi hadi N32 (`N8 x = -1; N32 y = x;`) | JIBU-BAYA (255/65535 -- soma_a) | SAWA (-1, panua_r0d) | -1 (upanuzi wa ishara) | JIBU-BAYA kwenye awali (imefunga kwenye uzalishaji) |
-| N8 overflow (`N8 x = 127; x = x + 1;` hadi N32) | JIBU-BAYA (128 -- movzx, sio -128) | SAWA (-128) | -128 | JIBU-BAYA kwenye awali (imefunga kwenye uzalishaji) |
+| N8 kufurika (`N8 x = 127; x = x + 1;` hadi N32) | JIBU-BAYA (128 -- soma_a, sio -128) | SAWA (-128) | -128 | JIBU-BAYA kwenye awali (imefunga kwenye uzalishaji) |
 | N32 hadi N64; N64 hadi N32 (mod); N32 hadi N8 (mod); N64 hadi N8 | SAWA | SAWA | ukataji kwa mod | SAWA |
 | N32 hadi A32; A32 hadi N32 | IMEKATALIWA (A32) | IMEKATALIWA (kosa la aina la familia) | ubadilishaji wa familia | IMEKATALIWA kwa sauti kwa uzalishaji |
 | A32 hadi A64 | IMEKATALIWA (A32) | SAWA | upanuzi wa familia | uzalishaji SAWA |
@@ -253,7 +253,7 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 | mfululizo wa sivyo-kama bila mabano (t141) | SAWA (a=1) | SAWA (a=1) | a=1 | imefunga kwenye uzalishaji |
 | wakati: rahisi, (0), acha, endelea, viota, && mzunguko mfupi, maudhui bila mabano, maudhui matupu (kesi 9) | SAWA | SAWA | kama hati | SAWA |
 | kwa: rahisi, hali iliyoachwa, (;;), kianzilishi cha tangazo, endelea, acha, viota, maudhui bila mabano, maudhui matupu (kesi 11) | SAWA | SAWA | kama hati | SAWA |
-| chagua: kila muundo (mikono, sivyo, viota, thamani 0/hasi/N64, selecta ya usemi, rudisha ndani, endelea ndani) (kesi 13) | IMEKATALIWA (mchanganuzi haujui chagua) | SAWA | hati 6.6 | tofauti (kikomo cha awali kilichoandikwa) |
+| chagua: kila muundo (mikono, sivyo, viota, thamani 0/hasi/N64, kiteuzi cha usemi, rudisha ndani, endelea ndani) (kesi 13) | IMEKATALIWA (mchanganuzi haujui chagua) | SAWA | hati 6.6 | tofauti (kikomo cha awali kilichoandikwa) |
 | chagua: thamani ya usemi, thamani ya kigezo, bloku ndani ya mkono, acha nje ya mzunguko, sivyo pekee, hali nje ya chagua | IMEKATALIWA | IMEKATALIWA | kukataliwa kwa sauti | IMEKATALIWA kwa sauti (sawa) |
 | hesabu za N32: + - * / % | SAWA | SAWA | 26 14 120 3 2 | SAWA |
 | hesabu za N64 (> 2^31), mgawanyo na modulo | SAWA | SAWA | kama hati | SAWA |
@@ -265,7 +265,7 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 | ! (kanusha mantiki): !0 !5 !1 !(-1) | SAWA | SAWA | 1 0 0 0 | SAWA |
 | ! kwenye D64 | JIBU-BAYA (rc=1, inakubali kimya) | IMEKATALIWA (sauti) | kukataliwa kwa sauti | tofauti: awali inakubali kimya (tazama 8.8) |
 | viendeshaji vya kiwanja: += -= *= /= %= &= |= ^= <<= >>= (N32 na N64) | IMEKATALIWA | SAWA | si ya hati, lakini zinafanya kazi | tofauti (kikomo cha awali kilichoandikwa) |
-| ternary rahisi, viota, tawi moja pekee linatathminiwa | SAWA | SAWA | kama hati | SAWA |
+| chaguzi tatu rahisi, viota, tawi moja pekee linatathminiwa | SAWA | SAWA | kama hati | SAWA |
 | toa unary: -x, -(-x), -x * 2, -(x * 2) | SAWA | SAWA | kama hati | SAWA |
 | anwani & na kunyooosha *: *p = 9 | SAWA | SAWA | x=9 y=9 | SAWA |
 | kielekezi mara mbili N32** (kunyooosha mara mbili) | HUANGUKA (SEGV 139) | SAWA (x=11) | x=11 | awali inaanguka (tazama 9.2) |
@@ -351,7 +351,7 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 | Wito wa kazi za D64 (hoja + hesabu) | SAWA | SAWA | kama hati | SAWA (rekodi ya zamani haishikiki) |
 | Hoja mchanganyiko kamili/desimali (d26) | JIBU-BAYA | SAWA | kama hati | tofauti (kikomo cha awali: mpaka wa D64) |
 | Idadi ya hoja isiyo sahihi -- nafasi ya taarifa/usemi (d27-d29) | JIBU-BAYA (inakubali kimya) | SAWA (KATA) | kukataliwa | tofauti (tazama 8.16) |
-| tenga msingi, nyingi, kubwa (500,000B), inayozidi arena inarudisha 0 | SAWA | SAWA | kama hati | SAWA |
+| tenga msingi, nyingi, kubwa (500,000B), inayozidi eneo la utengaji inarudisha 0 | SAWA | SAWA | kama hati | SAWA |
 | badili (kukua, data inahifadhiwa) | SAWA | SAWA | kama hati | SAWA (rekodi ya zamani SEGV haishikiki) |
 | achilia (no-op, hakuna anguko) | SAWA | SAWA | kama hati | SAWA |
 | wito_wa_mfumo hoja 1/2/3/6/8; mrundikano baada ya wito; O_CREAT mode 0644 | SAWA | SAWA | kama hati | SAWA |
@@ -375,7 +375,7 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 
 Kinachofanya kazi kwa mifululizo yote miwili, kilichopimwa leo:
 kama/sivyo kwa kila muundo, wakati, kwa, acha na endelea, hesabu
-na ulinganisho za N32 na N64, mzunguko mfupi wa && na ||, ternary,
+na ulinganisho za N32 na N64, mzunguko mfupi wa && na ||, chaguzi tatu,
 ugawi, kurudia na wito wa mbele, miundo kwa thamani, kwa matokeo ya muundo na
 kwa mchanganyiko wao, safu za miundo, muundo wa ulimwengu
 (kwenye uzalishaji), D64 ndani ya ulimwengu wake (pamoja na wito wa
@@ -475,7 +475,7 @@ upya baada yake).
 - 8.4 (J1) -- mchanganyiko N32-N64 ulihesabiwa kwa biti 32 -- imefunga.
 - 8.5 (J2) -- shift za N64 zilikuwa za biti 32 -- imefunga.
 - 8.6 (J3) -- mpaka mzima wa D64/nambari kamili (kianzio, ugawaji,
-  hoja, rudisha, hesabu, ulinganisho, ternary) -- imefunga.
+  hoja, rudisha, hesabu, ulinganisho, chaguzi tatu) -- imefunga.
 - 8.8 (t62) -- ! na ~ kwenye D64 zilikubaliwa kimya -- imefunga.
 - 8.10 -- %d/%u/%x za matokeo ya hesabu hasi zilichapisha fomu ya
   biti 32 -- imefunga.

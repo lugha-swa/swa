@@ -42,7 +42,7 @@ unabaki tete (kikomo kilichojulikana, kipengee 6).
 ## 3. Upeo wa tokeni: 262,144 [IMEREKEBISHWA -- SASA INALIA]
 
 Ilikuwa: chanzo kikubwa kuliko kikomo kinakatwa KIMYA -- ELF halali
-lakini program mbaya (JUU). Ilipimwa (kwa kikomo cha zamani cha
+lakini programu mbaya (JUU). Ilipimwa (kwa kikomo cha zamani cha
 65,536): wito ~7,280 kwa mistari ya tokeni 9, ~5,957 kwa tokeni 11.
 
 Sasa: msomaji inalia `Hitilafu: chanzo kina tokeni nyingi mno` + exit 1
@@ -58,7 +58,7 @@ sauti (`Hitilafu: ... limejaa` + exit 1) badala ya kuendelea kimya.
 Vikomo viliinuliwa Agosti 2026 (4x) ili kupunguza mzunguko:
 
 - jedwali la nje (UPEO_NJE 65,536) -- kila wito wa mbele unachukua
-  ingizo jipya bila dedup
+  ingizo jipya bila kuondoa nakala
 - jedwali la RELA (UPEO_HAMISHO 65,536) -- maeneo yote: mizigo ya
   ulimwengu, uhifadhi wa ulimwengu, tungo, nafasi za matokeo ya muundo, na wito
 - jedwali la urekebishaji, la ulimwengu (UPEO_ULIMWENGU 4096), la mahali
@@ -89,8 +89,8 @@ awali NA kamili).
 Hali halisi (iliyothibitishwa 2026-08-20, kwa ushahidi wa kila mfululizo):
 - Mfululizo wa awali: IMEREKEBISHWA -- vitambulisho vya desimali
   (kigeuzi cha desimali hadi d64 kwenye msomaji), AST_HALISI_D, hesabu
-  za kuelea (addsd/subsd/mulsd/divsd), ulinganisho (ucomisd+setcc),
-  na ukanushaji (mulsd kwa -1.0 -- xorpd ya kumbukumbu ilionekana
+  za kuelea (addsd/subsd/mulsd/divsd), ulinganisho (ucomisd+weka_kama),
+  na ukanushaji (zidisha_d64 kwa -1.0 -- au_pekee_x ya kumbukumbu ilionekana
   kuvunjika kwenye VM ya mtumiaji). Jaribio:
   jaribio_hitilafu_60_desimali_awali.
 - Mfululizo wa .swa (kujikusanya): IMEREKEBISHWA -- biti_ya_d64_swa
@@ -101,7 +101,7 @@ Hali halisi (iliyothibitishwa 2026-08-20, kwa ushahidi wa kila mfululizo):
 
 KILICHOPIMWA 2026-08-27 (hati/uthibitisho-wa-lugha.md): kauli ya
 zamani "awali bado HAIJATEKELEZA ABI ya xmm kwenye wito wa kazi --
-program za awali zenye kazi za D64 zinalia kwa sauti" SI KWELI tena.
+programu za awali zenye kazi za D64 zinalia kwa sauti" SI KWELI tena.
 Awali inatekeleza wito wa kazi za D64 (parameta NA kurudisha) kwa
 usahihi (jaribio u062/u063 hutoa matokeo 1) bila kosa lolote. ABI yake
 hutumia uhamisho wa GP (`hamisha_x r0, xmm0`; `hamisha_x xmm1, r1`) si xmm
@@ -178,7 +178,7 @@ kuwa wa MAJARIBIO (experimental). Ushahidi wa zamani: O0 inakata vizuizi >~50
 kimya; O1/O2 zinakusanya mkusanyaji mzima (alama zipo) lakini
 mfumo wa faili unashindwa kwenye mfululizo kamili; uthibitishaji wa
 moduli unashindwa kwa desimali. Wigo uliojaribiwa na unaofanya kazi
-ni majaribio ya maktaba ya K-series (program ndogo). Mfululizo wa
+ni majaribio ya maktaba ya K-series (programu ndogo). Mfululizo wa
 uzalishaji ni awali/exe PEKEE.
 
 **KUFUNGWA (2026-09-05):** dereva wa Rust/LLVM umehamishiwa hazina ya
@@ -242,7 +242,7 @@ rekodi hiyo: kipengee 4c (ABI ya D64 kwenye awali -- imefanya kazi),
 kipengee 5 (N64 -- kwa [2^31, 2^63) pekee), na kipengee 8 (husisha --
 hakuna mfululizo unaoingiza faili).
 
-## 10. `ukubwa(x)` kwenye awali: jina la muundo/kigezo lililo HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi ndogo) linatafsiriwa kimya kama aina ya msingi [IMEREKEBISHWA 2026-09-27 -- freeze ya TATU ya chanzo cha uaminifu]
+## 10. `ukubwa(x)` kwenye awali: jina la muundo/kigezo lililo HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi ndogo) linatafsiriwa kimya kama aina ya msingi [IMEREKEBISHWA 2026-09-27 -- kugandisha kwa TATU ya chanzo cha uaminifu]
 
 Hali ya AWALI (kabla ya rekebisho): tangu awali.bin kugandishwa upya
 2026-09-24 kutambua herufi ndogo za aina 6 za msingi (n8/n16/n32/n64/
@@ -263,7 +263,7 @@ muundo wa jina hilo (idadi kubwa zaidi ya matumizi halisi), tabia
 HAIBADILIKI KABISA -- anguka kwenye ukaguzi wa majina ya aina za
 msingi kama zamani. Imethibitishwa: `ukubwa(n32)` (bila muundo wa
 jina hilo) bado inarudisha 4; miundo ya kawaida (isiyogongana)
-bado inarudisha ukubwa wao sahihi; freeze imefuata utaratibu KAMILI
+bado inarudisha ukubwa wao sahihi; kugandisha imefuata utaratibu KAMILI
 wa CONTRIBUTING.md (nasm+ld, majaribio ya chanzo kidogo, mfululizo
 mzima, mkazo wa RELA, KISHA kugandisha, jaribu-mfululizo.sh 439/439 +
 jaribu-wasm.sh 25/25).
@@ -283,7 +283,7 @@ uaminifu -- mkusanyaji wa kawaida, si awali.swm).
 
 ## 11. Lengwa ya WebAssembly (`kamili --wasm`) -- Awamu ya 1 pekee: N32, hakuna kumbukumbu [UKALI: KWA KUBUNI]
 
-`msingi/mkusanyaji/uzalishaji_wasm.swa` (backend ya PILI ya
+`msingi/mkusanyaji/uzalishaji_wasm.swa` (uzalishaji wa PILI wa
 uzalishaji msimbo, sambamba na `uzalishaji.swa` ya x86-64) inatoa
 moduli za WebAssembly kwa Awamu ya 1 TU: N32 pekee -- hesabu,
 ulinganisho, `&&`/`||` za mzunguko mfupi, kama/sivyo, wakati (+kwa/

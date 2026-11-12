@@ -2,7 +2,7 @@
 
 ## Lengo Kuu
 
-**Swa itakuwa lugha ya kwanza duniani yenye uhuru kamili (0% kujianzisha gap).**
+**Swa itakuwa lugha ya kwanza duniani yenye uhuru kamili (0% kujianzisha pengo).**
 Hakuna Rust, hakuna LLVM, hakuna GNU as, hakuna lugha nyingine yoyote
 iliyowahi kuhusika katika mfululizo wake. Binary mbichi inayojitengeneza
 yenyewe kupitia baiti za mkono.
@@ -11,8 +11,8 @@ yenyewe kupitia baiti za mkono.
 
 ### Hatua ya 1: Kufa kwa LLVM [IMEFANIKIWA]
 `uzalishaji.swa` inatoa **binari mbichi (.o)** moja kwa moja.
-Hakuna assembly. Hakuna GNU as.
-- [x] ELF header + machine msimbo (opcodes za x86-64)
+Hakuna kusanyiko. Hakuna GNU as.
+- [x] ELF utangulizi + machine msimbo (opkodi za x86-64)
 - [x] Inachukua nafasi ya mteremko.swa (LLVM) KABISA katika mfululizo wa kujikusanya
 - [x] `N32 anza() { rudisha 42; }` -> ELF binari inayofanya kazi
 - [x] Mfululizo mzima unajithibitisha: kamili2 == kamili3 (sawa kwa baiti)
@@ -20,7 +20,7 @@ Hakuna assembly. Hakuna GNU as.
 ### Hatua ya 2: JIT halisi (kama HolyC) [IMEFANYIKA]
 Swa inatoa maelekezo moja kwa moja kwenye kumbukumbu na kuyatekeleza.
 Hakuna faili. Hakuna binari. Hakuna OS kati.
-- [x] `mmap()` -> andika opcodes -> rukia (PR #143)
+- [x] `mmap()` -> andika opkodi -> rukia (PR #143)
 - [x] Stub ya `ruka main` na tungo mwishoni mwa chombo
 - [x] Thamani ya kurudi inarudi kwa usahihi (vipimo 5/5 vya JIT)
 - [x] Wito wa kazi za ndani ndani ya msimbo wa JIT (jedwali la anwani
@@ -28,7 +28,7 @@ Hakuna faili. Hakuna binari. Hakuna OS kati.
       kupitisha argv; programu haina alama za nje kabisa
 
 ### Hatua ya 3: Kuziba pengo la kujianzisha [IMEFANYIKA KWA AWALI]
-Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
+Andika baiti za mkono (opkodi za x86-64) zinazounda mkusanyaji wa kwanza.
 - [x] Kwanza (msingi/kwanza.bin): baiti 393 zilizoandikwa kwa mkono
       (utangulizi wa ELF 64 + maelezo ya kipande 56 + msimbo 273) -- hubadilisha
       heksa hadi binari na inajijenga yenyewe (kwanza.heksa -> kwanza.bin)
@@ -42,8 +42,8 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - [x] Runtime ya syscalls: mkusanyaji hautekelezi kupitia libc tena --
       mfumo_fungua/mfumo_soma/mfumo_andika/mfumo_ramani_kumbukumbu kupitia wito_wa_mfumo;
       undefined za nje za kamili2 ni mbili tu (violesura vya JIT).
-- [x] 0% kujianzisha gap -- awali inatoa ET_EXEC tuli moja kwa moja
-      (`--programu`): utangulizi + maelezo ya kipande + stub ya `_start` + urekebishaji wa
+- [x] 0% kujianzisha pengo -- awali inatoa ET_EXEC tuli moja kwa moja
+      (`--programu`): utangulizi + maelezo ya kipande + kianzishi cha `_start` + urekebishaji wa
       RELA wa ndani. Hakuna gcc, ld, clang, muda.c, wala libc popote
       kwenye mfululizo: kwanza -> awali -> kamili -> kamili2 ->
       kamili3 (kamili2 == kamili3, sawa kwa baiti).
@@ -83,7 +83,7 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 Lengo kuu limefikiwa: mfululizo wa kujikusanya umefungwa kikamilifu na
 **hakuna lugha nyingine** -- baiti za mkono (kwanza, 393) -> awali ->
 kamili -> kamili2 == kamili3, bila gcc/ld/clang/libc popote.
-(0% gap ni mhimili wa mfululizo wa uzalishaji; uthabiti wa makosa ni
+(0% pengo ni mhimili wa mfululizo wa uzalishaji; uthabiti wa makosa ni
 mhimili tofauti -- hati/mipaka.md.)
 
 Hali ya Agosti 2026 (kuelekea 1.0):
@@ -115,7 +115,7 @@ Hali ya Agosti 2026 (kuelekea 1.0):
 
 ## Kuhusu Toleo la 1.0
 
-1.0 si mwisho wa hitilafu. Ni AHADI: kuanzia siku hiyo, program
+1.0 si mwisho wa hitilafu. Ni AHADI: kuanzia siku hiyo, programu
 zilizoandikwa dhidi ya vipimo hivi zinaendelea kufanya kazi.
 Ahadi hiyo haifanywi kwa skani safi -- inafanywa wakati kuna watumiaji
 wanaostahili kupewa ahadi. V (vlang) bado ni 0.4 baada ya miaka sita,
@@ -123,4 +123,4 @@ na ahadi za mapema za 1.0 ziliumiza sifa yake kuliko hitilafu zozote.
 
 Njia ya Swa: 0.0.x kwa marekebisho, 0.1.0 kuanzia mfumo wa moduli na
 vielekezi vya kazi, na 1.0.0 siku ambayo watumiaji wa kweli
-wameandika program za kweli -- si mapema.
+wameandika programu za kweli -- si mapema.

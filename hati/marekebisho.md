@@ -108,11 +108,11 @@ Fikiria `N32 ast_aina[2048]` -- safu ya nambari kamili za baiti nne 2048 (jumla 
 
 **Faili:** `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs`
 
-**Hitilafu.** LLVM 22.1 kwenye Arch Linux inatumia opaque vielekezi kwa chaguo-msingi. Kazi ya API ya C ya `LLVMGetElementType`, ambayo usawazishaji wa upana wa hifadhi ulitegemea, inarudisha matokeo yasiyoaminika na opaque vielekezi. Hii ilisababisha:
+**Hitilafu.** LLVM 22.1 kwenye Arch Linux inatumia isiyo wazi vielekezi kwa chaguo-msingi. Kazi ya API ya C ya `LLVMGetElementType`, ambayo usawazishaji wa upana wa hifadhi ulitegemea, inarudisha matokeo yasiyoaminika na isiyo wazi vielekezi. Hii ilisababisha:
 
 - Vigezo vya `i64` vilikatwa hadi `i32` wakati wa kuhifadhiwa kwenye alloca, na kusababisha kufurika kwa bwawa katika `hifadhi_jina` na hitilafu za sehemu nasibu
 - Nakala za sehemu za muundo katika `sogeza()` ziliharibu hali ya tokeni, na kufanya ulinganifu wa `== TOKENI_ISHARA` ushindwe
-- Mizigo ilisoma upana usio sahihi kutoka kwa opaque vielekezi
+- Mizigo ilisoma upana usio sahihi kutoka kwa isiyo wazi vielekezi
 
 **Marekebisho.**
 - Hifadhi za vigezo zilibadilishwa kutoka `Instruction::Store` hadi `Instruction::StoreTyped`, ambayo hubeba IrType kwa uwazi na inapita API iliyopitwa na wakati
@@ -149,7 +149,7 @@ Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (mzunguko wa kujirudia) h
 
 3. **Urekebishaji wa kituo cha kujirudia (self-loop)**:
    Vitalu vyenye `Br(jikite)` hubadilishwa wakati wa ukamilishaji wa kazi:
-   - Kwa kazi za `W0` (void): badilisha kwa `RetVoid`
+   - Kwa kazi za `W0` (w0): badilisha kwa `RetVoid`
    - Kwa kazi zenye thamani ya kurudi: badilisha kwa `Ret(0)` (thamani chaguo-msingi)
    Hii inahakikisha hakuna ubeti ulioachwa kwenye mzunguko usio na mwisho.
 
@@ -179,11 +179,11 @@ Chanzo cha msingi: Kila marudio ya mzunguko wa `wakati` katika `changanua()` uli
 
 1. **Kupitisha awali (pre-pass) -- `collect_local_decls`**: Mbinu mpya inatembea AST ya maudhui ya kazi na kukusanya nodi zote za `AST_TANGAZO` (matamko ya vigeu vya ndani) pamoja na aina zao zilizotatuliwa. Inajirudia kupitia `kushoto`, `kulia`, `tatu`, na `nne` ili kupata matamko yaliyowekwa ndani.
 
-2. **Utoaji wa alloca mapema**: Baada ya kupitisha awali, `lower_function` inatoa Alloca kwa kila kigezo cha ndani kwenye *ubeti wa kuingia* (entry ubeti) -- kabla ya maudhui yoyote kuchakatwa. Hii inahakikisha kwamba alloca zote za vigeu vya ndani ziko kwenye ubeti wa kuingia, ambako zinatolewa mara moja tu kwa mzigo wote wa kazi. Ramani ya `pre_allocated_locals: HashMap<i32, ValueId>` inahifadhi uhusiano kati ya faharisi ya nodi ya AST na alloca ValueId.
+2. **Utoaji wa alloca mapema**: Baada ya kupitisha awali, `lower_function` inatoa Alloca kwa kila kigezo cha ndani kwenye *ubeti wa kuingia* (ubeti wa kiingilio) -- kabla ya maudhui yoyote kuchakatwa. Hii inahakikisha kwamba alloca zote za vigeu vya ndani ziko kwenye ubeti wa kuingia, ambako zinatolewa mara moja tu kwa mzigo wote wa kazi. Ramani ya `pre_allocated_locals: HashMap<i32, ValueId>` inahifadhi uhusiano kati ya faharisi ya nodi ya AST na alloca ValueId.
 
 3. **`lower_local_decl` inatumia alloca iliyotanguliwa**: Badala ya kutoa `Instruction::Alloca` mpya, `lower_local_decl` sasa inaangalia ramani ya `pre_allocated_locals` na kutumia ValueId iliyotengwa mapema. Kwa miundo ya matokeo ya muundo, inaendelea kutumia kielekezi cha matokeo ya muundo moja kwa moja (hakuna alloca ya ziada inayohitajika).
 
-4. **Uboreshaji wa `collect_constants`**: Kupitisha awali pia kuliboresha `collect_constants` ili kushughulikia `AST_KWELI` (Bool true), `AST_UONGO` (Bool false), na `AST_TUPU` (NullPtr) kwa kuweka constants zao kwenye `intern_const`, na kuhakikisha constants hizi hazijakosa wakati wa uteuzi wa kabla ya utoaji wa alloca.
+4. **Uboreshaji wa `collect_constants`**: Kupitisha awali pia kuliboresha `collect_constants` ili kushughulikia `AST_KWELI` (Bool true), `AST_UONGO` (Bool false), na `AST_TUPU` (NullPtr) kwa kuweka namba za kudumu zao kwenye `intern_const`, na kuhakikisha namba za kudumu hizi hazijakosa wakati wa uteuzi wa kabla ya utoaji wa alloca.
 
 5. **BrCond kwenye ufuatiliaji wa `actual_prev`**: Katika mfululizo wa ufuatiliaji wa ubeti (sehemu ya utaratibu wa `actual_prev`), sasa `BrCond` inafuatiliwa kwa ubeti wa kuunganisha (`merge`):
    ```rust
@@ -239,7 +239,7 @@ W0 ruka_nafasi_na_maelezo(Msomaji* m);
 
 Mchanganuzi haukushughulikia `rudisha -1;` -- alama ya `-` iliachwa bila kutumiwa.
 
-**Marekebisho.** Ongeza ushughulikiaji wa unary minus katika mchanganuzi wa usemi.
+**Marekebisho.** Ongeza ushughulikiaji wa hasi ya unari katika mchanganuzi wa usemi.
 
 ### 12.4 Kufurika kwa Safu ya AST
 
@@ -259,12 +259,12 @@ Safu ya AST (AST_SAFU) yenye elementi 4096 haikutosha kwa faili zote za maktaba 
 | 4 | FieldAddr inapuuza mpangilio | `src/codegen/llvm/mod.rs` | Sehemu isiyo sahihi ya muundo imefikiwa | Vianzio vimejumlishwa bila mpangilio |
 | 5 | width_bytes ya muundo inakosa kujaza | `src/ir/types.rs` | Allocas za matokeo ya muundo ndogo sana | Hakuna kujaza kwa mpangilio wa mwisho |
 | 6 | Safu za ulimwengu zimeainishwa kama [Nxi8] | `src/ir/mod.rs`, `lower.rs`, `llvm/mod.rs` | Vigezo vya karibu vya ulimwengu vimeharibika | IrGlobal ilikosa sehemu ya aina |
-| 7 | Opaque kielekezi kinaharibu usawazishaji wa hifadhi | `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs` | Hitilafu za sehemu nasibu, ulinganifu wa tokeni unashindwa | LLVMGetElementType haiaminiki na opaque vielekezi |
+| 7 | Opaque kielekezi kinaharibu usawazishaji wa hifadhi | `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs` | Hitilafu za sehemu nasibu, ulinganifu wa tokeni unashindwa | LLVMGetElementType haiaminiki na isiyo wazi vielekezi |
 | 8 | Msimbo baada ya kama hauwiani kwenye CFG | `src/ir/lower.rs` | Taarifa baada ya kama ni msimbo uliokufa, mizunguko ya kujirudia | actual_prev haikufuatilia BrCond; self-loop haikurekebishwa |
 | 9 | Alloca-in-loop inamaliza mrundikano | `src/ir/lower.rs` | SIGSEGV kwenye mzunguko wa wakati (mrundikano unaisha) | Alloca za vigeu vya ndani zinatolewa kwenye ubeti wa sasa badala ya ubeti wa kuingia |
 | 10 | Tamko la mbele halitumii `;` | `msingi/mkusanyaji/msambazaji.swa` | Hitilafu ya "unexpected element" | Nukta mkato inavuja hadi kiwango cha juu |
 | 11 | Mzunguko wa `kwa` unashindwa | `msingi/mkusanyaji/msambazaji.swa` | `N32 i = 0` haichanganuliwi | Mchanganuzi unatumia usemi badala ya tamko |
 | 12a | `sogeza()` inakosa sehemu za tokeni | `msingi/mkusanyaji/msambazaji.swa`, `msingi/mkusanyaji/msomaji.swa` | Nambari za mistari ni 1 kila wakati | Kunakili sehemu 3 kati ya 5 tu |
 | 12b | Matumizi maradufu ya `{` | `msingi/mkusanyaji/msambazaji.swa` | Maudhui ya kazi hayachanganuliwi | `{` inatumiwa katika vigezo |
-| 12c | Hakuna unary minus | `msingi/mkusanyaji/msambazaji.swa` | `rudisha -1` haichanganuliwi | Alama ya `-` inaachwa |
+| 12c | Hakuna hasi ya unari | `msingi/mkusanyaji/msambazaji.swa` | `rudisha -1` haichanganuliwi | Alama ya `-` inaachwa |
 | 12d | Kufurika kwa safu ya AST | `msingi/mkusanyaji/msambazaji.swa` | Kufurika kwa safu kwenye faili nyingi | AST_SAFU (4096) ni ndogo sana |

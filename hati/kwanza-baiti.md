@@ -1,6 +1,6 @@
 # Kwanza -- Baiti za Mkono
 
-Kwanza ni mkusanyaji wa kwanza wa Swa: program ya **baiti za mkono**
+Kwanza ni mkusanyaji wa kwanza wa Swa: programu ya **baiti za mkono**
 (bila NASM, bila lugha nyingine) inayobadilisha heksa -> binari. Ukubwa:
 **baiti 393** (utangulizi wa ELF 64 + maelezo ya kipande 56 + msimbo 273).
 
@@ -49,18 +49,18 @@ Kumbukumbu baada ya msimbo ni chombo kilichoandikwa sifuri:
 ### Msimbo (baiti 273, kuanzia 0x400078)
 
 Msimbo unasoma heksa kutoka stdin, unaruka herufi zisizo heksa
-(nafasi, mistari mipya), unachanganya nibble mbili kuwa baiti moja,
+(nafasi, mistari mipya), unachanganya nusu-baiti mbili kuwa baiti moja,
 na unaandika matokeo kwenye stdout.
 
-Rejesta: `r12` -- kielekezi cha chombo cha kuandika; `r13` -- nibble ya
-kwanza; `r14` -- hali ya nibble. (`r1` na `r11` hazitumiki: mfumo
+Rejesta: `r12` -- kielekezi cha chombo cha kuandika; `r13` -- nusu-baiti ya
+kwanza; `r14` -- hali ya nusu-baiti. (`r1` na `r11` hazitumiki: mfumo
 huwaharibu.)
 
 | Baiti | Maana |
 |---|---|
 | 49 bc 00 07 40 00 00 00 00 00 | r12 = 0x400700 (chombo cha kuandika, mara moja tu) |
-| 45 31 ed | r13d = 0 (nibble ya kwanza) |
-| 45 31 f6 | r14d = 0 (hali ya nibble) |
+| 45 31 ed | r13d = 0 (nusu-baiti ya kwanza) |
+| 45 31 f6 | r14d = 0 (hali ya nusu-baiti) |
 | 31 ff | r7d = 0 (stdin) |
 | 48 be 00 03 40 00 00 00 00 00 | r6 = 0x400300 (chombo cha kusoma) |
 | ba 00 04 00 00 | r2d = 1024 (ukubwa wa kusoma) |
@@ -90,17 +90,17 @@ huwaharibu.)
 | 3d 66 00 00 00 | linganisha na 102 ('f') |
 | 77 xx | juu -- ruka |
 | 2d 57 00 00 00 | r0d -= 87 (a=10) |
-| eb xx | ruka hadi nibble |
+| eb xx | ruka hadi nusu-baiti |
 | 2d 30 00 00 00 | r0d -= 48 (0=0) |
-| eb xx | ruka hadi nibble |
+| eb xx | ruka hadi nusu-baiti |
 | 2d 37 00 00 00 | r0d -= 55 (A=10) |
 | 4d 85 f6 | kama r14 != 0, changanya |
 | 75 xx | ruka hadi changanya |
-| 49 89 c5 | r13 = r0 (nibble ya kwanza) |
+| 49 89 c5 | r13 = r0 (nusu-baiti ya kwanza) |
 | 41 be 01 00 00 00 | r14d = 1 (hali) |
 | eb xx | ruka hadi mzunguko |
-| 49 c1 e5 04 | r13 <<= 4 (hamisha nibble) |
-| 49 09 c5 | r13 |= r0 (unga nibble ya pili) |
+| 49 c1 e5 04 | r13 <<= 4 (hamisha nusu-baiti) |
+| 49 09 c5 | r13 |= r0 (unga nusu-baiti ya pili) |
 | 45 88 2c 24 | [r12] = r13b (toa baiti kamili) |
 | 49 ff c4 | r12++ |
 | 49 81 fc 00 09 40 00 | linganisha r12 na mwisho wa chombo |
@@ -126,7 +126,7 @@ huwaharibu.)
 | 31 ff | r7d = 0 (hali ya kutoka) |
 | 0f 05 | mfumo |
 
-Kuruka zenye `xx` ni displacements zinazokokotolewa kutoka nafasi za
+Kuruka zenye `xx` ni umbali zinazokokotolewa kutoka nafasi za
 mahali pa ndani -- zinaonekana kwenye `kwanza.heksa`.
 
 ## Historia ya Hitilafu Zilizopatikana Wakati wa Kuandika
@@ -134,9 +134,9 @@ mahali pa ndani -- zinaonekana kwenye `kwanza.heksa`.
 1. `mfumo` huharibu `r1` na `r11` -- rejesta za hali zilihamishwa
    hadi `r12/r13/r14`.
 2. `hamisha r14d, namba32` inahitaji modrm `be` (si `ba` -- hiyo ni r2d).
-3. Kuruka kwa masharti juu ya `ruka rel32` inahitaji skip ya **baiti 5**
+3. Kuruka kwa masharti juu ya `ruka rel32` inahitaji ruka ya **baiti 5**
    (si 2): `ruka_kama_juu_n 05; ruka ...`.
 4. Uanzishaji wa chombo cha kuandika ufanyike **mara moja tu** -- katika
    kila mzunguko wa kusoma ulikuwa unafuta pato lililojazwa.
 5. Maoni katika faili la heksa hayaruhusiwi kuwa na tarakimu au herufi
-   a-f -- yangechakatwa kama nibbles. Kwanza.heksa ni heksa safi.
+   a-f -- yangechakatwa kama nusu-baiti. Kwanza.heksa ni heksa safi.

@@ -6,7 +6,7 @@ lugha-swa/swa-dereva.
 
 ## Muhtasari wa Utendaji
 
-**Swa**, lugha ya kwanza duniani ya programu za mifumo kwa Kiswahili, imefikia hatua muhimu: mkusanyaji wake wa kujikusanya unajikusanya yenyewe. Baada ya saa 18 za kurekebisha hitilafu kwa kina katika commits 10, hitilafu 12 muhimu ziligunduliwa na kurekebishwa. Mkusanyaji sasa unapita majaribio 174/174, ikiwa ni pamoja na jaribio kamili la kujikusanya (K6) ambalo lilikuwa limezimwa tangu ilipoanzishwa.
+**Swa**, lugha ya kwanza duniani ya programu za mifumo kwa Kiswahili, imefikia hatua muhimu: mkusanyaji wake wa kujikusanya unajikusanya yenyewe. Baada ya saa 18 za kurekebisha hitilafu kwa kina katika mabadiliko 10, hitilafu 12 muhimu ziligunduliwa na kurekebishwa. Mkusanyaji sasa unapita majaribio 174/174, ikiwa ni pamoja na jaribio kamili la kujikusanya (K6) ambalo lilikuwa limezimwa tangu ilipoanzishwa.
 
 ## Muktadha wa Mradi
 
@@ -15,7 +15,7 @@ Swa ni lugha ya programu za mifumo ambapo **maneno muhimu, aina, na nyaraka zote
 - `N32` (i32), `A64` (u64), `D64` (f64)
 - `muundo` (struct), `tenga` (malloc), `achilia` (free)
 
-Mkusanyaji wa kujianzisha (`kande`) umeandikwa kwa Rust (takriban mistari 12,200). Unakusanya chanzo cha Swa kupitia mfululizo kamili: msomaji (msomaji) -> mchanganuzi (mchanganuzi) -> uchanganuzi wa kisemantiki -> uteuzi wa IR -> LLVM uzalishaji -> native x86-64 binari.
+Mkusanyaji wa kujianzisha (`kande`) umeandikwa kwa Rust (takriban mistari 12,200). Unakusanya chanzo cha Swa kupitia mfululizo kamili: msomaji (msomaji) -> mchanganuzi (mchanganuzi) -> uchanganuzi wa kisemantiki -> uteuzi wa IR -> LLVM uzalishaji -> asili x86-64 binari.
 
 Sehemu za kujikusanya zimeandikwa kwa Swa yenyewe (takriban mistari 4,100 katika faili 7):
 - `msomaji.swa` -- msomaji (msomaji)
@@ -164,12 +164,12 @@ Mradi uko takriban **42%** ya njia kutoka kwa kujianzisha kwa Rust hadi mkusanya
 ## Maarifa ya Kiufundi
 
 ### Mfumo wa ValueId
-Codegen ya `lower.rs` na LLVM backend zote zinatumia fomula `ValueId = P + V + I` ambapo:
-- `P` = idadi ya vigezo (parameters)
-- `V` = idadi ya vipatanishi (constants)
+Codegen ya `lower.rs` na LLVM uzalishaji zote zinatumia fomula `ValueId = P + V + I` ambapo:
+- `P` = idadi ya vigezo (paramu)
+- `V` = idadi ya vipatanishi (namba za kudumu)
 - `I` = kidhibiti cha maagizo cha kimataifa (kinachoongezeka kwa mpangilio katika ubeti zote)
 
-Mpangilio huu unamaanisha kwamba maagizo yaliyotolewa kwenye ubeti wa kuingia wakati wa kupitisha awali yanapata ValueId za chini, zinalingana na mpangilio wa beti za backend. Maagizo yaliyotolewa wakati wa uteuzi wa maudhui yanapata ValueId za juu. Ramani ni thabiti kwa sababu pande zote mbili zinatembea ubeti kwa mpangilio uleule.
+Mpangilio huu unamaanisha kwamba maagizo yaliyotolewa kwenye ubeti wa kuingia wakati wa kupitisha awali yanapata ValueId za chini, zinalingana na mpangilio wa beti za uzalishaji. Maagizo yaliyotolewa wakati wa uteuzi wa maudhui yanapata ValueId za juu. Ramani ni thabiti kwa sababu pande zote mbili zinatembea ubeti kwa mpangilio uleule.
 
 ### Kazi ya `patch_br_if_needed`
 Kazi hii ndiyo chanzo cha hitilafu 3 kati ya 6 za uzalishaji. Inatembea CFG kurekebisha mizunguko ya kujirudia kwa malengo sahihi ya kuunganisha. Hitilafu zilitokea kwa sababu:
@@ -180,7 +180,7 @@ Kazi hii ndiyo chanzo cha hitilafu 3 kati ya 6 za uzalishaji. Inatembea CFG kure
 ### Mafunzo Yaliyojifunza
 - **Hakuna hitilafu ndogo.** `sogeza()` iliyokosa sehemu mbili ilionekana ndogo lakini iliharibu taarifa ZOTE za nambari za mistari na kuvunja kishughulikiaji cha maagizo ya `husisha`.
 - **Hitilafu za uzalishaji hufuatana.** Alloca-in-loop ilificha hitilafu ya CFG dead-code, ambayo ilificha hitilafu ya `patch_br_if_needed`, ambayo ilificha hitilafu ya tamko la mbele, ambayo ilificha hitilafu ya mzunguko wa `kwa`. Kila marekebisho ulifunua safu inayofuata.
-- **Thibitisha kwa majaribio ya mwisho-hadi-mwisho.** Majaribio ya kawaida (unit tests) yalipita kwa hitilafu hizi nyingi. Jaribio la K6 pekee liligundua matatizo halisi.
+- **Thibitisha kwa majaribio ya mwisho-hadi-mwisho.** Majaribio ya kawaida (majaribio ya vitengo) yalipita kwa hitilafu hizi nyingi. Jaribio la K6 pekee liligundua matatizo halisi.
 
 ## Hatua Zinazofuata
 

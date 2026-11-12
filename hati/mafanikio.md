@@ -32,11 +32,11 @@ Mchanganuzi wa kujikusanya ulifichua hitilafu zilizofichika katika `kande` ambaz
 |---|---------|-----------|--------|
 | 1 | Kupotosha kwa kianzio cha sehemu | Vianzio vya sehemu za muundo vilikokotolewa bila kuheshimu mpangilio | Sehemu ziliingiliana au kusoma takataka |
 | 2 | Kutolingana kwa aina ya safu ya ulimwengu | Safu za ulimwengu zilipewa `[N x i8]` badala ya `[N x i32]` | Kumbukumbu ndogo mara 4, ufisadi wa vigezo vya karibu |
-| 3 | Kutolingana kwa upana wa hifadhi (upande wa kupanua) | Thamani finyu kwenye pointee pana hazikupanuliwa | Baiti za juu zenye takataka |
-| 4 | Kutolingana kwa upana wa hifadhi (upande wa kukata) | Thamani pana kwenye pointee finyu hazikukatwa | Kufurika kwenye hifadhi ya karibu |
+| 3 | Kutolingana kwa upana wa hifadhi (upande wa kupanua) | Thamani finyu kwenye kinacholengwa pana hazikupanuliwa | Baiti za juu zenye takataka |
+| 4 | Kutolingana kwa upana wa hifadhi (upande wa kukata) | Thamani pana kwenye kinacholengwa finyu hazikukatwa | Kufurika kwenye hifadhi ya karibu |
 | 5 | Matamko ya mbele yalitolewa kama kazi | `tangaza` ilitoa `define` badala ya `declare` | Alama mbili wakati wa kuunganisha |
 | 6 | Hitilafu ya kuteremsha kwenye ugawaji wa muundo | Kiteremshaji hakikuweza kushughulikia `a = b` kwa miundo | Usimamizi wa tokeni ulivunjika |
-| 7 | Opaque kielekezi kinaharibu usawazishaji wa hifadhi/mzigo | LLVMGetElementType haiaminiki na opaque vielekezi vya LLVM 22 | SIGSEGV nasibu, tokeni zimeharibika |
+| 7 | Opaque kielekezi kinaharibu usawazishaji wa hifadhi/mzigo | LLVMGetElementType haiaminiki na isiyo wazi vielekezi vya LLVM 22 | SIGSEGV nasibu, tokeni zimeharibika |
 | 8 | Msimbo baada ya kama hauwiani kwenye CFG | actual_prev haikufuatilia BrCond; self-loop haikurekebishwa | Taarifa baada ya kama ni msimbo uliokufa kwa sehemu |
 | 9 | Alloca-in-loop inamaliza mrundikano | Alloca za vigeu vya ndani zinatolewa kwenye ubeti wa sasa badala ya ubeti wa kuingia | SIGSEGV baada ya ~524K mizunguko ya mzunguko |
 
@@ -116,7 +116,7 @@ Marekebisho yote yako kwenye tawi kuu (`main`).
 | CFG dead-code (actual_prev, BrCond, self-loop) | `src/ir/lower.rs` | ~40 |
 | Alloca-in-loop (kupitisha mara mbili, pre-allocated vigeu vya ndani) | `src/ir/lower.rs` | ~100 |
 | Usomaji wa safu (AST_SAFU, AST_TAJA, faharasa) | `src/parser/mod.rs`, `msingi/mkusanyaji/msambazaji.swa` | ~130 |
-| Mzunguko wa `kwa`, tamko la mbele `;`, sogeza() kamili, unary minus | `msingi/mkusanyaji/msambazaji.swa`, `msingi/mkusanyaji/msomaji.swa` | ~50 |
+| Mzunguko wa `kwa`, tamko la mbele `;`, sogeza() kamili, hasi ya unari | `msingi/mkusanyaji/msambazaji.swa`, `msingi/mkusanyaji/msomaji.swa` | ~50 |
 | Nyongeza za majaribio | `majaribio/` | ~55 |
 | **Jumla** | **Faili ~18** | **~850** |
 
@@ -134,9 +134,9 @@ LLVM inakokotoa mpangilio wa muundo kulingana na sheria za data lengwa. Ikiwa mk
 
 `[100]N32` lazima iwe `[100 x i32]` katika LLVM, si `[400 x i8]`. Aina isiyo sahihi inamaanisha hesabu ya elementi ni 400 badala ya 100, na kusababisha uandishi wa kumbukumbu nje ya mipaka.
 
-### 5.3 Hifadhi lazima zilingane na upana wa pointee
+### 5.3 Hifadhi lazima zilingane na upana wa kinacholengwa
 
-Kuhifadhi thamani pana kwenye pointee finyu kunahitaji `trunc`. Kuhifadhi thamani finyu kwenye pointee pana kunahitaji `zext`. Kukosea husababisha ufisadi wa kumbukumbu ya karibu.
+Kuhifadhi thamani pana kwenye kinacholengwa finyu kunahitaji `trunc`. Kuhifadhi thamani finyu kwenye kinacholengwa pana kunahitaji `zext`. Kukosea husababisha ufisadi wa kumbukumbu ya karibu.
 
 ### 5.4 Matamko ya mbele hayapaswi kuzalisha maudhui ya kazi
 
@@ -170,7 +170,7 @@ Mradi ulihamishwa kutoka Windows hadi Arch Linux. Hii ilifichua hitilafu zilizof
 
 ### 6.2 Marekebisho ya Opaque Pointer ya LLVM
 
-LLVM 22.1 inatumia opaque vielekezi. `LLVMGetElementType` inarudisha matokeo yasiyoaminika.
+LLVM 22.1 inatumia isiyo wazi vielekezi. `LLVMGetElementType` inarudisha matokeo yasiyoaminika.
 
 | Hitilafu | Dalili | Marekebisho |
 |---|---|---|

@@ -208,7 +208,7 @@ jaribio_hitilafu_kata_operanda_iliyopotea.
 | `n16` | Nambari kamili yenye ishara, baiti 2 |
 | `n32` | Nambari kamili yenye ishara, baiti 4 |
 | `n64` | Nambari kamili yenye ishara, baiti 8 |
-| `w0` | Bila thamani (void) -- kwa kazi tu. Kilichopimwa 2026-09-04: PARAMU ya w0 (`n32 f(w0 x)`) inakataliwa kwa sauti kwenye mifululizo yote miwili ("parameta ya w0 haikubaliki -- w0 ni kwa kazi tu" kwenye awali; "kigezo 'x' cha w0" kwenye mkaguzi). Kigeu cha NDANI cha w0 chenye kianzio cha thamani (`w0 x = 5;`) kinakataliwa kwa sauti kwenye mfululizo wa uzalishaji ("kigeu 'x' cha w0 chenye kianzio -- w0 ni kwa kazi tu"); awali bado inakubali kimya -- inarekebishwa (mgandisho ujao wa awali). Tangazo tupu `w0 x;`, ugawaji wa baadaye `x = 5;`, na w0 ya ulimwengu bado wanakubaliwa kimya kwenye mifululizo yote miwili. w0 katika usemi (mf. `y = x + 1`): uzalishaji unakataa kwa sauti; awali inakubali kimya na kuihesabu kama namba. Matokeo ya kazi ya w0 kama thamani: uzalishaji unakataa kwa sauti; awali inakubali kimya |
+| `w0` | Bila thamani (w0) -- kwa kazi tu. Kilichopimwa 2026-09-04: PARAMU ya w0 (`n32 f(w0 x)`) inakataliwa kwa sauti kwenye mifululizo yote miwili ("parameta ya w0 haikubaliki -- w0 ni kwa kazi tu" kwenye awali; "kigezo 'x' cha w0" kwenye mkaguzi). Kigeu cha NDANI cha w0 chenye kianzio cha thamani (`w0 x = 5;`) kinakataliwa kwa sauti kwenye mfululizo wa uzalishaji ("kigeu 'x' cha w0 chenye kianzio -- w0 ni kwa kazi tu"); awali bado inakubali kimya -- inarekebishwa (mgandisho ujao wa awali). Tangazo tupu `w0 x;`, ugawaji wa baadaye `x = 5;`, na w0 ya ulimwengu bado wanakubaliwa kimya kwenye mifululizo yote miwili. w0 katika usemi (mf. `y = x + 1`): uzalishaji unakataa kwa sauti; awali inakubali kimya na kuihesabu kama namba. Matokeo ya kazi ya w0 kama thamani: uzalishaji unakataa kwa sauti; awali inakubali kimya |
 | `d64` | Desimali, baiti 8 -- mpaka wake na nambari kamili umefungwa; mabaki yaliyopimwa, angalia 2.3 |
 | `b1` ... `b64` | Mifumo ya biti (bendera, maski) -- si nambari. Oparesheni: `& \| ^ ~ << >> == !=` pekee; `+ - * / %`, `< > <= >=` na `-x` zinakataliwa kwa sauti. Thamani inayoingia huhifadhi biti za chini za upana wake (`b8 x = 300` ni 44; `b1` ni biti moja: `b1 x = 5` ni 1). Upande wa kulia wa `<<`/`>>` ni idadi, namba kamili yoyote. |
 | `T*` | Kielekezi kwa aina T |
@@ -216,7 +216,7 @@ jaribio_hitilafu_kata_operanda_iliyopotea.
 | `muundo` | Muundo uliotangazwa na mtumiaji |
 
 Familia za nambari ni n (kamili yenye ishara), a (asili/bila ishara),
-d (desimali), b (mifumo ya biti -- angalia jedwali), na w (upana wa mashine; w0 = void).
+d (desimali), b (mifumo ya biti -- angalia jedwali), na w (upana wa mashine; w0 = w0).
 Matokeo ya ulinganisho (`==`, `<`, ...) na `&&`/`||` ni **n32** yenye thamani 0 au 1 -- si aina ya familia b.
 Upana unaosaidiwa na kufanya kazi kwa usahihi ni 8, 16, 32 na 64
 pekee (d32/d64 kwa desimali; pia b1 -- biti moja). Kilichopimwa (2026-09-04): upana
@@ -250,11 +250,11 @@ Utangulizi wa ishara ni ule wa C (kutoka juu hadi chini):
 | 5 | `|` |
 | 4 | `&&` |
 | 3 | `||` |
-| 2 | `?:` (ternary) |
+| 2 | `?:` (chaguzi tatu) |
 | 1 | `=` (ugawi) |
 
-Mabano hubadilisha utangulizi. Chaguo la ternary `sharti ? kweli :
-uwongo` linasaidiwa; upande wa uwongo wa ternary haushiki ugawi
+Mabano hubadilisha utangulizi. Chaguo la chaguzi tatu `sharti ? kweli :
+uwongo` linasaidiwa; upande wa uwongo wa chaguzi tatu haushiki ugawi
 (`a ? b : c = d` ni `(a ? b : c) = d`). Ugawi ni wa ushirika wa
 kulia (`a = b = c` ni `a = (b = c)`); viendeshaji vingine vyote
 vya binari ni vya ushirika wa kushoto.
@@ -276,7 +276,7 @@ uhamishaji juu ya ulinganisho; `2 << 1 < 4` inafanya kazi.
 ulirudisha operanda ya kushoto pekee (jibu baya) na tangu
 2026-08-31 unatekeleza `^` kwa utangulizi wa C.
 
-### 4.1 Mantiki ya fupi-hali (short-circuit)
+### 4.1 Mantiki ya fupi-hali (mzunguko mfupi)
 
 `&&` na `||` zinatathmini kwa fupi-hali KATIKA AWALI NA MFULULIZO WA
 .SWA:
@@ -497,7 +497,7 @@ chagua (usemi) {
 ```
 
 Kilichopimwa (2026-08-27): awali inakataa `chagua` kabisa (kosa la
-mchanganuzi -- hata kwa selecta ya n32 rahisi, "ulichanganuzi";
+mchanganuzi -- hata kwa kiteuzi cha n32 rahisi, "ulichanganuzi";
 imepimwa tena 2026-09-04: bado inakataa). Mfululizo wa uzalishaji
 unafanya kazi kwa hali za nambari halisi ndogo; thamani hasi (`hali
 -3`), thamani za n64 kubwa (> 2^31) na thamani za usemi au kigezo
@@ -506,7 +506,7 @@ kizazi) -- jibu baya la kimya; thamani maradufu: ya kwanza inashinda
 bila kosa; `kama` + `sivyo` ndani ya mkono wa `chagua` na bloku
 `{ }` ndani ya mkono zinakataliwa na uzalishaji.
 Kilichopimwa (2026-08-31): mfululizo wa uzalishaji unalinganisha
-thamani hasi na thamani za n64 kwa usahihi (kwa upana wa selecta); thamani
+thamani hasi na thamani za n64 kwa usahihi (kwa upana wa kiteuzi); thamani
 za usemi au kigezo zinakataliwa kwa sauti na mkaguzi ("thamani ya
 hali lazima iwe halisi ya nambari"). Awali bado inakataa `chagua`
 kabisa (kilichopimwa 2026-09-04).

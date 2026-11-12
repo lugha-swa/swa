@@ -59,14 +59,14 @@ Kanuni:
    | `void` | `w0` |
    | kitambulisho kisichoonekana (handle) | `n8*` |
 
-6. Makubaliano ya wito (calling convention) hayaandikwi na mpangaji:
+6. Makubaliano ya wito (makubaliano ya wito) hayaandikwi na mpangaji:
    huamuliwa na lengo (`--programu` kwenye Linux x86-64 = System V; Windows
    x86-64 = Win64 baadaye). Hakuna mapambo, hakuna maneno ya ziada.
 7. Kwa kuwa saini inajulikana, mkaguzi hukagua aina za hoja na matokeo
    (tofauti na wito kupitia kielekezi, sehemu 4.3), na matokeo ya `d64`
    huja kwenye xmm0 sahihi.
 
-## Wito wa kurudi (callback)
+## Wito wa kurudi (kazi ya mrejesho)
 
 `&linganisha_namba` ya Swa ikipitishwa kwa `panga` (qsort), msimbo wa
 nje utaita Swa. Swa lazima:
@@ -84,7 +84,7 @@ nje utaita Swa. Swa lazima:
 
 - Programu isiyo na `nje`: ELF tuli kama leo, **sawa kwa baiti** na
   sasa. Hakuna kinachobadilika kwa programu zilizopo wala kwa mfululizo.
-- Programu yenye `nje`: ELF ya kiungo-hai (dynamic), inayoandikwa na
+- Programu yenye `nje`: ELF ya kiungo-hai (inayobadilika), inayoandikwa na
   Swa yenyewe:
   - PT_INTERP: kipakiaji cha mfumo (`/lib64/ld-linux-x86-64.so.2`);
   - PT_DYNAMIC: DT_NEEDED kwa kila maktaba, DT_STRTAB, DT_SYMTAB,
@@ -169,7 +169,7 @@ kujaza mwenyewe, na mpangilio unaonekana kwenye chanzo.
 
 Mipaka ya awamu 3 (kwa sauti): muundo kwenye kazi yenye `...`, au kama
 hoja ya ziada; muundo mtupu. Kazi ya Swa inayoitwa na msimbo wa nje
-(callback) ikipokea au kurudisha muundo kwa thamani bado hutumia njia
+(kazi ya mrejesho) ikipokea au kurudisha muundo kwa thamani bado hutumia njia
 ya Swa -- tumia kielekezi kwenye kazi za kurudi.
 
 ### Rekebisho la wito wa Swa wenyewe (awamu 2)
@@ -182,7 +182,7 @@ desimali ya 9+ haikusomwa kabisa. Sasa mpangilio uliochanganyika
 hupakiwa kwa umbali na hoja za mrundikano hubanwa (`hoja_kwa_sysv`), na
 mwitwaji ana kaunta moja ya mrundikano. Mipangilio iliyofanya kazi hubaki
 baiti zile zile. Jaribio: `majaribio/programu/jaribio_hoja_mrundikano_mchanganyiko.swa`.
-  - Jedwali lote (interp, dynstr, dynsym, hash, urekebishaji, dynamic, maelezo ya kipande)
+  - Jedwali lote (interp, dynstr, dynsym, hash, urekebishaji, inayobadilika, maelezo ya kipande)
     huandikwa mwishoni mwa .data; umbali wa maelezo ya vipande huelekeza kwenye maelezo ya kipande hizo,
     na maelezo ya kipande ya baiti 64-119 hubaki nakala ya PT_LOAD ile ile, hivyo
     .text bado huanza 0x400078.
@@ -240,7 +240,7 @@ kiolesura kipo, lakini kina umbo la `syscall/js` ya Go na `wasm_exec.js`:
 
 ## Mipaka iliyobaki (kwa sauti, si kimya)
 
-- muundo kwa thamani kwenye `...`, na callback ya Swa yenye muundo kwa
+- muundo kwa thamani kwenye `...`, na kazi ya mrejesho ya Swa yenye muundo kwa
   thamani (tumia kielekezi);
 - data ya desimali au safu -> kosa (tumia kielekezi);
 - hoja 16 kwa wito (kikomo cha mkaguzi kwa wito wote wa Swa);

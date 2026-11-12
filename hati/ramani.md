@@ -12,9 +12,9 @@
 
 ## Hatua ya 0: Mkusanyaji wa Bootstrap wa Rust [PASS] IMEFANIKIWA
 
-- [x] Lexer, mchanganuzi, semantic analyzer
+- [x] Lexer, mchanganuzi, mkaguzi
 - [x] IR lowering (AST -> Swa IR)
-- [x] LLVM uzalishaji (x86-64 native binari)
+- [x] LLVM uzalishaji (x86-64 asili binari)
 - [x] ABI classification (matokeo ya muundo, struct returns)
 - [x] Majaribio 265/265 mfululizo wa Swa + 232/232 Rust
 
@@ -23,9 +23,9 @@
 - [x] Msomaji wa kujikusanya (`msomaji.swa`)
 - [x] Mchanganuzi wa kujikusanya (`msambazaji.swa`)
 - [x] Mkaguzi wa kisemantiki (`mkaguzi.swa`) -- makosa 0 kwenye kujikusanya
-- [x] Kizalishaji cha native x86-64 (`uzalishaji.swa`)
+- [x] Kizalishaji cha asili x86-64 (`uzalishaji.swa`)
 - [x] Binary inajikusanya (K6 inapita)
-- [x] Vipengele vya lugha vinavyotumika: functions, mizunguko (wakati/hali), if/else, structs, lundo, unary minus, break/continue, short-circuit evaluation, assignment, bitwise ops, ternary
+- [x] Vipengele vya lugha vinavyotumika: functions, mizunguko (wakati/hali), if/else, structs, lundo, hasi ya unari, break/continue, mzunguko mfupi evaluation, assignment, bitwise ops, chaguzi tatu
 - [x] Safu za ndani, hoja za mrundikano (7+), disp32, matokeo ya muundo, vigezo vya ulimwengu kwa RIP-relative
 
 ## Hatua ya 2: Mkusanyaji Kamili wa Kujikusanya [PASS] IMEFANIKIWA
@@ -42,7 +42,7 @@ popote kwenye mfululizo. Kumbuka: hili linahusu mfululizo wa uzalishaji pekee --
 uthabiti wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti
 (angalia hati/mipaka.md).
 
-**JIT inafanya kazi (PR #143):** mmap -> opcodes -> rukia, na thamani ya
+**JIT inafanya kazi (PR #143):** mmap -> opkodi -> rukia, na thamani ya
 kurudi inarudi kwa usahihi. Stub ya `ruka main`, tungo mwishoni mwa chombo,
 na kiolesura cha C `tekeleza` kwa wito wa chombo (awali hana wito wa kielekezi).
 
@@ -64,7 +64,7 @@ kwenye njia ya Rust -> LLVM.
       (`swa --tafsiri`) na kukaguliwa dhidi ya msimbo wa mashine kwenye CI
       (programu 161 sawa kabisa). Ni msingi wa ARM64 na Mizani.
 - [x] **JIT kamili** -- IMEFANYIKA: relocations za wito wa nje ndani ya
-      msimbo wa JIT (thunks za jmp + jedwali la anwani) na kupitisha
+      msimbo wa JIT (thunks za ruka + jedwali la anwani) na kupitisha
       argv (uzalishaji_jit inapokea argc/argv)
 
 ### Kipaumbele cha Kati
@@ -98,7 +98,7 @@ asilia (awali/exe) -- uzalishaji unakataa kwa sauti, awali kimya.
 
 ## Hatua ya 4: Kuondoa Utegemezi wa LLVM [PASS kwa mfululizo] IMEFANIKIWA
 
-- [x] Native x86-64 backend (uzalishaji.swa) inazalisha binari bila LLVM
+- [x] Uzalishaji wa asili wa x86-64 (uzalishaji.swa) inazalisha binari bila LLVM
 - [x] Mfululizo wa kujikusanya haugusi LLVM kabisa
 - [x] Uthibitisho: Swa inajikusanya kupitia mfululizo kamili wa Swa -> Swa -> binari
 - [!] LLVM inabaki ndani ya dereva wa Rust wa vipimo pekee
@@ -119,7 +119,7 @@ asilia (awali/exe) -- uzalishaji unakataa kwa sauti, awali kimya.
 - [x] **Runtime ya syscalls:** mkusanyaji hautekelezi kupitia libc tena
       (PR #149) -- faili, mmap, na uchapishaji kupitia syscalls.
 - [x] **0% kujianzisha gap:** awali inatoa ET_EXEC tuli moja kwa moja
-      (`--programu`) -- utangulizi (64) + maelezo ya kipande (56) + stub ya `_start` (28) +
+      (`--programu`) -- utangulizi (64) + maelezo ya kipande (56) + kianzishi cha `_start` (28) +
       urekebishaji wa RELA wa ndani (ulimwengu, tungo, na wito wa
       mbele) -- hakuna gcc/ld/clang/muda.c/libc popote kwenye mfululizo.
       Uthibitisho: jaribio_exe_kujijenga (CI).
@@ -148,7 +148,7 @@ Angalia [`CONTRIBUTING.md`](../CONTRIBUTING.md). Masuala yenye lebo `good-first-
    tuli inayojijenga yenyewe bila ld/gcc/libc (kamili2 == kamili3)
 3. ~~Runtime ya syscalls~~ -- IMESHAFANYIKA (PR #149): syscalls moja kwa moja
 4. ~~Kuziba hatua ya kamili~~ -- IMESHAFANYIKA: awali inatoa kamili
-   moja kwa moja (`--programu`) -- 0% kujianzisha gap imefungwa
+   moja kwa moja (`--programu`) -- 0% kujianzisha pengo imefungwa
 5. ~~Uthabiti wa makosa ya mchanganuzi~~ -- IMESHAFANYIKA: awali na
    mchanganuzi wa .swa dhidi ya ingizo baya (hati/mipaka.md sehemu 1-2)
 6. ~~JIT ndani ya programu~~ -- IMESHAFANYIKA: tekeleza kama kazi asili,
@@ -164,9 +164,9 @@ Angalia [`CONTRIBUTING.md`](../CONTRIBUTING.md). Masuala yenye lebo `good-first-
 
 ## Historia Fupi ya Milestone (Julai-Agosti 2026)
 
-- PR #117: modulo, maoni ya bloku, radiksi, asimilia mchanganyiko -- MERGED
-- PR #140: kuondoa maneno muhimu ya bloat (na, au, si, tupu, kweli, uongo) -- MERGED
+- PR #117: modulo, maoni ya bloku, radiksi, asimilia mchanganyiko -- IMEUNGANISHWA
+- PR #140: kuondoa maneno muhimu ya bloat (na, au, si, tupu, kweli, uongo) -- IMEUNGANISHWA
 - PR #131-133, #141: marejeo ya mbele, hifadhi/upakiaji wa aina, husisha nukuu,
-  AST_KWELI/UONGO/TUPU -- MERGED
-- PR #142: mfululizo kamili wa kujikusanya na makosa 0 ya mkaguzi -- MERGED
-- PR #143: JIT -- thamani ya kurudi, stub ya main, kiolesura cha tekeleza -- MERGED
+  AST_KWELI/UONGO/TUPU -- IMEUNGANISHWA
+- PR #142: mfululizo kamili wa kujikusanya na makosa 0 ya mkaguzi -- IMEUNGANISHWA
+- PR #143: JIT -- thamani ya kurudi, kianzishi cha anza, kiolesura cha tekeleza -- IMEUNGANISHWA

@@ -2,7 +2,7 @@ husisha { maktaba/kumbukumbu.swa }
 husisha { maktaba/hesabu.swa }
 husisha { maktaba/mpangilio.swa }
 
-// takwimu.swa -- Takwimu (statistics)
+// takwimu.swa -- Takwimu (takwimu)
 //
 // Hutoa: jenereta sahihi ya nambari nasibu (PRNG), sampuli ya
 // usambazaji wa kawaida (Gaussian), na takwimu za maelezo (wastani,
@@ -82,7 +82,7 @@ n64 takwimu_nasibu_kati(n64 chini, n64 juu) {
     n64 upana = hi - lo;
     n64 idadi_thamani = upana + 1;
     // Kingo: masafa yanayofunika karibu/zaidi ya 2^64 huzunguka kuwa
-    // <= 0 (overflow ya n64). Katika hali hiyo (nadra sana kwa matumizi
+    // <= 0 (kufurika kwa n64). Katika hali hiyo (nadra sana kwa matumizi
     // halisi), rudisha thamani ghafi moja kwa moja -- inashughulikia
     // tayari karibu kila thamani inayowezekana ya [chini, juu].
     kama (idadi_thamani <= 0) {
@@ -109,7 +109,7 @@ d64 takwimu_nasibu_d64() {
 
 // Sampuli moja ya usambazaji wa kawaida (Gaussian/normal) kwa
 // mbinu ya Box-Muller (fomu ya msingi, si ya polar). wastani =
-// mean (mu), mkengeuko = stddev (sigma). Hutumia sin/log/sqrt
+// wastani (mu), mkengeuko = stddev (sigma). Hutumia sin/log/sqrt
 // kutoka hesabu.swa (hazijajengwa upya hapa).
 d64 takwimu_nasibu_kawaida(d64 wastani, d64 mkengeuko) {
     d64 u1 = takwimu_nasibu_d64();
@@ -155,7 +155,7 @@ d64 takwimu_nasibu_kawaida(d64 wastani, d64 mkengeuko) {
 // uaminifu) kisichofaa kwa kazi hizi hasa.
 // ==========================================================
 
-// Wastani (mean) wa safu ya d64. Safu tupu/batili hurudisha 0.0.
+// Wastani (wastani) wa safu ya d64. Safu tupu/batili hurudisha 0.0.
 d64 takwimu_wastani(d64* data, n32 idadi) {
     kama (idadi <= 0) {
         rudisha 0.0;
@@ -170,7 +170,7 @@ d64 takwimu_wastani(d64* data, n32 idadi) {
     rudisha jumla / idadi_d;
 }
 
-// Tofauti (variance) ya WATU WOTE (population variance -- kugawa
+// Tofauti (tofauti) ya WATU WOTE (population tofauti -- kugawa
 // kwa idadi, SI idadi-1) ya safu ya d64. Safu tupu/batili hurudisha
 // 0.0.
 d64 takwimu_tofauti(d64* data, n32 idadi) {
@@ -189,12 +189,12 @@ d64 takwimu_tofauti(d64* data, n32 idadi) {
     rudisha jumla / idadi_d;
 }
 
-// Mkengeuko wa kawaida (standard deviation) wa safu ya d64.
+// Mkengeuko wa kawaida (mkengeuko wa kawaida) wa safu ya d64.
 d64 takwimu_mkengeuko_wa_kawaida(d64* data, n32 idadi) {
     rudisha mzizi_hesabu(takwimu_tofauti(data, idadi));
 }
 
-// Kati (median) ya safu ya d64. HAIBADILISHI safu ya asili (inatengeneza
+// Kati (kati) ya safu ya d64. HAIBADILISHI safu ya asili (inatengeneza
 // nakala ya ndani kisha kuipanga) -- tofauti na pangilia_d64 ambayo
 // hupanga mahali pake. Safu tupu/batili hurudisha 0.0.
 d64 takwimu_kati(d64* data, n32 idadi) {
@@ -211,7 +211,7 @@ d64 takwimu_kati(d64* data, n32 idadi) {
 
     d64 matokeo = 0.0;
     kama ((idadi / 2) * 2 != idadi) {
-        // idadi isiyo hata (odd): kipengele cha kati HASA.
+        // idadi isiyo hata (witiri): kipengele cha kati HASA.
         matokeo = nakala[idadi / 2];
     } sivyo {
         // idadi hata (even): wastani wa viwili vya kati.
@@ -224,7 +224,7 @@ d64 takwimu_kati(d64* data, n32 idadi) {
     rudisha matokeo;
 }
 
-// Thamani ndogo kabisa (minimum) ya safu ya d64. Safu tupu/batili
+// Thamani ndogo kabisa (kiwango cha chini) ya safu ya d64. Safu tupu/batili
 // hurudisha 0.0.
 d64 takwimu_dogo(d64* data, n32 idadi) {
     kama (idadi <= 0) {
@@ -241,7 +241,7 @@ d64 takwimu_dogo(d64* data, n32 idadi) {
     rudisha m;
 }
 
-// Thamani kubwa kabisa (maximum) ya safu ya d64. Safu tupu/batili
+// Thamani kubwa kabisa (kiwango cha juu) ya safu ya d64. Safu tupu/batili
 // hurudisha 0.0.
 d64 takwimu_kubwa(d64* data, n32 idadi) {
     kama (idadi <= 0) {

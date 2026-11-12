@@ -1384,7 +1384,7 @@ hk_m:
 
 
 ; ---------------------------------------------------------------
-; Hoja (operand): rekodi ya baiti 80 kwenye hoja_lengo (lengo) / hoja_chanzo (chanzo).
+; Hoja (operandi): rekodi ya baiti 80 kwenye hoja_lengo (lengo) / hoja_chanzo (chanzo).
 ;   +0 aina: 1 rejista, 2 kumbukumbu, 3 namba, 4 xmm, 5 rejista yenye
 ;            familia (a/n mbele), 6 anwani (&), 7 hali (kama ...)
 ;   +8 rejista   +16 upana (baiti; 0 = haijatajwa)   +24 msingi (-1)
@@ -1897,10 +1897,10 @@ agizo_kugawa:
         r6 = n64[r15+V_MAHALI_SASA]   ; familia mara moja baada yake
         r0d = a8[r6]
         n64[r15+V_MAHALI_SASA]++
-        r14d = 5   ; shr
+        r14d = 5   ; sogeza_kulia_a
         linganisha r0d, 0x61
         ruka ag_kulia_m kama ==
-        r14d = 7   ; sar
+        r14d = 7   ; sogeza_kulia_n
         linganisha r0d, 0x6e
         ruka kosa_sintaksia kama !=
 ag_kulia_m:
@@ -2128,7 +2128,7 @@ ag_moja_op:
         r1d ^= r1d
         ruka agizo_rm
 
-; sogeza: r14d = 0x5000 | /op (4 shl, 5 shr, 7 sar); chanzo namba au r1b
+; sogeza: r14d = 0x5000 | /op (4 sogeza_kushoto, 5 sogeza_kulia_a, 7 sogeza_kulia_n); chanzo namba au r1b
 ag_sogeza:
         r14d &= 7
         ita upana_ab
@@ -2251,7 +2251,7 @@ hm_panua_n:
         r13d = 0x0fbf
         linganisha r1, 2
         ruka hm_pn_toa kama ==
-        r13d = 0x63   ; movsxd
+        r13d = 0x63   ; soma_n
         linganisha r1, 4
         ruka kosa_upana kama !=
 hm_pn_toa:
@@ -2280,7 +2280,7 @@ hm_x_lengo:
 ; x = x / x += ... huja hapa tu kwa '=' : soma_d64 haitumiki na awali
         ruka kosa_agizo
 hm_x_chanzo:
-; r = x : movq 66 REX.W 0F 7E /r (r/m = rejista ya kawaida)
+; r = x : hamisha_x 66 REX.W 0F 7E /r (r/m = rejista ya kawaida)
         r0d = 0x66
         ita zalisha_baiti
         r7 = hoja_chanzo
@@ -2362,7 +2362,7 @@ hm_r_namba:
         r0 = n64[r7+48]
         ruka hamisha_namba
 hm_anwani:
-; rejista = &kum : 8D /r (lea, biti 64)
+; rejista = &kum : 8D /r (anwani, biti 64)
         linganisha n64[r3], 1
         ruka kosa_sintaksia kama !=
         r12d = n32[r3+16]
@@ -2728,7 +2728,7 @@ svr_kitendo:
         r0d += r1d
         ruka zalisha_baiti
 
-; gawanya n|a OP : F7 /7 (idiv), F7 /6 (div)
+; gawanya n|a OP : F7 /7 (gawanya_n), F7 /6 (gawanya_a)
 agizo_gawanya:
         ita tokeni
         linganisha n64[r15+V_AINA_TOKENI], 1
