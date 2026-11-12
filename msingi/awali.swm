@@ -8,7 +8,7 @@
 ;
 ; Kujenga (mfululizo huru, hati/mfululizo-huru.md -- bila NASM wala ld):
 ;   ./msingi/mjenzi.bin gharama/gandisha.mapishi
-;   (kwanza.bin -> maoni -> lebo -> kusanyiko0 -> kusanyiko -> awali.bin)
+;   (kwanza.bin -> maoni -> mahali -> kusanyiko0 -> kusanyiko -> awali.bin)
 ;
 ; Kutumia:
 ;   ./msingi/awali.bin < chanzo.swa > pato.o
@@ -25,7 +25,7 @@ fafanua UPEO_TOKENI = 262144   ; upeo wa tokeni
 fafanua UPEO_WA_NODI = 262144   ; upeo wa nodi za AST
 fafanua UKUBWA_CHOMBO_MSIMBO = 1048576   ; 1 MB ya msimbo wa .text
 fafanua UKUBWA_CHOMBO_DATA = 4194304   ; MB 4 ya data ya ulimwengu na mifuatano halisi
-fafanua UPEO_MAHALI = 65536   ; upeo wa lebo
+fafanua UPEO_MAHALI = 65536   ; upeo wa mahali
 fafanua UPEO_NJE = 65536   ; upeo wa alama za nje
 fafanua UPEO_HAMISHO = 65536   ; upeo wa marekebisho
 fafanua UPEO_ULIMWENGU = 4096   ; upeo wa vigezo vya ulimwengu
@@ -188,7 +188,7 @@ n8 ujumbe_d64_wito = "Hitilafu: hoja za d64 zilizochanganywa na hoja 7-9 hazisai
 n8 ujumbe_mstari_mpya = 10, 0
 n8 ujumbe_rekebisho_jaa = "Hitilafu: jedwali la urekebishaji limejaa", 10, 0
 n8 ujumbe_ulimwengu_jaa = "Hitilafu: jedwali la ulimwengu limejaa", 10, 0
-n8 ujumbe_mahali_jaa = "Hitilafu: jedwali la lebo limejaa", 10, 0
+n8 ujumbe_mahali_jaa = "Hitilafu: jedwali la mahali limejaa", 10, 0
 n8 ujumbe_chanzo_kikubwa = "Hitilafu: chanzo ni kikubwa mno", 10, 0
 n8 ujumbe_herufi_baya = "Hitilafu: herufi isiyojulikana", 10, 0
 n8 ujumbe_radiksi = "Hitilafu: halisi za radiksi hazijaungwa mkono", 10, 0
@@ -369,7 +369,7 @@ n64 chombo_cha_msimbo_wapi
 n8 chombo_data[UKUBWA_CHOMBO_DATA]
 n64 chombo_cha_data_wapi
 
-; ---------- Lebo za kazi ----------
+; ---------- Mahali pa kazi ----------
 n64 jina_la_mahali[UPEO_MAHALI]   ; anwani ya jina (kwenye dimbwi_mfuatano)
 n32 umbali_mahali[UPEO_MAHALI]   ; umbali kwenye chombo_msimbo
 n32 ukubwa_mahali[UPEO_MAHALI]   ; ukubwa wa kazi
@@ -412,7 +412,7 @@ n64 ndani_idadi
 
 ; ---------- Kina cha mzunguko ----------
 n64 kina_mzunguko
-n64 mahali_acha_mzunguko[16]   ; lebo za vunja (ufungwaji wa mipaka ya rafu)
+n64 mahali_acha_mzunguko[16]   ; mahali pa vunja (ufungwaji wa mipaka ya rafu)
 n32 urekebishaji_wa_acha_wapi[65536]   ; nafasi za marekebisho ya vunja
 n64 cl_hatua   ; nafasi ya hatua ya kwa (semantiki ya C ya endelea)
 n64 cl_lengo   ; lengo la sasa la endelea
@@ -2154,7 +2154,7 @@ hifadhi_jina:
 ; tangaza mbele kwa vitendakazi
 ; -------------------------------------------------------
 ; Tunahitaji kutangaza mbele kazi za kuchanganua
-; Katika assembly, tunatumia lebo za kawaida
+; Katika assembly, tunatumia mahali pa kawaida
 
 ; -------------------------------------------------------
 ; changanua_aina: changanua jina la aina
@@ -4146,7 +4146,7 @@ changanua_muundo:
         ; kigezo cha ulimwengu ni kosa la kufa, sawa na mfululizo wa
         ; .swa (linganisha kwa herufi -- hifadhi_jina hairudishi
         ; nakala rudufu). Kazi zinakaguliwa wakati wa uzalishaji,
-        ; kwani jedwali la lebo halijajazwa bado.
+        ; kwani jedwali la mahali halijajazwa bado.
         sukuma r0   ; hifadhi faharisi ya muundo mpya
         sukuma r3
         r6 = &[ghala_la_mifuatano + r12]   ; jina la muundo mpya
@@ -4771,7 +4771,7 @@ changanua_programu:
         ; mgongano na muundo ni kosa la kufa, sawa na mfululizo wa
         ; .swa (linganisha kwa herufi -- hifadhi_jina hairudishi
         ; nakala rudufu). Kazi zinakaguliwa wakati wa uzalishaji,
-        ; kwani jedwali la lebo halijajazwa bado.
+        ; kwani jedwali la mahali halijajazwa bado.
         sukuma r3
         sukuma r1
         r3d ^= r3d
@@ -4931,8 +4931,8 @@ n64 hoja_kuelea
         ; sehemu: msimbo
 
 ; -------------------------------------------------------
-; zalisha_lebo_mpya: tengeneza lebo mpya ya kipekee
-;   rax = nambari ya lebo
+; zalisha_mahali_mpya: tengeneza mahali papya pa kipekee
+;   rax = nambari ya mahali
 ; -------------------------------------------------------
 zalisha_mahali_mpya:
         r0 = n64[zalisha_mahali_idadi]
@@ -5014,7 +5014,7 @@ zalisha_neno8:
 ; -------------------------------------------------------
 ; zalisha_rekebisho_ongeza: ongeza urekebishaji kwa kuruka mbele
 ;   edi = umbali wa sasa kwenye chombo cha .text (ya baiti 4 zilizowekwa)
-;   esi = lebo ya kulenga
+;   esi = mahali pa kulenga
 ; -------------------------------------------------------
 zalisha_rekebisho_ongeza:
         sukuma r3
@@ -5034,11 +5034,11 @@ zalisha_rekebisho_ongeza:
         ita mfumo_toka
 
 ; -------------------------------------------------------
-; zalisha_weka_lebo: weka lebo kwenye nafasi ya sasa ya chombo cha .text
-;   edi = nambari ya lebo
+; zalisha_weka_mahali: weka mahali kwenye nafasi ya sasa ya chombo cha .text
+;   edi = nambari ya mahali
 ; -------------------------------------------------------
 zalisha_weka_mahali:
-        ; Hifadhi nafasi ya lebo: edi = nafasi ya chombo_msimbo, esi = nambari ya lebo
+        ; Hifadhi nafasi ya mahali: edi = nafasi ya chombo_msimbo, esi = nambari ya mahali
         linganisha r6d, 1024
         ruka .furika kama >=a
         n32[zalisha_nafasi_ya_mahali + r6*4] = r7d
@@ -5793,7 +5793,7 @@ toa_anwani_kazi:
         ita zalisha_baiti
         ; Ongeza nje (jina la kazi) na rekebisho la PC32 -- sawa na wito
         ; wa kazi: .o inafungua kwenye uunganishaji, exe inatatua kwa
-        ; lebo ya ndani (au inalia kwa sauti kama kazi haipo)
+        ; mahali pa ndani (au inalia kwa sauti kama kazi haipo)
         r7 = n64[nje_idadi]
         linganisha r7, UPEO_NJE - 1
         ruka .ak_nje_jaa kama >=a
@@ -7631,7 +7631,7 @@ uzalishaji_rudisha:
         r7d = n32[chombo_cha_msimbo_wapi]
         ita zalisha_neno4   ; nafasi ya kujazwa
         r7 = n64[zalisha_rudisha_mahali]
-        r6d = r7d   ; lebo
+        r6d = r7d   ; mahali
         r7d = n32[chombo_cha_msimbo_wapi]
         r7d -= 4
         ita zalisha_rekebisho_ongeza
@@ -12859,7 +12859,7 @@ uzalishaji_kazi:
         ; Weka upya vigezo vya ndani
         n64[ndani_idadi] = 0
 
-        ; Ongeza lebo ya kazi
+        ; Ongeza mahali pa kazi
         r7 = n64[idadi_ya_mahali]
         linganisha r7, UPEO_MAHALI - 1
         ruka .pita_mahali kama >=a
@@ -12870,7 +12870,7 @@ uzalishaji_kazi:
         ; au muundo) ni la ulimwengu. Zamani ufafanuzi wa pili ulipita
         ; kimya na wa kwanza ukashinda -- hatari kwa maktaba zilizo-
         ; unganishwa kwa cat. Sasa ni kosa la kufa, sawa na mfululizo
-        ; wa .swa. Matamko ya mbele hayasajili lebo, kwa hiyo haya-
+        ; wa .swa. Matamko ya mbele hayasajili mahali, kwa hiyo haya-
         ; gongani. linganisha_mfuatano huhifadhi rdi na rsi.
         r1d ^= r1d
 .kagua_kazi_mahali:
@@ -12912,7 +12912,7 @@ uzalishaji_kazi:
         r1++
         ruka .kagua_kazi_miundo_mzunguko
 .kagua_kazi_sawa:
-        ; Soma upya hesabu ya lebo: linganisha_mfuatano huhifadhi rdi,
+        ; Soma upya hesabu ya mahali: linganisha_mfuatano huhifadhi rdi,
         ; lakini rdi ilibadilishwa na skan kuwa kielekezi cha jina.
         r7 = n64[idadi_ya_mahali]
         n64[jina_la_mahali + r7*8] = r6
@@ -12920,7 +12920,7 @@ uzalishaji_kazi:
         n32[umbali_mahali + r7*4] = r0d
         n64[idadi_ya_mahali]++
 
-        ; Hifadhi faharisi ya lebo
+        ; Hifadhi faharisi ya mahali
         r13 = r7
         ruka .zalisha_msimbo
 .kosa_kazi_marudio:
@@ -12951,7 +12951,7 @@ uzalishaji_kazi:
         ita mfumo_toka
 .zalisha_msimbo:
         ; push r10 -- hifadhi kielekezi cha eneo la kurudia
-        ; (baada ya kusajili lebo, ili lebo iwe inafunika push r10)
+        ; (baada ya kusajili mahali, ili mahali pawe panafunika push r10)
         linganisha n32[kazi_rudisha_muundo_namba], 0
         ruka .sio_sukuma_r10 kama <n
         r0b = 0x41
@@ -12960,12 +12960,12 @@ uzalishaji_kazi:
         ita zalisha_baiti
 .sio_sukuma_r10:
 
-        ; Weka upya hesabu ya lebo za ndani kwa kila kazi
+        ; Weka upya hesabu ya mahali pa ndani kwa kila kazi
         ; (urekebishaji hutatuliwa mwishoni mwa kila kazi, hivyo nambari
-        ;  za lebo zinaweza kuanza upya hapa bila mgongano)
+        ;  za mahali zinaweza kuanza upya hapa bila mgongano)
         n64[zalisha_mahali_idadi] = 0
 
-        ; Tengeneza lebo ya kurudi
+        ; Tengeneza mahali pa kurudi
         ita zalisha_mahali_mpya
         n64[zalisha_rudisha_mahali] = r0
 
@@ -13003,7 +13003,7 @@ uzalishaji_kazi:
 
         ; Hifadhi vigezo vya kazi (parameters) kwenye rafu
         sukuma r14   ; hifadhi nodi ya mwili
-        sukuma r13   ; hifadhi faharisi ya lebo
+        sukuma r13   ; hifadhi faharisi ya mahali
 
         r10d = n32[nodi_ya_kushoto + r12*4]   ; orodha ya vigezo
         r11d ^= r11d   ; faharisi ya hoja (0-5)
@@ -13364,7 +13364,7 @@ uzalishaji_kazi:
         r10d = n32[nne_ya_nodi + r10*4]   ; kigezo kinachofuata
         ruka .kigezo_mzunguko
 .vigezo_kwisha:
-        vuta r13   ; rejesha faharisi ya lebo
+        vuta r13   ; rejesha faharisi ya mahali
         vuta r14   ; rejesha nodi ya mwili
 
         ; kiunzi_wapi: sehemu ya kwanza ya ndani ni baada ya vigezo vyote
@@ -13420,7 +13420,7 @@ uzalishaji_kazi:
         ; r8 ina nafasi ya baiti ya sub rsp -- tunaweka imm32
         n32[chombo_msimbo + r8 + 3] = r7d
 
-        ; Weka lebo ya kurudi hapa -- kabla ya epilogue
+        ; Weka mahali pa kurudi hapa -- kabla ya epilogue
         r7 = n64[zalisha_rudisha_mahali]
         r6d = r7d
         r7d = n32[chombo_cha_msimbo_wapi]
@@ -13464,7 +13464,7 @@ uzalishaji_kazi:
         ; Rekebisha urekebishaji
         ita zalisha_rekebisho_jaza
 
-        ; Weka ukubwa wa lebo
+        ; Weka ukubwa wa mahali
         r7 = n64[idadi_ya_mahali]
         r7--
         r0d = n32[chombo_cha_msimbo_wapi]
@@ -13496,7 +13496,7 @@ zalisha_rekebisho_jaza:
         r14d = n32[zalisha_rekebisho_umbali + r13*4]
         r15d = n32[zalisha_rekebisho_mahali + r13*4]
 
-        ; Tafuta nafasi ya lebo kutoka zalisha_lebo_mahali
+        ; Tafuta nafasi ya mahali kutoka zalisha_nafasi_ya_mahali
         r0d = n32[zalisha_nafasi_ya_mahali + r15*4]
         r0d -= r14d
         r0d -= 4   ; rekebisha kwa urefu wa jmp rel32
@@ -13884,7 +13884,7 @@ toa_elf:
         r12d = n32[chombo_cha_msimbo_wapi]   ; text_size
         r13d = n32[chombo_cha_data_wapi]   ; data_size
 
-        ; symtab: 1 (null) + lebo + vigeu vya ulimwengu + nje
+        ; symtab: 1 (null) + mahali + vigeu vya ulimwengu + nje
         r14 = n64[idadi_ya_mahali]
         r14 += n64[ulimwengu_idadi]
         r14 += n64[nje_idadi]
@@ -13990,7 +13990,7 @@ zalisha_elf_hesabu_ya_jedwali_la_majina:
         ; Anza na baiti 1 kwa "\0"
         r14d = 1
 
-        ; Pitia lebo zote
+        ; Pitia mahali pote
         r12d ^= r12d
         r13 = n64[idadi_ya_mahali]
 .mahali_mzunguko:
@@ -14116,11 +14116,11 @@ zalisha_elf_jedwali_la_alama:
         r7d = 0   ; st_size
         ita andika_neno8_moja_kwa_moja
 
-        ; Kokotoa umbali wa strtab kwa kila lebo
+        ; Kokotoa umbali wa strtab kwa kila mahali
         ; Umbali wa kwanza baada ya \0 ni 1
         r14d = 1
 
-        ; Ingizo kwa kila lebo (kazi)
+        ; Ingizo kwa kila mahali (kazi)
         r12d ^= r12d
         r13 = n64[idadi_ya_mahali]
 .mahali_mzunguko:
@@ -14206,7 +14206,7 @@ zalisha_elf_jedwali_la_majina:
         r7b = 0
         ita andika_baiti_moja_kwa_moja
 
-        ; Andika majina ya lebo
+        ; Andika majina ya mahali
         r12d ^= r12d
         r13 = n64[idadi_ya_mahali]
 .mahali_mzunguko:
@@ -14273,7 +14273,7 @@ zalisha_elf_urekebishaji:
         r7d = 2
         ruka .habari_hamisho
 .nje_hamisho:
-        ; Rekebisho la nje: faharisi = 3 + lebo_idadi + ulimwengu_idadi + extern_idx
+        ; Rekebisho la nje: faharisi = 3 + idadi_ya_mahali + ulimwengu_idadi + extern_idx
         r7d += 3
         r7d += n32[idadi_ya_mahali]
         r7d += n32[ulimwengu_idadi]
@@ -14475,7 +14475,7 @@ zalisha_programu:
 
         ; === Awamu ya 1: rekebisha RELA ===
         ; Ulimwengu -> data_vaddr + off (+data_size kwa bss);
-        ; .data -> data_vaddr + (addend + 4); nje -> lebo ya ndani
+        ; .data -> data_vaddr + (addend + 4); nje -> mahali pa ndani
         ; kwa jina (wito wa mbele uliandikwa kama nje).
         ; disp32 = tgt - pos - 4 (stub ya 28 hubatilika pande zote).
         r13d ^= r13d
@@ -14512,7 +14512,7 @@ zalisha_programu:
         ruka .andika_urekebishaji
 
 .urekebishaji_wa_nje:
-        ; Tafuta lebo ya ndani kwa jina jina_nje[sym].
+        ; Tafuta mahali pa ndani kwa jina jina_nje[sym].
         sukuma r13
         sukuma r14
         r3 = n64[jina_nje + r0*8]
@@ -14562,8 +14562,8 @@ zalisha_programu:
         ; === Awamu ya 1.5: rekebisha anwani za kazi kwenye .data ===
         ; Kianzio cha ulimwengu "= &jina_la_kazi" kiliandika SIFURI na
         ; kurekodi sloti yake -- sasa andika anwani kamili ya kazi
-        ; (0x400078 + umbali wa lebo; kama rekebisho la .data upande wa
-        ; wito). Jina lisilokuwa na lebo (wala kazi ya ndani) ni kosa
+        ; (0x400078 + umbali wa mahali; kama rekebisho la .data upande wa
+        ; wito). Jina lisilokuwa na mahali (wala kazi ya ndani) ni kosa
         ; la sauti -- sawa na wito wa kazi usiojulikana.
         r8d ^= r8d
 .dka_mzunguko:
@@ -14600,7 +14600,7 @@ zalisha_programu:
         r8++
         ruka .dka_mzunguko
 .dka_kukosa:
-        ; Kosa la sauti: kazi haijafafanuliwa (hakuna lebo ya ndani)
+        ; Kosa la sauti: kazi haijafafanuliwa (hakuna mahali pa ndani)
         r7 = &[ujumbe_kazi_kukosa]
         ita andika_mfuatano
         r7 = r9
@@ -14780,7 +14780,7 @@ toa_elf_rahisi:
         r3d = r0d
 
         ; Hesabu symtab_size
-        r14 = n64[idadi_ya_mahali]   ; idadi ya lebo
+        r14 = n64[idadi_ya_mahali]   ; idadi ya mahali
         r14 += n64[ulimwengu_idadi]   ; + vigeu vya ulimwengu
         ; Nje zisizo-duplicate (kwa sasa tunachukulia zote ni za kipekee)
         r15 = n64[nje_idadi]
@@ -14793,7 +14793,7 @@ toa_elf_rahisi:
         ; Anza na 1 kwa '\0' ya kwanza
         r14d = 1
 
-        ; Ongeza urefu wa kila jina la lebo
+        ; Ongeza urefu wa kila jina la mahali
         r1d ^= r1d
 .mfuatano_mzunguko:
         linganisha r1, n64[idadi_ya_mahali]
@@ -15044,7 +15044,7 @@ zalisha_elf_jedwali_la_alama_rahisi:
         ; Kokotoa umbali wa strtab kwa kila jina
         r14d = 1   ; umbali wa kwanza baada ya '\0'
 
-        ; Andika lebo
+        ; Andika mahali
         r12d ^= r12d
         r13 = n64[idadi_ya_mahali]
 .mahali_mzunguko:
@@ -15155,7 +15155,7 @@ zalisha_elf_jedwali_la_majina_rahisi:
         r7b = 0
         ita andika_baiti_moja_kwa_moja
 
-        ; Majina ya lebo
+        ; Majina ya mahali
         r12d ^= r12d
         r13 = n64[idadi_ya_mahali]
 .mahali_mzunguko:
@@ -15213,8 +15213,8 @@ zalisha_elf_urekebishaji_rahisi:
         r13 = n64[idadi_ya_urekebishaji_wa_elf]
 
         ; Kokotoa faharisi ya alama kwa kila rekebisho
-        ; Alama za lebo zinaanza baada ya null: faharisi = 1
-        ; Nje zinaanza baada ya lebo zote: faharisi = 1 + lebo_idadi
+        ; Alama za mahali zinaanza baada ya null: faharisi = 1
+        ; Nje zinaanza baada ya mahali pote: faharisi = 1 + idadi_ya_mahali
 .mzunguko:
         linganisha r12, r13
         ruka .kwisha kama >=a
@@ -15235,7 +15235,7 @@ zalisha_elf_urekebishaji_rahisi:
         ; Angalia ikiwa ni rekebisho la kigezo cha ulimwengu (alama_ya_urekebishaji <= -2)
         linganisha r14d, -1
         ruka .nje_hamisho kama >n
-        ; Faharisi ya alama = 4 (null + .text + .data + .bss) + lebo_idadi + global_idx
+        ; Faharisi ya alama = 4 (null + .text + .data + .bss) + idadi_ya_mahali + global_idx
         r14d = -r14d
         r14d -= 2   ; global_idx = -(alama_ya_urekebishaji + 2)
         r0 = n64[idadi_ya_mahali]
@@ -15243,7 +15243,7 @@ zalisha_elf_urekebishaji_rahisi:
         r14d += 4
         ruka .habari_hamisho
 .nje_hamisho:
-        ; Faharisi ya alama = 4 (null + .text + .data + .bss) + lebo_idadi + ulimwengu_idadi + extern_idx
+        ; Faharisi ya alama = 4 (null + .text + .data + .bss) + idadi_ya_mahali + ulimwengu_idadi + extern_idx
         r14d += 4
         r0 = n64[idadi_ya_mahali]
         r14d += r0d
@@ -15281,7 +15281,7 @@ toa_elf_vichwa_vya_sehemu_rahisi:
         ; Data tunayoihitaji:
         ; text_size = [chombo_cha_msimbo_wapi]
         ; data_size = [chombo_cha_data_wapi]
-        ; symtab_size = (3 + lebo_idadi + ulimwengu_idadi + nje_idadi) * 24
+        ; symtab_size = (3 + idadi_ya_mahali + ulimwengu_idadi + nje_idadi) * 24
         ; strtab_size = tunahitaji kuhesabu
         ; rela_size = idadi_ya_urekebishaji_wa_elf * 24
 

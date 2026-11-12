@@ -39,7 +39,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 | muundo_* | 64 | ilikuwa .shindwa kimya -> sasa sauti | SALAMA KWA SAUTI (ilirekebishwa) |
 | nyuga_* | 512 | ilikuwa .shindwa_vuta kimya -> sasa sauti | SALAMA KWA SAUTI (ilirekebishwa) |
 | kazi_ret_* | 256 | ukaguzi mpya -> sauti (haukuwepo) | SALAMA KWA SAUTI (ilirekebishwa) |
-| zalisha_lebo_mahali | 1024 | ukaguzi mpya -> sauti (haukuwepo; kikomo kilikuwa 128) | SALAMA KWA SAUTI (ilirekebishwa) |
+| zalisha_nafasi_ya_mahali | 1024 | ukaguzi mpya -> sauti (haukuwepo; kikomo kilikuwa 128) | SALAMA KWA SAUTI (ilirekebishwa) |
 | gen_fixup_* | 65,536 | .furika -> sauti | SALAMA KWA SAUTI |
 | chombo_muda | 4096 | maandishi <= baiti 8 | SALAMA KWA UTHIBITISHO (ukubwa wa maandishi umepangwa) |
 
@@ -55,8 +55,8 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 | ast_pool (msambazaji) | 4 MB | inachapisha + rudisha | SALAMA KWA SAUTI (inachapisha) |
 | chombo_cha_msimbo (uzalishaji) | 512 KB | andika_baiti -> KOSA kwa sauti + flag | SALAMA KWA SAUTI |
 | chombo_cha_data (uzalishaji) | 256 KB | kama hapo juu | SALAMA KWA SAUTI |
-| lebo_*[2048] (uzalishaji) | 2048 | lebo_idadi < 2048 | SALAMA KWA UTHIBITISHO (kazi ~350) |
-| urekebishaji_*[65536] (uzalishaji) | 65,536 | urekebishaji_idadi < 65536 | SALAMA KWA UTHIBITISHO (urekebishaji <= lebo ~2048) |
+| lebo_*[2048] (uzalishaji) | 2048 | idadi_ya_mahali < 2048 | SALAMA KWA UTHIBITISHO (kazi ~350) |
+| urekebishaji_*[65536] (uzalishaji) | 65,536 | urekebishaji_idadi < 65536 | SALAMA KWA UTHIBITISHO (urekebishaji <= mahali ~2048) |
 | rela_*[65536] (uzalishaji) | 65,536 | idadi_ya_urekebishaji_wa_elf < 65536 | SALAMA KWA UTHIBITISHO (RELA ~4,100 kwa kujikusanya) |
 | data_ulimwengu_*[1024] | 1024 | idadi < 1024 | SALAMA KWA UTHIBITISHO (ulimwengu ~133) |
 | sehemu_*/desimali_*[1024] | 1024 | >= 1024 -> -1 | SALAMA KWA UTHIBITISHO (tungo ~100) |
@@ -64,7 +64,7 @@ mpaka unaolia, au sababu ya uthibitisho iliyoandikwa.**
 | param_*[16] | 16 | -- | SALAMA KWA UTHIBITISHO (vigezo <= 8) |
 | mzunguko_lebo_*[16] | 16 | ulinzi mpya -> KOSA kwa sauti | SALAMA KWA SAUTI (ilirekebishwa) |
 | var_pool[1024] | 1,024 | ulinzi mpya -> KOSA kwa sauti | SALAMA KWA SAUTI (ilirekebishwa) |
-| nje_pool/str_buf (uzalishaji) | 32 KB/16 KB | nje_idadi < 2048; str kwa lebo | SALAMA KWA UTHIBITISHO (nje ~50) |
+| nje_pool/str_buf (uzalishaji) | 32 KB/16 KB | nje_idadi < 2048; str kwa mahali | SALAMA KWA UTHIBITISHO (nje ~50) |
 | Orodha/Ramani (orodha/ramani.swa) | dinamiki | ukuaji unakagua idadi >= uwezo lakini UNAANGUKA KWA VITENDO | PENGO -- orodha_ongeza zaidi ya uwezo inaanguka SEGV 139 kwa mifululizo yote miwili (badili inatumia faharisi hasi yenye upanuzi wa sifuri; uthibitisho 2026-08-27, hati/uthibitisho-wa-lugha.md) |
 
 ## Hitimisho
@@ -82,9 +82,9 @@ unaolia au uthibitisho ulioandikwa wa kutofikika. Darasa la hitilafu ya
    mahali pasiposahihi kwenye njia za makosa). CI haikugundua kwa
    sababu inathibitisha uthabiti, si usahihi wa kila njia ya msimbo.
 2. **Ukaguzi wa kwanza wa "abort za sauti" ulikuwa na hitilafu ya
-   makutano** (njia ya kawaida iliangukia kwenye lebo ya abort) --
+   makutano** (njia ya kawaida iliangukia kwenye mahali pa abort) --
    darasa lilelile lililotokea wakati wa PR #151. Kanuni ya nne ya
-   sheria ya mzizi wa uaminifu (angalia fallthrough ya kila lebo)
+   sheria ya mzizi wa uaminifu (angalia fallthrough ya kila mahali)
    inathibitishwa tena. Jaribio la kabla ya kugandisha lililipata.
 3. Majedwali yote ya mbegu sasa yana ukaguzi unaolia au uthibitisho
    ulioandikwa -- darasa la hitilafu ya "ukubwa wa kukisia" limefungwa

@@ -17,7 +17,7 @@ hatua ya nne haikufikiwa kwa njia hiyo.
 Lengo lenyewe lilitimizwa na **mfululizo huru** (`hati/mfululizo-huru.md`):
 
 - `msingi/kwanza.bin` -- baiti 393 za mkono kweli (hex -> binary)
-- maoni -> lebo -> kusanyiko0 -> kusanyiko: kila hatua imeandikwa kwa lugha
+- maoni -> mahali -> kusanyiko0 -> kusanyiko: kila hatua imeandikwa kwa lugha
   ya iliyo chini yake, na kusanyiko (lugha ya mashine ya Swa) hujijenga lenyewe
 - `msingi/awali.swm` -> `awali.bin`, mkusanyaji wa Swa -> kamili -> `bin/swa`
 - `msingi/mjenzi.bin` huendesha yote: `./msingi/mjenzi.bin gharama/jenga.mapishi`

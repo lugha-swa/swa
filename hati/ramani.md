@@ -58,7 +58,7 @@ kwenye njia ya Rust -> LLVM.
       wa D64 na nambari kamili (jibu baya) na D32 (poromoko)
 - [x] **AST_BADILI (48)** -- IMEFANYIKA: kishikizi kipo katika mkaguzi
       (mkaguzi.swa) na katika uzalishaji (badili kumbukumbu -> realloc)
-- [x] **Uthibitishaji wa aina za hali za `chagua`** -- IMEFANYIKA: lebo za usemi au kigezo zinakataliwa kwa sauti; hasi na N64 zinalingana (T5)
+- [x] **Uthibitishaji wa aina za hali za `chagua`** -- IMEFANYIKA: thamani za usemi au kigezo zinakataliwa kwa sauti; hasi na N64 zinalingana (T5)
 - [x] **mteremko.swa** -- IMEFANYIKA (2026-11-03): imejengwa upya kuwa IR ya
       mstari yenye aina (hati/ir.md), inatekelezwa na mtafsiri.swa
       (`swa --tafsiri`) na kukaguliwa dhidi ya msimbo wa mashine kwenye CI
@@ -115,7 +115,7 @@ asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
       tuli (syscalls pekee, hakuna kichwa cha sehemu) -- kamili2
       inajijenga yenyewe sawa kwa baiti (kamili3) bila ld/gcc/libc.
       Marejeo ya ndani yanatatuliwa na mkusanyaji mwenyewe (RELA-patch
-      + jedwali la lebo); `_start` inaitwa moja kwa moja na kernel.
+      + jedwali la mahali); `_start` inaitwa moja kwa moja na kernel.
 - [x] **Runtime ya syscalls:** mkusanyaji hautekelezi kupitia libc tena
       (PR #149) -- faili, mmap, na uchapishaji kupitia syscalls.
 - [x] **0% bootstrap gap:** mbegu inatoa ET_EXEC tuli moja kwa moja

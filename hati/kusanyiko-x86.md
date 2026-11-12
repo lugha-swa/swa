@@ -6,7 +6,7 @@ Lugha ambayo `mbegu` itaandikwa nayo, na ambayo assembler ya hatua 4 husoma. Si 
 
 1. **Mstari mmoja ni agizo moja la mashine.** Hakuna msimbo uliofichwa; kila mstari una usimbaji mmoja unaotabirika.
 2. **Mpanga programu anaaminiwa kikamilifu.** Kila kitu ambacho CPU inaweza kufanya kinaweza kuandikwa. Upana na ishara huandikwa na mpanga programu kwenye kila agizo -- hayakisiwi wala hayakatazwi na matangazo.
-3. **Kinachokataliwa ni kisichokuwepo tu:** lebo isiyofafanuliwa, thamani isiyotosha sehemu yake, au umbo ambalo CPU haina (mf. kumbukumbu kwenda kumbukumbu).
+3. **Kinachokataliwa ni kisichokuwepo tu:** mahali pasipofafanuliwa, thamani isiyotosha sehemu yake, au umbo ambalo CPU haina (mf. kumbukumbu kwenda kumbukumbu).
 4. **Umbo la agizo ndilo umbo la mashine.** x86 ina hoja mbili (`lengo op= chanzo`); lugha inaonyesha hivyo, haiahidi misemo ambayo mashine haina.
 
 ## Rejista
@@ -26,7 +26,7 @@ Familia ina maana pale tu mashine inapohitaji kuchagua:
 - `d` = desimali (rejista za `x`)
 - vinginevyo `n`, `a`, `b` ni sawa kwa mashine -- mpanga programu anaandika anachomaanisha.
 
-`[lebo]` peke yake ni anwani inayohusiana na agizo (RIP-relative).
+`[mahali]` peke yake ni anwani inayohusiana na agizo (RIP-relative).
 
 ## Kuhamisha na kuhesabu
 
@@ -89,7 +89,7 @@ n32 aina_ast[262144]
 n8  ujumbe = "kosa: chanzo kikubwa mno", 10, 0
 ```
 
-Lebo: `jina:` na za ndani `.jina:` (za wigo wa lebo iliyotangulia). Programu huanzia `anza:`. Mpangilio wa faili ni sawa na `awali.bin` ya sasa (msimbo 0x401000, data 0x40c000, tupu baadaye), ili msimbo ulinganishwe kwa baiti.
+Mahali: `jina:` na za ndani `.jina:` (za wigo wa mahali palipotangulia). Programu huanzia `anza:`. Mpangilio wa faili ni sawa na `awali.bin` ya sasa (msimbo 0x401000, data 0x40c000, tupu baadaye), ili msimbo ulinganishwe kwa baiti.
 
 ## Picha tambarare na biti 32
 
@@ -98,7 +98,7 @@ Kwa kianzio cha kernel (Multiboot) na programu zisizo na mfumo wa uendeshaji:
 | Agizo | Maana |
 |---|---|
 | `picha 0x100000` | matokeo ni baiti tupu (hakuna ELF) zinazoanzia anwani hii. Msimbo, data na tupu hufuatana kwa mpangilio wa chanzo; tupu (`n64 pml4[512]`) huwa sifuri ndani ya picha. Lazima iwe kabla ya msimbo wowote. |
-| `biti 32` / `biti 64` | usimbaji wa maagizo yanayofuata. Kwenye biti 32 `[lebo]` ni anwani kamili, hakuna REX (rejista `r8`-`r15`, upana 8 na `r4b`-`r7b` ni kosa 5), na `n32[lebo] = r0d` huchukua umbo fupi (A3). |
+| `biti 32` / `biti 64` | usimbaji wa maagizo yanayofuata. Kwenye biti 32 `[mahali]` ni anwani kamili, hakuna REX (rejista `r8`-`r15`, upana 8 na `r4b`-`r7b` ni kosa 5), na `n32[mahali] = r0d` huchukua umbo fupi (A3). |
 | `pangilia 4096` | sogeza hadi anwani inayogawanyika kwa N (nguvu ya 2); nafasi hujazwa `0x90` (agizo tupu). |
 
 ## Mfumo (ring 0)

@@ -11,7 +11,7 @@ kikomo kimeandikwa na kikomo chake.
 |---|---|
 | Kama/sivyo (if/else) | majaribio ya K-series, jaribio_kama_sivyo |
 | Wakati (while) | jaribio_wakati, mfululizo mzima wa kujikusanya |
-| Chagua (switch) -- kwenye uzalishaji PEKEE; mbegu inakataa kwa muundo (uthibitisho 2026-08-27); lebo hasi/N64 kubwa/usemi zinatoa jibu baya kwenye uzalishaji | jaribio_chagua_*; hati/uthibitisho-wa-lugha.md |
+| Chagua (switch) -- kwenye uzalishaji PEKEE; mbegu inakataa kwa muundo (uthibitisho 2026-08-27); thamani hasi/N64 kubwa/usemi zinatoa jibu baya kwenye uzalishaji | jaribio_chagua_*; hati/uthibitisho-wa-lugha.md |
 | Urejeshaji (kujirudia, wito wa mbele, pande mbili) | jaribio_mwito_wa_*, mkazo wa RELA (fibonacci=55) |
 | kwa (for) -- KAMILI kwenye mbegu; `endelea` inaruka HATUA (semantiki ya C) kwenye mifululizo yote miwili | mkazo wa RELA (s=125), jaribio la CI; mipaka.md 4b |
 | Miundo, kielekezi, &, nyoosha (sehemu, `->`, sret) | jaribio_k13_*; kikomo kilichopimwa 2026-08-27: safu za miundo zinaanguka SEGV kwa zote mbili, muundo kwa thamani ni takataka kwenye mbegu na unapoteza baiti > 8 kwenye uzalishaji |

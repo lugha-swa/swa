@@ -23,12 +23,12 @@ const nodi_kuu = new Elementi("div");
 globalThis.document = hati;
 anzishaSwa(fs.readFileSync(process.argv[2]), nodi_kuu).then(({ matokeo }) => {
     if (matokeo !== 0) shindwa("anza() ilirudisha " + matokeo);
-    const [kitufe, lebo, futa] = nodi_kuu.watoto;
+    const [kitufe, onyesho, futa] = nodi_kuu.watoto;
     if (!kitufe || kitufe.tag !== "button" || kitufe.textContent !== "Ongeza") shindwa("kitufe hakikujengwa sawa");
-    if (lebo.textContent !== "0") shindwa("lebo ya mwanzo: " + JSON.stringify(lebo.textContent));
+    if (onyesho.textContent !== "0") shindwa("onyesho la mwanzo: " + JSON.stringify(onyesho.textContent));
     kitufe.bofya(); kitufe.bofya(); kitufe.bofya();
-    if (lebo.textContent !== "3") shindwa("baada ya mibofyo 3: " + lebo.textContent);
+    if (onyesho.textContent !== "3") shindwa("baada ya mibofyo 3: " + onyesho.textContent);
     futa.bofya(); kitufe.bofya();
-    if (lebo.textContent !== "1") shindwa("baada ya kusafisha na mbofyo 1: " + lebo.textContent);
+    if (onyesho.textContent !== "1") shindwa("baada ya kusafisha na mbofyo 1: " + onyesho.textContent);
     console.log("kivinjari: kaunta 0 -> 3 -> 0 -> 1, sawa");
 }).catch((e) => shindwa(e.stack || String(e)));

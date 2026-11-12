@@ -61,8 +61,8 @@ Vikomo viliinuliwa Agosti 2026 (4x) ili kupunguza mzunguko:
   ingizo jipya bila dedup
 - jedwali la RELA (UPEO_HAMISHO 65,536) -- maeneo yote: mizigo ya
   ulimwengu, uhifadhi wa ulimwengu, tungo, nafasi za sret, na wito
-- jedwali la urekebishaji, la ulimwengu (UPEO_ULIMWENGU 4096), la lebo
-  (UPEO_LEBO 65,536), na la AST (UPEO_NODI_MTI 262,144)
+- jedwali la urekebishaji, la ulimwengu (UPEO_ULIMWENGU 4096), la mahali
+  (UPEO_MAHALI 65,536), na la AST (UPEO_NODI_MTI 262,144)
 - chanzo kikubwa kuliko baiti 4,194,304 (UPEO_CHANZO) -- mbegu inalia
   kwa sauti badala ya kusoma sehemu tu
 - tokeni (UPEO_TOKENI 262,144), msimbo (UKUBWA_CHOMBO_MSIMBO 1,048,576),
@@ -79,8 +79,8 @@ Sasa: semantiki ya C -- hatua imefungwa kwenye block-mini yenye
 alama, uzalishaji_kundi hurekodi nafasi yake, na endelea inaruka
 hapo. Uthibitisho: kwa (i=0; i<6; i=i+1) { kama (i==2) endelea; s++ }
 hutoa s=5, na kesi ya endelea-pekee inapita. Mfululizo wa .swa UMEWIWA
-tarehe 2026-08 (AST_BLOCK yenye alama -777777, lebo ya hatua
-iliyotengwa mapema) -- mifululizo yote miwili sasa ina semantiki ya C
+tarehe 2026-08 (AST_BLOCK yenye alama -777777, mahali pa hatua
+palipotengwa mapema) -- mifululizo yote miwili sasa ina semantiki ya C
 (uthibitisho: jaribio_exe_kujijenga sehemu ya 11 inaendesha kupitia
 mbegu NA kamili).
 
