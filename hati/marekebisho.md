@@ -165,11 +165,11 @@ Kwa kuongezea, vitalu vilivyomalizika kwa `Br(jikite)` (mzunguko wa kujirudia) h
 
 Uchunguzi wa gdb ulionyesha kuanguka kwenye `changanua()+54`:
 ```
-movl %r11d, -0x10(%rax)    # jaribu kuandika kwenye ukurasa wa ulinzi
+movl %r11d, -0x10(%r0)    # jaribu kuandika kwenye ukurasa wa ulinzi
 ```
 
 Rejesta zilionyesha:
-- `rdx` = 36797 (anwani ya kianzio cha kuanguka inatarajiwa ndogo zaidi)
+- `r2` = 36797 (anwani ya kianzio cha kuanguka inatarajiwa ndogo zaidi)
 - `i` = 36794 (faharisi ya elementi -- inapaswa kuwa 0 kwa tokeni ya kitambulisho kimoja)
 - Tofauti 36794 = 36797 - 3 ilionyesha kwamba urefu wa tokeni ulikuwa umeharibika
 

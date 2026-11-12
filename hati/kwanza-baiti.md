@@ -53,7 +53,7 @@ Msimbo unasoma heksa kutoka stdin, unaruka herufi zisizo heksa
 na unaandika matokeo kwenye stdout.
 
 Rejesta: `r12` -- kielekezi cha chombo cha kuandika; `r13` -- nibble ya
-kwanza; `r14` -- hali ya nibble. (`rcx` na `r11` hazitumiki: syscall
+kwanza; `r14` -- hali ya nibble. (`r1` na `r11` hazitumiki: mfumo
 huwaharibu.)
 
 | Baiti | Maana |
@@ -61,21 +61,21 @@ huwaharibu.)
 | 49 bc 00 07 40 00 00 00 00 00 | r12 = 0x400700 (chombo cha kuandika, mara moja tu) |
 | 45 31 ed | r13d = 0 (nibble ya kwanza) |
 | 45 31 f6 | r14d = 0 (hali ya nibble) |
-| 31 ff | edi = 0 (stdin) |
-| 48 be 00 03 40 00 00 00 00 00 | rsi = 0x400300 (chombo cha kusoma) |
-| ba 00 04 00 00 | edx = 1024 (ukubwa wa kusoma) |
-| b8 00 00 00 00 | eax = 0 (sys_read) |
-| 0f 05 | syscall |
-| 85 c0 | linganisha eax na 0 |
+| 31 ff | r7d = 0 (stdin) |
+| 48 be 00 03 40 00 00 00 00 00 | r6 = 0x400300 (chombo cha kusoma) |
+| ba 00 04 00 00 | r2d = 1024 (ukubwa wa kusoma) |
+| b8 00 00 00 00 | r0d = 0 (sys_read) |
+| 0f 05 | mfumo |
+| 85 c0 | linganisha r0d na 0 |
 | 7f 05 | kama kubwa, ruka mbele |
 | e9 xx xx xx xx | sivyo, ruka hadi mwisho (EOF) |
-| 41 89 c0 | r8d = eax (idadi ya baiti zilizosomwa) |
-| 48 89 f3 | rbx = rsi (kielekezi cha kusoma) |
+| 41 89 c0 | r8d = r0d (idadi ya baiti zilizosomwa) |
+| 48 89 f3 | r3 = r6 (kielekezi cha kusoma) |
 | 4d 85 c0 | kama r8 == 0, rejesha kusoma |
 | 75 05 | kama si 0, ruka mbele |
 | e9 xx xx xx xx | sivyo, ruka hadi mwanzo (soma tena) |
-| 0f b6 03 | eax = baiti ya kuingia |
-| 48 ff c3 | rbx++ |
+| 0f b6 03 | r0d = baiti ya kuingia |
+| 48 ff c3 | r3++ |
 | 49 ff c8 | r8-- |
 | 3d 30 00 00 00 | linganisha na 48 ('0') |
 | 72 xx | chini -- ruka (si heksa) |
@@ -89,53 +89,53 @@ huwaharibu.)
 | 72 xx | chini -- ruka |
 | 3d 66 00 00 00 | linganisha na 102 ('f') |
 | 77 xx | juu -- ruka |
-| 2d 57 00 00 00 | eax -= 87 (a=10) |
+| 2d 57 00 00 00 | r0d -= 87 (a=10) |
 | eb xx | ruka hadi nibble |
-| 2d 30 00 00 00 | eax -= 48 (0=0) |
+| 2d 30 00 00 00 | r0d -= 48 (0=0) |
 | eb xx | ruka hadi nibble |
-| 2d 37 00 00 00 | eax -= 55 (A=10) |
+| 2d 37 00 00 00 | r0d -= 55 (A=10) |
 | 4d 85 f6 | kama r14 != 0, changanya |
 | 75 xx | ruka hadi changanya |
-| 49 89 c5 | r13 = rax (nibble ya kwanza) |
+| 49 89 c5 | r13 = r0 (nibble ya kwanza) |
 | 41 be 01 00 00 00 | r14d = 1 (hali) |
 | eb xx | ruka hadi mzunguko |
 | 49 c1 e5 04 | r13 <<= 4 (hamisha nibble) |
-| 49 09 c5 | r13 |= rax (unga nibble ya pili) |
+| 49 09 c5 | r13 |= r0 (unga nibble ya pili) |
 | 45 88 2c 24 | [r12] = r13b (toa baiti kamili) |
 | 49 ff c4 | r12++ |
 | 49 81 fc 00 09 40 00 | linganisha r12 na mwisho wa chombo |
 | 72 xx | chini -- endelea |
-| bf 01 00 00 00 | edi = 1 (stdout) |
-| 48 be 00 07 40 00 00 00 00 00 | rsi = 0x400700 |
-| ba 00 02 00 00 | edx = 512 (ukubwa wa kuandika) |
-| b8 01 00 00 00 | eax = 1 (sys_write) |
-| 0f 05 | syscall |
+| bf 01 00 00 00 | r7d = 1 (stdout) |
+| 48 be 00 07 40 00 00 00 00 00 | r6 = 0x400700 |
+| ba 00 02 00 00 | r2d = 512 (ukubwa wa kuandika) |
+| b8 01 00 00 00 | r0d = 1 (sys_write) |
+| 0f 05 | mfumo |
 | 49 bc 00 07 40 00 00 00 00 00 | r12 = 0x400700 (anza chombo upya) |
 | 4d 31 f6 | r14 = 0 (anza jozi mpya) |
 | 4d 31 ed | r13 = 0 |
 | e9 xx xx xx xx | ruka hadi mzunguko |
-| 4c 89 e2 | rdx = r12 (baiti zilizobaki) |
-| 48 81 ea 00 07 40 00 | rdx -= 0x400700 (urefu wa pato) |
+| 4c 89 e2 | r2 = r12 (baiti zilizobaki) |
+| 48 81 ea 00 07 40 00 | r2 -= 0x400700 (urefu wa pato) |
 | 48 85 d2 | kama hakuna, toka |
 | 74 xx | ruka hadi toka |
-| bf 01 00 00 00 | edi = 1 (stdout) |
-| 48 be 00 07 40 00 00 00 00 00 | rsi = 0x400700 |
-| b8 01 00 00 00 | eax = 1 (sys_write) |
-| 0f 05 | syscall |
-| b8 3c 00 00 00 | eax = 60 (sys_exit) |
-| 31 ff | edi = 0 (hali ya kutoka) |
-| 0f 05 | syscall |
+| bf 01 00 00 00 | r7d = 1 (stdout) |
+| 48 be 00 07 40 00 00 00 00 00 | r6 = 0x400700 |
+| b8 01 00 00 00 | r0d = 1 (sys_write) |
+| 0f 05 | mfumo |
+| b8 3c 00 00 00 | r0d = 60 (sys_exit) |
+| 31 ff | r7d = 0 (hali ya kutoka) |
+| 0f 05 | mfumo |
 
 Kuruka zenye `xx` ni displacements zinazokokotolewa kutoka nafasi za
 mahali pa ndani -- zinaonekana kwenye `kwanza.heksa`.
 
 ## Historia ya Hitilafu Zilizopatikana Wakati wa Kuandika
 
-1. `syscall` huharibu `rcx` na `r11` -- rejesta za hali zilihamishwa
+1. `mfumo` huharibu `r1` na `r11` -- rejesta za hali zilihamishwa
    hadi `r12/r13/r14`.
-2. `mov r14d, imm32` inahitaji modrm `be` (si `ba` -- hiyo ni edx).
-3. Kuruka kwa masharti juu ya `jmp rel32` inahitaji skip ya **baiti 5**
-   (si 2): `jg 05; jmp ...`.
+2. `hamisha r14d, namba32` inahitaji modrm `be` (si `ba` -- hiyo ni r2d).
+3. Kuruka kwa masharti juu ya `ruka rel32` inahitaji skip ya **baiti 5**
+   (si 2): `jg 05; ruka ...`.
 4. Uanzishaji wa chombo cha kuandika ufanyike **mara moja tu** -- katika
    kila mzunguko wa kusoma ulikuwa unafuta pato lililojazwa.
 5. Maoni katika faili la heksa hayaruhusiwi kuwa na tarakimu au herufi

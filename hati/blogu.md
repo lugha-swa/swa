@@ -54,7 +54,7 @@ Terminator::BrCond(_, _, merge) if *merge != b => { b = *merge; }
 ---
 
 **Hitilafu 3: Uharibifu wa Block ya `kama`/`sivyo` Iliyowekwa Ndani** (`src/ir/lower.rs`, `patch_br_if_needed`)
-Kazi ya `patch_br_if_needed` ilifuata tawi la UONGO (false) tu la vivunja vya `BrCond`. Kwa taarifa za `kama`/`sivyo` ambapo tawi la `sivyo` linarudisha thamani, block ya kuunganisha ya tawi la KWELI (true) haikufikiwa kamwe na usafiri. Hii iliacha mizunguko ya kujirudia (`self-loop`) ambavyo awamu ya ukamilishaji ilibadilisha kuwa `ret i32 0`, na kusababisha kazi kama `changanua_bloku` kurudisha 0 mara baada ya kutumia `{`.
+Kazi ya `patch_br_if_needed` ilifuata tawi la UONGO (false) tu la vivunja vya `BrCond`. Kwa taarifa za `kama`/`sivyo` ambapo tawi la `sivyo` linarudisha thamani, block ya kuunganisha ya tawi la KWELI (true) haikufikiwa kamwe na usafiri. Hii iliacha mizunguko ya kujirudia (`self-loop`) ambavyo awamu ya ukamilishaji ilibadilisha kuwa `rudi i32 0`, na kusababisha kazi kama `changanua_bloku` kurudisha 0 mara baada ya kutumia `{`.
 
 **Marekebisho:** Fuata MATAWI YOTE mawili ya `BrCond` katika `patch_br_if_needed`.
 

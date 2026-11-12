@@ -194,12 +194,12 @@ yamewekwa kwenye jedwali hili.
 | Halisi 2^31 (`2147483648`) | SAWA | SAWA | N64 | SAWA |
 | Halisi 2^32 (`4294967296`) | SAWA | SAWA | N64 | SAWA |
 | Halisi 2^63-1 (`9223372036854775807`) | SAWA | SAWA | N64 kamili | SAWA |
-| Halisi 2^63 (`9223372036854775808`) | SAWA (mov rax, imm64; ishara = -2^63) | SAWA | N64 | SAWA (ukataji wa zamani haupo) |
-| Halisi 2^64-1 (`18446744073709551615`) | SAWA (mov rax, 0xFFFFFFFFFFFFFFFF; = -1 kwa ishara) | SAWA | N64 | SAWA |
-| Halisi 2^64 (`18446744073709551616`) | SAWA (wrap hadi 0, mov eax 0) | SAWA | nje ya N64 | SAWA kwa mod 2^64; ukataji wa kimya wa toleo la juu |
+| Halisi 2^63 (`9223372036854775808`) | SAWA (weka r0, namba64; ishara = -2^63) | SAWA | N64 | SAWA (ukataji wa zamani haupo) |
+| Halisi 2^64-1 (`18446744073709551615`) | SAWA (weka r0, 0xFFFFFFFFFFFFFFFF; = -1 kwa ishara) | SAWA | N64 | SAWA |
+| Halisi 2^64 (`18446744073709551616`) | SAWA (wrap hadi 0, hamisha r0d 0) | SAWA | nje ya N64 | SAWA kwa mod 2^64; ukataji wa kimya wa toleo la juu |
 | Halisi hasi (`-5`) | SAWA (251; sio ishara -- imethibitishwa) | SAWA (251) | N32 hasi | SAWA |
 | Halisi `-2147483648`, `-4294967296`, `-90` (N64) | SAWA | SAWA | N64 hasi | SAWA (rekodi ya zamani haishikiki) |
-| `0 - 10000000000` (mchanganyiko N32-N64) | JIBU-BAYA (rc=2; hesabu 32-bit, `sub eax,ecx` kwenye mashine) | SAWA | -10000000000 | JIBU-BAYA kwenye awali (tazama 8.4) |
+| `0 - 10000000000` (mchanganyiko N32-N64) | JIBU-BAYA (rc=2; hesabu 32-bit, `toa r0d,r1d` kwenye mashine) | SAWA | -10000000000 | JIBU-BAYA kwenye awali (tazama 8.4) |
 | `10000000000 - 20000000000` (N64-N64) | SAWA | SAWA | -10000000000 | SAWA |
 | `4294967296 / 4294967296` (halisi / halisi) | SAWA (1) | SAWA (1) | 1 | SAWA (FPE ya zamani haipo) |
 | Halisi kubwa kama hoja (`jumlisha(4294967296, 5)`) | SAWA | SAWA | hoja ya N64 | SAWA (ukataji wa zamani haupo) |
@@ -223,7 +223,7 @@ yamewekwa kwenye jedwali hili.
 | D64 hadi D32, D32 hadi D64 | IMEKATALIWA (D32) | SAWA | ubadilishaji | uzalishaji SAWA |
 | Halisi za radiksi (`0x10`) | IMEKATALIWA (sauti) | IMEKATALIWA (sauti) | 16 au kukataliwa kwa sauti | SAWA (maboresho dhidi ya rekodi) |
 | N8 hadi N32 (chanya) | SAWA | SAWA | upanuzi | SAWA |
-| N8/N16 hasi hadi N32 (`N8 x = -1; N32 y = x;`) | JIBU-BAYA (255/65535 -- movzx) | SAWA (-1, cdqe) | -1 (upanuzi wa ishara) | JIBU-BAYA kwenye awali (imefunga kwenye uzalishaji) |
+| N8/N16 hasi hadi N32 (`N8 x = -1; N32 y = x;`) | JIBU-BAYA (255/65535 -- soma_a) | SAWA (-1, panua_r0d) | -1 (upanuzi wa ishara) | JIBU-BAYA kwenye awali (imefunga kwenye uzalishaji) |
 | N8 overflow (`N8 x = 127; x = x + 1;` hadi N32) | JIBU-BAYA (128 -- movzx, sio -128) | SAWA (-128) | -128 | JIBU-BAYA kwenye awali (imefunga kwenye uzalishaji) |
 | N32 hadi N64; N64 hadi N32 (mod); N32 hadi N8 (mod); N64 hadi N8 | SAWA | SAWA | ukataji kwa mod | SAWA |
 | N32 hadi A32; A32 hadi N32 | IMEKATALIWA (A32) | IMEKATALIWA (kosa la aina la familia) | ubadilishaji wa familia | IMEKATALIWA kwa sauti kwa uzalishaji |

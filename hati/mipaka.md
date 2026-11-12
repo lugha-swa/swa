@@ -104,7 +104,7 @@ zamani "awali bado HAIJATEKELEZA ABI ya xmm kwenye wito wa kazi --
 program za awali zenye kazi za D64 zinalia kwa sauti" SI KWELI tena.
 Awali inatekeleza wito wa kazi za D64 (parameta NA kurudisha) kwa
 usahihi (jaribio u062/u063 hutoa matokeo 1) bila kosa lolote. ABI yake
-hutumia uhamisho wa GP (`movq rax, xmm0`; `movq xmm1, rcx`) si xmm
+hutumia uhamisho wa GP (`hamisha_x r0, xmm0`; `hamisha_x xmm1, r1`) si xmm
 moja kwa moja -- lakini inafanya kazi kwa hesabu, ulinganisho na
 ukanushaji ndani ya ulimwengu wa D64.
 
@@ -128,7 +128,7 @@ kikamilifu umepimwa 2026-08-27 -- angalia hapa chini). `tokeni_kwa_nambari_n64`
 inakusanya thamani kama N64; `changanua_primary` huhifadhi baiti 8
 kwenye dimbwi la AST kwa thamani > 2147483647 (alama `ast_tiga=1`);
 mkaguzi huweka usimbaji wa N64 (upana 64); `uzalishaji_nambari` hutoa
-`mov rax, imm64`; na kianzio cha ulimwengu kinakili baiti 8 kutoka
+`weka r0, namba64`; na kianzio cha ulimwengu kinakili baiti 8 kutoka
 dimbwi. Uthibitisho: `N64 x = 4294967296; rudisha x / 4294967296` hutoa 1
 (juu) na `x % 4294967296` hutoa 0 (chini), kwa kigeu cha ndani NA cha
 ulimwengu.
@@ -144,7 +144,7 @@ KILICHOPIMWA 2026-08-27 (hati/uthibitisho-wa-lugha.md) -- mpaka wa
 mfululizo wa .swa ni finyu kuliko ilivyoandikwa:
 - Ahadi "maneno halisi hadi N64 kamili" inashikilia kwa [2^31, 2^63)
   pekee. Thamani >= 2^63 zinakatwa KIMYA hadi biti 32 kwa mifululizo
-  yote miwili (uthibitisho wa mashine: `mov eax, 0xFFFFFFFF`) -- J3.
+  yote miwili (uthibitisho wa mashine: `weka r0d, 0xFFFFFFFF`) -- J3.
 - Halisi kubwa kama HOJA ya wito inavunjika: uzalishaji unakataa kwa
   kosa lisilo sahihi, hoja ya katikati inapoteza thamani (J4).
 - Halisi / halisi yenye N64 inaanguka kwa FPE (J5).
