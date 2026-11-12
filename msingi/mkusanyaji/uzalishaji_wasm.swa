@@ -1716,5 +1716,16 @@ w0 wasm_andika_kiolesura_js() {
     wasm_js_mstari("    }");
     wasm_js_mstari("    nje.anzishaSwa = anzishaSwa;");
     wasm_js_mstari("    if (typeof module !== 'undefined' && module.exports) { module.exports = { anzishaSwa }; }");
+    // Kujianzisha kutoka kwenye tagi yenyewe: <script src='swa-js.js'
+    // data-swa='p.wasm' data-nodi='kitambulisho'></script> -- ukurasa
+    // hauhitaji mstari wowote wa JS wake mwenyewe.
+    wasm_js_mstari("    const kianzio = globalThis.document ? globalThis.document.currentScript : null;");
+    wasm_js_mstari("    if (kianzio && kianzio.dataset && kianzio.dataset.swa) {");
+    wasm_js_mstari("        const anza_ukurasa = () => {");
+    wasm_js_mstari("            const kitambulisho = kianzio.dataset.nodi;");
+    wasm_js_mstari("            anzishaSwa(kianzio.dataset.swa, kitambulisho ? globalThis.document.getElementById(kitambulisho) : undefined);");
+    wasm_js_mstari("        };");
+    wasm_js_mstari("        if (globalThis.document.readyState === 'loading') { globalThis.document.addEventListener('DOMContentLoaded', anza_ukurasa); } else { anza_ukurasa(); }");
+    wasm_js_mstari("    }");
     wasm_js_mstari("})(typeof globalThis !== 'undefined' ? globalThis : this);");
 }
