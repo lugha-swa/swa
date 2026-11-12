@@ -1,6 +1,6 @@
 // kimbiza.js -- kikaguzi cha Node kisicho na tegemezi la nje (hakuna
 // npm package) kwa moduli za WASM zinazozalishwa na "kamili --wasm".
-// Matumizi: nodi kimbiza.js <faili.wasm> <thamani_tarajiwa> [aina]
+// Matumizi: node kimbiza.js <faili.wasm> <thamani_tarajiwa> [aina]
 //
 // aina (hiari, chaguo-msingi "namba"):
 //   namba     -- anza() haihitaji hoja, matokeo (i32) yanalinganishwa
