@@ -9,7 +9,10 @@ husisha { msingi/maktaba/faili.swa }
 // KABISA. Programu iliyoorodheshwa ikitoka nje ya wigo wa IR ("IR:
 // haijaungwa mkono") ni SHINDWA pia: wigo hauwezi kupungua kimya.
 //
-//   jaribu_ir <kamili> <orodha>       (gharama/jaribu-ir.mapishi)
+//   jaribu_ir <kamili> <orodha>            (gharama/jaribu-ir.mapishi)
+//   jaribu_ir <kamili> <orodha> riscv64    (gharama/jaribu-riscv64.mapishi):
+//     badala ya --tafsiri, `kamili --riscv64` hukusanya na qemu-riscv64
+//     (kutoka PATH) huendesha -- matokeo lazima yawe sawa na x86-64.
 
 n32 JI_SAWA = 0;
 n32 JI_SHINDWA = 0;
@@ -70,6 +73,33 @@ w0 ji_shindwa(n8* faili, n8* sababu) {
     JI_SHINDWA = JI_SHINDWA + 1;
 }
 
+n8* JI_QEMU = 0;          // si 0: hali ya riscv64
+
+// tafuta programu kwenye PATH (execve haitafuti yenyewe)
+n8 ji_njia_ya_qemu[512];
+n8* ji_tafuta(n8** mazingira, n8* jina) {
+    n64 i = 0;
+    wakati (mazingira[i] != 0) {
+        kama (anza_kwa_mfuatano(mazingira[i], "PATH=")) {
+            n8* p = mazingira[i] + 5;
+            wakati (p[0] != 0) {
+                n64 n = 0;
+                wakati (p[n] != 0 && p[n] != 58) { n = n + 1; }
+                kama (n > 0 && n < 400) {
+                    nakili(ji_njia_ya_qemu, p, n);
+                    ji_njia_ya_qemu[n] = 47;
+                    nakili_mfuatano(ji_njia_ya_qemu + n + 1, jina);
+                    kama (wito_wa_mfumo(21, ji_njia_ya_qemu, 1, 0, 0, 0, 0) == 0) { rudisha ji_njia_ya_qemu; }
+                }
+                p = p + n;
+                kama (p[0] == 58) { p = p + 1; }
+            }
+        }
+        i = i + 1;
+    }
+    rudisha 0;
+}
+
 w0 ji_jaribu(n8* kamili, n8* faili, n8** mazingira) {
     n8* hoja_za_mstari[4];
     hoja_za_mstari[0] = kamili;
@@ -85,8 +115,22 @@ w0 ji_jaribu(n8* kamili, n8* faili, n8** mazingira) {
     hoja_mstari_p[1] = 0;
     n32 rc_asili = ji_endesha(hoja_mstari_p, mazingira, "jengo/ir-linganisha/asili", JI_TUPU, 10);
 
-    hoja_za_mstari[1] = "--tafsiri";
-    n32 rc_ir = ji_endesha(hoja_za_mstari, mazingira, "jengo/ir-linganisha/ir", "jengo/ir-linganisha/ir.kosa", 120);
+    n32 rc_ir = 0;
+    kama (JI_QEMU == 0) {
+        hoja_za_mstari[1] = "--tafsiri";
+        rc_ir = ji_endesha(hoja_za_mstari, mazingira, "jengo/ir-linganisha/ir", "jengo/ir-linganisha/ir.kosa", 120);
+    } sivyo {
+        hoja_za_mstari[1] = "--riscv64";
+        rc_ir = ji_endesha(hoja_za_mstari, mazingira, "jengo/ir-linganisha/rv", "jengo/ir-linganisha/ir.kosa", 60);
+        kama (rc_ir == 0) {
+            wito_wa_mfumo(90, "jengo/ir-linganisha/rv", 493, 0, 0, 0, 0);
+            n8* hoja_rv[3];
+            hoja_rv[0] = JI_QEMU;
+            hoja_rv[1] = "jengo/ir-linganisha/rv";
+            hoja_rv[2] = 0;
+            rc_ir = ji_endesha(hoja_rv, mazingira, "jengo/ir-linganisha/ir", JI_TUPU, 30);
+        }
+    }
     kama (rc_ir == 2) {
         n64 n = faili_soma_yote("jengo/ir-linganisha/ir.kosa", ji_chombo_a, 1048575);
         kama (n < 0) { n = 0; }
@@ -120,6 +164,10 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     wakati (hoja_za_mstari[i] != 0) { i = i + 1; }
     n8** mazingira = hoja_za_mstari + (i + 1);
     mfumo_unda_saraka("jengo/ir-linganisha", 493);
+    kama (idadi_ya_hoja_za_mstari > 3 && linganisha_mfuatano(hoja_za_mstari[3], "riscv64") == 0) {
+        JI_QEMU = ji_tafuta(mazingira, "qemu-riscv64");
+        kama (JI_QEMU == 0) { andika_kosa("jaribu_ir: qemu-riscv64 haipo kwenye PATH\n"); rudisha 1; }
+    }
 
     n64 n = faili_soma_yote(hoja_za_mstari[2], ji_orodha, 1048575);
     kama (n <= 0) {
@@ -137,7 +185,8 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         }
         p = p + 1;
     }
-    andika("IR: %d sawa na msimbo wa mashine, %d zimeshindwa\n", JI_SAWA, JI_SHINDWA);
+    kama (JI_QEMU == 0) { andika("IR: %d sawa na msimbo wa mashine, %d zimeshindwa\n", JI_SAWA, JI_SHINDWA); }
+    sivyo { andika("RISC-V 64: %d sawa na x86-64, %d zimeshindwa\n", JI_SAWA, JI_SHINDWA); }
     kama (JI_SHINDWA > 0) { rudisha 1; }
     rudisha 0;
 }
