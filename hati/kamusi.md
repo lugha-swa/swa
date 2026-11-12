@@ -243,7 +243,7 @@ kiwango kwenye maoni pale linapofafanuliwa:
 
 | Kiwango | Swa |
 |---|---|
-| phdr / shdr | `kichwa_cha_kipande` / `kichwa_cha_sehemu` |
+| phdr / shdr | `maelezo_ya_kipande` / `maelezo_ya_sehemu` |
 | strtab / shstrtab | `jedwali_la_majina` / `jedwali_la_majina_ya_sehemu` |
 | symtab / sym | `jedwali_la_alama` / `alama` |
 | vaddr / filesz / memsz | `anwani_pepe` / `ukubwa_faili` / `ukubwa_kumbukumbu` |

@@ -3678,7 +3678,7 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
                     kigeu_ni_safu[faharasa_ya_kigeu] = 1;
                 } sivyo { kama (thamani_ya_kianzio != -1) {
                         uzalishaji_usemi(thamani_ya_kianzio, nodi_ya_kazi);
-                        // MUHIMU: tangazo la ndani ya kichwa cha kwa-loop
+                        // MUHIMU: tangazo la ndani ya utangulizi wa kwa
                         // haliingii kwenye pitio la tambua_tangazo_pass
                         // (aina==10 iko kwenye ruka_tiga huko), hivyo
                         // HALIWEZI kamwe kuwa var_reg[vidx]>=0 kwa jina
@@ -4575,7 +4575,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
         l = l + 1;
     }
     // Kazi ya nje: kipande chake huandikwa baada ya kazi zote, hivyo
-    // mahali pake bado hapajawekwa -- matokeo ya muundo hujulikana kutoka kichwa.
+    // mahali pake bado hapajawekwa -- matokeo ya muundo hujulikana kutoka tangazo.
     kama (ni_ndani == 0) {
         n32 kg_k = kigeni_kazi_kwa_jina(mwitwa);
         kama (kg_k >= 0) {
@@ -9532,7 +9532,7 @@ w0 andika_thamani_ya_data(n64 thamani, n32 ukubwa_huu) {
 
 // -------------------------------------------------------
 // Utoaji wa exe (ET_EXEC ya kujitegemea, bila kiunganishi cha nje).
-// Mpangilio: kichwa+phdr (vaddr 0x400000, baiti 120), .text
+// Mpangilio: utangulizi+phdr (vaddr 0x400000, baiti 120), .text
 // (0x400078), .data, .bss (memsz pekee -- kernel hujaza sifuri).
 // -------------------------------------------------------
 w0 uzalishaji_programu(n32 ukubwa_wa_msimbo, n32 ukubwa_wa_data, n32 ukubwa_wa_tupu, n32 umbali_wa_kazi_ya_anza) {
@@ -9573,8 +9573,8 @@ w0 uzalishaji_programu(n32 ukubwa_wa_msimbo, n32 ukubwa_wa_data, n32 ukubwa_wa_t
     // Rekebisha wito wa _start -> main (disp32 kwenye baiti 12-15).
     andika_umbali32_kwenye(chombo_cha_msimbo, 12, umbali_wa_kazi_ya_anza - 16);
 
-    // Kichwa cha ELF (64) + phdr (56) -- baiti 120.
-    // Kichwa + phdr kama maneno ya n32 (baiti 120 = maneno 30).
+    // Utangulizi wa ELF (64) + phdr (56) -- baiti 120.
+    // Utangulizi + phdr kama maneno ya n32 (baiti 120 = maneno 30).
     // Mbegu hufanya faharisi za safu x4 kwenye uhifadhi -- safu ya n32
     // ndiyo njia sahihi pekee ya kujaza baiti.
     n32 kichwa32[30];
@@ -9864,7 +9864,7 @@ n32 kigeni_ainisha_muundo(n32 usimbaji, n8* kazi) {
     rudisha ukubwa;
 }
 
-// Kagua kichwa cha kazi ya nje dhidi ya mipaka (kwa sauti).
+// Kagua tangazo la kazi ya nje dhidi ya mipaka (kwa sauti).
 w0 kigeni_kagua_tangazo(n32 f) {
     n8* jina = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_kushoto[f]];
     kigeni_kazi_ina_muundo_sasa = 0;
@@ -10455,7 +10455,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // Hifadhi mzizi kwa kipitishi cha awali (utafutaji wa kazi za ndani)
     uzalishaji_nodi_ya_programu = nodi_ya_programu;
     // Chombo cha muda cha hali ya exe: stub ya _start (baiti 26) na
-    // kichwa+phdr (baiti 120) -- tangazo la kwanza (mbegu huhitaji
+    // utangulizi+phdr (baiti 120) -- tangazo la kwanza (mbegu huhitaji
     // safu za ndani mwanzoni mwa kazi).
     n32 kipande32[7];
     // Weka upya buffer
@@ -10875,7 +10875,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // ELF iliyokatika/kuharibika ilitolewa HADI stdout na mchakato
     // ukitoka kwa msimbo 0 (mafanikio ya uwongo) -- ona uchunguzi wa
     // Dominion jaribio_mchezo_kamili.swa uliogundua hitilafu hii baada
-    // ya #301. Kataa HAPA -- kabla ya kichwa/.text/.data kuanza
+    // ya #301. Kataa HAPA -- kabla ya utangulizi/.text/.data kuanza
     // kuandikwa (kioo cha jinsi ukaguzi wa "main haipo" hapa chini
     // unavyolia kwa sauti NA kutoka kabla ya kuandika baiti yoyote) --
     // ili HAKUNA faili lenye uharibifu litolewe kwa hali_ya_towe YOYOTE
@@ -10886,11 +10886,11 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     }
 
     // 4. Toa ELF kwa stdout
-    //    Kichwa -> chombo (.text) -> symtab -> strtab -> rela.text -> shstrtab -> vichwa
+    //    Utangulizi -> chombo (.text) -> symtab -> strtab -> rela.text -> shstrtab -> maelezo ya sehemu
 
     // ==================================================
     // Hali ya exe: ET_EXEC ya kujitegemea (bila kiunganishi cha nje).
-    // Mpangilio: kichwa+phdr (vaddr 0x400000, baiti 120), .text
+    // Mpangilio: utangulizi+phdr (vaddr 0x400000, baiti 120), .text
     // (0x400078), .data, .bss (memsz pekee -- kernel hujaza sifuri).
     // Kumbuka: inatumia vigeu vilivyopo (text_off, i, sz, n.k.) --
     // jedwali la vigeu vya ndani lina ukomo wa 64.
@@ -10938,7 +10938,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
         rudisha;
     }
 
-    // Kichwa cha ELF (64 baiti, moja kwa moja)
+    // Utangulizi wa ELF (64 baiti, moja kwa moja)
     andika_elf_utangulizi(umbali_wa_maelezo_ya_sehemu, idadi_ya_maelezo_ya_sehemu, faharasa_ya_jedwali_la_majina_ya_sehemu);
 
     // Futa chombo cha .text (msimbo wa mashine + herufi halisi)
@@ -11043,7 +11043,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // .shstrtab (baiti 55)
     andika_jedwali_la_majina_ya_sehemu();
 
-    // Vichwa vya sehemu (8 x 64 = 512 baiti)
+    // Maelezo ya sehemu (8 x 64 = 512 baiti)
     // 0: NULL
     andika_elf_maelezo_ya_sehemu(0, 0, 0, 0, 0, 0, 0, 0, 0);
     // 1: .text (sh_name=1, SHT_PROGBITS, SHF_ALLOC|SHF_EXECINSTR, align=16)

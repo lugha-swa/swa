@@ -628,7 +628,7 @@ muundo Nukta {
 ### 8.1 Kazi za nje (kiolesura cha mashine)
 
 Kazi iliyokwisha kukusanywa kwenye maktaba ya mfumo inatangazwa kwa
-kichwa cha Swa na kuitwa kama kazi nyingine yoyote. Muundo kamili na
+tangazo la Swa na kuitwa kama kazi nyingine yoyote. Muundo kamili na
 awamu zake: `hati/kiolesura-cha-mashine.md`.
 
 ```
@@ -642,7 +642,7 @@ nje "libm.so.6" {
   jina la maktaba kama mfumo unavyoliita. `nje` SI neno muhimu:
   linatambuliwa tu likifuatiwa na mfuatano kwenye ngazi ya juu, hivyo
   `n8* nje` kama kigeu kinaendelea kufanya kazi.
-- Kila mstari ni kichwa cha kazi bila maudhui, kikiishia kwa `;`.
+- Kila mstari ni tangazo la kazi bila maudhui, likiishia kwa `;`.
   `= "<alama>"` huunganisha jina la Swa na jina lao kwenye maktaba;
   bila `=`, alama ni jina la Swa lenyewe. Majina ya Kiingereza ya
   maktaba huingia kama mfuatano, si kama kitambulisho.

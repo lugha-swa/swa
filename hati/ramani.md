@@ -112,14 +112,14 @@ asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
       awali.heksa -- NASM si sehemu ya mfululizo wa uzalishaji tena.
       Uthibitisho: gharama/mfululizo.mapishi (pia kwenye CI).
 - [x] **Kiunganishi cha kujitegemea:** bendera ya `--programu` inatoa ET_EXEC
-      tuli (syscalls pekee, hakuna kichwa cha sehemu) -- kamili2
+      tuli (syscalls pekee, hakuna maelezo ya sehemu) -- kamili2
       inajijenga yenyewe sawa kwa baiti (kamili3) bila ld/gcc/libc.
       Marejeo ya ndani yanatatuliwa na mkusanyaji mwenyewe (RELA-patch
       + jedwali la mahali); `_start` inaitwa moja kwa moja na kernel.
 - [x] **Runtime ya syscalls:** mkusanyaji hautekelezi kupitia libc tena
       (PR #149) -- faili, mmap, na uchapishaji kupitia syscalls.
 - [x] **0% bootstrap gap:** mbegu inatoa ET_EXEC tuli moja kwa moja
-      (`--programu`) -- kichwa (64) + phdr (56) + stub ya `_start` (28) +
+      (`--programu`) -- utangulizi (64) + phdr (56) + stub ya `_start` (28) +
       urekebishaji wa RELA wa ndani (ulimwengu, tungo, na wito wa
       mbele) -- hakuna gcc/ld/clang/muda.c/libc popote kwenye mfululizo.
       Uthibitisho: jaribio_exe_kujijenga (CI).

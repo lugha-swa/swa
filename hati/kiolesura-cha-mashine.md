@@ -38,7 +38,7 @@ Kanuni:
 
 1. `nje "<maktaba>" { ... }` ni tangazo la ngazi ya juu. Mfuatano ni
    jina la maktaba kama mfumo unavyoliita (data yao, si jina letu).
-2. Kila mstari ni kichwa cha kazi ya Swa bila maudhui. `= "<alama>"`
+2. Kila mstari ni tangazo la kazi ya Swa bila maudhui. `= "<alama>"`
    huunganisha jina letu na jina lao. Bila `=`, alama ni jina la Swa
    lenyewe.
 3. **Majina yetu ni ya Kiswahili kwa maana; majina yao ni mifuatano.**
@@ -154,7 +154,7 @@ call [rip+sloti]
 mov rsp,rbp; pop rbp; ret
 ```
 
-Mpango wote huhesabiwa wakati wa kukusanya kutoka kichwa cha `nje`;
+Mpango wote huhesabiwa wakati wa kukusanya kutoka tangazo la `nje`;
 vyanzo vyote ni kumbukumbu iliyohifadhiwa, hivyo hakuna rejesta
 inayoharibu nyingine. Kazi zisizo na muundo hubaki na kipande kifupi,
 baiti zile zile.
@@ -206,7 +206,7 @@ Windows na macOS kipakiaji cha mfumo ni lazima hata hivyo. Kwa hiyo:
 | Awamu | Kazi | Jaribio linalothibitisha |
 |---|---|---|
 | 1 (imekamilika) | `nje`, aina za namba/kielekezi/d64/d32, ELF ya kiungo-hai, ukaguzi wa aina, upangiliaji wa mrundikano | libm: `cos`, `pow`, `sqrt`; libc: `strlen`, `qsort` yenye kazi ya kurudi ya Swa, `getcontext` kwa upangiliaji; makosa 13 kwa ujumbe kamili; programu 460 zilizopo sawa kwa baiti (--programu na --wasm); uthabiti |
-| 2 (imekamilika) | hoja za mrundikano, hoja za ziada (`...`, r11 + al), data ya maktaba (R_X86_64_COPY), rekebisho la wito wa Swa | `snprintf`: namba 9 za ziada (6 kwenye mrundikano), desimali zikichanganyika, desimali 10 (2 kwenye mrundikano) + namba; kichwa cha kudumu chenye sloti 3 za mrundikano; `optind` (thamani 1 inakiliwa) na `stdout` kwa `fputs`; makosa 19; majaribio 4 ya mabadiliko (mzunguko bila push, umbali mbaya, COPY kama GLOB_DAT, al = 0) yote hukamatwa |
+| 2 (imekamilika) | hoja za mrundikano, hoja za ziada (`...`, r11 + al), data ya maktaba (R_X86_64_COPY), rekebisho la wito wa Swa | `snprintf`: namba 9 za ziada (6 kwenye mrundikano), desimali zikichanganyika, desimali 10 (2 kwenye mrundikano) + namba; tangazo la kudumu lenye sloti 3 za mrundikano; `optind` (thamani 1 inakiliwa) na `stdout` kwa `fputs`; makosa 19; majaribio 4 ya mabadiliko (mzunguko bila push, umbali mbaya, COPY kama GLOB_DAT, al = 0) yote hukamatwa |
 | 3 (imekamilika) | muundo kwa thamani: uainishaji wa System V (INTEGER/SSE/MEMORY), kipande cha kutafsiri, matokeo kwenye rax:rdx/xmm0:xmm1, data ya muundo; ukaguzi wa mpangilio wa C | libc/libm halisi: `div`, `ldiv` (matokeo baiti 8 na 16), `cabs`/`csqrt`/`cpow` (`double complex`, SSE,SSE), `cabsf`/`csqrtf` (`float complex`, SSE moja kutoka GP ya Swa), `inet_ntoa` (`struct in_addr`), `memcpy` kama matokeo MEMORY, `in6addr_loopback` kama data; `snprintf` huonyesha mrundikano: MEMORY ya baiti 24, muundo usiotosha rejesta, INTEGER+SSE, darasa ndani ya baiti-8 moja, xmm zilizojaa, desimali ya 9, miundo kutoka mrundikano wa Swa, muundo ndani ya muundo; makosa 7; programu 968 zilizopo sawa kwa baiti; majaribio 14 ya mabadiliko: 13 hukamatwa, moja ni sawa kimaana (bila kupakia rdi kwa matokeo MEMORY -- rdi ya Swa tayari ni ile ya System V) |
 | 4 (imekamilika) | `--wasm`: kila `nje "<moduli>"` huwa uingizaji wa WASM (moduli, alama); `dom_*` 8 zilizowekwa ndani ya mkusanyaji zimeondolewa; DOM ni Swa (`msingi/maktaba/kivinjari.swa`) juu ya kiolesura cha jumla kinachoandikwa na `swa --wasm-js`; `msingi/kivinjari/swa-kivinjari.js` ya mkono imefutwa | majaribio yote ya DOM na matukio hupitia mfululizo mzima (Swa -> kivinjari.swa -> swa-js.js -> hati bandia); `jaribio_nje_js` hutumia uingizaji moja kwa moja; makosa 3 (desimali, `...`, data); mabadiliko 2 (kiolesura chenye hoja zilizobadilishwa, `dom_unda` bila maktaba) hukamatwa |
 | 5 | Win64 + PE (Windows), kisha ARM64 + Mach-O | programu ile ile kwenye kila jukwaa |
@@ -224,7 +224,7 @@ kiolesura kipo, lakini kina umbo la `syscall/js` ya Go na `wasm_exec.js`:
   namba (vishiko) -- `kimataifa`, `pata`, `weka`, `ita0..ita3`,
   `mfuatano`, `namba`, `kwa_namba`, `kazi` (kazi ya Swa kama kazi ya
   kurudi), `achilia`, `nodi_kuu`. Halina mantiki ya programu; ni sawa kwa
-  kila programu, kama kichwa cha ELF.
+  kila programu, kama utangulizi wa ELF.
 - **`nje` ni uingizaji wa WASM.** `nje "js" { n32 js_pata(n32 kitu, n8* sifa) = "pata"; }`
   huwa uingizaji (moduli `js`, alama `pata`). Moduli nyingine yoyote
   (mf. `wasi_snapshot_preview1`) hufanya kazi vivyo hivyo; mwenyeji
