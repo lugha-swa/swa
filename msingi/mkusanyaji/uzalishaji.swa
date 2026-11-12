@@ -727,7 +727,7 @@ w0 andika_umbali32_kwenye(n8* chombo, n32 nafasi_hii, n32 umbali) {
 }
 
 // Andika disp32 (baiti 4, mdogo-kwanza) ya thamani hasi: [rbp - off]
-// Hesabu ya / na * (mbegu ina hitilafu katika & na >>); mgawanyo wa sakafu.
+// Hesabu ya / na * (awali ina hitilafu katika & na >>); mgawanyo wa sakafu.
 w0 andika_umbali32_hasi(n32 umbali) {
     n32 n = 0 - umbali;
     n32 q0 = n / 256;
@@ -1577,7 +1577,7 @@ n32 ni_desimali_usimbaji(n32 usimbaji) {
 // Rudisha 1 ikiwa encoding inahitaji usajili wa 64-bit
 n32 ni_aina_ya_64bit(n32 usimbaji) {
     kama (usimbaji == 0) { rudisha 0; }
-    // Hesabu ya / na * (mbegu ina hitilafu katika & na >>)
+    // Hesabu ya / na * (awali ina hitilafu katika & na >>)
     kama ((usimbaji / 2) * 2 != usimbaji) { rudisha 1; }  // kielekezi = baiti 8
     n32 familia = (usimbaji / 256) % 256;
     n32 upana = usimbaji - (familia * 256);
@@ -2893,7 +2893,7 @@ w0 jina_hifadhi(n8* ghala, n32* wapi, n8* jina) {
 // -------------------------------------------------------
 n32 ukubwa_kutoka_usimbaji(n32 usimbaji) {
     kama (usimbaji == 0) { rudisha 4; }  // chaguo-msingi: n32
-    // Hesabu ya / na * (mbegu ina hitilafu katika & na >>)
+    // Hesabu ya / na * (awali ina hitilafu katika & na >>)
     kama ((usimbaji / 2) * 2 != usimbaji) { rudisha 8; }  // kielekezi -> baiti 8 (x86-64)
     // Aina za miundo -- encoding hasi ina kianzio cha jina kwenye dimbwi
     kama (usimbaji < 0) {
@@ -3021,7 +3021,7 @@ n32 pata_au_unda_nje(n8* jina) {
 // Utorokaji hubadilishwa wakati wa kunakili (8.18: kamba za DATA
 // za ndani zilibaki na baiti ghafi za "\n" badala ya 0x0A).
 // Jedwali: \n -> 10, \t -> 9, \0 -> 0; vingine (\\, \", \%, n.k.)
-// hudondosha kufyeka -- sawa na mbegu.
+// hudondosha kufyeka -- sawa na awali.
 // -------------------------------------------------------
 n32 kusanya_herufi(n8* ghafi) {
     // Ruka nukuu ya kufungua
@@ -4913,7 +4913,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     kama (ni_mfumo_wito) {
         // Pangilia mrundikano kwa hoja 8+: hoja 7+ zilibaki kwenye mrundikano kwa
         // mpangilio wa a7..aN (aN juu) -- sukuma kinyume ili a7 iwe juu
-        // (pop r9 hapo chini itachukua umbali, sawa na mbegu.swm).
+        // (pop r9 hapo chini itachukua umbali, sawa na awali.swm).
         // N=8: pop r11, pop rax, push r11, push rax.
         // N=9: pia pop r10, push r10 (rax, r10, r11 ni rejesta za muda
         // za syscall -- zinaandikwa tena na mpangilio wa ABI hapo chini).
@@ -8995,7 +8995,7 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
 // KAMWE haipo -- ukaguzi wa zamani wa "familia = (enc>>8)&255; kama
 // (familia==6)" ulikuwa kificho kilichokufa (dead code) KIHATARI:
 // >>/& kwenye enc HASI (badala ya / na % kama ukubwa_kutoka_enc
-// inavyofanya, angalia maelezo yake "mbegu ina hitilafu katika & na
+// inavyofanya, angalia maelezo yake "awali ina hitilafu katika & na
 // >>") hutegemea biti za juu za uwakilishi wa kukamilishana-mbili
 // (two's complement) za enc -- kwa thamani fulani za off (nafasi
 // kwenye ast_pool, inayokua kadiri faili linavyokuwa kubwa), bahati
@@ -9474,7 +9474,7 @@ n64 thamani_isiyobadilika(n32 nodi) {
         // n64 halisi: baiti 8 zimehifadhiwa kwenye dimbwi la AST
         // (ast_thamani = umbali, si thamani -- thamani yenyewe
         // haiingii kwenye n32). Jenga n64 kwa kuzidisha kwa 256
-        // (mbegu ina hitilafu katika >> za n64).
+        // (awali ina hitilafu katika >> za n64).
         kama (nodi_ya_kulia[nodi] == 1) {
             n32 umbali_n = thamani_ya_nodi[nodi];
             n64 th_n = 0;
@@ -9499,7 +9499,7 @@ n64 thamani_isiyobadilika(n32 nodi) {
 }
 
 // Andika baiti za thamani ya ulimwengu kwenye .data (sz za kwanza,
-// ndogo kwanza). Bila kuhama kwa n64 (mbegu ina hitilafu katika
+// ndogo kwanza). Bila kuhama kwa n64 (awali ina hitilafu katika
 // >> za n64) wala kugawanya hasi (C inakata kuelekea sifuri -- si
 // kutoa baiti): hasi hubadilishwa kuwa chanya kwa p = -1 - val
 // (val = ~p), kisha kila baiti inapunguzwa (255 - b). Kumbuka:
@@ -9557,7 +9557,7 @@ w0 uzalishaji_programu(n32 ukubwa_wa_msimbo, n32 ukubwa_wa_data, n32 ukubwa_wa_t
             // ikitulia kimya kwa anwani potofu na kuleta SEGV wakati wa
             // utekelezaji -- k.m. `husisha { faili.swa }` hailiwii chanzo
             // (kinapaswa kuunganishwa) na makosa ya tahajia ya majina ya
-            // kazi yalipita hadi kwenye mchakato. Kama mbegu, sasa inalia
+            // kazi yalipita hadi kwenye mchakato. Kama awali, sasa inalia
             // kwa sauti wakati wa kukusanya.
             n32 nafasi = kazi_nafasi_kwa_jina(nje_ghala + nje_jina_umbali[nje_faharasa]);
             kama (nafasi < 0) {
@@ -9575,7 +9575,7 @@ w0 uzalishaji_programu(n32 ukubwa_wa_msimbo, n32 ukubwa_wa_data, n32 ukubwa_wa_t
 
     // Utangulizi wa ELF (64) + phdr (56) -- baiti 120.
     // Utangulizi + phdr kama maneno ya n32 (baiti 120 = maneno 30).
-    // Mbegu hufanya faharisi za safu x4 kwenye uhifadhi -- safu ya n32
+    // Awali hufanya faharisi za safu x4 kwenye uhifadhi -- safu ya n32
     // ndiyo njia sahihi pekee ya kujaza baiti.
     n32 kichwa32[30];
     n32 ukubwa_kwenye_faili = 120 + ukubwa_wa_msimbo + ukubwa_wa_data;
@@ -9686,9 +9686,9 @@ w0 hakiki_marudio_ya_ngazi_ya_juu(n32 nodi_ya_programu) {
 // Inatumiwa na vianzio vya ulimwengu wa D32 (baiti 8 -> 4).
 // -------------------------------------------------------
 n64 d64_biti_hadi_d32(n64 d64) {
-    // TAHADHARI: mbegu ina hitilafu katika & na >> za n64 (zinakata
+    // TAHADHARI: awali ina hitilafu katika & na >> za n64 (zinakata
     // kwa biti 32) -- kila operesheni hapa ni /, %, au * kwa n64
-    // (zilizothibitishwa kwenye mbegu na kwenye mfululizo).
+    // (zilizothibitishwa kwenye awali na kwenye mfululizo).
     n64 alama = 0;
     kama (d64 < 0) { alama = 1; }  // biti 63 (2^63)
     n64 kielelezo = (d64 / 4503599627370496) % 2048;  // biti 52-62
@@ -10455,7 +10455,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // Hifadhi nodi kuu kwa kipitishi cha awali (utafutaji wa kazi za ndani)
     uzalishaji_nodi_ya_programu = nodi_ya_programu;
     // Chombo cha muda cha hali ya exe: stub ya _start (baiti 26) na
-    // utangulizi+phdr (baiti 120) -- tangazo la kwanza (mbegu huhitaji
+    // utangulizi+phdr (baiti 120) -- tangazo la kwanza (awali huhitaji
     // safu za ndani mwanzoni mwa kazi).
     n32 kipande32[7];
     // Weka upya buffer
@@ -10609,7 +10609,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
                             k = k + 1;
                         }
                     } sivyo {
-                        // Ujenzi wa bits64 bila kuhama kwa n64 (mbegu
+                        // Ujenzi wa bits64 bila kuhama kwa n64 (awali
                         // ina hitilafu katika >> za n64) -- kuzidisha kwa
                         // 256 kwa kila baiti, kuanzia b7 (mdogo-wa-kwanza
                         // ni b0) (8.7: D32 ya ulimwengu ilipata bits za
@@ -10618,7 +10618,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
                         // kipande cha 255, baiti ya 0x80+ (kama 0xF8 ya
                         // 1.5) inaenea kwa ishara na bits64 zinaharibika
                         // (hitilafu: jaribio_hitilafu_d32_hesabu lilirudisha 202
-                        // badala ya 178 kwenye mbegu ya movsx).
+                        // badala ya 178 kwenye awali ya movsx).
                         n64 biti64 = 0;
                         k = 7;
                         wakati (k >= 0) {
@@ -10708,7 +10708,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
                 } sivyo {
                     // Kianzio lazima kiwe halisi ya nambari (ikiwa na
                     // toa-unari wa hiari). Usemi wa hesabu (1 + 2,
-                    // 5 - 2) haujategemewa -- mbegu inakataa kwa sauti;
+                    // 5 - 2) haujategemewa -- awali inakataa kwa sauti;
                     // kukubali kimya kungehifadhi 0 au baiti za takataka.
                     n32 ni_halali = 0;
                     kama (nodi_ya_kianzio != -1) {
@@ -10897,13 +10897,13 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // ==================================================
     kama (hali_ya_towe == 1) {
         // main haipo: wito wa _start ungeenda anwani 0 na binary
-        // ingeanguka. Kataa kwa sauti bila kutoa faili -- sawa na mbegu.
+        // ingeanguka. Kataa kwa sauti bila kutoa faili -- sawa na awali.
         kama (umbali_wa_kazi_ya_anza == 0) {
             andika_kosa("Hitilafu: kazi 'anza' haipo -- hakuna kiingilio cha programu\n");
             wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
         }
         // Utoaji wa exe uko kwenye kazi yake -- jedwali la vigeu vya
-        // ndani la mbegu halina nafasi zaidi hapa.
+        // ndani la awali halina nafasi zaidi hapa.
         uzalishaji_programu(ukubwa_wa_msimbo, ukubwa_wa_data, ukubwa_wa_tupu, umbali_wa_kazi_ya_anza);
 
         rudisha;
@@ -11217,7 +11217,7 @@ w0 uzalishaji_papo(n32 nodi_ya_programu, n32 idadi_hoja_papo, n8** hoja_mstari_p
         wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
     }
 
-    // Ita chombo cha JIT kupitia kiolesura cha C (tekeleza) -- mbegu haina
+    // Ita chombo cha JIT kupitia kiolesura cha C (tekeleza) -- awali haina
     // wito wa kielekezi wa kazi, kwa hiyo hatuwezi kuita chombo moja kwa moja
     // ndani ya kamili. Wito wa kielekezi upo katika mzalishaji wa Swa
     // (uzalishaji_wito) kwa vizazi vya baadaye.

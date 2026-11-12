@@ -42,12 +42,12 @@ Kujenga kutoka chanzo, mahitaji ni Linux ya x86-64 pekee -- hakuna gcc, ld, nasm
 
 ```sh
 git clone https://github.com/lugha-swa/swa && cd swa
-./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> mbegu -> kamili -> bin/swa
+./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> awali -> kamili -> bin/swa
 ```
 
-Kwa anayetaka kuthibitisha chanzo bila kuamini `msingi/mjenzi.bin`: `./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi` hujenga mjenzi kutoka chanzo chake kwa mbegu mbili za mkono pekee (`kwanza.bin` na `kizinduzi.bin`), kisha hulinganisha kila binary iliyogandishwa ([hati/mfululizo-huru.md](hati/mfululizo-huru.md)).
+Kwa anayetaka kuthibitisha chanzo bila kuamini `msingi/mjenzi.bin`: `./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi` hujenga mjenzi kutoka chanzo chake kwa binari mbili za mwanzo pekee (`kwanza.bin` na `kizinduzi.bin`), kisha hulinganisha kila binary iliyogandishwa ([hati/mfululizo-huru.md](hati/mfululizo-huru.md)).
 
-`jenga.mapishi` huanzia `msingi/kwanza.bin` (baiti 393 zilizoandikwa kwa mkono): kila hatua ya mfululizo huru hujengwa na iliyo chini yake, kisha `mbegu`, kisha `kamili`, kisha `kamili` hujijenga yenyewe kuwa `bin/swa`. `mjenzi` (kiendeshaji cha mapishi, `msingi/mfululizo/mjenzi.swm`) yenyewe ni programu ya lugha ya mashine ya Swa iliyojengwa kwa mfululizo huo huo; mapishi huthibitisha kwamba `msingi/mjenzi.bin` ni sawa kwa baiti na inayojengwa kutoka chanzo chake.
+`jenga.mapishi` huanzia `msingi/kwanza.bin` (baiti 393 zilizoandikwa kwa mkono): kila hatua ya mfululizo huru hujengwa na iliyo chini yake, kisha `awali`, kisha `kamili`, kisha `kamili` hujijenga yenyewe kuwa `bin/swa`. `mjenzi` (kiendeshaji cha mapishi, `msingi/mfululizo/mjenzi.swm`) yenyewe ni programu ya lugha ya mashine ya Swa iliyojengwa kwa mfululizo huo huo; mapishi huthibitisha kwamba `msingi/mjenzi.bin` ni sawa kwa baiti na inayojengwa kutoka chanzo chake.
 
 </details>
 
@@ -136,13 +136,13 @@ Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hat
 
 | Kipimo | Hali |
 |---|---|
-| Mfululizo wa majaribio (mbegu + kamili, uthabiti) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
+| Mfululizo wa majaribio (awali + kamili, uthabiti) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | Mkimbiaji wa majaribio wa Swa asili (bila bash) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | WebAssembly | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | `--kiini` (ring 0) | [yote yanapita](https://github.com/lugha-swa/swa/actions/workflows/ci.yml) |
 | IR (mtafsiri dhidi ya msimbo wa mashine) | programu 161 sawa kabisa ([hati/ir.md](hati/ir.md)) |
 | Kujikusanya | `kamili2 == kamili3`, sawa kwa baiti |
-| Mbegu (chanzo cha uaminifu) | hujengwa na kujaribiwa kabla ya kila kugandishwa |
+| Awali (chanzo cha uaminifu) | hujengwa na kujaribiwa kabla ya kila kugandishwa |
 
 Mipaka inayojulikana imeandikwa wazi kwenye [hati/mipaka.md](hati/mipaka.md); ramani iko kwenye [hati/ramani.md](hati/ramani.md).
 
@@ -151,8 +151,8 @@ Mipaka inayojulikana imeandikwa wazi kwenye [hati/mipaka.md](hati/mipaka.md); ra
 | Njia | Maelezo |
 |---|---|
 | [`msingi/kwanza.bin`](msingi) | baiti 393 za mkono -- mwanzo wa mfululizo |
-| [`msingi/kizinduzi.bin`](msingi) | baiti 839 za mkono -- mbegu ya pili: huendesha hatua za mwanzo hadi mjenzi ujengwe kutoka chanzo chake ([`kizinduzi.maoni`](msingi/kizinduzi.maoni)) |
-| [`msingi/awali.swm`](msingi) | mbegu -- mkusanyaji mdogo uliogandishwa, kwa lugha ya mashine ya Swa; hujengwa na mfululizo huru |
+| [`msingi/kizinduzi.bin`](msingi) | baiti 839 za mkono -- awali ya pili: huendesha hatua za mwanzo hadi mjenzi ujengwe kutoka chanzo chake ([`kizinduzi.maoni`](msingi/kizinduzi.maoni)) |
+| [`msingi/awali.swm`](msingi) | awali -- mkusanyaji mdogo uliogandishwa, kwa lugha ya mashine ya Swa; hujengwa na mfululizo huru |
 | [`msingi/mkusanyaji/`](msingi/mkusanyaji) | msomaji, mchanganuzi, mkaguzi, uzalishaji (x86-64 na WASM) |
 | [`msingi/maktaba/`](msingi/maktaba) | kumbukumbu, mfuatano, orodha, ramani, faili, hesabu, takwimu, ... |
 | [`majaribio/`](majaribio) | majaribio ya programu, WASM na kernel |

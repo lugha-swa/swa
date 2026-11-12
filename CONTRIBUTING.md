@@ -22,7 +22,7 @@ Tafuta lebo `good-first-issue` kwenye [ukurasa wa masuala](https://github.com/lu
 Tumia kiolezo cha **Ripoti ya Hitilafu**. Hakikisha umejumuisha:
 - Hatua za kuzalisha hitilafu
 - Matokeo halisi na yanayotarajiwa
-- Mazingira yako (OS, mfululizo uliotumika -- mbegu au kamili, ukubwa wa awali.bin, hali ya uthabiti)
+- Mazingira yako (OS, mfululizo uliotumika -- awali au kamili, ukubwa wa awali.bin, hali ya uthabiti)
 
 ### 3. Kupendekeza Vipengele
 
@@ -52,7 +52,7 @@ Tumia kiolezo cha **Ombi la Kipengele**. Kumbuka:
 ```sh
 git clone https://github.com/lugha-swa/swa.git
 cd swa
-./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> mbegu -> bin/swa
+./msingi/mjenzi.bin gharama/jenga.mapishi   # baiti 393 -> kusanyiko -> awali -> bin/swa
 ./msingi/mjenzi.bin gharama/jaribu-mfululizo.mapishi   # mfululizo mzima + majaribio
 ```
 
@@ -68,7 +68,7 @@ chmod +x mfano.bin && ./mfano.bin
 
 | Saraka | Maelezo |
 |--------|---------|
-| `msingi/` | Chanzo cha uaminifu: kwanza (baiti za mkono), mbegu, bootstrap |
+| `msingi/` | Chanzo cha uaminifu: kwanza (baiti za mkono), awali, bootstrap |
 | `msingi/maktaba/` | Maktaba ya kawaida ya Swa (kumbukumbu, mfuatano, orodha, ramani, hesabu, faili) |
 | `msingi/mkusanyaji/` | Mkusanyaji wa kujikusanya wa Swa (msomaji, msambazaji, mkaguzi, uzalishaji, mteremko -- IR, mtafsiri, kamili) |
 | `majaribio/` | Programu za majaribio za Swa (ORODHA.txt) |
@@ -88,7 +88,7 @@ mfululizo mzima. Sheria isiyo na mbadala:
 **Mabadiliko ya chanzo cha uaminifu hujengwa na Kujaribiwa KABLA ya
 kugandishwa -- hakuna ubaguzi.**
 
-Kwa nini: hitilafu kwenye chanzo cha uaminifu ni ya darasa baya zaidi -- mbegu
+Kwa nini: hitilafu kwenye chanzo cha uaminifu ni ya darasa baya zaidi -- awali
 iliyovunjika inaweza bado kutoa uthabiti imara LAKINI mbaya
 (kamili2 == kamili3 == takataka), na mfululizo mzima unaweza kushindwa
 kimya kimya. Mfano halisi: uhariri mdogo wa njia ya urekebishaji uliwahi
@@ -98,7 +98,7 @@ mkazo wa RELA ndani ya `gharama/jaribu-mfululizo.mapishi` (`majaribio/mkazo/urek
 
 Mpangilio wa lazima:
 1. Badilisha `msingi/awali.swm`.
-2. `./msingi/mjenzi.bin gharama/awali-mpya.mapishi` -> mbegu ya muda
+2. `./msingi/mjenzi.bin gharama/awali-mpya.mapishi` -> awali ya muda
    `jengo/awali` (mfululizo huru: kwanza.bin -> maoni -> mahali -> kusanyiko0
    -> kusanyiko) -> jaribu
    kwa chanzo KIDOGO (sio mkusanyiko mzima kwanza) na kwa mkusanyiko
@@ -110,7 +110,7 @@ Mpangilio wa lazima:
    kisha huthibitisha mfululizo mzima), endesha
    `./msingi/mjenzi.bin gharama/jaribu-mfululizo-huru.mapishi`, na endesha
    `./msingi/mjenzi.bin gharama/jaribu-mfululizo.mapishi` nzima.
-5. Tazama `hati/mipaka.md` kwa mipaka inayojulikana ya mbegu.
+5. Tazama `hati/mipaka.md` kwa mipaka inayojulikana ya awali.
 
 ---
 

@@ -524,7 +524,7 @@ n32 ni_aina_msingi_pia_ndogo(n8* maandishi, n64 n) {
 }
 
 n32 simba_aina(n32 familia, n32 upana, n32 mshale) {
-    // Hesabu ya / na % (mbegu ina hitilafu katika & na |)
+    // Hesabu ya / na % (awali ina hitilafu katika & na |)
     rudisha ((familia % 256) * 256) + (upana % 256) + (mshale % 4);
 }
 
@@ -596,7 +596,7 @@ n32 changanua_aina_tokeni(Msambazaji* p) {
         upana = w;
         // Hati 3 inaahidi upana 8/16/32/64 pekee; w0 (upana 0) ni tupu
         // ya familia W. N128, D80, A128 n.k. zilikubalika kimya na
-        // kutoa msimbo usio na maana -- kataa kwa sauti kama mbegu
+        // kutoa msimbo usio na maana -- kataa kwa sauti kama awali
         // ("aina isiyojulikana").
         kama (upana != 8) {
             kama (upana != 16) {
@@ -791,7 +791,7 @@ n32 changanua_taarifa_fanya(Msambazaji* p) {
     // anachunguza fanya sawa na wakati (mzunguko: vunja na endelea
     // ni halali ndani yake; endelea inaruka hadi sharti).
     // Muundo ni MKALI -- mabano ya maudhui, ya sharti, na nukta-mkato
-    // ni ya lazima (sawa na mbegu).
+    // ni ya lazima (sawa na awali).
     kama (p->sasa.urefu >= 2 && p->sasa.mwanzo[0] >= 97) {
         kama (neno_ni(&p->sasa, "fanya")) {
             sogeza(p);
@@ -1127,7 +1127,7 @@ n32 changanua_taarifa_tangazo(Msambazaji* p) {
                     // Angalia kwa kianzisha '='
                     kama (p->sasa.urefu == 1 && neno_ni(&p->sasa, "=")) {
                         // Safu + kianzilishi si katika hati 6.1; kukubali kimya
-                        // kunatupa kianzilishi. Kataa kwa sauti, sawa na mbegu.
+                        // kunatupa kianzilishi. Kataa kwa sauti, sawa na awali.
                         kama (safu_ilipo != 0) {
                             andika_kosa("kosa: kianzilishi cha safu hakijaungwa mkono\n");
                             p->kosa = 1;
@@ -1181,7 +1181,7 @@ n32 changanua_taarifa_tangazo(Msambazaji* p) {
     // Aina haikujulikana. Neno linalofuatiwa na neno lingine ni
     // jaribio la tangazo la aina isiyojulikana (mf. Foo bar;) --
     // kosa la sauti, si taarifa ya usemi (usemi halali hauanzi
-    // kwa maneno mawili mfululizo -- sawa na mbegu).
+    // kwa maneno mawili mfululizo -- sawa na awali).
     kama (p->sasa.aina == TOKENI_KITAMBULISHO || p->sasa.aina == TOKENI_MANENO) {
         kama (p->inayofuata.aina == TOKENI_KITAMBULISHO || p->inayofuata.aina == TOKENI_MANENO) {
             n8 chombo_cha_jina[64];
@@ -1388,7 +1388,7 @@ n32 changanua_msingi_orodha(Msambazaji* p) {
         kama (neno_ni(&p->sasa, "{")) {
             // Vianzishi vya safu {a, b, c} si katika hati 6.1; kukubali
             // kimya kunatupa vianzishi (msimbo unatoa 0). Kataa kwa sauti,
-            // sawa na mbegu.
+            // sawa na awali.
             andika_kosa("kosa: kianzilishi cha safu hakijaungwa mkono\n");
             p->kosa = 1;
             rudisha -1;
@@ -1423,7 +1423,7 @@ n32 changanua_msingi(Msambazaji* p) {
     // Halisi ya nambari (au desimali kama kuna '.')
     kama (p->sasa.aina == TOKENI_NAMBARI) {
         // Halisi ya herufi ('h') si katika hati 2.3; kukubali kimya
-        // kunatoa 0 (tokeni haina tarakimu). Kataa kwa sauti, sawa na mbegu.
+        // kunatoa 0 (tokeni haina tarakimu). Kataa kwa sauti, sawa na awali.
         kama (p->sasa.mwanzo[0] == 39) {
             andika_kosa("kosa: halisi ya herufi haijaungwa mkono\n");
             p->kosa = 1;
@@ -1553,7 +1553,7 @@ n32 changanua_msingi(Msambazaji* p) {
         // Jina la aina ya nambari HALITUMIKI kama usemi -- kukubali
         // kunaleta msimbo unaoanguka kimya (mf. `n32* p = tenga n32;`).
         // Jina la muundo lililotangazwa linaruhusiwa: kigezo kinaweza
-        // kubeba jina linalofanana na muundo (sawa na mbegu).
+        // kubeba jina linalofanana na muundo (sawa na awali).
         // Hoja ya ukubwa(...) ndiyo pekee inayoruhusu aina ya nambari.
         kama (ukubwa_wa_hoja == 0) {
             kama (ni_aina_msingi(p->sasa.mwanzo, p->sasa.urefu)) {
@@ -2129,7 +2129,7 @@ n32 changanua_ubeti(Msambazaji* p) {
 
 n32 changanua_taarifa(Msambazaji* p) {
     // Taarifa tupu: ';' pekee -- isongeze na urudi kifungio tupu.
-    // C-semantiki, sawa na mbegu (n32 f() { ; } ni maudhui halali).
+    // C-semantiki, sawa na awali (n32 f() { ; } ni maudhui halali).
     kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
         kama (neno_ni(&p->sasa, ";")) {
             sogeza(p);
@@ -2269,7 +2269,7 @@ n32 changanua_kazi(Msambazaji* p) {
             kama ((p->sasa.mwanzo[0] < 65 || p->sasa.mwanzo[0] == 91 || p->sasa.mwanzo[0] == 93 || p->sasa.mwanzo[0] == 123 || p->sasa.mwanzo[0] == 125)) {
                 kama (neno_ni(&p->sasa, "=")) {
                     // Safu + kianzilishi si katika hati 6.1; kukubali kimya
-                    // kunatupa kianzilishi. Kataa kwa sauti, sawa na mbegu.
+                    // kunatupa kianzilishi. Kataa kwa sauti, sawa na awali.
                     kama (safu_ilipo != 0) {
                         andika_kosa("kosa: kianzilishi cha safu hakijaungwa mkono\n");
                         p->kosa = 1;
@@ -2281,7 +2281,7 @@ n32 changanua_kazi(Msambazaji* p) {
             kama (p->sasa.urefu == 1) {
                 kama (neno_ni(&p->sasa, "=")) {
                     // Safu + kianzilishi si katika hati 6.1; kukubali kimya
-                    // kunatupa kianzilishi. Kataa kwa sauti, sawa na mbegu.
+                    // kunatupa kianzilishi. Kataa kwa sauti, sawa na awali.
                     kama (safu_ilipo != 0) {
                         andika_kosa("kosa: kianzilishi cha safu hakijaungwa mkono\n");
                         p->kosa = 1;
@@ -2498,7 +2498,7 @@ n32 changanua_muundo(Msambazaji* p) {
         thamani_ya_nodi[nodi_ya_jina_la_kazi] = aina_ya_sehemu;
         tatu_ya_nodi[nodi_ya_jina_la_kazi] = umbali_unaoendelea;  // hifadhi umbali wa baiti
         // Kokotoa ukubwa wa baiti kutoka kwa encoding ya aina.
-        // Tumia hesabu ya / na % (mbegu ina hitilafu katika & na >>).
+        // Tumia hesabu ya / na % (awali ina hitilafu katika & na >>).
         kama (aina_ya_sehemu < 0) {
             // Sehemu yenye aina ya muundo (encoding hasi). Encoding
             // halisi (angalia changanua_aina_tokeni juu, karibu na

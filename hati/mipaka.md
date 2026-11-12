@@ -5,7 +5,7 @@ Hati hii inaorodhesha mipaka inayojulikana ya mkusanyaji, kwa ukali.
 popote) -- si uthabiti wa mchanganuzi dhidi ya ingizo baya. Uthabiti wa
 makosa ni mhimili tofauti, bado wazi.
 
-## 1. Mbegu: ingizo baya linakubaliwa au linasegfault [IMEREKEBISHWA]
+## 1. Awali: ingizo baya linakubaliwa au linasegfault [IMEREKEBISHWA]
 
 Ilikuwa: `@#!` inakubaliwa kimya, `garba`/`kweli kweli kweli`
 zinasegfault, chanzo lililokatwa linakubaliwa.
@@ -19,7 +19,7 @@ Pia rekebisho la upande: maneno ya lexer sasa huandika mstari_tokeni
 
 Uthibitisho: majaribio ya kudumu kwenye jaribio_exe_kujijenga.
 
-KILICHOPIMWA 2026-08-27 (hati/uthibitisho-wa-lugha.md): mbegu bado
+KILICHOPIMWA 2026-08-27 (hati/uthibitisho-wa-lugha.md): awali bado
 inakataa KIMYA (msimbo 1, hakuna ujumbe) kwa kesi kadhaa: kigezo
 cha ulimwengu cha muundo, kianzilishi cha safu, safu ya pande
 mbili, halisi za herufi, kazi yenye hoja 10, ukubwa(Muundo), na
@@ -53,7 +53,7 @@ kwa sauti; wito 65,500 (chini) inapita.
 
 ## 4. Mipaka ya majedwali -- KOSA LAUTI, si uharibifu wa kimya [UKALI: CHINI]
 
-Kila mpaka wa jedwali ndani ya mbegu unaangalia na KULIA kwa
+Kila mpaka wa jedwali ndani ya awali unaangalia na KULIA kwa
 sauti (`Hitilafu: ... limejaa` + exit 1) badala ya kuendelea kimya.
 Vikomo viliinuliwa Agosti 2026 (4x) ili kupunguza mzunguko:
 
@@ -63,7 +63,7 @@ Vikomo viliinuliwa Agosti 2026 (4x) ili kupunguza mzunguko:
   ulimwengu, uhifadhi wa ulimwengu, tungo, nafasi za sret, na wito
 - jedwali la urekebishaji, la ulimwengu (UPEO_ULIMWENGU 4096), la mahali
   (UPEO_MAHALI 65,536), na la AST (UPEO_NODI_MTI 262,144)
-- chanzo kikubwa kuliko baiti 4,194,304 (UPEO_CHANZO) -- mbegu inalia
+- chanzo kikubwa kuliko baiti 4,194,304 (UPEO_CHANZO) -- awali inalia
   kwa sauti badala ya kusoma sehemu tu
 - tokeni (UPEO_TOKENI 262,144), msimbo (UKUBWA_CHOMBO_MSIMBO 1,048,576),
   na bwawa la herufi (UKUBWA_DIMBWI_MFUATANO 1,048,576)
@@ -82,27 +82,27 @@ hutoa s=5, na kesi ya endelea-pekee inapita. Mfululizo wa .swa UMEWIWA
 tarehe 2026-08 (AST_BLOCK yenye alama -777777, mahali pa hatua
 palipotengwa mapema) -- mifululizo yote miwili sasa ina semantiki ya C
 (uthibitisho: jaribio_exe_kujijenga sehemu ya 11 inaendesha kupitia
-mbegu NA kamili).
+awali NA kamili).
 
 ## 4c. Desimali (D32/D64) -- mifululizo ya uzalishaji IMEREKEBISHWA [kilichobaki: CHINI]
 
 Hali halisi (iliyothibitishwa 2026-08-20, kwa ushahidi wa kila mfululizo):
-- Mfululizo wa mbegu: IMEREKEBISHWA -- vitambulisho vya desimali
+- Mfululizo wa awali: IMEREKEBISHWA -- vitambulisho vya desimali
   (kigeuzi cha desimali hadi double kwenye lexer), AST_HALISI_D, hesabu
   za kuelea (addsd/subsd/mulsd/divsd), ulinganisho (ucomisd+setcc),
   na ukanushaji (mulsd kwa -1.0 -- xorpd ya kumbukumbu ilionekana
   kuvunjika kwenye VM ya mtumiaji). Jaribio:
-  jaribio_hitilafu_60_desimali_mbegu.
+  jaribio_hitilafu_60_desimali_awali.
 - Mfululizo wa .swa (kujikusanya): IMEREKEBISHWA -- biti_ya_d64_swa
-  inakusanywa kwa usahihi na mbegu mpya (FPE ya zamani imetoweka);
+  inakusanywa kwa usahihi na awali mpya (FPE ya zamani imetoweka);
   ABI kamili ya xmm0-xmm7 (hoja na kurejesha) inafanya kazi.
 - Mfululizo wa LLVM (dereva wa Rust): IMEREKEBISHWA 2026-08 (suala
   #135) -- jaribio_hitilafu_135_desimali.
 
 KILICHOPIMWA 2026-08-27 (hati/uthibitisho-wa-lugha.md): kauli ya
-zamani "mbegu bado HAIJATEKELEZA ABI ya xmm kwenye wito wa kazi --
-program za mbegu zenye kazi za D64 zinalia kwa sauti" SI KWELI tena.
-Mbegu inatekeleza wito wa kazi za D64 (parameta NA kurudisha) kwa
+zamani "awali bado HAIJATEKELEZA ABI ya xmm kwenye wito wa kazi --
+program za awali zenye kazi za D64 zinalia kwa sauti" SI KWELI tena.
+Awali inatekeleza wito wa kazi za D64 (parameta NA kurudisha) kwa
 usahihi (jaribio u062/u063 hutoa matokeo 1) bila kosa lolote. ABI yake
 hutumia uhamisho wa GP (`movq rax, xmm0`; `movq xmm1, rcx`) si xmm
 moja kwa moja -- lakini inafanya kazi kwa hesabu, ulinganisho na
@@ -133,10 +133,10 @@ dimbwi. Uthibitisho: `N64 x = 4294967296; rudisha x / 4294967296` hutoa 1
 (juu) na `x % 4294967296` hutoa 0 (chini), kwa kigeu cha ndani NA cha
 ulimwengu.
 
-Kikomo kilichobaki (CHINI): mbegu (bootstrap pekee) na dereva wa Rust
-bado zinachanganua maneno halisi kama 32-bit. Mbegu haihitaji maneno
+Kikomo kilichobaki (CHINI): awali (bootstrap pekee) na dereva wa Rust
+bado zinachanganua maneno halisi kama 32-bit. Awali haihitaji maneno
 ya N64 kwa kujikusanya (chanzo cha .swa kinatumia thamani chini ya
-2^31 pekee) -- lakini kama mkusanyaji wa kujitegemea, mbegu bado hukata
+2^31 pekee) -- lakini kama mkusanyaji wa kujitegemea, awali bado hukata
 thamani kubwa (k.m. `4294967296` hukatwa hadi 0, na kusababisha FPE
 katika ugawanyo).
 
@@ -161,16 +161,16 @@ vyombo vya ukubwa wa kukisia: matokeo mabaya KIMYA bila kosa.
 Sasa:
 - O0 (FastISel) inakataa kwa KOSA LAUTI kazi yenye vizuizi zaidi ya
   40 -- hakuna ukataji wa kimya tena. Ujumbe unaonyesha njia ya
-  kupita (with_opt_level(O1) au mfululizo wa mbegu/exe).
+  kupita (with_opt_level(O1) au mfululizo wa awali/exe).
 - O1 (Less) inatumia ISel kamili -- majaribio YOTE ya dereva wa Rust
   (compile_and_verify, compile_file, run_msingi_test) sasa
   yanaendeshwa kwa O1 na kupita 227/227, pamoja na I/O ya faili.
 - Mwisho wa LLVM unabaki MAJARIBIO (mfululizo wa uzalishaji ni
-  mbegu/exe pekee) -- lakini hakuna njia ya msimbo isiyothibitishwa
+  awali/exe pekee) -- lakini hakuna njia ya msimbo isiyothibitishwa
   inayotumika kimya tena.
 
-Uthibitisho wa nje wa mfululizo (GNU ld dhidi ya zalisha_programu ya mbegu)
-unafunika njia ya mbegu/exe/RELA -- SI mwisho wa LLVM; ndiyo maana
+Uthibitisho wa nje wa mfululizo (GNU ld dhidi ya zalisha_programu ya awali)
+unafunika njia ya awali/exe/RELA -- SI mwisho wa LLVM; ndiyo maana
 mwisho wa LLVM unabaki MAJARIBIO, si kitu cha uzalishaji.
 
 **UAMUZI (uliojaribiwa 2026-08-19):** mwisho wa LLVM umeSHUSHWA hadhi
@@ -179,7 +179,7 @@ kimya; O1/O2 zinakusanya mkusanyaji mzima (alama zipo) lakini
 mfumo wa faili unashindwa kwenye mfululizo kamili; uthibitishaji wa
 moduli unashindwa kwa desimali. Wigo uliojaribiwa na unaofanya kazi
 ni majaribio ya maktaba ya K-series (program ndogo). Mfululizo wa
-uzalishaji ni mbegu/exe PEKEE.
+uzalishaji ni awali/exe PEKEE.
 
 **KUFUNGWA (2026-09-05):** dereva wa Rust/LLVM umehamishiwa hazina ya
 kumbukumbu [lugha-swa/swa-dereva](https://github.com/lugha-swa/swa-dereva)
@@ -191,19 +191,19 @@ kamili ya dereva ipo kwenye hazina kuu hadi commit 8fd71b2.
 Kwanza (msingi/kwanza.bin, baiti 393) ni chanzo kisichoweza kupunguzwa cha
 uaminifu -- baiti mbichi bila chanzo chenye maelezo kwenye repo.
 Inajithibitisha kwa kujizalisha (kwanza.heksa -> kwanza.bin) na ndiyo
-inayoganda mbegu.
+inayoganda awali.
 
 ## Nini HAKIKO katika mipaka
 
-- Mfululizo wa uzalishaji: kwanza -> mbegu -> kamili -> kamili2
+- Mfululizo wa uzalishaji: kwanza -> awali -> kamili -> kamili2
   == kamili3, bila gcc/ld/clang/libc popote. Hakuna lugha nyingine.
-- RELA za mbegu zinakubaliana na GNU ld (rejea huru) sawa kwa baiti.
+- RELA za awali zinakubaliana na GNU ld (rejea huru) sawa kwa baiti.
 - Utekelezaji wa makosa: exit 0/1 inafanya kazi kwa makosa
   YANAYOTAMBULIWA.
 
 ## 8. Hakuna mfululizo unaochakata `husisha { faili.swa }` [UKALI: CHINI -- SASA INALIA]
 
-Hakuna mkusanyaji (mbegu WALA mfululizo wa .swa) anayechambua faili
+Hakuna mkusanyaji (awali WALA mfululizo wa .swa) anayechambua faili
 lililotajwa na `husisha { faili.swa }` -- mstari unarukwa na
 mchanganuzi. Hii ni kwa makusudi: mkusanyaji wa .swa unajijenga kwa
 chanzo KILICHOUNGANISHWA (cat msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa), na husisha C::xxx
@@ -214,7 +214,7 @@ kuunganisha ulikuwa ukitulia kimya kwa anwani 0 -- mchakato
 ulivunjika SEGV wakati wa utekelezaji. Sasa zalisha_programu inachapisha
 `Hitilafu: kazi haijafafanuliwa: <jina>` na kutoka kwa msimbo 1
 kwenye mfululizo wa uzalishaji (jaribio la kurejesha:
-jaribio_awali_kazi_kukosa). Mbegu inakataa kimya katika kesi
+jaribio_awali_kazi_kukosa). Awali inakataa kimya katika kesi
 kadhaa (tazama sehemu ya 1).
 
 KILICHOPIMWA 2026-08-27 (hati/uthibitisho-wa-lugha.md): mfululizo
@@ -238,11 +238,11 @@ kwenye mifululizo yote miwili) umeandikwa kwenye
 `hati/uthibitisho-wa-lugha.md`: jedwali za uzingatiaji, kila jibu
 baya kwa kipimo chake, poromoko zote, ukataaji unaokiuka hati, na
 ambapo mifululizo miwili inatofautiana. Mipaka iliyorekebishwa na
-rekodi hiyo: kipengee 4c (ABI ya D64 kwenye mbegu -- imefanya kazi),
+rekodi hiyo: kipengee 4c (ABI ya D64 kwenye awali -- imefanya kazi),
 kipengee 5 (N64 -- kwa [2^31, 2^63) pekee), na kipengee 8 (husisha --
 hakuna mfululizo unaoingiza faili).
 
-## 10. `ukubwa(x)` kwenye mbegu: jina la muundo/kigezo lililo HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi ndogo) linatafsiriwa kimya kama aina ya msingi [IMEREKEBISHWA 2026-09-27 -- freeze ya TATU ya chanzo cha uaminifu]
+## 10. `ukubwa(x)` kwenye awali: jina la muundo/kigezo lililo HASA `n8`/`n16`/`n32`/`n64`/`d64` (herufi ndogo) linatafsiriwa kimya kama aina ya msingi [IMEREKEBISHWA 2026-09-27 -- freeze ya TATU ya chanzo cha uaminifu]
 
 Hali ya AWALI (kabla ya rekebisho): tangu awali.bin kugandishwa upya
 2026-09-24 kutambua herufi ndogo za aina 6 za msingi (n8/n16/n32/n64/
@@ -275,11 +275,11 @@ rekebisho hili):** `uzalishaji.swa` (mkusanyaji uliojijenga, kazi
 (N8/n8...D64/d64) KWANZA kupitia mfululizo wa if-sivyo, ikianguka
 kwenye `ukubwa_wa_muundo_kwa_jina` PEKEE kama HAKUNA jina la msingi
 linalolingana. Imethibitishwa kwa vitendo: kamili (self-hosted)
-ILIYOJENGWA na mbegu MPYA (baada ya rekebisho hili) BADO inarudisha 4
+ILIYOJENGWA na awali MPYA (baada ya rekebisho hili) BADO inarudisha 4
 kwa `ukubwa(n32)` yenye muundo `n32` wa kweli -- kwa sababu chanzo cha
 uzalishaji.swa chenyewe hakijaguswa. Hii ni kazi ya BAADAYE, tofauti
 kabisa na rekebisho hili (faili tofauti, hakuna hatari ya chanzo cha
-uaminifu -- mkusanyaji wa kawaida, si mbegu.swm).
+uaminifu -- mkusanyaji wa kawaida, si awali.swm).
 
 ## 11. Lengwa ya WebAssembly (`kamili --wasm`) -- Awamu ya 1 pekee: N32, hakuna kumbukumbu [UKALI: KWA KUBUNI]
 

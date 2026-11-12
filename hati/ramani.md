@@ -8,7 +8,7 @@
 - **Majaribio:** 304/304 mfululizo wa Swa (dereva wa Rust umehamia
   hazina ya kumbukumbu lugha-swa/swa-dereva, 2026-09-05)
 - **Backend:** uzalishaji.swa (asilia x86-64, inajikusanya) ndiyo njia PEKEE; LLVM ilikuwa ya MAJARIBIO kwenye dereva wa Rust na sasa iko kwenye hazina ya kumbukumbu (mipaka.md 6)
-- **Bootstrap:** kwanza (baiti za mkono) -> mbegu -> kamili -> kamili2 == kamili3 -- sawa kwa baiti
+- **Bootstrap:** kwanza (baiti za mkono) -> awali -> kamili -> kamili2 == kamili3 -- sawa kwa baiti
 
 ## Hatua ya 0: Mkusanyaji wa Bootstrap wa Rust [PASS] IMEFANIKIWA
 
@@ -33,7 +33,7 @@
 ### Mfululizo wa Kujikusanya wa Sasa
 
 1. `kwanza.bin` (baiti za mkono, hex -> binary) hutoa `awali.bin` kutoka `awali.heksa`
-2. `mbegu --programu` (syscalls pekee, hakuna kiunganishi) hukusanya `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` -> `kamili`
+2. `awali --programu` (syscalls pekee, hakuna kiunganishi) hukusanya `msingi/maktaba/*.swa na msingi/mkusanyaji/*.swa` -> `kamili`
 3. `kamili --programu` inajikusanya maktaba -> `kamili2`
 4. `kamili2 --programu` inajikusanya -> `kamili3`
 
@@ -44,7 +44,7 @@ uthabiti wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti
 
 **JIT inafanya kazi (PR #143):** mmap -> opcodes -> rukia, na thamani ya
 kurudi inarudi kwa usahihi. Stub ya `jmp main`, tungo mwishoni mwa chombo,
-na kiolesura cha C `tekeleza` kwa wito wa chombo (mbegu hana wito wa kielekezi).
+na kiolesura cha C `tekeleza` kwa wito wa chombo (awali hana wito wa kielekezi).
 
 **Uchunguzi muhimu wa usanifu:** `uzalishaji.swa` (mistari ~3,900) hukusanya
 moja kwa moja kutoka AST, SI kutoka IR. `mteremko.swa` hutoa IR lakini
@@ -53,7 +53,7 @@ kwenye njia ya Rust -> LLVM.
 
 ### Kipaumbele cha Juu (kilichobaki)
 - [x] **Pengo la ABI la desimali** -- IMEFUNGWA kwenye mifululizo yote
-      miwili (mbegu inatumia ABI ya uhamisho wa GP; kilichopimwa
+      miwili (awali inatumia ABI ya uhamisho wa GP; kilichopimwa
       2026-08-27 -- mipaka.md 4c imerekebishwa). Kilichobaki: mpaka
       wa D64 na nambari kamili (jibu baya) na D32 (poromoko)
 - [x] **AST_BADILI (48)** -- IMEFANYIKA: kishikizi kipo katika mkaguzi
@@ -75,7 +75,7 @@ kwenye njia ya Rust -> LLVM.
         2026-08-27)
   - [x] `mfuatano.swa` -- shughuli za nyuzi kamili
   - [x] `ramani.swa` -- jedwali la hashi (kwenye uzalishaji; kwenye
-        mbegu weka ni no-op -- jibu baya, uthibitisho 2026-08-27)
+        awali weka ni no-op -- jibu baya, uthibitisho 2026-08-27)
   - [x] `faili.swa` -- shughuli za faili
   - [x] `hesabu.swa` -- hesabu za ziada
   - [x] `kumbukumbu.swa` -- usimamizi wa kumbukumbu
@@ -85,12 +85,12 @@ kwenye njia ya Rust -> LLVM.
 
 Kumbuka (uthibitisho 2026-08-27): moduli za `faili.swa`, `nasibu.swa`
 na `wakati.swa` zinahitaji libc na hazifanyi kazi kwenye mfululizo
-asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
+asilia (awali/exe) -- uzalishaji unakataa kwa sauti, awali kimya.
 
 ## Hatua ya 3: Kuondoa Utegemezi wa Rust [PASS] IMEFANIKIWA
 
 - [x] Mkusanyaji wa Swa unajikusanya **bila kutumia kande**
-- [x] Bootstrap inafungwa: mbegu -> Swa -> Swa -> binary
+- [x] Bootstrap inafungwa: awali -> Swa -> Swa -> binary
 - [x] Uthibitisho: kamili2 == kamili3 sawa kwa baiti
 - [!] Rust `kande` inabaki kama chombo cha vipimo na ukuzaji (CI) tu --
       si sehemu ya mfululizo wa uzalishaji
@@ -118,7 +118,7 @@ asilia (mbegu/exe) -- uzalishaji unakataa kwa sauti, mbegu kimya.
       + jedwali la mahali); `_start` inaitwa moja kwa moja na kernel.
 - [x] **Runtime ya syscalls:** mkusanyaji hautekelezi kupitia libc tena
       (PR #149) -- faili, mmap, na uchapishaji kupitia syscalls.
-- [x] **0% bootstrap gap:** mbegu inatoa ET_EXEC tuli moja kwa moja
+- [x] **0% bootstrap gap:** awali inatoa ET_EXEC tuli moja kwa moja
       (`--programu`) -- utangulizi (64) + phdr (56) + stub ya `_start` (28) +
       urekebishaji wa RELA wa ndani (ulimwengu, tungo, na wito wa
       mbele) -- hakuna gcc/ld/clang/muda.c/libc popote kwenye mfululizo.
@@ -147,9 +147,9 @@ Angalia [`CONTRIBUTING.md`](../CONTRIBUTING.md). Masuala yenye lebo `good-first-
 2. ~~Kiunganishi cha kujitegemea~~ -- IMESHAFANYIKA: `--programu` inatoa ET_EXEC
    tuli inayojijenga yenyewe bila ld/gcc/libc (kamili2 == kamili3)
 3. ~~Runtime ya syscalls~~ -- IMESHAFANYIKA (PR #149): syscalls moja kwa moja
-4. ~~Kuziba hatua ya kamili~~ -- IMESHAFANYIKA: mbegu inatoa kamili
+4. ~~Kuziba hatua ya kamili~~ -- IMESHAFANYIKA: awali inatoa kamili
    moja kwa moja (`--programu`) -- 0% bootstrap gap imefungwa
-5. ~~Uthabiti wa makosa ya mchanganuzi~~ -- IMESHAFANYIKA: mbegu na
+5. ~~Uthabiti wa makosa ya mchanganuzi~~ -- IMESHAFANYIKA: awali na
    mchanganuzi wa .swa dhidi ya ingizo baya (hati/mipaka.md sehemu 1-2)
 6. ~~JIT ndani ya exe~~ -- IMESHAFANYIKA: tekeleza kama builtin,
    anwani_ya_kazi ya ndani (jedwali la anwani 0x400078+umbali) --

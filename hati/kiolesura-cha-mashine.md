@@ -244,5 +244,5 @@ kiolesura kipo, lakini kina umbo la `syscall/js` ya Go na `wasm_exec.js`:
   thamani (tumia kielekezi);
 - data ya desimali au safu -> kosa (tumia kielekezi);
 - hoja 16 kwa wito (kikomo cha mkaguzi kwa wito wote wa Swa);
-- mbegu haihitaji kubadilika: kamili haitumii `nje`, kwa hiyo hakuna
+- awali haihitaji kubadilika: kamili haitumii `nje`, kwa hiyo hakuna
   kugandisha upya.

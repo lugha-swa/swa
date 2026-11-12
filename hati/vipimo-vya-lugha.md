@@ -1,10 +1,10 @@
 # Vipimo Rasmi vya Lugha ya Swa
 
 Hati hii ni marejeo rasmi ya lugha ya Swa. Kila kanuni hapa
-imejaribiwa kwenye mfululizo wa mkusanyaji (mbegu na mfululizo wa
+imejaribiwa kwenye mfululizo wa mkusanyaji (awali na mfululizo wa
 kujikusanya wa .swa) au imeandikwa wazi kama kikomo (tazama
-`hati/mipaka.md`). Kila dai la 2026-09-04 linalohusu mbegu
-linapima MBEGU ILIYOGANDISHWA ya 2026-09-04 (na kamili iliyojengwa
+`hati/mipaka.md`). Kila dai la 2026-09-04 linalohusu awali
+linapima AWALI ILIYOGANDISHWA ya 2026-09-04 (na kamili iliyojengwa
 kutoka kwake); kila dai la awali linabaki kwenye tarehe yake.
 Toleo hili linalenga Swa 1.0.
 
@@ -28,7 +28,7 @@ Programu ya Swa ni mfuatano wa tangazo la kiwango cha juu:
   ulimwengu `n8 chombo[1024];`)
 - Tangazo la utegemezi (`husisha { faili.swa }`) -- kwenye mfululizo
   wa uzalishaji ni kiungo HALISI: faili linatatuliwa na kujumuishwa
-  kwa mpangilio wa utegemezi (sehemu 8). Mbegu haitatui -- inaruka
+  kwa mpangilio wa utegemezi (sehemu 8). Awali haitatui -- inaruka
   mstari kimya. Kiungo cha C ni `husisha C::stdio`
 
 Sehemu ya kuingia ni kazi `anza`. Katika hali ya `--programu`, sahihi ni
@@ -101,7 +101,7 @@ ya zamani ni jambo jingine:
 
 - Nambari kamili: mfuatano wa tarakimu. Aina yake ya chaguo-msingi ni
   n32 ikiwa inatoshea ndani ya 32-bit signed; nje ya hapo ni n64.
-  Kilichopimwa (2026-09-04, mbegu iliyogandishwa 2026-09-04 na
+  Kilichopimwa (2026-09-04, awali iliyogandishwa 2026-09-04 na
   kamili): halisi za [2^31, 2^63) kwenye kigezo, ulimwengu, na kama
   hoja ya wito -- SAWA kwa mifululizo yote miwili; halisi >= 2^63
   (2^63-1, 2^63, 2^64-1, 2^64) zinatoa imm64 KAMILI kwa mifululizo
@@ -110,7 +110,7 @@ ya zamani ni jambo jingine:
   halisi kubwa (`9223372036854775807 / 1000000000`) hufanya kazi --
   FPE ya zamani haipo. Ukataji wa zamani wa "halisi >= 2^63 hadi
   biti 32" haushikiki, na kikomo cha zamani cha "2147483648
-  inageuka -2147483648" kimeondoka kwenye mbegu pia (angalia
+  inageuka -2147483648" kimeondoka kwenye awali pia (angalia
   `hati/mipaka.md` sehemu ya 5 kwa rekodi).
 - Mfuatano: `"habari"` -- baiti za n8 zikifuatiwa na 0. Utorokaji:
   `\n`, `\\`, `\t` na `\"` zinafanya kazi kwenye mifululizo yote
@@ -119,13 +119,13 @@ ya zamani ni jambo jingine:
   zimefungwa).
 - Desimali: `21.5` -- d64. Hesabu, ulinganisho na ukanushaji NDANI ya
   ulimwengu wa d64 zinafanya kazi kwenye mifululizo yote miwili,
-  ikijumuisha wito wa kazi kwa ABI ya xmm kwenye MBEGU NA mfululizo
+  ikijumuisha wito wa kazi kwa ABI ya xmm kwenye AWALI NA mfululizo
   wa uzalishaji (kilichopimwa 2026-09-04: hoja 1-3 za d64 na
-  kurudisha kwa xmm0 zimepimwa kwa mbegu iliyogandishwa 2026-09-04 --
-  "ABI ya uhamisho wa GP kwenye mbegu" ya zamani haishikiki). Kikomo
-  cha mbegu: d64 iliyochanganywa na hoja 7-9 inakataliwa kwa sauti
+  kurudisha kwa xmm0 zimepimwa kwa awali iliyogandishwa 2026-09-04 --
+  "ABI ya uhamisho wa GP kwenye awali" ya zamani haishikiki). Kikomo
+  cha awali: d64 iliyochanganywa na hoja 7-9 inakataliwa kwa sauti
   ("hoja za d64 zilizochanganywa na hoja 7-9 hazisaidiwi bado na
-  mbegu"); mfululizo wa uzalishaji hushughulikia hoja hiyo.
+  awali"); mfululizo wa uzalishaji hushughulikia hoja hiyo.
   Kilichopimwa (2026-09-04): MPAKA kati ya d64 na nambari kamili
   UMEFUNGWA kwenye mifululizo yote miwili -- d64 hadi n32 (kianzio,
   ugawaji, hoja ya paramu, kurudisha) unakata hadi sifuri (`n32 x =
@@ -141,25 +141,25 @@ ya zamani ni jambo jingine:
   - Kigezo cha ULIMWENGU chenye aina ya d64 (`d64 G;`): mfululizo wa
     uzalishaji unakubali -- kianzio chake ni lazima kiwe halisi ya
     desimali MOJA (`d64 G = 2.5;`; halisi ya nambari `d64 G = 5;` na
-    usemi `1.5 + 1.0` vinakataliwa kwa sauti). Mbegu inakataa kwa
+    usemi `1.5 + 1.0` vinakataliwa kwa sauti). Awali inakataa kwa
     sauti kila kigezo cha ulimwengu cha d64 (hata `d64 G = 2.0;` na
     `d64 G;`) pamoja na kila kianzio chenye halisi ya desimali kwa
     aina yoyote (`n32 G = 2.5;`) -- kwa kosa lisilo sahihi linalosema
     "kianzio cha ulimwengu wa d64 lazima kiwe halisi ya desimali".
   - Halisi yenye nukta bila tarakimu ya sehemu (`5.`) inaangusha
-    mkusanyaji wa mbegu (SEGV 139) wakati wa kukusanya; mfululizo wa
+    mkusanyaji wa awali (SEGV 139) wakati wa kukusanya; mfululizo wa
     uzalishaji unaikataa kwa sauti. Inarekebishwa.
   d32 (baiti 4) imefunga kwenye mfululizo wa uzalishaji: hesabu,
   ulinganisho, wito wa kazi, kigezo cha ulimwengu, na ubadilishaji
   d32<->d64 zote hufanya kazi (kilichopimwa 2026-09-04 -- poromoko la
-  zamani halipo). Mbegu haijui aina ya d32 kabisa ("aina
+  zamani halipo). Awali haijui aina ya d32 kabisa ("aina
   isiyojulikana 'd32'").
 
 ### 2.4 Maoni
 
 `//` hadi mwisho wa mstari. Vizuizi `/* ... */` vinafanya kazi
 kwenye mfululizo wa uzalishaji (upachikaji unaruhusiwa kwa vitendo,
-kinyume cha maelekezo ya awali); mbegu inakataa vizuizi vyote vya
+kinyume cha maelekezo ya awali); awali inakataa vizuizi vyote vya
 maoni kwa sauti (kosa la mchanganuzi "ulichanganuzi" kati ya
 taarifa; "operanda ya kulia haipo" katikati ya usemi) -- poromoko
 la zamani halipo. Kilichopimwa 2026-09-04.
@@ -170,22 +170,22 @@ la zamani halipo. Kilichopimwa 2026-09-04.
 -> * & , ;`
 
 Kilichopimwa (2026-08-27): `!` na `~` zilikuwa zinakataliwa kwa
-mifululizo yote miwili (mbegu: "herufi isiyojulikana"; uzalishaji:
+mifululizo yote miwili (awali: "herufi isiyojulikana"; uzalishaji:
 kosa la mchanganuzi) -- ahadi za sehemu ya 3 (matokeo ya `!` ni 1 au
 0) na ya orodha hii hazikushikika. `^` ilichanganuliwa na mfululizo
 wa uzalishaji lakini usemi wa kulia ulitupwa kimya (jibu baya);
-mbegu inakataa. Viendeshaji vya kiwanja `+= -= *= /= %=` vilifanya
+awali inakataa. Viendeshaji vya kiwanja `+= -= *= /= %=` vilifanya
 kazi kwenye uzalishaji pekee; `&= |= ^= <<= >>=` vilikubaliwa na
 kuwa NO-OP kimya kwenye uzalishaji.
 Kilichopimwa (2026-08-31): mfululizo wa uzalishaji sasa unatekeleza
 `!`, `~`, `^` (utangulizi wa C: `&` juu ya `^` juu ya `|`), na
 viendeshaji vya kiwanja `&= |= ^= <<= >>=` (pamoja na n64). `!`
 na `~` kwa operesheni ya d64 zinakataliwa kwa sauti. Kilichopimwa
-(2026-09-04, mbegu iliyogandishwa 2026-09-04): mbegu pia ina `^`,
+(2026-09-04, awali iliyogandishwa 2026-09-04): awali pia ina `^`,
 `!`, na `~` kwa namba (sawa na uzalishaji), na inakataa `!`/`~`
 kwa d64 kwa sauti ("kiambishi ! hakikubaliki kwa desimali").
 Viendeshaji vya kiwanja vyote (pamoja na `+=` na `<<=`) bado
-vinakataliwa na mbegu kwa sauti -- kwa kosa lisilo sahihi la
+vinakataliwa na awali kwa sauti -- kwa kosa lisilo sahihi la
 "operanda ya kulia haipo" -- uzalishaji unavitekeleza. `%` na `<<`
 kwa d64 zinakataliwa kwa sauti kwenye mifululizo yote miwili
 ("operesheni hii haifanyi kazi kwa desimali").
@@ -208,7 +208,7 @@ jaribio_hitilafu_kata_operanda_iliyopotea.
 | `n16` | Nambari kamili yenye ishara, baiti 2 |
 | `n32` | Nambari kamili yenye ishara, baiti 4 |
 | `n64` | Nambari kamili yenye ishara, baiti 8 |
-| `w0` | Bila thamani (void) -- kwa kazi tu. Kilichopimwa 2026-09-04: PARAMU ya w0 (`n32 f(w0 x)`) inakataliwa kwa sauti kwenye mifululizo yote miwili ("parameta ya w0 haikubaliki -- w0 ni kwa kazi tu" kwenye mbegu; "kigezo 'x' cha w0" kwenye mkaguzi). Kigeu cha NDANI cha w0 chenye kianzio cha thamani (`w0 x = 5;`) kinakataliwa kwa sauti kwenye mfululizo wa uzalishaji ("kigeu 'x' cha w0 chenye kianzio -- w0 ni kwa kazi tu"); mbegu bado inakubali kimya -- inarekebishwa (mgandisho ujao wa mbegu). Tangazo tupu `w0 x;`, ugawaji wa baadaye `x = 5;`, na w0 ya ulimwengu bado wanakubaliwa kimya kwenye mifululizo yote miwili. w0 katika usemi (mf. `y = x + 1`): uzalishaji unakataa kwa sauti; mbegu inakubali kimya na kuihesabu kama namba. Matokeo ya kazi ya w0 kama thamani: uzalishaji unakataa kwa sauti; mbegu inakubali kimya |
+| `w0` | Bila thamani (void) -- kwa kazi tu. Kilichopimwa 2026-09-04: PARAMU ya w0 (`n32 f(w0 x)`) inakataliwa kwa sauti kwenye mifululizo yote miwili ("parameta ya w0 haikubaliki -- w0 ni kwa kazi tu" kwenye awali; "kigezo 'x' cha w0" kwenye mkaguzi). Kigeu cha NDANI cha w0 chenye kianzio cha thamani (`w0 x = 5;`) kinakataliwa kwa sauti kwenye mfululizo wa uzalishaji ("kigeu 'x' cha w0 chenye kianzio -- w0 ni kwa kazi tu"); awali bado inakubali kimya -- inarekebishwa (mgandisho ujao wa awali). Tangazo tupu `w0 x;`, ugawaji wa baadaye `x = 5;`, na w0 ya ulimwengu bado wanakubaliwa kimya kwenye mifululizo yote miwili. w0 katika usemi (mf. `y = x + 1`): uzalishaji unakataa kwa sauti; awali inakubali kimya na kuihesabu kama namba. Matokeo ya kazi ya w0 kama thamani: uzalishaji unakataa kwa sauti; awali inakubali kimya |
 | `d64` | Desimali, baiti 8 -- mpaka wake na nambari kamili umefungwa; mabaki yaliyopimwa, angalia 2.3 |
 | `b1` ... `b64` | Mifumo ya biti (bendera, maski) -- si nambari. Oparesheni: `& \| ^ ~ << >> == !=` pekee; `+ - * / %`, `< > <= >=` na `-x` zinakataliwa kwa sauti. Thamani inayoingia huhifadhi biti za chini za upana wake (`b8 x = 300` ni 44; `b1` ni biti moja: `b1 x = 5` ni 1). Upande wa kulia wa `<<`/`>>` ni idadi, namba kamili yoyote. |
 | `T*` | Kielekezi kwa aina T |
@@ -222,16 +222,16 @@ Upana unaosaidiwa na kufanya kazi kwa usahihi ni 8, 16, 32 na 64
 pekee (d32/d64 kwa desimali; pia b1 -- biti moja). Kilichopimwa (2026-09-04): upana
 mwingine wowote (n128, a128, d80, a3, n7, n.k.) unakataliwa kwa
 SAUTI kwenye mifululizo yote miwili ("aina isiyojulikana") --
-ukubali wa kimya wa zamani na poromoko la mbegu havipo tena.
-(Mbegu haijui familia nzima ya a/b/w na d32 pia -- kila moja ni
-"aina isiyojulikana" kwenye mbegu; mfululizo wa uzalishaji unazijua
+ukubali wa kimya wa zamani na poromoko la awali havipo tena.
+(Awali haijui familia nzima ya a/b/w na d32 pia -- kila moja ni
+"aina isiyojulikana" kwenye awali; mfululizo wa uzalishaji unazijua
 -- a64 na d32 zilizopimwa 2026-09-04.) Hakuna neno muhimu la
 "tupu" au halisi za "kweli"/"uongo" -- w0 hutumika kwa bila-thamani
 na 1/0 kwa ukweli.
 
 Matokeo ya `==`, `!=`, `<`, `>`, `<=`, `>=`, `&&`, `||` ni thamani
 ya 1 (kweli) au 0 (si kweli). Kiambishi `!` hutoa 1 (operesheni ni
-0) au 0 (operesheni si 0) kwenye mifululizo yote miwili (mbegu
+0) au 0 (operesheni si 0) kwenye mifululizo yote miwili (awali
 imeipata -- kilichopimwa 2026-09-04).
 
 ## 4. Usemi na Utangulizi
@@ -264,21 +264,21 @@ Mifano: `4 | 2 & 1` ni `4 | (2 & 1)` = 4, `12 & 10 | 3` ni
 `a = 2 == 2` inagawia a = 1, `x = 1 ? 2 : 3` inagawia x = 2.
 
 Kilichopimwa (2026-08-31): jedwali hili linashikiliwa na mifululizo
-yote miwili (mbegu na mfululizo wa .swa) -- tofauti ya zamani kati
-ya mifululizo (mbegu ilikuwa na `&&` `||` `&` `|` `^` katika
+yote miwili (awali na mfululizo wa .swa) -- tofauti ya zamani kati
+ya mifululizo (awali ilikuwa na `&&` `||` `&` `|` `^` katika
 kiwango kimoja na `=` pamoja na `==`) imefungwa kwa kufuata
-utangulizi wa C kwenye mbegu. Pia: `<<`/`>>` upande wa KULIA wa
+utangulizi wa C kwenye awali. Pia: `<<`/`>>` upande wa KULIA wa
 `< > <= >=` haubaliwi kwenye mifululizo yote miwili (`1 < 2 << 1`
 hutoa kosa la mchanganuzi) hata ingawa jedwali la juu linaweka
 uhamishaji juu ya ulinganisho; `2 << 1 < 4` inafanya kazi.
-`^` ilikuwa inakataliwa na mbegu (tangu 2026-09-02 mbegu ina
+`^` ilikuwa inakataliwa na awali (tangu 2026-09-02 awali ina
 `^` kwa utangulizi wa C -- angalia 2.5); mfululizo wa uzalishaji
 ulirudisha operanda ya kushoto pekee (jibu baya) na tangu
 2026-08-31 unatekeleza `^` kwa utangulizi wa C.
 
 ### 4.1 Mantiki ya fupi-hali (short-circuit)
 
-`&&` na `||` zinatathmini kwa fupi-hali KATIKA MBEGU NA MFULULIZO WA
+`&&` na `||` zinatathmini kwa fupi-hali KATIKA AWALI NA MFULULIZO WA
 .SWA:
 
 - `a && b`: `b` haitathminiwi ikiwa `a` ni 0. Matokeo: 1 ikiwa zote
@@ -287,7 +287,7 @@ ulirudisha operanda ya kushoto pekee (jibu baya) na tangu
   yoyote si 0, sivyo 0.
 
 Hii inaruhusu `j >= 0 && a[j] == x` bila kusoma nje ya mipaka.
-Rekebisho la 2026-08: mbegu ilikuwa inatathmini pande zote mbili
+Rekebisho la 2026-08: awali ilikuwa inatathmini pande zote mbili
 (kinyume na uzalishaji.swa) -- imewianishwa; majaribio ya kurejesha
 ni `jaribio_awali_mzunguko_mfupi`.
 
@@ -297,7 +297,7 @@ ni `jaribio_awali_mzunguko_mfupi`.
   hutoa anwani ya msimbo wa kazi -- kielekezi cha kazi, 4.3). Jina la
   kazi PEKEE (bila `&`) halitumiki kama usemi kwenye mfululizo wa
   uzalishaji -- linakataliwa kwa sauti ("jina la kazi halitumiki
-  kama usemi"); mbegu inakubali kimya.
+  kama usemi"); awali inakubali kimya.
 - `*p` -- nyoosha: thamani iliyoko kwenye anwani p.
 - `p->sehemu` -- sehemu ya muundo kupitia kielekezi.
 - `a[i]` -- safu au kielekezi: `*(a + i * ukubwa_wa_kipengele)`.
@@ -313,21 +313,21 @@ safu `*(safu + n)` zinafanya kazi kwenye mifululizo yote miwili;
 safu za miundo zinafanya kazi kwa mwendo wa kipengele. Ukaguzi wa
 aina kwenye mfululizo wa uzalishaji unakataa kwa sauti `p + p`,
 `p - p`, na `n - p` ("kielekezi kwa kielekezi kwenye hesabu",
-"namba toa kielekezi haina maana") -- mbegu bado inakubali kimya.
+"namba toa kielekezi haina maana") -- awali bado inakubali kimya.
 `%` kwenye kielekezi (`p % q`, `p % 2`) inakataliwa kwa sauti na
 mkaguzi wa mfululizo wa uzalishaji ("kielekezi kwenye modulo haina
-maana"); mbegu bado inakubali kimya -- inarekebishwa (mgandisho
-ujao wa mbegu).
+maana"); awali bado inakubali kimya -- inarekebishwa (mgandisho
+ujao wa awali).
 
 ### 4.3 Anwani ya kazi na wito kupitia kielekezi cha kazi
 
 Lugha haina saini za kazi kama aina -- kielekezi cha kazi ni thamani
 ya baiti 8 inayoshikilia anwani ya msimbo, kama kielekezi kingine
 chochote. Imepimwa (2026-09-04) kwenye mifululizo yote miwili --
-mbegu iliyogandishwa 2026-09-04 ina vielekezi vya kazi pamoja na
+awali iliyogandishwa 2026-09-04 ina vielekezi vya kazi pamoja na
 mfululizo wa uzalishaji, kwa tabia zile zile (kila kipengele cha
 sehemu hii kimepimwa kwa zote mbili isipokuwa kinapobainishwa).
-Mbegu haina familia ya a (a64 kama hifadhi ni ya uzalishaji
+Awali haina familia ya a (a64 kama hifadhi ni ya uzalishaji
 pekee).
 
 Kuchukua anwani:
@@ -343,7 +343,7 @@ n64 k2 = &jumlisha3;
 - Thamani inaweza kuhifadhiwa kwenye kigezo/paramu/kigeu cha
   ulimwengu cha aina ya KIELEKEZI (T* -- `n8*` ni aina ya jumla) au
   namba ya upana 64 (`n64` kwa mifululizo yote miwili; `a64` kwenye
-  mfululizo wa uzalishaji pekee -- mbegu haijui familia a). `&f` kama
+  mfululizo wa uzalishaji pekee -- awali haijui familia a). `&f` kama
   HOJA ya paramu ya n64/a64 inakubaliwa kwa mifululizo yote miwili --
   anwani ya kazi ni thamani ya baiti 8 kama paramu yenyewe (mkaguzi
   anatoa ubaguzi wa usemi wa anwani ya kazi dhidi ya paramu ya namba
@@ -377,9 +377,9 @@ linalinganishwa na kigeu/paramu/kigeu cha ulimwengu:
 - Kazi za w0 zinaitwa sawa (`k(40);` bila matumizi ya matokeo).
 - Uhalali: kigezo kinachoitwa lazima kiwe kielekezi (T*) au namba ya
   upana 64 -- la sivyo kosa la aina (mfululizo wa uzalishaji unatoa
-  kosa la aina "aina yake si kielekezi cha kazi"; mbegu inakataa
+  kosa la aina "aina yake si kielekezi cha kazi"; awali inakataa
   kama wito wa kazi usiojulikana). Kikomo cha hoja ni 16 kama wito
-  wa kawaida kwenye mfululizo wa uzalishaji; mbegu ina kikomo cha
+  wa kawaida kwenye mfululizo wa uzalishaji; awali ina kikomo cha
   hoja 9 ("wito wenye hoja zaidi ya 9"). Kazi zinazorejesha muundo
   (sret) hazisaidiwi kupitia kielekezi (mpangaji wa sret anajulikana
   kwa wito wa kawaida pekee) -- wito kama huo unakusanywa na kuanguka
@@ -410,12 +410,12 @@ n32 anza() {
 - Wito wa kujirudia na wito wa mbele unasaidiwa.
 - Hoja zinazozidi rejesta (namba 6, desimali 8) huenda kwenye mrundikano kwa
   mpangilio wa hoja (System V), hata hoja za rejesta zikizifuata
-  (rekebisho la 2026-11-09; mbegu bado haina -- `jaribio_hoja_mrundikano_mchanganyiko`
+  (rekebisho la 2026-11-09; awali bado haina -- `jaribio_hoja_mrundikano_mchanganyiko`
   ni ya kamili pekee).
 - Kikomo cha hoja kwenye mfululizo wa uzalishaji: 16 -- wito wa hoja
   zaidi ya 16 unakataliwa kwa sauti ("una hoja nyingi mno (17) --
   kikomo ni 16"); hitilafu ya 2026-09-01 (hoja zaidi zilitupwa kimya)
-  umefunga. Mbegu ina kikomo cha hoja 9: wito wa hoja 10+ unakataliwa
+  umefunga. Awali ina kikomo cha hoja 9: wito wa hoja 10+ unakataliwa
   kwa sauti ("wito wenye hoja zaidi ya 9"). Kilichopimwa 2026-09-04.
 - Kielekezi na namba hazichanganyiki kwenye hoja: kielekezi kwa
   kigezo cha namba -- au namba kwa kigezo cha kielekezi -- ni kosa
@@ -473,7 +473,7 @@ Sehemu zote tatu ni za hiari; hali iliyoachwa wazi ina maana KWELI
 DAIMA -- `kwa (i = 0; ; i = i + 1)` na `kwa (;;)` ni mizunguko
 isiyoisha hadi `acha` au `rudisha` (semantiki ya C).
 **Semantiki ya `endelea`:** inaruka kwenye HATUA (ya tatu), si
-kwenye sharti -- semantiki ya C, katika mbegu NA mfululizo wa .swa
+kwenye sharti -- semantiki ya C, katika awali NA mfululizo wa .swa
 (uliowiana 2026-08; angalia mipaka.md 4b).
 
 Kilichopimwa (2026-08-31): `endelea` kama taarifa ya MOJA KWA MOJA
@@ -496,7 +496,7 @@ chagua (usemi) {
 }
 ```
 
-Kilichopimwa (2026-08-27): mbegu inakataa `chagua` kabisa (kosa la
+Kilichopimwa (2026-08-27): awali inakataa `chagua` kabisa (kosa la
 mchanganuzi -- hata kwa selecta ya n32 rahisi, "ulichanganuzi";
 imepimwa tena 2026-09-04: bado inakataa). Mfululizo wa uzalishaji
 unafanya kazi kwa hali za nambari halisi ndogo; thamani hasi (`hali
@@ -508,7 +508,7 @@ bila kosa; `kama` + `sivyo` ndani ya mkono wa `chagua` na bloku
 Kilichopimwa (2026-08-31): mfululizo wa uzalishaji unalinganisha
 thamani hasi na thamani za n64 kwa usahihi (kwa upana wa selecta); thamani
 za usemi au kigezo zinakataliwa kwa sauti na mkaguzi ("thamani ya
-hali lazima iwe halisi ya nambari"). Mbegu bado inakataa `chagua`
+hali lazima iwe halisi ya nambari"). Awali bado inakataa `chagua`
 kabisa (kilichopimwa 2026-09-04).
 
 Kilichopimwa (2026-08-31) -- UAMIZI WA KIMUUNDO: HAKUNA mwanguko
@@ -546,7 +546,7 @@ kujaribiwa, kisha kurudia maudhui mradi sharti ni kweli (semantiki
 ya C ya do-while). Maudhui hukimbia angalau mara moja -- hata sharti
 la uwongo tangu mwanzo haliuzuii mwendo wa kwanza. Muundo ni
 mkali: mabano ya wima ya maudhui, mabano ya sharti, na nukta-mkato
-wa mwisho ni ya lazima (sawa na mbegu).
+wa mwisho ni ya lazima (sawa na awali).
 
 `endelea` ndani ya fanya inaruka hadi SHARTI: taarifa zilizobaki
 za maudhui zinarukwa kwenye mwendo huo, na sharti linajaribiwa upya
@@ -561,11 +561,11 @@ jaribio_fanya_hali_ya_uwongo, jaribio_fanya_endelea,
 jaribio_fanya_acha, na jaribio_fanya_kama_jina_la_kigezo (KATA --
 neno muhimu kama jina linakataliwa, 2.2). Kilichopimwa
 (2026-09-04): fanya inafanya kazi kwenye mifululizo YOTE MIWILI --
-mbegu iliyogandishwa 2026-09-04 ina mzunguko wa fanya (maudhui
+awali iliyogandishwa 2026-09-04 ina mzunguko wa fanya (maudhui
 hukimbia mara moja, `endelea` inaruka hadi sharti, `acha` inaondoka
 mara moja, viota ndani ya `kwa` -- vyote sawa na mfululizo wa
 uzalishaji). Kumbuka la zamani la "majaribio ni ya kamili pekee
-hadi mbegu igandishwe" halishikiki.
+hadi awali igandishwe" halishikiki.
 
 ## 7. Miundo
 
@@ -585,7 +585,7 @@ muundo Nukta {
 - KUPITISHWA kwa thamani kunafanya kazi kwenye mifululizo yote
   miwili: kazi inayopokea muundo kwa thamani na kusoma sehemu zake
   ni sahihi kwa miundo ya baiti 8, 12, 16, 20, 24, 32, 48 na 64
-  (kilichopimwa 2026-09-04) -- takataka ya zamani kwenye mbegu na
+  (kilichopimwa 2026-09-04) -- takataka ya zamani kwenye awali na
   kikomo cha zamani cha "baiti <= 8 pekee" kwenye uzalishaji
   havipo tena.
 - Ugawi wa muundo `b = a;` unanakili muundo mzima kwenye mifululizo
@@ -595,7 +595,7 @@ muundo Nukta {
   ni sahihi kwa miundo ya baiti 12 na 20) kwenye mifululizo yote
   miwili -- SEGV ya zamani haipo.
 - Muundo wa ulimwengu (`Jozi G;`): mfululizo wa uzalishaji unafanya
-  kazi; mbegu inakataa kwa sauti kwa kosa lisilo sahihi linalotaja
+  kazi; awali inakataa kwa sauti kwa kosa lisilo sahihi linalotaja
   d64 (kilichopimwa 2026-09-04).
 - Hakuna urithi, hakuna miundo ya kijiuzi.
 
@@ -613,14 +613,14 @@ muundo Nukta {
   wa husisha umegunduliwa: y.swa -> x.swa -> y.swa"); faili
   lisilopatikana linalia kwa sauti ("faili la husisha
   halipatikani"). Njia ni za jamaa kwa saraka ya kazi ya mkusanyaji.
-- MBEGU haitatui: inaruka mstari wa `husisha { }` kimya (hakuna
-  faili linalosomwa), kama zamani -- programu za mbegu bado zinahitaji
+- AWALI haitatui: inaruka mstari wa `husisha { }` kimya (hakuna
+  faili linalosomwa), kama zamani -- programu za awali bado zinahitaji
   kuunganishwa kwa mkono (cat). Wito wa kazi isiyofafanuliwa unalia
   kwa sauti kwenye mifululizo yote miwili (`Hitilafu: kazi
-  haijafafanuliwa: <jina>` -- mbegu pia, kilichopimwa 2026-09-04).
+  haijafafanuliwa: <jina>` -- awali pia, kilichopimwa 2026-09-04).
 - `husisha C::stdio` -- kiungo cha C: mstari unatupwa na mfululizo wa
   uzalishaji (kwenye towe lake la kutatua) na unarukwa na mchanganuzi
-  wa mbegu -- haufanyi chochote kwenye mfululizo huu: hakuna jina la C
+  wa awali -- haufanyi chochote kwenye mfululizo huu: hakuna jina la C
   linaloandikwa kwenye kitu (kilichopimwa 2026-09-04 kwenye pato la
   .o), na wito wa kazi yoyote isiyofafanuliwa (hata baada ya C::)
   bado unakataliwa kwa sauti kama "kazi haijafafanuliwa".
@@ -695,10 +695,10 @@ nje "libm.so.6" {
   mkaguzi wa mfululizo wa uzalishaji anakataa wito wenye hoja zaidi
   ya 7 ("idadi ya hoja kwa 'wito_wa_mfumo' si sahihi (kikomo ni 7,
   imepokea 8)") -- hitilafu ya zamani (hoja za ziada zilimezwa kimya)
-  umefunga. Mbegu bado inakubali wito wa hoja 8+ na kusawazisha
+  umefunga. Awali bado inakubali wito wa hoja 8+ na kusawazisha
   mrundikano (hoja ya 7 inachukuliwa na pop r9, hoja 8+ zinafutwa, hakuna
   uharibifu wa vigezo vya ndani -- kilichopimwa 2026-09-04) --
-  inarekebishwa (mgandisho ujao wa mbegu).
+  inarekebishwa (mgandisho ujao wa awali).
 - `tekeleza(n8* kazi, n32 argc, n8** argv, n32 umbali)` na
   `anwani_ya_kazi(n8* jina)` -- visaidizi vya NDANI vya kiolesura cha JIT
   la mkusanyaji wa kujikusanya (`--papo`): havipo kwenye mifululizo
@@ -720,7 +720,7 @@ nje "libm.so.6" {
 | `hesabu.swa` | hesabu_kamili/kubwa, hesabu_ndogo/dogo, neneo_n32/n64, kigawo_kikuu_cha_shirika, kipeo_kamili, kipeuo_kamili, fibonacci_hesabu |
 | `orodha.swa` | Orodha (orodha_mpya huchukua uwezo wa awali kama hoja; UKUAJI unafanya kazi -- orodha_ongeza zaidi ya uwezo inaongeza mara mbili kwa badili; kilichopimwa 2026-09-04: kujaza 30 kwenye uwezo wa 10 kunafanya kazi kwenye mifululizo yote miwili): orodha_mpya, orodha_ongeza, orodha_pata, orodha_futa_mwisho, urefu_wa_orodha, orodha_huru |
 | `mpangilio.swa` | pangilia_n32, pangilia_n32_kushuka, pangilia_n64, pangilia_n64_kushuka |
-| `ramani.swa` | Ramani ya funguo za n32 hadi thamani (inafanya kazi kwenye mifululizo yote miwili -- weka+pata kwa funguo kamili; kilichopimwa 2026-09-04, jibu baya la zamani la mbegu halipo) |
+| `ramani.swa` | Ramani ya funguo za n32 hadi thamani (inafanya kazi kwenye mifululizo yote miwili -- weka+pata kwa funguo kamili; kilichopimwa 2026-09-04, jibu baya la zamani la awali halipo) |
 
 Saini za `nakili` na `badili` (kumbukumbu.swa) -- kazi za kawaida
 za maktaba, si maneno muhimu (2.2):
@@ -733,28 +733,28 @@ za maktaba, si maneno muhimu (2.2):
   eneo la utengaji halifungui vipande -- kipande cha zamani kinabaki.
 
 Kila kazi imejitosheleza; maktaba inaweza kuunganishwa kwa mkono
-(`cat`) kwa matumizi na mbegu.
+(`cat`) kwa matumizi na awali.
 
 ## 11. Mipaka
 
 Tazama `hati/mipaka.md` kwa orodha kamili yenye viwango vya ukali.
 Muhtasari wa kilichopimwa 2026-09-04 kwenye mifululizo yote miwili
-(mbegu iliyogandishwa 2026-09-04 na mfululizo wa uzalishaji):
+(awali iliyogandishwa 2026-09-04 na mfululizo wa uzalishaji):
 - ABI ya wito wa kazi za d64 ni ya xmm kwenye mifululizo yote miwili;
   mpaka wa d64 na nambari kamili (ugawaji, hoja, kurudisha,
   mchanganyiko, ulinganisho) umefunga; d64 kama sharti moja kwa
-  moja ni uongo daima; mbegu inakataa kigezo cha ulimwengu cha d64;
-  d32 inafanya kazi kwenye uzalishaji, mbegu haijui d32 (2.3).
+  moja ni uongo daima; awali inakataa kigezo cha ulimwengu cha d64;
+  d32 inafanya kazi kwenye uzalishaji, awali haijui d32 (2.3).
 - Halisi zote hadi 2^64-1 zinatoa imm64 kamili (2^64 inazunguka
   kimya mod 2^64); upana usio wa 8/16/32/64 unakataliwa kwa sauti
   kwenye mifululizo yote miwili; `husisha { faili }` ni kiungo
-  halisi kwenye mfululizo wa uzalishaji, mbegu inaruka mstari (8).
+  halisi kwenye mfululizo wa uzalishaji, awali inaruka mstari (8).
 - Uvunjaji UNAOENDELEA: miundo ya ulimwengu na kigezo cha ulimwengu
-  cha d64 kwenye mbegu (kikomo cha mbegu); w0 ya ndani yenye
+  cha d64 kwenye awali (kikomo cha awali); w0 ya ndani yenye
   kianzio, asilimia kwenye kielekezi, na wito_wa_mfumo wa hoja 8+
-  zimefungwa kwenye mfululizo wa uzalishaji lakini mbegu bado
+  zimefungwa kwenye mfululizo wa uzalishaji lakini awali bado
   inakubali kimya (inarekebishwa -- mgandisho ujao); na `5.`
-  inaangusha mbegu (inarekebishwa).
+  inaangusha awali (inarekebishwa).
 - Upeo wa tokeni 262,144 unalia kwa sauti.
 
 ## 12. Uthibitisho
@@ -773,8 +773,8 @@ yote miwili) umeandikwa kwenye `hati/uthibitisho-wa-lugha.md`.
 Tangu kipimo hicho, kanuni kadhaa ambazo hazikushikika wakati huo
 zimefungwa kwenye mifululizo yote miwili (imepimwa upya 2026-09-04):
 desimali kwenye mpaka wa nambari kamili (2.3), `!`/`~`/`^` kwenye
-mbegu (2.5), upana usio wa 8/16/32/64 unaokataliwa kwa sauti (3),
+awali (2.5), upana usio wa 8/16/32/64 unaokataliwa kwa sauti (3),
 hesabu ya kielekezi kwa vipengele, miundo kwa thamani/safu/ugawi,
 fanya, vielekezi vya kazi (4.2/4.3/6.8/7), `husisha` kama kiungo
 halisi kwenye mfululizo wa uzalishaji (8), na ukuaji wa Orodha na
-Ramani kwenye mbegu (10) -- zote kilichopimwa 2026-09-04.
+Ramani kwenye awali (10) -- zote kilichopimwa 2026-09-04.

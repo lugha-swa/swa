@@ -27,14 +27,14 @@ Hakuna faili. Hakuna binary. Hakuna OS kati.
       la exe -- anwani_ya_kazi ya ndani + tekeleza kama builtin) na
       kupitisha argv; exe haina alama za nje kabisa
 
-### Hatua ya 3: Kuziba pengo la bootstrap [IMEFANYIKA KWA MBEGU]
+### Hatua ya 3: Kuziba pengo la bootstrap [IMEFANYIKA KWA AWALI]
 Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - [x] Kwanza (msingi/kwanza.bin): baiti 393 zilizoandikwa kwa mkono
       (utangulizi wa ELF 64 + maelezo ya kipande 56 + msimbo 273) -- hubadilisha
       hex hadi binary na inajijenga yenyewe (kwanza.heksa -> kwanza.bin)
 - [x] awali.bin inazalika kutoka awali.heksa kupitia Kwanza -- NASM
       si sehemu ya mfululizo tena; tangu 2026-11-03 awali.bin yenyewe hujengwa
-      kutoka mbegu.swm na mfululizo huru (hati/mfululizo-huru.md)
+      kutoka awali.swm na mfululizo huru (hati/mfululizo-huru.md)
 - [x] Kiunganishi cha kujitegemea: bendera ya `--programu` inatoa **ET_EXEC
       tuli** (bila maelezo ya sehemu, bila PT_INTERP) -- mfululizo wa
       kujikusanya wa exe ni safi kabisa: kamili2 == kamili3
@@ -42,10 +42,10 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - [x] Runtime ya syscalls: mkusanyaji hautekelezi kupitia libc tena --
       mfumo_fungua/mfumo_soma/mfumo_andika/mfumo_ramani_kumbukumbu kupitia wito_wa_mfumo;
       undefined za nje za kamili2 ni mbili tu (violesura vya JIT).
-- [x] 0% bootstrap gap -- mbegu inatoa ET_EXEC tuli moja kwa moja
+- [x] 0% bootstrap gap -- awali inatoa ET_EXEC tuli moja kwa moja
       (`--programu`): utangulizi + phdr + stub ya `_start` + urekebishaji wa
       RELA wa ndani. Hakuna gcc, ld, clang, muda.c, wala libc popote
-      kwenye mfululizo: kwanza -> mbegu -> kamili -> kamili2 ->
+      kwenye mfululizo: kwanza -> awali -> kamili -> kamili2 ->
       kamili3 (kamili2 == kamili3, sawa kwa baiti).
       Kumbuka: hili linahusu mfululizo wa uzalishaji pekee -- uthabiti
       wa mchanganuzi dhidi ya ingizo baya ni mhimili tofauti, bado
@@ -75,13 +75,13 @@ Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - `msingi/mkusanyaji/uzalishaji.swa` -- codegen asilia (inajikusanya)
 - `msingi/mkusanyaji/mteremko.swa` -- kiteremshi cha AST->IR ya mstari (hati/ir.md); `mtafsiri.swa` huitekeleza (`swa --tafsiri`), na ndiyo msingi wa sehemu za nyuma zijazo
 - `msingi/mkusanyaji/kiendeshaji.swa` -- kiendeshi cha bootstrap
-- `msingi/awali.swm` -- mbegu kwa lugha ya mashine ya Swa; hujengwa na
+- `msingi/awali.swm` -- awali kwa lugha ya mashine ya Swa; hujengwa na
   mfululizo huru kutoka kwanza.bin (baiti 393), bila NASM wala ld
 
 ## Kile Tunachofanya Sasa (Agosti 2026)
 
 Lengo kuu limefikiwa: mfululizo wa kujikusanya umefungwa kikamilifu na
-**hakuna lugha nyingine** -- baiti za mkono (kwanza, 393) -> mbegu ->
+**hakuna lugha nyingine** -- baiti za mkono (kwanza, 393) -> awali ->
 kamili -> kamili2 == kamili3, bila gcc/ld/clang/libc popote.
 (0% gap ni mhimili wa mfululizo wa uzalishaji; uthabiti wa makosa ni
 mhimili tofauti -- hati/mipaka.md.)
@@ -93,14 +93,14 @@ Hali ya Agosti 2026 (kuelekea 1.0):
    mzunguko mfupi wa && na ||, na kazi isiyofafanuliwa inalia.
 2. **Maktaba ya kawaida -- IMEKAMILIKA** -- hesabu (gcd, pow, isqrt,
    fibonacci), mifuatano kamili (tafuta, kata), I/O (soma_mstari),
-   sort -- jaribio_maktaba_mbegu_exe.
+   sort -- jaribio_maktaba_awali_exe.
 3. **Vipimo rasmi vya lugha -- IMEKAMILIKA** -- hati/vipimo-vya-lugha.md.
 4. **Uamuzi wa mteremko.swa/LLVM -- IMEFANYIKA** -- mwisho wa LLVM ni
-   wa MAJARIBIO; mfululizo wa uzalishaji ni mbegu/exe pekee (mipaka.md 6).
+   wa MAJARIBIO; mfululizo wa uzalishaji ni awali/exe pekee (mipaka.md 6).
    Dereva wa Rust/LLVM umehamishiwa hazina ya kumbukumbu
    lugha-swa/swa-dereva (2026-09-05); hazina kuu ina Swa pekee.
 5. **ABI ya wito wa kazi za D64** -- IMEFANYIKA kwenye mifululizo
-   yote miwili (mbegu inatumia uhamisho wa GP; kilichopimwa
+   yote miwili (awali inatumia uhamisho wa GP; kilichopimwa
    2026-08-27 -- mipaka.md 4c imerekebishwa). Mpaka wa D64 na
    nambari kamili umefunga (T2c), na D32 sasa inafanya kazi
    kikamilifu kwenye uzalishaji (T4/T8) -- hakuwezi kuorodheshwa

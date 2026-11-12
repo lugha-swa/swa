@@ -2,7 +2,7 @@
 
 KUMBUKA (2026-09-05): uboreshaji wa LLVM ulikuwa wa dereva wa
 Rust/LLVM, ambao sasa uko kwenye hazina ya kumbukumbu
-lugha-swa/swa-dereva. Mfululizo wa uzalishaji ni mbegu/exe pekee.
+lugha-swa/swa-dereva. Mfululizo wa uzalishaji ni awali/exe pekee.
 
 ## Viwango vya Uboreshaji
 
