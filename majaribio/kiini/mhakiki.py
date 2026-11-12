@@ -8,7 +8,7 @@
 # soketi ya kifuatiliaji cha QEMU baada ya HLT -- SI "haikuanguka", ni
 # kulinganisha thamani halisi na tarajiwa.
 #
-# Matumizi: mhakiki.py <binary.bin> <rdi-tarajiwa> [maandishi-ya-vga]
+# Matumizi: mhakiki.py <binary.bin> <r7-tarajiwa> [maandishi-ya-vga]
 #
 # [maandishi-ya-vga] hutumia "\n" halisi (baiti mbili: 0x5c 0x6e)
 # kuwakilisha mstari mpya -- huvunjwa kuwa safu-mlalo (rows), kila
@@ -17,9 +17,9 @@
 # kaka -- angalia uzalishaji.swa).
 #
 # Uthibitisho:
-#   - "info registers": RDI LAZIMA iwe sawa na <rdi-tarajiwa> (n32
-#     ya kurudi ya kernel_main, iliyohamishwa kwenda edi na kianzishi.swm
-#     mara moja baada ya "call kernel_main").
+#   - "info registers": RDI LAZIMA iwe sawa na <r7-tarajiwa> (n32
+#     ya kurudi ya kernel_main, iliyohamishwa kwenda r7d na kianzishi.swm
+#     mara moja baada ya "ita kernel_main").
 #   - Ikiwa [maandishi-ya-vga] limetolewa: kila mstari (baada ya
 #     kugawanywa kwa "\n") LAZIMA uonekane kwenye safu-mlalo yake
 #     (0xb8000 + safu_mlalo*80*2), kila herufi ikifuatiwa na baiti

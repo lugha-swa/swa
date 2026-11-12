@@ -71,13 +71,13 @@ Kanuni:
 `&linganisha_namba` ya Swa ikipitishwa kwa `panga` (qsort), msimbo wa
 nje utaita Swa. Swa lazima:
 
-- ihifadhi rbx, rbp, r12-r15 -- `majaribio/kiolesura/rudi.swa` (qsort
+- ihifadhi r3, r5, r12-r15 -- `majaribio/kiolesura/rudi.swa` (qsort
   ikiita kazi ya Swa mara nyingi) huthibitisha;
-- iwe na rsp iliyopangiliwa kwa baiti 16 kwenye kila wito wa nje
+- iwe na r4 iliyopangiliwa kwa baiti 16 kwenye kila wito wa nje
   (msimbo wa C hutumia movaps; mrundikano usiopangiliwa huanguka). Kipande
   cha kila kazi ya nje hupangilia; `majaribio/kiolesura/upangiliaji.swa`
-  husoma rsp halisi kupitia getcontext kwenye kina tofauti na katikati
-  ya usemi. Jaribio la mabadiliko: kipande bila `and rsp,-16` hushindwa
+  husoma r4 halisi kupitia getcontext kwenye kina tofauti na katikati
+  ya usemi. Jaribio la mabadiliko: kipande bila `na r4,-16` hushindwa
   (kutoka 20).
 
 ## Faili la programu
@@ -92,18 +92,18 @@ nje utaita Swa. Swa lazima:
   - GOT: sloti ya baiti 8 kwa kila alama kwenye .data, iliyojazwa na
     kipakiaji (R_X86_64_GLOB_DAT);
   - kipande kimoja kwa kila kazi kwenye .text, chenye jina la Swa:
-    `push rbp; mov rbp,rsp; and rsp,-16; call [rip+sloti]; mov rsp,rbp;
-    pop rbp; ret`. Wito wa Swa hauhitaji kubadilika: unaelekea kipande
-    kama kazi nyingine. Hoja za rejesta na matokeo (rax, xmm0)
+    `sukuma r5; hamisha r5, r4; na r4,-16; ita [kutoka_agizo+sloti]; hamisha r4, r5;
+    vuta r5; rudi`. Wito wa Swa hauhitaji kubadilika: unaelekea kipande
+    kama kazi nyingine. Hoja za rejesta na matokeo (r0, xmm0)
     hazigusiwi.
   - Hoja za mrundikano (awamu 2): mpigaji wa Swa huziacha juu ya mrundikano kwa
-    mpangilio wa System V, hivyo ndani ya kipande ziko `[rbp+16+8k]`.
-    Kipande huzinakili chini ya rsp mpya iliyopangiliwa (`push qword
-    [rbp+16+8k]`, kuanzia ya mwisho; sloti moja ya ziada ikiwa idadi ni
+    mpangilio wa System V, hivyo ndani ya kipande ziko `[r5+16+8k]`.
+    Kipande huzinakili chini ya r4 mpya iliyopangiliwa (`sukuma qword
+    [r5+16+8k]`, kuanzia ya mwisho; sloti moja ya ziada ikiwa idadi ni
     witiri). Kazi bila `...`: idadi inajulikana wakati wa kukusanya.
   - Hoja za ziada (`...`, awamu 2): kipande hakijui idadi, hivyo mpigaji
-    huweka `r11 = sloti za mrundikano` na `eax = rejesta za xmm zilizotumika`
-    (al ya System V, kikomo 8) mara kabla ya `call`; kipande hunakili
+    huweka `r11 = sloti za mrundikano` na `r0d = rejesta za xmm zilizotumika`
+    (r0b ya System V, kikomo 8) mara kabla ya `ita`; kipande hunakili
     sloti r11 kwa mzunguko. Hoja ya ziada ya `d32` ni kosa: C hupandisha
     float kuwa double, hivyo `d64` itumike.
   - Data ya maktaba (awamu 2): `n8* mkondo = "stdout";` ndani ya `nje`
@@ -127,8 +127,8 @@ Swa na System V hupitisha muundo kwa njia tofauti:
 | hoja, baiti <= 8 | baiti zake kwenye rejesta ya GP | kwa darasa la baiti-8 |
 | hoja, baiti 9-16 | kielekezi cha nakala kwenye GP | kila baiti-8 kwa darasa lake |
 | hoja, baiti > 16 | kielekezi cha nakala kwenye GP | MEMORY: nakala kwenye mrundikano |
-| matokeo, baiti <= 16 | kielekezi kilichofichwa (rdi -> rax) | rax/rdx na xmm0/xmm1 |
-| matokeo, baiti > 16 | kielekezi kilichofichwa (rdi -> rax) | sawa na Swa |
+| matokeo, baiti <= 16 | kielekezi kilichofichwa (r7 -> r0) | r0/r2 na xmm0/xmm1 |
+| matokeo, baiti > 16 | kielekezi kilichofichwa (r7 -> r0) | sawa na Swa |
 
 Darasa la baiti-8: INTEGER ikiwa sehemu yoyote ndani yake si desimali
 (kielekezi na namba ni INTEGER), SSE vinginevyo; `{ n32; d32; }` ni
@@ -142,16 +142,16 @@ Kwa hiyo kazi ya nje yenye muundo (hoja au matokeo) hupata kipande cha
 kutafsiri badala ya kile kifupi:
 
 ```
-push rbp; mov rbp,rsp; sub rsp,112
-hifadhi rdi..r9 kwenye [rbp-8..-48], xmm0..7 kwenye [rbp-56..-112]
-and rsp,-16; [sub rsp,8 sloti zikiwa witiri]; sub rsp,8*sloti
-kwa kila hamisho la mpango: mrundikano kupitia rax, kisha GP, kisha xmm
-  (chanzo: sloti iliyohifadhiwa, hoja ya mrundikano wa Swa [rbp+16+8k], au
+sukuma r5; hamisha r5, r4; toa r4,112
+hifadhi r7..r9 kwenye [r5-8..-48], xmm0..7 kwenye [r5-56..-112]
+na r4,-16; [toa r4,8 sloti zikiwa witiri]; toa r4,8*sloti
+kwa kila hamisho la mpango: mrundikano kupitia r0, kisha GP, kisha xmm
+  (chanzo: sloti iliyohifadhiwa, hoja ya mrundikano wa Swa [r5+16+8k], au
   [kielekezi + umbali] kupitia r11)
-mov eax, <xmm zilizotumika>          ; al ya System V
-call [rip+sloti]
-[matokeo <= 16: mov r11,[rbp-8]; rax/rdx, xmm0/xmm1 -> [r11]; mov rax,r11]
-mov rsp,rbp; pop rbp; ret
+hamisha r0d, <xmm zilizotumika>          ; r0b ya System V
+ita [kutoka_agizo+sloti]
+[matokeo <= 16: soma r11, [r5-8]; r0/r2, xmm0/xmm1 -> [r11]; hamisha r0, r11]
+hamisha r4, r5; vuta r5; rudi
 ```
 
 Mpango wote huhesabiwa wakati wa kukusanya kutoka tangazo la `nje`;
@@ -206,8 +206,8 @@ Windows na macOS kipakiaji cha mfumo ni lazima hata hivyo. Kwa hiyo:
 | Awamu | Kazi | Jaribio linalothibitisha |
 |---|---|---|
 | 1 (imekamilika) | `nje`, aina za namba/kielekezi/d64/d32, ELF ya kiungo-hai, ukaguzi wa aina, upangiliaji wa mrundikano | libm: `cos`, `pow`, `sqrt`; libc: `strlen`, `qsort` yenye kazi ya kurudi ya Swa, `getcontext` kwa upangiliaji; makosa 13 kwa ujumbe kamili; programu 460 zilizopo sawa kwa baiti (--programu na --wasm); uthabiti |
-| 2 (imekamilika) | hoja za mrundikano, hoja za ziada (`...`, r11 + al), data ya maktaba (R_X86_64_COPY), rekebisho la wito wa Swa | `snprintf`: namba 9 za ziada (6 kwenye mrundikano), desimali zikichanganyika, desimali 10 (2 kwenye mrundikano) + namba; tangazo la kudumu lenye sloti 3 za mrundikano; `optind` (thamani 1 inakiliwa) na `stdout` kwa `fputs`; makosa 19; majaribio 4 ya mabadiliko (mzunguko bila push, umbali mbaya, COPY kama GLOB_DAT, al = 0) yote hukamatwa |
-| 3 (imekamilika) | muundo kwa thamani: uainishaji wa System V (INTEGER/SSE/MEMORY), kipande cha kutafsiri, matokeo kwenye rax:rdx/xmm0:xmm1, data ya muundo; ukaguzi wa mpangilio wa C | libc/libm halisi: `div`, `ldiv` (matokeo baiti 8 na 16), `cabs`/`csqrt`/`cpow` (`double complex`, SSE,SSE), `cabsf`/`csqrtf` (`float complex`, SSE moja kutoka GP ya Swa), `inet_ntoa` (`struct in_addr`), `memcpy` kama matokeo MEMORY, `in6addr_loopback` kama data; `snprintf` huonyesha mrundikano: MEMORY ya baiti 24, muundo usiotosha rejesta, INTEGER+SSE, darasa ndani ya baiti-8 moja, xmm zilizojaa, desimali ya 9, miundo kutoka mrundikano wa Swa, muundo ndani ya muundo; makosa 7; programu 968 zilizopo sawa kwa baiti; majaribio 14 ya mabadiliko: 13 hukamatwa, moja ni sawa kimaana (bila kupakia rdi kwa matokeo MEMORY -- rdi ya Swa tayari ni ile ya System V) |
+| 2 (imekamilika) | hoja za mrundikano, hoja za ziada (`...`, r11 + r0b), data ya maktaba (R_X86_64_COPY), rekebisho la wito wa Swa | `snprintf`: namba 9 za ziada (6 kwenye mrundikano), desimali zikichanganyika, desimali 10 (2 kwenye mrundikano) + namba; tangazo la kudumu lenye sloti 3 za mrundikano; `optind` (thamani 1 inakiliwa) na `stdout` kwa `fputs`; makosa 19; majaribio 4 ya mabadiliko (mzunguko bila sukuma, umbali mbaya, COPY kama GLOB_DAT, r0b = 0) yote hukamatwa |
+| 3 (imekamilika) | muundo kwa thamani: uainishaji wa System V (INTEGER/SSE/MEMORY), kipande cha kutafsiri, matokeo kwenye r0:r2/xmm0:xmm1, data ya muundo; ukaguzi wa mpangilio wa C | libc/libm halisi: `div`, `ldiv` (matokeo baiti 8 na 16), `cabs`/`csqrt`/`cpow` (`double complex`, SSE,SSE), `cabsf`/`csqrtf` (`float complex`, SSE moja kutoka GP ya Swa), `inet_ntoa` (`struct in_addr`), `memcpy` kama matokeo MEMORY, `in6addr_loopback` kama data; `snprintf` huonyesha mrundikano: MEMORY ya baiti 24, muundo usiotosha rejesta, INTEGER+SSE, darasa ndani ya baiti-8 moja, xmm zilizojaa, desimali ya 9, miundo kutoka mrundikano wa Swa, muundo ndani ya muundo; makosa 7; programu 968 zilizopo sawa kwa baiti; majaribio 14 ya mabadiliko: 13 hukamatwa, moja ni sawa kimaana (bila kupakia r7 kwa matokeo MEMORY -- r7 ya Swa tayari ni ile ya System V) |
 | 4 (imekamilika) | `--wasm`: kila `nje "<moduli>"` huwa uingizaji wa WASM (moduli, alama); `dom_*` 8 zilizowekwa ndani ya mkusanyaji zimeondolewa; DOM ni Swa (`msingi/maktaba/kivinjari.swa`) juu ya kiolesura cha jumla kinachoandikwa na `swa --wasm-js`; `msingi/kivinjari/swa-kivinjari.js` ya mkono imefutwa | majaribio yote ya DOM na matukio hupitia mfululizo mzima (Swa -> kivinjari.swa -> swa-js.js -> hati bandia); `jaribio_nje_js` hutumia uingizaji moja kwa moja; makosa 3 (desimali, `...`, data); mabadiliko 2 (kiolesura chenye hoja zilizobadilishwa, `dom_unda` bila maktaba) hukamatwa |
 | 5 | Win64 + PE (Windows), kisha ARM64 + Mach-O | programu ile ile kwenye kila jukwaa |
 

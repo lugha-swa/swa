@@ -12,7 +12,7 @@ program za awali zenye kazi za D64 zinalia kwa sauti.
 
 Sasa (kilichopimwa 2026-08-27): awali inatekeleza wito wa kazi za
 D64 (parameta na kurudisha) kwa usahihi -- ABI yake hutumia uhamisho
-wa GP (`movq rax, xmm0`; `movq xmm1, rcx`), si xmm moja kwa moja,
+wa GP (`hamisha_x r0, xmm0`; `hamisha_x xmm1, r1`), si xmm moja kwa moja,
 lakini inafanya kazi. Kilichobaki cha desimali: mpaka wa D64 na
 nambari kamili (jibu baya kwa mifululizo yote miwili) na D32
 (poromoko). Angalia `hati/mipaka.md` 4c na `hati/uthibitisho-wa-lugha.md`.

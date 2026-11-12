@@ -104,7 +104,7 @@ ya zamani ni jambo jingine:
   Kilichopimwa (2026-09-04, awali iliyogandishwa 2026-09-04 na
   kamili): halisi za [2^31, 2^63) kwenye kigezo, ulimwengu, na kama
   hoja ya wito -- SAWA kwa mifululizo yote miwili; halisi >= 2^63
-  (2^63-1, 2^63, 2^64-1, 2^64) zinatoa imm64 KAMILI kwa mifululizo
+  (2^63-1, 2^63, 2^64-1, 2^64) zinatoa namba64 KAMILI kwa mifululizo
   yote miwili (2^63 = -2^63 kwa ishara; 2^64-1 = -1 kwa ishara;
   2^64 inazunguka kimya hadi 0 -- mod 2^64). Mgawanyo wa n64 wenye
   halisi kubwa (`9223372036854775807 / 1000000000`) hufanya kazi --
@@ -359,13 +359,13 @@ n64 k2 = &jumlisha3;
 Wito kupitia kielekezi -- `kigezo(hoja...)` -- jina ambalo SI kazi
 linalinganishwa na kigeu/paramu/kigeu cha ulimwengu:
 
-- ABI ni ile ya wito wa kawaida: hoja 1-6 kwa rejesta (rdi..r9 kwa
+- ABI ni ile ya wito wa kawaida: hoja 1-6 kwa rejesta (r7..r9 kwa
   namba/kielekezi, xmm0..xmm7 kwa d64/d32), hoja 7+ kwenye mrundikano,
-  matokeo kwenye rax/eax (na xmm0 kwa desimali). Kielekezi hupakiwa
-  kwenye r11 na wito hutolewa kwa `call r11`.
+  matokeo kwenye r0/r0d (na xmm0 kwa desimali). Kielekezi hupakiwa
+  kwenye r11 na wito hutolewa kwa `ita r11`.
 - Aina za hoja huamuliwa na USEMI wa hoja kwenye wito (saini ya kazi
   haijulikani wakati wa kukusanya): `k(2.5)` hupita xmm0, `k(2)`
-  hupita rdi. Hivyo mlangaji lazima alinganishe aina mwenyewe --
+  hupita r7. Hivyo mlangaji lazima alinganishe aina mwenyewe --
   hoja ya d64 kwa kazi inayotarajia namba (au kinyume) ni jibu baya
   lisilogunduliwa.
 - Matokeo ya wito hayajulikani wakati wa kukusanya: hutumiwa kwa
@@ -373,7 +373,7 @@ linalinganishwa na kigeu/paramu/kigeu cha ulimwengu:
   kabla ya hesabu za upana usiojulikana). MATOKEO YA d64
   HAYAKUBALIKI -- mkaguzi anakataa kwa sauti matumizi ya wito
   kupitia kigezo katika muktadha wa d64 (kianzio, ugawaji, rudisha,
-  hoja ya paramu ya d64): matokeo yanakuja kwenye eax/rax, si xmm0.
+  hoja ya paramu ya d64): matokeo yanakuja kwenye r0d/r0, si xmm0.
 - Kazi za w0 zinaitwa sawa (`k(40);` bila matumizi ya matokeo).
 - Uhalali: kigezo kinachoitwa lazima kiwe kielekezi (T*) au namba ya
   upana 64 -- la sivyo kosa la aina (mfululizo wa uzalishaji unatoa
@@ -652,7 +652,7 @@ nje "libm.so.6" {
   wito wa kawaida (tofauti na wito kupitia kielekezi, 4.3), na matokeo
   ya `d64` huja kwenye xmm0.
 - Makubaliano ya wito huamuliwa na lengo: `--programu` kwenye Linux x86-64
-  ni System V. Kila wito hupitia kipande kinachopangilia rsp kwa baiti
+  ni System V. Kila wito hupitia kipande kinachopangilia r4 kwa baiti
   16. `&kazi_ya_swa` inaweza kupitishwa kwa msimbo wa nje kama kazi ya
   kurudi (mf. `qsort`).
 - Programu yenye `nje` huwa ELF ya kiungo-hai (PT_INTERP
@@ -687,16 +687,16 @@ nje "libm.so.6" {
 
 ## 9. Kazi za Ndani (builtins)
 
-- `wito_wa_mfumo(n64 namba, n64 a1, ..., n64 a6)` -- simu ya syscall
-  ya Linux moja kwa moja. ABI: rax=namba, rdi, rsi, rdx, r10, r8, r9.
+- `wito_wa_mfumo(n64 namba, n64 a1, ..., n64 a6)` -- simu ya mfumo
+  ya Linux moja kwa moja. ABI: r0=namba, r7, r6, r2, r10, r8, r9.
   INAFANYA KAZI kwenye mifululizo yote miwili (kilichopimwa
-  2026-09-04: syscall ya exit, na mmap yenye hoja 6 kamili --
+  2026-09-04: mfumo ya exit, na mmap yenye hoja 6 kamili --
   anwani iliyorudishwa inatumika kwa kuandika na kusoma). Kikomo:
   mkaguzi wa mfululizo wa uzalishaji anakataa wito wenye hoja zaidi
   ya 7 ("idadi ya hoja kwa 'wito_wa_mfumo' si sahihi (kikomo ni 7,
   imepokea 8)") -- hitilafu ya zamani (hoja za ziada zilimezwa kimya)
   umefunga. Awali bado inakubali wito wa hoja 8+ na kusawazisha
-  mrundikano (hoja ya 7 inachukuliwa na pop r9, hoja 8+ zinafutwa, hakuna
+  mrundikano (hoja ya 7 inachukuliwa na vuta r9, hoja 8+ zinafutwa, hakuna
   uharibifu wa vigezo vya ndani -- kilichopimwa 2026-09-04) --
   inarekebishwa (mgandisho ujao wa awali).
 - `tekeleza(n8* kazi, n32 argc, n8** argv, n32 umbali)` na
@@ -745,7 +745,7 @@ Muhtasari wa kilichopimwa 2026-09-04 kwenye mifululizo yote miwili
   mchanganyiko, ulinganisho) umefunga; d64 kama sharti moja kwa
   moja ni uongo daima; awali inakataa kigezo cha ulimwengu cha d64;
   d32 inafanya kazi kwenye uzalishaji, awali haijui d32 (2.3).
-- Halisi zote hadi 2^64-1 zinatoa imm64 kamili (2^64 inazunguka
+- Halisi zote hadi 2^64-1 zinatoa namba64 kamili (2^64 inazunguka
   kimya mod 2^64); upana usio wa 8/16/32/64 unakataliwa kwa sauti
   kwenye mifululizo yote miwili; `husisha { faili }` ni kiungo
   halisi kwenye mfululizo wa uzalishaji, awali inaruka mstari (8).

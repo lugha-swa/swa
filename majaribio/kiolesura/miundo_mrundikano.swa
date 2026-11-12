@@ -1,7 +1,7 @@
 // Kiolesura cha mashine, awamu 3: muundo kwenye mrundikano na mipaka ya rejesta.
 // snprintf husoma hoja zake za ziada kutoka rejesta kisha mrundikano kwa
 // mpangilio wa System V, hivyo maandishi yake yanaonyesha hasa kila
-// baiti-8 ilipowekwa. Matangazo ni ya kudumu (bila `...`); al huwekwa na
+// baiti-8 ilipowekwa. Matangazo ni ya kudumu (bila `...`); r0b huwekwa na
 // kipande kwa idadi ya xmm zilizotumika.
 husisha { kumbukumbu.swa }
 
@@ -33,7 +33,7 @@ nje "libc.so.6" {
 n32 anza() {
     n8* b = tenga(256);
 
-    // MEMORY: nakala ya baiti 24 kwenye mrundikano baada ya rcx, r8, r9
+    // MEMORY: nakala ya baiti 24 kwenye mrundikano baada ya r1, r8, r9
     Tatu t;
     t.a = 4; t.b = 5; t.c = 6;
     andika_tatu(b, 256, "%ld %ld %ld %ld %ld %ld", 1, 2, 3, t);
@@ -46,7 +46,7 @@ n32 anza() {
     andika_jozi(b, 256, "%ld %ld %ld %ld %ld", 10, 20, j, 30);
     kama (linganisha_c(b, "10 20 30 40 50") != 0) { andika("[%s]\n", b); rudisha 2; }
 
-    // INTEGER + SSE: a kwenye rcx, b kwenye xmm0
+    // INTEGER + SSE: a kwenye r1, b kwenye xmm0
     Mchanganyiko m;
     m.a = 7; m.b = 2.5;
     andika_mch(b, 256, "%ld %.1f", m);
@@ -60,17 +60,17 @@ n32 anza() {
 
     PamojaD pd;
     pd.a = 1.0; pd.b = 1;
-    // x baada yake: darasa la SSE lingeweka x kwenye rcx
+    // x baada yake: darasa la SSE lingeweka x kwenye r1
     andika_pamoja_d(b, 256, "%lx %ld", pd, 77);
     kama (linganisha_c(b, "13f800000 77") != 0) { andika("[%s]\n", b); rudisha 8; }
 
-    // MEMORY hata rejesta zikiwa wazi: t kwenye mrundikano, x y z kwenye rcx r8 r9
+    // MEMORY hata rejesta zikiwa wazi: t kwenye mrundikano, x y z kwenye r1 r8 r9
     andika_tatu_kwanza(b, 256, "%ld %ld %ld %ld %ld %ld", t, 1, 2, 3);
     kama (linganisha_c(b, "1 2 3 4 5 6") != 0) { andika("[%s]\n", b); rudisha 9; }
 
-    // Matokeo MEMORY (baiti 24): kielekezi kilichofichwa ni rdi ya
-    // System V na hoja husogea rsi, rdx -- memcpy(lengwa, chanzo, n)
-    // ina umbo hilo hasa, na hurudisha lengwa kwenye rax.
+    // Matokeo MEMORY (baiti 24): kielekezi kilichofichwa ni r7 ya
+    // System V na hoja husogea r6, r2 -- memcpy(lengwa, chanzo, n)
+    // ina umbo hilo hasa, na hurudisha lengwa kwenye r0.
     Tatu tn = nakili_tatu(&t, 24);
     kama (tn.a != 4 || tn.b != 5 || tn.c != 6) { rudisha 11; }
 
@@ -81,7 +81,7 @@ n32 anza() {
     kama (linganisha_c(b, "1 2 3 4 5 6 7 8 9 10") != 0) { andika("[%s]\n", b); rudisha 5; }
 
     // Desimali ya 9 inafika kutoka mrundikano wa Swa; sloti 3 za System V
-    // (witiri) pamoja na al = 8 -- movaps ya snprintf inahitaji mrundikano
+    // (witiri) pamoja na r0b = 8 -- movaps ya snprintf inahitaji mrundikano
     // iliyopangiliwa kwa 16.
     andika_tata_tisa(b, 256, "%.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f %.0f", 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, tt, 11.0);
     kama (linganisha_c(b, "1 2 3 4 5 6 7 8 9 10 11") != 0) { andika("[%s]\n", b); rudisha 10; }

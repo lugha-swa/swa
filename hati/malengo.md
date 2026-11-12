@@ -21,7 +21,7 @@ Hakuna assembly. Hakuna GNU as.
 Swa inatoa maelekezo moja kwa moja kwenye kumbukumbu na kuyatekeleza.
 Hakuna faili. Hakuna binary. Hakuna OS kati.
 - [x] `mmap()` -> andika opcodes -> rukia (PR #143)
-- [x] Stub ya `jmp main` na tungo mwishoni mwa chombo
+- [x] Stub ya `ruka main` na tungo mwishoni mwa chombo
 - [x] Thamani ya kurudi inarudi kwa usahihi (vipimo 5/5 vya JIT)
 - [x] Wito wa kazi za ndani ndani ya msimbo wa JIT (jedwali la anwani
       la exe -- anwani_ya_kazi ya ndani + tekeleza kama builtin) na

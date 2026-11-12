@@ -40,7 +40,7 @@ lugha ya mashine ya Swa (`.swm`) -- unasomeka kama programu, si baiti.
   ukubwa wa faili, `p_memsz` -- vyombo vyote viko ndani yake.
 - **Kila agizo:** baiti kwenye mstari zinasimba agizo lililoandikwa kwenye
   maoni yake (rejea: Intel SDM Juzuu 2, au disassembler yoyote kama mkaguzi).
-- **Wito wa mfumo:** kabla ya kila `syscall` (0f 05), thamani ya rax ni
+- **Wito wa mfumo:** kabla ya kila `mfumo` (0f 05), thamani ya r0 ni
   mojawapo ya zile kwenye jedwali hapo juu -- hakuna mtandao, hakuna
   kubadilisha ruhusa za kumbukumbu, hakuna kuandika mahali pengine.
 - **Kumbukumbu:** kila uandishi unaenda kwenye chombo kilichotangazwa kwenye
