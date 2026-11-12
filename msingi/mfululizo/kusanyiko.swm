@@ -1388,7 +1388,7 @@ hk_m:
 ;   +0 aina: 1 rejista, 2 kumbukumbu, 3 namba, 4 xmm, 5 rejista yenye
 ;            familia (a/n mbele), 6 anwani (&), 7 hali (kama ...)
 ;   +8 rejista   +16 upana (baiti; 0 = haijatajwa)   +24 msingi (-1)
-;   +32 faharisi (-1)  +40 kipimo  +48 umbali  +56 jirani (1)  +64 familia
+;   +32 faharisi (-1)  +40 kipimo  +48 umbali  +56 kutoka_agizo (1)  +64 familia
 ;   +72 haijatatuliwa (1)
 
 ; soma_hoja: tokeni ya kwanza imeshasomwa; r7 = rekodi
@@ -1514,7 +1514,7 @@ sh_si_mabano:
         r7d = 0x5b
         ita tokeni_ni_alama
         ruka sh_anw_kum kama ==
-; &lebo -> [lebo] (jirani)
+; &lebo -> [lebo] (kutoka agizo)
         ita usemi_ya_tokeni
         n64[r3+48] = r0
         r0 = n64[r15+V_HAIJATATULIWA]
@@ -1587,7 +1587,7 @@ sk_usemi:
         n64[r3+48] += r0
         r0 = n64[r15+V_HAIJATATULIWA]
         n64[r3+72] |= r0
-        n64[r3+56] = 1   ; lebo/umbali: jirani ikiwa hakuna rejista
+        n64[r3+56] = 1   ; lebo/umbali: kutoka agizo ikiwa hakuna rejista
 sk_ijayo:
         ita tokeni
         r12d = 1
@@ -1610,12 +1610,12 @@ sk_ijayo:
         n64[r3+24] = r0
         n64[r3+40] = 1
 sk_si_2:
-; jirani tu ikiwa hakuna msingi wala faharisi
+; kutoka agizo tu ikiwa hakuna msingi wala faharisi
         linganisha n64[r3+24], -1
-        ruka sk_si_jirani kama !=
+        ruka sk_si_kutoka_agizo kama !=
         linganisha n64[r3+32], -1
         ruka sk_m kama ==
-sk_si_jirani:
+sk_si_kutoka_agizo:
         n64[r3+56] = 0
 sk_m:
         rudi
@@ -1689,7 +1689,7 @@ trh_m:
         rudi
 
 ; zalisha_modrm: r6d = sehemu ya reg (biti 3 za chini), r2 = rekodi, r1d = baiti
-; za namba zinazofuata (kwa jirani).
+; za namba zinazofuata (kwa kutoka agizo).
 zalisha_modrm:
         r9d = r6d
         r9d &= 7
@@ -1701,7 +1701,7 @@ zalisha_modrm:
         linganisha n64[r2], 5
         ruka tm_rej kama ==
         linganisha n64[r2+56], 1
-        ruka tm_jirani kama ==
+        ruka tm_kutoka_agizo kama ==
         r10 = n64[r2+24]   ; msingi
         r11 = n64[r2+32]   ; faharisi
         linganisha r10, -1
@@ -1798,7 +1798,7 @@ tm_rej:
         r1d &= 7
         r0d |= r1d
         ruka zalisha_baiti
-tm_jirani:
+tm_kutoka_agizo:
         sukuma r1
         r0d = r9d
         r0d |= 5
@@ -1837,7 +1837,7 @@ kb_m:
 
 ; agizo_rm: agizo lenye ModRM. Hoja: r12d = upana (baiti), r6d = sehemu ya
 ; reg, r2 = rekodi ya r/m, r13d = opkodi (baiti 1, au 0x0Fxx kwa baiti 2:
-; 0x0F00 | xx), r1d = baiti za namba zinazofuata (jirani). Huandika 66, REX,
+; 0x0F00 | xx), r1d = baiti za namba zinazofuata (kutoka agizo). Huandika 66, REX,
 ; opkodi, ModRM/SIB/umbali.
 agizo_rm:
         sukuma r1
