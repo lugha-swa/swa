@@ -152,7 +152,7 @@ Angalia [`CONTRIBUTING.md`](../CONTRIBUTING.md). Masuala yenye lebo `good-first-
 5. ~~Uthabiti wa makosa ya mchanganuzi~~ -- IMESHAFANYIKA: mbegu na
    mchanganuzi wa .swa dhidi ya ingizo baya (hati/mipaka.md sehemu 1-2)
 6. ~~JIT ndani ya exe~~ -- IMESHAFANYIKA: tekeleza kama builtin,
-   anwani_ya_kazi ya ndani (jedwali la anwani 0x400078+ofseti) --
+   anwani_ya_kazi ya ndani (jedwali la anwani 0x400078+umbali) --
    exe haina alama za nje kabisa
 7. ~~ABI ya wito wa kazi za D64~~ -- IMESHAFANYIKA kwenye mifululizo
    yote miwili (kilichopimwa 2026-08-27 -- mipaka.md 4c imerekebishwa).

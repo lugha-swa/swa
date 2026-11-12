@@ -1056,7 +1056,7 @@ faharasa (mpangilio ule ule wa asili), kisha upakiaji. Awali ilikuwa `shl`,
 msingi usio jani hubaki njia ya asili. Uhifadhi (`arr[i] = x`) haujaguswa.
 
 Hitilafu moja ilipatikana na jaribio jipya wakati wa kuandika: `jr_msingi_off`
-(kigezo cha ulimwengu kilichoshikilia ofseti ya safu ya msingi) kiliandikwa
+(kigezo cha ulimwengu kilichoshikilia umbali wa safu ya msingi) kiliandikwa
 juu na faharasa ya ndani (`b[a[1] / 10]`) kati ya uamuzi na upakiaji;
 `jr_pakia_msingi_rcx` sasa inatafuta tena. Jaribio: `jaribio_safu_sib`.
 
@@ -1192,8 +1192,8 @@ vilivyopandishwa hadi rejesta za kudumu baadaye (havisomwi/kuandikwa
 kamwe kupitia anwani yao ya rafu). Kwa `fib`, hii inamaanisha `sub
 rsp, 0x10` inahifadhi baiti 16 zisizotumika kabisa. Kupunguza hili
 kwa usalama kunahitaji kuunganisha uamuzi wa ugawaji wa rejesta NDANI
-ya mchakato wa kutoa ofseti (si kupunguza jumla ya `sub rsp` peke
-yake baada ya ofseti kukwisha gawiwa -- hilo lingehamisha vigezo
+ya mchakato wa kutoa umbali (si kupunguza jumla ya `sub rsp` peke
+yake baada ya umbali kukwisha gawiwa -- hilo lingehamisha vigezo
 vingine chini ya rsp mpya, uharibifu wa rafu). Ni kazi kubwa zaidi,
 haijaguswa kikao hiki.
 
@@ -1330,7 +1330,7 @@ iliyofikiwa kupitia kielekezi kimoja bila faharasa.
 ## Uhifadhi wa kielekezi->sehemu = thamani kwa [r9+off] moja kwa moja
 
 Kioo cha tatu cha mfululizo huu: `ptr->sehemu = thamani` sasa hutumia
-`[r9+off]` moja kwa moja -- OFSETI YA SEHEMU (iliyowekwa na mkaguzi,
+`[r9+off]` moja kwa moja -- UMBALI wa SEHEMU (iliyowekwa na mkaguzi,
 0/4/8 n.k.) inaandikwa ndani ya ModRM/disp8/disp32 ya agizo la
 kuhifadhi lenyewe, badala ya "add rax, off" tofauti + push/pop ya
 anwani. Kielekezi kinashikiliwa r9 (jr_jani_rcx) wakati RHS salama
@@ -1342,7 +1342,7 @@ jr_ni_salama -- inarudi njia ya asili kiotomatiki.
 ### Uthibitisho
 
 - `jaribio_uhifadhi_mshale`: sehemu ya kwanza (hakuna disp), disp8,
-  disp32 (ofseti > 127), RHS salama inayogusa rcx, RHS isiyo salama
+  disp32 (umbali > 127), RHS salama inayogusa rcx, RHS isiyo salama
   (wito), kiwanja, kielekezi kilichotokana na pointer arithmetic.
   426/426, uthabiti kamili2==kamili3.
 - Hitilafu YA KANDO iliyogunduliwa (nje ya wigo, HAUJAREKEBISHWA): muundo
@@ -1350,9 +1350,9 @@ jr_ni_salama -- inarudi njia ya asili kiotomatiki.
   kukusanywa (`; KOSA: 1` kutoka kwa mchanganuzi wa kamili2) -- ilikuwepo
   hata kwenye mkusanyaji wa KABLA ya kazi hii (f1v), hivyo si
   imesababishwa na mabadiliko haya. Jaribio hili liliepuka tatizo kwa
-  kutumia sehemu nyingi za N32 badala ya safu moja kupata ofseti > 127.
+  kutumia sehemu nyingi za N32 badala ya safu moja kupata umbali > 127.
 - Mutation: kubadilisha kigezo cha disp8/disp32 (`off < 128` -> `off <
-  256`) kulisababisha SEGV kwenye jaribio_uhifadhi_mshale (ofseti ya
+  256`) kulisababisha SEGV kwenye jaribio_uhifadhi_mshale (umbali wa
   `mbali`, 140, ingeandikwa kama disp8 potovu) -- imekamatwa.
 - Fuzz 5001 programu za nasibu: sifuri tofauti.
 
