@@ -138,9 +138,9 @@ LLVM inakokotoa mpangilio wa muundo kulingana na sheria za data lengwa. Ikiwa mk
 
 Kuhifadhi thamani pana kwenye pointee finyu kunahitaji `trunc`. Kuhifadhi thamani finyu kwenye pointee pana kunahitaji `zext`. Kukosea husababisha ufisadi wa kumbukumbu ya karibu.
 
-### 5.4 Matamko ya mbele hayapaswi kuzalisha miili ya kazi
+### 5.4 Matamko ya mbele hayapaswi kuzalisha maudhui ya kazi
 
-`tangaza kazi` inapaswa kutoa `declare` ya LLVM, si `define` yenye mwili tupu. Ufafanuzi wa mwili tupu unashindana na utekelezaji halisi.
+`tangaza kazi` inapaswa kutoa `declare` ya LLVM, si `define` yenye maudhui matupu. Ufafanuzi wa maudhui matupu unashindana na utekelezaji halisi.
 
 ### 5.5 Upakiaji wa Windows PE na sehemu kubwa za BSS
 
@@ -152,7 +152,7 @@ Baada ya taarifa ya `kama`, block ya sharti ya `BrCond` haipaswi kuwa kiungo cha
 
 ### 5.7 Alloca za vigeu vya ndani lazima ziwe kwenye block ya kuingia
 
-LLVM inatarajia alloca zote za vigeu vya ndani ziwe kwenye block ya kuingia ya kazi. Kutoa alloca kwenye block ya mzunguko kunasababisha kila mzunguko kugawa nafasi mpya ya mrundikano bila kuzirejesha. Hii inaisha kwa uharibifu wa mrundikano (SIGSEGV). Suluhisho ni mbinu ya kupitisha mara mbili: (1) tembea AST mapema kukusanya matamko yote ya vigeu, (2) toa alloca zote kwenye block ya kuingia kabla ya mwili wowote kuchakatwa.
+LLVM inatarajia alloca zote za vigeu vya ndani ziwe kwenye block ya kuingia ya kazi. Kutoa alloca kwenye block ya mzunguko kunasababisha kila mzunguko kugawa nafasi mpya ya mrundikano bila kuzirejesha. Hii inaisha kwa uharibifu wa mrundikano (SIGSEGV). Suluhisho ni mbinu ya kupitisha mara mbili: (1) tembea AST mapema kukusanya matamko yote ya vigeu, (2) toa alloca zote kwenye block ya kuingia kabla ya maudhui yoyote kuchakatwa.
 
 ### 5.8 Mfululizo wa ushughulikiaji wa tokeni
 
@@ -224,7 +224,7 @@ Katika kipindi cha saa 18 cha kurekebisha hitilafu, marekebisho 12 yalifanywa:
   - Mbinu ya kupitisha mara mbili katika `src/ir/lower.rs`:`lower_function`
   - `collect_local_decls` -- mbinu mpya inayotembea AST kukusanya matamko yote ya vigeu vya ndani
   - `pre_allocated_locals` -- ramani ya `HashMap<i32, ValueId>` kwa alloca zilizotanguliwa
-  - Alloca zote za vigeu vya ndani sasa zinatolewa kwenye block ya kuingia kabla ya mwili kuchakatwa
+  - Alloca zote za vigeu vya ndani sasa zinatolewa kwenye block ya kuingia kabla ya maudhui kuchakatwa
   - Binary ya kujikusanya hai-SIGSEGV tena
 
 - **BrCond katika ufuatiliaji wa actual_prev:**

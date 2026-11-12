@@ -34,7 +34,7 @@ kwa tokeni isiyotarajiwa (`{` baada ya `(`) -- hang bila kikomo. Mabano
 yasiyofungwa yalikubaliwa kimya (rc=0).
 
 Sasa: tokeni isiyo aina kwenye vigezo inaweka kosa na kurudi; EOF ndani
-ya mwili/bloku/hoja/orodha-ya-vianzisha/hali za chagua inaweka kosa --
+ya maudhui/bloku/hoja/orodha-ya-vianzisha/hali za chagua inaweka kosa --
 yote yanarudisha 1 kwa sauti (`; KOSA: 1`). Kumbuka: kazi hizi sasa
 zinakaribia kikomo cha vizuizi vya FastISel cha LLVM -- mwisho wa LLVM
 unabaki tete (kikomo kilichojulikana, kipengee 6).

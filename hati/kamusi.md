@@ -102,7 +102,7 @@ mbegu upya. Kwa kipindi kifupi mkusanyaji hukubali majina yote mawili.
 | expr / expression | `usemi` |
 | stmt / statement | `taarifa` |
 | cond / condition | `sharti` |
-| body | `mwili` |
+| body | `maudhui` |
 | then / else | `basi` / `sivyo` |
 | default | `chaguo_msingi` |
 | block | `kizuizi` |

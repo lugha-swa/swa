@@ -74,7 +74,7 @@ Kilichopimwa (2026-09-04): madai ya zamani kwamba dereva wa Rust
 leksia na sarufi -- dereva wa Rust huchambua maneno ya taarifa
 yale yale kama mkusanyaji wa uzalishaji. Kila neno la orodha hiyo
 ya zamani ni jambo jingine:
-- `fanya` ni neno muhimu kamili -- mzunguko wa mwili-kwanza
+- `fanya` ni neno muhimu kamili -- mzunguko wa maudhui-kwanza
   (sehemu 6.8). Mzunguko wenyewe bado haujatekelezwa na sarufi
   ya mwisho wa Rust (kilichopimwa 2026-09-04) -- leksia pekee
   haitengenezi neno muhimu.
@@ -401,7 +401,7 @@ n32 anza() {
 ## 5. Tangazo la Kazi
 
 ```
-<aina> <jina>(<vigezo>) { <mwili> }
+<aina> <jina>(<vigezo>) { <maudhui> }
 ```
 
 - Vigezo: `n32 a`, `n32* p`, `Orodha* o` (muundo kwa kielekezi au kwa
@@ -451,9 +451,9 @@ sivyo {
 }
 ```
 
-Mwili wa `kama` NA wa `sivyo` unaweza kuwa taarifa MOJA bila
+Maudhui ya `kama` NA ya `sivyo` yanaweza kuwa taarifa MOJA bila
 mabano (semantiki ya C): `kama (1) a = 1; sivyo a = 2;` huweka
-a = 1. Kilichopimwa 2026-09-01: mwili wa `sivyo` bila mabano
+a = 1. Kilichopimwa 2026-09-01: maudhui ya `sivyo` bila mabano
 ulitekelezwa KILA mara (taarifa iliyotiririka nje kama taarifa
 isiyo na masharti) -- sasa ni taarifa moja, sawa na `kama`.
 
@@ -477,11 +477,11 @@ kwenye sharti -- semantiki ya C, katika mbegu NA mfululizo wa .swa
 (uliowiana 2026-08; angalia mipaka.md 4b).
 
 Kilichopimwa (2026-08-31): `endelea` kama taarifa ya MOJA KWA MOJA
-ndani ya mwili wa `kwa` (pamoja na taarifa ya mwisho) imefungwa
+ndani ya maudhui ya `kwa` (pamoja na taarifa ya mwisho) imefungwa
 kwenye mfululizo wa uzalishaji. Zamani mfululizo ulikwama kwenye
 `endelea` wa mwisho (mzunguko usioisha, msimbo wa kutoka 124 --
 kosa lililoelezwa kwenye hati/uthibitisho-wa-lugha.md 4.2 namba
-16), na hali iliyoachwa ilichukuliwa kama uongo (mwili haukutekelezwa
+16), na hali iliyoachwa ilichukuliwa kama uongo (maudhui hayakutekelezwa
 kamwe). Majaribio: jaribio_hitilafu_endelea_moja_kwa_moja,
 jaribio_hitilafu_kwa_hali_tupu, jaribio_hitilafu_kwa_mabano_matupu,
 jaribio_hitilafu_endelea_na_acha_mwisho.
@@ -532,24 +532,24 @@ jaribio_hitilafu_kata_acha_ndani_ya_chagua_nje.
 
 - `acha;` -- toka nje ya mzunguko wa ndani (wakati, kwa, au
   fanya -- 6.8).
-- `endelea;` -- ruka hadi mwisho wa mwili na uendelee; kwa
-  `fanya`, "mwisho wa mwili" ni sharti (6.8).
+- `endelea;` -- ruka hadi mwisho wa maudhui na uendelee; kwa
+  `fanya`, "mwisho wa maudhui" ni sharti (6.8).
 
 ### 6.8 Fanya (do-while)
 
 ```
-fanya { mwili } wakati (sharti);
+fanya { maudhui } wakati (sharti);
 ```
 
-Mzunguko wa fanya hutekeleza mwili MARA MOJA kabla ya sharti
-kujaribiwa, kisha kurudia mwili mradi sharti ni kweli (semantiki
-ya C ya do-while). Mwili hukimbia angalau mara moja -- hata sharti
+Mzunguko wa fanya hutekeleza maudhui MARA MOJA kabla ya sharti
+kujaribiwa, kisha kurudia maudhui mradi sharti ni kweli (semantiki
+ya C ya do-while). Maudhui hukimbia angalau mara moja -- hata sharti
 la uwongo tangu mwanzo haliuzuii mwendo wa kwanza. Muundo ni
-mkali: mabano ya wima ya mwili, mabano ya sharti, na nukta-mkato
+mkali: mabano ya wima ya maudhui, mabano ya sharti, na nukta-mkato
 wa mwisho ni ya lazima (sawa na mbegu).
 
 `endelea` ndani ya fanya inaruka hadi SHARTI: taarifa zilizobaki
-za mwili zinarukwa kwenye mwendo huo, na sharti linajaribiwa upya
+za maudhui zinarukwa kwenye mwendo huo, na sharti linajaribiwa upya
 (semantiki ya C ya do-while -- tofauti na `kwa`, ambapo endelea
 inaruka hadi HATUA, 6.5). `acha` inaondoka kwenye mzunguko mara
 moja bila kujaribu sharti tena. acha na endelea ndani ya fanya
@@ -561,7 +561,7 @@ jaribio_fanya_hali_ya_uwongo, jaribio_fanya_endelea,
 jaribio_fanya_acha, na jaribio_fanya_kama_jina_la_kigezo (KATA --
 neno muhimu kama jina linakataliwa, 2.2). Kilichopimwa
 (2026-09-04): fanya inafanya kazi kwenye mifululizo YOTE MIWILI --
-mbegu iliyogandishwa 2026-09-04 ina mzunguko wa fanya (mwili
+mbegu iliyogandishwa 2026-09-04 ina mzunguko wa fanya (maudhui
 hukimbia mara moja, `endelea` inaruka hadi sharti, `acha` inaondoka
 mara moja, viota ndani ya `kwa` -- vyote sawa na mfululizo wa
 uzalishaji). Kumbuka la zamani la "majaribio ni ya kamili pekee
@@ -642,7 +642,7 @@ nje "libm.so.6" {
   jina la maktaba kama mfumo unavyoliita. `nje` SI neno muhimu:
   linatambuliwa tu likifuatiwa na mfuatano kwenye ngazi ya juu, hivyo
   `n8* nje` kama kigeu kinaendelea kufanya kazi.
-- Kila mstari ni kichwa cha kazi bila mwili, kikiishia kwa `;`.
+- Kila mstari ni kichwa cha kazi bila maudhui, kikiishia kwa `;`.
   `= "<alama>"` huunganisha jina la Swa na jina lao kwenye maktaba;
   bila `=`, alama ni jina la Swa lenyewe. Majina ya Kiingereza ya
   maktaba huingia kama mfuatano, si kama kitambulisho.
@@ -677,7 +677,7 @@ nje "libm.so.6" {
 - Mipaka iliyobaki, yote kwa sauti: muundo kwenye kazi yenye `...`,
   data ya desimali au safu, na hali zisizo `--programu`/`--wasm`
   (`--kiini`, `--tafsiri`, `--kati`, `--papo`, `.o`). Jina linalogongana na
-  kazi ya Swa yenye mwili, au kutangazwa mara mbili, ni kosa.
+  kazi ya Swa yenye maudhui, au kutangazwa mara mbili, ni kosa.
 - `--wasm`: kila `nje "<moduli>"` huwa uingizaji wa WASM (moduli,
   alama); hoja na matokeo ni `n32`, kielekezi au `w0`. DOM hutoka
   `msingi/maktaba/kivinjari.swa` (`husisha { kivinjari.swa }`), na

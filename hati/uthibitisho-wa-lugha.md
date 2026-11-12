@@ -133,7 +133,7 @@ kila kirejeshi kilipimwa tena leo na uthibitisho uliobainishwa:
 4. **Kielekezi na N32 kama hoja kilikubaliwa kimya** (kisha SEGV
    wakati wa kukimbia), **maneno muhimu kama vitambulisho
    yalikubaliwa**, **wito wenye hoja 17+ ulitupa hoja za ziada
-   kimya**, **mwili wa `sivyo` usio na mabano ulitekelezwa daima**,
+   kimya**, **maudhui ya `sivyo` yasiyo na mabano yalitekelezwa daima**,
    na **%u/%x za thamani hasi zilichapisha takataka** -- vyote
    vimefunga (commit b827c91, pamoja na ufuatiliaji wa halisi
    kwa kielekezi). Imepimwa leo: hoja za kielekezi/N32 zinakataliwa
@@ -248,11 +248,11 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 
 | Kipengele | Mbegu | Uzalishaji | Kinachotarajiwa | Hali |
 |---|---|---|---|---|
-| kama/sivyo: rahisi, viota, mfululizo, mwili usio na mabano (taarifa moja), ukweli wa thamani, mwili tupu, tangazo ndani ya mwili (kesi 9) | SAWA | SAWA | kama hati | SAWA |
+| kama/sivyo: rahisi, viota, mfululizo, maudhui yasiyo na mabano (taarifa moja), ukweli wa thamani, maudhui matupu, tangazo ndani ya maudhui (kesi 9) | SAWA | SAWA | kama hati | SAWA |
 | kama/sivyo bila mabano pande zote mbili (`kama (1) a = 1; sivyo a = 2;`) | SAWA (a=1) | SAWA (a=1) | a=1 | imefunga kwenye uzalishaji (zamani JIBU-BAYA: sivyo daima) |
 | mfululizo wa sivyo-kama bila mabano (t141) | SAWA (a=1) | SAWA (a=1) | a=1 | imefunga kwenye uzalishaji |
-| wakati: rahisi, (0), acha, endelea, viota, && mzunguko mfupi, mwili bila mabano, mwili tupu (kesi 9) | SAWA | SAWA | kama hati | SAWA |
-| kwa: rahisi, hali iliyoachwa, (;;), kianzilishi cha tangazo, endelea, acha, viota, mwili bila mabano, mwili tupu (kesi 11) | SAWA | SAWA | kama hati | SAWA |
+| wakati: rahisi, (0), acha, endelea, viota, && mzunguko mfupi, maudhui bila mabano, maudhui matupu (kesi 9) | SAWA | SAWA | kama hati | SAWA |
+| kwa: rahisi, hali iliyoachwa, (;;), kianzilishi cha tangazo, endelea, acha, viota, maudhui bila mabano, maudhui matupu (kesi 11) | SAWA | SAWA | kama hati | SAWA |
 | chagua: kila muundo (mikono, sivyo, viota, thamani 0/hasi/N64, selecta ya usemi, rudisha ndani, endelea ndani) (kesi 13) | IMEKATALIWA (mchanganuzi haujui chagua) | SAWA | hati 6.6 | tofauti (kikomo cha mbegu kilichoandikwa) |
 | chagua: thamani ya usemi, thamani ya kigezo, bloku ndani ya mkono, acha nje ya mzunguko, sivyo pekee, hali nje ya chagua | IMEKATALIWA | IMEKATALIWA | kukataliwa kwa sauti | IMEKATALIWA kwa sauti (sawa) |
 | hesabu za N32: + - * / % | SAWA | SAWA | 26 14 120 3 2 | SAWA |
@@ -292,7 +292,7 @@ Marekebisho ya sehemu ya 3 yamewekwa.
 | W0 na rudisha; (bila thamani), rudisha mapema | SAWA | SAWA | kama hati | SAWA |
 | kurudisha muundo kwa thamani | SAWA | SAWA | kama hati | SAWA |
 | tangazo la kigezo bila kianzilishi | SAWA | SAWA | kama hati | SAWA |
-| kazi yenye mwili tupu { } | SAWA | SAWA | kama hati | SAWA |
+| kazi yenye maudhui matupu { } | SAWA | SAWA | kama hati | SAWA |
 | ++, -- | IMEKATALIWA | IMEKATALIWA | si ya hati | IMEKATALIWA (sawa) |
 | halisi za radiksi (0x10) | IMEKATALIWA | IMEKATALIWA | kukataliwa kwa sauti | SAWA |
 | acha/endelea nje ya mzunguko | JIBU-BAYA (inapuuzwa kimya) | IMEKATALIWA (sauti) | kukataliwa kwa sauti | tofauti (tazama 8.13) |

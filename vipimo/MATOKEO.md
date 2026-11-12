@@ -77,7 +77,7 @@ umepunguzwa kwa makusudi (angalia maoni kamili juu ya `licm_boresha`,
 `msambazaji.swa`): mgawanyo/modulo hazihamishwi kamwe, usemi wowote
 unaogusa kumbukumbu (safu/nyoosha/muundo) haustahili kamwe, mzunguko
 wenye wito wowote haugombei kabisa, na uhamishaji unafanyika TU
-kwa taarifa za ngazi ya juu za mwili wa mzunguko (ugawaji au tamko
+kwa taarifa za ngazi ya juu za maudhui ya mzunguko (ugawaji au tamko
 lenye kianzio) -- si ndani ya matawi ya "kama".
 
 Mbinu: mkusanyaji wa KABLA na wa BAADA ya mabadiliko haya ulijengwa
@@ -109,7 +109,7 @@ awamu ijayo, si hitilafu).
 
 **mzunguko_mchezo HAIFAIDIKI KABISA (kama ilivyotarajiwa, si
 kushangaza)** -- mzunguko wake pekee (`wakati (t < MZUNGUKO_JUMLA)`)
-kina wito mmoja tu wa `mchezo_sasisha(g)` ndani ya mwili wake wote --
+kina wito mmoja tu wa `mchezo_sasisha(g)` ndani ya maudhui yake wote --
 hatari #3 (kizuizi kikali dhidi ya wito wowote ndani ya mzunguko)
 inazuia mzunguko huo kabisa kuwa mgombea wa LICM, bila kujali usemi
 mwingine wowote ndani yake. Hii ni matokeo ya moja kwa moja ya wigo
@@ -146,7 +146,7 @@ inayotekelezwa kabisa) -- kipimo cha chini kinaonyesha badala yake
 kipimo kipya cha lengo (`vipimo/sambamba_jozi_d64/`), kilichoundwa MAALUM
 kuendana na muundo unaokubalika, kikilinganisha toleo linaloustahili
 uvektishaji dhidi ya toleo la scalar lenye hesabu ile ile HASA
-(N=2,000,000 elementi, marudio 60) lakini mwili wa mzunguko wenye
+(N=2,000,000 elementi, marudio 60) lakini maudhui ya mzunguko wenye
 taarifa TATU (kigezo cha muda `tmp` cha ziada) badala ya mbili
 kimakusudi, ili kukikwepa. Matokeo ya programu (jumla ya `c` yote)
 yalithibitishwa SAWA KABISA kati ya matoleo mawili kabla ya kuamini
@@ -597,9 +597,9 @@ Disassembly ya jaribio_naau_vinodi_sita imefuatiliwa KIPOFU (baiti
 kwanza, chanzo baadaye): leg za && (== na !=) zinatumia jcc ya
 KINYUME sahihi (jne kwa ==, je kwa !=), zote mbili zikiruka kwenda
 mahali pa pamoja pa "sivyo kweli" ya kama isiyo na else (inayolingana
-na mwisho wa mwili wa then -- muunganiko sahihi wa udhibiti). Leg za
+na mwisho wa maudhui ya then -- muunganiko sahihi wa udhibiti). Leg za
 || (!= na >) zinatumia mchanganyiko sahihi wa jcc ya MOJA KWA MOJA
-(leg ya kwanza, kuruka kwenda mahali_pa_kweli_mapema mbele ya mwili wa
+(leg ya kwanza, kuruka kwenda mahali_pa_kweli_mapema mbele ya maudhui ya
 then) na jcc ya KINYUME (leg ya pili, kuruka kwenda mahali pa "sivyo
 kweli" ya jumla). SIFURI setcc/movzbl popote kwenye binary hiyo.
 
@@ -870,7 +870,7 @@ Hakuna kipimo kilichopo kinachotumia mfano wa "usemi unaorudiwa lakini
 si invariant ndani ya mzunguko" -- kipimo kipya `vipimo/urudufu_wa_mstari/`
 kimeundwa MAKUSUDI: "i*i" hutokea mara mbili kwa kila mzunguko (h1=
 i*i+i, h2=i*i-i), SIYO invariant (i inabadilika kila mzunguko, hivyo
-LICM haiwezi kuigusa), lakini ni straight-line ndani ya mwili wa
+LICM haiwezi kuigusa), lakini ni straight-line ndani ya maudhui ya
 mzunguko (hakuna tawi kati ya h1 na h2). Mizunguko 50,000,000.
 Disassembly imethibitisha imul MOJA TU (32-bit, %ecx,%eax) ndani ya
 mzunguko huo badala ya MBILI. Muda halisi (interleaved, mizunguko 5,
