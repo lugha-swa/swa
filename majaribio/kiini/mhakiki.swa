@@ -1,0 +1,288 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+husisha { msingi/maktaba/mfuatano.swa }
+
+// mhakiki.swa -- mhakiki wa QEMU kwa gharama/jaribu-kiini.mapishi.
+//
+// Huchukua picha iliyokamilika (kianzishi.swm + anza iliyotolewa na
+// "swa --kiini", iliyounganishwa mwishoni mwa picha), huianzisha kwenye
+// QEMU (bendera -kernel; hakuna BIOS/GRUB -- anwani za Multiboot1 zilizo
+// kwenye utangulizi zinaruhusu hili), na kusoma HALI HALISI ya CPU na
+// kumbukumbu kupitia soketi ya kifuatiliaji cha QEMU baada ya HLT -- SI
+// "haikuanguka", ni kulinganisha thamani halisi na tarajiwa.
+//
+// Matumizi: mhakiki <picha.bin> <r7-tarajiwa> [maandishi-ya-vga]
+//
+// [maandishi-ya-vga] hutumia "\n" halisi (baiti mbili: 0x5c 0x6e) kwa
+// mstari mpya -- kila kipande hulinganishwa kuanzia safuwima 0 ya
+// safu-mlalo yake (kioo cha jinsi kiini_vga_andika_mstari_mpya
+// inavyosogeza kaka -- angalia uzalishaji.swa).
+//
+// Uthibitisho:
+//   - "info registers": RDI (r7 ya Swa) LAZIMA iwe sawa na <r7-tarajiwa>
+//     -- thamani ya kurudi ya anza, iliyohamishwa kwenda r7d na
+//     kianzishi.swm mara baada ya "ita anza".
+//   - Kila kipande cha [maandishi-ya-vga] LAZIMA kionekane kwenye
+//     safu-mlalo yake (0xb8000 + safu_mlalo*80*2), kila herufi ikifuatiwa
+//     na baiti ya sifa 0x0f (nyeupe juu ya nyeusi -- thamani ya kudumu ya
+//     kiini_vga_andika_herufi kwenye uzalishaji.swa).
+//
+// Huchukua nafasi ya mhakiki.py: mfululizo wa majaribio sasa hauhitaji
+// Python. Tabia ni ile ile: QEMU hujaribu KVM kwanza, kisha tcg.
+
+n8 jibu[65536];           // majibu ya kifuatiliaji
+n64 urefu_wa_jibu = 0;
+n8 njia_ya_soketi[108];
+n8 amri[256];
+n32 soketi = -1;
+n64 mchakato_wa_qemu = 0;
+
+// Lala kwa milisekunde n (nanosleep, wito namba 35).
+w0 lala_ms(n64 n) {
+    n64 muda[2];
+    muda[0] = n / 1000;
+    muda[1] = (n % 1000) * 1000000;
+    wito_wa_mfumo(35, muda, 0, 0, 0, 0, 0);
+}
+
+// Milisekunde tangu mwanzo wa saa ya mfumo (clock_gettime, CLOCK_MONOTONIC).
+n64 sasa_ms() {
+    n64 muda[2];
+    wito_wa_mfumo(228, 1, muda, 0, 0, 0, 0);
+    rudisha muda[0] * 1000 + muda[1] / 1000000;
+}
+
+w0 safisha() {
+    kama (soketi >= 0) { mfumo_funga(soketi); soketi = -1; }
+    kama (mchakato_wa_qemu > 0) {
+        mfumo_tuma_ishara(mchakato_wa_qemu, 15);
+        n32 hali_ya_mwisho = 0;
+        mfumo_subiri4(mchakato_wa_qemu, &hali_ya_mwisho, 0);
+        mchakato_wa_qemu = 0;
+    }
+    wito_wa_mfumo(87, njia_ya_soketi, 0, 0, 0, 0, 0);  // unlink
+}
+
+w0 shindwa(n8* ujumbe) {
+    andika_kosa("KOSA: %s\n", ujumbe, 0, 0, 0, 0, 0);
+    kama (urefu_wa_jibu > 0) {
+        mfumo_andika(2, jibu, urefu_wa_jibu);
+        andika_kosa("\n", 0, 0, 0, 0, 0, 0);
+    }
+    safisha();
+    wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+}
+
+// Tafuta programu kwenye PATH (execve haitafuti yenyewe).
+n8* tafuta_kwenye_njia(n8** mazingira, n8* jina) {
+    n64 i = 0;
+    wakati (mazingira[i] != 0) {
+        kama (anza_kwa_mfuatano(mazingira[i], "PATH=")) {
+            n8* p = mazingira[i] + 5;
+            n8* kipande = tenga(512);
+            wakati (p[0] != 0) {
+                n64 n = 0;
+                wakati (p[n] != 0 && p[n] != 58) { n = n + 1; }  // ':'
+                kama (n > 0 && n < 400) {
+                    nakili(kipande, p, n);
+                    kipande[n] = 47;  // '/'
+                    nakili_mfuatano(kipande + n + 1, jina);
+                    kama (wito_wa_mfumo(21, kipande, 1, 0, 0, 0, 0) == 0) { rudisha kipande; }  // access(X_OK)
+                }
+                p = p + n;
+                kama (p[0] == 58) { p = p + 1; }
+            }
+        }
+        i = i + 1;
+    }
+    rudisha 0;
+}
+
+// Tuma amri kwa kifuatiliaji, subiri kidogo, soma jibu.
+w0 amri_ya_qemu(n8* maandishi) {
+    mfumo_andika(soketi, maandishi, urefu_wa_mfuatano(maandishi));
+    n8 mstari_mpya[1];
+    mstari_mpya[0] = 10;
+    mfumo_andika(soketi, mstari_mpya, 1);
+    lala_ms(400);
+    n64 r = mfumo_soma(soketi, jibu, 65535);
+    kama (r < 0) { r = 0; }
+    jibu[r] = 0;
+    urefu_wa_jibu = r;
+}
+
+n32 ni_heksa(n8 c) {
+    rudisha (c >= 48 && c <= 57) || (c >= 97 && c <= 102) || (c >= 65 && c <= 70);
+}
+
+n64 thamani_ya_heksa(n8 c) {
+    kama (c >= 48 && c <= 57) { rudisha c - 48; }
+    kama (c >= 97 && c <= 102) { rudisha c - 87; }
+    rudisha c - 55;
+}
+
+// Thamani ya heksa baada ya "<jina>=" ndani ya jibu, au -1.
+n64 soma_rejista(n8* jina) {
+    n32 i = tafuta_mfuatano(jibu, jina);
+    kama (i < 0) { rudisha -1; }
+    i = i + urefu_wa_mfuatano(jina);
+    n64 v = 0;
+    n32 tarakimu = 0;
+    wakati (ni_heksa(jibu[i])) {
+        v = v * 16 + thamani_ya_heksa(jibu[i]);
+        i = i + 1;
+        tarakimu = tarakimu + 1;
+    }
+    kama (tarakimu == 0) { rudisha -1; }
+    rudisha v;
+}
+
+// Kusanya baiti za "xp" kutoka mistari ya kumbukumbu halisi pekee
+// ("000b8000: 0x4b 0x0f ..."), si mstari wa mwangwi wa amri yenyewe
+// (ambao una "0xb8000" ndani yake). QEMU mpya huandika anwani kwa
+// tarakimu 8, za zamani kwa 16.
+n32 kusanya_baiti(n8* baiti, n32 upeo) {
+    n32 idadi = 0;
+    n64 i = 0;
+    wakati (i < urefu_wa_jibu) {
+        n64 mwanzo = i;
+        wakati (i < urefu_wa_jibu && jibu[i] != 10) { i = i + 1; }
+        n64 mwisho = i;
+        i = i + 1;
+        n64 j = mwanzo;
+        wakati (j < mwisho && (jibu[j] == 32 || jibu[j] == 13)) { j = j + 1; }
+        n64 k = j;
+        wakati (k < mwisho && ni_heksa(jibu[k])) { k = k + 1; }
+        kama (k - j < 8 || k - j > 16 || k >= mwisho || jibu[k] != 58) { endelea; }  // ':'
+        k = k + 1;
+        wakati (k + 3 < mwisho + 1 && idadi < upeo) {
+            kama (jibu[k] == 48 && jibu[k + 1] == 120 && ni_heksa(jibu[k + 2]) && ni_heksa(jibu[k + 3])) {
+                baiti[idadi] = thamani_ya_heksa(jibu[k + 2]) * 16 + thamani_ya_heksa(jibu[k + 3]);
+                idadi = idadi + 1;
+                k = k + 4;
+            } sivyo {
+                k = k + 1;
+            }
+        }
+    }
+    rudisha idadi;
+}
+
+w0 kagua_vga(n8* tarajiwa) {
+    n32 safu_mlalo = 0;
+    n8* p = tarajiwa;
+    n8* mstari = tenga(256);
+    n8* baiti = tenga(512);
+    wakati (1 == 1) {
+        n32 n = 0;
+        wakati (p[n] != 0 && !(p[n] == 92 && p[n + 1] == 110) && n < 255) { n = n + 1; }
+        kama (n > 0) {
+            nakili(mstari, p, n);
+            mstari[n] = 0;
+            n64 msingi_wa_safu = 753664 + safu_mlalo * 160;  // 0xb8000
+            mfuatano_umbiza(amri, 256, "xp /%dxb 0x%x", n * 2, msingi_wa_safu, 0, 0, 0, 0);
+            amri_ya_qemu(amri);
+            n32 zilizopatikana = kusanya_baiti(baiti, n * 2);
+            kama (zilizopatikana < n * 2) {
+                andika_kosa("safu %d: baiti %d, zilitarajiwa %d\n", safu_mlalo, zilizopatikana, n * 2, 0, 0, 0);
+                shindwa("xp ilirudisha baiti chache mno");
+            }
+            n32 i = 0;
+            wakati (i < n) {
+                kama (baiti[i * 2] != mstari[i] || baiti[i * 2 + 1] != 15) {
+                    andika_kosa("safu %d, safuwima %d: herufi %d sifa %d, ilitarajiwa '%s'\n", safu_mlalo, i, baiti[i * 2], baiti[i * 2 + 1], mstari, 0);
+                    shindwa("maandishi ya VGA si sahihi");
+                }
+                i = i + 1;
+            }
+        }
+        p = p + n;
+        kama (p[0] == 0) { acha; }
+        p = p + 2;  // ruka "\n"
+        safu_mlalo = safu_mlalo + 1;
+    }
+}
+
+n32 anza(n32 idadi_ya_hoja, n8** hoja_za_mstari) {
+    kama (idadi_ya_hoja < 3) {
+        andika_kosa("matumizi: mhakiki <picha.bin> <r7-tarajiwa> [maandishi-ya-vga]\n", 0, 0, 0, 0, 0, 0);
+        rudisha 1;
+    }
+    n8* picha = hoja_za_mstari[1];
+    n64 r7_tarajiwa = mfuatano_hadi_n64(hoja_za_mstari[2]);
+    n8* vga_tarajiwa = 0;
+    kama (idadi_ya_hoja > 3) { vga_tarajiwa = hoja_za_mstari[3]; }
+
+    n8** mazingira = hoja_za_mstari + (idadi_ya_hoja + 1);
+    n8* qemu = tafuta_kwenye_njia(mazingira, "qemu-system-x86_64");
+    kama (qemu == 0) { shindwa("qemu-system-x86_64 haipo kwenye PATH"); }
+
+    n64 kitambulisho = wito_wa_mfumo(39, 0, 0, 0, 0, 0, 0);  // getpid
+    mfuatano_umbiza(njia_ya_soketi, 108, "/tmp/swa-jaribu-kiini-%d.sock", kitambulisho, 0, 0, 0, 0, 0);
+    n8* kifuatiliaji = tenga(160);
+    mfuatano_umbiza(kifuatiliaji, 160, "unix:%s,server,nowait", njia_ya_soketi, 0, 0, 0, 0, 0);
+
+    n8** hoja = tenga(8 * 20);
+    hoja[0] = qemu; hoja[1] = "-accel"; hoja[2] = "kvm"; hoja[3] = "-accel"; hoja[4] = "tcg";
+    hoja[5] = "-kernel"; hoja[6] = picha; hoja[7] = "-m"; hoja[8] = "64";
+    hoja[9] = "-display"; hoja[10] = "none"; hoja[11] = "-serial"; hoja[12] = "none";
+    hoja[13] = "-monitor"; hoja[14] = kifuatiliaji; hoja[15] = "-no-reboot"; hoja[16] = "-no-shutdown";
+    hoja[17] = 0;
+
+    mchakato_wa_qemu = mfumo_gawanyika();
+    kama (mchakato_wa_qemu == 0) {
+        n64 tupu = mfumo_fungua("/dev/null", 2, 0);
+        kama (tupu >= 0) {
+            wito_wa_mfumo(33, tupu, 1, 0, 0, 0, 0);  // dup2 -> stdout
+            wito_wa_mfumo(33, tupu, 2, 0, 0, 0, 0);  // dup2 -> stderr
+        }
+        mfumo_tekeleza_programu(qemu, hoja, mazingira);
+        wito_wa_mfumo(60, 127, 0, 0, 0, 0, 0);
+    }
+    kama (mchakato_wa_qemu < 0) { mchakato_wa_qemu = 0; shindwa("fork ya QEMU imeshindwa"); }
+
+    // Unganisha kwenye soketi ya kifuatiliaji (AF_UNIX, SOCK_STREAM).
+    n8 anwani[110];
+    weka_sifuri(anwani, 110);
+    anwani[0] = 1;  // AF_UNIX (n16 ya mdogo-kwanza)
+    nakili_mfuatano(anwani + 2, njia_ya_soketi);
+    n64 urefu_wa_anwani = 2 + urefu_wa_mfuatano(njia_ya_soketi) + 1;
+    n32 jaribio = 0;
+    wakati (jaribio < 30 && soketi < 0) {
+        n64 s = wito_wa_mfumo(41, 1, 1, 0, 0, 0, 0);
+        kama (s >= 0) {
+            kama (wito_wa_mfumo(42, s, anwani, urefu_wa_anwani, 0, 0, 0) == 0) {
+                soketi = s;
+            } sivyo {
+                mfumo_funga(s);
+            }
+        }
+        kama (soketi < 0) { lala_ms(100); }
+        jaribio = jaribio + 1;
+    }
+    kama (soketi < 0) { shindwa("soketi ya kifuatiliaji cha QEMU haikuwahi kuonekana"); }
+
+    lala_ms(300);
+    mfumo_soma(soketi, jibu, 65535);  // salamu ya kifuatiliaji
+
+    // Subiri mpaka CPU ifike HLT badala ya kukisia muda: bila KVM (mf.
+    // kwenye CI) QEMU hutumia tcg, ambayo ni polepole zaidi.
+    amri_ya_qemu("info registers");
+    n64 mwanzo = sasa_ms();
+    wakati (tafuta_mfuatano(jibu, "HLT=1") < 0 && sasa_ms() - mwanzo < 15000) {
+        lala_ms(200);
+        amri_ya_qemu("info registers");
+    }
+    n64 r7 = soma_rejista("RDI=");
+    kama (r7 < 0) { shindwa("RDI haikupatikana kwenye 'info registers'"); }
+    kama (tafuta_mfuatano(jibu, "HLT=1") < 0) { shindwa("CPU haikufika HLT (anza haikurudi au ilianguka?)"); }
+    kama (r7 != r7_tarajiwa) {
+        andika_kosa("r7=%d, ilitarajiwa %d\n", r7, r7_tarajiwa, 0, 0, 0, 0);
+        shindwa("thamani ya kurudi si sahihi");
+    }
+
+    kama (vga_tarajiwa != 0) { kagua_vga(vga_tarajiwa); }
+
+    urefu_wa_jibu = 0;
+    safisha();
+    rudisha 0;
+}
