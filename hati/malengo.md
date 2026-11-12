@@ -30,20 +30,20 @@ Hakuna faili. Hakuna binary. Hakuna OS kati.
 ### Hatua ya 3: Kuziba pengo la bootstrap [IMEFANYIKA KWA MBEGU]
 Andika baiti za mkono (opcodes za x86-64) zinazounda mkusanyaji wa kwanza.
 - [x] Kwanza (msingi/kwanza.bin): baiti 393 zilizoandikwa kwa mkono
-      (kichwa cha ELF 64 + kichwa cha programu 56 + msimbo 273) -- hubadilisha
+      (utangulizi wa ELF 64 + maelezo ya kipande 56 + msimbo 273) -- hubadilisha
       hex hadi binary na inajijenga yenyewe (kwanza.heksa -> kwanza.bin)
 - [x] awali.bin inazalika kutoka awali.heksa kupitia Kwanza -- NASM
       si sehemu ya mfululizo tena; tangu 2026-11-03 awali.bin yenyewe hujengwa
       kutoka mbegu.swm na mfululizo huru (hati/mfululizo-huru.md)
 - [x] Kiunganishi cha kujitegemea: bendera ya `--programu` inatoa **ET_EXEC
-      tuli** (bila kichwa cha sehemu, bila PT_INTERP) -- mfululizo wa
+      tuli** (bila maelezo ya sehemu, bila PT_INTERP) -- mfululizo wa
       kujikusanya wa exe ni safi kabisa: kamili2 == kamili3
       (sawa kwa baiti) bila ld, gcc, wala libc.
 - [x] Runtime ya syscalls: mkusanyaji hautekelezi kupitia libc tena --
       mfumo_fungua/mfumo_soma/mfumo_andika/mfumo_ramani_kumbukumbu kupitia wito_wa_mfumo;
       undefined za nje za kamili2 ni mbili tu (violesura vya JIT).
 - [x] 0% bootstrap gap -- mbegu inatoa ET_EXEC tuli moja kwa moja
-      (`--programu`): kichwa + phdr + stub ya `_start` + urekebishaji wa
+      (`--programu`): utangulizi + phdr + stub ya `_start` + urekebishaji wa
       RELA wa ndani. Hakuna gcc, ld, clang, muda.c, wala libc popote
       kwenye mfululizo: kwanza -> mbegu -> kamili -> kamili2 ->
       kamili3 (kamili2 == kamili3, sawa kwa baiti).

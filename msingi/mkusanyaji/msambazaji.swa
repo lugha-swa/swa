@@ -2604,7 +2604,7 @@ n32 changanua(Msambazaji* p) {
             }
         }
 
-        // Kiolesura cha mashine: nje "<maktaba>" { <vichwa vya kazi> }
+        // Kiolesura cha mashine: nje "<maktaba>" { <matangazo ya kazi> }
         // (hati/kiolesura-cha-mashine.md). `nje` si neno muhimu -- linatambuliwa
         // hapa tu, likifuatiwa na mfuatano, hivyo `n8* nje` kama kigeu
         // linaendelea kufanya kazi.
@@ -2816,7 +2816,7 @@ n32 changanua_nje(Msambazaji* p) {
         n32 f = changanua_kazi(p);
         ndani_ya_nje = 0;
         kama (f == -1) {
-            andika_kosa("kosa: mstari %d: ndani ya nje kunatarajiwa kichwa cha kazi\n", mstari_kazi);
+            andika_kosa("kosa: mstari %d: ndani ya nje kunatarajiwa tangazo la kazi\n", mstari_kazi);
             rudisha -1;
         }
         // Kigezo cha data cha maktaba: <aina> <jina> [= "<alama>"];
@@ -2828,7 +2828,7 @@ n32 changanua_nje(Msambazaji* p) {
             endelea;
         }
         kama (aina_ya_nodi[f] != NODI_KAZI || tatu_ya_nodi[f] != -1) {
-            andika_kosa("kosa: mstari %d: ndani ya nje ni vichwa vya kazi na vigezo vya data pekee, bila maudhui\n", mstari_kazi);
+            andika_kosa("kosa: mstari %d: ndani ya nje ni matangazo ya kazi na vigezo vya data pekee, bila maudhui\n", mstari_kazi);
             rudisha -1;
         }
         kama (kigeni_idadi_ya_kazi >= 1024) {
@@ -2854,7 +2854,7 @@ n32 changanua_nje(Msambazaji* p) {
         // Bila '=', changanua_kazi tayari imetumia ';' ya tangazo la mbele.
         kama (kazi_mbele_ilifungwa == 0) {
             kama (neno_ni(&p->sasa, ";") == 0) {
-                andika_kosa("kosa: mstari %d: ';' inatarajiwa mwishoni mwa kichwa cha kazi ya nje\n", mstari_kazi);
+                andika_kosa("kosa: mstari %d: ';' inatarajiwa mwishoni mwa tangazo la kazi ya nje\n", mstari_kazi);
                 rudisha -1;
             }
             sogeza(p);
@@ -3859,7 +3859,7 @@ w0 hamisha_nje_badilisha_kama_inavyowezekana(n32 nodi_inayoibeba, n32 ni_kushoto
     // kudhania mpangilio wa nyanja usiothibitishwa (angalia wigo).
 }
 
-// Jaribu LICM kwa nodi MOJA ya AST_WAKATI -- hurudisha kichwa cha
+// Jaribu LICM kwa nodi MOJA ya AST_WAKATI -- hurudisha mwanzo wa
 // mfululizo mpya wa matamko ya muda ya kuweka KABLA ya mzunguko huu
 // (au -1 kama hakuna kilichohamishwa/kinachostahili).
 n32 hamisha_nje_jaribu_mzunguko(n32 nodi_hii) {
@@ -3890,7 +3890,7 @@ n32 hamisha_nje_jaribu_mzunguko(n32 nodi_hii) {
     rudisha hamisha_nje_kabla_ya_mwanzo;
 }
 
-// Tembea mfululizo wa taarifa (kichwa cha block), ukichakata mizunguko
+// Tembea mfululizo wa taarifa (mwanzo wa block), ukichakata mizunguko
 // iliyowekwa ndani KWANZA (maudhui ya ndani kabisa kwanza), kisha
 // ukijaribu LICM kwenye kila AST_WAKATI (isipokuwa "kwa" yenye
 // anzisho, angalia maoni ya wigo juu), ukisuka matamko mapya ya muda
@@ -4053,7 +4053,7 @@ n32 urudufu_inapatikana_ni_kushoto[64];
 n8* urudufu_inapatikana_jina[64];  // 0 = bado halijahamishwa kuwa kigezo cha muda; vinginevyo jina la kigezo
 n32 urudufu_inapatikana_idadi = 0;
 
-n32 urudufu_mwanzo_sasa = -1;  // kichwa cha mfululizo wa SASA (kinaweza kubadilika kwa uwekaji wa tangazo mpya kwenye nafasi ya kwanza)
+n32 urudufu_mwanzo_sasa = -1;  // mwanzo wa mfululizo wa SASA (unaweza kubadilika kwa uwekaji wa tangazo mpya kwenye nafasi ya kwanza)
 
 // -------- Usanisi wa jina jipya la kigezo cha muda (kioo cha licm_jina_mpya, kiambishi TOFAUTI ili kisichanganyike) --------
 n8 urudufu_chombo_cha_jina[1536];  // 64 * 24
@@ -4180,7 +4180,7 @@ n32 urudufu_tafuta_faharasa(n32 usemi) {
 }
 
 // Tafuta nodi X ambayo ast_nne[X] == target, ukitembea kutoka
-// cse_kichwa_sasa -- -2 ikiwa target NDIYO kichwa chenyewe (hakuna
+// urudufu_mwanzo_sasa -- -2 ikiwa target NDIYO mwanzo wenyewe (hakuna
 // mtangulizi ndani ya block hili), -1 kama haijapatikana (hitilafu
 // ya uwekaji kumbukumbu -- haipaswi kutokea kama mantiki ni sahihi,
 // lakini tunakagua kwa usalama badala ya kudhania). Utafutaji upya
@@ -4314,7 +4314,7 @@ w0 urudufu_chakata(n32 nodi_inayoibeba, n32 ni_kushoto, n32 juu) {
 // AST_ASIMILIA/AST_TANGAZO kwa CSE, na AST_KAMA/AST_WAKATI kwa
 // kuingia ndani (jedwali JIPYA kwa kila maudhui) na kuweka upya
 // jedwali letu WENYEWE mara tu tunapotoka (angalia SABABU #4 juu).
-// Inarudisha kichwa (kinachoweza kuwa kimebadilika kama tangazo
+// Inarudisha mwanzo (unaoweza kuwa umebadilika kama tangazo
 // jipya limewekwa mwanzoni kabisa mwa mfululizo huu).
 n32 urudufu_pitisha_maudhui(n32 mwanzo) {
     urudufu_inapatikana_idadi = 0;

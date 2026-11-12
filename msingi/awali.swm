@@ -295,9 +295,9 @@ n8 = ".rela.text", 0   ; offset 34
 n8 = ".shstrtab", 0   ; offset 45
 fafanua UKUBWA_WA_JEDWALI_LA_MAJINA_YA_SEHEMU = 55
 
-; ---------- Kiolezo cha kichwa cha ELF ----------
+; ---------- Kiolezo cha utangulizi wa ELF ----------
 
-; Kichwa cha ELF (baiti 64) -- tunatumia kiolezo na kujaza maeneo yanayobadilika
+; Utangulizi wa ELF (baiti 64) -- tunatumia kiolezo na kujaza maeneo yanayobadilika
 n8 mwisho_wa_data_ya_jedwali_la_majina_ya_sehemu =
 n8 kiolezo_cha_utangulizi_wa_elf = 0x7f, 0x45, 0x4c, 0x46   ; e_ident[0:4] -- ELF magic
 n8 = 2   ; EI_CLASS = 64-bit
@@ -6824,7 +6824,7 @@ fumbua_aina:
         ; D64.) Hesabu ya anwani (8.15): safu + umbali ni KIELEKEZI --
         ; jina la safu linaharibika hadi kielekezi (lea), kama
         ; mfululizo wa .swa ("safu ya ndani: usemi wa jina unaharibika
-        ; hadi kielekezi (mshale +1)"). Rudi kwenye kichwa cha
+        ; hadi kielekezi (mshale +1)"). Rudi kwenye mwanzo wa
         ; fumbua_aina BAADA ya pushes -- .fa_anza_tena iko mara moja
         ; baada ya kuzihifadhi.
         r15d = n32[nodi_ya_kushoto + r12*4]
@@ -13931,7 +13931,7 @@ toa_elf:
         sukuma r13   ; shstrtab_off
         sukuma r14   ; shoff
 
-        ; 1. Andika kichwa cha ELF
+        ; 1. Andika utangulizi wa ELF
         ita toa_elf_utangulizi
 
         ; 2. Andika .text
@@ -13962,7 +13962,7 @@ toa_elf:
         ; 7. Andika .shstrtab
         ita zalisha_elf_jedwali_la_majina_ya_sehemu
 
-        ; 8. Andika vichwa vya sehemu
+        ; 8. Andika maelezo ya sehemu
         vuta r14   ; shoff
         vuta r13   ; shstrtab_off
         vuta r12   ; rela_off
@@ -13970,7 +13970,7 @@ toa_elf:
         vuta r15   ; symtab_size
         ; Tunahitaji strtab_size na strtab_off pia
         ; Hizo ziko kwenye r11 na r13 (kabla ya kubadilishwa)
-        ita toa_elf_sehemu_vichwa
+        ita zalisha_elf_maelezo_ya_sehemu
 
         vuta r15
         vuta r14
@@ -14039,12 +14039,12 @@ zalisha_elf_hesabu_ya_jedwali_la_majina:
         rudi
 
 ; -------------------------------------------------------
-; toa_elf_kichwa: andika kichwa cha ELF kwa stdout
+; zalisha_elf_utangulizi: andika utangulizi wa ELF kwa stdout
 ;   inatumia umbali ulio kwenye stack
 ; -------------------------------------------------------
 toa_elf_utangulizi:
-        ; Hujenga na kuandika kichwa kamili cha ELF (baiti 64)
-        ; Kichwa kina sehemu tatu:
+        ; Hujenga na kuandika utangulizi kamili wa ELF (baiti 64)
+        ; Utangulizi una sehemu tatu:
         ;   1. Baiti  0-39: e_ident, e_type, e_machine, e_version, e_entry, e_phoff
         ;   2. Baiti 40-47: e_shoff (inakokotolewa wakati wa utekelezaji)
         ;   3. Baiti 48-63: e_flags, e_ehsize, e_phentsize, e_phnum, e_shentsize, e_shnum, e_shstrndx
@@ -14302,20 +14302,20 @@ zalisha_elf_jedwali_la_majina_ya_sehemu:
         rudi
 
 ; -------------------------------------------------------
-; toa_elf_sehemu_vichwa: andika vichwa vya sehemu kwa stdout
+; zalisha_elf_maelezo_ya_sehemu: andika maelezo ya sehemu kwa stdout
 ;   r8 = text_off, r9 = data_off, r10 = symtab_off
 ;   r11 = strtab_off (imebadilishwa), r12 = rela_off, r13 = shstrtab_off
 ;   r14 = shoff, r15 = symtab_size
 ;   pia inahitaji strtab_size
 ; -------------------------------------------------------
-toa_elf_sehemu_vichwa:
+zalisha_elf_maelezo_ya_sehemu:
         sukuma r12
         sukuma r13
         sukuma r14
         sukuma r15
 
         ; Hali ni ngumu kwa sababu tumepoteza baadhi ya maadili.
-        ; Kwa sasa, tunatoa vichwa vya sehemu vilivyo ngumu.
+        ; Kwa sasa, tunatoa maelezo ya sehemu yaliyo magumu.
         ; Hii ni ya muda -- tutakokotoa upya.
 
         ; NULL sehemu (baiti 64 za sifuri)
@@ -14327,7 +14327,7 @@ toa_elf_sehemu_vichwa:
         vuta r1
         zunguka .sifuri_mzunguko
 
-        ; Kwa sasa tunatoa vichwa vilivyo ngumu kwa sehemu zilizobaki
+        ; Kwa sasa tunatoa maelezo yaliyo magumu kwa sehemu zilizobaki
         ; Hii itarekebishwa wakati uzalishaji kamili utakapofanya kazi
 
         vuta r15
@@ -14457,7 +14457,7 @@ anza:
 ; zalisha_programu: toa ET_EXEC tuli moja kwa moja -- hakuna ld, hakuna libc.
 ;   Hii ndiyo hatua ya 0% bootstrap gap: mbegu inajenga exe ya
 ;   kamili bila kiunganishi chochote.
-;   Mpangilio wa faili: kichwa (64) + phdr (56) + stub ya _start
+;   Mpangilio wa faili: utangulizi (64) + phdr (56) + stub ya _start
 ;   (28) + .text + .data. .bss inafunikwa na p_memsz pekee.
 ;   Awamu ya 1: rekebisha RELA zote kwenye chombo_msimbo (disp32).
 ;   Awamu ya 2: tafuta umbali wa main.
@@ -14590,7 +14590,7 @@ zalisha_programu:
         ruka .dka_chunguza
 .dka_iko:
         ; Andika anwani kamili ya kazi kwenye sloti (baiti 8, LE).
-        ; Msingi wa msimbo: 0x400078 (kichwa+phdr) + stub ya baiti 28
+        ; Msingi wa msimbo: 0x400078 (utangulizi+phdr) + stub ya baiti 28
         ; = 0x400094; kazi ya kwanza ya .text iko hapo.
         r0d = n32[umbali_mahali + r1*4]
         r0d += 0x400094   ; msingi wa msimbo wa exe
@@ -14635,9 +14635,9 @@ zalisha_programu:
         ita mfumo_toka
 .anza_sawa:
 
-        ; === Awamu ya 3: toa kichwa + phdr + stub + text + data ===
+        ; === Awamu ya 3: toa utangulizi + phdr + stub + text + data ===
 
-        ; --- Kichwa cha ELF (baiti 64) ---
+        ; --- Utangulizi wa ELF (baiti 64) ---
         ; e_ident: 7F 45 4C 46 02 01 01 00 + sufuri
         r7d = 0x464C457F
         ita andika_neno4_moja_kwa_moja
@@ -14681,7 +14681,7 @@ zalisha_programu:
         r7d = 0
         ita andika_neno4_moja_kwa_moja
 
-        ; --- Kichwa cha programu (baiti 56): PT_LOAD, RWX, p_offset=0 ---
+        ; --- Maelezo ya kipande (baiti 56): PT_LOAD, RWX, p_offset=0 ---
         r7d = 1   ; p_type = PT_LOAD
         ita andika_neno4_moja_kwa_moja
         r7d = 7   ; p_flags = R|W|X
@@ -14692,7 +14692,7 @@ zalisha_programu:
         ita andika_neno8_moja_kwa_moja
         r7 = 0x400000   ; p_paddr
         ita andika_neno8_moja_kwa_moja
-        ; p_filesz = 120 (kichwa+phdr) + 28 (stub) + text + data
+        ; p_filesz = 120 (utangulizi+phdr) + 28 (stub) + text + data
         r14d = r12d
         r14d += r15d
         r14d += 148
@@ -14846,7 +14846,7 @@ toa_elf_rahisi:
         r11d = r14d   ; rela_size
 
         ; Panga umbali
-        r8d = 64   ; text_off (baada ya kichwa cha ELF)
+        r8d = 64   ; text_off (baada ya utangulizi wa ELF)
         r9d = r8d
         r9d += r12d   ; data_off
         r7d = r9d
@@ -14869,12 +14869,12 @@ toa_elf_rahisi:
         sukuma r13   ; symtab_size
         sukuma r10   ; strtab_size
 
-        ; === ANDIKA KICHWA CHA ELF ===
+        ; === ANDIKA UTANGULIZI WA ELF ===
 
         ; Magic na EI
         r7d = 0x464c457f   ; ELF magic (little-endian)
         ; Andika baiti kwa baiti kwenye chombo cha muda, kisha toa
-        ; Tunajenga kichwa kwenye chombo_muda
+        ; Tunajenga utangulizi kwenye chombo_muda
         r15 = &[chombo_muda]
 
         ; e_ident[0:4] = ELF magic
@@ -14919,14 +14919,14 @@ toa_elf_rahisi:
         ; e_shstrndx = 6 (.shstrtab iko kabla ya .bss)
         n16[r15 + 62] = 6
 
-        ; Andika kichwa (baiti 64) kwa stdout
+        ; Andika utangulizi (baiti 64) kwa stdout
         r6 = &[chombo_muda]
         r2d = 64
         ita mfumo_andika_chombo
 
         ; Rejesha maadili kutoka stack
         ; Sasa stack ina: symtab_off, strtab_off, rela_off, shstrtab_off
-        ; Tunazihitaji baadaye kwa vichwa vya sehemu
+        ; Tunazihitaji baadaye kwa maelezo ya sehemu
         vuta r15   ; symtab_off (tulivuta vibaya, rekebisha)
         vuta r14   ; strtab_off
         vuta r13   ; rela_off
@@ -14950,7 +14950,7 @@ toa_elf_rahisi:
 .pita_data:
 
         ; === ANDIKA .symtab ===
-        sukuma r15   ; symtab_off (hifadhi kwa vichwa vya sehemu)
+        sukuma r15   ; symtab_off (hifadhi kwa maelezo ya sehemu)
         sukuma r14   ; strtab_off
         sukuma r13   ; rela_off
         sukuma r12   ; shstrtab_off
@@ -14968,13 +14968,13 @@ toa_elf_rahisi:
         r2d = UKUBWA_WA_JEDWALI_LA_MAJINA_YA_SEHEMU
         ita mfumo_andika_chombo
 
-        ; === ANDIKA VICHWA VYA SEHEMU ===
+        ; === ANDIKA MAELEZO YA SEHEMU ===
         vuta r12   ; shstrtab_off
         vuta r13   ; rela_off
         vuta r14   ; strtab_off
         vuta r15   ; symtab_off
 
-        ita toa_elf_vichwa_vya_sehemu_rahisi
+        ita zalisha_elf_maelezo_ya_sehemu_rahisi
 
         vuta r15
         vuta r14
@@ -15267,16 +15267,16 @@ zalisha_elf_urekebishaji_rahisi:
         rudi
 
 ; -------------------------------------------------------
-; toa_elf_vichwa_vya_sehemu_rahisi: andika vichwa vya sehemu
-;   Tunaandika vichwa 8 (0 hadi 7)
+; zalisha_elf_maelezo_ya_sehemu_rahisi: andika maelezo ya sehemu
+;   Tunaandika maelezo 8 (0 hadi 7)
 ;   Tunahitaji kuhesabu upya umbali wote hapa
 ; -------------------------------------------------------
-toa_elf_vichwa_vya_sehemu_rahisi:
-        ; Kwa sasa tunatoa vichwa vilivyo ngumu kwa sehemu zilizobaki
+zalisha_elf_maelezo_ya_sehemu_rahisi:
+        ; Kwa sasa tunatoa maelezo yaliyo magumu kwa sehemu zilizobaki
         ; Hii itarekebishwa baadaye
 
         ; Tunahitaji kukokotoa tena umbali wote.
-        ; Badala ya kufanya hivyo, tunaandika vichwa kwa mkono.
+        ; Badala ya kufanya hivyo, tunaandika maelezo kwa mkono.
 
         ; Data tunayoihitaji:
         ; text_size = [chombo_cha_msimbo_wapi]

@@ -4,7 +4,7 @@
 # Huchukua picha iliyokamilika (kianzishi.swm + anza iliyotolewa na
 # "swa --kiini", iliyounganishwa mwishoni mwa picha), huianzisha kwenye QEMU (bendera
 # -kernel ya QEMU; hakuna BIOS/GRUB -- anwani za Multiboot1 zilizo kwenye
-# kichwa zinaruhusu hili), na kusoma HALI HALISI ya CPU/kumbukumbu kupitia
+# utangulizi zinaruhusu hili), na kusoma HALI HALISI ya CPU/kumbukumbu kupitia
 # soketi ya kifuatiliaji cha QEMU baada ya HLT -- SI "haikuanguka", ni
 # kulinganisha thamani halisi na tarajiwa.
 #

@@ -2,7 +2,7 @@
 
 Kwanza ni mkusanyaji wa kwanza wa Swa: program ya **baiti za mkono**
 (bila NASM, bila lugha nyingine) inayobadilisha heksa -> binary. Ukubwa:
-**baiti 393** (kichwa cha ELF 64 + kichwa cha programu 56 + msimbo 273).
+**baiti 393** (utangulizi wa ELF 64 + maelezo ya kipande 56 + msimbo 273).
 
 Kwanza inajijenga yenyewe na inazalisha `awali.bin` kutoka `awali.heksa`.
 Hii inafunga pengo la bootstrap: **hakuna zana ya nje inayohitajika
@@ -17,7 +17,7 @@ Uthibitisho: `gharama/kusanyiko.mapishi` (kwanza hujijenga yenyewe, kisha mfulul
 
 ## Muundo wa Baiti
 
-### Kichwa cha ELF (baiti 64)
+### Utangulizi wa ELF (baiti 64)
 
 | Baiti | Thamani | Maana |
 |---|---|---|
@@ -27,12 +27,12 @@ Uthibitisho: `gharama/kusanyiko.mapishi` (kwanza hujijenga yenyewe, kisha mfulul
 | 10-11 | 02 00 | faili linalotekelezwa |
 | 12-13 | 3e 00 | mashine ya x86-64 |
 | 18-1f | 78 00 40 00 | kuingia: 0x400078 (msimbo unaanza hapo) |
-| 20-27 | 40 00 | kichwa cha programu kiko baiti 64 |
-| 34-35 | 40 00 | ukubwa wa kichwa cha ELF |
-| 36-37 | 38 00 | ukubwa wa kichwa cha programu (56) |
-| 38-39 | 01 00 | kichwa kimoja cha programu |
+| 20-27 | 40 00 | maelezo ya kipande yako baiti 64 |
+| 34-35 | 40 00 | ukubwa wa utangulizi wa ELF |
+| 36-37 | 38 00 | ukubwa wa maelezo ya kipande (56) |
+| 38-39 | 01 00 | maelezo ya kipande kimoja |
 
-### Kichwa cha programu (baiti 56)
+### Maelezo ya kipande (baiti 56)
 
 | Baiti | Thamani | Maana |
 |---|---|---|
