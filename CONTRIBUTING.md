@@ -36,7 +36,7 @@ Tumia kiolezo cha **Ombi la Kipengele**. Kumbuka:
 1. **Fork** repo na unda tawi lako
 2. Andika msimbo wako kwa Kiswahili
 3. Hakikisha mfululizo mzima unapita: `./msingi/mjenzi.bin gharama/jaribu-mfululizo.mapishi`
-4. Tumia ujumbe wa commit kwa Kiswahili
+4. Tumia ujumbe wa badiliko kwa Kiswahili
 5. Eleza **kwa nini** unafanya mabadiliko, si **nini** tu
 
 ---
@@ -68,7 +68,7 @@ chmod +x mfano.bin && ./mfano.bin
 
 | Saraka | Maelezo |
 |--------|---------|
-| `msingi/` | Chanzo cha uaminifu: kwanza (baiti za mkono), awali, bootstrap |
+| `msingi/` | Chanzo cha uaminifu: kwanza (baiti za mkono), awali, kujianzisha |
 | `msingi/maktaba/` | Maktaba ya kawaida ya Swa (kumbukumbu, mfuatano, orodha, ramani, hesabu, faili) |
 | `msingi/mkusanyaji/` | Mkusanyaji wa kujikusanya wa Swa (msomaji, msambazaji, mkaguzi, uzalishaji, mteremko -- IR, mtafsiri, kamili) |
 | `majaribio/` | Programu za majaribio za Swa (ORODHA.txt) |

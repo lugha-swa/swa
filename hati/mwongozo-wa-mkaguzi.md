@@ -14,7 +14,7 @@ matokeo yako (hata "nimekagua X, sikuona tatizo") kwenye issue ya hazina.
 
 | # | Programu | Baiti | Faili la kusoma | Wito wa mfumo (strace) |
 |---|---|---|---|---|
-| 0 | `kwanza` (heksa -> binary) | 393 | `hati/kwanza-baiti.md`, `msingi/kwanza.heksa` | read, write, exit |
+| 0 | `kwanza` (heksa -> binari) | 393 | `hati/kwanza-baiti.md`, `msingi/kwanza.heksa` | read, write, exit |
 | 0b | `kizinduzi` (kiendeshaji cha hatua) | 839 | `msingi/kizinduzi.maoni` (chanzo: `msingi/mfululizo/kizinduzi.swm`) | read, write, open, dup2, fork, wait4, execve, mkdir, exit |
 | 1 | `maoni` (heksa + maoni) | 400 | `msingi/mfululizo/hatua1_maoni.maoni` | read, write, exit |
 | 2 | `mahali` (mahali na matawi) | 730 | `msingi/mfululizo/hatua2_mahali.maoni` | read, write, exit |
@@ -67,13 +67,13 @@ objdump -D -b binary -m i386:x86-64 --adjust-vma=0x400000 \
 strace -o s.txt msingi/kwanza.bin < msingi/kwanza.heksa > /dev/null
 ```
 
-Kisha linganisha disassembly na maoni ya `.maoni` mstari kwa mstari.
+Kisha linganisha tafsiri ya baiti na maoni ya `.maoni` mstari kwa mstari.
 
 ## Kinachothibitishwa kiotomatiki (hakuhitaji kusomwa)
 
 - `./msingi/kizinduzi.bin gharama/mwanzo.kizinduzi`: hatua zote hujengwa
   kutoka binari mbili za mwanzo, kisha mjenzi uliojengwa kutoka chanzo hulinganisha
-  kila binary iliyogandishwa (`mjenzi.bin`, `awali.bin`, `kizinduzi.bin` na
+  kila binari iliyogandishwa (`mjenzi.bin`, `awali.bin`, `kizinduzi.bin` na
   `.heksa` zao). Hatua ya kwanza ya CI.
 - `gharama/jaribu-mfululizo-huru.mapishi`: kila hatua hujijenga yenyewe sawa
   kwa baiti, na kila kipengele na kosa la kila hatua lina jaribio.
@@ -83,7 +83,7 @@ Kisha linganisha disassembly na maoni ya `.maoni` mstari kwa mstari.
 - Awali haziwezi kujithibitisha zenyewe: awali iliyoharibiwa ndiyo
   inayoendesha ukaguzi wake. Kinga ni ukaguzi wa jicho tu -- ndiyo sababu
   mwongozo huu upo.
-- Mfululizo unaendeshwa juu ya kernel ya Linux na CPU ya x86-64. Hizo
+- Mfululizo unaendeshwa juu ya kiini cha Linux na CPU ya x86-64. Hizo
   haziko ndani ya wigo huu.
 - Baada ya hatua 3, chanzo (`hatua4_kusanyiko.kus`, `kusanyiko.swm`,
   `awali.swm`, `mjenzi.swm`) ni maelfu ya mistari. Kinasomeka, lakini

@@ -32,7 +32,7 @@ n32 linganisha_kumbukumbu(n8* a, n8* b, n64 n) {
 // Runtime ya syscalls -- maktaba haihitaji libc tena
 // ==========================================================
 
-// Wito wa mfumo wa Linux -- builtin ya mzalishaji (uzalishaji_wito)
+// Wito wa mfumo wa Linux -- kazi asili ya mzalishaji (uzalishaji_wito)
 // na kiolesura cha C kwa awali. Haina tangazo la .swa: mkaguzi wa Swa
 // hujenga saini kutoka hoja halisi za wito.
 
@@ -46,7 +46,7 @@ n64 mfumo_andika(n32 faili, n8* chombo, n64 urefu) {
 
 n64 mfumo_fungua(n8* njia, n64 machaguo, n64 ruhusa) {
     // Hoja ya 3 (ruhusa) ni ruhusa za faili linaloundwa (mode) --
-    // kernel inaitumia tu wakati O_CREAT iko kwenye bendera,
+    // kiini kinaitumia tu wakati O_CREAT iko kwenye bendera,
     // vinginevyo inapuuzwa. Awali ilipitishwa kama 0, hivyo faili
     // zilizoundwa na O_CREAT zilipata ruhusa 0000 (hazikufunguka
     // kwa usomaji).
@@ -101,11 +101,11 @@ n64 mfumo_tekeleza_programu(n8* njia, n8** hoja_za_mstari, n8** mazingira) {
 
 // mfumo_subiri4 -- subiri mchakato MTOTO abadilishe hali (kawaida: amalize
 // kutekeleza). `pid`: >0 subiri MTOTO HUYO HASA, -1 subiri MTOTO
-// WOWOTE. `status_ptr`: kielekezi cha n32 MOJA ambapo kernel itaandika
+// WOWOTE. `status_ptr`: kielekezi cha n32 MOJA ambapo kiini kitaandika
 // hali ya kutoka iliyosimbwa (encoded) -- tumia
 // `mfumo_subiri4_msimbo_wa_kutoka`/`sys_wait4_ulikufa_kwa_ishara` chini
 // kuichanganua, USIJARIBU kuisoma moja kwa moja (umbizo la kiwango
-// cha biti ni maalum kwa kernel, SI msimbo wa kutoka safi). `chaguo`:
+// cha biti ni maalum kwa kiini, SI msimbo wa kutoka safi). `chaguo`:
 // 0 kwa tabia ya kawaida (subiri hadi mtoto amalize), WNOHANG=1
 // kuuliza bila kuzuia. Hoja ya 4 (rusage) HAIHITAJIKI humu, daima 0.
 // Hurudisha PID ya mtoto aliyebadilisha hali, au namba hasi kwa
@@ -115,7 +115,7 @@ n64 mfumo_subiri4(n64 kitambulisho_mchakato, n32* hali_ya_kielekezi, n64 chaguo)
 }
 
 // mfumo_subiri4_msimbo_wa_kutoka -- toa msimbo wa kutoka (0-255) kutoka
-// kwenye thamani iliyoandikwa na kernel kwenye status_ptr ya
+// kwenye thamani iliyoandikwa na kiini kwenye status_ptr ya
 // mfumo_subiri4. Umbizo (angalia <bits/waitstatus.h> ya glibc/kernel):
 // biti 8-15 (((status) >> 8) & 0xff) ni msimbo wa kutoka IKIWA TU
 // mchakato ulitoka kwa kawaida (angalia mfumo_subiri4_ulitoka_kwa_kawaida
@@ -139,7 +139,7 @@ n32 mfumo_subiri4_ulitoka_kwa_kawaida(n32 hali_ya) {
 // SIGKILL (toa mara moja, HAIWEZI kupuuzwa/kukamatwa) -- hutumika
 // kusitisha mchakato uliozidi muda wa kikomo (timeout). Kutuma
 // kwenye PID isiyokuwepo tena (mfano imekwisha toka yenyewe) ni
-// salama -- kernel hurudisha ESRCH (hasi), hakuna athari.
+// salama -- kiini hurudisha ESRCH (hasi), hakuna athari.
 n64 mfumo_tuma_ishara(n64 kitambulisho_mchakato, n64 ishara) {
     rudisha wito_wa_mfumo(62, kitambulisho_mchakato, ishara, 0, 0, 0, 0);
 }
@@ -168,7 +168,7 @@ n64 mfumo_unda_saraka(n8* njia, n64 ruhusa) {
 
 // ==========================================================
 // Uchapishaji -- andika_n64 / andika_mfuatano / andika_baiti
-// Hizi ndizo kazi zinazoitwa na builtin ya andika katika mzalishaji.
+// Hizi ndizo kazi zinazoitwa na kazi asili ya andika katika mzalishaji.
 // ==========================================================
 
 w0 andika_n64(n32 faili, n64 v) {
@@ -215,15 +215,15 @@ w0 andika_sehemu(n32 faili, n8* s, n64 urefu) {
 
 // ==========================================================
 // andika / andika_kosa -- utekelezaji wa ndani wa muundo
-// (kwa awali: wito za nje hujitatua hapa; codegen ya Swa ni builtin)
+// (kwa awali: wito za nje hujitatua hapa; uzalishaji wa Swa ni kazi asili)
 // Muundo ni mfuatano PAMOJA na nukuu.
 //
 // Viashiria vinavyotumika:
 //   %d  -- n64 yenye ishara (desimali, na alama ya kutoa ikihitajika)
 //   %u  -- n64 isiyo na ishara (desimali; thamani hasi inaonyeshwa
-//         kama mfuatano kamili wa bits za baiti 64)
+//         kama mfuatano kamili wa biti za baiti 64)
 //   %x  -- heksadesimali ndogo bila sifuri za mwanzo (42 -> "2a");
-//         thamani hasi inaonyeshwa kama bits zote 64
+//         thamani hasi inaonyeshwa kama biti zote 64
 //   %s  -- mfuatano unaoishia kwenye 0
 //   %c  -- herufi moja
 //   %%  -- alama ya % (haitumii hoja)
@@ -247,7 +247,7 @@ n64 hoja_kwa_na(n64 a1, n64 a2, n64 a3, n64 a4, n64 a5, n64 a6, n32 na) {
 
 // andika_u64 -- andika n64 kama nambari isiyo na ishara (desimali
 // bila alama ya kutoa). Thamani hasi inaonyeshwa kama mfuatano
-// kamili wa bits 64: -1 -> 18446744073709551615. (Zamani gawanya
+// kamili wa biti 64: -1 -> 18446744073709551615. (Zamani gawanya
 // la ishara lilitoa tarakimu za takataka kwa hasi -- hitilafu ya
 // 2026-09-01. Hesabu: 2^64 = 10 * 1844674407370955161 + 6, kwa
 // hiyo tarakimu ya chini ni (v+6) mod 10 na sehemu ya juu ni
@@ -279,7 +279,7 @@ w0 andika_u64(n32 faili, n64 v) {
 
 // andika_heksa -- andika n64 kwa heksadesimali ndogo bila sifuri
 // za mwanzo. Thamani hasi inaonyeshwa kama kukamilisha mbili ya
-// bits zote 64: -1 -> ffffffffffffffff. Nibble huchukuliwa kutoka
+// biti zote 64: -1 -> ffffffffffffffff. Nibble huchukuliwa kutoka
 // biti za juu kwa hamisha na mask (gawanya la ishara lilitoa
 // takataka kwa hasi -- hitilafu ya 2026-09-01).
 w0 andika_heksa(n32 faili, n64 v) {
@@ -310,7 +310,7 @@ w0 andika_ndani(n32 faili, n8* f, n64 a1, n64 a2, n64 a3, n64 a4, n64 a5, n64 a6
     n32 p = 0;  // mfuatano hauna nukuu (kumbukumbu hutoa bila nukuu)
     n32 na = 0;  // faharisi ya hoja inayofuata
     wakati (1 == 1) {
-        kama (f[p] == 0) { acha; }  // mwisho wa mfuatano (null terminator)
+        kama (f[p] == 0) { acha; }  // mwisho wa mfuatano (null kimalizio)
         kama (f[p] == 37) {  // '%'
             n8 herufi_ya_umbizo = f[p + 1];
             kama (herufi_ya_umbizo == 0) {  // '%' mwishoni mwa mfuatano -- chapisha kama herufi
@@ -364,7 +364,7 @@ n32 andika_kosa(n8* f, n64 a1, n64 a2, n64 a3, n64 a4, n64 a5, n64 a6) {
     rudisha 0;
 }
 
-// ukubwa -- kwa awali (codegen ya Swa huikokotoa wakati wa kukusanya)
+// ukubwa -- kwa awali (uzalishaji wa Swa huikokotoa wakati wa kukusanya)
 n64 ukubwa(n32 aina) {
     kama (aina == 1) { rudisha 1; }
     kama (aina == 2) { rudisha 2; }

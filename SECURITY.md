@@ -24,17 +24,17 @@ Tutajibu ndani ya saa 72 na kutoa mrejesho wa awali ndani ya siku 7.
 ## Wigo wa Usalama
 
 Masuala ya usalama yanayohusiana na:
-- Utekelezaji wa msimbo holela (arbitrary code execution) kupitia mkusanyaji
-- Uvujaji wa kumbukumbu (memory leaks) unaoweza kutumiwa vibaya
-- Ufikiaji wa kumbukumbu nje ya mipaka (out-of-bounds memory access)
+- Utekelezaji wa msimbo holela (arbitrary msimbo execution) kupitia mkusanyaji
+- Uvujaji wa kumbukumbu (kumbukumbu leaks) unaoweza kutumiwa vibaya
+- Ufikiaji wa kumbukumbu nje ya mipaka (out-of-bounds kumbukumbu access)
 - Hitilafu za aina zinazosababisha tabia isiyotabirika
 
 ## Mazoea ya Usalama
 
 Mradi huu unafuata mazoea haya:
 - Msimbo wote unapitia ukaguzi kabla ya kuunganishwa
-- Majaribio yanaendeshwa kiotomatiki kwa kila commit
+- Majaribio yanaendeshwa kiotomatiki kwa kila badiliko
 - Hakuna utegemezi wa nje: mkusanyaji hujengwa kutoka baiti 393 za mkono
-  (`msingi/kwanza.bin`), bila assembler, kiungo, libc wala bash
+  (`msingi/kwanza.bin`), bila kusanyiko, kiungo, libc wala bash
   (`hati/mfululizo-huru.md`)
 - Mkusanyaji haitekelezi msimbo wa mtumiaji -- inauandaa tu

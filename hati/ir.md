@@ -1,6 +1,6 @@
 # IR ya mstari ya Swa
 
-`msingi/mkusanyaji/mteremko.swa` huteremsha AST iliyokaguliwa (msambazaji + mkaguzi) kuwa **IR ya mstari**: kila kazi ni orodha ya amri za anwani-tatu juu ya rejista pepe (vreg), zenye aina wazi. `msingi/mkusanyaji/mtafsiri.swa` huitekeleza moja kwa moja.
+`msingi/mkusanyaji/mteremko.swa` huteremsha AST iliyokaguliwa (msambazaji + mkaguzi) kuwa **IR ya mstari**: kila kazi ni orodha ya amri za anwani-tatu juu ya rejista pepe (rejista pepe), zenye aina wazi. `msingi/mkusanyaji/mtafsiri.swa` huitekeleza moja kwa moja.
 
 ```sh
 bin/swa --tafsiri programu.swa [hoja...]   # teremsha hadi IR, kisha itekeleze
@@ -15,7 +15,7 @@ bin/swa --kati programu.swa                  # chapisha IR
 
 ## Amri
 
-Kila amri ina `ir_amri`, `ir_lengo` (vreg ya matokeo au -1), `ir_a`, `ir_b`, `ir_c`, `ir_namba` (n64), na aina: `ir_upana` (baiti 1/2/4/8) na `ir_ishara` (1 = yenye ishara). Thamani ya kila vreg huhifadhiwa ikiwa **imesawazishwa** kwa aina yake: imekatwa kwa upana wake na kupanuliwa (kwa ishara au sifuri) hadi biti 64.
+Kila amri ina `ir_amri`, `ir_lengo` (rejista pepe ya matokeo au -1), `ir_a`, `ir_b`, `ir_c`, `ir_namba` (n64), na aina: `ir_upana` (baiti 1/2/4/8) na `ir_ishara` (1 = yenye ishara). Thamani ya kila rejista pepe huhifadhiwa ikiwa **imesawazishwa** kwa aina yake: imekatwa kwa upana wake na kupanuliwa (kwa ishara au sifuri) hadi biti 64.
 
 | Amri | Maana |
 |---|---|
@@ -33,7 +33,7 @@ Kila amri ina `ir_amri`, `ir_lengo` (vreg ya matokeo au -1), `ir_a`, `ir_b`, `ir
 | `wito_asili` | kazi ya asili `a`: `wito_wa_mfumo`, `tenga`, `achilia`, na vipande vya `andika` (sehemu ya maandishi, namba, mfuatano, herufi) |
 | `rudisha` | rudisha `v[a]` (`a = -1`: 0) |
 
-Kazi (`irk_*`) zina amri zao `[irk_mwanzo, irk_mwisho)`, idadi ya vreg, ukubwa wa fremu, na vigezo (`irp_*`: umbali wa nafasi na upana). Kazi `<vianzio vya ulimwengu>` huendeshwa kabla ya `main`.
+Kazi (`irk_*`) zina amri zao `[irk_mwanzo, irk_mwisho)`, idadi ya rejista pepe, ukubwa wa fremu, na vigezo (`irp_*`: umbali wa nafasi na upana). Kazi `<vianzio vya ulimwengu>` huendeshwa kabla ya `main`.
 
 ## Semantiki zinazofuata msimbo wa mashine
 

@@ -100,7 +100,7 @@ ya zamani ni jambo jingine:
 ### 2.3 Halisi
 
 - Nambari kamili: mfuatano wa tarakimu. Aina yake ya chaguo-msingi ni
-  n32 ikiwa inatoshea ndani ya 32-bit signed; nje ya hapo ni n64.
+  n32 ikiwa inatoshea ndani ya 32-bit yenye ishara; nje ya hapo ni n64.
   Kilichopimwa (2026-09-04, awali iliyogandishwa 2026-09-04 na
   kamili): halisi za [2^31, 2^63) kwenye kigezo, ulimwengu, na kama
   hoja ya wito -- SAWA kwa mifululizo yote miwili; halisi >= 2^63
@@ -257,7 +257,7 @@ Mabano hubadilisha utangulizi. Chaguo la ternary `sharti ? kweli :
 uwongo` linasaidiwa; upande wa uwongo wa ternary haushiki ugawi
 (`a ? b : c = d` ni `(a ? b : c) = d`). Ugawi ni wa ushirika wa
 kulia (`a = b = c` ni `a = (b = c)`); viendeshaji vingine vyote
-vya binary ni vya ushirika wa kushoto.
+vya binari ni vya ushirika wa kushoto.
 
 Mifano: `4 | 2 & 1` ni `4 | (2 & 1)` = 4, `12 & 10 | 3` ni
 `(12 & 10) | 3` = 11, `a = 1 && 0` inagawia a = 0,
@@ -381,7 +381,7 @@ linalinganishwa na kigeu/paramu/kigeu cha ulimwengu:
   kama wito wa kazi usiojulikana). Kikomo cha hoja ni 16 kama wito
   wa kawaida kwenye mfululizo wa uzalishaji; awali ina kikomo cha
   hoja 9 ("wito wenye hoja zaidi ya 9"). Kazi zinazorejesha muundo
-  (sret) hazisaidiwi kupitia kielekezi (mpangaji wa sret anajulikana
+  (matokeo ya muundo) hazisaidiwi kupitia kielekezi (mpangaji wa matokeo ya muundo anajulikana
   kwa wito wa kawaida pekee) -- wito kama huo unakusanywa na kuanguka
   SEGV wakati wa kukimbia kwenye mifululizo yote miwili
   (kilichopimwa 2026-09-04).
@@ -428,7 +428,7 @@ n32 anza() {
 
 ### 6.1 Tangazo la kigezo
 
-`n32 x = 5;` -- ndani ya block. Kianzilishi ni cha hiari
+`n32 x = 5;` -- ndani ya ubeti. Kianzilishi ni cha hiari
 (`n32 x;` inaruhusiwa) lakini thamani ya kigezo kisichoanzishwa ni
 ISYOFANULIWA (kumbukumbu ya mrundikano isiyoanzishwa) -- usiisome kabla ya
 kuigawa.
@@ -512,7 +512,7 @@ hali lazima iwe halisi ya nambari"). Awali bado inakataa `chagua`
 kabisa (kilichopimwa 2026-09-04).
 
 Kilichopimwa (2026-08-31) -- UAMIZI WA KIMUUNDO: HAKUNA mwanguko
-wa mkono hadi mkono (fall-through) kwenye `chagua`. Kila mkono wa
+wa mkono hadi mkono (mwanguko) kwenye `chagua`. Kila mkono wa
 `hali` unamalizika peke yake kwa kuruka hadi mwisho wa `chagua`
 (sawa na `acha` ya kimya ya C); mkono usio na taarifa yoyote
 haufanyi chochote; mkono wa `sivyo` (chaguo-msingi) unatekelezwa
@@ -535,7 +535,7 @@ jaribio_hitilafu_kata_acha_ndani_ya_chagua_nje.
 - `endelea;` -- ruka hadi mwisho wa maudhui na uendelee; kwa
   `fanya`, "mwisho wa maudhui" ni sharti (6.8).
 
-### 6.8 Fanya (do-while)
+### 6.8 Fanya (fanya-wakati)
 
 ```
 fanya { maudhui } wakati (sharti);
@@ -543,14 +543,14 @@ fanya { maudhui } wakati (sharti);
 
 Mzunguko wa fanya hutekeleza maudhui MARA MOJA kabla ya sharti
 kujaribiwa, kisha kurudia maudhui mradi sharti ni kweli (semantiki
-ya C ya do-while). Maudhui hukimbia angalau mara moja -- hata sharti
+ya C ya fanya-wakati). Maudhui hukimbia angalau mara moja -- hata sharti
 la uwongo tangu mwanzo haliuzuii mwendo wa kwanza. Muundo ni
 mkali: mabano ya wima ya maudhui, mabano ya sharti, na nukta-mkato
 wa mwisho ni ya lazima (sawa na awali).
 
 `endelea` ndani ya fanya inaruka hadi SHARTI: taarifa zilizobaki
 za maudhui zinarukwa kwenye mwendo huo, na sharti linajaribiwa upya
-(semantiki ya C ya do-while -- tofauti na `kwa`, ambapo endelea
+(semantiki ya C ya fanya-wakati -- tofauti na `kwa`, ambapo endelea
 inaruka hadi HATUA, 6.5). `acha` inaondoka kwenye mzunguko mara
 moja bila kujaribu sharti tena. acha na endelea ndani ya fanya
 zinahesabiwa kama zilivyo ndani ya wakati kwa ukaguzi wa
@@ -578,8 +578,8 @@ muundo Nukta {
 
 - Upatikanaji wa sehemu: `p.x` (kwa thamani) na `p->x` (kwa
   kielekezi).
-- Miundo inaweza KUREJESHWA kwa thamani (sret) kwenye mifululizo
-  yote miwili, na sret inayopitishwa moja kwa moja kama hoja ya
+- Miundo inaweza KUREJESHWA kwa thamani (matokeo ya muundo) kwenye mifululizo
+  yote miwili, na matokeo ya muundo inayopitishwa moja kwa moja kama hoja ya
   wito mwingine (`jumlisha(tengeneza(10))`) inafanya kazi kwenye
   mifululizo yote miwili.
 - KUPITISHWA kwa thamani kunafanya kazi kwenye mifululizo yote
@@ -685,7 +685,7 @@ nje "libm.so.6" {
 - Majaribio: `gharama/jaribu-kiolesura.mapishi` (`majaribio/kiolesura/`),
   `gharama/jaribu-wasm.mapishi` (`majaribio/wasm/`).
 
-## 9. Kazi za Ndani (builtins)
+## 9. Kazi za Ndani (kazi asili)
 
 - `wito_wa_mfumo(n64 namba, n64 a1, ..., n64 a6)` -- simu ya mfumo
   ya Linux moja kwa moja. ABI: r0=namba, r7, r6, r2, r10, r8, r9.
@@ -709,7 +709,7 @@ nje "libm.so.6" {
   ya msimbo). `anwani_ya_kazi` inakataliwa kwa sauti ("kazi
   haijafafanuliwa") kwenye mifululizo yote miwili. Lugha ya programu
   hutumia `&jina_la_kazi` na wito kupitia kielekezi (4.3) -- hakuna
-  builtin ya pekee inayohitajika.
+  kazi asili ya pekee inayohitajika.
 
 ## 10. Maktaba ya Kawaida (msingi/maktaba/)
 
@@ -762,7 +762,7 @@ Muhtasari wa kilichopimwa 2026-09-04 kwenye mifululizo yote miwili
 Kila kanuni katika hati hii ina mwenzake kwenye majaribio
 yanayoendeshwa na CI (`gharama/*.mapishi`: mfululizo huru, programu
 za `majaribio/programu/ORODHA.txt` kwenye mifululizo yote miwili,
-mkazo, mifano, usakinishaji, IR, kiolesura cha mashine, WASM, kernel)
+mkazo, mifano, usakinishaji, IR, kiolesura cha mashine, WASM, kiini)
 au kwenye uthabiti ya kujikusanya (kamili2 == kamili3 sawa
 kwa baiti).
 

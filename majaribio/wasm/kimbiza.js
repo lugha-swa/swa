@@ -1,20 +1,20 @@
 // kimbiza.js -- kikaguzi cha Node kisicho na tegemezi la nje (hakuna
 // npm package) kwa moduli za WASM zinazozalishwa na "kamili --wasm".
-// Matumizi: node kimbiza.js <faili.wasm> <thamani_tarajiwa> [aina]
+// Matumizi: nodi kimbiza.js <faili.wasm> <thamani_tarajiwa> [aina]
 //
 // aina (hiari, chaguo-msingi "namba"):
 //   namba     -- anza() haihitaji hoja, matokeo (i32) yanalinganishwa
 //                moja kwa moja na <thamani_tarajiwa> (namba kamili).
 //                Tabia ya asili ya Awamu 1, HAIJABADILIKA.
-//   mfuatano  -- anza() inarudisha i32 (umbali ndani ya kumbukumbu, ptr).
+//   mfuatano  -- anza() inarudisha i32 (umbali ndani ya kumbukumbu, kielekezi).
 //                Baiti zinasomwa kutoka instance.exports.memory.buffer
-//                kuanzia ptr HADI baiti 0x00 (mkataba wa mfuatano wa
+//                kuanzia kielekezi HADI baiti 0x00 (mkataba wa mfuatano wa
 //                NUL-terminated, sawa na jinsi mfuatano halisi
 //                unavyohifadhiwa na wasm_ongeza_mfuatano), kisha
 //                kubadilishwa kuwa Latin1 na kulinganishwa na
 //                <thamani_tarajiwa> (mfuatano halisi, SI namba).
-//   safu      -- anza() inarudisha i32 (ptr kwenye safu ya n32,
-//                little-endian, kama WASM linear memory yenyewe).
+//   safu      -- anza() inarudisha i32 (kielekezi kwenye safu ya n32,
+//                little-endian, kama WASM linear kumbukumbu yenyewe).
 //                <thamani_tarajiwa> ni namba kamili zilizotenganishwa
 //                kwa mkato (,), idadi ya vipengele inatokana na hesabu
 //                yao. Kila kipengele kinasomwa kama i32 (baiti 4) na

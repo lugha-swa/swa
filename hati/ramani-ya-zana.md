@@ -11,7 +11,7 @@ kilichopo mbali.
 | Mkusanyaji wa kujikusanya (awali -> kamili -> kamili2 == kamili3) | KAMILI | uthabiti sawa kwa baiti |
 | Vipimo rasmi vya lugha | KAMILI | hati/vipimo-vya-lugha.md |
 | Maktaba ya kawaida | KAMILI | jaribio_maktaba_awali_exe |
-| JIT (--papo) ndani ya exe | KAMILI | UND=0; jaribio la CI |
+| JIT (--papo) ndani ya programu | KAMILI | UND=0; jaribio la CI |
 | Formatter (umbizaji) | INAFANYIKA | zana/umbizaji.swa (kwa Swa yenyewe) |
 
 ## Kilicho karibu (muda wa wiki)
@@ -38,7 +38,7 @@ kilichopo mbali.
    uzalishaji.swa na awali. Inahitaji ujumuishaji na gdb/lldb.
 3. **Majukwaa zaidi ya x86-64 Linux** -- ARM64 (aarch64) na riscv64.
    Hii inamaanisha: baiti mpya za mkono za kwanza kwa kila usanifu,
-   codegen mpya ya awali, na ABI ya jukwaa. Kila usanifu ni mradi
+   uzalishaji mpya wa awali, na ABI ya jukwaa. Kila usanifu ni mradi
    wake mwenyewe.
 4. **Kidhibiti cha vifurushi (package manager)** -- baada ya mfumo wa
    moduli kuwa thabiti.

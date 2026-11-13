@@ -1,7 +1,7 @@
 # Kwanza -- Baiti za Mkono
 
 Kwanza ni mkusanyaji wa kwanza wa Swa: program ya **baiti za mkono**
-(bila NASM, bila lugha nyingine) inayobadilisha heksa -> binary. Ukubwa:
+(bila NASM, bila lugha nyingine) inayobadilisha heksa -> binari. Ukubwa:
 **baiti 393** (utangulizi wa ELF 64 + maelezo ya kipande 56 + msimbo 273).
 
 Kwanza inajijenga yenyewe na inazalisha `awali.bin` kutoka `awali.heksa`.

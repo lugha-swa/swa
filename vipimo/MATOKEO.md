@@ -32,7 +32,7 @@ ALGORITHM MOJA HASA kwenye DATA MOJA HASA (LCG yenye thamani ya kuanzia ileile
 kwa vipimo vinavyohitaji data ya kubahatisha), na kila moja
 imethibitishwa kutoa MATOKEO SAWA KABISA kati ya lugha mbili kabla
 ya kuamini muda wake -- kipimo cha haraka lakini chenye makosa
-hakina thamani. Kila binary lilipimwa mara 7, wastani wa kati
+hakina thamani. Kila binari lilipimwa mara 7, wastani wa kati
 (median, si wastani wa hesabu) umeripotiwa pamoja na kiwango cha
 chini/juu ili kuonyesha kelele halisi badala ya kuificha.
 
@@ -64,11 +64,11 @@ tovuti pekee ambapo Swa inabaki karibu na uwiano wa mwanzo wa kikao
 (3.7x-17.6x) -- 14.6x ni mbaya zaidi kati ya vipimo vitano, ikiendana
 na ugunduzi wa awali kuwa mzunguko mgumu wa nambari (bila SIMD/
 vectorization) ndicho kinachoathiriwa zaidi na ukosefu wa ugawaji
-wa rejesta wa jumla (register allocation ya sasa inashughulikia
+wa rejesta wa jumla (ugawaji wa rejista ya sasa inashughulikia
 vigezo vya ndani na paramu PEKEE, si matokeo ya kati ya usemi --
 angalia majadiliano ya awamu inayofuata).
 
-## LICM (loop-invariant code motion) -- kipimo halisi cha kabla/baada
+## LICM (loop-invariant msimbo motion) -- kipimo halisi cha kabla/baada
 
 Awamu hii inahamisha usemi wa hesabu/linganisho/biti usiobadilika
 (mf. `i * n` ndani ya fahirisi ya safu `a[i*n+j]`) nje ya mzunguko wa
@@ -125,7 +125,7 @@ Awamu hii inatambua muundo mwembamba SANA wa mzunguko wa "wakati":
 na kihesabu cha mzunguko bila ongezeko). Ikilingana, hutoa maagizo ya
 SSE2 packed-double (`movupd`/`addpd`/`subpd`/`mulpd`) yanayoshughulikia
 elementi MBILI kwa wakati mmoja badala ya moja, na awamu ya pili ya
-"mabaki" (scalar, njia ya kawaida) kwa elementi ya mwisho iliyobaki
+"mabaki" (ya kawaida, njia ya kawaida) kwa elementi ya mwisho iliyobaki
 ikiwa idadi ni isiyo sawa. Angalia maoni kamili juu ya
 `simd_jaribu_mzunguko` (`uzalishaji.swa`) kwa masharti yote manane.
 
@@ -145,7 +145,7 @@ Kwa sababu `matriki` haiendani na muundo, kipimo cha kabla/baada cha
 inayotekelezwa kabisa) -- kipimo cha chini kinaonyesha badala yake
 kipimo kipya cha lengo (`vipimo/sambamba_jozi_d64/`), kilichoundwa MAALUM
 kuendana na muundo unaokubalika, kikilinganisha toleo linaloustahili
-uvektishaji dhidi ya toleo la scalar lenye hesabu ile ile HASA
+uvektishaji dhidi ya toleo la kawaida lenye hesabu ile ile HASA
 (N=2,000,000 elementi, marudio 60) lakini maudhui ya mzunguko wenye
 taarifa TATU (kigezo cha muda `tmp` cha ziada) badala ya mbili
 kimakusudi, ili kukikwepa. Matokeo ya programu (jumla ya `c` yote)
@@ -161,14 +161,14 @@ agizo moja) -- inayotarajiwa: mzigo huu umefungwa na kipimo cha
 kumbukumbu (arrays tatu za D64 za MB 16 kila moja, mara nyingi zaidi
 ya akiba ya L2/L3), sio hesabu safi ya ALU, hivyo kupunguza maagizo
 ya ALU pekee hakuondoi kizuizi cha bandwidth ya kumbukumbu kabisa.
-Toleo la scalar pia lina mzigo mdogo wa ziada (kigezo `tmp` cha ziada
+Toleo la kawaida pia lina mzigo mdogo wa ziada (kigezo `tmp` cha ziada
 kwenye mrundikano kwa kila mzunguko) ambao si sehemu safi ya uvektishaji
 wenyewe -- tofauti halisi ya "SIMD dhidi ya scalar safi" pengine ni
 kidogo zaidi ya 40% iliyoripotiwa hapa, si kidogo.
 
 ## Tahadhari ya kelele
 
-Kikao kilichotangulia kiliona TOFAUTI YA MARA 2 (2x) kwenye binary
+Kikao kilichotangulia kiliona TOFAUTI YA MARA 2 (2x) kwenye binari
 zilezile wakati wa kupima kazi ya ugawaji wa rejesta wa paramu.
 Vipimo hivi vilionyesha kelele ndogo zaidi (chini ya 15% kati ya
 chini na juu kwa vipimo vingi), LAKINI mzani wa masafa ya CPU
@@ -215,7 +215,7 @@ Uchunguzi mkubwa mbili za gharama zilizogunduliwa kwa KUPIMA HALISI
 |---|---|---|---|
 | fibonacci (fib(35), haja=1, milioni 30 za wito) | ~150ms | ~155ms | sawa (ndani ya kelele -- ilikuwa ~35% pungufu KABLA ya masharti #2 kuongezwa) |
 | heshi (djb2, haja=2, ndani ya mzunguko) | ~1800ms | ~1800ms | sawa (ndani ya kelele -- SU inatumika kwa kweli, lakini faida ndogo mno ikilinganishwa na gharama kubwa ya uumbizaji wa mfuatano inayotawala kipimo hiki) |
-| kupanga (nasibu_ijayo, haja=2, LAKINI HAINA mzunguko wake wenyewe) | ~490ms | ~495ms | sawa (SU imekataliwa kikamilifu kwa usahihi -- disassembly inathibitisha msimbo sawa KABISA na kabla) |
+| kupanga (nasibu_ijayo, haja=2, LAKINI HAINA mzunguko wake wenyewe) | ~490ms | ~495ms | sawa (SU imekataliwa kikamilifu kwa usahihi -- tafsiri ya baiti inathibitisha msimbo sawa KABISA na kabla) |
 | su_rejesta_muda (kipimo kipya, haja=3, safu ndani ya mzunguko, marudio milioni 20) | ~188ms (wastani wa marudio 5) | ~154ms (wastani wa marudio 5) | ~18% haraka zaidi, THABITI kwenye marudio YOTE 5 yaliyopishana |
 
 Kama `matriki` kwa uvektishaji wa SIMD, benchmark za kawaida
@@ -236,7 +236,7 @@ pamoja na desimali (D32/D64) na ZIDISHA (*) sasa zikiungwa mkono.
 Ugunduzi wa kwanza (kiwanja halisi, `+=`/`-=`) haujabadilika hata
 kidogo -- njia mpya inajaribiwa TU pale ya kwanza haikupata kitu.
 
-**Uthibitisho wa mfumo (disassembly, si dhana)**: kwa muundo rahisi
+**Uthibitisho wa mfumo (tafsiri ya baiti, si dhana)**: kwa muundo rahisi
 (`c[i]=c[i]+a[i]*b[i]`, fahirisi "i" moja kwa moja), anwani ya `c[i]`
 sasa inakokotolewa MARA MOJA kwa kila mzunguko (shl mara 3: a, b, c)
 badala ya MBILI (shl mara 4: a, b, c-kwa-uandishi, c-kwa-usomaji tena)
@@ -256,7 +256,7 @@ YALE YALE ya kuzidisha `r3*r13` yanaonekana MARA MBILI mfululizo,
 yakihifadhiwa kwenye nafasi mbili tofauti za mrundikano). Kwa kuwa vigezo
 hivyo vina MAJINA tofauti, ulinganisho wa muundo (`keq_taja_sawa`)
 kwa usahihi HAUKUBALI ulinganifu -- si hitilafu, ni tabia salama
-inayozuia matokeo yasiyo sahihi. Matokeo: binary ya matriki
+inayozuia matokeo yasiyo sahihi. Matokeo: binari ya matriki
 iliyotolewa na mkusanyaji mpya ni SAWA KABISA kwa baiti na ile ya
 zamani (`cmp` imethibitisha usawa kamili) -- kashe hii HAIBADILISHI
 `matriki` hata kidogo kwa sasa. Hii ni fursa halisi ya baadaye
@@ -283,7 +283,7 @@ memory-bound.
 
 Mkusanyaji huu hutumia mrundikano (push/pop) sana kama njia ya jumla ya
 kuhamisha thamani kati ya sehemu za usemi (`sukuma_thamani`/
-`vuta_thamani_rcx` na maeneo mengi ya moja kwa moja) -- disassembly
+`vuta_thamani_rcx` na maeneo mengi ya moja kwa moja) -- tafsiri ya baiti
 za PR nyingi za kikao hiki zimeonyesha mara kwa mara mfuatano kama
 `sukuma r0; vuta r1` (sawa na `hamisha r1, r0` moja) au hata `sukuma r0;
 sukuma r0; vuta r0` (kashe ya anwani ya kiwanja, PR #239/#240 --
@@ -315,11 +315,11 @@ kiwanja) -- chanzo: `andika_pop_rcx`/`andika_pop_rax` ziliita
 ya zamani ikiwa bado hai na kutoa PUSH YA PILI ISIYO SAHIHI (mrundikano
 ikavurugika). Rekebisho: futa hali KWANZA, kisha ita `andika_mov_*`
 -- muundo uleule uliokuwa tayari sahihi kwenye `png_safisha`.
-Iligunduliwa kwa disassembly ya kesi ndogo (`c[i*n+j]+=7`), si dhana.
+Iligunduliwa kwa tafsiri ya baiti ya kesi ndogo (`c[i*n+j]+=7`), si dhana.
 
 **Usalama uliothibitishwa**: jaribio maalum la hatari kuu (mahali halisi
 kutoka `&&`/`||` NDANI ya usemi wenye sukuma inayosubiri) limejengwa na
-kuthibitishwa kwa disassembly -- sukuma hutolewa kikamilifu KABLA ya
+kuthibitishwa kwa tafsiri ya baiti -- sukuma hutolewa kikamilifu KABLA ya
 mahali popote, mtiririko wa udhibiti hauwezi kamwe kuruka juu ya sukuma
 isiyotolewa.
 
@@ -330,7 +330,7 @@ wenye sukuma inayosubiri (=23). 381/381 (377+4), uthabiti na gen1/gen2
 vyote vinapita, imethibitishwa mara 4 kutoka kwa ujenzi safi (idadi
 kubwa kimakusudi kutokana na wigo mpana wa mabadiliko haya).
 
-**Utendaji (uaminifu kamili)**: mabadiliko ya ukubwa wa binary kwenye
+**Utendaji (uaminifu kamili)**: mabadiliko ya ukubwa wa binari kwenye
 vipimo vilivyopo tayari (fibonacci, kupanga, matriki, mzunguko_mchezo)
 ni SIFURI kabisa -- ugawaji wa rejesta (PR #226/227), Sethi-Ullman
 (#238), na kashe ya anwani (#239/#240) tayari zimeondoa fursa nyingi
@@ -342,10 +342,10 @@ mmoja) kinakokotoa baiti 1 pungufu (kimethibitishwa), LAKINI muda wa
 ukuta haubadiliki HATA KIDOGO (264-287ms zote mbili, ndani kabisa ya
 kelele) -- push/pop ya rejesta MOJA (bila kugusa kumbukumbu ya
 maana) tayari ni ya haraka SANA kwenye CPU za kisasa (injini ya mrundikano/
-stack engine), na akiba ya maagizo 2-3 inapotea kabisa dhidi ya
+mrundikano engine), na akiba ya maagizo 2-3 inapotea kabisa dhidi ya
 gharama nyingine za mzunguko (hapa: `%` -- modulo). Hitimisho la
 uaminifu: hii ni uboreshaji WA KWELI wa idadi ya maagizo (umethibitishwa
-kwa disassembly), lakini SIO uboreshaji wa muda wa ukuta unaoweza
+kwa tafsiri ya baiti), lakini SIO uboreshaji wa muda wa ukuta unaoweza
 kupimwa kwenye mizigo ya kazi iliyojaribiwa -- thamani yake HALISI
 kwa sasa ni ubora wa msimbo (maagizo machache), si kasi.
 ## LICM CSE (kushiriki kigezo cha muda kati ya vielelezo vinavyofanana)
@@ -373,7 +373,7 @@ tayari haiingii ndani ya matawi ya "kama" kabisa (kizuizi cha awali cha
 LICM), swali la "tokeo la ndani ya tawi linashiriki na tokeo la nje"
 haliwezi kutokea.
 
-**Uthibitisho wa mfumo (disassembly, si dhana)**: kwa muundo mdogo
+**Uthibitisho wa mfumo (tafsiri ya baiti, si dhana)**: kwa muundo mdogo
 uliojitenga (`c[i*n+j]=c[i*n+j]+x` ndani ya mzunguko wa j ndani ya
 mzunguko wa i), "i*n" sasa inakokotolewa MARA MOJA TU kwa kila
 mzunguko wa i (`zidisha_n` moja tu, thamani ikihifadhiwa kwenye r15,
@@ -381,7 +381,7 @@ kabla ya mzunguko wa j kuanza) -- si mara mbili (moja kwa fahirisi ya
 LHS, moja kwa fahirisi ya kwanza ya RHS) kama awali. Zaidi ya hayo,
 kwa kuwa fahirisi mbili za `c[i*n+j]` sasa zinarejelea KIGEZO KIMOJA
 (r15+j pande zote mbili), kashe ya anwani ya ugawaji wa kawaida (PR
-iliyopita) SASA INAJIHUSISHA PIA kwa muundo huu -- disassembly
+iliyopita) SASA INAJIHUSISHA PIA kwa muundo huu -- tafsiri ya baiti
 inaonyesha anwani moja ikikokotolewa (shl+add mara moja), ikihifadhiwa
 kwa push/pop mara mbili, ikitumika kwa usomaji NA uandishi -- mfululizo
 mzima wa hoja tatu (LICM ya msingi -> LICM CSE -> kashe ya anwani)
@@ -390,7 +390,7 @@ sasa unafanya kazi PAMOJA kwa muundo huu.
 **`matriki` halisi**: matokeo (c00/cmid/clast) ni SAWA KABISA kati ya
 mkusanyaji wa zamani na mpya (usahihi umethibitishwa). Binary
 ILIYOTOLEWA SASA NI TOFAUTI kati ya matoleo mawili (kinyume na kashe
-ya anwani peke yake, ambayo ilitoa binary SAWA KWA BAITI) --
+ya anwani peke yake, ambayo ilitoa binari SAWA KWA BAITI) --
 `matriki` sasa INAFAIDIKA kwa kweli.
 
 Muda halisi (interleaved, mizunguko 5, kulinganishwa dhidi ya
@@ -415,7 +415,7 @@ za anwani zinazoondolewa ni sehemu ndogo tu ya kazi ya jumla ya
 mzunguko wa ndani -- lakini ni HALISI, thabiti, na ya kwanza kutoka
 kwenye mfululizo wa kashe-ya-anwani/LICM-CSE tangu PR #239.
 
-## Kupunguza nguvu kwa mgawanyo/modulo ya nguvu-ya-2 (signed)
+## Kupunguza nguvu kwa mgawanyo/modulo ya nguvu-ya-2 (yenye ishara)
 
 Hadi sasa `/` na `%` zilikuwa zikiepukwa na KILA uboreshaji mwingine
 kikao hiki (kunja-namba, kashe-ya-anwani, LICM, uvektishaji) kwa
@@ -470,13 +470,13 @@ kwenye mzunguko mzito, faida haina maana), `sum/1000000000` ya
 `nasibu_ijayo()` `% 2147483648` (2^31 -- LAKINI namba hii inazidi
 wigo chanya wa N32 (2147483647), hivyo inahifadhiwa kwenye dimbwi la
 N64 -- `gwm_kipeo_kulia` inakataa kwa usahihi kigawanyaji cha dimbwi
-kimakusudi, hivyo HAIFAIDIKI kabisa -- imethibitishwa kwa disassembly,
+kimakusudi, hivyo HAIFAIDIKI kabisa -- imethibitishwa kwa tafsiri ya baiti,
 hakuna SAR, gawanya_n bado inatumika).
 
 **Kipimo kipya cha moja kwa moja (`vipimo/kidirisha/swa.swa`,
 tayari zilizopo -- `i % 8` ndani ya mzunguko wa marudio 40,000,000)**:
-binary ni TOFAUTI (kashe mpya inatumika, imethibitishwa kwa
-disassembly -- SAR badala ya idiv). Muda halisi (interleaved, mizunguko
+binari ni TOFAUTI (kashe mpya inatumika, imethibitishwa kwa
+tafsiri ya baiti -- SAR badala ya idiv). Muda halisi (interleaved, mizunguko
 5):
 
 | mzunguko | zamani | mpya |
@@ -501,7 +501,7 @@ kwa sababu thamani hiyo inaweza kuhitajika kwa matumizi mengine
 (kuhifadhiwa, kurudishwa, kutumika ndani ya usemi mwingine). Lakini
 pale sharti la "kama"/"wakati"/"kwa" LENYEWE ni ulinganishi huo huo
 moja kwa moja -- muundo unaotokea KATIKA KILA sharti la mzunguko na
-tawi la mradi huu, ulioonekana kwenye kila disassembly ya kikao hiki
+tawi la mradi huu, ulioonekana kwenye kila tafsiri ya baiti ya kikao hiki
 -- thamani ya 0/1 haihitajiki kabisa: mahali pekee inapotumika ni
 kuamua tawi gani kuchukua, na cmp/comisd YENYEWE tayari imeweka
 bendera za CPU zinazohitajika. Muundo wa zamani (cmp; setcc; movzx;
@@ -521,7 +521,7 @@ sharti.
 ### Uthibitisho
 
 Majaribio matano mapya: mzunguko wa mipaka wa vinodi sita (i=-5..5
-dhidi ya 0, hesabu za mkono za kila operesheni -- disassembly
+dhidi ya 0, hesabu za mkono za kila operesheni -- tafsiri ya baiti
 imefuatiliwa MKONONI, mwelekeo wa kila ruka_kama umethibitishwa dhidi ya
 chanzo moja kwa moja, hakuna hitilafu); matumizi mengine (usemi
 mmoja wa ulinganishi kimuundo ukitumika njia ya jumla NA njia ya
@@ -537,7 +537,7 @@ hatari ya hitilafu ni majibu MABAYA KIMYA, si kuanguka).
 Disassembly ya jaribio_linganisha_na_ruka_sita_operesheni imefuatiliwa KABISA
 mkononi: kila mojawapo ya vinodi sita, PAMOJA na sharti la wakati
 lenyewe (i<=5), imethibitishwa kuwa linganisha+ruka_kama SAHIHI (mwelekeo sahihi
-kabisa dhidi ya chanzo) -- SIFURI setcc/movzx popote kwenye binary
+kabisa dhidi ya chanzo) -- SIFURI setcc/movzx popote kwenye binari
 hiyo. jaribio_linganisha_na_ruka_bila_ishara/desimali zimethibitisha familia
 sahihi ya jcc (jb/ja/jbe/jae, SI jl/jg/jle/jge) kwa A32 na D64.
 
@@ -562,15 +562,15 @@ kwenye kipimo hicho. kupanga/mzunguko_mchezo hazionyeshi tofauti ya
 wazi -- ndani ya kelele ya mzunguko wa CPU wa mashine hii, hazina
 sehemu kubwa ya wakati inayotumika kwenye matawi rahisi kiasi hicho.
 
-## linganisha+ruka_kama ya moja kwa moja ndani ya legs za && / ||
+## linganisha+ruka_kama ya moja kwa moja ndani ya pande za && / ||
 
 Kazi iliyotangulia (linganisha+ruka_kama kwa sharti la moja kwa moja) iliacha && na
 || nje ya wigo kimakusudi -- zina mzunguko mfupi wao wenyewe tayari.
-Lakini kila leg moja moja ya && / || (mfano "a<b" ndani ya "kama (a<b
+Lakini kila upande mmoja mmoja wa && / || (mfano "a<b" ndani ya "kama (a<b
 && c<d)") ilikuwa ikitathminiwa kwa NJIA YA JUMLA (cmp;setcc;movzx)
 kabla ya kujaribiwa TENA na test+ruka_kama na uzalishaji_na/uzalishaji_au --
 muundo ULE ULE uliopotea kwenye sharti rahisi, sasa umeondolewa kwa
-legs mbili zilizo moja kwa moja (bapa -- si && / || iliyowekwa ndani
+pande mbili zilizo moja kwa moja (bapa -- si && / || iliyowekwa ndani
 ya nyingine, ambayo inaendelea kwenye njia ya jumla iliyo sahihi
 kabisa, polepole zaidi tu).
 
@@ -582,33 +582,33 @@ mizunguko.
 
 ### Uthibitisho
 
-Majaribio matatu mapya: mzunguko mfupi (leg ya pili haitathminiwi
-KABISA pale leg ya kwanza tayari inaamua matokeo -- imethibitishwa
+Majaribio matatu mapya: mzunguko mfupi (upande wa pili hautathminiwi
+KABISA pale upande wa kwanza tayari unaamua matokeo -- imethibitishwa
 kwa kihesabu cha wito halisi, si kudhania -- kwa && na || zote mbili,
-kama na wakati zote mbili); mchanganyiko (leg moja ni ulinganishi wa
+kama na wakati zote mbili); mchanganyiko (upande mmoja ni ulinganishi wa
 moja kwa moja, nyingine ni kigezo cha kawaida, ndani ya && / || moja
 -- kuthibitisha njia mbili zinaweza kuchanganyika kwa usahihi ndani
-ya usemi mmoja); vinodi sita vya ulinganishi kama legs (==,!=,<,>,<=,
+ya usemi mmoja); vinodi sita vya ulinganishi kama pande (==,!=,<,>,<=,
 >=) ndani ya && na ||. 397/397 (394 zilizopo + 3 mpya). Uthabiti na
 gen1-dhidi-ya-gen2 vinapita, imethibitishwa mara TATU kutoka kwa
 ujenzi safi.
 
 Disassembly ya jaribio_naau_vinodi_sita imefuatiliwa KIPOFU (baiti
-kwanza, chanzo baadaye): leg za && (== na !=) zinatumia ruka_kama ya
+kwanza, chanzo baadaye): upande za && (== na !=) zinatumia ruka_kama ya
 KINYUME sahihi (jne kwa ==, je kwa !=), zote mbili zikiruka kwenda
-mahali pa pamoja pa "sivyo kweli" ya kama isiyo na else (inayolingana
+mahali pa pamoja pa "sivyo kweli" ya kama isiyo na sivyo (inayolingana
 na mwisho wa maudhui ya then -- muunganiko sahihi wa udhibiti). Leg za
 || (!= na >) zinatumia mchanganyiko sahihi wa ruka_kama ya MOJA KWA MOJA
-(leg ya kwanza, kuruka kwenda mahali_pa_kweli_mapema mbele ya maudhui ya
-then) na ruka_kama ya KINYUME (leg ya pili, kuruka kwenda mahali pa "sivyo
-kweli" ya jumla). SIFURI setcc/movzbl popote kwenye binary hiyo.
+(upande wa kwanza, kuruka kwenda mahali_pa_kweli_mapema mbele ya maudhui ya
+then) na ruka_kama ya KINYUME (upande wa pili, kuruka kwenda mahali pa "sivyo
+kweli" ya jumla). SIFURI setcc/movzbl popote kwenye binari hiyo.
 
 ### Utendaji
 
-Matokeo (jumla=16000000) ni sawa kati ya compiler ya zamani na mpya;
-binary NI tofauti (uboreshaji unajihusisha). Uthibitisho tuli
-(disassembly): setcc/movzbl 16 zimeondolewa kabisa, maagizo 72
-machache jumla (3247->3175), binary ndogo kwa baiti 244 (8622->8378).
+Matokeo (jumla=16000000) ni sawa kati ya mkusanyaji wa zamani na mpya;
+binari NI tofauti (uboreshaji unajihusisha). Uthibitisho tuli
+(tafsiri ya baiti): setcc/movzbl 16 zimeondolewa kabisa, maagizo 72
+machache jumla (3247->3175), binari ndogo kwa baiti 244 (8622->8378).
 
 Muda halisi (interleaved): baada ya mzunguko wa kwanza wa joto
 kutupwa, mizunguko 8 iliyofuata haikuonyesha tofauti ya wazi kati ya
@@ -659,8 +659,8 @@ karatasi peke yake.
 - **Yenye ishara (N32)**: fomula ya "magic" inashughulikia hatua ya
   marekebisho (q=q+n endapo M>=2^31, yaani "hasi" kama N32) MOJA KWA
   MOJA kama SEHEMU ya kawaida ya fomula -- SI hali ya kushindwa, ni
-  hatua inayotarajiwa (d=7 signed inahitaji hatua hii, imethibitishwa
-  kwa disassembly ya jaribio_uchawi_gawanyo_ishara_msingi).
+  hatua inayotarajiwa (d=7 yenye ishara inahitaji hatua hii, imethibitishwa
+  kwa tafsiri ya baiti ya jaribio_uchawi_gawanyo_ishara_msingi).
 
 ### Ugunduzi wa pekee (nje ya wigo, umeripotiwa kwa uwazi)
 
@@ -668,7 +668,7 @@ Wakati wa kuandaa majaribio, iligundulika mibegu miwili TOFAUTI KABISA
 na kazi hii, isiyohusiana:
 1. `{ N32 x = 1; }` (kitalu kisicho na mzunguko/tawi kinachofunga
    tangazo la kigezo cha ndani) hutoa "kosa: kianzilishi cha safu
-   hakijaungwa mkono" kimakosa -- hitilafu ya uchanganuzi (parser),
+   hakijaungwa mkono" kimakosa -- hitilafu ya uchanganuzi (mchanganuzi),
    HAUHUSIANI na zidisho-na-uchawi kabisa.
 2. `A32 z = 4294964296;` (uanzishaji wa moja kwa moja wa A32 na namba
    halisi kubwa kuliko 2^31) haufanyi kazi sahihi -- kigawanyaji
@@ -827,7 +827,7 @@ ya kazi ya baadaye -- si wigo wa kazi hii, ambayo ni kupima TU.
 | maneno | ~5.5x |
 
 Kumbuka kuhusu kelele ya mashine: mashine hii ina tofauti halisi ya
-muda (imethibitishwa mara kadhaa kikao hiki kwa kupima tena binary
+muda (imethibitishwa mara kadhaa kikao hiki kwa kupima tena binari
 ile ile ya C) -- nambari za mzunguko mmoja mmoja hapo juu zisichukuliwe
 kama sahihi hadi desimali ya mwisho, lakini mwelekeo wa jumla na
 ukubwa wa pengo umefuata mbinu ile ile ya kupima (interleaved,
@@ -836,7 +836,7 @@ mizunguko mingi) inayotumika kila mahali kwenye hati hii.
 
 LICM (kilichoungana kabla) inashughulikia usemi usiobadilika ndani ya
 mzunguko tu -- usemi unaorudiwa NJE ya mzunguko (au ndani ya mzunguko
-lakini usiokuwa invariant) haugusiki kabisa. SSCSE inashughulikia
+lakini usiokuwa isiyobadilika) haugusiki kabisa. SSCSE inashughulikia
 hiyo: kigawanyaji cha "available expressions" cha kawaida (classical
 CSE) kwa mfululizo wa taarifa za ngazi moja (straight-line), na jedwali
 linalowekwa upya kabisa kila mpaka wa kama/wakati/kwa (angalia maelezo
@@ -867,9 +867,9 @@ vina usomaji wa kumbukumbu ulio nje ya wigo wa SSCSE).
 ### Utendaji
 
 Hakuna kipimo kilichopo kinachotumia mfano wa "usemi unaorudiwa lakini
-si invariant ndani ya mzunguko" -- kipimo kipya `vipimo/urudufu_wa_mstari/`
+si isiyobadilika ndani ya mzunguko" -- kipimo kipya `vipimo/urudufu_wa_mstari/`
 kimeundwa MAKUSUDI: "i*i" hutokea mara mbili kwa kila mzunguko (h1=
-i*i+i, h2=i*i-i), SIYO invariant (i inabadilika kila mzunguko, hivyo
+i*i+i, h2=i*i-i), SIYO isiyobadilika (i inabadilika kila mzunguko, hivyo
 LICM haiwezi kuigusa), lakini ni straight-line ndani ya maudhui ya
 mzunguko (hakuna tawi kati ya h1 na h2). Mizunguko 50,000,000.
 Disassembly imethibitisha zidisha_n MOJA TU (32-bit, %r1d,%r0d) ndani ya
@@ -886,7 +886,7 @@ Njia ya asili kwa kila operesheni ya jozi ilikuwa: tathmini kulia,
 sukuma; tathmini kushoto; vuta. Kwa `c[i*n+j] + aik * b[k*n+j]` hiyo ni
 safari nne za kumbukumbu za mrundikano kwa desimali (`toa r4; soma_d64
 [r4]` ... `soma_d64 xmm1,[r4]; jumlisha r4`) na mbili kwa kila namba
-kamili, bila sababu yoyote -- disassembly ya mzunguko wa ndani wa
+kamili, bila sababu yoyote -- tafsiri ya baiti ya mzunguko wa ndani wa
 matriki ilionyesha mistari zaidi ya 50 kwa mzunguko mmoja.
 
 `toa_pande_mbili` (uzalishaji.swa) inaacha kushoto kwenye r0/xmm0 na
@@ -921,7 +921,7 @@ ina wito, kina cha xmm zaidi ya 6, upana usiolingana (N8/N16 na N32).
   `mpangilio` (kushoto inabadilisha kigezo cha kulia kupitia kielekezi au
   ulimwengu), `desimali` (ikiwemo kazi inayotumia xmm2/xmm3 yenyewe
   ndani ya kushoto), `safu`. Kila jaribio limethibitishwa kwa
-  *mutation*: kuvunja kila kanuni kwa makusudi (namba hasi bila panua
+  *badiliko*: kuvunja kila kanuni kwa makusudi (namba hasi bila panua
   ishara, `jr_ni_salama` ikirudisha 1 daima, kina cha xmm bila kikomo,
   `hamisha r1` ya baiti 4 badala ya 8) hufanya angalau jaribio moja
   lishindwe.
@@ -961,7 +961,7 @@ kuu ni wito wa kazi na miundo, si hesabu ya jozi).
 ## Awamu ya pili: hesabu bila mrundikano (kiwanja, kaunta, hoja ya kwanza, uchawi wa N64, cmp)
 
 Inaendeleza `toa_pande_mbili` (sehemu iliyotangulia). Kila kipengele kina
-jaribio lake la kudumu na kila kimoja kimevunjwa kwa makusudi (mutation) ili
+jaribio lake la kudumu na kila kimoja kimevunjwa kwa makusudi (badiliko) ili
 kuthibitisha kuwa jaribio linakishika.
 
 - **Ugawaji wa kiwanja** (`c[idx] += x`, `-=`, `*=`): thamani ya sasa
@@ -977,7 +977,7 @@ kuthibitisha kuwa jaribio linakishika.
   kwenye vipimo kadhaa. (Jaribio la kuondoa `panua_r0d` ya operanda kabisa
   halikuleta faida yoyote inayopimika, na liliondolewa.)
 - **Hoja ya kwanza ya wito** haipiti kwenye mrundikano: `hamisha r7, r0` (au inabaki
-  xmm0). Inatumika tu kwa wito wa kawaida: si sret, si mfumo, si
+  xmm0). Inatumika tu kwa wito wa kawaida: si matokeo ya muundo, si mfumo, si
   `tekeleza`, si wito wa kielekezi, na hakuna hoja ya muundo (sloti za
   `[r4 + j*8]` zinategemea hoja zote kuwa kwenye mrundikano).
 - **`/ % << >> & | ^`** zinapita `toa_pande_mbili` (kigawanyaji jani).
@@ -1047,7 +1047,7 @@ vigawanyaji vilivyofichwa nyuma ya kazi (gawanya_n halisi), kwa mkusanyaji ule u
 
 ## Upakiaji wa arr[i] kwa agizo moja la SIB
 
-`arr[i]` ya scalar (N8/N16/N32/N64, A8/A16/A32, D32/D64) yenye msingi jani
+`arr[i]` ya kawaida (N8/N16/N32/N64, A8/A16/A32, D32/D64) yenye msingi jani
 (kigezo cha kielekezi cha rejesta/mrundikano/paramu, au safu ya ndani) sasa
 inapakiwa kwa agizo MOJA `[r1 + r0*saizi]`: faharasa kwenye r0 (panua_r0d tu
 kama `panua_ishara_ndogo` haikuiongeza tayari), msingi kwenye r1 BAADA ya
@@ -1095,7 +1095,7 @@ si gharama ya SIB (maagizo yamepungua 3%). Tofauti chini ya ~6% kwenye kipimo
 kimoja haipaswi kudaiwa bila jaribio hilo la kuhamisha msimbo. fibonacci na
 mandelbrot hazina `arr[i]` moto, kwa hiyo hazibadiliki (maagizo sawa kabisa).
 
-## Rekebisho la hitilafu: fahirisi kubwa (idx * saizi > 2^32)
+## Rekebisho la hitilafu: fahirisi kubwa (faharisi * saizi > 2^32)
 
 Ukaguzi wa PR #251 uligundua kuwa `andika_ongea_kipengele_kwa_saizi`
 (inayotumika kwa `arr[idx] = x`, `&arr[idx]`, na njia ya asili -- isiyo
@@ -1164,7 +1164,7 @@ ya moja kwa moja (agizo la `mfumo` halisi haliangalii AL kamwe), au
 
 ### Uthibitisho
 
-- Hakuna mutation ya maana ya kujaribu (ni uondoaji wa msimbo mfu --
+- Hakuna badiliko la maana ya kujaribu (ni uondoaji wa msimbo mfu --
   hakuna tabia mpya ya kuthibitisha kwa "kuvunja kwa makusudi").
   Uthibitisho ni kwa upana: `jaribio_wito_gharama` (wito wa idadi
   tofauti za hoja za xmm 0..8, wito wa kielekezi, wito ndani ya wito,
@@ -1225,11 +1225,11 @@ rekebisho hili pia, hivyo hakuna mabadiliko ya tabia kwa kesi hizo.
   (ishara inabadilika kila hatua), usemi mkubwa wa jumla ya matokeo
   matatu ya wito, na faharasa ya safu. 423/423, mara 3 kutoka ujenzi
   safi. Uthabiti kamili2 == kamili3.
-- Kama uondoaji wa "hamisha r0b", hakuna mutation ya maana ya "kuvunja
+- Kama uondoaji wa "hamisha r0b", hakuna badiliko la maana ya "kuvunja
   kwa makusudi" -- ni uondoaji wa msimbo mfu uliothibitishwa kwa
   hoja hapo juu, si hitilafu mpya ya kurekebisha. Programu 4001 za
   nasibu (kabla dhidi ya baada): sifuri tofauti. Nimethibitisha kwa
-  disassembly ya moja kwa moja ya `fib` kuwa `panua_r0d` haitokei tena
+  tafsiri ya baiti ya moja kwa moja ya `fib` kuwa `panua_r0d` haitokei tena
   mara moja baada ya `call`.
 
 ### Utendaji
@@ -1240,7 +1240,7 @@ kubwa zaidi ni shinikizo la mbele la CPU (front-end), si mizunguko ya
 moja kwa moja). `mchujo` -1.7%, `maneno` -3.5%. Vingine ndani ya
 kelele iliyoelezwa juu.
 
-## Uhifadhi wa arr[idx] = thamani kwa SIB moja kwa moja
+## Uhifadhi wa arr[faharisi] = thamani kwa SIB moja kwa moja
 
 Sawa na #251 (ambayo iliongeza SIB kwa KUSOMA `arr[idx]` pekee): sasa
 KUANDIKA `arr[idx] = thamani` (isiyo ya kiwanja `+=`/`-=`/`*=`, isiyo
@@ -1266,10 +1266,10 @@ wito za syscall/paramu 5+/6+).
 - Mutation: kuharibu REX.X/B (agizo linatumia r0/r1 badala ya
   r8/r9) kunasababisha SEGV; kuharibu mizani ya SIB kwa saizi 4
   kunatoa matokeo mabaya (jaribio linashindwa); kuharibu lengwa la
-  "hamisha r8, r0" kunasababisha SEGV. (Somo dogo: mutation ya kwanza
+  "hamisha r8, r0" kunasababisha SEGV. (Somo dogo: badiliko la kwanza
   niliyojaribu -- kubadilisha sib=1 kuwa sib=8 kwa saizi=1 -- HAIKUGUNDULIKA
-  kwa sababu kwa scale=1 kubadilishana base<->index hakubadilishi jumla
-  ya A+B; nilibadilisha kwa mutation yenye maana zaidi.)
+  kwa sababu kwa scale=1 kubadilishana msingi<->index hakubadilishi jumla
+  ya A+B; nilibadilisha kwa badiliko lenye maana zaidi.)
 - Disassembly ya moja kwa moja imethibitisha `43 89 04 81`
   (`mov %r0d,(%r9,%r8,4)`) ikitokea kwenye programu za mfano.
 - Programu 5001 za nasibu na 3001 za faharasa (mkusanyaji wa kabla
@@ -1294,25 +1294,25 @@ Hakuna kipimo hata kimoja kilichoonyesha HASARA halisi (baada ya
 kuondoa kelele). kupanga, maneno na heshi zinafaidika zaidi kwa
 sababu zinaandika kwenye safu mara nyingi kwenye njia zao kuu.
 
-## Uhifadhi wa *ptr = thamani kwa [r9] moja kwa moja
+## Uhifadhi wa *kielekezi = thamani kwa [r9] moja kwa moja
 
 Kioo kidogo cha sehemu iliyotangulia lakini kwa `*ptr = thamani`
 (hakuna faharasa/mizani): kielekezi kinashikiliwa kwenye `r9` (jr_jani_rcx)
 wakati RHS salama inatathminiwa, kisha `hifadhi [r9], thamani` moja kwa moja
 -- badala ya push/pop ya anwani. `r9` ina low3=001 (sawa na r1), hivyo
 ModRM peke yake (bila SIB) inatosha (rm=001 si 100, hivyo hakuna
-kulazimishwa kwa SIB byte).
+kulazimishwa kwa SIB baiti).
 
 ### Uthibitisho
 
 - `jaribio_uhifadhi_kielekezi`: aina zote, RHS salama/isiyo salama, kielekezi
-  kilichotokana na pointer arithmetic, kiwanja (bado njia ya asili).
+  kilichotokana na kielekezi arithmetic, kiwanja (bado njia ya asili).
   425/425, mara 3, uthabiti kamili2==kamili3.
-- Somo la pili la mutation kikao hiki: mutation ya kwanza (kuondoa
-  REX.B kwa uandishi wa byte) HAIKUGUNDULIKA na RHS ndogo (namba ya
+- Somo la pili la badiliko kikao hiki: badiliko la kwanza (kuondoa
+  REX.B kwa uandishi wa baiti) HAIKUGUNDULIKA na RHS ndogo (namba ya
   moja kwa moja haigusi r1 KAMWE, hivyo r1 ilibaki sahihi kwa bahati
   hata bila REX.B). Nimeongeza kesi za RHS zinazogusa r1 (hesabu)
-  kwa kila upana ikiwemo byte -- sasa mutation hiyo inasababisha SEGV.
+  kwa kila upana ikiwemo baiti -- sasa badiliko hilo linasababisha SEGV.
 - Programu 4001 za nasibu: sifuri tofauti.
 
 ### Utendaji
@@ -1343,7 +1343,7 @@ jr_ni_salama -- inarudi njia ya asili kiotomatiki.
 
 - `jaribio_uhifadhi_mshale`: sehemu ya kwanza (hakuna disp), disp8,
   disp32 (umbali > 127), RHS salama inayogusa r1, RHS isiyo salama
-  (wito), kiwanja, kielekezi kilichotokana na pointer arithmetic.
+  (wito), kiwanja, kielekezi kilichotokana na kielekezi arithmetic.
   426/426, uthabiti kamili2==kamili3.
 - Hitilafu YA KANDO iliyogunduliwa (nje ya wigo, HAUJAREKEBISHWA): muundo
   wenye SAFU kama sehemu (`N32 pad[40];` ndani ya `muundo`) unashindwa
@@ -1351,7 +1351,7 @@ jr_ni_salama -- inarudi njia ya asili kiotomatiki.
   hata kwenye mkusanyaji wa KABLA ya kazi hii (f1v), hivyo si
   imesababishwa na mabadiliko haya. Jaribio hili liliepuka tatizo kwa
   kutumia sehemu nyingi za N32 badala ya safu moja kupata umbali > 127.
-- Mutation: kubadilisha kigezo cha disp8/disp32 (`off < 128` -> `off <
+- Mutation: kubadilisha kigezo cha disp8/disp32 (`off < 128` -> `umbali <
   256`) kulisababisha SEGV kwenye jaribio_uhifadhi_mshale (umbali wa
   `mbali`, 140, ingeandikwa kama disp8 potovu) -- imekamatwa.
 - Fuzz 5001 programu za nasibu: sifuri tofauti.
@@ -1371,7 +1371,7 @@ sababu MBILI zilizogundulika wakati wa ukaguzi:
    HASI kwenye usimbaji wa mkusanyaji huu (muundo uliopachikwa NA
    kielekezi-kwenda-muundo VYOTE hutumia hasi). Kwa hiyo `n->kushoto =
    n;` na `sasa->kulia = n;` -- HASA mfano uliotajwa -- HAZITUMII
-   njia mpya kabisa. Imethibitishwa kwa disassembly (mara mbili, kwa
+   njia mpya kabisa. Imethibitishwa kwa tafsiri ya baiti (mara mbili, kwa
    ukaguzi wa Kandemark na tena hapa): kati ya maandiko matatu ya
    mshale kwa kila uingizaji (`thamani`, `kushoto`, `kulia`), MOJA TU
    (`thamani`, N32 ya kawaida) inaonyesha muundo mpya wa `(%r9)`.
@@ -1394,7 +1394,7 @@ majaribio yanathibitisha), na INAWEZEKANA ina faida ndogo kwa
 lakini HAIWEZI kudaiwa kwa uhakika kwa idadi mahususi kwenye kipimo
 hiki bila upimaji zaidi (mfumo tulivu zaidi, marudio mengi zaidi).
 Faida HALISI na iliyothibitishwa vizuri zaidi ya sehemu hii ya
-mfululizo (arr[idx]=/`*ptr=`) iko kwenye vipimo vingine (kupanga,
+mfululizo (arr[faharisi]=/`*ptr=`) iko kwenye vipimo vingine (kupanga,
 maneno, heshi, mchujo -- angalia sehemu za awali za hati hii).
 Kazi ya baadaye inayoweza kuleta faida HALISI kwa miundo kama Nodi
 (BST, orodha iliyounganishwa): kupanua `uzalishaji_hifadhi_mshale_sib`

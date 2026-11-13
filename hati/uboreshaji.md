@@ -57,7 +57,7 @@ Pipeline ya LLVM inayotumika kwa **kila kazi** (`function` scope):
 **Kiwango cha moduli** (baada ya kupita za kazi):
 
 6. **always-inline** -- Weka ndani kazi zilizowekwa alama ya `always_inline`.
-   Muhimu kwa shughuli za bootstrap zinazohitaji upanuzi wa ndani.
+   Muhimu kwa shughuli za kujianzisha zinazohitaji upanuzi wa ndani.
 
 **Mpangilio wa kupita** umechaguliwa kwa makini:
 - `mem2reg` kwanza -- inabadilisha allocas kuwa SSA, kuwezesha kupita zote
@@ -70,7 +70,7 @@ Pipeline ya LLVM inayotumika kwa **kila kazi** (`function` scope):
 
 Itajumuisha O1 pamoja na:
 - Upanuzi wa ndani kwa kazi za jumla (si `always_inline` pekee).
-- Uchambuzi na uboreshaji wa mizunguko (loop unrolling, vectorization).
+- Uchambuzi na uboreshaji wa mizunguko (mzunguko unrolling, vectorization).
 - Uboreshaji wa kati ya kazi (inter-procedural optimization).
 
 ## Athari ya Uboreshaji kwenye Utatuzi

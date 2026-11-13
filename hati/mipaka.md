@@ -14,7 +14,7 @@ Sasa: herufi isiyojulikana inalia (`Hitilafu: herufi isiyojulikana`),
 tokeni isiyojulikana kwenye kiwango cha juu inalia (`Hitilafu:
 uliichanganuzi`), mabano yasiyofungwa (block/muundo/husisha) yanalia,
 na mzunguko wa programu una kinga ya mipaka ya mkondo wa tokeni.
-Pia rekebisho la upande: maneno ya lexer sasa huandika mstari_tokeni
+Pia rekebisho la upande: maneno ya msomaji sasa huandika mstari_tokeni
 (zamani: maneno yote yalikuwa na mstari 0 -- husisha C:: ilivunjika).
 
 Uthibitisho: majaribio ya kudumu kwenye jaribio_exe_kujijenga.
@@ -45,7 +45,7 @@ Ilikuwa: chanzo kikubwa kuliko kikomo kinakatwa KIMYA -- ELF halali
 lakini program mbaya (JUU). Ilipimwa (kwa kikomo cha zamani cha
 65,536): wito ~7,280 kwa mistari ya tokeni 9, ~5,957 kwa tokeni 11.
 
-Sasa: lexer inalia `Hitilafu: chanzo kina tokeni nyingi mno` + exit 1
+Sasa: msomaji inalia `Hitilafu: chanzo kina tokeni nyingi mno` + exit 1
 -- hakuna ukataji wa kimya tena. Kikomo kiliinuliwa hadi 262,144
 (UPEO_TOKENI; vikomo viliinuliwa Agosti 2026, angalia kipengee 4).
 Uthibitisho: chanzo cha wito 65,600 (juu ya kikomo) kinarudisha 1
@@ -60,7 +60,7 @@ Vikomo viliinuliwa Agosti 2026 (4x) ili kupunguza mzunguko:
 - jedwali la nje (UPEO_NJE 65,536) -- kila wito wa mbele unachukua
   ingizo jipya bila dedup
 - jedwali la RELA (UPEO_HAMISHO 65,536) -- maeneo yote: mizigo ya
-  ulimwengu, uhifadhi wa ulimwengu, tungo, nafasi za sret, na wito
+  ulimwengu, uhifadhi wa ulimwengu, tungo, nafasi za matokeo ya muundo, na wito
 - jedwali la urekebishaji, la ulimwengu (UPEO_ULIMWENGU 4096), la mahali
   (UPEO_MAHALI 65,536), na la AST (UPEO_NODI_MTI 262,144)
 - chanzo kikubwa kuliko baiti 4,194,304 (UPEO_CHANZO) -- awali inalia
@@ -88,7 +88,7 @@ awali NA kamili).
 
 Hali halisi (iliyothibitishwa 2026-08-20, kwa ushahidi wa kila mfululizo):
 - Mfululizo wa awali: IMEREKEBISHWA -- vitambulisho vya desimali
-  (kigeuzi cha desimali hadi double kwenye lexer), AST_HALISI_D, hesabu
+  (kigeuzi cha desimali hadi d64 kwenye msomaji), AST_HALISI_D, hesabu
   za kuelea (addsd/subsd/mulsd/divsd), ulinganisho (ucomisd+setcc),
   na ukanushaji (mulsd kwa -1.0 -- xorpd ya kumbukumbu ilionekana
   kuvunjika kwenye VM ya mtumiaji). Jaribio:
@@ -116,7 +116,7 @@ Kilichobaki cha desimali (CHINI, kilichopimwa 2026-08-27):
 - D32 imevunjika (poromoko kwenye wito wa kazi; J9).
 - `D64 % int` na `D64 << int` zinakubaliwa kimya na kutoa takataka.
 
-## 5. Maneno halisi ni 32-bit signed [IMEREKEBISHWA kwa mfululizo wa .swa]
+## 5. Maneno halisi ni 32-bit yenye ishara [IMEREKEBISHWA kwa mfululizo wa .swa]
 
 Ilikuwa: neno halisi `2147483648` linatafsiriwa kama `-2147483648`
 (biti zinahifadhiwa, ishara inaenea) -- thamani kubwa zaidi ya 32-bit
@@ -133,7 +133,7 @@ dimbwi. Uthibitisho: `N64 x = 4294967296; rudisha x / 4294967296` hutoa 1
 (juu) na `x % 4294967296` hutoa 0 (chini), kwa kigeu cha ndani NA cha
 ulimwengu.
 
-Kikomo kilichobaki (CHINI): awali (bootstrap pekee) na dereva wa Rust
+Kikomo kilichobaki (CHINI): awali (kujianzisha pekee) na dereva wa Rust
 bado zinachanganua maneno halisi kama 32-bit. Awali haihitaji maneno
 ya N64 kwa kujikusanya (chanzo cha .swa kinatumia thamani chini ya
 2^31 pekee) -- lakini kama mkusanyaji wa kujitegemea, awali bado hukata
@@ -184,7 +184,7 @@ uzalishaji ni awali/exe PEKEE.
 **KUFUNGWA (2026-09-05):** dereva wa Rust/LLVM umehamishiwa hazina ya
 kumbukumbu [lugha-swa/swa-dereva](https://github.com/lugha-swa/swa-dereva)
 (iliyohifadhiwa). Hazina kuu sasa ina lugha moja tu: Swa. Historia
-kamili ya dereva ipo kwenye hazina kuu hadi commit 8fd71b2.
+kamili ya dereva ipo kwenye hazina kuu hadi badiliko 8fd71b2.
 
 ## 7. Kwanza haina chanzo chenye maelezo [UKALI: TAARIFA]
 
@@ -246,7 +246,7 @@ hakuna mfululizo unaoingiza faili).
 
 Hali ya AWALI (kabla ya rekebisho): tangu awali.bin kugandishwa upya
 2026-09-24 kutambua herufi ndogo za aina 6 za msingi (n8/n16/n32/n64/
-w0/d64 -- angalia hali-ya-lugha.md), mfululizo wa `ukubwa(x)` (builtin
+w0/d64 -- angalia hali-ya-lugha.md), mfululizo wa `ukubwa(x)` (kazi asili
 ya sizeof, `msingi/awali.swm`) ulichunguza jina la hoja dhidi ya majina
 hayo 6 KABLA ya kutafuta jina la muundo. Athari: `ukubwa(x)` ambapo
 `x` ni jina la muundo (au kigezo) LILILO HASA `n8`/`n16`/`n32`/`n64`/
@@ -299,7 +299,7 @@ miundo/vigezo-vya-ulimwengu/chagua kwa aina ya AST ya moja kwa moja).
 Kikomo hiki KIPO KWA MAKUSUDI (angalia mpango wa Awamu ya 1 -- hati ya
 mradi) -- si hitilafu, ni wigo uliobuniwa kimakusudi kudumisha PR ya
 kwanza ndogo. Awamu 2+ (kumbukumbu/`tenga()`/vielekezi kupitia
-`memory.grow`, I/O kupitia Import section, D32/D64/miundo/vigezo vya
+`memory.grow`, I/O kupitia Import sehemu, D32/D64/miundo/vigezo vya
 ulimwengu) ni kazi ya baadaye, haijaanzishwa.
 
 TANGAZO LA MUUNDO PEKEE (bila kutumika kama aina ya kigezo popote)

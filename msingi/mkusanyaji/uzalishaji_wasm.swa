@@ -4,7 +4,7 @@
 // Backend ya PILI, sambamba na uzalishaji.swa (x86-64/ELF) -- kutoka
 // AST ile ile (baada ya kuunganishwa kwa kazi ndogo, ukaguzi wa
 // kisemantiki, LICM, SSCSE -- sawa na uzalishaji.swa, angalia
-// kiendeshaji.swa main()). Hutoa moduli ya WebAssembly (binary, si WAT)
+// kiendeshaji.swa main()). Hutoa moduli ya WebAssembly (binari, si WAT)
 // moja kwa moja kwenye stdout. Hakuna wat2wasm, hakuna tegemezi la
 // nje -- sawa na falsafa ya mradi mzima.
 //
@@ -33,17 +33,17 @@
 // x86-64 haihitaji hili (jump offsets ni fixed-width, zinaweza
 // kurekebishwa baadaye kwa urekebishaji). Sehemu za Type na Code LAZIMA
 // zisitangamane -- entries za aina zote pamoja kwenye SEHEMU MOJA
-// (Type section), na maudhui ya kazi zote pamoja kwenye SEHEMU NYINGINE
-// (Code section) -- hivyo vyombo vinne, si moja:
-//   wasm_fn_buf    -- maudhui ya kazi MOJA ya SASA (locals+maagizo+0x0B),
+// (Type sehemu), na maudhui ya kazi zote pamoja kwenye SEHEMU NYINGINE
+// (Code sehemu) -- hivyo vyombo vinne, si moja:
+//   wasm_fn_buf    -- maudhui ya kazi MOJA ya SASA (vigeu vya ndani+maagizo+0x0B),
 //                     inasafishwa kwa kila kazi
 //   wasm_type_buf  -- inakusanya entries za AINA za kazi ZOTE (functype
-//                     bytes, hazihitaji urefu wa mtu binafsi -- kila
+//                     baiti, hazihitaji urefu wa mtu binafsi -- kila
 //                     moja ni self-delimiting kwa hesabu zake wenyewe),
 //                     KATIKA MZUNGUKO MZIMA wa kazi zote, si kwa kazi
 //                     moja pekee
 //   wasm_sec_buf   -- inakusanya entries za MAUDHUI za kazi ZOTE (Code
-//                     section -- kila entry INAHITAJI urefu wake kwa
+//                     sehemu -- kila kiingilio INAHITAJI urefu wake kwa
 //                     sababu maudhui ina urefu tofauti-tofauti), KATIKA
 //                     MZUNGUKO MZIMA wa kazi zote
 //   wasm_bafu      -- moduli ya mwisho, inatolewa MARA MOJA mwishoni
@@ -66,7 +66,7 @@ n32 wasm_sehemu_wapi = 0;
 n32 wasm_chombo_sasa = 0;
 
 // -------------------------------------------------------
-// Sehemu 0b (Awamu 2): Data section (mfuatano halisi) na jedwali la
+// Sehemu 0b (Awamu 2): Data sehemu (mfuatano halisi) na jedwali la
 // mfuatano lililokusanywa. TOFAUTI na wasm_baiti/wasm_bafu_sasa
 // zilizopo: wasm_data_buf HUANDIKWA MOJA KWA MOJA kwa faharisi (SI
 // kupitia wasm_baiti) kwa sababu mkusanyiko wa mfuatano hutokea
@@ -80,21 +80,21 @@ n32 wasm_data_wapi = 0;
 n32 WASM_DATA_MSINGI = 1024;  // umbali wa kwanza wa kumbukumbu kwa data (0..1023 imehifadhiwa)
 
 n32 WASM_UPEO_MFUATANO = 128;
-n32 wasm_umbali_wa_mfuatano[128];   // umbali wa KUMBUKUMBU (WASM linear memory) ya kila mfuatano wa kipekee
+n32 wasm_umbali_wa_mfuatano[128];   // umbali wa KUMBUKUMBU (WASM linear kumbukumbu) ya kila mfuatano wa kipekee
 n32 wasm_idadi_ya_mifuatano = 0;
 
 n32 wasm_tenga_kutumika = 0;
 n32 wasm_tenga_faharasa = 0;
-n32 WASM_ULIMWENGU_WA_AKIBA = 0;  // faharisi pekee ya WASM Global (heap pointer)
+n32 WASM_ULIMWENGU_WA_AKIBA = 0;  // faharisi pekee ya WASM Global (heap kielekezi)
 
 // -------------------------------------------------------
 // Sehemu 0c: Sehemu ya Uingizaji (Import) -- kazi za `nje "<moduli>"`
 // (kiolesura cha mashine, awamu 4) huingizwa kama (moduli, alama).
-// Function index space ya WASM inaamuru: uingizaji 0..I-1 KWANZA,
+// Function faharisi space ya WASM inaamuru: uingizaji 0..I-1 KWANZA,
 // KISHA kazi za ndani I..I+N-1 -- `wasm_import_idadi` (= idadi ya
 // kazi za nje) ni nyongeza inayohitajika kwenye KILA mahali
 // panapoandika faharisi ya kazi ya NDANI (call/export/function-section
-// type index) -- SI kwenye wito wa uingizaji wenyewe.
+// type faharisi) -- SI kwenye wito wa uingizaji wenyewe.
 // -------------------------------------------------------
 
 n32 wasm_idadi_ya_uingizaji = 0;
@@ -142,7 +142,7 @@ n32 wasm_ongeza_mfuatano(n8* ghafi) {
             j = j + 1;
         }
     }
-    muda[urefu] = 0;  // null terminator -- mkataba wa majaribio ya "mfuatano"
+    muda[urefu] = 0;  // null kimalizio -- mkataba wa majaribio ya "mfuatano"
 
     // Dedup: linganisha baiti zilizodondolewa (ikiwemo \0 ya mwisho)
     // dhidi ya kila mfuatano ulioshahifadhiwa.
@@ -314,10 +314,10 @@ w0 wasm_kitendo_i32_au_pekee() { wasm_baiti(115); }  // 0x73
 
 // Awamu 2: kumbukumbu, globals, na ukuaji wa kumbukumbu.
 // i32.load/i32.store: mpangilio=2 (mzani wa asili wa baiti 4), umbali=0
-// KILA WAKATI -- anwani kamili tayari imekokotolewa kwenye stack
-// (base+idx*4) kabla ya agizo hili, si kupitia offset ya ModRM-kama
+// KILA WAKATI -- anwani kamili tayari imekokotolewa kwenye mrundikano
+// (msingi+faharisi*4) kabla ya agizo hili, si kupitia umbali wa ModRM-kama
 // ya WASM (tofauti na SIB ya x86-64, WASM haina "scaled index",
-// hesabu yote ni ya wazi kwenye stack).
+// hesabu yote ni ya wazi kwenye mrundikano).
 w0 wasm_kitendo_i32_soma() { wasm_baiti(40); wasm_leb_a(2); wasm_leb_a(0); }   // 0x28
 w0 wasm_kitendo_i32_hifadhi() { wasm_baiti(54); wasm_leb_a(2); wasm_leb_a(0); }  // 0x36
 
@@ -351,9 +351,9 @@ n32 wasm_kazi_ni_w0(n32 faharasa_ya_kazi) {
 // Sehemu 2b (Awamu 4): vigezo vya ulimwengu na jedwali la kazi
 // -------------------------------------------------------
 // Kigezo cha ulimwengu (n32 au kielekezi) ni WASM Global yenye
-// kubadilika; faharisi 0 ni heap pointer ya tenga(), hivyo kigezo i
-// cha mtumiaji ni global 1+i. Hii ndiyo hali inayodumu kati ya
-// matukio (kaunta ya kubofya, n.k.) -- locals hufa kazi inaporudi.
+// kubadilika; faharisi 0 ni kielekezi cha lundo cha tenga(), hivyo kigezo i
+// cha mtumiaji ni ya ulimwengu 1+i. Hii ndiyo hali inayodumu kati ya
+// matukio (kaunta ya kubofya, n.k.) -- vigeu vya ndani hufa kazi inaporudi.
 //
 // &kazi ni faharisi ya kazi kwenye jedwali (Table 0). Jedwali lina
 // kazi zote za ndani kwa mpangilio wa faharisi zao, hivyo faharisi ya
@@ -421,12 +421,12 @@ n32 wasm_ongeza_cha_ndani(n8* jina) {
     rudisha faharasa;
 }
 
-// Je, enc hii ni n32/n32 (aina PEKEE inayoungwa mkono kwenye Awamu 1
+// Je, usimbaji huu ni n32/n32 (aina PEKEE inayoungwa mkono kwenye Awamu 1
 // kwa vigezo/paramu/matokeo yenye thamani)? enc==0 ni "aina imeachwa"
 // (chaguo-msingi n32, angalia ukubwa_kutoka_enc); enc==288 ni n32/n32
 // ya wazi (encode_aina(familia=1,upana=32,mshale=0) -- herufi kubwa
 // na ndogo hutoa familia SAWA, angalia changanua_aina_tokeni). Kila
-// enc nyingine (kielekezi -- isiyo sawa; D32/d64 -- familia 3; n8/
+// usimbaji nyingine (kielekezi -- isiyo sawa; D32/d64 -- familia 3; n8/
 // n16/n64 -- upana tofauti; muundo -- hasi; w0 -- 1280) iko NJE ya
 // wigo kwa nafasi hii.
 n32 wasm_ni_n32_usimbaji(n32 usimbaji) {
@@ -449,18 +449,18 @@ n32 wasm_ni_n32_au_kielekezi_usimbaji(n32 usimbaji) {
     rudisha 0;
 }
 
-// Je, enc hii ni w0/w0 (aina PEKEE inayoungwa mkono kwa aina ya
+// Je, usimbaji huu ni w0/w0 (aina PEKEE inayoungwa mkono kwa aina ya
 // matokeo isiyo na thamani)? encode_aina(familia=5,upana=0,mshale=0).
 n32 wasm_ni_w0_usimbaji(n32 usimbaji) {
     rudisha (usimbaji == 1280);
 }
 
-// Angalia enc (NA idadi ya safu, kama ipo) ya tangazo la kigezo
+// Angalia usimbaji (NA idadi ya safu, kama ipo) ya tangazo la kigezo
 // (parameta au la ndani) -- ripoti KOSA la wazi (wasm_kosa=1) kama
 // ni nje ya wigo, badala ya kukubali kimya na kuzalisha moduli isiyo
 // sahihi (mfano n32* ingekuwa ikitibiwa kama n32 ya kawaida bila
 // ukaguzi huu -- imepatikana kwa jaribio halisi la n2.swa:
-// "n32* p = 0;" lilipita kimya). `safu_count` (kutoka ast_tiga[node]
+// "n32* p = 0;" lilipita kimya). `safu_count` (kutoka ast_tiga[nodi]
 // ya AST_TANGAZO, si var_node -- 0 kama si safu, pitisha 0 kwenye
 // paramu ambazo haziwezi kuwa safu kisintaksia) NAYO inakaguliwa:
 // bila hii, "n32 arr[3];" isiyoguswa kamwe ilikuwa ikisajiliwa
@@ -475,7 +475,7 @@ w0 wasm_kagua_usimbaji_kigezo(n8* jina, n32 usimbaji, n32 idadi_ya_safu) {
 
 // Pasi ya awali: tembea mfululizo wa taarifa ukikusanya kila
 // AST_TANGAZO (11) unaoweza kufikiwa kupitia kama/wakati zilizopachikwa
-// -- WASM inataka locals ZOTE zitangazwe KABLA ya agizo lolote la
+// -- WASM inataka vigeu vya ndani vyote zitangazwe KABLA ya agizo lolote la
 // maudhui ya kazi, tofauti na x86-64 (r5-offset polepole).
 w0 wasm_kusanya_vya_ndani(n32 nodi) {
     kama (nodi == -1) { rudisha; }
@@ -491,7 +491,7 @@ w0 wasm_kusanya_vya_ndani(n32 nodi) {
         kama (sivyo_nodi != -1) { wasm_kusanya_vya_ndani(nodi_ya_kushoto[sivyo_nodi]); }
     }
     kama (aina == NODI_WAKATI) {
-        // ast_tiga[node] ni init ya kwa (inaweza kuwa AST_TANGAZO
+        // ast_tiga[nodi] ni init ya kwa (inaweza kuwa AST_TANGAZO
         // yenyewe -- kigezo cha kwa(n32 i=0;...) ni local pia).
         n32 kianzio = tatu_ya_nodi[nodi];
         kama (kianzio != -1 && aina_ya_nodi[kianzio] == NODI_TANGAZO) {
@@ -517,22 +517,22 @@ n32 wasm_kina = 0;  // idadi ya block/loop/if zilizo WAZI sasa
 
 n32 WASM_UPEO_KIOTA_MZUNGUKO = 16;
 n32 wasm_mzunguko_undani = 0;
-n32 wasm_kina_cha_acha[16];     // kina KILIPOFUNGULIWA block ya "acha"
+n32 wasm_kina_cha_acha[16];     // kina KILIPOFUNGULIWA ubeti wa "acha"
 n32 wasm_endelea_kina[16];   // kina KILIPOFUNGULIWA lengwa la "endelea"
-n32 wasm_ina_hatua[16];      // 1 = kwa yenye hatua (block ya ziada ya endelea bado wazi)
+n32 wasm_ina_hatua[16];      // 1 = kwa yenye hatua (ubeti wa ziada wa endelea bado wazi)
 
 // -------------------------------------------------------
-// Sehemu 5: Usemi (matokeo huishia juu ya stack ya WASM -- i32 moja)
+// Sehemu 5: Usemi (matokeo huishia juu ya mrundikano wa WASM -- i32 moja)
 // -------------------------------------------------------
 
 w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi);
 w0 wasm_taja_anwani(n32 nodi, n32 nodi_ya_kazi);
 
-// AST_TAJA (29): *ptr (faharasa==-1) au arr[idx] (faharasa!=-1).
-// Hutoa ANWANI (offset ya i32 kwenye kumbukumbu) juu ya stack, BILA
+// AST_TAJA (29): *kielekezi (faharasa==-1) au arr[faharisi] (faharasa!=-1).
+// Hutoa ANWANI (umbali wa i32 kwenye kumbukumbu) juu ya mrundikano, BILA
 // kupakia thamani -- inatumika na wasm_taja_thamani (kusoma) NA
-// wasm_usemi/wasm_taarifa kwa AST_KUMBUKA (&arr[idx]/&*ptr) na
-// uhifadhi (arr[idx] = x). Awamu 2: kipengele cha n32 pekee (baiti
+// wasm_usemi/wasm_taarifa kwa AST_KUMBUKA (&arr[faharisi]/&*kielekezi) na
+// uhifadhi (arr[faharisi] = x). Awamu 2: kipengele cha n32 pekee (baiti
 // 4 kila kimoja) -- hesabu ya faharasa*4 ni ya wazi kila wakati,
 // hakuna aina nyingine ya ukubwa inayoungwa mkono.
 w0 wasm_taja_anwani(n32 nodi, n32 nodi_ya_kazi) {
@@ -573,7 +573,7 @@ w0 wasm_zalisha_ulinganisho(n32 nodi) {
 }
 
 // Sharti la jumla (ulinganisho, &&, ||, au usemi mwingine wowote)
-// -> i32 moja juu ya stack (0/1). && na || ni USEMI wa muundo (if
+// -> i32 moja juu ya mrundikano (0/1). && na || ni USEMI wa muundo (if
 // wenye blocktype=i32), si mfululizo wa mahali kama x86-64 -- WASM
 // if/else inaweza kubeba aina ya matokeo moja kwa moja.
 w0 wasm_sharti(n32 nodi) {
@@ -749,7 +749,7 @@ w0 wasm_usemi(n32 nodi, n32 nodi_ya_kazi) {
             wasm_kosa = 1;
             rudisha;
         }
-        // Hoja: kushoto-kwenda-kulia (asili ya stack ya WASM -- TOFAUTI
+        // Hoja: kushoto-kwenda-kulia (asili ya mrundikano wa WASM -- TOFAUTI
         // na x86-64 iliyotathmini kulia-kwenda-kushoto kwa sababu za
         // rejesta zake. Salama kwa Awamu 1 -- hakuna madhara ya pembeni
         // yanayoonekana bila I/O/vigezo vya ulimwengu).
@@ -804,8 +804,8 @@ w0 wasm_wakati(n32 nodi, n32 nodi_ya_kazi) {
     wasm_mzunguko_undani = wasm_mzunguko_undani + 1;
     wasm_ina_hatua[faharasa_ya_mzunguko] = ina_hatua;
 
-    // block $vunja { loop $juu { <sharti>; eqz; br_if (kwenda $vunja);
-    //   [block $endelea { <maudhui> }]  <-- pekee kama ina_hatua
+    // ubeti $vunja { mzunguko $juu { <sharti>; eqz; br_if (kwenda $vunja);
+    //   [ubeti $endelea { <maudhui> }]  <-- pekee kama ina_hatua
     //   <maudhui>                       <-- kama HAINA hatua
     //   br (kwenda $juu) } }
     wasm_kitendo_ubeti(WASM_UBETI_TUPU); wasm_kina = wasm_kina + 1;
@@ -830,13 +830,13 @@ w0 wasm_wakati(n32 nodi, n32 nodi_ya_kazi) {
 
     kama (ina_hatua && wasm_ina_hatua[faharasa_ya_mzunguko] != 0 - 999999) {
         // AST_BLOCK{-777777} (hatua) ndani ya maudhui tayari ilifunga
-        // block ya "endelea" yenyewe (angalia wasm_taarifa) -- hapa
+        // ubeti wa "endelea" yenyewe (angalia wasm_taarifa) -- hapa
         // hakuna kufanya tena. Alama -999999 = imeshafungwa.
     }
 
     wasm_kitendo_ruka(wasm_kina - juu_kina);
-    wasm_kitendo_mwisho(); wasm_kina = wasm_kina - 1;  // loop
-    wasm_kitendo_mwisho(); wasm_kina = wasm_kina - 1;  // block $vunja
+    wasm_kitendo_mwisho(); wasm_kina = wasm_kina - 1;  // mzunguko
+    wasm_kitendo_mwisho(); wasm_kina = wasm_kina - 1;  // ubeti $vunja
 
     wasm_mzunguko_undani = wasm_mzunguko_undani - 1;
 }
@@ -904,8 +904,8 @@ w0 wasm_taarifa(n32 nodi, n32 nodi_ya_kazi) {
             n32 kushoto = nodi_ya_kushoto[nodi];
             n32 kulia = nodi_ya_kulia[nodi];
 
-            // arr[idx] = x / *ptr = x -- anwani KWANZA (chini ya
-            // stack), kisha thamani (juu), kisha i32.store (inayotaka
+            // arr[faharisi] = x / *kielekezi = x -- anwani KWANZA (chini ya
+            // mrundikano), kisha thamani (juu), kisha i32.store (inayotaka
             // [anwani, thamani] kwa mpangilio huu HASA).
             kama (aina_ya_nodi[kushoto] == NODI_TAJA) {
                 wasm_taja_anwani(kushoto, nodi_ya_kazi);
@@ -919,7 +919,7 @@ w0 wasm_taarifa(n32 nodi, n32 nodi_ya_kazi) {
                 // kwenye mzunguko (mfano `i = i + 1;` baada ya
                 // `arr[i] = x;`) -- ilisababisha mzunguko usiokwisha
                 // wa kweli (i haiongezeki kamwe). Imepatikana kwa
-                // jaribio halisi (jaribio_safu_n32.swa: node ilining'inia
+                // jaribio halisi (jaribio_safu_n32.swa: nodi ilining'inia
                 // milele wakati wa kuendesha, si kosa la kukusanya).
                 wasm_taarifa(nne_ya_nodi[nodi], nodi_ya_kazi);
                 rudisha;
@@ -953,8 +953,8 @@ w0 wasm_taarifa(n32 nodi, n32 nodi_ya_kazi) {
                 // thamani KILA WAKATI (si kama kazi za kawaida
                 // ambazo zinaweza kuwa w0) -- LAZIMA itupwe daima,
                 // vinginevyo WASM inakataa moduli (thamani iliyobaki
-                // juu ya stack mwishoni mwa block). MUHIMU: `sivyo`
-                // hapa (SI `rudisha;` peke yake baada ya block ya
+                // juu ya mrundikano mwishoni mwa ubeti). MUHIMU: `sivyo`
+                // hapa (SI `rudisha;` peke yake baada ya ubeti wa
                 // kwanza) -- vinginevyo njia ya jumla ya AST_WITO
                 // ingeendelea kutekelezwa BAADAYE kimya, ikizalisha
                 // wasm_usemi mara MBILI (jaribio halisi lilifichua
@@ -985,9 +985,9 @@ w0 wasm_taarifa(n32 nodi, n32 nodi_ya_kazi) {
                         wasm_wakati(nodi, nodi_ya_kazi);
                     } sivyo { kama (aina == NODI_UBETI) {
                             kama (nodi_ya_kulia[nodi] == 0 - 777777) {
-                                // Alama ya "hatua" ya kwa: funga block ya
+                                // Alama ya "hatua" ya kwa: funga ubeti wa
                                 // "endelea" HAPA (hatua inayofuata ni MSIMBO
-                                // WA HATUA, unaopaswa kuwa NJE ya block hiyo
+                                // WA HATUA, unaopaswa kuwa NJE ya ubeti hiyo
                                 // ili endelea iishie hapa na kuiendesha) --
                                 // angalia maelezo kamili juu ya wasm_wakati.
                                 kama (wasm_mzunguko_undani > 0) {
@@ -1008,14 +1008,14 @@ w0 wasm_taarifa(n32 nodi, n32 nodi_ya_kazi) {
 }
 
 // -------------------------------------------------------
-// Sehemu 7: Kazi moja -- pasi ya locals + maudhui -> entry ya Type
-// (kwenye wasm_type_buf, YA PAMOJA na kazi zote) na entry ya Code
+// Sehemu 7: Kazi moja -- pasi ya vigeu vya ndani + maudhui -> kiingilio cha Type
+// (kwenye wasm_type_buf, YA PAMOJA na kazi zote) na kiingilio cha Code
 // (kwenye wasm_sec_buf, YA PAMOJA na kazi zote) -- HAZICHANGANYIKI
 // (angalia maelezo ya Sehemu 0).
 // -------------------------------------------------------
 
 w0 wasm_jenga_kazi(n32 nodi_ya_kazi) {
-    // Weka upya jedwali la locals kwa kazi hii
+    // Weka upya jedwali la vigeu vya ndani kwa kazi hii
     wasm_idadi_ya_vya_ndani = 0;
 
     // Paramu -- faharisi 0..P-1
@@ -1045,7 +1045,7 @@ w0 wasm_jenga_kazi(n32 nodi_ya_kazi) {
         wasm_kosa = 1;
     }
     wasm_chombo_sasa = 3;
-    wasm_baiti(96);  // 0x60 -- func type tag
+    wasm_baiti(96);  // 0x60 -- func aina tag
     wasm_leb_a(idadi_ya_vigezo);
     n32 pi = 0;
     wakati (pi < idadi_ya_vigezo) { wasm_baiti(WASM_I32); pi = pi + 1; }
@@ -1056,13 +1056,13 @@ w0 wasm_jenga_kazi(n32 nodi_ya_kazi) {
         wasm_baiti(WASM_I32);
     }
 
-    // ---- Code entry: locals + maudhui -- jengwa kwenye wasm_fn_buf
+    // ---- Code entry: vigeu vya ndani + maudhui -- jengwa kwenye wasm_fn_buf
     // (maudhui ya kazi HII PEKEE), kisha kunakiliwa (na urefu wake wa
     // LEB128 mbele) kuingia wasm_sec_buf, INAYOENDELEA kati ya kazi.
     wasm_chombo_sasa = 1;
     wasm_kazi_wapi = 0;
     kama (idadi_ya_vya_ndani > 0) {
-        wasm_leb_a(1);  // kundi 1 la locals (aina moja: i32)
+        wasm_leb_a(1);  // kundi 1 la vigeu vya ndani (aina moja: i32)
         wasm_leb_a(idadi_ya_vya_ndani);
         wasm_baiti(WASM_I32);
     } sivyo {
@@ -1133,10 +1133,10 @@ n32 wasm_ukubwa_wa_leb_n(n32 v) {
     rudisha n;
 }
 
-// Memory section (id=5, Awamu 2): hesabu(=1) + limits (flag=0x00,
+// Memory sehemu (id=5, Awamu 2): hesabu(=1) + limits (flag=0x00,
 // min PEKEE -- hakuna max iliyotangazwa, memory.grow inaruhusiwa
 // hadi kikomo cha injini). min_pages inakokotolewa kutoka data +
-// heap ya awali (angalia uzalishaji_wasm_kuu).
+// lundo la awali (angalia uzalishaji_wasm_kuu).
 w0 wasm_andika_sehemu_ya_kumbukumbu(n32 kiwango_cha_chini_cha_kurasa) {
     wasm_chombo_sasa = 0;
     wasm_baiti(5);
@@ -1147,9 +1147,9 @@ w0 wasm_andika_sehemu_ya_kumbukumbu(n32 kiwango_cha_chini_cha_kurasa) {
     wasm_leb_a(kiwango_cha_chini_cha_kurasa);
 }
 
-// Global section (id=6, Awamu 2): global MOJA -- i32 inayobadilika
-// (heap pointer, WASM_HEAP_GLOBAL_IDX=0), thamani ya awali =
-// heap_init (baada ya data section -- angalia uzalishaji_wasm_kuu).
+// Global sehemu (id=6, Awamu 2): ya ulimwengu MOJA -- i32 inayobadilika
+// (heap kielekezi, WASM_HEAP_GLOBAL_IDX=0), thamani ya awali =
+// heap_init (baada ya data sehemu -- angalia uzalishaji_wasm_kuu).
 w0 wasm_andika_ulimwengu_sehemu(n32 kianzio_cha_akiba) {
     wasm_chombo_sasa = 0;
     wasm_baiti(6);
@@ -1166,7 +1166,7 @@ w0 wasm_andika_ulimwengu_sehemu(n32 kianzio_cha_akiba) {
     wasm_baiti(1);  // mutable = kweli
     wasm_baiti(65); wasm_leb_n(kianzio_cha_akiba);  // i32.const heap_init
     wasm_kitendo_mwisho();
-    // Awamu 4: vigezo vya ulimwengu vya mtumiaji (global 1..N)
+    // Awamu 4: vigezo vya ulimwengu vya mtumiaji (ya ulimwengu 1..N)
     g = 0;
     wakati (g < wasm_idadi_ya_vigeu_vya_ulimwengu) {
         wasm_baiti(WASM_I32);
@@ -1177,7 +1177,7 @@ w0 wasm_andika_ulimwengu_sehemu(n32 kianzio_cha_akiba) {
     }
 }
 
-// Table section (id=4, Awamu 4): jedwali MOJA la funcref lenye nafasi
+// Table sehemu (id=4, Awamu 4): jedwali MOJA la funcref lenye nafasi
 // kwa kila kazi ya ndani. Linaandikwa tu likitumika (&kazi), ili
 // moduli zisizo na matukio zibaki kama zilivyokuwa.
 w0 wasm_andika_sehemu_ya_jedwali() {
@@ -1191,7 +1191,7 @@ w0 wasm_andika_sehemu_ya_jedwali() {
     wasm_leb_a(wasm_idadi_ya_kazi);
 }
 
-// Element section (id=9, Awamu 4): segment MOJA amilifu ya jedwali 0
+// Element sehemu (id=9, Awamu 4): segment MOJA amilifu ya jedwali 0
 // kuanzia umbali 0: kazi zote za ndani kwa mpangilio wao, hivyo
 // jedwali[i] ni kazi ya ndani i (faharisi kamili i + uingizaji).
 w0 wasm_andika_kipengele_sehemu() {
@@ -1216,11 +1216,11 @@ w0 wasm_andika_kipengele_sehemu() {
     }
 }
 
-// Data section (id=11, Awamu 2): segment MOJA amilifu (memidx=0,
+// Data sehemu (id=11, Awamu 2): segment MOJA amilifu (memidx=0,
 // umbali=WASM_DATA_MSINGI) ikiwa na mfuatano YOTE yaliyokusanywa
 // yamewekwa pamoja (wasm_data_buf, urefu=wasm_data_wapi). Ikiwa
 // hakuna mfuatano lolote lililotumika, sehemu nzima inarukwa
-// (moduli bila mfuatano haihitaji Data section kabisa).
+// (moduli bila mfuatano haihitaji Data sehemu kabisa).
 w0 wasm_andika_data_sehemu() {
     kama (wasm_data_wapi == 0) { rudisha; }
     wasm_chombo_sasa = 0;
@@ -1231,7 +1231,7 @@ w0 wasm_andika_data_sehemu() {
     wasm_leb_a(maudhui);
     wasm_leb_a(1);
     wasm_leb_a(0);  // memidx = 0 (segment amilifu)
-    wasm_baiti(65); wasm_leb_n(WASM_DATA_MSINGI); wasm_kitendo_mwisho();  // offset expr
+    wasm_baiti(65); wasm_leb_n(WASM_DATA_MSINGI); wasm_kitendo_mwisho();  // umbali expr
     wasm_leb_a(wasm_data_wapi);
     n32 i = 0;
     wakati (i < wasm_data_wapi) { wasm_baiti(wasm_chombo_cha_data[i]); i = i + 1; }
@@ -1242,7 +1242,7 @@ w0 wasm_andika_data_sehemu() {
 // (faharisi = wasm_tenga_idx, iliyowekwa baada ya Pitio la 1 --
 // angalia uzalishaji_wasm_kuu) PEKEE ikiwa kweli imetumika
 // (wasm_tenga_kutumika). Bump allocator rahisi: hoja=ukubwa
-// uliopangwa juu hadi baiti 4; kama heap mpya inavuka ukurasa wa
+// uliopangwa juu hadi baiti 4; kama lundo jipya linavuka ukurasa wa
 // SASA (memory.size()*65536), memory.grow() kurasa za ziada
 // zinazohitajika KABLA ya kuendelea -- kama grow inashindwa
 // (inarudisha -1), "unreachable" (trap ya wakati wa kukimbia, sawa
@@ -1260,11 +1260,11 @@ w0 wasm_jenga_tenga_msaidizi() {
     wasm_leb_a(3);
     wasm_baiti(WASM_I32);
 
-    // local1 = heap wa zamani (matokeo)
+    // ndani1 = lundo la zamani (matokeo)
     wasm_kitendo_pata_ulimwengu(WASM_ULIMWENGU_WA_AKIBA);
     wasm_kitendo_weka_ndani(1);
 
-    // local2 = (param0 + 3) & ~3  (kupanga juu hadi baiti 4)
+    // ndani2 = (kigezo0 + 3) & ~3  (kupanga juu hadi baiti 4)
     wasm_kitendo_pata_ndani(0);
     wasm_kitendo_i32_namba(3);
     wasm_kitendo_i32_jumlisha();
@@ -1272,13 +1272,13 @@ w0 wasm_jenga_tenga_msaidizi() {
     wasm_kitendo_i32_na();
     wasm_kitendo_weka_ndani(2);
 
-    // local3 = heap mpya = local1 + local2
+    // ndani3 = lundo jipya = ndani1 + ndani2
     wasm_kitendo_pata_ndani(1);
     wasm_kitendo_pata_ndani(2);
     wasm_kitendo_i32_jumlisha();
     wasm_kitendo_weka_ndani(3);
 
-    // kama local3 > memory.size()*65536: kuza kumbukumbu
+    // kama ndani3 > memory.size()*65536: kuza kumbukumbu
     wasm_kitendo_pata_ndani(3);
     wasm_kitendo_ukubwa_wa_kumbukumbu();
     wasm_kitendo_i32_namba(65536);
@@ -1302,7 +1302,7 @@ w0 wasm_jenga_tenga_msaidizi() {
         wasm_kitendo_mwisho();
     wasm_kitendo_mwisho();
 
-    // heap_ptr = local3; matokeo = local1
+    // kielekezi_cha_lundo = ndani3; matokeo = ndani1
     wasm_kitendo_pata_ndani(3);
     wasm_kitendo_weka_ulimwengu(WASM_ULIMWENGU_WA_AKIBA);
     wasm_kitendo_pata_ndani(1);
@@ -1326,13 +1326,13 @@ w0 wasm_andika_sehemu_kutoka(n32 kitambulisho, n32 idadi, n8* chanzo, n32 urefu_
     wakati (i < urefu_chanzo) { wasm_baiti(chanzo[i]); i = i + 1; }
 }
 
-// Function section (id=3): hesabu + [faharisi_ya_aina]* -- faharisi
+// Function sehemu (id=3): hesabu + [faharisi_ya_aina]* -- faharisi
 // ya aina == faharisi ya kazi (miongoni mwa za NDANI, 0..N-1) + I
 // (aina 0..I-1 ni za uingizaji, zilizoandikwa KWANZA kwenye
 // wasm_type_buf na wasm_andika_aina_uingizaji -- angalia
 // uzalishaji_wasm_kuu). Hesabu ya kazi (wasm_kazi_idadi) YENYEWE
-// haibadiliki -- Function section inaorodhesha kazi za NDANI PEKEE,
-// uingizaji hauorodheshwi hapa (angalia Import section badala yake).
+// haibadiliki -- Function sehemu inaorodhesha kazi za NDANI PEKEE,
+// uingizaji hauorodheshwi hapa (angalia Import sehemu badala yake).
 w0 wasm_andika_sehemu_ya_kazi() {
     n32 faharasa_ya_baiti = 0;
     n32 j = 0;
@@ -1392,7 +1392,7 @@ w0 wasm_andika_aina_uingizaji() {
 }
 
 // Entry moja ya Import section: uleb128(len(moduli)) + moduli +
-// uleb128(len(alama)) + alama + kind (func) + uleb128(faharisi_ya_aina).
+// uleb128(len(alama)) + alama + kind (kazi) + uleb128(faharisi_ya_aina).
 // Moduli ni mfuatano wa `nje "<moduli>"`, alama ni jina lao.
 n32 wasm_ukubwa_wa_jina(n8* s) {
     n32 l = urefu_wa_jina(s);
@@ -1406,7 +1406,7 @@ w0 wasm_andika_jina(n8* s) {
     wakati (i < l) { wasm_baiti(s[i]); i = i + 1; }
 }
 
-// Import section (id=2): kila kazi ya nje. LAZIMA iandikwe KATI ya
+// Import sehemu (id=2): kila kazi ya nje. LAZIMA iandikwe KATI ya
 // Type(1) na Function(3). Haiandikwi kabisa ikiwa hakuna uingizaji.
 w0 wasm_andika_sehemu_uingizaji() {
     kama (kigeni_idadi_ya_kazi == 0) { rudisha; }
@@ -1426,13 +1426,13 @@ w0 wasm_andika_sehemu_uingizaji() {
     wakati (k < kigeni_idadi_ya_kazi) {
         wasm_andika_jina(kigeni_ghala + kigeni_maktaba_umbali[kigeni_kazi_maktaba[k]]);
         wasm_andika_jina(kigeni_ghala + kigeni_umbali_wa_alama_ya_kazi[k]);
-        wasm_baiti(0);  // kind = func
+        wasm_baiti(0);  // kind = kazi
         wasm_leb_a(k);
         k = k + 1;
     }
 }
 
-// Export section (id=7): "anza" (func) NA "memory" (Awamu 2 -- ili
+// Export sehemu (id=7): "anza" (kazi) NA "memory" (Awamu 2 -- ili
 // majaribio yaweze kusoma instance.exports.memory.buffer moja kwa
 // moja kutoka Node).
 w0 wasm_andika_sehemu_ya_uhamishaji(n32 faharasa_ya_kazi_ya_anza) {
@@ -1454,7 +1454,7 @@ w0 wasm_andika_sehemu_ya_uhamishaji(n32 faharasa_ya_kazi_ya_anza) {
     wasm_leb_a(hesabu);
     wasm_leb_a(4);
     wasm_baiti(97); wasm_baiti(110); wasm_baiti(122); wasm_baiti(97);  // "anza"
-    wasm_baiti(0);  // aina = func
+    wasm_baiti(0);  // aina = kazi
     wasm_leb_a(faharasa_ya_kazi_ya_anza);
     wasm_leb_a(6);
     wasm_baiti(109); wasm_baiti(101); wasm_baiti(109); wasm_baiti(111); wasm_baiti(114); wasm_baiti(121);  // "memory"
@@ -1575,11 +1575,11 @@ n32 uzalishaji_wasm_kuu(n32 nodi_ya_programu) {
     // tenga() ndani ya Pitio la 2, kabla helper yenyewe haijajengwa.
     wasm_tenga_faharasa = wasm_idadi_ya_kazi;
 
-    // Pitio la 2: jenga kila kazi -- Type entry huingia wasm_type_buf
-    // na Code entry huingia wasm_sec_buf, ZOTE MBILI zikiendelea
+    // Pitio la 2: jenga kila kazi -- Type kiingilio huingia wasm_type_buf
+    // na Code kiingilio huingia wasm_sec_buf, ZOTE MBILI zikiendelea
     // (hazisafishwi) kati ya kazi, hivyo faharisi ya mpangilio wa
-    // kazi (i) ni faharisi ya aina (Type index) NA faharisi ya kazi
-    // (Function/Code index) KWA WAKATI MMOJA -- angalia
+    // kazi (i) ni faharisi ya aina (Type faharisi) NA faharisi ya kazi
+    // (Function/Code faharisi) KWA WAKATI MMOJA -- angalia
     // wasm_andika_function_sehemu (0..N-1 moja kwa moja).
     n32 i = 0;
     wakati (i < wasm_idadi_ya_kazi) {
@@ -1601,7 +1601,7 @@ n32 uzalishaji_wasm_kuu(n32 nodi_ya_programu) {
 
     // Heap huanza mara tu baada ya data (mfuatano) yote, iliyopangwa
     // juu hadi baiti 4. Kurasa za awali za kumbukumbu (min_pages)
-    // zinahitajika kutosha KUSHIKILIA data + heap ya awali kabla ya
+    // zinahitajika kutosha KUSHIKILIA data + lundo la awali kabla ya
     // memory.grow yoyote kuhitajika wakati wa kukimbia.
     n32 kianzio_cha_akiba = WASM_DATA_MSINGI + wasm_data_wapi;
     kianzio_cha_akiba = (kianzio_cha_akiba + 3) & (0 - 4);
@@ -1620,7 +1620,7 @@ n32 uzalishaji_wasm_kuu(n32 nodi_ya_programu) {
     // badala ya MWANZONI).
     wasm_chombo_sasa = 0;
     wasm_utangulizi();
-    // Hesabu ya Type section ni kazi za NDANI (wasm_kazi_idadi) +
+    // Hesabu ya Type sehemu ni kazi za NDANI (wasm_kazi_idadi) +
     // uingizaji 6 (Awamu 3) -- wasm_type_buf sasa ina aina ZOTE mbili
     // (uingizaji zimeandikwa kwanza na wasm_andika_aina_uingizaji).
     wasm_andika_sehemu_kutoka(1, wasm_idadi_ya_kazi + wasm_idadi_ya_uingizaji, wasm_chombo_cha_aina, wasm_aina_wapi);

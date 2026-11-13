@@ -2,12 +2,12 @@
 
 ## Lengo
 
-**0% bootstrap gap.** Andika mkusanyaji wa kwanza wa Swa kwa baiti za mkono
+**0% kujianzisha gap.** Andika mkusanyaji wa kwanza wa Swa kwa baiti za mkono
 (opcodes za x86-64). Hakuna lugha nyingine, hata assembly.
 
 ## Ilivyotimia
 
-Mpango wa awali (Julai 2026) ulikuwa hatua nne za binary moja inayokua:
+Mpango wa awali (Julai 2026) ulikuwa hatua nne za binari moja inayokua:
 mzalishaji wa ELF (`rudisha 42`), kisha nambari, kisha maneno
 (`N32 anza() { rudisha <N>; }`), kisha kujikusanya. Hatua tatu za kwanza
 zilifanyika kama `msingi/bootstrap.bin` (baiti 1305: vigeu na `+ - *`),
@@ -16,13 +16,13 @@ hatua ya nne haikufikiwa kwa njia hiyo.
 
 Lengo lenyewe lilitimizwa na **mfululizo huru** (`hati/mfululizo-huru.md`):
 
-- `msingi/kwanza.bin` -- baiti 393 za mkono kweli (hex -> binary)
+- `msingi/kwanza.bin` -- baiti 393 za mkono kweli (heksa -> binari)
 - maoni -> mahali -> kusanyiko0 -> kusanyiko: kila hatua imeandikwa kwa lugha
   ya iliyo chini yake, na kusanyiko (lugha ya mashine ya Swa) hujijenga lenyewe
 - `msingi/awali.swm` -> `awali.bin`, mkusanyaji wa Swa -> kamili -> `bin/swa`
 - `msingi/mjenzi.bin` huendesha yote: `./msingi/mjenzi.bin gharama/jenga.mapishi`
 
-Hakuna assembler, linker wala compiler ya nje popote kwenye mfululizo.
+Hakuna kusanyiko, kiungaji wala mkusanyaji wa nje popote kwenye mfululizo.
 
 ## bootstrap.bin ilikwenda wapi
 

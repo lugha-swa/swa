@@ -1,19 +1,19 @@
-// Fahirisi kubwa: idx * saizi_ya_kipengele > 2^32 kwa arr[idx] (kuandika na
-// kusoma), &arr[idx], na *(ptr + n) -- hitilafu iliyogunduliwa kwenye ukaguzi wa
+// Fahirisi kubwa: faharisi * saizi_ya_kipengele > 2^32 kwa arr[faharisi] (kuandika na
+// kusoma), &arr[faharisi], na *(kielekezi + n) -- hitilafu iliyogunduliwa kwenye ukaguzi wa
 // PR #251 (andika_ongea_kipengele_kwa_saizi ilizidisha kwenye r0d (biti 32)
-// KISHA kupanua kwa ishara; kwa idx*saizi > 2^32 zidisho hilo lilizunguka
+// KISHA kupanua kwa ishara; kwa faharisi*saizi > 2^32 zidisho hilo lilizunguka
 // (overflow) kabla ya kupanuliwa, likitoa anwani mbaya). Usajili wa kumbukumbu
 // ni wa uvivu (mmap ya kibinafsi, isiyo na hifadhi/anonymous) -- safu za
 // hapa ni virtual kubwa lakini kumbukumbu halisi inayoguswa ni ndogo sana.
 //
-// Kila anwani inathibitishwa dhidi ya hesabu huru ya n64 (msingi + idx*saizi,
+// Kila anwani inathibitishwa dhidi ya hesabu huru ya n64 (msingi + faharisi*saizi,
 // n64*n64 haina hitilafu hii -- zidisha_n r0,r1 ni ya biti 64 tayari).
 husisha { msingi/maktaba/kumbukumbu.swa }
 
 n64 kama_n64(n8* p) { rudisha p; }
 
 n32 jaribu_n64_saizi8() {
-    // idx*8 > 2^32 kwa idx > 536870912
+    // faharisi*8 > 2^32 kwa faharisi > 536870912
     n64 faharasa = 600000000;
     n64* p = tenga(ukubwa(n64) * (faharasa + 8));
     n64 msingi = kama_n64(p);
@@ -22,7 +22,7 @@ n32 jaribu_n64_saizi8() {
     n64 anwani_halisi = kama_n64(&p[faharasa]);
     n64 anwani_tarajiwa = msingi + (faharasa * 8);
     kama (anwani_halisi != anwani_tarajiwa) { rudisha 2; }
-    // jirani (idx+1, idx-1) hazipaswi kuguswa
+    // jirani (faharisi+1, idx-1) hazipaswi kuguswa
     kama (p[faharasa + 1] != 0) { rudisha 3; }
     kama (p[faharasa - 1] != 0) { rudisha 4; }
     p[faharasa + 1] = 999;
@@ -42,7 +42,7 @@ n32 jaribu_d64_saizi8() {
 }
 
 n32 jaribu_n32_saizi4() {
-    // idx*4 > 2^32 kwa idx > 1073741824
+    // faharisi*4 > 2^32 kwa faharisi > 1073741824
     n64 faharasa = 1100000000;
     n32* p = tenga(ukubwa(n32) * (faharasa + 8));
     n64 msingi = kama_n64(p);
@@ -55,7 +55,7 @@ n32 jaribu_n32_saizi4() {
 }
 
 n32 jaribu_nyoosha_kielekezi() {
-    // *(ptr + n) kwa n kubwa (uzalishaji_jumlisha_kielekezi hutumia
+    // *(kielekezi + n) kwa n kubwa (uzalishaji_jumlisha_kielekezi hutumia
     // andika_ongea_kielekezi_kipengele -- tayari sahihi, lakini
     // tunathibitisha hapa pia kwa ukamilifu wa jaribio)
     n64 faharasa = 700000000;

@@ -1,6 +1,6 @@
 # Hali na Mafanikio: Bootstrap ya Kujikusanya ya Swa
 
-Hati hii inafupisha juhudi za kuleta lugha ya programu ya Kiswahili (Swa) kwenye kujikusanya: kukusanya mchanganuzi wake na msomaji wake kutoka kwa chanzo cha Swa hadi kwenye binary inayofanya kazi kupitia mkusanyaji wa bootstrap unaotegemea Rust (`kande`).
+Hati hii inafupisha juhudi za kuleta lugha ya programu ya Kiswahili (Swa) kwenye kujikusanya: kukusanya mchanganuzi wake na msomaji wake kutoka kwa chanzo cha Swa hadi kwenye binari inayofanya kazi kupitia mkusanyaji wa kujianzisha unaotegemea Rust (`kande`).
 
 KUMBUKA (2026-09-05): dereva wa Rust/LLVM umehamishiwa hazina ya
 kumbukumbu lugha-swa/swa-dereva. Hati hii ni rekodi ya kihistoria ya
@@ -13,7 +13,7 @@ kazi hiyo.
 Lengo lilikuwa kuonyesha kwamba lugha ya programu ya Kiswahili (Swa) inaweza kujikusanya yenyewe. Hasa:
 
 - Kukusanya mchanganuzi ulioandikwa kwa Swa (`msambazaji.swa`) na msomaji (`msomaji.swa`) kwa kutumia mkusanyaji unaotegemea Rust (`kande`).
-- Kuzalisha binary inayochanganua faili za chanzo za Swa na kurudisha mti halali wa sintaksia ya kifikra (AST).
+- Kuzalisha binari inayochanganua faili za chanzo za Swa na kurudisha mti halali wa sintaksia ya kifikra (AST).
 - Hiki ni kiashiria cha kihistoria cha "bootstrap ya kujikusanya": lugha inakuwa ya kujieleza na ya kuaminika vya kutosha kushughulikia sehemu yake ya mbele.
 
 Mchanganuzi sio wa kuchezea. Unashughulikia uainishaji wa tokeni, mchanganuzi wa kushuka-kujirudia kwa sarufi kamili ya Swa (maneno muhimu 42), AST iliyojengwa kutoka kwa nodi zilizogawiwa kwa nguvu, bwawa la kamba kwa vitambulisho na vihalisi, na mtiririko wa udhibiti uliopangwa (`kama`, `wakati`, `rudisha`). Kuifanya ikusanyike na iendeshe kwa usahihi inajaribu karibu kila mfumo mdogo katika mkusanyaji.
@@ -36,13 +36,13 @@ Mchanganuzi wa kujikusanya ulifichua hitilafu zilizofichika katika `kande` ambaz
 | 4 | Kutolingana kwa upana wa hifadhi (upande wa kukata) | Thamani pana kwenye pointee finyu hazikukatwa | Kufurika kwenye hifadhi ya karibu |
 | 5 | Matamko ya mbele yalitolewa kama kazi | `tangaza` ilitoa `define` badala ya `declare` | Alama mbili wakati wa kuunganisha |
 | 6 | Hitilafu ya kuteremsha kwenye ugawaji wa muundo | Kiteremshaji hakikuweza kushughulikia `a = b` kwa miundo | Usimamizi wa tokeni ulivunjika |
-| 7 | Opaque pointer inaharibu usawazishaji wa hifadhi/mzigo | LLVMGetElementType haiaminiki na opaque pointers za LLVM 22 | SIGSEGV nasibu, tokeni zimeharibika |
+| 7 | Opaque kielekezi kinaharibu usawazishaji wa hifadhi/mzigo | LLVMGetElementType haiaminiki na opaque vielekezi vya LLVM 22 | SIGSEGV nasibu, tokeni zimeharibika |
 | 8 | Msimbo baada ya kama hauwiani kwenye CFG | actual_prev haikufuatilia BrCond; self-loop haikurekebishwa | Taarifa baada ya kama ni msimbo uliokufa kwa sehemu |
-| 9 | Alloca-in-loop inamaliza mrundikano | Alloca za vigeu vya ndani zinatolewa kwenye block ya sasa badala ya block ya kuingia | SIGSEGV baada ya ~524K mizunguko ya mzunguko |
+| 9 | Alloca-in-loop inamaliza mrundikano | Alloca za vigeu vya ndani zinatolewa kwenye ubeti wa sasa badala ya ubeti wa kuingia | SIGSEGV baada ya ~524K mizunguko ya mzunguko |
 
 #### Kipindi cha Pili (Marekebisho 3 ya ziada katika mchanganuzi wa kujikusanya)
 
-Baada ya kurekebisha hitilafu za codegen (hasa alloca-in-loop), binary ya kujikusanya ilifichua hitilafu za ziada katika mchanganuzi wa Swa yenyewe:
+Baada ya kurekebisha hitilafu za uzalishaji (hasa alloca-in-loop), binari ya kujikusanya ilifichua hitilafu za ziada katika mchanganuzi wa Swa yenyewe:
 
 | # | Hitilafu | Faili | Athari |
 |---|---------|-------|--------|
@@ -56,7 +56,7 @@ Marekebisho 12 yalitumika bila kurudi nyuma. Msururu kamili wa majaribio ya Rust
 
 ### 2.3 Msomaji ulirekebishwa kwa mipaka ya O0
 
-`msomaji.swa` iligawanywa katika wasaidizi wadogo -- `somaNenoMsingi`, `somaNambari`, `somaKamba`, `somaAlama`, `somaAinaMsingi`, `sogeza` -- kuweka kila kazi chini ya kikomo cha block cha FastISel (~maelekezo 1000 kwa block).
+`msomaji.swa` iligawanywa katika wasaidizi wadogo -- `somaNenoMsingi`, `somaNambari`, `somaKamba`, `somaAlama`, `somaAinaMsingi`, `sogeza` -- kuweka kila kazi chini ya kikomo cha ubeti cha FastISel (~maelekezo 1000 kwa ubeti).
 
 ### 2.4 Mchanganuzi uligawanywa kiotomatiki
 
@@ -75,15 +75,15 @@ Hati ya Python (`_finish.py`) iliandikwa kutenganisha kazi kubwa za `msambazaji.
 - Mkusanyaji wa Rust (`kande`) unakusanya programu rahisi za Swa (hesabu, mtiririko wa udhibiti, miito ya kazi, ufikiaji wa sehemu za muundo, safu, mizunguko) na kuzalisha matokeo sahihi.
 - Mchanganuzi wa kujikusanya unakusanyika na kuendesha kwenye O0.
 - Msomaji wa kujikusanya unakusanyika na kuendesha kwenye O0.
-- K6 (kujikusanya kamili) inapita: binary ya kujikusanya inajikusanya yenyewe.
-- **Alloca-in-loop imetatuliwa**: Mbinu ya kupitisha mara mbili katika `lower.rs` inahakikisha alloca zote za vigeu vya ndani ziko kwenye block ya kuingia.
+- K6 (kujikusanya kamili) inapita: binari ya kujikusanya inajikusanya yenyewe.
+- **Alloca-in-loop imetatuliwa**: Mbinu ya kupitisha mara mbili katika `lower.rs` inahakikisha alloca zote za vigeu vya ndani ziko kwenye ubeti wa kuingia.
 - **CFG dead-code imerekebishwa**: Ufuatiliaji wa `actual_prev` sasa unashughulikia `BrCond` ipasavyo.
-- **Marekebisho 12 kwa jumla**: codegen (6), mchanganuzi wa kujikusanya (4), msomaji (1), miundombinu (1).
+- **Marekebisho 12 kwa jumla**: uzalishaji (6), mchanganuzi wa kujikusanya (4), msomaji (1), miundombinu (1).
 
 ### 3.2 Vizuizi vinavyojulikana
 
 - **Kurudi nyuma kwa O1**: Uboreshaji wa SelectionDAG unaharibu hesabu za tofauti za vielekezi katika `tokeni_soma_kitambulisho`.
-- **Safu kubwa za AST kwenye Windows**: Juu ya ~2 MB, binary inaanguka kabla ya `main`. Inaweza kuwa suala la kipakiaji cha PE.
+- **Safu kubwa za AST kwenye Windows**: Juu ya ~2 MB, binari inaanguka kabla ya `main`. Inaweza kuwa suala la kipakiaji cha PE.
 - **Kikomo cha FastISel**: Kazi zinazozidi vitalu ~50 hushindwa kimya kwenye O0.
 
 ### 3.3 Hali ya Kujikusanya
@@ -112,9 +112,9 @@ Marekebisho yote yako kwenye tawi kuu (`main`).
 | Upanuzi wa hifadhi | `src/codegen.rs` | ~25 |
 | Tangazo la mbele | `src/codegen.rs`, `src/ast.rs` | ~35 |
 | Kiteremshaji + suluhisho la muda la muundo | `src/codegen.rs`, `src/lower.rs` | ~60 |
-| Opaque pointer za LLVM 22, mgongano wa ValueId, builtins za kumbukumbu | `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs`, `build.rs`, `ffi.rs` | ~200 |
+| Opaque kielekezi za LLVM 22, mgongano wa ValueId, kazi asili za kumbukumbu | `src/codegen/llvm/mod.rs`, `src/ir/lower.rs`, `src/ir/mod.rs`, `build.rs`, `ffi.rs` | ~200 |
 | CFG dead-code (actual_prev, BrCond, self-loop) | `src/ir/lower.rs` | ~40 |
-| Alloca-in-loop (kupitisha mara mbili, pre-allocated locals) | `src/ir/lower.rs` | ~100 |
+| Alloca-in-loop (kupitisha mara mbili, pre-allocated vigeu vya ndani) | `src/ir/lower.rs` | ~100 |
 | Usomaji wa safu (AST_SAFU, AST_TAJA, faharasa) | `src/parser/mod.rs`, `msingi/mkusanyaji/msambazaji.swa` | ~130 |
 | Mzunguko wa `kwa`, tamko la mbele `;`, sogeza() kamili, unary minus | `msingi/mkusanyaji/msambazaji.swa`, `msingi/mkusanyaji/msomaji.swa` | ~50 |
 | Nyongeza za majaribio | `majaribio/` | ~55 |
@@ -148,11 +148,11 @@ Safu za ulimwengu zenye ukubwa wa BSS juu ya ~2 MB zinaanguka kabla ya `main` kw
 
 ### 5.6 CFG: Taarifa za udhibiti zinahitaji ushughulikiaji makini wa mwendelezo
 
-Baada ya taarifa ya `kama`, block ya sharti ya `BrCond` haipaswi kuwa kiungo cha mwendelezo kwa taarifa inayofuata. `actual_prev` lazima ifuatilie block ya kuunganisha (`merge`). Kukosa kufanya hivyo kunasababisha msimbo usio na marejeleo (dead code) kwenye CFG na mizunguko ya kujirudia visivyo na mwisho.
+Baada ya taarifa ya `kama`, ubeti wa sharti wa `BrCond` haupaswi kuwa kiungo cha mwendelezo kwa taarifa inayofuata. `actual_prev` lazima ifuatilie ubeti wa kuunganisha (`merge`). Kukosa kufanya hivyo kunasababisha msimbo usio na marejeleo (msimbo mfu) kwenye CFG na mizunguko ya kujirudia visivyo na mwisho.
 
-### 5.7 Alloca za vigeu vya ndani lazima ziwe kwenye block ya kuingia
+### 5.7 Alloca za vigeu vya ndani lazima ziwe kwenye ubeti wa kuingia
 
-LLVM inatarajia alloca zote za vigeu vya ndani ziwe kwenye block ya kuingia ya kazi. Kutoa alloca kwenye block ya mzunguko kunasababisha kila mzunguko kugawa nafasi mpya ya mrundikano bila kuzirejesha. Hii inaisha kwa uharibifu wa mrundikano (SIGSEGV). Suluhisho ni mbinu ya kupitisha mara mbili: (1) tembea AST mapema kukusanya matamko yote ya vigeu, (2) toa alloca zote kwenye block ya kuingia kabla ya maudhui yoyote kuchakatwa.
+LLVM inatarajia alloca zote za vigeu vya ndani ziwe kwenye ubeti wa kuingia wa kazi. Kutoa alloca kwenye ubeti wa mzunguko kunasababisha kila mzunguko kugawa nafasi mpya ya mrundikano bila kuzirejesha. Hii inaisha kwa uharibifu wa mrundikano (SIGSEGV). Suluhisho ni mbinu ya kupitisha mara mbili: (1) tembea AST mapema kukusanya matamko yote ya vigeu, (2) toa alloca zote kwenye ubeti wa kuingia kabla ya maudhui yoyote kuchakatwa.
 
 ### 5.8 Mfululizo wa ushughulikiaji wa tokeni
 
@@ -162,7 +162,7 @@ Hitilafu ndogo katika `sogeza()` (kunakili sehemu 3 kati ya 5 za tokeni) ilisaba
 
 ## 6. Uhamisho wa Linux -- Arch Linux (Juni 2026)
 
-Mradi ulihamishwa kutoka Windows hadi Arch Linux. Hii ilifichua hitilafu zilizofichika katika mkusanyaji wa bootstrap wa Rust na mchanganuzi wa kujikusanya.
+Mradi ulihamishwa kutoka Windows hadi Arch Linux. Hii ilifichua hitilafu zilizofichika katika mkusanyaji wa kujianzisha wa Rust na mchanganuzi wa kujikusanya.
 
 ### 6.1 Mfumo wa Kujenga
 
@@ -170,7 +170,7 @@ Mradi ulihamishwa kutoka Windows hadi Arch Linux. Hii ilifichua hitilafu zilizof
 
 ### 6.2 Marekebisho ya Opaque Pointer ya LLVM
 
-LLVM 22.1 inatumia opaque pointers. `LLVMGetElementType` inarudisha matokeo yasiyoaminika.
+LLVM 22.1 inatumia opaque vielekezi. `LLVMGetElementType` inarudisha matokeo yasiyoaminika.
 
 | Hitilafu | Dalili | Marekebisho |
 |---|---|---|
@@ -208,7 +208,7 @@ Masuala yote ya awali yamerekebishwa:
 - Mchanganuzi wa kujikusanya unakwama kwenye vigezo 2+ -- IMEREKEBISHWA
 - Ufisadi wa `urefu` wa O1 -- IMEREKEBISHWA (hitilafu ya juu ya LLVM, ilirekebishwa kwenye LLVM 22.1.8; jaribio la regression `test_o1_sub_preserved` limeongezwa)
 - Ugawaji wa muundo haujatekelezwa -- IMEREKEBISHWA (MemCopy katika lower.rs NA mteremko.swa)
-- Alloca-in-loop (SIGSEGV kwenye binary ya kujikusanya) -- IMEREKEBISHWA (kupitisha mara mbili kwenye lower.rs)
+- Alloca-in-loop (SIGSEGV kwenye binari ya kujikusanya) -- IMEREKEBISHWA (kupitisha mara mbili kwenye lower.rs)
 - CFG dead-code (msimbo baada ya kama ni msimbo uliokufa) -- IMEREKEBISHWA
 - Tamko la mbele `;` linavuja -- IMEREKEBISHWA
 - Mzunguko wa `kwa` hauchanganulii -- IMEREKEBISHWA
@@ -224,11 +224,11 @@ Katika kipindi cha saa 18 cha kurekebisha hitilafu, marekebisho 12 yalifanywa:
   - Mbinu ya kupitisha mara mbili katika `src/ir/lower.rs`:`lower_function`
   - `collect_local_decls` -- mbinu mpya inayotembea AST kukusanya matamko yote ya vigeu vya ndani
   - `pre_allocated_locals` -- ramani ya `HashMap<i32, ValueId>` kwa alloca zilizotanguliwa
-  - Alloca zote za vigeu vya ndani sasa zinatolewa kwenye block ya kuingia kabla ya maudhui kuchakatwa
+  - Alloca zote za vigeu vya ndani sasa zinatolewa kwenye ubeti wa kuingia kabla ya maudhui kuchakatwa
   - Binary ya kujikusanya hai-SIGSEGV tena
 
 - **BrCond katika ufuatiliaji wa actual_prev:**
-  - Mfululizo wa ufuatiliaji wa block sasa unashughulikia BrCond kwa block ya kuunganisha
+  - Mfululizo wa ufuatiliaji wa ubeti sasa unashughulikia BrCond kwa ubeti wa kuunganisha
   - Hii inahakikisha ushughulikiaji sahihi wa mtiririko wa udhibiti baada ya taarifa za `kama`
 
 - **Marekebisho ya mchanganuzi (4ddb448):**
@@ -236,7 +236,7 @@ Katika kipindi cha saa 18 cha kurekebisha hitilafu, marekebisho 12 yalifanywa:
   - Ulinzi wa `t->urefu == 0` mwanzoni mwa `neno_ni` kuzuia mzunguko usio na mwisho kwenye EOF
   - Uainishaji wa ASCII maeneo 49 katika `msambazaji.swa`
   - `StoreTyped` sasa inahakiki aina lengwa ni nambari kamili kabla ya kuita `LLVMGetIntTypeWidth`
-  - Const inatumia aina sahihi ya chaguo-msingi kwa Bool (i1), NullPtr (ptr), na Float (double)
+  - Const inatumia aina sahihi ya chaguo-msingi kwa Bool (i1), NullPtr (kielekezi), na Float (d64)
 
 - **Marekebisho ya mchanganuzi wa kujikusanya:**
   - Tamko la mbele linatumia `;` kwa usahihi

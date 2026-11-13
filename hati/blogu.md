@@ -11,40 +11,40 @@ lugha-swa/swa-dereva.
 ## Muktadha wa Mradi
 
 Swa ni lugha ya programu za mifumo ambapo **maneno muhimu, aina, na nyaraka zote ziko kwa Kiswahili**. Kwa mfano:
-- `kama` (if), `wakati` (while), `rudisha` (return)
+- `kama` (if), `wakati` (wakati), `rudisha` (return)
 - `N32` (i32), `A64` (u64), `D64` (f64)
 - `muundo` (struct), `tenga` (malloc), `achilia` (free)
 
-Mkusanyaji wa bootstrap (`kande`) umeandikwa kwa Rust (takriban mistari 12,200). Unakusanya chanzo cha Swa kupitia mfululizo kamili: msomaji (lexer) -> mchanganuzi (parser) -> uchanganuzi wa kisemantiki -> uteuzi wa IR -> LLVM codegen -> native x86-64 binary.
+Mkusanyaji wa kujianzisha (`kande`) umeandikwa kwa Rust (takriban mistari 12,200). Unakusanya chanzo cha Swa kupitia mfululizo kamili: msomaji (msomaji) -> mchanganuzi (mchanganuzi) -> uchanganuzi wa kisemantiki -> uteuzi wa IR -> LLVM uzalishaji -> native x86-64 binari.
 
 Sehemu za kujikusanya zimeandikwa kwa Swa yenyewe (takriban mistari 4,100 katika faili 7):
-- `msomaji.swa` -- msomaji (lexer)
-- `msambazaji.swa` -- mchanganuzi (parser)
+- `msomaji.swa` -- msomaji (msomaji)
+- `msambazaji.swa` -- mchanganuzi (mchanganuzi)
 - `mteremko.swa` -- kiteremshi cha IR
 - `mkaguzi.swa` -- mkaguzi wa kisemantiki
 - `kumbukumbu.swa` -- usimamizi wa kumbukumbu
 - `mfuatano.swa` -- shughuli za mifuatano
-- `kiendeshaji.swa` -- kiendeshi cha bootstrap
+- `kiendeshaji.swa` -- kiendeshi cha kujianzisha
 
 ## Kipindi cha Saa 18 cha Kurekebisha Hitilafu
 
 ### Mahali pa Kuanzia (Julai 4, 07:00)
 
-Wakati kipindi kilipoanza, binary ya kujikusanya ilianguka mara moja kwa **SIGSEGV** (kufurika kwa mrundikano). Jaribio la K6 la kujikusanya kamili (`jaribio_k6_kujikusanya_kamili`) lilikuwa limezimwa kwa `#[ignore]` tangu ilipoanzishwa. Majaribio 172 pekee yalipita, na mradi ulikuwa umekwama kwenye kizuizi kikubwa.
+Wakati kipindi kilipoanza, binari ya kujikusanya ilianguka mara moja kwa **SIGSEGV** (kufurika kwa mrundikano). Jaribio la K6 la kujikusanya kamili (`jaribio_k6_kujikusanya_kamili`) lilikuwa limezimwa kwa `#[ignore]` tangu ilipoanzishwa. Majaribio 172 pekee yalipita, na mradi ulikuwa umekwama kwenye kizuizi kikubwa.
 
 ### Hitilafu Zilizogunduliwa na Kurekebishwa
 
 **Hitilafu 1: Alloca-in-Loop -> SIGSEGV** (`src/ir/lower.rs`)
-Hitilafu muhimu zaidi. Kiteremshi cha IR kilitoa maagizo ya `alloca` kwenye block ya sasa ya msingi badala ya block ya kuingia ya kazi. Wakati tamko la kigezo cha ndani lilipokuwa ndani ya mzunguko (kama mzunguko wa `wakati` cha mchanganuzi), kila mzunguko uliunda alloca mpya -- ikitumia baiti 16 za mrundikano kwa kila mzunguko. Baada ya takriban mizunguko 524,000, mrundikano wa MB 8 ilikuwa imeisha.
+Hitilafu muhimu zaidi. Kiteremshi cha IR kilitoa maagizo ya `alloca` kwenye ubeti wa sasa wa msingi badala ya ubeti wa kuingia wa kazi. Wakati tamko la kigezo cha ndani lilipokuwa ndani ya mzunguko (kama mzunguko wa `wakati` cha mchanganuzi), kila mzunguko uliunda alloca mpya -- ikitumia baiti 16 za mrundikano kwa kila mzunguko. Baada ya takriban mizunguko 524,000, mrundikano wa MB 8 ilikuwa imeisha.
 
-**Marekebisho:** Mbinu ya kupitisha mara mbili. Kazi mpya ya `collect_local_decls` inatembea AST kugundua matamko yote ya vigeu vya ndani kabla ya uteuzi wa maudhui kuanza. Alloca hizi zinatolewa mapema kwenye block ya kuingia. Wakati wa uteuzi wa maudhui, `lower_local_decl` hutafuta `ValueId` iliyotengwa mapema badala ya kuunda alloca mpya.
+**Marekebisho:** Mbinu ya kupitisha mara mbili. Kazi mpya ya `collect_local_decls` inatembea AST kugundua matamko yote ya vigeu vya ndani kabla ya uteuzi wa maudhui kuanza. Alloca hizi zinatolewa mapema kwenye ubeti wa kuingia. Wakati wa uteuzi wa maudhui, `lower_local_decl` hutafuta `ValueId` iliyotengwa mapema badala ya kuunda alloca mpya.
 
 **Athari:** Binary haianguki tena. Faili zote za maktaba zinachanganuliwa kwa mafanikio.
 
 ---
 
 **Hitilafu 2: CFG Dead-Code -> Mzunguko Usio na Mwisho** (`src/ir/lower.rs`, mstari 875)
-Usafiri wa block ya `actual_prev` ulishughulikia tu vivunja vya `Br`. Ulipokutana na `BrCond` (kutoka tathmini fupi ya `&&`/`||`), ulivunja na kurudisha block mbaya. Maagizo yote yaliyofuata yakawa msimbo uliokufa usiofikiwa. Mzunguko wa mchanganuzi kilizunguka milele, kikiunda allocas kila mzunguko hadi mrundikano ukaisha.
+Usafiri wa ubeti wa `actual_prev` ulishughulikia tu vivunja vya `Br`. Ulipokutana na `BrCond` (kutoka tathmini fupi ya `&&`/`||`), ulivunja na kurudisha ubeti mbaya. Maagizo yote yaliyofuata yakawa msimbo uliokufa usiofikiwa. Mzunguko wa mchanganuzi kilizunguka milele, kikiunda allocas kila mzunguko hadi mrundikano ukaisha.
 
 **Marekebisho:** Mstari mmoja ulioongezwa kushughulikia `BrCond` katika usafiri:
 ```rust
@@ -54,30 +54,30 @@ Terminator::BrCond(_, _, merge) if *merge != b => { b = *merge; }
 ---
 
 **Hitilafu 3: Uharibifu wa Block ya `kama`/`sivyo` Iliyowekwa Ndani** (`src/ir/lower.rs`, `patch_br_if_needed`)
-Kazi ya `patch_br_if_needed` ilifuata tawi la UONGO (false) tu la vivunja vya `BrCond`. Kwa taarifa za `kama`/`sivyo` ambapo tawi la `sivyo` linarudisha thamani, block ya kuunganisha ya tawi la KWELI (true) haikufikiwa kamwe na usafiri. Hii iliacha mizunguko ya kujirudia (`self-loop`) ambavyo awamu ya ukamilishaji ilibadilisha kuwa `rudi i32 0`, na kusababisha kazi kama `changanua_bloku` kurudisha 0 mara baada ya kutumia `{`.
+Kazi ya `patch_br_if_needed` ilifuata tawi la UONGO (false) tu la vivunja vya `BrCond`. Kwa taarifa za `kama`/`sivyo` ambapo tawi la `sivyo` linarudisha thamani, ubeti wa kuunganisha wa tawi la KWELI (true) haikufikiwa kamwe na usafiri. Hii iliacha mizunguko ya kujirudia (`self-loop`) ambavyo awamu ya ukamilishaji ilibadilisha kuwa `rudi i32 0`, na kusababisha kazi kama `changanua_bloku` kurudisha 0 mara baada ya kutumia `{`.
 
 **Marekebisho:** Fuata MATAWI YOTE mawili ya `BrCond` katika `patch_br_if_needed`.
 
 ---
 
 **Hitilafu 4: Ugunduzi wa Block ya Kuunganisha ya `actual_prev`** (`src/ir/lower.rs`, `lower_block`)
-Wakati taarifa iliyotangulia block ilikuwa `kama` yenye `sivyo` inayorudisha, `actual_prev` ilifuata tawi la UONGO la BrCond hadi kwenye block ya `Ret` na kusimama. Block ya kuunganisha (inayofikiwa kutoka tawi la KWELI) haikupatikana kamwe. Hii ilizuia kuunganisha taarifa zinazofuata, zikiachwa kama msimbo uliokufa usiofikiwa.
+Wakati taarifa iliyotangulia ubeti ulikuwa `kama` yenye `sivyo` inayorudisha, `actual_prev` ilifuata tawi la UONGO la BrCond hadi kwenye ubeti wa `Ret` na kusimama. Block ya kuunganisha (inayofikiwa kutoka tawi la KWELI) haikupatikana kamwe. Hii ilizuia kuunganisha taarifa zinazofuata, zikiachwa kama msimbo uliokufa usiofikiwa.
 
 **Marekebisho:** Kazi ya kujirudia ya `walk_branch` inajaribu tawi la KWELI wakati tawi la UONGO linaisha kwa `Ret`.
 
 ---
 
 **Hitilafu 5: Uharibifu wa Block ya Kutoka ya `wakati`/`kwa`** (`src/ir/lower.rs`, `lower_while`/`lower_for`)
-`exit_blk` iliundwa na kituo cha msingi cha `RetVoid`. Wakati `patch_br_if_needed` ilipotembea kupitia CFG, ilifuata matawi ya `endelea` (continue) kuingia kwenye maudhui ya mizunguko iliyozunguka. Ilipata block ya kutoka ya mzunguko wa nje (iliyokuwa na `RetVoid`) na kuitibu kama sehemu ya kuacha. Hii iliacha block ya kutoka ya mzunguko wa ndani ikiwa na kituo kisicho sahihi.
+`exit_blk` iliundwa na kituo cha msingi cha `RetVoid`. Wakati `patch_br_if_needed` ilipotembea kupitia CFG, ilifuata matawi ya `endelea` (continue) kuingia kwenye maudhui ya mizunguko iliyozunguka. Ilipata ubeti wa kutoka wa mzunguko wa nje (iliyokuwa na `RetVoid`) na kuitibu kama sehemu ya kuacha. Hii iliacha ubeti wa kutoka wa mzunguko wa ndani ikiwa na kituo kisicho sahihi.
 
 **Marekebisho:** Weka kituo cha `exit_blk` kuwa `Br(exit_blk)` (mzunguko wa kujirudia) mara baada ya kuundwa. Hii inahakikisha `walk_branch` inaitambua kama njia ya kupita, si kurudi.
 
 ---
 
 **Hitilafu 6: `patch_br_if_needed` Ikifuata Mipaka ya Endelea/Vunja** (`src/ir/lower.rs`)
-Hata baada ya marekebisho ya 5, `patch_br_if_needed` ilifuata block za `endelea` zenye `Br(outer_header)` kuingia kwenye maudhui ya mizunguko iliyozunguka. Ilipata block ya kutoka ya mzunguko wa nje (mzunguko wa kujirudia) na kuibadilisha kwa block ya kuunganisha ya `kama` ya ndani -- ikiharibu njia ya kutoka ya mzunguko wa nje. Hii ilisababisha `changanua()` kurudisha `0` badala ya faharasi sahihi ya nodi ya AST ya programu wakati faili nyingi ziliunganishwa.
+Hata baada ya marekebisho ya 5, `patch_br_if_needed` ilifuata beti za `endelea` zenye `Br(outer_header)` kuingia kwenye maudhui ya mizunguko iliyozunguka. Ilipata ubeti wa kutoka wa mzunguko wa nje (mzunguko wa kujirudia) na kuibadilisha kwa ubeti wa kuunganisha wa `kama` ya ndani -- ikiharibu njia ya kutoka ya mzunguko wa nje. Hii ilisababisha `changanua()` kurudisha `0` badala ya faharasi sahihi ya nodi ya AST ya programu wakati faili nyingi ziliunganishwa.
 
-**Marekebisho:** Acha kufuata mipaka ya `Br` ya mbele wakati mahali pa block chanzo panaanza na `continue.` au `break.` -- hizi ni mipaka ya udhibiti wa mzunguko inayoongoza nje ya maudhui unaorekebishwa.
+**Marekebisho:** Acha kufuata mipaka ya `Br` ya mbele wakati mahali pa ubeti chanzo panaanza na `continue.` au `break.` -- hizi ni mipaka ya udhibiti wa mzunguko unaoongoza nje ya maudhui unaorekebishwa.
 
 ---
 
@@ -137,7 +137,7 @@ Binary ya kujikusanya:
 **Commits 10** katika kipindi hiki. 7 mnamo Julai 4, 3 mnamo Julai 5. Zote zimeandikwa kwa Kiswahili kwa mujibu wa kanuni za mradi.
 
 ### Faili Zilizobadilishwa
-- `src/ir/lower.rs` -- mistari 150+ iliyobadilishwa (kiini cha marekebisho ya codegen)
+- `src/ir/lower.rs` -- mistari 150+ iliyobadilishwa (kiini cha marekebisho ya uzalishaji)
 - `msingi/mkusanyaji/msambazaji.swa` -- mistari 40+ iliyobadilishwa (marekebisho ya mchanganuzi)
 - `kiendeshaji.swa` -- mistari 20 iliyobadilishwa (uboreshaji wa kasi)
 - `src/parser/mod.rs` -- mistari 2 (mpangilio wa AST ya mzunguko wa kwa)
@@ -145,7 +145,7 @@ Binary ya kujikusanya:
 
 ## Maana ya Hili
 
-Swa imefikia **Hatua ya 1 ya kujikusanya**: mkusanyaji, ulioandikwa kwa Rust, unaweza kukusanya mkusanyaji wa Swa ambaye anajikusanya yenyewe. Hii ni hatua muhimu ya kwanza kuelekea uhuru kamili wa bootstrap.
+Swa imefikia **Hatua ya 1 ya kujikusanya**: mkusanyaji, ulioandikwa kwa Rust, unaweza kukusanya mkusanyaji wa Swa ambaye anajikusanya yenyewe. Hii ni hatua muhimu ya kwanza kuelekea uhuru kamili wa kujianzisha.
 
 Binary ya kujikusanya inaweza:
 1. Kuchanganua chanzo cha Swa (ikiwa ni pamoja na faili zote za maktaba ya msingi)
@@ -154,12 +154,12 @@ Binary ya kujikusanya inaweza:
 4. Kuendesha bila kuanguka
 
 Kilichosalia kwa **Hatua ya 2** (uhuru kamili):
-- Kukamilisha `mteremko.swa` (kiteremshi cha kujikusanya cha IR) kwa usaidizi wa sret
+- Kukamilisha `mteremko.swa` (kiteremshi cha kujikusanya cha IR) kwa usaidizi wa matokeo ya muundo
 - Kurekebisha alloca-in-loop katika `mteremko.swa` (hitilafu ileile tuliyoirekebisha kwenye kiteremshi cha Rust)
 - Kukamilisha `mkaguzi.swa` (mkaguzi wa kisemantiki)
 - Kuzalisha faili za kitu asilia kutoka kwa mkusanyaji wa kujikusanya
 
-Mradi uko takriban **42%** ya njia kutoka kwa bootstrap ya Rust hadi mkusanyaji wa Swa anayejitegemea kikamilifu.
+Mradi uko takriban **42%** ya njia kutoka kwa kujianzisha kwa Rust hadi mkusanyaji wa Swa anayejitegemea kikamilifu.
 
 ## Maarifa ya Kiufundi
 
@@ -167,19 +167,19 @@ Mradi uko takriban **42%** ya njia kutoka kwa bootstrap ya Rust hadi mkusanyaji 
 Codegen ya `lower.rs` na LLVM backend zote zinatumia fomula `ValueId = P + V + I` ambapo:
 - `P` = idadi ya vigezo (parameters)
 - `V` = idadi ya vipatanishi (constants)
-- `I` = kidhibiti cha maagizo cha kimataifa (kinachoongezeka kwa mpangilio katika block zote)
+- `I` = kidhibiti cha maagizo cha kimataifa (kinachoongezeka kwa mpangilio katika ubeti zote)
 
-Mpangilio huu unamaanisha kwamba maagizo yaliyotolewa kwenye block ya kuingia wakati wa kupitisha awali yanapata ValueId za chini, zinalingana na mpangilio wa block za backend. Maagizo yaliyotolewa wakati wa uteuzi wa maudhui yanapata ValueId za juu. Ramani ni thabiti kwa sababu pande zote mbili zinatembea block kwa mpangilio uleule.
+Mpangilio huu unamaanisha kwamba maagizo yaliyotolewa kwenye ubeti wa kuingia wakati wa kupitisha awali yanapata ValueId za chini, zinalingana na mpangilio wa beti za backend. Maagizo yaliyotolewa wakati wa uteuzi wa maudhui yanapata ValueId za juu. Ramani ni thabiti kwa sababu pande zote mbili zinatembea ubeti kwa mpangilio uleule.
 
 ### Kazi ya `patch_br_if_needed`
-Kazi hii ndiyo chanzo cha hitilafu 3 kati ya 6 za codegen. Inatembea CFG kurekebisha mizunguko ya kujirudia kwa malengo sahihi ya kuunganisha. Hitilafu zilitokea kwa sababu:
-1. Ilifuata tawi la UONGO tu la `BrCond` (ilikosa block za kuunganisha za tawi la KWELI)
+Kazi hii ndiyo chanzo cha hitilafu 3 kati ya 6 za uzalishaji. Inatembea CFG kurekebisha mizunguko ya kujirudia kwa malengo sahihi ya kuunganisha. Hitilafu zilitokea kwa sababu:
+1. Ilifuata tawi la UONGO tu la `BrCond` (ilikosa beti za kuunganisha za tawi la KWELI)
 2. Ilifuata mipaka ya `Br` ya mbele kuingia kwenye mtiririko wa udhibiti uliozunguka (iliharibu njia za kutoka za mizunguko ya nje)
-3. Iliitwa kwa wakati usiofaa kuhusiana na kuunganisha block
+3. Iliitwa kwa wakati usiofaa kuhusiana na kuunganisha ubeti
 
 ### Mafunzo Yaliyojifunza
 - **Hakuna hitilafu ndogo.** `sogeza()` iliyokosa sehemu mbili ilionekana ndogo lakini iliharibu taarifa ZOTE za nambari za mistari na kuvunja kishughulikiaji cha maagizo ya `husisha`.
-- **Hitilafu za codegen hufuatana.** Alloca-in-loop ilificha hitilafu ya CFG dead-code, ambayo ilificha hitilafu ya `patch_br_if_needed`, ambayo ilificha hitilafu ya tamko la mbele, ambayo ilificha hitilafu ya mzunguko wa `kwa`. Kila marekebisho ulifunua safu inayofuata.
+- **Hitilafu za uzalishaji hufuatana.** Alloca-in-loop ilificha hitilafu ya CFG dead-code, ambayo ilificha hitilafu ya `patch_br_if_needed`, ambayo ilificha hitilafu ya tamko la mbele, ambayo ilificha hitilafu ya mzunguko wa `kwa`. Kila marekebisho ulifunua safu inayofuata.
 - **Thibitisha kwa majaribio ya mwisho-hadi-mwisho.** Majaribio ya kawaida (unit tests) yalipita kwa hitilafu hizi nyingi. Jaribio la K6 pekee liligundua matatizo halisi.
 
 ## Hatua Zinazofuata
@@ -187,7 +187,7 @@ Kazi hii ndiyo chanzo cha hitilafu 3 kati ya 6 za codegen. Inatembea CFG kurekeb
 1. Kukamilisha `mteremko.swa` -- kiteremshi cha kujikusanya cha IR
 2. Kuongeza ujumuishaji wa LLVM pass manager (bendera ya `--opt`)
 3. Kuwezesha uchanganuzi kamili wa maktaba ya msingi (kuongeza kasi ya dakika 2 za uchanganuzi)
-4. Kufikia bootstrap halisi: kukusanya mkusanyaji wa kujikusanya kwa kutumia mkusanyaji wa kujikusanya pekee
+4. Kufikia kujianzisha halisi: kukusanya mkusanyaji wa kujikusanya kwa kutumia mkusanyaji wa kujikusanya pekee
 
 ---
 
