@@ -219,6 +219,7 @@ Kazi za kuandika baiti za maagizo hufuata lugha ya mashine:
 | shl / shr / sar | `sogeza_kushoto` / `sogeza_kulia_a` / `sogeza_kulia_n` |
 | setcc | `weka_kama` |
 | rep movsb | `nakili_baiti` (`nakili` ya lugha ya mashine ni nakili ya baiti) |
+| rep stosb | `jaza_baiti` (jaza baiti zote za eneo kwa thamani moja; tumebuni, sambamba na `nakili_baiti`) |
 | syscall | `mfumo` |
 | movsd / movss / movapd / movupd / movd / movq | `soma_d64` / `soma_d32` / `nakili_x` / ... (kwa upana) |
 | addsd subsd mulsd divsd (na ss, pd) | `jumlisha_d64` `toa_d64` `zidisha_d64` `gawanya_d64` (`_d32`, `_d64x2`) |
