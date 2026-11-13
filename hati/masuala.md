@@ -8,7 +8,7 @@ inayojulikana imeandikwa kwa undani kwenye `hati/mipaka.md`.
 ### 1. D64 kwenye wito wa kazi wa awali [IMEFUNGWA -- uthibitisho 2026-08-27]
 
 Imekuwa: awali haijatekeleza ABI ya xmm0-xmm7 kwa wito wa kazi;
-program za awali zenye kazi za D64 zinalia kwa sauti.
+programu za awali zenye kazi za D64 zinalia kwa sauti.
 
 Sasa (kilichopimwa 2026-08-27): awali inatekeleza wito wa kazi za
 D64 (parameta na kurudisha) kwa usahihi -- ABI yake hutumia uhamisho
@@ -59,7 +59,7 @@ umehamishiwa hazina ya kumbukumbu lugha-swa/swa-dereva. Angalia
 ## Kilichorekebishwa (Agosti 2026)
 
 - **Awali -- hesabu za baiti 8**: hitilafu ya FPE kwenye hesabu za N64
-  ilikuwa na vyanzo vinne (.load_n64 haikuwa na jmp, hesabu za 32-bit pekee,
+  ilikuwa na vyanzo vinne (.load_n64 haikuwa na ruka, hesabu za 32-bit pekee,
   hifadhi ya 32-bit pekee, na kazi_ret_aina iliyowekwa 0). Zote zimetatuliwa
   na awali imegandishwa upya.
 - **Literal kamili kama hoja**: halisi (k.m. 1000) ilikuwa inapitishwa kama

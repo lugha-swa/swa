@@ -2,8 +2,8 @@
 
 ## Lengo
 
-**0% kujianzisha gap.** Andika mkusanyaji wa kwanza wa Swa kwa baiti za mkono
-(opcodes za x86-64). Hakuna lugha nyingine, hata assembly.
+**0% kujianzisha pengo.** Andika mkusanyaji wa kwanza wa Swa kwa baiti za mkono
+(opkodi za x86-64). Hakuna lugha nyingine, hata kusanyiko.
 
 ## Ilivyotimia
 

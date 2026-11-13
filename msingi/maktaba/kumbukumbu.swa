@@ -74,7 +74,7 @@ n64 mfumo_ondoa_ramani_kumbukumbu(n8* anwani, n64 urefu) {
     rudisha wito_wa_mfumo(11, anwani, urefu, 0, 0, 0, 0);
 }
 
-// mfumo_gawanyika -- unda mchakato mtoto (child process) kwa kuiga mchakato
+// mfumo_gawanyika -- unda mchakato mtoto (mchakato mpya) kwa kuiga mchakato
 // wa sasa kikamilifu (kumbukumbu, deskripta za faili zote). Hoja
 // ZOTE ni sifuri (fork() haina hoja kabisa). Hurudisha: 0 kwenye
 // mchakato MTOTO, PID ya mtoto (>0) kwenye mchakato MZAZI, namba
@@ -93,7 +93,7 @@ n64 mfumo_gawanyika() {
 // na kiingilio cha 0 (NULL) -- kioo HASA cha mkataba wa C wa
 // `execve(2)` (angalia jaribio_mfumo_gawanyika_tekeleza_subiri.swa kwa jinsi
 // safu hizi zinavyojengwa kwa mkono: hakuna safu za kielekezi
-// zinazokua [growable] bado, idadi ya hoja/env LAZIMA ijulikane
+// zinazokua [inayoweza kukua] bado, idadi ya hoja/env LAZIMA ijulikane
 // wakati wa kuandika msimbo).
 n64 mfumo_tekeleza_programu(n8* njia, n8** hoja_za_mstari, n8** mazingira) {
     rudisha wito_wa_mfumo(59, njia, hoja_za_mstari, mazingira, 0, 0, 0);
@@ -117,7 +117,7 @@ n64 mfumo_subiri4(n64 kitambulisho_mchakato, n32* hali_ya_kielekezi, n64 chaguo)
 // mfumo_subiri4_msimbo_wa_kutoka -- toa msimbo wa kutoka (0-255) kutoka
 // kwenye thamani iliyoandikwa na kiini kwenye status_ptr ya
 // mfumo_subiri4. Umbizo (angalia <bits/waitstatus.h> ya glibc/kernel):
-// biti 8-15 (((status) >> 8) & 0xff) ni msimbo wa kutoka IKIWA TU
+// biti 8-15 (((hali) >> 8) & 0xff) ni msimbo wa kutoka IKIWA TU
 // mchakato ulitoka kwa kawaida (angalia mfumo_subiri4_ulitoka_kwa_kawaida
 // kwanza) -- HESABU ya / na % inatumika hapa kuepuka >> na & (awali
 // ina hitilafu kwenye hizo, kama ilivyoelezwa kote kwenye mradi).
@@ -127,7 +127,7 @@ n32 mfumo_subiri4_msimbo_wa_kutoka(n32 hali_ya) {
 
 // mfumo_subiri4_ulitoka_kwa_kawaida -- 1 ikiwa mchakato ulitoka kwa
 // wito wa kawaida wa exit() (SI kuuawa na ishara/signal). Umbizo:
-// biti 0-6 za status ni namba ya ishara (0 ikiwa ulitoka kwa
+// biti 0-6 za hali ni namba ya ishara (0 ikiwa ulitoka kwa
 // kawaida).
 n32 mfumo_subiri4_ulitoka_kwa_kawaida(n32 hali_ya) {
     n32 biti_za_ishara = hali_ya % 128;
@@ -310,7 +310,7 @@ w0 andika_ndani(n32 faili, n8* f, n64 a1, n64 a2, n64 a3, n64 a4, n64 a5, n64 a6
     n32 p = 0;  // mfuatano hauna nukuu (kumbukumbu hutoa bila nukuu)
     n32 na = 0;  // faharisi ya hoja inayofuata
     wakati (1 == 1) {
-        kama (f[p] == 0) { acha; }  // mwisho wa mfuatano (null kimalizio)
+        kama (f[p] == 0) { acha; }  // mwisho wa mfuatano (sifuri kimalizio)
         kama (f[p] == 37) {  // '%'
             n8 herufi_ya_umbizo = f[p + 1];
             kama (herufi_ya_umbizo == 0) {  // '%' mwishoni mwa mfuatano -- chapisha kama herufi
@@ -376,15 +376,15 @@ n64 ukubwa(n32 aina) {
 // ==========================================================
 // Eneo la utengaji -- badala ya malloc/realloc/free
 //
-// MUHIMU (lugha-swa/swa#190): arena hii ZAMANI ilikuwa mmap MOJA ya
+// MUHIMU (lugha-swa/swa#190): eneo la utengaji hili ZAMANI ilikuwa mmap MOJA ya
 // baiti 1,048,576 (1MB) ya KUDUMU kwa maisha yote ya programu --
-// tenga() ilirudisha 0 kwa usahihi ikiwa arena ilijaa (haikuharibu
+// tenga() ilirudisha 0 kwa usahihi ikiwa eneo la utengaji ilijaa (haikuharibu
 // kumbukumbu), lakini programu yoyote inayozidisha 1MB ya utengaji
 // wa jumla (hata kwa muda mrefu wa maisha, si mzigo mmoja mkubwa)
 // ingeanguka kwa null-deref mara tu tenga() ilipoanza kurudisha 0
 // bila kukaguliwa (kama karibu msimbo wote uliopo hauukagui).
 //
-// Suluhisho: arena ni sasa MFULULIZO wa vipande vya mmap -- kipande
+// Suluhisho: eneo la utengaji ni sasa MFULULIZO wa vipande vya mmap -- kipande
 // kimoja kinapojaa, kipande KIPYA kinatengwa (kwa ukubwa angalau
 // UKUBWA_WA_MSINGI_WA_ENEO_LA_UTENGAJI, au kikubwa zaidi ikiwa utengaji mmoja
 // unahitaji zaidi ya hapo) na utengaji unaendelea kutoka humo.
@@ -450,7 +450,7 @@ w0 achilia_eneo_la_utengaji(n8* p) {
     // mahali kwenye mkusanyaji huu au maktaba zake (orodha.swa,
     // ramani.swa) panapotegemea ikirudisha kumbukumbu kwa kweli;
     // zote zinaita achilia_eneo_la_utengaji() kama "tumemaliza na hii" bila
-    // kutegemea matokeo yoyote. Sasa kwamba arena inaweza kuwa
+    // kutegemea matokeo yoyote. Sasa kwamba eneo la utengaji inaweza kuwa
     // vipande vingi (si kimoja), munmap ya kweli ingehitaji
     // kufuatilia kila kipande na si salama kufungua kipande
     // kinachoshirikiwa na vitu vingine vilivyo hai bado -- muundo wa

@@ -74,7 +74,7 @@ w0 andika_sukuma_r1_halisi() { andika_baiti(81); }
 // Toa sukuma YOYOTE inayosubiri kama baiti halisi, kisha futa hali.
 // LAZIMA iitwe kabla ya JAMBO LOLOTE linalosoma chombo_cha_msimbo_wapi kwa
 // madhumuni ya kuhifadhi nafasi (mahali, urekebishaji, anwani ya kazi/
-// data) au kabla ya kutoa chombo_cha_msimbo nje -- vinginevyo push
+// data) au kabla ya kutoa chombo_cha_msimbo nje -- vinginevyo sukuma
 // iliyoahirishwa ingepotea kimya (haijaandikwa kamwe) au nafasi
 // iliyohifadhiwa ingekuwa MBAYA kwa baiti moja. Ni salama kuita hata
 // kama hakuna kinachosubiri (haifanyi kitu). andika_baiti YENYEWE
@@ -159,7 +159,7 @@ w0 andika_neno8_moja_kwa_moja(n32 lo, n32 hi) {
 }
 
 // -------------------------------------------------------
-// Mashine za x86-64 -- opcodes tunazohitaji
+// Mashine za x86-64 -- opkodi tunazohitaji
 // -------------------------------------------------------
 
 // weka r0d, namba32  (B8 + namba32)
@@ -182,7 +182,7 @@ w0 andika_sukuma_r7() {
 // (imefikiriwa kwa makini, hii ndiyo hatari kuu ya kazi hii yote):
 // mkusanyaji huu hutoa ELF moja kwa moja BILA kusanisi/kiungo
 // tofauti -- mahali/urekebishaji HUREKODI nafasi HALISI ya baiti
-// (chombo_cha_msimbo_wapi) moja kwa moja. Kuahirisha push (badala ya
+// (chombo_cha_msimbo_wapi) moja kwa moja. Kuahirisha sukuma (badala ya
 // kuiandika mara moja) kungebadilisha nafasi hizo ISIPOKUWA kila
 // kazi inayosoma chombo_cha_msimbo_wapi kwa madhumuni ya "hii ndiyo nafasi
 // ya sasa" IPIGE png_safisha() KWANZA. Kwa hiyo: KILA kazi ya
@@ -207,7 +207,7 @@ w0 andika_sukuma_r1() {
 }
 
 // vuta r1 (59) -- kama sukuma ya r1 inasubiri, hii ni sukuma+vuta ya
-// rejesta MOJA -- hauna athari, hakuna baiti zinazotolewa. Kama push
+// rejesta MOJA -- hauna athari, hakuna baiti zinazotolewa. Kama sukuma
 // ya r0 inasubiri, "sukuma r0; vuta r1" == "hamisha r1, r0" (rejesta
 // MOJA, agizo MOJA badala ya mawili, HAKUNA r4 inayoguswa). Vinginevyo
 // (hakuna sukuma inayosubiri -- ilishatolewa na andika_baiti nyingine
@@ -220,7 +220,7 @@ w0 andika_vuta_r1() {
     // kama bado ina thamani ya zamani -- kama tungefuta BAADAYE,
     // andika_baiti ingeona png_akiba_reg==0 bado ikiwa hai na
     // kutoa PUSH YA PILI ISIYOHITAJIKA (na isiyo sahihi) kabla ya
-    // kuandika mov, ikivuruga mrundikano kabisa.
+    // kuandika hamisha, ikivuruga mrundikano kabisa.
     kama (kidirisha_rejista_inayosubiri == 0) { kidirisha_rejista_inayosubiri = -1; andika_hamisha_r1_r0(); rudisha; }
     andika_baiti(89);
 }
@@ -290,7 +290,7 @@ w0 andika_panua_a_r0d_r0b() {
 // hasi r0d (F7 D8)
 w0 andika_hasi_r0d() { andika_baiti(247); andika_baiti(216); }
 w0 andika_panua_r0d() { andika_baiti(153); }
-// au_pekee r2d, r2d (31 D2) -- panua kwa sifuri kabla ya div (bila ishara);
+// au_pekee r2d, r2d (31 D2) -- panua kwa sifuri kabla ya gawanya_a (bila ishara);
 // r2d lazima iwe 0, si ishara ya r0d/r0 kama cdq/cqo inavyofanya.
 w0 andika_au_pekee_r2d_r2d() { andika_baiti(49); andika_baiti(210); }
 w0 andika_gawanya_n_r1d() { andika_baiti(247); andika_baiti(249); }
@@ -530,7 +530,7 @@ w0 andika_zidisha_n_r0d_namba32(n32 v) {
 // husafisha biti za juu za r0). "sogeza_kushoto r0d" ilikuwa ikitupa nusu ya
 // juu SAHIHI ya r0 na kuzidisha kwa biti 32 TU -- kwa safu kubwa
 // (faharisi*saizi > 2^32, mfano safu > ~GB 2 za elementi za baiti 4)
-// zidisho hilo lilizunguka (overflow) KABLA panua_r0d haijafanya kazi,
+// zidisho hilo lilizunguka (kufurika) KABLA panua_r0d haijafanya kazi,
 // likitoa anwani MBAYA bila kuanguka wazi (SEGV ya nasibu, au
 // mbaya zaidi, uandishi kimya mahali pasipo sahihi). Fahirisi ya
 // n64/n32/A32 yenyewe (kabla ya kuzidisha) haiwezi kuvunja hivyo --
@@ -939,8 +939,8 @@ w0 andika_hifadhi_r5_umbali_kwa_usimbaji(n32 usimbaji, n32 umbali) {
 
 // Msaidizi: pakia thamani kutoka [r5-umbali] hadi r0d/r0 kwa upana sahihi.
 // Kwa aina ndogo (baiti 1 na 2), inatumia movsx/movzx kwa upanuzi sahihi.
-// Aina zenye ishara (N): movsx -- panua ishara
-// Aina bila ishara (A, B, W): movzx -- panua sifuri
+// Aina zenye ishara (N): soma_n -- panua ishara
+// Aina bila ishara (A, B, W): soma_a -- panua sifuri
 w0 andika_soma_r5_umbali_kwa_usimbaji(n32 usimbaji, n32 umbali) {
     n32 uk = ukubwa_kutoka_usimbaji(usimbaji);
     kama (uk >= 8) {
@@ -980,7 +980,7 @@ w0 andika_hifadhi_kigezo_r5_umbali_kwa_usimbaji(n32 usimbaji, n32 rejista, n32 u
         andika_hifadhi_r5_umbali_r0(umbali);
     } sivyo {
         // Kesi za baiti 4/2/1: r0d <- rejesta (inashughulikia upanuzi wa
-        // baiti ndogo kiotomatiki kupitia mov ya baiti 4)
+        // baiti ndogo kiotomatiki kupitia hamisha ya baiti 4)
         kama (rejista == 0) { andika_hamisha_r0d_r7d(); }
         sivyo { kama (rejista == 1) { andika_hamisha_r0d_r6d(); }
             sivyo { kama (rejista == 2) { andika_hamisha_r0d_r2d(); }
@@ -1197,7 +1197,7 @@ w0 andika_soma_d64_x_r5_umbali(n32 rejista, n32 umbali) {
 w0 andika_jumlisha_d64_x0_x1() { andika_baiti(242); andika_baiti(15); andika_baiti(88); andika_baiti(193); }
 // subsd xmm0, xmm1  (F2 0F 5C C1)
 w0 andika_toa_d64_x0_x1() { andika_baiti(242); andika_baiti(15); andika_baiti(92); andika_baiti(193); }
-// mulsd xmm0, xmm1  (F2 0F 59 C1)
+// zidisha_d64 xmm0, xmm1  (F2 0F 59 C1)
 w0 andika_zidisha_d64_x0_x1() { andika_baiti(242); andika_baiti(15); andika_baiti(89); andika_baiti(193); }
 // divsd xmm0, xmm1  (F2 0F 5E C1)
 w0 andika_gawanya_d64_x0_x1() { andika_baiti(242); andika_baiti(15); andika_baiti(94); andika_baiti(193); }
@@ -1208,11 +1208,11 @@ w0 andika_gawanya_d64_x0_x1() { andika_baiti(242); andika_baiti(15); andika_bait
 // ya 64-bit inaiunga mkono bila masharti, hivyo hakuna haja ya kuchunguza
 // uwezo wa CPU wakati wa kuendesha (kinyume na AVX/upana mpana zaidi).
 //
-// movupd (isiyo-patanishwa) inatumika kila mahali -- SI movapd. Vyombo vya
+// movupd (isiyo-patanishwa) inatumika kila mahali -- SI nakili_x. Vyombo vya
 // tenga() (kumbukumbu.swa) hazithibitishi upatanifu wa baiti-16, hivyo
-// movapd ingeweza kuanguka (#GP) kwa nasibu kutegemea anwani ya ugawaji
+// nakili_x ingeweza kuanguka (#GP) kwa nasibu kutegemea anwani ya ugawaji
 // -- hitilafu ya vipindi visivyoweza kutabirika. Gharama ndogo ya ziada
-// ya movupd dhidi ya movapd ni sahihi zaidi kuliko hatari hiyo.
+// ya movupd dhidi ya nakili_x ni sahihi zaidi kuliko hatari hiyo.
 //
 // nakili_x xmm0, [r0]  (66 0F 10 00) -- pakia jozi ya d64 kutoka [r0]
 w0 andika_soma_d64x2_x0_kumbukumbu_r0() { andika_baiti(102); andika_baiti(15); andika_baiti(16); andika_baiti(0); }
@@ -1588,7 +1588,7 @@ n32 ni_aina_ya_64bit(n32 usimbaji) {
 }
 
 // Rudisha 1 ikiwa usimbaji ni bila ishara (familia A=2, B=4, W=5)
-// Aina hizi hutumia div (si idiv), shr (si sar), setb/seta (si setl/setg)
+// Aina hizi hutumia gawanya_a (si gawanya_n), sogeza_kulia_a (si sogeza_kulia_n), setb/seta (si setl/setg)
 // Alama ya ndani ya matokeo ya ulinganishi (== != < > <= >=): 0 au 1
 // kwenye r0d. SI aina ya lugha, na SI familia b -- familia b ni mifumo
 // ya biti (angalia B1_ENC kwenye mkaguzi.swa). Thamani 1025 ni isiyo
@@ -1702,7 +1702,7 @@ w0 andika_ruka_kama_sawa_umbali32(n32 umbali) {
     andika_neno4(umbali);
 }
 
-// jne rel32 (0F 85 + 4-byte umbali)
+// ruka_kama_si_sawa rel32 (0F 85 + 4-byte umbali)
 w0 andika_ruka_kama_si_sawa_umbali32(n32 umbali) {
     andika_baiti(15);
     andika_baiti(133);
@@ -1757,7 +1757,7 @@ w0 andika_pakia_anwani_kwa_usimbaji(n32 usimbaji) {
     kama (usimbaji < 0) {
         // MUHIMU (lugha-swa/swa#185): kwa TYPE* (mshale=1, mfano "P
         // s[3]") au muundo uliopachikwa moja kwa moja (mshale=0),
-        // anwani tayari iko r0 -- hakuna opcode (kipengele ni
+        // anwani tayari iko r0 -- hakuna opkodi (kipengele ni
         // thamani ya muundo, inashughulikiwa kwa rejeleo kila mahali).
         // LAKINI kwa TYPE** (mshale=3, mfano "P** vitu"), kipengele
         // ni KIELEKEZI HALISI (baiti 8) kilichohifadhiwa KATIKA
@@ -2117,7 +2117,7 @@ w0 zalisha_ruka_kama_sawa_mahali(n32 namba_ya_mahali) {
     }
 }
 
-// Toa jne rel32 kwa mahali
+// Toa ruka_kama_si_sawa rel32 kwa mahali
 w0 zalisha_ruka_kama_si_sawa_mahali(n32 namba_ya_mahali) {
     andika_baiti(15); andika_baiti(133);
     kama (mahali_pamewekwa[namba_ya_mahali]) {
@@ -2170,7 +2170,7 @@ n32 upangiliaji_wa_sehemu, n32 ukubwa_wa_ingizo_la_sehemu) {
 }
 
 // -------------------------------------------------------
-// Kutoa ELF header (64 baiti, moja kwa moja)
+// Kutoa ELF utangulizi (64 baiti, moja kwa moja)
 // -------------------------------------------------------
 w0 andika_elf_utangulizi(n32 umbali_wa_maelezo_ya_sehemu, n32 idadi_ya_maelezo_ya_sehemu, n32 faharasa_ya_jedwali_la_majina_ya_sehemu) {
     andika_baiti_moja_kwa_moja(127); andika_baiti_moja_kwa_moja(69);
@@ -2342,7 +2342,7 @@ n32 rega_mgombea_haramu[16];
 n32 rega_idadi_ya_wagombea = 0;
 
 // Rejesta ngapi zinatumika kwenye KAZI YA SASA (0-5) -- huamua ni
-// ngapi zinasukumwa (push) kwenye utangulizi na kutolewa (pop) kwenye
+// ngapi zinasukumwa (sukuma) kwenye utangulizi na kutolewa (vuta) kwenye
 // kila mahali pa kutoka (rudisha na mwisho wa kazi).
 n32 rega_tumika_idadi = 0;
 
@@ -2590,7 +2590,7 @@ w0 duru_ya_kutambua_anwani(n32 nodi) {
                 }
             } sivyo {
                 // Aina nyingine yoyote (KITAMBULISHO, hesabu, wito
-                // uliopachikwa, ternary, n.k.) -- ZOTE tayari ziko
+                // uliopachikwa, chaguzi tatu, n.k.) -- ZOTE tayari ziko
                 // kwenye orodha ya ruka_tiga/ruka_nne (isipokuwa 30),
                 // kwa hiyo kuita tambua_anwani_pass(a_w) moja kwa moja
                 // ni SALAMA: itaruka ast_tiga[a_w] chake yenyewe (kiungo
@@ -2720,7 +2720,7 @@ n32 namba_ya_mahali_pa_mfuatano[65536];
 // hurudisha -1 KIMYA (bila ujumbe wa hitilafu, tofauti na jedwali
 // dada kwenye faili hili) -- -1 hupitishwa kama lebo_id kwenye
 // weka_fixup, ikiandika kiingilio cha urekebishaji kisichoweza KUFAFANULIWA
-// kamwe (hakuna mahali halisi ni -1), kwa hiyo displacement ya
+// kamwe (hakuna mahali halisi ni -1), kwa hiyo umbali wa
 // kutoka_agizo-relative ya `soma_d64 xmm0,[kutoka_agizo+disp32]` YA HERUFI HIYO HUBAKI 0
 // (thamani ya muda) MILELE -- ikisoma baiti za maagizo yanayofuata
 // kama nambari, kimya kimya, bila hitilafu ya kukusanya wala
@@ -3041,7 +3041,7 @@ n32 kusanya_herufi(n8* ghafi) {
     wakati (i < idadi_ya_mifuatano) {
         n32 o = umbali_wa_mfuatano[i];
         n32 l = urefu_wa_mifuatano[i];
-        kama (l == urefu + 1) {  // +1 kwa sifuri terminator
+        kama (l == urefu + 1) {  // +1 kwa sifuri kimalizio
             n32 j = 0;
             n32 sawa = 1;
             wakati (j < urefu) {
@@ -3086,7 +3086,7 @@ n32 kusanya_herufi(n8* ghafi) {
             w = w + 1;
             j = j + 1;
         }
-        chombo_cha_mfuatano[o + w] = 0;  // null kimalizio
+        chombo_cha_mfuatano[o + w] = 0;  // sifuri kimalizio
         umbali_wa_mfuatano[idadi_ya_mifuatano] = o;
         urefu_wa_mifuatano[idadi_ya_mifuatano] = w + 1;
         chombo_cha_mfuatano_wapi = o + w + 1;
@@ -3100,7 +3100,7 @@ n32 kusanya_herufi(n8* ghafi) {
 // Utoaji wa kama (if/else) -- AST_KAMA (9)
 // -------------------------------------------------------
 // -------------------------------------------------------
-// Ulinganishi wa moja kwa moja (cmp+jcc) kwa sharti la kama/wakati/kwa
+// Ulinganishi wa moja kwa moja (linganisha+ruka_kama) kwa sharti la kama/wakati/kwa
 // -------------------------------------------------------
 // Njia ya JUMLA (uzalishaji_sawa/tofauti_si/chini/juu/chini_sawa/
 // juu_sawa, juu ya faili hili) daima hutoa thamani KAMILI ya 0/1
@@ -3118,7 +3118,7 @@ n32 kusanya_herufi(n8* ghafi) {
 // hadi ruka_kama inayolingana.
 //
 // UGUNDUZI (kutoka tafsiri ya baiti ya majaribio mengi kikao hiki):
-// muundo huu (cmp; setcc; movzx; test; jcc) unatokea kwenye KILA
+// muundo huu (linganisha; weka_kama; soma_a; test; ruka_kama) unatokea kwenye KILA
 // sharti la kama/wakati/kwa la mradi huu -- ndiyo muundo wa
 // uzalishaji unaotokea mara nyingi ZAIDI kuliko mwingine wowote.
 //
@@ -3155,7 +3155,7 @@ w0 zalisha_ulinganisho(n32 nodi, n32 nodi_ya_kazi) {
 // ule ule wa kuruka nyuma/mbele unaotumika na toa_je_lebo/
 // toa_jne_lebo zilizopo -- kila ruka_kama ya 2-baiti-opcode (0F 8x)
 // hutumia utaratibu ule ule wa lebo_buf_imewekwa/weka_fixup). Baiti
-// ya pili ya opcode (0F 8x) inapitishwa kama hoja badala ya
+// ya pili ya opkodi (0F 8x) inapitishwa kama hoja badala ya
 // kuandikwa mara nane tofauti.
 w0 zalisha_ruka_kama_mahali(n32 baiti2, n32 namba_ya_mahali) {
     andika_baiti(15); andika_baiti(baiti2);
@@ -3170,7 +3170,7 @@ w0 zalisha_ruka_kama_mahali(n32 baiti2, n32 namba_ya_mahali) {
 
 // jl/jg/jle/jge (ishara) na jb/ja/jbe/jae (bila ishara/desimali) --
 // baiti ya pili sawa KABISA na setl/setg/setle/setge/setb/seta/
-// setbe/setae zilizopo tayari (0F 9x -> 0F 8x, nibble ile ile ya
+// setbe/setae zilizopo tayari (0F 9x -> 0F 8x, nusu-baiti ile ile ya
 // sharti -- angalia weka_setcc_kwa_enc juu ya faili hili, ambayo
 // tayari inatumia utambuzi HUO HUO wa ni_desimali_enc||ni_bila_
 // ishara_enc kuchagua kati ya jozi hizi mbili za maagizo).
@@ -3191,7 +3191,7 @@ w0 zalisha_ruka_kama_juu_sawa_a_mahali(n32 namba_ya_mahali) { zalisha_ruka_kama_
 // hili -- mwelekeo 0/1/2/3 = </>/<=/>=, ni_desimali_enc||ni_bila_
 // ishara_enc huchagua safu):
 //   AST_SAWA        -> je   (0F 84)
-//   AST_TOFAUTI_SI  -> jne  (0F 85)
+//   AST_TOFAUTI_SI  -> ruka_kama_si_sawa  (0F 85)
 //   AST_CHINI       -> jl (ishara, 0F 8C)  / jb (bila ishara/desimali, 0F 82)
 //   AST_JUU         -> jg (0F 8F)          / ja (0F 87)
 //   AST_CHINI_SAWA  -> jle (0F 8E)         / jbe (0F 86)
@@ -3221,8 +3221,8 @@ w0 zalisha_ruka_kama_moja_kwa_moja_mahali(n32 nodi, n32 namba_ya_mahali) {
 // pale sharti halikutimia). Kinyume cha kila uhusiano: < <-> >=,
 // > <-> <=, == <-> !=. Jedwali kamili (limekaguliwa mara mbili
 // dhidi ya jedwali la zalisha_ruka_kama_moja_kwa_moja_mahali hapo juu):
-//   AST_SAWA        -> jne (0F 85)   [kinyume cha je]
-//   AST_TOFAUTI_SI  -> je  (0F 84)   [kinyume cha jne]
+//   AST_SAWA        -> ruka_kama_si_sawa (0F 85)   [kinyume cha je]
+//   AST_TOFAUTI_SI  -> je  (0F 84)   [kinyume cha ruka_kama_si_sawa]
 //   AST_CHINI       -> jge (0F 8D) / jae (0F 83)   [kinyume cha </jb]
 //   AST_JUU         -> jle (0F 8E) / jbe (0F 86)   [kinyume cha >/ja]
 //   AST_CHINI_SAWA  -> jg  (0F 8F) / ja  (0F 87)   [kinyume cha <=/jbe]
@@ -3252,16 +3252,16 @@ w0 zalisha_ruka_kama_kinyume_mahali(n32 nodi, n32 namba_ya_mahali) {
 // -------------------------------------------------------
 // PR iliyotangulia (angalia maelezo marefu juu ya
 // ni_ulinganisho_moja_kwa_moja) ILIACHA && na || nje ya wigo kimakusudi
-// kwa sababu tayari zina mzunguko mfupi (short-circuit) wa kujitegemea
+// kwa sababu tayari zina mzunguko mfupi (mzunguko mfupi) wa kujitegemea
 // -- LAKINI kila "leg" moja moja ya && / || bado ilikuwa ikitathminiwa
-// kwa njia ya JUMLA (cmp;setcc;movzx) kabla ya kujaribiwa na test+jcc
+// kwa njia ya JUMLA (linganisha;weka_kama;soma_a) kabla ya kujaribiwa na test+ruka_kama
 // tena na uzalishaji_na/uzalishaji_au -- muundo ULE ULE uliopotea
 // kwenye sharti rahisi. Kazi hizi mbili zinatumika kama "kizuizi
 // kimoja" kwa kila leg: ikiwa upande YENYEWE ni ulinganishi wa moja kwa
-// moja, ruka moja kwa moja kwa cmp/comisd+jcc; vinginevyo (upande ni
+// moja, ruka moja kwa moja kwa cmp/comisd+ruka_kama; vinginevyo (upande ni
 // kigezo, wito wa kazi, AU && / || NYINGINE iliyowekwa ndani -- yaani
 // ISIYO mojawapo ya vinodi sita vya ulinganishi), rudi kwenye njia ya
-// JUMLA (uzalishaji_usemi + test + jcc) -- hii ndiyo inayoshughulikia
+// JUMLA (uzalishaji_usemi + test + ruka_kama) -- hii ndiyo inayoshughulikia
 // UPANDE WOWOTE wa NA/AU ulioota ndani (mfano "(a<b && c<d) || e<f")
 // KWA USAHIHI KILA WAKATI bila kazi hizi kuhitaji kujua chochote
 // kuhusu kina cha ndani: uzalishaji_usemi(upande,...) huita
@@ -3770,7 +3770,7 @@ w0 uzalishaji_wakati(n32 nodi, n32 nodi_ya_kazi) {
         kama (ni_ulinganisho_moja_kwa_moja(sharti)) {
             // Sharti la wakati/kwa/fanya LENYEWE ni ulinganishi moja
             // kwa moja -- ruka moja kwa moja kwa cmp/comisd+ruka_kama badala
-            // ya cmp;setcc;movzx;test;jcc (angalia maelezo kamili juu
+            // ya linganisha;weka_kama;soma_a;test;ruka_kama (angalia maelezo kamili juu
             // ya ni_ulinganisho_moja_kwa_moja, kabla ya uzalishaji_kama).
             zalisha_ulinganisho(sharti, nodi_ya_kazi);
             zalisha_ruka_kama_moja_kwa_moja_mahali(sharti, mahali_pa_maudhui);
@@ -4053,7 +4053,7 @@ w0 kiini_vga_andika_mstari_mpya() {
 
     // soma r0d, [0x9000]
     andika_baiti(139); andika_baiti(4); andika_baiti(37); andika_neno4(36864);
-    // au_pekee r2d, r2d  (thibitisha nusu ya juu ya dividend ni sifuri kabla ya div)
+    // au_pekee r2d, r2d  (thibitisha nusu ya juu ya dividend ni sifuri kabla ya gawanya_a)
     andika_baiti(49); andika_baiti(210);
     // weka r1d, 80
     andika_baiti(185); andika_neno4(80);
@@ -4458,7 +4458,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
     // kuchapisha (andika_sehemu, andika_n64, andika_mfuatano, andika_baiti).
     kama (jina_linganisha(mwitwa, "andika") || jina_linganisha(mwitwa, "andika_kosa")) {
         n32 a0 = nodi_ya_kulia[nodi];
-        // Kama kazi za kuchapisha za ndani hazipo (program ya mtumiaji
+        // Kama kazi za kuchapisha za ndani hazipo (programu ya mtumiaji
         // bila maktaba), angukia kwenye wito wa nje wa C (andika ya muda).
         kama (kazi_nafasi_kwa_jina("andika_sehemu") < 0) { ni_andika_nje = 1; }
         kama (a0 != -1 && aina_ya_nodi[a0] == 5 && ni_andika_nje == 0) {
@@ -4817,7 +4817,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
 
     n32 j = 0;
     // Hoja ya mrundikano ikifuatiwa na hoja ya rejesta (mf. n64 saba + d64):
-    // kuvuta (pop) kwa mpangilio hakufai -- hoja ya mrundikano iliyobaki juu
+    // kuvuta (vuta) kwa mpangilio hakufai -- hoja ya mrundikano iliyobaki juu
     // ingesomwa kama ile ya rejesta inayofuata. Njia ya System V kamili
     // hupakia kwa umbali na kubana hoja za mrundikano (hoja_kwa_sysv). Mipangilio
     // mingine yote hubaki na mzunguko wa vuta chini, baiti zile zile.
@@ -4840,8 +4840,8 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
             } sivyo { kama (rejista_ya_desimali < 8) {
                 // Vuta thamani ya desimali moja kwa moja kwenye rejesta
                 // sahihi ya XMM: movsd/movss xmmN, [r4]; jumlisha r4, 8
-                // (pop_xmm0 + movapd ilikuwa ikiharibu xmm0 ya hoja ya kwanza)
-                // Upana wa D32 ni baiti 4 (movss); d64 ni baiti 8 (movsd).
+                // (pop_xmm0 + nakili_x ilikuwa ikiharibu xmm0 ya hoja ya kwanza)
+                // Upana wa D32 ni baiti 4 (soma_d32); d64 ni baiti 8 (soma_d64).
                 n32 upana_h = ukubwa_kutoka_usimbaji(usimbaji);
                 kama (upana_h < 8) {
                     // soma_d32 xmmN, [r4] (F3 0F 10 /r)
@@ -4857,7 +4857,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
                 andika_baiti(72); andika_baiti(131); andika_baiti(196); andika_baiti(8);
                 rejista_ya_desimali = rejista_ya_desimali + 1;
             } }
-            // TODO: mrundikano overflow -- hoja zilizozidi rejesta 8 za XMM hazijasogezwa.
+            // BADO: mrundikano kufurika -- hoja zilizozidi rejesta 8 za XMM hazijasogezwa.
             // r4 imebadilika kutokana na vuta za hoja zilizotangulia, lakini hoja
             // iliyozidi inasalia kwenye nafasi yake ya awali kwenye mrundikano.
             // Hili lilikuwepo hata kabla ya mabadiliko ya XMM. Linahitaji kurekebishwa
@@ -4875,7 +4875,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
                                 sivyo { andika_vuta_r9(); } } } } }
                 rejista_ya_namba = rejista_ya_namba + 1;
             } }
-            // TODO: mrundikano overflow -- hoja zilizozidi rejesta 6 za GP hazijasogezwa.
+            // BADO: mrundikano kufurika -- hoja zilizozidi rejesta 6 za GP hazijasogezwa.
             // r4 imebadilika lakini hoja iliyozidi haijasogezwa.
             // Hili lilikuwepo kabla ya mabadiliko ya XMM. Linahitaji kurekebishwa
             // pamoja na kesi ya XMM -- angalia pia mstari wa 1472.
@@ -4885,7 +4885,7 @@ w0 uzalishaji_wito(n32 nodi, n32 nodi_ya_kazi) {
 
     // Kwa sret: tumia chombo cha muda kilichotengwa kwenye fremu
     kama (mwitwa_anarudisha_muundo) {
-        // Tumia mov+sub badala ya anwani kwa sababu umbali unaweza kuwa > 127
+        // Tumia hamisha+sub badala ya anwani kwa sababu umbali unaweza kuwa > 127
         andika_hamisha_r0_r5();  // hamisha r0, r5
         andika_toa_r0_namba32(umbali_wa_chombo_cha_matokeo);  // toa r0, sret_buf_off
         andika_hamisha_r7_r0();  // hamisha r7, r0
@@ -5136,7 +5136,7 @@ w0 uzalishaji_taarifa(n32 nodi, n32 nodi_ya_kazi) {
             }
         }
         // Rudisha (vuta) rejesta za kudumu KABLA ya ondoka -- kinyume
-        // cha mpangilio wa push (angalia utangulizi wa uzalishaji_kazi).
+        // cha mpangilio wa sukuma (angalia utangulizi wa uzalishaji_kazi).
         // r0 (thamani ya kurudi, iliyokokotolewa hapo juu) haiguswi na
         // vuta za r3/r12-r15.
         kama (fremu_imeanzishwa) {
@@ -5324,10 +5324,10 @@ w0 andika_soma_n_r0_r5_umbali(n32 umbali) {
 // Kusoma kigezo cha n32 chenye ishara: uzalishaji_usemi ilikuwa inapakia
 // (soma r0d, [kigezo] au weka r0, rejesta) KISHA panua_ishara_ndogo inaongeza
 // panua_r0d -- maagizo mawili. Rejesta za kudumu HAZIhakikishiwi kupanuliwa
-// kwa ishara (sawazisha_eax_kwa_enc haifanyi kitu kwa upana wa 4; "mov
+// kwa ishara (sawazisha_eax_kwa_enc haifanyi kitu kwa upana wa 4; "hamisha
 // r0d" husafisha biti za juu), kwa hiyo panua_r0d HAIWEZI kuondolewa -- lakini
-// movsxd (48 63 /r) hufanya upakiaji na upanuzi kwa agizo MOJA, na matokeo
-// ni yale yale. Inarudisha 1 kama imetoa movsxd (na kuweka jr_panua_ruka
+// soma_n (48 63 /r) hufanya upakiaji na upanuzi kwa agizo MOJA, na matokeo
+// ni yale yale. Inarudisha 1 kama imetoa soma_n (na kuweka jr_panua_ruka
 // ili uzalishaji_usemi isirudie panua_r0d), 0 kama sivyo.
 n32 jr_panua_ruka = 0;
 n32 jr_pakia_panua_n(n32 nodi, n32 usimbaji_wa_kigeu, n32 kitambulisho_cha_rejista, n32 umbali) {
@@ -5385,7 +5385,7 @@ w0 uzalishaji_kitambulisho(n32 nodi, n32 nodi_ya_kazi) {
                 // Safu ya ndani: usemi wa jina unahitaji anwani ya msingi (LEA)
                 andika_anwani_r0_r5_umbali(umbali_wa_kigeu_chini_ya_r5[i]);
             } sivyo { kama (jr_pakia_panua_n(nodi, usimbaji_wa_kigeu[i], rejista_ya_kigeu[i], umbali_wa_kigeu_chini_ya_r5[i])) {
-                    // n32 yenye ishara: movsxd moja (angalia jr_pakia_movsxd)
+                    // n32 yenye ishara: soma_n moja (angalia jr_pakia_movsxd)
                 } sivyo { kama (rejista_ya_kigeu[i] >= 0) {
                         // Kigezo cha kudumu kwenye rejesta -- nakili moja
                         // kwa moja hadi r0 (tayari kimepanuliwa kwa usahihi).
@@ -5461,7 +5461,7 @@ n32 ukubwa_wa_kipengele_cha_kielekezi(n32 usimbaji) {
 }
 
 // Zidisha r0 kwa ukubwa wa kipengele cha kielekezi (p + n).
-// n8/n16/n32 zinazoingia zimepanuliwa kwa sifuri hadi r0 na mov --
+// n8/n16/n32 zinazoingia zimepanuliwa kwa sifuri hadi r0 na hamisha --
 // panua ishara kwanza (panua_r0d). n64 na desimali (zilizobadilishwa
 // hadi r0 na mpaka wa desimali) tayari ziko upana kamili.
 w0 andika_ongea_kielekezi_kipengele(n32 usimbaji_wa_kielekezi, n32 usimbaji_wa_namba) {
@@ -5513,7 +5513,7 @@ n32 usemi_ni_kielekezi(n32 nodi) {
 // mrundikano halisi ya x86 kila wakati, hata kama hakuna wito wa kazi
 // kati ya matumizi mawili -- angalia uzalishaji_jumlisha/tofauti/
 // zidisha: kila mmoja hutathmini upande mmoja, KUSUKUMA matokeo,
-// kutathmini upande mwingine, KISHA KUVUTA (pop) matokeo ya kwanza.
+// kutathmini upande mwingine, KISHA KUVUTA (vuta) matokeo ya kwanza.
 //
 // Sehemu hii inaongeza njia MBADALA (SI kubadilisha ile ya asili --
 // ile inabaki bila kuguswa kama njia ya kurudi nyuma) inayotumia
@@ -5534,7 +5534,7 @@ n32 usemi_ni_kielekezi(n32 nodi) {
 // hatari): NAMBA KAMILI TU (si desimali -- xmm ni suala tofauti),
 // SI hesabu ya kielekezi (p+n/p-n, ina njia yake maalum ya kuzidisha
 // kwa ukubwa wa kipengele -- imeachwa kabisa), SI zidisho la nguvu
-// kamili ya 2 (tayari lina njia yake ya haraka ya shl, angalia
+// kamili ya 2 (tayari lina njia yake ya haraka ya sogeza_kushoto, angalia
 // nguvu_kamili_ya_pili -- haihitaji rejesta ya ziada KABISA), SI
 // toa ya kipekee (-x, ast_kushoto==-1). +, -, * TU (/ na % zimeachwa
 // KWA MAKUSUDI -- gawanya_n ina masharti magumu zaidi ya rejesta halisi
@@ -5600,7 +5600,7 @@ n32 su_ni_kushughulikiwa(n32 nodi) {
     // WOWOTE ndani ya kazi hiyo -- idadi hii (iliyopunguzwa kama
     // inavyohitajika kwa nafasi iliyobaki baada ya vigezo vya ndani)
     // inakuwa sehemu ya RASMI ya "rejesta zinazotumika na kazi hii",
-    // ikihifadhiwa (push) na kurudishwa (pop) na utangulizi/mwisho wa
+    // ikihifadhiwa (sukuma) na kurudishwa (vuta) na utangulizi/mwisho wa
     // kazi MARA MOJA TU (kama vigezo vya ndani), SI kwa kila usemi.
     // Hii inaondoa kabisa hitilafu ya ABI (rejesta zote zinazoguswa
     // sasa zinahifadhiwa rasmi), NA inaepuka gharama ya kuhifadhi/
@@ -5864,7 +5864,7 @@ w0 su_zalisha_ndani(n32 nodi, n32 nodi_ya_kazi) {
 // r1/xmm1 -- sawa kabisa na njia ya asili -- lakini kwa njia tatu:
 //
 //  A. KUSHOTO ni jani (namba/kitambulisho): kulia (kwanza, mpangilio
-//     wa asili) -> r1/xmm1 kwa mov ya rejesta hadi rejesta; kisha jani
+//     wa asili) -> r1/xmm1 kwa hamisha ya rejesta hadi rejesta; kisha jani
 //     linapakiwa (r0/xmm0 PEKEE, halichafui r1/xmm1). Mpangilio wa
 //     utathmini HAUBADILIKI.
 //  B. (NAMBA KAMILI) KULIA ni jani -- namba ya kudumu, au kigezo cha
@@ -5993,19 +5993,19 @@ w0 jr_pakia_moja_kwa_moja_r1(n32 nodi, n32 nodi_ya_kazi, n32 upana_wa_kitendo) {
     andika_soma_r1_r5_umbali_kwa_ukubwa(jr_umbali_wa_kigeu, upana_wa_kitendo);
 }
 
-// movapd xmmN, xmm0 (66 0F 28 /r, N = 2..7)
+// nakili_x xmmN, xmm0 (66 0F 28 /r, N = 2..7)
 w0 andika_hamisha_x_xn_x0(n32 n) {
     andika_baiti(102); andika_baiti(15); andika_baiti(40); andika_baiti(192 + (n * 8));
 }
-// movapd xmm1, xmmN (66 0F 28 /r, N = 2..7)
+// nakili_x xmm1, xmmN (66 0F 28 /r, N = 2..7)
 w0 andika_hamisha_x_x1_xn(n32 n) {
     andika_baiti(102); andika_baiti(15); andika_baiti(40); andika_baiti(200 + n);
 }
-// movapd xmm0, xmmN (66 0F 28 /r, N = 2..7)
+// nakili_x xmm0, xmmN (66 0F 28 /r, N = 2..7)
 w0 andika_hamisha_x_x0_xn(n32 n) {
     andika_baiti(102); andika_baiti(15); andika_baiti(40); andika_baiti(192 + n);
 }
-// movapd xmm1, xmm0 (66 0F 28 C8)
+// nakili_x xmm1, xmm0 (66 0F 28 C8)
 w0 andika_hamisha_x_x1_x0() {
     andika_baiti(102); andika_baiti(15); andika_baiti(40); andika_baiti(200);
 }
@@ -6094,7 +6094,7 @@ n32 jr_namba_ya_kigeu(n32 nodi, n32 nodi_ya_kazi, n32 upana_wa_baiti) {
     rudisha ukubwa_kutoka_usimbaji(e) == upana_wa_baiti;
 }
 
-// REX (kama inahitajika) + opcode + ModRM + disp kwa operesheni ya cmp
+// REX (kama inahitajika) + opkodi + ModRM + disp kwa operesheni ya linganisha
 // "op regfield, r/m" ambapo r/m ni rejesta (kind 1, a = nambari halisi
 // 0..15) au [r5 - a] (kind 2). regfield ni rejesta halisi au tarakimu /7.
 w0 jr_zalisha_linganisha(n32 baiti_ya_agizo, n32 sehemu_ya_rejista, n32 aina, n32 a, n32 upana_wa_baiti) {
@@ -6119,7 +6119,7 @@ w0 jr_zalisha_linganisha(n32 baiti_ya_agizo, n32 sehemu_ya_rejista, n32 aina, n3
     }
 }
 
-// Inarudisha 1 kama imetoa tathmini ya pande zote mbili NA cmp; 0 kama
+// Inarudisha 1 kama imetoa tathmini ya pande zote mbili NA linganisha; 0 kama
 // mwitaji aendelee na njia ya kawaida (hakuna kilichotolewa).
 n32 jr_linganisha_moja_kwa_moja(n32 nodi, n32 nodi_ya_kazi, n32 usimbaji) {
     kama (ni_desimali_usimbaji(usimbaji)) { rudisha 0; }
@@ -6157,7 +6157,7 @@ n32 jr_linganisha_moja_kwa_moja(n32 nodi, n32 nodi_ya_kazi, n32 usimbaji) {
         rudisha 0;   // kumbukumbu dhidi ya kumbukumbu
     }
     kama (lk != 0) {
-        // kulia usemi: kwanza, kisha kigezo cha kushoto kinasomwa na cmp
+        // kulia usemi: kwanza, kisha kigezo cha kushoto kinasomwa na linganisha
         uzalishaji_usemi(kulia, nodi_ya_kazi);
         badili_mpaka_wa_desimali(kulia, usimbaji);
         jr_zalisha_linganisha(57, 0, lk, la, upana_wa_baiti);              // linganisha L, r0 (39 /r, rejista = r0)
@@ -6245,7 +6245,7 @@ w0 zalisha_ongeza_msingi(n32 msingi_nodi, n32 nodi_ya_kazi) {
 }
 
 // Pakia kipengele cha kawaida kutoka [r1 + r0 * saizi] (SIB) -- agizo moja
-// badala ya shl + panua_r0d + add + pakia. r0 = faharasa iliyopanuliwa kwa ishara,
+// badala ya sogeza_kushoto + panua_r0d + jumlisha + pakia. r0 = faharasa iliyopanuliwa kwa ishara,
 // r1 = msingi. Upana wa upakiaji (kutoka usimbaji) lazima ulingane na saizi.
 w0 andika_pakia_sib_kwa_usimbaji(n32 usimbaji, n32 upana_wa_baiti) {
     n32 sib = 1;                     // msingi = r1, faharisi = r0
@@ -6276,7 +6276,7 @@ w0 andika_pakia_sib_kwa_usimbaji(n32 usimbaji, n32 upana_wa_baiti) {
 // -------------------------------------------------------
 // Uhifadhi wa arr[faharisi] = thamani kwa SIB moja kwa moja ([r9 + r8*saizi])
 // pale msingi ni jani na RHS ni salama (angalia jr_ni_salama) -- badala
-// ya kukokotoa anwani kamili (shl+add), kuihifadhi kwenye mrundikano (push),
+// ya kukokotoa anwani kamili (sogeza_kushoto+jumlisha), kuihifadhi kwenye mrundikano (sukuma),
 // kutathmini RHS, kisha kuivuta (vuta). r8/r9 ni salama kushikilia
 // wakati RHS inatathminiwa KWA SABABU jr_ni_salama inakataa wito wowote
 // (r8/r9 zinaguswa NA syscall/wito PEKEE -- angalia andika_pakia_gp_reg_
@@ -6444,9 +6444,9 @@ n32 uzalishaji_hifadhi_mshale_sib(n32 nodi_ya_kielekezi, n32 umbali, n32 kulia, 
 // x = x + namba / x = x - namba kwa kigezo cha n32 chenye ishara (kaunta
 // za mizunguko): badala ya "weka r0, x; panua_r0d; weka r1d, imm; jumlisha r0d,r1d; panua_r0d;
 // hamisha x, r0" (maagizo 6, kupitia r0), toa
-//   rejesta:  add r32, namba32 ; soma_n r64, r32  (r64 huhifadhi thamani
+//   rejesta:  jumlisha r32, namba32 ; soma_n r64, r32  (r64 huhifadhi thamani
 //             iliyopanuliwa kwa ishara -- sheria ya rejesta za kudumu)
-//   mrundikano:     add n32[r5-umbali], namba32
+//   mrundikano:     jumlisha n32[r5-umbali], namba32
 // Hesabu ni ya biti 32 (huzunguka kama jumlisha r0d,r1d), kwa hiyo matokeo ni
 // yale yale. Inarudisha 1 kama imetoa msimbo, 0 kama sivyo (mwitaji
 // aendelee na njia ya kawaida). `i` = faharisi ya kigezo kwenye var_*,
@@ -6478,10 +6478,10 @@ n32 jr_kigezo_ongeza_namba(n32 i, n32 kulia) {
         n32 rejista = rejista_halisi_kwa_kitambulisho(rejista_ya_kigeu[i]);
         n32 biti3_za_rejista = rejista - ((rejista / 8) * 8);
         kama (rejista >= 8) { andika_baiti(65); }
-        andika_baiti(129);   // 81 /0 (add) au /5 (sub)
+        andika_baiti(129);   // 81 /0 (jumlisha) au /5 (sub)
         kama (a == NODI_JUMLISHA) { andika_baiti(192 + biti3_za_rejista); } sivyo { andika_baiti(232 + biti3_za_rejista); }
         andika_neno4(v);
-        // movsxd r64, r32
+        // soma_n r64, r32
         kama (rejista >= 8) { andika_baiti(77); } sivyo { andika_baiti(72); }
         andika_baiti(99);
         andika_baiti(192 + (biti3_za_rejista * 8) + biti3_za_rejista);
@@ -6581,10 +6581,10 @@ w0 uzalishaji_tofauti(n32 nodi, n32 nodi_ya_kazi) {
         kama (ni_d) {
             // Matokeo ya usemi wa desimali yuko xmm0: 0.0 - xmm0
             kama (upana_wa_baiti >= 8) {
-                // xorpd xmm1,xmm1 (66 0F 57 C9); subsd xmm1,xmm0 (F2 0F 5C C8)
+                // au_pekee_x xmm1,xmm1 (66 0F 57 C9); subsd xmm1,xmm0 (F2 0F 5C C8)
                 andika_baiti(102); andika_baiti(15); andika_baiti(87); andika_baiti(201);
                 andika_baiti(242); andika_baiti(15); andika_baiti(92); andika_baiti(200);
-                // movapd xmm0,xmm1 (66 0F 28 C1)
+                // nakili_x xmm0,xmm1 (66 0F 28 C1)
                 andika_baiti(102); andika_baiti(15); andika_baiti(40); andika_baiti(193);
             } sivyo {
                 // xorps xmm1,xmm1 (0F 57 C9); subss xmm1,xmm0 (F3 0F 5C C8)
@@ -6718,7 +6718,7 @@ w0 uzalishaji_linganisha_kwa_usimbaji(n32 usimbaji) {
 // Kisaidizi cha kusukuma thamani kwenye mrundikano (int, D32, au d64)
 w0 sukuma_thamani(n32 usimbaji) {
     kama (ni_desimali_usimbaji(usimbaji)) {
-        // D32 ni baiti 4 (movss); d64 ni baiti 8 (movsd)
+        // D32 ni baiti 4 (soma_d32); d64 ni baiti 8 (soma_d64)
         n32 upana_s = ukubwa_kutoka_usimbaji(usimbaji);
         kama (upana_s < 8) { andika_sukuma_x0_d32(); }
         sivyo { andika_sukuma_x0_d64(); }
@@ -6883,15 +6883,15 @@ n32 nguvu_kamili_ya_pili(n32 nodi) {
 
 // AST_ZIDISHA (31) -- zidisha
 //
-// Kupunguza nguvu (strength reduction): zidisho kwa nambari halisi
+// Kupunguza nguvu (upunguzaji wa nguvu): zidisho kwa nambari halisi
 // iliyo NGUVU KAMILI ya 2 (upande wowote -- zidisho ni la ushirika)
-// linatolewa kama SHL (shift-left) badala ya imul -- shl ni sawa
+// linatolewa kama SHL (shift-left) badala ya imul -- sogeza_kushoto ni sawa
 // kabisa na zidisho kwa upande wowote wa ishara (bila utata wa
 // mzunguko wa kuzungusha kama vile ingekuwa kwa GAWANYO kwa nguvu ya
 // 2 -- hiyo SI salama kwa nambari hasi na HAIJUMUISHWI hapa kwa
 // makusudi, kupungua na kizio kunahitaji hatua ya urekebishaji wa
-// mzunguko usiyofanana na shr rahisi). Zidisho kwa desimali (d64/D32)
-// haliguswi -- shl haina maana kwa desimali kabisa.
+// mzunguko usiyofanana na sogeza_kulia_a rahisi). Zidisho kwa desimali (d64/D32)
+// haliguswi -- sogeza_kushoto haina maana kwa desimali kabisa.
 w0 uzalishaji_zidisha(n32 nodi, n32 nodi_ya_kazi) {
     n32 usimbaji = thamani_ya_nodi[nodi];
     n32 upana_wa_baiti = ukubwa_kutoka_usimbaji(usimbaji);
@@ -6922,7 +6922,7 @@ w0 uzalishaji_zidisha(n32 nodi, n32 nodi_ya_kazi) {
     // maelezo kamili juu ya su_jaribu_nodi_kuu/su_zalisha_ndani, karibu
     // na uzalishaji_jumlisha. su_ni_kushughulikiwa (ndani ya
     // su_jaribu_nodi_kuu) tayari inazuia zidisho la nguvu kamili ya 2
-    // (limeshughulikiwa hapo juu na njia yake ya shl).
+    // (limeshughulikiwa hapo juu na njia yake ya sogeza_kushoto).
     kama (su_jaribu_usemi_mzima(nodi, nodi_ya_kazi)) { rudisha; }
 
     zalisha_pande_mbili(nodi, nodi_ya_kazi, usimbaji);
@@ -6936,7 +6936,7 @@ w0 uzalishaji_zidisha(n32 nodi, n32 nodi_ya_kazi) {
     }
 }
 
-// Kupunguza nguvu (strength reduction) kwa MGAWANYO na MODULO ya
+// Kupunguza nguvu (upunguzaji wa nguvu) kwa MGAWANYO na MODULO ya
 // nambari kamili yenye ISHARA kwa nguvu kamili ya 2 (d=2^kipeo, upande
 // wa KULIA pekee -- mgawanyo/modulo SI wa ushirika, hivyo tofauti na
 // zidisho, upande wa KUSHOTO haukaguliwi kamwe).
@@ -6982,9 +6982,9 @@ w0 uzalishaji_zidisha(n32 nodi, n32 nodi_ya_kazi) {
 // WIGO (kwa makusudi mdogo): d LAZIMA iwe NAMBA HALISI YA KUDUMU (si
 // kigezo, si dimbwi la n64) na NGUVU KAMILI ya 2 (nguvu_kamili_ya_pili,
 // ile ile inayotumika na zidisho) -- d=3,5,6,7... (si nguvu ya 2)
-// HUENDELEA kwenye njia ya asili ya idiv (SAHIHI TAYARI, TU si haraka).
+// HUENDELEA kwenye njia ya asili ya gawanya_n (SAHIHI TAYARI, TU si haraka).
 // d ISIYO ya KUDUMU (kigezo cha wakati wa kukimbia) pia HUENDELEA
-// kwenye idiv -- hakuna njia ya kujua d ni nguvu ya 2 wakati wa
+// kwenye gawanya_n -- hakuna njia ya kujua d ni nguvu ya 2 wakati wa
 // kukusanya. Desimali (d64/D32) HAIGUSWI KABISA -- uwanja huu ni
 // NAMBA KAMILI TU (ni_d imeshughulikiwa kando, angalia chini).
 n32 gwm_kipeo_kulia(n32 nodi) {
@@ -6992,7 +6992,7 @@ n32 gwm_kipeo_kulia(n32 nodi) {
 }
 
 // -------------------------------------------------------
-// Kupunguza nguvu (strength reduction) kwa MGAWANYO/MODULO ya nambari
+// Kupunguza nguvu (upunguzaji wa nguvu) kwa MGAWANYO/MODULO ya nambari
 // kamili kwa KIGAWANYAJI CHOCHOTE cha KUDUMU (si nguvu ya 2 tu -- ile
 // tayari imeshughulikiwa juu na gwm_kipeo_kulia/nguvu_kamili_ya_pili) --
 // "zidisho na uchawi" (magic-number multiplication), mbinu ya KAWAIDA ya
@@ -7002,14 +7002,14 @@ n32 gwm_kipeo_kulia(n32 nodi) {
 // Delight" (Warren), Sura ya 10.
 //
 // WIGO (KWA MAKUSUDI MDOGO -- angalia SABABU kwa kila kizuizi):
-//   1. UPANA WA n32 TU -- n64 haiguswi kabisa, inabaki kwenye idiv.
+//   1. UPANA WA n32 TU -- n64 haiguswi kabisa, inabaki kwenye gawanya_n.
 //      SABABU: utafutaji wa namba ya uchawi unahitaji usahihi wa upana
 //      MARA MBILI ya kigawiwa (64-bit kwa n32) -- n64/A64 ya lugha hii
 //      ina UPANA WA KUTOSHA kufanya hilo salama (angalia gwm_tafuta_*
 //      chini, zinazotumia n64 moja kwa moja bila hatari ya kufurika).
 //      LAKINI kwa n64 YENYEWE, utafutaji ungehitaji usahihi wa 128-bit
 //      ambao lugha hii haina aina ya asili ya kuutoa -- kuandika upya
-//      mbinu ya "kuongeza mara mbili" ya algorithm ya asili (iliyoundwa
+//      mbinu ya "kuongeza mara mbili" ya mbinu ya asili (iliyoundwa
 //      MAKUSUDI kwa upana mmoja ili kuepuka kufurika kwa modulo) kwa
 //      mkono bila aina pana ya kutosha ni hatari kubwa zaidi ya
 //      makosa -- IMEACHWA KIMAKUSUDI kama kazi ya baadaye.
@@ -7019,19 +7019,19 @@ n32 gwm_kipeo_kulia(n32 nodi) {
 //      (n64 ndani ya gwm_tafuta_uchawi_*) zinabaki MBALI SANA na
 //      kikomo cha n64 (2^63) bila haja ya uchambuzi wa kina wa
 //      kufurika kwa kila hatua moja moja -- vigawanyaji vikubwa zaidi
-//      (nadra sana kwenye msimbo halisi) huendelea kutumia idiv,
+//      (nadra sana kwenye msimbo halisi) huendelea kutumia gawanya_n,
 //      salama TAYARI.
 //   3. BILA ISHARA (A32): namba ya uchawi M LAZIMA ITOSHEE kwenye biti
 //      32 kikamilifu -- baadhi ya vigawanyaji (mfano maarufu kabisa
 //      kwenye maandiko ya somo hili: 7) HUHITAJI hatua ya ziada ya
 //      "ongeza" (add-correction) ISIYOTEKELEZWA hapa KWA MAKUSUDI
 //      (angalia gwm_tafuta_uchawi_bila_ishara chini) -- hizo HUENDELEA
-//      kutumia idiv, salama TAYARI, ni fursa iliyokosekana TU.
+//      kutumia gawanya_n, salama TAYARI, ni fursa iliyokosekana TU.
 //   4. YENYE ISHARA (n32): fomula ya "magic" inashughulikia hatua ya
 //      marekebisho (q=q+n endapo M ni hasi) MOJA KWA MOJA kama SEHEMU
 //      ya kawaida ya fomula (SI hali ya "kushindwa" -- ni hatua
 //      inayotarajiwa kwa baadhi ya vigawanyaji, HAIHITAJI kurudi
-//      kwenye idiv). Kwa d>0 TU: kigawanyaji hasi kilichoandikwa moja
+//      kwenye gawanya_n). Kwa d>0 TU: kigawanyaji hasi kilichoandikwa moja
 //      kwa moja HAKIWEZI kuwa AST_NAMBARI moja kwa moja (angalia jinsi
 //      "0-7" inavyochanganuliwa kama TOFAUTI/AST_TOFAUTI, si namba
 //      hasi ya moja kwa moja -- ast_thamani ya AST_NAMBARI ni HASI
@@ -7069,7 +7069,7 @@ n32 gwm_thamani_kudumu_ndogo(n32 nodi) {
 // (M,sh) INAFANYA KAZI (bila "ongeza") IKIWA TU: q_juu*e + (d-1)*M <
 // 2^p (kigezo halisi cha kihesabu cha njia ya "round-up") NA M<2^32
 // (lazima itoshee kwenye rejesta ya 32-bit ya hoja ya pili ya MUL).
-// Rudisha 1 (mafanikio, thamani ziko gwm_uchawi_M/sh) au 0 (idiv).
+// Rudisha 1 (mafanikio, thamani ziko gwm_uchawi_M/sh) au 0 (gawanya_n).
 n32 gwm_tafuta_uchawi_bila_ishara(n32 d) {
     n64 dd = d;
     n32 sh = 0;
@@ -7097,7 +7097,7 @@ n32 gwm_tafuta_uchawi_bila_ishara(n32 d) {
 
 // Tafuta (M, s) kwa mgawanyo/modulo YENYE ISHARA ya d>0 (2<=d<=65536,
 // SI nguvu ya 2) -- fomula "magic", mfululizo wa "kuongeza mara mbili"
-// ukitumia n64 (upana mkubwa kuliko wa asili wa 32-bit wa algorithm)
+// ukitumia n64 (upana mkubwa kuliko wa asili wa 32-bit wa mbinu)
 // kuepuka KABISA hatari za kufurika za toleo la asili -- hakuna haja
 // ya "modular wraparound" ya ziada kwa sababu n64 ina nafasi ya
 // kutosha kwa upana wote unaohitajika hapa (maadili yote yanabaki
@@ -7105,7 +7105,7 @@ n32 gwm_tafuta_uchawi_bila_ishara(n32 d) {
 // Kikomo cha marudio (iterasi<40) ni ULINZI TU dhidi ya kosa la
 // kupanga (haijawahi kufikiwa kwenye majaribio -- kinadharia hesabu
 // hukamilika ndani ya marudio machache): endapo kitafikiwa, rudisha 0
-// (idiv) badala ya kuzunguka milele KATIKA MKUSANYAJI MWENYEWE.
+// (gawanya_n) badala ya kuzunguka milele KATIKA MKUSANYAJI MWENYEWE.
 n32 gwm_tafuta_uchawi_ishara(n32 d) {
     n64 dd = d;
     n64 mbili_kipeo_31 = 2147483648;
@@ -7153,13 +7153,13 @@ n32 gwm_tafuta_uchawi_ishara(n32 d) {
 // lugha hii haina. Hapa hatutafuti wakati wa kukusanya: namba (M, s) za
 // vigawanyaji vya kawaida (3..64 visivyo nguvu ya 2, na 22 vinavyotumika sana:
 // 100, 1000, 10^4..10^9, 10^9+7, 998244353, 3600, 86400, ...) zimehesabiwa
-// nje ya mradi kwa algorithm ya Hacker's Delight (Sura ya 10, "magic" kwa
+// nje ya mradi kwa mbinu ya Hacker's Delight (Sura ya 10, "magic" kwa
 // W=64) na kila moja imethibitishwa dhidi ya mgawanyo halisi wa kukata:
 // mamilioni ya x nasibu (mizani yote 2^0..2^63) na thamani za mpaka
 // (INT64_MIN, INT64_MAX, karibu na vizidisho vya d), bila tofauti yoyote.
 // Jaribio la kudumu (jaribio_gawanyo_n64_uchawi) linarudia ulinganisho huo
 // ndani ya mradi kwa kila kigawanyaji kwenye jedwali. Kigawanyaji
-// kisicho kwenye jedwali kinaendelea kutumia idiv (salama TAYARI).
+// kisicho kwenye jedwali kinaendelea kutumia gawanya_n (salama TAYARI).
 //
 // Mfuatano (x kwenye r0, d kwenye jedwali):
 //   hamisha r1, r0 ; weka r0, M ; zidisha_n r1      (r2 = juu ya x*M)
@@ -7180,7 +7180,7 @@ n32 gwm64_thamani_kudumu(n32 nodi) {
 }
 
 // Weka gwm64_lo/gwm64_hi (M), gwm_uchawi_sh, gwm_uchawi_hasi_m kwa d au
-// rudisha 0 (idiv).
+// rudisha 0 (gawanya_n).
 n32 gwm64_tafuta(n32 d) {
     kama (d == 3) { gwm64_lo = 1431655766; gwm64_hi = 1431655765; gwm_uchawi_sh = 0; gwm_uchawi_hasi_m = 0; rudisha 1; }
     kama (d == 5) { gwm64_lo = 1717986919; gwm64_hi = 1717986918; gwm_uchawi_sh = 1; gwm_uchawi_hasi_m = 0; rudisha 1; }
@@ -7444,7 +7444,7 @@ w0 uzalishaji_modulo(n32 nodi, n32 nodi_ya_kazi) {
     // hii ndiyo mbinu ya KAWAIDA kabisa, hata kwa mgawanyo usio na
     // uboreshaji). YENYE ISHARA: kokotoa q kama uzalishaji_gawanya
     // (upendeleo-kisha-SAR), kisha r = x - (q << kipeo) -- fomula ile
-    // ile ya msingi ya mgawanyo (x = q*d + r), ikitumia shl
+    // ile ya msingi ya mgawanyo (x = q*d + r), ikitumia sogeza_kushoto
     // iliyopo tayari badala ya kuandika upya kuzidisha.
     n32 kipeo_cha_baki = gwm_kipeo_kulia(nodi);
     kama (kipeo_cha_baki != -1) {
@@ -7618,7 +7618,7 @@ w0 uzalishaji_hamisha_kushoto(n32 nodi, n32 nodi_ya_kazi) {
 }
 
 // AST_HAMISHA_KULIA (41) -- hamisha kulia (>>)
-// Zenye ishara -> sar (arithmetic), bila ishara -> shr (logical)
+// Zenye ishara -> sogeza_kulia_n (arithmetic), bila ishara -> sogeza_kulia_a (logical)
 w0 uzalishaji_hamisha_kulia(n32 nodi, n32 nodi_ya_kazi) {
     n32 usimbaji = thamani_ya_nodi[nodi];
     kataa_operesheni_ya_desimali(nodi);
@@ -7829,7 +7829,7 @@ n32 taja_ni_sawa_kimuundo(n32 a, n32 b) {
 // thamani/vuta_thamani_rcx TAYARI ni jumla (wanashughulikia xmm0/
 // xmm1 kupitia andika_push_xmm0_d64/andika_pop_xmm1_d64 n.k.) --
 // kilichokosekana ni hatua ya "unganisha" ya xmm (addsd/subsd/
-// mulsd), iliyoongezwa hapa chini kama tawi sambamba na tawi la r0d/
+// zidisha_d64), iliyoongezwa hapa chini kama tawi sambamba na tawi la r0d/
 // r1d la namba kamili, bila kubadilisha tawi hilo hata kidogo.
 //
 // UTATA WA MPANGILIO WA REJESTA (umefikiriwa kwa makini, kwa aina
@@ -8332,7 +8332,7 @@ w0 uzalishaji_nyoosha(n32 nodi, n32 nodi_ya_kazi) {
             uzalishaji_usemi(faharasa_ya_nodi, nodi_ya_kazi);
             // n32 yenye ishara tayari imepanuliwa na panua_ishara_ndogo (mwisho wa
             // uzalishaji_usemi); aina nyingine (A32, n64 -- ilipunguzwa kwa biti 32
-            // na shl+panua_r0d ya njia ya asili) inahitaji panua_r0d hapa kwa matokeo yale yale.
+            // na sogeza_kushoto+panua_r0d ya njia ya asili) inahitaji panua_r0d hapa kwa matokeo yale yale.
             n32 ie = thamani_ya_nodi[faharasa_ya_nodi];
             kama (aina_ya_nodi[faharasa_ya_nodi] == 4) { ie = nne_ya_nodi[faharasa_ya_nodi]; }
             n32 tayari = 0;
@@ -8677,7 +8677,7 @@ w0 uzalishaji_sehemu_mshale(n32 nodi, n32 nodi_ya_kazi) {
     andika_pakia_anwani_kwa_usimbaji_sehemu(thamani_ya_nodi[nodi]);
 }
 
-// Vishikizi vya aina 33-44: sehemu, asimilia, biti, ternary
+// Vishikizi vya aina 33-44: sehemu, asimilia, biti, chaguzi tatu
 w0 uzalishaji_usemi_juu_a(n32 nodi, n32 nodi_ya_kazi, n32 aina) {
     kama (aina == 33) { uzalishaji_sehemu_nukta(nodi, nodi_ya_kazi); rudisha; }
     sivyo { kama (aina == 34) { uzalishaji_sehemu_mshale(nodi, nodi_ya_kazi); rudisha; }
@@ -8795,7 +8795,7 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
     // MUHIMU (uboreshaji wa gharama, uliogunduliwa kwa kupima HALISI --
     // SI dhana): usemi wa haja=1 (mfano fib(n-1)+fib(n-2), majani
     // yote mawili si nodi za SU) haupati FAIDA yoyote ya kweli kutoka
-    // SU (mov+mov+add ni gharama SAWA na sukuma+vuta+add), LAKINI kazi
+    // SU (hamisha+hamisha+jumlisha ni gharama SAWA na sukuma+vuta+jumlisha), LAKINI kazi
     // inayotumia hata usemi MMOJA WA namna hiyo bado ingebeba gharama
     // YA ZIADA ya kuhifadhi/kurudisha rejesta moja ya ziada kwenye
     // KILA WITO wa kazi hiyo (utangulizi/mwisho). Kwa kazi inayoitwa
@@ -8804,7 +8804,7 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
     // halisi kilionyesha fibonacci ikipungua kasi kwa ~35% kabla ya
     // sharti hili kuongezwa. Suluhisho: SU inatengwa TU kwa haja>=2
     // (mahali ambapo angalau rejesta MOJA inashikiliwa WAKATI mwingine
-    // inatathminiwa -- ndipo tofauti ya kweli kati ya mov na push/pop
+    // inatathminiwa -- ndipo tofauti ya kweli kati ya hamisha na push/pop
     // inapoanza kuonekana kwenye maunganisho ya ndani ya mti).
     //
     // SASISHO LA PILI (pia kwa kipimo halisi): hata kwa haja>=2, usemi
@@ -9002,7 +9002,7 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
 // mbaya ya biti hizo ilitoa familia==6 HATA kwa KIELEKEZI (mshale!=0,
 // usimbaji usio sawia/odd), si muundo-kwa-thamani. Hii ilisababisha
 // lugha-swa/swa#292: TYPE* ilichukuliwa kimakosa kama muundo-kwa-
-// thamani ya kurudi (matokeo ya muundo), ikitoa rep movsb + kielekezi batili +
+// thamani ya kurudi (matokeo ya muundo), ikitoa rep nakili_baiti + kielekezi batili +
 // SIGSEGV kimya -- ilionekana TU kwenye tafsiri za ukubwa fulani
 // (~440-444 kazi/moduli nyingi za Dominion) kwa sababu umbali (na hivyo
 // bahati mbaya ya biti) hutegemea kiasi cha maandishi yaliyopita
@@ -9010,7 +9010,7 @@ w0 kusanya_vigeu_vya_ndani(n32 nodi) {
 n32 ni_muundo_usimbaji(n32 usimbaji) {
     kama (usimbaji == 0) { rudisha 0; }
     kama (usimbaji < 0) {
-        // sawia (even) => muundo-kwa-thamani; isiyo sawia (odd) =>
+        // sawia (even) => muundo-kwa-thamani; isiyo sawia (witiri) =>
         // kielekezi (mshale=1 au 3) -- SI muundo-kwa-thamani.
         rudisha (usimbaji / 2) * 2 == usimbaji;
     }
@@ -9128,7 +9128,7 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
     // USIWEKE UPYA lebo_buf_idadi/urekebishaji_idadi hapa: tungo zinahitaji
     // urekebishaji zake kuishi hadi andika_herufi_halisi mwishoni mwa
     // uzalishaji_kuu -- la sivyo anwani za tungo za kazi zote za awali
-    // zinasalia na displacement 0.
+    // zinasalia na umbali 0.
 
     // Ugawaji wa rejesta: weka upya kwa kazi hii (angalia maelezo
     // kamili juu ya faili hili, karibu na tangazo la var_reg[64]).
@@ -9213,7 +9213,7 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
     // kusanya_vigeu_vya_ndani (ambayo tayari imesajili vigezo vyote
     // kwenye var_idadi/var_rbp_off), na KABLA ya kutoa utangulizi wa
     // kazi (ili idadi sahihi ya rejesta zinazotumika ijulikane kabla
-    // ya kuandika push).
+    // ya kuandika sukuma).
     kama (maudhui != -1) {
         kvn_zamu = kvn_zamu + 1;
         duru_ya_kutambua_matangazo(maudhui);
@@ -9252,7 +9252,7 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
     ukubwa_wa_mrundikano_wa_vigeu = ukubwa_wa_mrundikano_wa_vigeu + upeo_wa_chombo_cha_matokeo_kama_hoja;
     // Toa utangulizi na ukubwa kamili wa mrundikano
     andika_sukuma_r5(); andika_hamisha_r5_r4(); andika_baiti(72); andika_baiti(129); andika_baiti(236); toa_r4_nafasi = chombo_cha_msimbo_wapi; andika_neno4(0); fremu_imeanzishwa = 1;
-    // Sukuma (push) rejesta za kudumu zinazotumika na kazi hii --
+    // Sukuma (sukuma) rejesta za kudumu zinazotumika na kazi hii --
     // BAADA ya toa r4 (angalia maelezo hapo juu) ili zisiingiliane na
     // eneo la vigezo vya mrundikano (ambavyo offsets zake ni kutoka r5, si
     // r4). Kila kimoja lazima kirudishwe (vuta) KABLA ya kila `ondoka`
@@ -9286,7 +9286,7 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
         n32 umbali = umbali_wa_kigezo[pi];
         kama (ni_desimali_usimbaji(usimbaji)) {
             kama (faharasa_ya_rejista_desimali < 8) {
-                // D32 ni upana wa baiti 4 (movss); d64 ni baiti 8 (movsd).
+                // D32 ni upana wa baiti 4 (soma_d32); d64 ni baiti 8 (soma_d64).
                 // Familia zote mbili ni 3 (D) -- upana ndio hutofautisha.
                 n32 upana_p = ukubwa_kutoka_usimbaji(usimbaji);
                 kama (upana_p < 8) {  // D32 (desimali)
@@ -9380,7 +9380,7 @@ w0 uzalishaji_kazi(n32 nodi_ya_kazi) {
     kama (maudhui != -1) { uzalishaji_taarifa(maudhui, nodi_ya_kazi); }
     n32 r4 = ukubwa_wa_mrundikano_wa_vigeu; kama ((r4 & 15) != 0) { r4 = r4 + (16 - (r4 & 15)); } chombo_cha_msimbo[toa_r4_nafasi] = r4 & 255; chombo_cha_msimbo[toa_r4_nafasi + 1] = (r4 >> 8) & 255; chombo_cha_msimbo[toa_r4_nafasi + 2] = (r4 >> 16) & 255; chombo_cha_msimbo[toa_r4_nafasi + 3] = (r4 >> 24) & 255;
     // Rudisha (vuta) rejesta za kudumu KABLA ya ondoka -- angalia
-    // maelezo kwenye AST_RUDISHA hapo juu (mahali pale pale pana pop
+    // maelezo kwenye AST_RUDISHA hapo juu (mahali pale pale pana vuta
     // sawa kwa kutoka kwa mapema). Kikomo kinajumuisha su_rejestwa_idadi
     // (angalia maelezo karibu na tangazo lake juu ya faili hili).
     n32 rp_vuta_mwisho = rega_tumika_idadi + su_idadi_ya_rejista;
@@ -9401,7 +9401,7 @@ w0 andika_herufi_halisi() {
         kama (namba_ya_mahali >= 0) {
             weka_mahali(namba_ya_mahali);
         }
-        // Andika herufi halisi (tayari imeondolewa nukuu, na sifuri terminator)
+        // Andika herufi halisi (tayari imeondolewa nukuu, na sifuri kimalizio)
         n32 umbali = umbali_wa_mfuatano[i];
         n32 urefu = urefu_wa_mifuatano[i];
         n32 j = 0;
@@ -9447,7 +9447,7 @@ w0 uzalishaji_halisi_d(n32 nodi, n32 nodi_ya_kazi) {
     zalisha_soma_d64_x0_kwa_mahali(namba_ya_mahali);
 }
 
-// Toa constants zote za desimali mwishoni mwa .text na uweke mahali pao
+// Toa namba za kudumu zote za desimali mwishoni mwa .text na uweke mahali pao
 w0 andika_desimali_halisi() {
     n32 i = 0;
     wakati (i < idadi_ya_desimali) {
@@ -9570,7 +9570,7 @@ w0 uzalishaji_programu(n32 ukubwa_wa_msimbo, n32 ukubwa_wa_data, n32 ukubwa_wa_t
         ri = ri + 1;
     }
 
-    // Rekebisha wito wa _start -> main (disp32 kwenye baiti 12-15).
+    // Rekebisha wito wa _start -> anza (disp32 kwenye baiti 12-15).
     andika_umbali32_kwenye(chombo_cha_msimbo, 12, umbali_wa_kazi_ya_anza - 16);
 
     // Utangulizi wa ELF (64) + maelezo ya kipande (56) -- baiti 120.
@@ -10022,7 +10022,7 @@ n32 km_andaa_chanzo(n32 chanzo, n32 kupitia, n32 umbali) {
     rudisha 5;
 }
 
-// mov reg64, [chanzo]
+// hamisha reg64, [chanzo]
 w0 km_soma_namba(n32 rejista, n32 chanzo, n32 kupitia, n32 umbali) {
     n32 rm = km_andaa_chanzo(chanzo, kupitia, umbali);
     n32 rex = 72;
@@ -10032,7 +10032,7 @@ w0 km_soma_namba(n32 rejista, n32 chanzo, n32 kupitia, n32 umbali) {
     andika_baiti(128 + (rejista % 8) * 8 + rm); andika_neno4(km_umbali);
 }
 
-// movq xmmN, [chanzo]  (F3 [41] 0F 7E /r)
+// hamisha_x xmmN, [chanzo]  (F3 [41] 0F 7E /r)
 w0 km_soma_x(n32 x, n32 chanzo, n32 kupitia, n32 umbali) {
     n32 rm = km_andaa_chanzo(chanzo, kupitia, umbali);
     andika_baiti(243);
@@ -10060,7 +10060,7 @@ w0 kigeni_andika_kipande_cha_muundo(n32 i) {
     n32 x = 0;
     wakati (x < 8) {
         andika_baiti(102); andika_baiti(15); andika_baiti(214);
-        andika_baiti(128 + x * 8 + 5); andika_neno4(-56 - 8 * x);       // movq [r5+d], xmmN
+        andika_baiti(128 + x * 8 + 5); andika_neno4(-56 - 8 * x);       // hamisha_x [r5+d], xmmN
         x = x + 1;
     }
     andika_baiti(72); andika_baiti(131); andika_baiti(228); andika_baiti(240);  // na r4, -16
@@ -10454,7 +10454,7 @@ w0 kigeni_andika_jedwali(n32 ukubwa_wa_msimbo, n32 ukubwa_wa_tupu) {
 w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // Hifadhi nodi kuu kwa kipitishi cha awali (utafutaji wa kazi za ndani)
     uzalishaji_nodi_ya_programu = nodi_ya_programu;
-    // Chombo cha muda cha hali ya exe: stub ya _start (baiti 26) na
+    // Chombo cha muda cha hali ya exe: kianzishi cha _start (baiti 26) na
     // utangulizi+maelezo ya kipande (baiti 120) -- tangazo la kwanza (awali huhitaji
     // safu za ndani mwanzoni mwa kazi).
     n32 kipande32[7];
@@ -10496,7 +10496,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
 
     // Katika hali ya programu (hali_ya_towe==1): _start mwanzoni mwa .text --
     // soma r7, [r4] (argc); anwani r6,[r4+8] (argv); weka r0b, 0; ita
-    // main (disp32 hurekebishwa baada ya main kutolewa); mov
+    // anza (disp32 hurekebishwa baada ya anza kutolewa); hamisha
     // r7,r0; weka r0d, 60; syscall.
     kama (hali_ya_towe == 1) {
         // Stub ya _start kama maneno ya n32 (baiti 28).
@@ -10512,7 +10512,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     }
     sivyo { kama (hali_ya_towe == 2) {
         // --kiini: HAKUNA _start (hakuna argc/argv, hakuna mchakato
-        // wa Linux unaoanzisha). Badala yake: andika "mov dword
+        // wa Linux unaoanzisha). Badala yake: andika "hamisha dword
         // [0x9000], 0" -- anzisha kaka (cursor) ya vga_andika() kuwa
         // 0 KABLA anza (LAZIMA iwe kazi ya KWANZA iliyotangazwa
         // -- angalia kernel_kagua_wigo -- kwa sababu hali hii ya
@@ -10618,7 +10618,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
                         // kipande cha 255, baiti ya 0x80+ (kama 0xF8 ya
                         // 1.5) inaenea kwa ishara na bits64 zinaharibika
                         // (hitilafu: jaribio_hitilafu_d32_hesabu lilirudisha 202
-                        // badala ya 178 kwenye awali ya movsx).
+                        // badala ya 178 kwenye awali ya soma_n).
                         n64 biti64 = 0;
                         k = 7;
                         wakati (k >= 0) {
@@ -10896,7 +10896,7 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // jedwali la vigeu vya ndani lina ukomo wa 64.
     // ==================================================
     kama (hali_ya_towe == 1) {
-        // main haipo: wito wa _start ungeenda anwani 0 na binari
+        // anza haipo: wito wa _start ungeenda anwani 0 na binari
         // ingeanguka. Kataa kwa sauti bila kutoa faili -- sawa na awali.
         kama (umbali_wa_kazi_ya_anza == 0) {
             andika_kosa("Hitilafu: kazi 'anza' haipo -- hakuna kiingilio cha programu\n");
@@ -11093,8 +11093,8 @@ w0 uzalishaji_papo(n32 nodi_ya_programu, n32 idadi_hoja_papo, n8** hoja_mstari_p
     // Marudio ya majina ya ngazi ya juu ni kosa la kufa pia hapa.
     hakiki_marudio_ya_ngazi_ya_juu(nodi_ya_programu);
 
-    // Stub ya kuingia: ruka main -- inatengenezwa baada ya kukusanya
-    // kwani nafasi_ya_mahali ya main inajulikana mwishoni.
+    // Stub ya kuingia: ruka anza -- inatengenezwa baada ya kukusanya
+    // kwani nafasi_ya_mahali ya anza inajulikana mwishoni.
     andika_baiti(233);  // ruka rel32
     andika_neno4(0);
 
@@ -11138,7 +11138,7 @@ w0 uzalishaji_papo(n32 nodi_ya_programu, n32 idadi_hoja_papo, n8** hoja_mstari_p
         andika_kosa("; KOSA: JIT haijapata mahali pa anza\n");
         rudisha;
     }
-    // disp32 = main_off - 5 (baada ya opcode ya jmp); hesabu ya / na *
+    // disp32 = main_off - 5 (baada ya opkodi ya ruka); hesabu ya / na *
     n32 umbali = umbali_wa_kazi_ya_anza - 5;
     n32 b0 = umbali - ((umbali / 256) * 256);
     n32 d1 = umbali / 256;

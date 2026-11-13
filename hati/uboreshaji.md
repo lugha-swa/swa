@@ -23,7 +23,7 @@ wa amri:
     zinazozidi kikomo hiki zinaweza kuwa na maagizo yanayodondoshwa na
     FastISel. LLVM huangukia kwenye SelectionDAG kiotomatiki kwa vitalu hivyo,
     lakini hii inaweza kuongeza muda wa kukusanya.
-  - Hakuna upanuzi wa ndani (inlining).
+  - Hakuna upanuzi wa ndani (kupachika).
   - Hakuna uondoaji wa msimbo uliokufa (DCE).
 - **Utatuzi**: Msimbo unaotokana unalingana moja kwa moja na chanzo, hivyo
   kurahisisha utatuzi.
@@ -38,7 +38,7 @@ Pipeline ya LLVM inayotumika kwa **kila kazi** (`function` scope):
    unaofuata.
 
 2. **instcombine** (`no-verify-uthabiti`) -- Uchanganyaji wa maagizo
-   (peephole optimization). Hurahisisha misemo ya mara kwa mara, huondoa
+   (uboreshaji wa kidirisha). Hurahisisha misemo ya mara kwa mara, huondoa
    maagizo yasiyo na maana, huchanganya shughuli zinazofanana.
 
    Bendera ya `no-verify-uthabiti` inaepuka uthibitishaji wa marudio baada ya

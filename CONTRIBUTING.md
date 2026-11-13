@@ -2,7 +2,7 @@
 
 Karibu! Swa ni lugha ya programu ya Kiswahili inayojikusanya. Tunafurahi unapotaka kuchangia.
 
-**Lugha:** Michango yote (commits, PR, nyaraka, majadiliano) lazima iwe **kwa Kiswahili**. Hii ni sehemu ya dhamira ya mradi.
+**Lugha:** Michango yote (mabadiliko, PR, nyaraka, majadiliano) lazima iwe **kwa Kiswahili**. Hii ni sehemu ya dhamira ya mradi.
 
 ---
 
@@ -45,7 +45,7 @@ Tumia kiolezo cha **Ombi la Kipengele**. Kumbuka:
 
 ### Mahitaji
 - x86-64 Linux
-- bash na zana za kawaida za mfumo (cat, cmp, chmod, mktemp, timeout, grep, md5sum)
+- bash na zana za kawaida za mfumo (cat, linganisha, chmod, mktemp, timeout, grep, md5sum)
 - Hakuna kingine: mfululizo wa uzalishaji hauhitaji gcc, ld, clang, libc, Rust, wala LLVM
 
 ### Kujenga
