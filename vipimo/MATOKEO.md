@@ -290,7 +290,7 @@ sukuma r0; vuta r0` (kashe ya anwani ya kiwanja, PR #239/#240 --
 nakala ya pili + vuta hulingana kabisa, hakuna athari).
 
 **Njia**: badala ya kuandika upya baiti ZILIZOKWISHA-ANDIKWA (tatizo
-la uhamishaji/relocation la kweli -- mahali/urekebishaji/rela zote hurekodi
+la uhamishaji/relocation la kweli -- mahali/urekebishaji zote hurekodi
 `chombo_cha_msimbo_wapi` moja kwa moja), `andika_push_rax`/`andika_push_rcx`
 sasa HUAHIRISHA sukuma MOJA (haiandiki baiti mara moja, huweka tu
 `png_akiba_reg`). `andika_pop_rax`/`andika_pop_rcx` hukagua hali hiyo:

@@ -12,357 +12,357 @@
 02 00                   ; EXEC
 3e 00                   ; x86-64
 01 00 00 00             ; toleo 1
-78 00 40 00 00 00 00 00 ; e_entry 0x400078
-40 00 00 00 00 00 00 00 ; e_phoff 64
-00 00 00 00 00 00 00 00 ; e_shoff 0
-00 00 00 00             ; e_flags
-40 00                   ; e_ehsize 64
-38 00                   ; e_phentsize 56
-01 00                   ; e_phnum 1
+78 00 40 00 00 00 00 00 ; kiingilio 0x400078
+40 00 00 00 00 00 00 00 ; umbali wa maelezo ya vipande 64
+00 00 00 00 00 00 00 00 ; umbali wa maelezo ya sehemu 0
+00 00 00 00             ; machaguo ya ELF
+40 00                   ; ukubwa wa utangulizi 64
+38 00                   ; ukubwa wa maelezo ya kipande 56
+01 00                   ; idadi ya vipande 1
 00 00 00 00 00 00       ; e_sh* 0
 01 00 00 00             ; PT_LOAD
 07 00 00 00             ; soma+andika+tekeleza
-00 00 00 00 00 00 00 00 ; p_offset 0
-00 00 40 00 00 00 00 00 ; p_vaddr 0x400000
-00 00 40 00 00 00 00 00 ; p_paddr
-fb 03 00 00 00 00 00 00 ; p_filesz 1019
-00 00 40 00 00 00 00 00 ; p_memsz MB 4: kuingiza 0x500000, kutoa 0x600000, makro 0x700000
-00 10 00 00 00 00 00 00 ; p_align
+00 00 00 00 00 00 00 00 ; umbali kwenye faili 0
+00 00 40 00 00 00 00 00 ; anwani pepe 0x400000
+00 00 40 00 00 00 00 00 ; anwani halisi
+fb 03 00 00 00 00 00 00 ; ukubwa kwenye faili 1019
+00 00 40 00 00 00 00 00 ; ukubwa kwenye kumbukumbu MB 4: kuingiza 0x500000, kutoa 0x600000, makro 0x700000
+00 10 00 00 00 00 00 00 ; mpangilio wa kipande
 
 # ---- msimbo, 0x400078 ----
 :anza
-48 bd 00 00 50 00 00 00 00 00   ; movabs rbp,0x500000
-49 89 ef                        ; mov    r15,rbp
+48 bd 00 00 50 00 00 00 00 00   ; weka r5, 0x500000
+49 89 ef                        ; hamisha r15, r5
 :soma
-31 ff                           ; xor    edi,edi
-4c 89 fe                        ; mov    rsi,r15
-ba 00 00 01 00                  ; mov    edx,0x10000
-31 c0                           ; xor    eax,eax
-0f 05                           ; syscall
-48 85 c0                        ; test   rax,rax
-7e !imesomwa                    ; jle    25 <imesomwa>
-49 01 c7                        ; add    r15,rax
-eb !soma                        ; jmp    d <soma>
+31 ff                           ; au_pekee    r7d,r7d
+4c 89 fe                        ; hamisha r6, r15
+ba 00 00 01 00                  ; weka r2d, 0x10000
+31 c0                           ; au_pekee    r0d,r0d
+0f 05                           ; mfumo
+48 85 c0                        ; pima   r0,r0
+7e !imesomwa                    ; ruka_kama_chini_sawa_n    25 <imesomwa>
+49 01 c7                        ; jumlisha    r15,r0
+eb !soma                        ; ruka    d <soma>
 :imesomwa
-49 b9 00 00 70 00 00 00 00 00   ; movabs r9,0x700000
-41 be 01 00 00 00               ; mov    r14d,0x1
-e8 %pitio                       ; call   5d <pitio>
-49 bd 00 00 60 00 00 00 00 00   ; movabs r13,0x600000
-41 be 02 00 00 00               ; mov    r14d,0x2
-e8 %pitio                       ; call   5d <pitio>
-e8 %safisha                     ; call   352 <safisha>
-31 ff                           ; xor    edi,edi
+49 b9 00 00 70 00 00 00 00 00   ; weka r9, 0x700000
+41 be 01 00 00 00               ; hamisha    r14d,0x1
+e8 %pitio                       ; ita   5d <pitio>
+49 bd 00 00 60 00 00 00 00 00   ; weka r13, 0x600000
+41 be 02 00 00 00               ; hamisha    r14d,0x2
+e8 %pitio                       ; ita   5d <pitio>
+e8 %safisha                     ; ita   352 <safisha>
+31 ff                           ; au_pekee    r7d,r7d
 :toka
-b8 3c 00 00 00                  ; mov    eax,0x3c
-0f 05                           ; syscall
+b8 3c 00 00 00                  ; weka r0d, 0x3c
+0f 05                           ; mfumo
 :pitio
-48 89 eb                        ; mov    rbx,rbp
+48 89 eb                        ; hamisha r3, r5
 :p_mzunguko
-4c 39 fb                        ; cmp    rbx,r15
-0f 83 %p_mwisho                 ; jae    132 <p_mwisho>
-0f b6 03                        ; movzx  eax,BYTE PTR [rbx]
-83 f8 20                        ; cmp    eax,0x20
-76 !p_nafasi                    ; jbe    9b <p_nafasi>
-83 f8 3b                        ; cmp    eax,0x3b
-74 !p_maoni                     ; je     a0 <p_maoni>
-83 f8 23                        ; cmp    eax,0x23
-74 !p_maoni                     ; je     a0 <p_maoni>
-83 f8 22                        ; cmp    eax,0x22
-74 !p_mfuatano                  ; je     b6 <p_mfuatano>
-e8 %tokeni                      ; call   133 <tokeni>
-e8 %ni_fafanua                  ; call   167 <ni_fafanua>
-85 c0                           ; test   eax,eax
-75 !p_fafanua                   ; jne    d6 <p_fafanua>
-41 83 fe 01                     ; cmp    r14d,0x1
-74 !p_mzunguko                   ; je     60 <p_mzunguko>
-e8 %zalisha_tokeni                  ; call   18b <zalisha_tokeni>
-eb !p_mzunguko                   ; jmp    60 <p_mzunguko>
+4c 39 fb                        ; linganisha    r3,r15
+0f 83 %p_mwisho                 ; ruka_kama_juu_sawa_a    132 <p_mwisho>
+0f b6 03                        ; soma_a  r0d,n8[r3]
+83 f8 20                        ; linganisha    r0d,0x20
+76 !p_nafasi                    ; ruka_kama_chini_sawa_a    9b <p_nafasi>
+83 f8 3b                        ; linganisha    r0d,0x3b
+74 !p_maoni                     ; ruka_kama_sawa     a0 <p_maoni>
+83 f8 23                        ; linganisha    r0d,0x23
+74 !p_maoni                     ; ruka_kama_sawa     a0 <p_maoni>
+83 f8 22                        ; linganisha    r0d,0x22
+74 !p_mfuatano                  ; ruka_kama_sawa     b6 <p_mfuatano>
+e8 %tokeni                      ; ita   133 <tokeni>
+e8 %ni_fafanua                  ; ita   167 <ni_fafanua>
+85 c0                           ; pima   r0d,r0d
+75 !p_fafanua                   ; ruka_kama_si_sawa    d6 <p_fafanua>
+41 83 fe 01                     ; linganisha    r14d,0x1
+74 !p_mzunguko                   ; ruka_kama_sawa     60 <p_mzunguko>
+e8 %zalisha_tokeni                  ; ita   18b <zalisha_tokeni>
+eb !p_mzunguko                   ; ruka    60 <p_mzunguko>
 :p_nafasi
-48 ff c3                        ; inc    rbx
-eb !p_mzunguko                   ; jmp    60 <p_mzunguko>
+48 ff c3                        ; inc    r3
+eb !p_mzunguko                   ; ruka    60 <p_mzunguko>
 :p_maoni
-4c 39 fb                        ; cmp    rbx,r15
-0f 83 %p_mwisho                 ; jae    132 <p_mwisho>
-0f b6 03                        ; movzx  eax,BYTE PTR [rbx]
-48 ff c3                        ; inc    rbx
-83 f8 0a                        ; cmp    eax,0xa
-75 !p_maoni                     ; jne    a0 <p_maoni>
-eb !p_mzunguko                   ; jmp    60 <p_mzunguko>
+4c 39 fb                        ; linganisha    r3,r15
+0f 83 %p_mwisho                 ; ruka_kama_juu_sawa_a    132 <p_mwisho>
+0f b6 03                        ; soma_a  r0d,n8[r3]
+48 ff c3                        ; inc    r3
+83 f8 0a                        ; linganisha    r0d,0xa
+75 !p_maoni                     ; ruka_kama_si_sawa    a0 <p_maoni>
+eb !p_mzunguko                   ; ruka    60 <p_mzunguko>
 :p_mfuatano
-48 ff c3                        ; inc    rbx
+48 ff c3                        ; inc    r3
 :p_mf_mzunguko
-4c 39 fb                        ; cmp    rbx,r15
-73 !p_mwisho                    ; jae    132 <p_mwisho>
-0f b6 03                        ; movzx  eax,BYTE PTR [rbx]
-48 ff c3                        ; inc    rbx
-83 f8 22                        ; cmp    eax,0x22
-74 !p_mzunguko                   ; je     60 <p_mzunguko>
-41 83 fe 02                     ; cmp    r14d,0x2
-75 !p_mf_mzunguko                ; jne    b9 <p_mf_mzunguko>
-e8 %zalisha_baiti_ya_heksa               ; call   303 <zalisha_baiti_ya_heksa>
-eb !p_mf_mzunguko                ; jmp    b9 <p_mf_mzunguko>
+4c 39 fb                        ; linganisha    r3,r15
+73 !p_mwisho                    ; ruka_kama_juu_sawa_a    132 <p_mwisho>
+0f b6 03                        ; soma_a  r0d,n8[r3]
+48 ff c3                        ; inc    r3
+83 f8 22                        ; linganisha    r0d,0x22
+74 !p_mzunguko                   ; ruka_kama_sawa     60 <p_mzunguko>
+41 83 fe 02                     ; linganisha    r14d,0x2
+75 !p_mf_mzunguko                ; ruka_kama_si_sawa    b9 <p_mf_mzunguko>
+e8 %zalisha_baiti_ya_heksa               ; ita   303 <zalisha_baiti_ya_heksa>
+eb !p_mf_mzunguko                ; ruka    b9 <p_mf_mzunguko>
 :p_fafanua
-e8 %ruka_nafasi_mstari          ; call   14f <ruka_nafasi_mstari>
-e8 %tokeni                      ; call   133 <tokeni>
-49 89 f2                        ; mov    r10,rsi
-49 89 d3                        ; mov    r11,rdx
-e8 %ruka_nafasi_mstari          ; call   14f <ruka_nafasi_mstari>
-48 89 de                        ; mov    rsi,rbx
+e8 %ruka_nafasi_mstari          ; ita   14f <ruka_nafasi_mstari>
+e8 %tokeni                      ; ita   133 <tokeni>
+49 89 f2                        ; hamisha r10, r6
+49 89 d3                        ; hamisha r11, r2
+e8 %ruka_nafasi_mstari          ; ita   14f <ruka_nafasi_mstari>
+48 89 de                        ; hamisha r6, r3
 :pf_mzunguko
-4c 39 fb                        ; cmp    rbx,r15
-73 !pf_mwisho                   ; jae    10a <pf_mwisho>
-0f b6 03                        ; movzx  eax,BYTE PTR [rbx]
-83 f8 0a                        ; cmp    eax,0xa
-74 !pf_mwisho                   ; je     10a <pf_mwisho>
-83 f8 3b                        ; cmp    eax,0x3b
-74 !pf_mwisho                   ; je     10a <pf_mwisho>
-83 f8 23                        ; cmp    eax,0x23
-74 !pf_mwisho                   ; je     10a <pf_mwisho>
-48 ff c3                        ; inc    rbx
-eb !pf_mzunguko                  ; jmp    ee <pf_mzunguko>
+4c 39 fb                        ; linganisha    r3,r15
+73 !pf_mwisho                   ; ruka_kama_juu_sawa_a    10a <pf_mwisho>
+0f b6 03                        ; soma_a  r0d,n8[r3]
+83 f8 0a                        ; linganisha    r0d,0xa
+74 !pf_mwisho                   ; ruka_kama_sawa     10a <pf_mwisho>
+83 f8 3b                        ; linganisha    r0d,0x3b
+74 !pf_mwisho                   ; ruka_kama_sawa     10a <pf_mwisho>
+83 f8 23                        ; linganisha    r0d,0x23
+74 !pf_mwisho                   ; ruka_kama_sawa     10a <pf_mwisho>
+48 ff c3                        ; inc    r3
+eb !pf_mzunguko                  ; ruka    ee <pf_mzunguko>
 :pf_mwisho
-41 83 fe 01                     ; cmp    r14d,0x1
-0f 85 %p_mzunguko                ; jne    60 <p_mzunguko>
-4d 89 11                        ; mov    QWORD PTR [r9],r10
-4d 89 59 08                     ; mov    QWORD PTR [r9+0x8],r11
-49 89 71 10                     ; mov    QWORD PTR [r9+0x10],rsi
-48 89 d8                        ; mov    rax,rbx
-48 29 f0                        ; sub    rax,rsi
-49 89 41 18                     ; mov    QWORD PTR [r9+0x18],rax
-49 83 c1 20                     ; add    r9,0x20
-e9 %p_mzunguko                   ; jmp    60 <p_mzunguko>
+41 83 fe 01                     ; linganisha    r14d,0x1
+0f 85 %p_mzunguko                ; ruka_kama_si_sawa    60 <p_mzunguko>
+4d 89 11                        ; hifadhi n64[r9], r10
+4d 89 59 08                     ; hifadhi n64[r9+0x8], r11
+49 89 71 10                     ; hifadhi n64[r9+0x10], r6
+48 89 d8                        ; hamisha r0, r3
+48 29 f0                        ; toa    r0,r6
+49 89 41 18                     ; hifadhi n64[r9+0x18], r0
+49 83 c1 20                     ; jumlisha    r9,0x20
+e9 %p_mzunguko                   ; ruka    60 <p_mzunguko>
 :p_mwisho
-c3                              ; ret
+c3                              ; rudi
 :tokeni
-48 89 de                        ; mov    rsi,rbx
+48 89 de                        ; hamisha r6, r3
 :t_mzunguko
-4c 39 fb                        ; cmp    rbx,r15
-73 !t_mwisho                    ; jae    148 <t_mwisho>
-0f b6 03                        ; movzx  eax,BYTE PTR [rbx]
-83 f8 20                        ; cmp    eax,0x20
-76 !t_mwisho                    ; jbe    148 <t_mwisho>
-48 ff c3                        ; inc    rbx
-eb !t_mzunguko                   ; jmp    136 <t_mzunguko>
+4c 39 fb                        ; linganisha    r3,r15
+73 !t_mwisho                    ; ruka_kama_juu_sawa_a    148 <t_mwisho>
+0f b6 03                        ; soma_a  r0d,n8[r3]
+83 f8 20                        ; linganisha    r0d,0x20
+76 !t_mwisho                    ; ruka_kama_chini_sawa_a    148 <t_mwisho>
+48 ff c3                        ; inc    r3
+eb !t_mzunguko                   ; ruka    136 <t_mzunguko>
 :t_mwisho
-48 89 da                        ; mov    rdx,rbx
-48 29 f2                        ; sub    rdx,rsi
-c3                              ; ret
+48 89 da                        ; hamisha r2, r3
+48 29 f2                        ; toa    r2,r6
+c3                              ; rudi
 :ruka_nafasi_mstari
-4c 39 fb                        ; cmp    rbx,r15
-73 !rn_mwisho                   ; jae    166 <rn_mwisho>
-0f b6 03                        ; movzx  eax,BYTE PTR [rbx]
-83 f8 20                        ; cmp    eax,0x20
-74 !rn_ijayo                    ; je     161 <rn_ijayo>
-83 f8 09                        ; cmp    eax,0x9
-75 !rn_mwisho                   ; jne    166 <rn_mwisho>
+4c 39 fb                        ; linganisha    r3,r15
+73 !rn_mwisho                   ; ruka_kama_juu_sawa_a    166 <rn_mwisho>
+0f b6 03                        ; soma_a  r0d,n8[r3]
+83 f8 20                        ; linganisha    r0d,0x20
+74 !rn_ijayo                    ; ruka_kama_sawa     161 <rn_ijayo>
+83 f8 09                        ; linganisha    r0d,0x9
+75 !rn_mwisho                   ; ruka_kama_si_sawa    166 <rn_mwisho>
 :rn_ijayo
-48 ff c3                        ; inc    rbx
-eb !ruka_nafasi_mstari          ; jmp    14f <ruka_nafasi_mstari>
+48 ff c3                        ; inc    r3
+eb !ruka_nafasi_mstari          ; ruka    14f <ruka_nafasi_mstari>
 :rn_mwisho
-c3                              ; ret
+c3                              ; rudi
 :ni_fafanua
-31 c0                           ; xor    eax,eax
-48 83 fa 07                     ; cmp    rdx,0x7
-75 !nf_mwisho                   ; jne    18a <nf_mwisho>
-81 3e 46 41 46 41               ; cmp    DWORD PTR [rsi],0x41464146
-75 !nf_mwisho                   ; jne    18a <nf_mwisho>
-66 81 7e 04 4e 55               ; cmp    WORD PTR [rsi+0x4],0x554e
-75 !nf_mwisho                   ; jne    18a <nf_mwisho>
-80 7e 06 41                     ; cmp    BYTE PTR [rsi+0x6],0x41
-75 !nf_mwisho                   ; jne    18a <nf_mwisho>
-b8 01 00 00 00                  ; mov    eax,0x1
+31 c0                           ; au_pekee    r0d,r0d
+48 83 fa 07                     ; linganisha    r2,0x7
+75 !nf_mwisho                   ; ruka_kama_si_sawa    18a <nf_mwisho>
+81 3e 46 41 46 41               ; linganisha    n32[r6],0x41464146
+75 !nf_mwisho                   ; ruka_kama_si_sawa    18a <nf_mwisho>
+66 81 7e 04 4e 55               ; linganisha    n16[r6+0x4],0x554e
+75 !nf_mwisho                   ; ruka_kama_si_sawa    18a <nf_mwisho>
+80 7e 06 41                     ; linganisha    n8[r6+0x6],0x41
+75 !nf_mwisho                   ; ruka_kama_si_sawa    18a <nf_mwisho>
+b8 01 00 00 00                  ; weka r0d, 0x1
 :nf_mwisho
-c3                              ; ret
+c3                              ; rudi
 :zalisha_tokeni
-0f b6 06                        ; movzx  eax,BYTE PTR [rsi]
-83 f8 3a                        ; cmp    eax,0x3a
-0f 84 %tt_pitisha               ; je     222 <tt_pitisha>
-83 f8 26                        ; cmp    eax,0x26
-0f 84 %tt_pitisha               ; je     222 <tt_pitisha>
-83 f8 21                        ; cmp    eax,0x21
-74 !tt_rejeo                    ; je     1cc <tt_rejeo>
-83 f8 25                        ; cmp    eax,0x25
-74 !tt_rejeo                    ; je     1cc <tt_rejeo>
-83 f8 5e                        ; cmp    eax,0x5e
-74 !tt_namba                    ; je     1e5 <tt_namba>
-e8 %tafuta_makro                ; call   292 <tafuta_makro>
-48 85 c0                        ; test   rax,rax
-75 !tt_makro                    ; jne    21a <tt_makro>
-e8 %ni_heksa                      ; call   2cb <ni_heksa>
-85 c0                           ; test   eax,eax
-75 !tt_pitisha                  ; jne    222 <tt_pitisha>
-bf 04 00 00 00                  ; mov    edi,0x4
-e9 %toka                        ; jmp    56 <toka>
+0f b6 06                        ; soma_a  r0d,n8[r6]
+83 f8 3a                        ; linganisha    r0d,0x3a
+0f 84 %tt_pitisha               ; ruka_kama_sawa     222 <tt_pitisha>
+83 f8 26                        ; linganisha    r0d,0x26
+0f 84 %tt_pitisha               ; ruka_kama_sawa     222 <tt_pitisha>
+83 f8 21                        ; linganisha    r0d,0x21
+74 !tt_rejeo                    ; ruka_kama_sawa     1cc <tt_rejeo>
+83 f8 25                        ; linganisha    r0d,0x25
+74 !tt_rejeo                    ; ruka_kama_sawa     1cc <tt_rejeo>
+83 f8 5e                        ; linganisha    r0d,0x5e
+74 !tt_namba                    ; ruka_kama_sawa     1e5 <tt_namba>
+e8 %tafuta_makro                ; ita   292 <tafuta_makro>
+48 85 c0                        ; pima   r0,r0
+75 !tt_makro                    ; ruka_kama_si_sawa    21a <tt_makro>
+e8 %ni_heksa                      ; ita   2cb <ni_heksa>
+85 c0                           ; pima   r0d,r0d
+75 !tt_pitisha                  ; ruka_kama_si_sawa    222 <tt_pitisha>
+bf 04 00 00 00                  ; weka r7d, 0x4
+e9 %toka                        ; ruka    56 <toka>
 :tt_rejeo
-48 83 fa 02                     ; cmp    rdx,0x2
-72 !tt_pitisha                  ; jb     222 <tt_pitisha>
-0f b6 46 01                     ; movzx  eax,BYTE PTR [rsi+0x1]
-83 f8 2d                        ; cmp    eax,0x2d
-74 !tt_namba                    ; je     1e5 <tt_namba>
-83 f8 30                        ; cmp    eax,0x30
-72 !tt_pitisha                  ; jb     222 <tt_pitisha>
-83 f8 39                        ; cmp    eax,0x39
-77 !tt_pitisha                  ; ja     222 <tt_pitisha>
+48 83 fa 02                     ; linganisha    r2,0x2
+72 !tt_pitisha                  ; ruka_kama_chini_a     222 <tt_pitisha>
+0f b6 46 01                     ; soma_a  r0d,n8[r6+0x1]
+83 f8 2d                        ; linganisha    r0d,0x2d
+74 !tt_namba                    ; ruka_kama_sawa     1e5 <tt_namba>
+83 f8 30                        ; linganisha    r0d,0x30
+72 !tt_pitisha                  ; ruka_kama_chini_a     222 <tt_pitisha>
+83 f8 39                        ; linganisha    r0d,0x39
+77 !tt_pitisha                  ; ruka_kama_juu_a     222 <tt_pitisha>
 :tt_namba
-0f b6 0e                        ; movzx  ecx,BYTE PTR [rsi]
-e8 %desimali                    ; call   241 <desimali>
-41 b8 01 00 00 00               ; mov    r8d,0x1
-83 f9 25                        ; cmp    ecx,0x25
-75 !tt_si4                      ; jne    1fe <tt_si4>
-41 b8 04 00 00 00               ; mov    r8d,0x4
+0f b6 0e                        ; soma_a  r1d,n8[r6]
+e8 %desimali                    ; ita   241 <desimali>
+41 b8 01 00 00 00               ; hamisha    r8d,0x1
+83 f9 25                        ; linganisha    r1d,0x25
+75 !tt_si4                      ; ruka_kama_si_sawa    1fe <tt_si4>
+41 b8 04 00 00 00               ; hamisha    r8d,0x4
 :tt_si4
-83 f9 5e                        ; cmp    ecx,0x5e
-75 !tt_baiti                    ; jne    209 <tt_baiti>
-41 b8 08 00 00 00               ; mov    r8d,0x8
+83 f9 5e                        ; linganisha    r1d,0x5e
+75 !tt_baiti                    ; ruka_kama_si_sawa    209 <tt_baiti>
+41 b8 08 00 00 00               ; hamisha    r8d,0x8
 :tt_baiti
-50                              ; push   rax
-e8 %zalisha_baiti_ya_heksa               ; call   303 <zalisha_baiti_ya_heksa>
-58                              ; pop    rax
-48 c1 e8 08                     ; shr    rax,0x8
-49 ff c8                        ; dec    r8
-75 !tt_baiti                    ; jne    209 <tt_baiti>
-c3                              ; ret
+50                              ; sukuma   r0
+e8 %zalisha_baiti_ya_heksa               ; ita   303 <zalisha_baiti_ya_heksa>
+58                              ; vuta    r0
+48 c1 e8 08                     ; sogeza_kulia_a    r0,0x8
+49 ff c8                        ; punguza_moja    r8
+75 !tt_baiti                    ; ruka_kama_si_sawa    209 <tt_baiti>
+c3                              ; rudi
 :tt_makro
-48 8b 70 10                     ; mov    rsi,QWORD PTR [rax+0x10]
-48 8b 50 18                     ; mov    rdx,QWORD PTR [rax+0x18]
+48 8b 70 10                     ; soma r6, n64[r0+0x10]
+48 8b 50 18                     ; soma r2, n64[r0+0x18]
 :tt_pitisha
-48 85 d2                        ; test   rdx,rdx
-74 !tt_nafasi                   ; je     237 <tt_nafasi>
-0f b6 06                        ; movzx  eax,BYTE PTR [rsi]
-e8 %zalisha_herufi                  ; call   336 <zalisha_herufi>
-48 ff c6                        ; inc    rsi
-48 ff ca                        ; dec    rdx
-eb !tt_pitisha                  ; jmp    222 <tt_pitisha>
+48 85 d2                        ; pima   r2,r2
+74 !tt_nafasi                   ; ruka_kama_sawa     237 <tt_nafasi>
+0f b6 06                        ; soma_a  r0d,n8[r6]
+e8 %zalisha_herufi                  ; ita   336 <zalisha_herufi>
+48 ff c6                        ; inc    r6
+48 ff ca                        ; dec    r2
+eb !tt_pitisha                  ; ruka    222 <tt_pitisha>
 :tt_nafasi
-b8 0a 00 00 00                  ; mov    eax,0xa
-e9 %zalisha_herufi                  ; jmp    336 <zalisha_herufi>
+b8 0a 00 00 00                  ; weka r0d, 0xa
+e9 %zalisha_herufi                  ; ruka    336 <zalisha_herufi>
 :desimali
-51                              ; push   rcx
-48 8d 7e 01                     ; lea    rdi,[rsi+0x1]
-4c 8d 14 16                     ; lea    r10,[rsi+rdx*1]
-31 c0                           ; xor    eax,eax
-45 31 db                        ; xor    r11d,r11d
-4c 39 d7                        ; cmp    rdi,r10
-73 !d_mwisho                    ; jae    286 <d_mwisho>
-80 3f 2d                        ; cmp    BYTE PTR [rdi],0x2d
-75 !d_mzunguko                   ; jne    262 <d_mzunguko>
-41 bb 01 00 00 00               ; mov    r11d,0x1
-48 ff c7                        ; inc    rdi
+51                              ; sukuma   r1
+48 8d 7e 01                     ; anwani    r7,[r6+0x1]
+4c 8d 14 16                     ; anwani    r10,[r6+r2*1]
+31 c0                           ; au_pekee    r0d,r0d
+45 31 db                        ; au_pekee    r11d,r11d
+4c 39 d7                        ; linganisha    r7,r10
+73 !d_mwisho                    ; ruka_kama_juu_sawa_a    286 <d_mwisho>
+80 3f 2d                        ; linganisha    n8[r7],0x2d
+75 !d_mzunguko                   ; ruka_kama_si_sawa    262 <d_mzunguko>
+41 bb 01 00 00 00               ; hamisha    r11d,0x1
+48 ff c7                        ; inc    r7
 :d_mzunguko
-4c 39 d7                        ; cmp    rdi,r10
-73 !d_ishara                    ; jae    27e <d_ishara>
-0f b6 0f                        ; movzx  ecx,BYTE PTR [rdi]
-83 e9 30                        ; sub    ecx,0x30
-83 f9 09                        ; cmp    ecx,0x9
-77 !d_kosa                      ; ja     288 <d_kosa>
-48 6b c0 0a                     ; imul   rax,rax,0xa
-48 01 c8                        ; add    rax,rcx
-48 ff c7                        ; inc    rdi
-eb !d_mzunguko                   ; jmp    262 <d_mzunguko>
+4c 39 d7                        ; linganisha    r7,r10
+73 !d_ishara                    ; ruka_kama_juu_sawa_a    27e <d_ishara>
+0f b6 0f                        ; soma_a  r1d,n8[r7]
+83 e9 30                        ; toa    r1d,0x30
+83 f9 09                        ; linganisha    r1d,0x9
+77 !d_kosa                      ; ruka_kama_juu_a     288 <d_kosa>
+48 6b c0 0a                     ; zidisha_n   r0,r0,0xa
+48 01 c8                        ; jumlisha    r0,r1
+48 ff c7                        ; inc    r7
+eb !d_mzunguko                   ; ruka    262 <d_mzunguko>
 :d_ishara
-4d 85 db                        ; test   r11,r11
-74 !d_mwisho                    ; je     286 <d_mwisho>
-48 f7 d8                        ; neg    rax
+4d 85 db                        ; pima   r11,r11
+74 !d_mwisho                    ; ruka_kama_sawa     286 <d_mwisho>
+48 f7 d8                        ; hasi    r0
 :d_mwisho
-59                              ; pop    rcx
-c3                              ; ret
+59                              ; vuta    r1
+c3                              ; rudi
 :d_kosa
-bf 04 00 00 00                  ; mov    edi,0x4
-e9 %toka                        ; jmp    56 <toka>
+bf 04 00 00 00                  ; weka r7d, 0x4
+e9 %toka                        ; ruka    56 <toka>
 :tafuta_makro
-49 b8 00 00 70 00 00 00 00 00   ; movabs r8,0x700000
+49 b8 00 00 70 00 00 00 00 00   ; weka r8, 0x700000
 :tm_mzunguko
-4d 39 c8                        ; cmp    r8,r9
-73 !tm_haipo                    ; jae    2c8 <tm_haipo>
-49 3b 50 08                     ; cmp    rdx,QWORD PTR [r8+0x8]
-75 !tm_ijayo                    ; jne    2c2 <tm_ijayo>
-49 8b 38                        ; mov    rdi,QWORD PTR [r8]
-31 c9                           ; xor    ecx,ecx
+4d 39 c8                        ; linganisha    r8,r9
+73 !tm_haipo                    ; ruka_kama_juu_sawa_a    2c8 <tm_haipo>
+49 3b 50 08                     ; linganisha    r2,n64[r8+0x8]
+75 !tm_ijayo                    ; ruka_kama_si_sawa    2c2 <tm_ijayo>
+49 8b 38                        ; soma r7, n64[r8]
+31 c9                           ; au_pekee    r1d,r1d
 :tm_linganisha
-48 39 d1                        ; cmp    rcx,rdx
-73 !tm_imepatikana              ; jae    2be <tm_imepatikana>
-8a 04 0e                        ; mov    al,BYTE PTR [rsi+rcx*1]
-3a 04 0f                        ; cmp    al,BYTE PTR [rdi+rcx*1]
-75 !tm_ijayo                    ; jne    2c2 <tm_ijayo>
-48 ff c1                        ; inc    rcx
-eb !tm_linganisha               ; jmp    2ac <tm_linganisha>
+48 39 d1                        ; linganisha    r1,r2
+73 !tm_imepatikana              ; ruka_kama_juu_sawa_a    2be <tm_imepatikana>
+8a 04 0e                        ; soma r0b, n8[r6+r1*1]
+3a 04 0f                        ; linganisha    r0b,n8[r7+r1*1]
+75 !tm_ijayo                    ; ruka_kama_si_sawa    2c2 <tm_ijayo>
+48 ff c1                        ; inc    r1
+eb !tm_linganisha               ; ruka    2ac <tm_linganisha>
 :tm_imepatikana
-4c 89 c0                        ; mov    rax,r8
-c3                              ; ret
+4c 89 c0                        ; hamisha r0, r8
+c3                              ; rudi
 :tm_ijayo
-49 83 c0 20                     ; add    r8,0x20
-eb !tm_mzunguko                  ; jmp    29c <tm_mzunguko>
+49 83 c0 20                     ; jumlisha    r8,0x20
+eb !tm_mzunguko                  ; ruka    29c <tm_mzunguko>
 :tm_haipo
-31 c0                           ; xor    eax,eax
-c3                              ; ret
+31 c0                           ; au_pekee    r0d,r0d
+c3                              ; rudi
 :ni_heksa
-31 c0                           ; xor    eax,eax
-48 f7 c2 01 00 00 00            ; test   rdx,0x1
-75 !nh_mwisho                   ; jne    302 <nh_mwisho>
-31 c9                           ; xor    ecx,ecx
+31 c0                           ; au_pekee    r0d,r0d
+48 f7 c2 01 00 00 00            ; pima   r2,0x1
+75 !nh_mwisho                   ; ruka_kama_si_sawa    302 <nh_mwisho>
+31 c9                           ; au_pekee    r1d,r1d
 :nh_mzunguko
-48 39 d1                        ; cmp    rcx,rdx
-73 !nh_ndiyo                    ; jae    2fd <nh_ndiyo>
-0f b6 3c 0e                     ; movzx  edi,BYTE PTR [rsi+rcx*1]
-83 cf 20                        ; or     edi,0x20
-83 ff 30                        ; cmp    edi,0x30
-72 !nh_mwisho                   ; jb     302 <nh_mwisho>
-83 ff 39                        ; cmp    edi,0x39
-76 !nh_ijayo                    ; jbe    2f8 <nh_ijayo>
-83 ff 61                        ; cmp    edi,0x61
-72 !nh_mwisho                   ; jb     302 <nh_mwisho>
-83 ff 66                        ; cmp    edi,0x66
-77 !nh_mwisho                   ; ja     302 <nh_mwisho>
+48 39 d1                        ; linganisha    r1,r2
+73 !nh_ndiyo                    ; ruka_kama_juu_sawa_a    2fd <nh_ndiyo>
+0f b6 3c 0e                     ; soma_a  r7d,n8[r6+r1*1]
+83 cf 20                        ; au     r7d,0x20
+83 ff 30                        ; linganisha    r7d,0x30
+72 !nh_mwisho                   ; ruka_kama_chini_a     302 <nh_mwisho>
+83 ff 39                        ; linganisha    r7d,0x39
+76 !nh_ijayo                    ; ruka_kama_chini_sawa_a    2f8 <nh_ijayo>
+83 ff 61                        ; linganisha    r7d,0x61
+72 !nh_mwisho                   ; ruka_kama_chini_a     302 <nh_mwisho>
+83 ff 66                        ; linganisha    r7d,0x66
+77 !nh_mwisho                   ; ruka_kama_juu_a     302 <nh_mwisho>
 :nh_ijayo
-48 ff c1                        ; inc    rcx
-eb !nh_mzunguko                  ; jmp    2d8 <nh_mzunguko>
+48 ff c1                        ; inc    r1
+eb !nh_mzunguko                  ; ruka    2d8 <nh_mzunguko>
 :nh_ndiyo
-b8 01 00 00 00                  ; mov    eax,0x1
+b8 01 00 00 00                  ; weka r0d, 0x1
 :nh_mwisho
-c3                              ; ret
+c3                              ; rudi
 :zalisha_baiti_ya_heksa
-50                              ; push   rax
-c1 e8 04                        ; shr    eax,0x4
-83 e0 0f                        ; and    eax,0xf
-e8 %tarakimu                    ; call   329 <tarakimu>
-e8 %zalisha_herufi                  ; call   336 <zalisha_herufi>
-58                              ; pop    rax
-83 e0 0f                        ; and    eax,0xf
-e8 %tarakimu                    ; call   329 <tarakimu>
-e8 %zalisha_herufi                  ; call   336 <zalisha_herufi>
-b8 20 00 00 00                  ; mov    eax,0x20
-eb !zalisha_herufi                  ; jmp    336 <zalisha_herufi>
+50                              ; sukuma   r0
+c1 e8 04                        ; sogeza_kulia_a    r0d,0x4
+83 e0 0f                        ; na    r0d,0xf
+e8 %tarakimu                    ; ita   329 <tarakimu>
+e8 %zalisha_herufi                  ; ita   336 <zalisha_herufi>
+58                              ; vuta    r0
+83 e0 0f                        ; na    r0d,0xf
+e8 %tarakimu                    ; ita   329 <tarakimu>
+e8 %zalisha_herufi                  ; ita   336 <zalisha_herufi>
+b8 20 00 00 00                  ; weka r0d, 0x20
+eb !zalisha_herufi                  ; ruka    336 <zalisha_herufi>
 :tarakimu
-83 f8 0a                        ; cmp    eax,0xa
-72 !tk_namba                    ; jb     332 <tk_namba>
-83 c0 57                        ; add    eax,0x57
-c3                              ; ret
+83 f8 0a                        ; linganisha    r0d,0xa
+72 !tk_namba                    ; ruka_kama_chini_a     332 <tk_namba>
+83 c0 57                        ; jumlisha    r0d,0x57
+c3                              ; rudi
 :tk_namba
-83 c0 30                        ; add    eax,0x30
-c3                              ; ret
+83 c0 30                        ; jumlisha    r0d,0x30
+c3                              ; rudi
 :zalisha_herufi
-41 88 45 00                     ; mov    BYTE PTR [r13+0x0],al
-49 ff c5                        ; inc    r13
-48 b8 00 00 64 00 00 00 00 00   ; movabs rax,0x640000
-49 39 c5                        ; cmp    r13,rax
-72 !th_mwisho                   ; jb     351 <th_mwisho>
-e8 %safisha                     ; call   352 <safisha>
+41 88 45 00                     ; hifadhi n8[r13+0x0], r0b
+49 ff c5                        ; ongeza_moja    r13
+48 b8 00 00 64 00 00 00 00 00   ; weka r0, 0x640000
+49 39 c5                        ; linganisha    r13,r0
+72 !th_mwisho                   ; ruka_kama_chini_a     351 <th_mwisho>
+e8 %safisha                     ; ita   352 <safisha>
 :th_mwisho
-c3                              ; ret
+c3                              ; rudi
 :safisha
-56                              ; push   rsi
-52                              ; push   rdx
-51                              ; push   rcx
-41 53                           ; push   r11
-bf 01 00 00 00                  ; mov    edi,0x1
-48 be 00 00 60 00 00 00 00 00   ; movabs rsi,0x600000
-4c 89 ea                        ; mov    rdx,r13
-48 29 f2                        ; sub    rdx,rsi
-b8 01 00 00 00                  ; mov    eax,0x1
-0f 05                           ; syscall
-49 bd 00 00 60 00 00 00 00 00   ; movabs r13,0x600000
-41 5b                           ; pop    r11
-59                              ; pop    rcx
-5a                              ; pop    rdx
-5e                              ; pop    rsi
-c3                              ; ret
+56                              ; sukuma   r6
+52                              ; sukuma   r2
+51                              ; sukuma   r1
+41 53                           ; sukuma   r11
+bf 01 00 00 00                  ; weka r7d, 0x1
+48 be 00 00 60 00 00 00 00 00   ; weka r6, 0x600000
+4c 89 ea                        ; hamisha r2, r13
+48 29 f2                        ; toa    r2,r6
+b8 01 00 00 00                  ; weka r0d, 0x1
+0f 05                           ; mfumo
+49 bd 00 00 60 00 00 00 00 00   ; weka r13, 0x600000
+41 5b                           ; vuta    r11
+59                              ; vuta    r1
+5a                              ; vuta    r2
+5e                              ; vuta    r6
+c3                              ; rudi

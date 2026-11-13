@@ -107,7 +107,7 @@ asilia (awali/exe) -- uzalishaji unakataa kwa sauti, awali kimya.
 ## Hatua ya 5: Kuziba Pengo la Mwisho la Bootstrap [IMEFANYIKA]
 
 - [x] **Baiti za mkono:** Kwanza (msingi/kwanza.bin) -- baiti 393 zilizoandikwa
-      kwa mkono (ELF 64 + phdr 56 + msimbo 273) hubadilisha hex hadi binary.
+      kwa mkono (ELF 64 + maelezo ya kipande 56 + msimbo 273) hubadilisha hex hadi binary.
       Inajijenga (kwanza.heksa -> kwanza.bin) na inazalisha awali.bin kutoka
       awali.heksa -- NASM si sehemu ya mfululizo wa uzalishaji tena.
       Uthibitisho: gharama/mfululizo.mapishi (pia kwenye CI).
@@ -119,7 +119,7 @@ asilia (awali/exe) -- uzalishaji unakataa kwa sauti, awali kimya.
 - [x] **Runtime ya syscalls:** mkusanyaji hautekelezi kupitia libc tena
       (PR #149) -- faili, mmap, na uchapishaji kupitia syscalls.
 - [x] **0% bootstrap gap:** awali inatoa ET_EXEC tuli moja kwa moja
-      (`--programu`) -- utangulizi (64) + phdr (56) + stub ya `_start` (28) +
+      (`--programu`) -- utangulizi (64) + maelezo ya kipande (56) + stub ya `_start` (28) +
       urekebishaji wa RELA wa ndani (ulimwengu, tungo, na wito wa
       mbele) -- hakuna gcc/ld/clang/muda.c/libc popote kwenye mfululizo.
       Uthibitisho: jaribio_exe_kujijenga (CI).

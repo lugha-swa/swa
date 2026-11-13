@@ -182,9 +182,9 @@ desimali ya 9+ haikusomwa kabisa. Sasa mpangilio uliochanganyika
 hupakiwa kwa umbali na hoja za mrundikano hubanwa (`hoja_kwa_sysv`), na
 mwitwaji ana kaunta moja ya mrundikano. Mipangilio iliyofanya kazi hubaki
 baiti zile zile. Jaribio: `majaribio/programu/jaribio_hoja_mrundikano_mchanganyiko.swa`.
-  - Jedwali lote (interp, dynstr, dynsym, hash, rela, dynamic, phdr)
-    huandikwa mwishoni mwa .data; e_phoff huelekeza kwenye phdr hizo,
-    na phdr ya baiti 64-119 hubaki nakala ya PT_LOAD ile ile, hivyo
+  - Jedwali lote (interp, dynstr, dynsym, hash, urekebishaji, dynamic, maelezo ya kipande)
+    huandikwa mwishoni mwa .data; umbali wa maelezo ya vipande huelekeza kwenye maelezo ya kipande hizo,
+    na maelezo ya kipande ya baiti 64-119 hubaki nakala ya PT_LOAD ile ile, hivyo
     .text bado huanza 0x400078.
 
 ### Uamuzi: kipakiaji cha mfumo, si chetu (kwa sasa)

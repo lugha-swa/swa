@@ -299,25 +299,25 @@ fafanua UKUBWA_WA_JEDWALI_LA_MAJINA_YA_SEHEMU = 55
 
 ; Utangulizi wa ELF (baiti 64) -- tunatumia kiolezo na kujaza maeneo yanayobadilika
 n8 mwisho_wa_data_ya_jedwali_la_majina_ya_sehemu =
-n8 kiolezo_cha_utangulizi_wa_elf = 0x7f, 0x45, 0x4c, 0x46   ; e_ident[0:4] -- ELF magic
+n8 kiolezo_cha_utangulizi_wa_elf = 0x7f, 0x45, 0x4c, 0x46   ; kitambulisho cha ELF[0:4] -- ELF magic
 n8 = 2   ; EI_CLASS = 64-bit
 n8 = 1   ; EI_DATA = little-endian
 n8 = 1   ; EI_VERSION
 n8 = 0   ; EI_OSABI = System V
-n8 = 0, 0, 0, 0, 0, 0, 0, 0   ; e_ident[8:16] -- padding
-n16 = 1   ; e_type = ET_REL
-n16 = 62   ; e_machine = x86-64 (0x3E)
-n32 = 1   ; e_version
-n64 = 0   ; e_entry (0 kwa .o)
-n64 = 0   ; e_phoff (0 kwa .o)
-n64 = 0   ; e_shoff (itajazwa)
-n32 = 0   ; e_flags
-n16 = 64   ; e_ehsize
-n16 = 0   ; e_phentsize (0 kwa .o)
-n16 = 0   ; e_phnum
-n16 = 64   ; e_shentsize
-n16 = 7   ; e_shnum (itajazwa ikiwa tofauti)
-n16 = 6   ; e_shstrndx
+n8 = 0, 0, 0, 0, 0, 0, 0, 0   ; kitambulisho cha ELF[8:16] -- padding
+n16 = 1   ; aina ya faili = ET_REL
+n16 = 62   ; mashine = x86-64 (0x3E)
+n32 = 1   ; toleo
+n64 = 0   ; kiingilio (0 kwa .o)
+n64 = 0   ; umbali wa maelezo ya vipande (0 kwa .o)
+n64 = 0   ; umbali wa maelezo ya sehemu (itajazwa)
+n32 = 0   ; machaguo ya ELF
+n16 = 64   ; ukubwa wa utangulizi
+n16 = 0   ; ukubwa wa maelezo ya kipande (0 kwa .o)
+n16 = 0   ; idadi ya vipande
+n16 = 64   ; ukubwa wa maelezo ya sehemu
+n16 = 7   ; idadi ya sehemu (itajazwa ikiwa tofauti)
+n16 = 6   ; faharisi ya majina ya sehemu
 
 ; =============================================================================
 ; Sehemu ya 2: BSS (vyombo vidogo na vigezo visivyosanifiwa)
@@ -382,7 +382,7 @@ n64 nje_idadi
 ; ---------- Marekebisho (relocations) ----------
 n32 umbali_wa_urekebishaji_wa_elf[UPEO_HAMISHO]   ; umbali kwenye chombo_msimbo
 n32 alama_ya_urekebishaji[UPEO_HAMISHO]   ; faharisi ya alama au -1
-n32 nyongeza_ya_urekebishaji[UPEO_HAMISHO]   ; addend maalum (kwa rekebisho la data)
+n32 nyongeza_ya_urekebishaji[UPEO_HAMISHO]   ; nyongeza maalum (kwa rekebisho la data)
 n64 idadi_ya_urekebishaji_wa_elf
 
 ; ---------- Vigezo vya ulimwengu ----------
@@ -5474,14 +5474,14 @@ uzalishaji_halisi_d:
         r0b = 0x05
         ita zalisha_baiti
 
-        ; Rekebisho la .data (sawa na mfuatano): addend = data_offset - 4
+        ; Rekebisho la .data (sawa na mfuatano): nyongeza = umbali wa data - 4
         r7 = n64[idadi_ya_urekebishaji_wa_elf]
         linganisha r7, UPEO_HAMISHO - 1
         ruka .urekebishaji_umejaa kama >=a
         r2d = n32[chombo_cha_msimbo_wapi]
         n32[umbali_wa_urekebishaji_wa_elf + r7*4] = r2d
         n32[alama_ya_urekebishaji + r7*4] = -1   ; .data section
-        r1d -= 4   ; data_offset - 4
+        r1d -= 4   ; umbali wa data - 4
         n32[nyongeza_ya_urekebishaji + r7*4] = r1d
         n64[idadi_ya_urekebishaji_wa_elf]++
         ; Weka nafasi ya disp32
@@ -10181,7 +10181,7 @@ uzalishaji_kauli_ya_mbili:
         ita mfumo_toka
 .mfuatano_nafasi:
         r1 = n64[chombo_cha_data_wapi]
-        r10d = r1d   ; hifadhi umbali kwa addend
+        r10d = r1d   ; hifadhi umbali kwa nyongeza
         r1d = r9d
         r6 = ghala_la_mifuatano
         r6 += r8
@@ -10212,7 +10212,7 @@ uzalishaji_kauli_ya_mbili:
         n32[umbali_wa_urekebishaji_wa_elf + r7*4] = r2d
         n32[alama_ya_urekebishaji + r7*4] = -1   ; kiashiria: tumia .data section
         r10d -= 4
-        n32[nyongeza_ya_urekebishaji + r7*4] = r10d   ; addend = data_offset - 4
+        n32[nyongeza_ya_urekebishaji + r7*4] = r10d   ; nyongeza = umbali wa data - 4
         n64[idadi_ya_urekebishaji_wa_elf]++
 .pita_mfuatano_hamisho:
         ; Weka nafasi ya disp32 (baiti 4 za sifuri)
@@ -12420,7 +12420,7 @@ uzalishaji_kama:
         ; Zalisha maudhui ya sivyo
         sukuma n64[ndani_idadi]   ; upeo wa kizuizi: hifadhi hesabu ya vigezo vya ndani
         sukuma r12
-        sukuma r9   ; hifadhi r9d (nafasi ya urekebishaji ya jmp) -- uzalishaji_mti inaharibu r9d
+        sukuma r9   ; hifadhi r9d (nafasi ya urekebishaji ya ruka) -- uzalishaji_mti inaharibu r9d
         r12d = r15d
         ita uzalishaji_nodi
         vuta r9
@@ -13683,7 +13683,7 @@ uzalishaji_nodi:
         ita zalisha_baiti
         r0b = 0x05
         ita zalisha_baiti
-        ; RELA ya .data (addend = data_offset - 4)
+        ; RELA ya .data (nyongeza = umbali wa data - 4)
         r7 = n64[idadi_ya_urekebishaji_wa_elf]
         linganisha r7, UPEO_HAMISHO - 1
         ruka .hasili_urekebishaji_umejaa kama >=a
@@ -13881,55 +13881,55 @@ toa_elf:
         sukuma r15
 
         ; Kokotoa umbali wa sehemu
-        r12d = n32[chombo_cha_msimbo_wapi]   ; text_size
-        r13d = n32[chombo_cha_data_wapi]   ; data_size
+        r12d = n32[chombo_cha_msimbo_wapi]   ; ukubwa wa msimbo
+        r13d = n32[chombo_cha_data_wapi]   ; ukubwa wa data
 
-        ; symtab: 1 (null) + mahali + vigeu vya ulimwengu + nje
+        ; jedwali la alama: 1 (null) + mahali + vigeu vya ulimwengu + nje
         r14 = n64[idadi_ya_mahali]
         r14 += n64[ulimwengu_idadi]
         r14 += n64[nje_idadi]
         r14++   ; +1 kwa null
         r14 = r14 * 24   ; baiti 24 kwa ingizo
-        r15d = r14d   ; symtab_size
+        r15d = r14d   ; ukubwa wa jedwali la alama
 
-        ; strtab: hesabu ukubwa kwa kutembea majina yote
+        ; jedwali la majina: hesabu ukubwa kwa kutembea majina yote
         ita zalisha_elf_hesabu_ya_jedwali_la_majina
-        r13d = r0d   ; strtab_size
+        r13d = r0d   ; ukubwa wa jedwali la majina
 
-        ; rela: 24 baiti kwa ingizo
+        ; urekebishaji: 24 baiti kwa ingizo
         r14 = n64[idadi_ya_urekebishaji_wa_elf]
         r14 = r14 * 24
-        r2d = r14d   ; rela_size
+        r2d = r14d   ; ukubwa wa urekebishaji
 
         ; Umbali wa sehemu
-        ; text_off = 64
-        ; data_off = 64 + text_size
-        ; symtab_off = data_off + data_size
-        ; strtab_off = symtab_off + symtab_size
-        ; rela_off = strtab_off + strtab_size
-        ; shstrtab_off = rela_off + rela_size
-        ; shoff = shstrtab_off + 55
+        ; umbali wa msimbo = 64
+        ; umbali wa data = 64 + ukubwa wa msimbo
+        ; umbali wa jedwali la alama = umbali wa data + ukubwa wa data
+        ; umbali wa jedwali la majina = umbali wa jedwali la alama + ukubwa wa jedwali la alama
+        ; umbali wa urekebishaji = umbali wa jedwali la majina + ukubwa wa jedwali la majina
+        ; umbali wa jedwali la majina ya sehemu = umbali wa urekebishaji + ukubwa wa urekebishaji
+        ; umbali wa maelezo ya sehemu = umbali wa jedwali la majina ya sehemu + 55
 
-        r8d = 64   ; text_off
+        r8d = 64   ; umbali wa msimbo
         r9d = r8d
-        r9d += r12d   ; data_off
+        r9d += r12d   ; umbali wa data
         r10d = r9d
-        r10d += n32[chombo_cha_data_wapi]   ; symtab_off
+        r10d += n32[chombo_cha_data_wapi]   ; umbali wa jedwali la alama
         r11d = r10d
-        r11d += r15d   ; strtab_off
+        r11d += r15d   ; umbali wa jedwali la majina
         r12d = r11d
-        r12d += r13d   ; rela_off (tunatumia strtab_size kwenye r13)
+        r12d += r13d   ; umbali wa urekebishaji (tunatumia ukubwa wa jedwali la majina kwenye r13)
         r13d = r12d
-        r13d += r2d   ; shstrtab_off
+        r13d += r2d   ; umbali wa jedwali la majina ya sehemu
         r14d = r13d
-        r14d += UKUBWA_WA_JEDWALI_LA_MAJINA_YA_SEHEMU   ; shoff
+        r14d += UKUBWA_WA_JEDWALI_LA_MAJINA_YA_SEHEMU   ; umbali wa maelezo ya sehemu
 
         ; Hifadhi umbali muhimu kwenye stack
-        sukuma r15   ; symtab_size
-        sukuma r10   ; symtab_off
-        sukuma r12   ; rela_off
-        sukuma r13   ; shstrtab_off
-        sukuma r14   ; shoff
+        sukuma r15   ; ukubwa wa jedwali la alama
+        sukuma r10   ; umbali wa jedwali la alama
+        sukuma r12   ; umbali wa urekebishaji
+        sukuma r13   ; umbali wa jedwali la majina ya sehemu
+        sukuma r14   ; umbali wa maelezo ya sehemu
 
         ; 1. Andika utangulizi wa ELF
         ita toa_elf_utangulizi
@@ -13963,12 +13963,12 @@ toa_elf:
         ita zalisha_elf_jedwali_la_majina_ya_sehemu
 
         ; 8. Andika maelezo ya sehemu
-        vuta r14   ; shoff
-        vuta r13   ; shstrtab_off
-        vuta r12   ; rela_off
-        vuta r10   ; symtab_off
-        vuta r15   ; symtab_size
-        ; Tunahitaji strtab_size na strtab_off pia
+        vuta r14   ; umbali wa maelezo ya sehemu
+        vuta r13   ; umbali wa jedwali la majina ya sehemu
+        vuta r12   ; umbali wa urekebishaji
+        vuta r10   ; umbali wa jedwali la alama
+        vuta r15   ; ukubwa wa jedwali la alama
+        ; Tunahitaji ukubwa wa jedwali la majina na umbali wa jedwali la majina pia
         ; Hizo ziko kwenye r11 na r13 (kabla ya kubadilishwa)
         ita zalisha_elf_maelezo_ya_sehemu
 
@@ -14045,27 +14045,27 @@ zalisha_elf_hesabu_ya_jedwali_la_majina:
 toa_elf_utangulizi:
         ; Hujenga na kuandika utangulizi kamili wa ELF (baiti 64)
         ; Utangulizi una sehemu tatu:
-        ;   1. Baiti  0-39: e_ident, e_type, e_machine, e_version, e_entry, e_phoff
-        ;   2. Baiti 40-47: e_shoff (inakokotolewa wakati wa utekelezaji)
-        ;   3. Baiti 48-63: e_flags, e_ehsize, e_phentsize, e_phnum, e_shentsize, e_shnum, e_shstrndx
+        ;   1. Baiti  0-39: kitambulisho cha ELF, aina ya faili, mashine, toleo, kiingilio, umbali wa maelezo ya vipande
+        ;   2. Baiti 40-47: umbali wa maelezo ya sehemu (inakokotolewa wakati wa utekelezaji)
+        ;   3. Baiti 48-63: machaguo ya ELF, ukubwa wa utangulizi, ukubwa wa maelezo ya kipande, idadi ya vipande, ukubwa wa maelezo ya sehemu, idadi ya sehemu, faharisi ya majina ya sehemu
         ;
-        ; Thamani ya e_shoff inapitishwa kupitia stack (r14 kwenye toa_elf)
+        ; Thamani ya umbali wa maelezo ya sehemu inapitishwa kupitia stack (r14 kwenye toa_elf)
 
         ; 1. Andika baiti 0-39 za kiolezo
         r6 = &[kiolezo_cha_utangulizi_wa_elf]
         r2 = 40
         ita mfumo_andika_chombo
 
-        ; 2. Andika e_shoff (baiti 40-47) -- thamani iliyokokotolewa
-        ; Inasomwa kutoka stack: toa_elf ilisukuma r14 (shoff) kabla ya kuita
-        ; Kwa wakati huu, [r4] = return address, [r4+8] = r14 (shoff)
+        ; 2. Andika umbali wa maelezo ya sehemu (baiti 40-47) -- thamani iliyokokotolewa
+        ; Inasomwa kutoka stack: toa_elf ilisukuma r14 (umbali wa maelezo ya sehemu) kabla ya kuita
+        ; Kwa wakati huu, [r4] = return address, [r4+8] = r14 (umbali wa maelezo ya sehemu)
         sukuma r5
         r5 = r4
-        r7 = n64[r5+16]   ; shoff kutoka stack ya toa_elf
+        r7 = n64[r5+16]   ; umbali wa maelezo ya sehemu kutoka stack ya toa_elf
         vuta r5
         ita andika_neno8_moja_kwa_moja
 
-        ; 3. Andika baiti 48-63 za kiolezo (e_flags hadi mwisho)
+        ; 3. Andika baiti 48-63 za kiolezo (machaguo ya ELF hadi mwisho)
         r6 = &[kiolezo_cha_utangulizi_wa_elf + 48]
         r2 = 16
         ita mfumo_andika_chombo
@@ -14083,40 +14083,40 @@ zalisha_elf_jedwali_la_alama:
 
         ; Ingizo la null
         r7d = 0
-        ita andika_neno4_moja_kwa_moja   ; st_name
-        ita andika_neno4_moja_kwa_moja   ; st_info + st_other + st_shndx (zote 0)
-        ita andika_neno8_moja_kwa_moja   ; st_value
-        ita andika_neno8_moja_kwa_moja   ; st_size
+        ita andika_neno4_moja_kwa_moja   ; jina la alama
+        ita andika_neno4_moja_kwa_moja   ; habari ya alama + mwonekano wa alama + faharisi ya sehemu (zote 0)
+        ita andika_neno8_moja_kwa_moja   ; thamani ya alama
+        ita andika_neno8_moja_kwa_moja   ; ukubwa wa alama
 
         ; Alama ya sehemu: .text (faharisi 1)
-        r7d = 0   ; st_name = 0
+        r7d = 0   ; jina la alama = 0
         ita andika_neno4_moja_kwa_moja
         r7b = 3   ; STB_LOCAL | STT_SECTION
         ita andika_baiti_moja_kwa_moja
         r7b = 0
         ita andika_baiti_moja_kwa_moja
-        r7w = 1   ; st_shndx = .text
+        r7w = 1   ; faharisi ya sehemu = .text
         ita andika_neno2_moja_kwa_moja
-        r7d = 0   ; st_value
+        r7d = 0   ; thamani ya alama
         ita andika_neno8_moja_kwa_moja
-        r7d = 0   ; st_size
+        r7d = 0   ; ukubwa wa alama
         ita andika_neno8_moja_kwa_moja
 
         ; Alama ya sehemu: .data (faharisi 2)
-        r7d = 0   ; st_name = 0
+        r7d = 0   ; jina la alama = 0
         ita andika_neno4_moja_kwa_moja
         r7b = 3   ; STB_LOCAL | STT_SECTION
         ita andika_baiti_moja_kwa_moja
         r7b = 0
         ita andika_baiti_moja_kwa_moja
-        r7w = 2   ; st_shndx = .data
+        r7w = 2   ; faharisi ya sehemu = .data
         ita andika_neno2_moja_kwa_moja
-        r7d = 0   ; st_value
+        r7d = 0   ; thamani ya alama
         ita andika_neno8_moja_kwa_moja
-        r7d = 0   ; st_size
+        r7d = 0   ; ukubwa wa alama
         ita andika_neno8_moja_kwa_moja
 
-        ; Kokotoa umbali wa strtab kwa kila mahali
+        ; Kokotoa umbali wa jedwali la majina kwa kila mahali
         ; Umbali wa kwanza baada ya \0 ni 1
         r14d = 1
 
@@ -14127,29 +14127,29 @@ zalisha_elf_jedwali_la_alama:
         linganisha r12, r13
         ruka .mahali_kwisha kama >=a
 
-        ; st_name = umbali kwenye strtab
+        ; jina la alama = umbali kwenye jedwali la majina
         r7d = r14d
         ita andika_neno4_moja_kwa_moja
 
-        ; st_info = 18 (STB_GLOBAL | STT_FUNC)
+        ; habari ya alama = 18 (STB_GLOBAL | STT_FUNC)
         r7b = 18
         ita andika_baiti_moja_kwa_moja
-        ; st_other = 0
+        ; mwonekano wa alama = 0
         r7b = 0
         ita andika_baiti_moja_kwa_moja
-        ; st_shndx = 1 (.text)
+        ; faharisi ya sehemu = 1 (.text)
         r7w = 1
         ita andika_neno2_moja_kwa_moja
 
-        ; st_value = umbali kwenye .text
+        ; thamani ya alama = umbali kwenye .text
         r7d = n32[umbali_mahali + r12*4]
         ita andika_neno8_moja_kwa_moja
 
-        ; st_size = ukubwa wa kazi
+        ; ukubwa wa alama = ukubwa wa kazi
         r7d = n32[ukubwa_mahali + r12*4]
         ita andika_neno8_moja_kwa_moja
 
-        ; Sasisha umbali wa strtab
+        ; Sasisha umbali wa jedwali la majina
         r7 = n64[jina_la_mahali + r12*8]
         ita urefu_wa_mfuatano
         r14d += r0d
@@ -14172,11 +14172,11 @@ zalisha_elf_jedwali_la_alama:
         ita andika_baiti_moja_kwa_moja
         r7b = 0
         ita andika_baiti_moja_kwa_moja
-        r7w = 0   ; st_shndx = 0 (UNDEF)
+        r7w = 0   ; faharisi ya sehemu = 0 (UNDEF)
         ita andika_neno2_moja_kwa_moja
-        ; st_value = 0
+        ; thamani ya alama = 0
         ita andika_neno8_moja_kwa_moja
-        ; st_size = 0
+        ; ukubwa wa alama = 0
         ita andika_neno8_moja_kwa_moja
 
         r7 = n64[jina_nje + r12*8]
@@ -14260,10 +14260,10 @@ zalisha_elf_urekebishaji:
         linganisha r12, r13
         ruka .kwisha kama >=a
 
-        ; r_offset
+        ; umbali wa urekebishaji
         r7d = n32[umbali_wa_urekebishaji_wa_elf + r12*4]
         ita andika_neno8_moja_kwa_moja
-        ; r_info = ELF64_R_INFO(sym, R_X86_64_PC32)
+        ; habari ya urekebishaji = ELF64_R_INFO(sym, R_X86_64_PC32)
         ; Aina = 2 (R_X86_64_PC32)
         r7d = n32[alama_ya_urekebishaji + r12*4]
         ; Angalia ikiwa ni rekebisho la .data (alama_ya_urekebishaji == -1)
@@ -14281,7 +14281,7 @@ zalisha_elf_urekebishaji:
         r7 <<= 32
         r7 |= 2
         ita andika_neno8_moja_kwa_moja
-        ; r_addend kutoka nyongeza_ya_urekebishaji (inaweza kuwa hasi)
+        ; nyongeza kutoka nyongeza_ya_urekebishaji (inaweza kuwa hasi)
         r7 = n32[nyongeza_ya_urekebishaji + r12*4]
         ita andika_neno8_moja_kwa_moja
 
@@ -14303,10 +14303,10 @@ zalisha_elf_jedwali_la_majina_ya_sehemu:
 
 ; -------------------------------------------------------
 ; zalisha_elf_maelezo_ya_sehemu: andika maelezo ya sehemu kwa stdout
-;   r8 = text_off, r9 = data_off, r10 = symtab_off
-;   r11 = strtab_off (imebadilishwa), r12 = rela_off, r13 = shstrtab_off
-;   r14 = shoff, r15 = symtab_size
-;   pia inahitaji strtab_size
+;   r8 = umbali wa msimbo, r9 = umbali wa data, r10 = umbali wa jedwali la alama
+;   r11 = umbali wa jedwali la majina (imebadilishwa), r12 = umbali wa urekebishaji, r13 = umbali wa jedwali la majina ya sehemu
+;   r14 = umbali wa maelezo ya sehemu, r15 = ukubwa wa jedwali la alama
+;   pia inahitaji ukubwa wa jedwali la majina
 ; -------------------------------------------------------
 zalisha_elf_maelezo_ya_sehemu:
         sukuma r12
@@ -14457,8 +14457,8 @@ anza:
 ; zalisha_programu: toa ET_EXEC tuli moja kwa moja -- hakuna ld, hakuna libc.
 ;   Hii ndiyo hatua ya 0% bootstrap gap: awali inajenga exe ya
 ;   kamili bila kiunganishi chochote.
-;   Mpangilio wa faili: utangulizi (64) + phdr (56) + stub ya _start
-;   (28) + .text + .data. .bss inafunikwa na p_memsz pekee.
+;   Mpangilio wa faili: utangulizi (64) + maelezo ya kipande (56) + stub ya _start
+;   (28) + .text + .data. .bss inafunikwa na ukubwa kwenye kumbukumbu pekee.
 ;   Awamu ya 1: rekebisha RELA zote kwenye chombo_msimbo (disp32).
 ;   Awamu ya 2: tafuta umbali wa main.
 ;   Awamu ya 3: toa kila kitu kwa stdout.
@@ -14470,12 +14470,12 @@ zalisha_programu:
         sukuma r15
         sukuma r3
 
-        r12d = n32[chombo_cha_msimbo_wapi]   ; text_size
-        r15d = n32[chombo_cha_data_wapi]   ; data_size
+        r12d = n32[chombo_cha_msimbo_wapi]   ; ukubwa wa msimbo
+        r15d = n32[chombo_cha_data_wapi]   ; ukubwa wa data
 
         ; === Awamu ya 1: rekebisha RELA ===
-        ; Ulimwengu -> data_vaddr + off (+data_size kwa bss);
-        ; .data -> data_vaddr + (addend + 4); nje -> mahali pa ndani
+        ; Ulimwengu -> anwani pepe ya data + off (+ukubwa wa data kwa tupu);
+        ; .data -> anwani pepe ya data + (nyongeza + 4); nje -> mahali pa ndani
         ; kwa jina (wito wa mbele uliandikwa kama nje).
         ; disp32 = tgt - pos - 4 (stub ya 28 hubatilika pande zote).
         r13d ^= r13d
@@ -14484,7 +14484,7 @@ zalisha_programu:
         ruka .urekebishaji_umekwisha kama >=a
         r14d = n32[umbali_wa_urekebishaji_wa_elf + r13*4]   ; pos
         r0d = n32[alama_ya_urekebishaji + r13*4]   ; sym
-        r1d = n32[nyongeza_ya_urekebishaji + r13*4]   ; addend
+        r1d = n32[nyongeza_ya_urekebishaji + r13*4]   ; nyongeza
 
         linganisha r0d, -1
         ruka .sehemu_ya_urekebishaji kama ==
@@ -14496,15 +14496,15 @@ zalisha_programu:
         r2d = n32[umbali_ulimwengu + r0*4]
         linganisha n32[ulimwengu_ni_tupu + r0*4], 0
         ruka .lengo_la_urekebishaji_wa_ulimwengu kama ==
-        r2d += r15d   ; bss -> baada ya .data
+        r2d += r15d   ; tupu -> baada ya .data
 .lengo_la_urekebishaji_wa_ulimwengu:
-        r2d += r12d   ; + text_size (data_vaddr = text_vaddr + text_size)
+        r2d += r12d   ; + ukubwa wa msimbo (anwani pepe ya data = anwani pepe ya msimbo + ukubwa wa msimbo)
         ruka .andika_urekebishaji
 
 .sehemu_ya_urekebishaji:
-        ; Rekebisho la .data: addend = data_offset - 4 (imefupishwa
-        ; katika awali, si -4 kawaida). disp32 = S + addend - P:
-        ; (text_size + data_offset) - 4 - pos = text_size + addend - pos.
+        ; Rekebisho la .data: nyongeza = umbali wa data - 4 (imefupishwa
+        ; katika awali, si -4 kawaida). disp32 = S + nyongeza - P:
+        ; (ukubwa wa msimbo + umbali wa data) - 4 - pos = ukubwa wa msimbo + nyongeza - pos.
         ; Ongeza 4 hapa kwa sababu .andika_urekebishaji huondoa pos + 4.
         r2d = r12d
         r2d += r1d
@@ -14590,7 +14590,7 @@ zalisha_programu:
         ruka .dka_chunguza
 .dka_iko:
         ; Andika anwani kamili ya kazi kwenye sloti (baiti 8, LE).
-        ; Msingi wa msimbo: 0x400078 (utangulizi+phdr) + stub ya baiti 28
+        ; Msingi wa msimbo: 0x400078 (utangulizi+maelezo ya kipande) + stub ya baiti 28
         ; = 0x400094; kazi ya kwanza ya .text iko hapo.
         r0d = n32[umbali_mahali + r1*4]
         r0d += 0x400094   ; msingi wa msimbo wa exe
@@ -14635,10 +14635,10 @@ zalisha_programu:
         ita mfumo_toka
 .anza_sawa:
 
-        ; === Awamu ya 3: toa utangulizi + phdr + stub + text + data ===
+        ; === Awamu ya 3: toa utangulizi + maelezo ya kipande + stub + text + data ===
 
         ; --- Utangulizi wa ELF (baiti 64) ---
-        ; e_ident: 7F 45 4C 46 02 01 01 00 + sufuri
+        ; kitambulisho cha ELF: 7F 45 4C 46 02 01 01 00 + sufuri
         r7d = 0x464C457F
         ita andika_neno4_moja_kwa_moja
         r7d = 0x00010102
@@ -14647,62 +14647,62 @@ zalisha_programu:
         ita andika_neno4_moja_kwa_moja
         r7d = 0
         ita andika_neno4_moja_kwa_moja
-        ; e_type=2 (EXEC), e_machine=0x3E
+        ; aina ya faili=2 (EXEC), mashine=0x3E
         r7d = 0x003E0002
         ita andika_neno4_moja_kwa_moja
-        ; e_version=1
+        ; toleo=1
         r7d = 1
         ita andika_neno4_moja_kwa_moja
-        ; e_entry = 0x400078
+        ; kiingilio = 0x400078
         r7d = 0x400078
         ita andika_neno4_moja_kwa_moja
         r7d = 0
         ita andika_neno4_moja_kwa_moja
-        ; e_phoff = 64
+        ; umbali wa maelezo ya vipande = 64
         r7d = 64
         ita andika_neno4_moja_kwa_moja
         r7d = 0
         ita andika_neno4_moja_kwa_moja
-        ; e_shoff = 0
+        ; umbali wa maelezo ya sehemu = 0
         r7d = 0
         ita andika_neno4_moja_kwa_moja
         r7d = 0
         ita andika_neno4_moja_kwa_moja
-        ; e_flags = 0
+        ; machaguo ya ELF = 0
         r7d = 0
         ita andika_neno4_moja_kwa_moja
-        ; e_ehsize=64, e_phentsize=56
+        ; ukubwa wa utangulizi=64, ukubwa wa maelezo ya kipande=56
         r7d = 0x00380040
         ita andika_neno4_moja_kwa_moja
-        ; e_phnum=1, e_shentsize=0
+        ; idadi ya vipande=1, ukubwa wa maelezo ya sehemu=0
         r7d = 1
         ita andika_neno4_moja_kwa_moja
-        ; e_shnum=0, e_shstrndx=0
+        ; idadi ya sehemu=0, faharisi ya majina ya sehemu=0
         r7d = 0
         ita andika_neno4_moja_kwa_moja
 
-        ; --- Maelezo ya kipande (baiti 56): PT_LOAD, RWX, p_offset=0 ---
-        r7d = 1   ; p_type = PT_LOAD
+        ; --- Maelezo ya kipande (baiti 56): PT_LOAD, RWX, umbali kwenye faili=0 ---
+        r7d = 1   ; aina ya kipande = PT_LOAD
         ita andika_neno4_moja_kwa_moja
-        r7d = 7   ; p_flags = R|W|X
+        r7d = 7   ; ruhusa za kipande = R|W|X
         ita andika_neno4_moja_kwa_moja
-        r7 = 0   ; p_offset = 0
+        r7 = 0   ; umbali kwenye faili = 0
         ita andika_neno8_moja_kwa_moja
-        r7 = 0x400000   ; p_vaddr
+        r7 = 0x400000   ; anwani pepe
         ita andika_neno8_moja_kwa_moja
-        r7 = 0x400000   ; p_paddr
+        r7 = 0x400000   ; anwani halisi
         ita andika_neno8_moja_kwa_moja
-        ; p_filesz = 120 (utangulizi+phdr) + 28 (stub) + text + data
+        ; ukubwa kwenye faili = 120 (utangulizi+maelezo ya kipande) + 28 (stub) + text + data
         r14d = r12d
         r14d += r15d
         r14d += 148
         r7 = r14
         ita andika_neno8_moja_kwa_moja
-        ; p_memsz = filesz + bss
+        ; ukubwa kwenye kumbukumbu = ukubwa kwenye faili + tupu
         r14d += n32[ukubwa_wa_tupu]
         r7 = r14
         ita andika_neno8_moja_kwa_moja
-        r7 = 0x1000   ; p_align
+        r7 = 0x1000   ; mpangilio wa kipande
         ita andika_neno8_moja_kwa_moja
 
         ; --- Stub ya _start (baiti 28) ---
@@ -14775,11 +14775,11 @@ toa_elf_rahisi:
         sukuma r15
 
         ; Kokotoa ukubwa na umbali wote
-        r12d = n32[chombo_cha_msimbo_wapi]   ; text_size
-        r0d = n32[chombo_cha_data_wapi]   ; data_size
+        r12d = n32[chombo_cha_msimbo_wapi]   ; ukubwa wa msimbo
+        r0d = n32[chombo_cha_data_wapi]   ; ukubwa wa data
         r3d = r0d
 
-        ; Hesabu symtab_size
+        ; Hesabu ukubwa wa jedwali la alama
         r14 = n64[idadi_ya_mahali]   ; idadi ya mahali
         r14 += n64[ulimwengu_idadi]   ; + vigeu vya ulimwengu
         ; Nje zisizo-duplicate (kwa sasa tunachukulia zote ni za kipekee)
@@ -14787,9 +14787,9 @@ toa_elf_rahisi:
         r14 += r15
         r14 += 4   ; +1 kwa null + 3 za alama za sehemu (.text, .data, .bss)
         r14 = r14 * 24
-        r13d = r14d   ; symtab_size
+        r13d = r14d   ; ukubwa wa jedwali la alama
 
-        ; Hesabu ukubwa wa strtab
+        ; Hesabu ukubwa wa jedwali la majina
         ; Anza na 1 kwa '\0' ya kwanza
         r14d = 1
 
@@ -14838,36 +14838,36 @@ toa_elf_rahisi:
         ruka .nje_mfuatano_mzunguko
 .nje_kwisha_mfuatano:
 
-        r10d = r14d   ; strtab_size
+        r10d = r14d   ; ukubwa wa jedwali la majina
 
-        ; rela_size
+        ; ukubwa wa urekebishaji
         r14 = n64[idadi_ya_urekebishaji_wa_elf]
         r14 = r14 * 24
-        r11d = r14d   ; rela_size
+        r11d = r14d   ; ukubwa wa urekebishaji
 
         ; Panga umbali
-        r8d = 64   ; text_off (baada ya utangulizi wa ELF)
+        r8d = 64   ; umbali wa msimbo (baada ya utangulizi wa ELF)
         r9d = r8d
-        r9d += r12d   ; data_off
+        r9d += r12d   ; umbali wa data
         r7d = r9d
-        r7d += r3d   ; symtab_off
+        r7d += r3d   ; umbali wa jedwali la alama
         r0d = r7d
-        r0d += r13d   ; strtab_off
+        r0d += r13d   ; umbali wa jedwali la majina
         r6d = r0d
-        r6d += r10d   ; rela_off
+        r6d += r10d   ; umbali wa urekebishaji
         r2d = r6d
-        r2d += r11d   ; shstrtab_off
+        r2d += r11d   ; umbali wa jedwali la majina ya sehemu
         r1d = r2d
-        r1d += UKUBWA_WA_JEDWALI_LA_MAJINA_YA_SEHEMU   ; shoff
+        r1d += UKUBWA_WA_JEDWALI_LA_MAJINA_YA_SEHEMU   ; umbali wa maelezo ya sehemu
 
         ; Hifadhi kwenye stack
-        sukuma r7   ; symtab_off
-        sukuma r0   ; strtab_off
-        sukuma r6   ; rela_off
-        sukuma r2   ; shstrtab_off
-        sukuma r1   ; shoff
-        sukuma r13   ; symtab_size
-        sukuma r10   ; strtab_size
+        sukuma r7   ; umbali wa jedwali la alama
+        sukuma r0   ; umbali wa jedwali la majina
+        sukuma r6   ; umbali wa urekebishaji
+        sukuma r2   ; umbali wa jedwali la majina ya sehemu
+        sukuma r1   ; umbali wa maelezo ya sehemu
+        sukuma r13   ; ukubwa wa jedwali la alama
+        sukuma r10   ; ukubwa wa jedwali la majina
 
         ; === ANDIKA UTANGULIZI WA ELF ===
 
@@ -14877,46 +14877,46 @@ toa_elf_rahisi:
         ; Tunajenga utangulizi kwenye chombo_muda
         r15 = &[chombo_muda]
 
-        ; e_ident[0:4] = ELF magic
+        ; kitambulisho cha ELF[0:4] = ELF magic
         n32[r15] = 0x464c457f
-        ; e_ident[4] = EI_CLASS (2)
+        ; kitambulisho cha ELF[4] = EI_CLASS (2)
         n8[r15 + 4] = 2
-        ; e_ident[5] = EI_DATA (1)
+        ; kitambulisho cha ELF[5] = EI_DATA (1)
         n8[r15 + 5] = 1
-        ; e_ident[6] = EI_VERSION (1)
+        ; kitambulisho cha ELF[6] = EI_VERSION (1)
         n8[r15 + 6] = 1
-        ; e_ident[7] = EI_OSABI (0)
+        ; kitambulisho cha ELF[7] = EI_OSABI (0)
         n8[r15 + 7] = 0
-        ; e_ident[8:16] = padding
+        ; kitambulisho cha ELF[8:16] = padding
         n64[r15 + 8] = 0
-        ; e_type = ET_REL (1)
+        ; aina ya faili = ET_REL (1)
         n16[r15 + 16] = 1
-        ; e_machine = EM_X86_64 (62)
+        ; mashine = EM_X86_64 (62)
         n16[r15 + 18] = 62
-        ; e_version = 1
+        ; toleo = 1
         n32[r15 + 20] = 1
-        ; e_entry = 0
+        ; kiingilio = 0
         n64[r15 + 24] = 0
-        ; e_phoff = 0
+        ; umbali wa maelezo ya vipande = 0
         n64[r15 + 32] = 0
-        ; e_shoff = itajazwa
-        vuta r0   ; strtab_size (tunachukua kutoka stack vibaya)
-        vuta r3   ; symtab_size
-        vuta r1   ; shoff
+        ; umbali wa maelezo ya sehemu = itajazwa
+        vuta r0   ; ukubwa wa jedwali la majina (tunachukua kutoka stack vibaya)
+        vuta r3   ; ukubwa wa jedwali la alama
+        vuta r1   ; umbali wa maelezo ya sehemu
         n64[r15 + 40] = r1
-        ; e_flags = 0
+        ; machaguo ya ELF = 0
         n32[r15 + 48] = 0
-        ; e_ehsize = 64
+        ; ukubwa wa utangulizi = 64
         n16[r15 + 52] = 64
-        ; e_phentsize = 0
+        ; ukubwa wa maelezo ya kipande = 0
         n16[r15 + 54] = 0
-        ; e_phnum = 0
+        ; idadi ya vipande = 0
         n16[r15 + 56] = 0
-        ; e_shentsize = 64
+        ; ukubwa wa maelezo ya sehemu = 64
         n16[r15 + 58] = 64
-        ; e_shnum = 8 (.null, .text, .data, .symtab, .strtab, .rela.text, .shstrtab, .bss)
+        ; idadi ya sehemu = 8 (.null, .text, .data, .symtab, .strtab, .rela.text, .shstrtab, .bss)
         n16[r15 + 60] = 8
-        ; e_shstrndx = 6 (.shstrtab iko kabla ya .bss)
+        ; faharisi ya majina ya sehemu = 6 (.shstrtab iko kabla ya .bss)
         n16[r15 + 62] = 6
 
         ; Andika utangulizi (baiti 64) kwa stdout
@@ -14925,13 +14925,13 @@ toa_elf_rahisi:
         ita mfumo_andika_chombo
 
         ; Rejesha maadili kutoka stack
-        ; Sasa stack ina: symtab_off, strtab_off, rela_off, shstrtab_off
+        ; Sasa stack ina: umbali wa jedwali la alama, umbali wa jedwali la majina, umbali wa urekebishaji, umbali wa jedwali la majina ya sehemu
         ; Tunazihitaji baadaye kwa maelezo ya sehemu
-        vuta r15   ; symtab_off (tulivuta vibaya, rekebisha)
-        vuta r14   ; strtab_off
-        vuta r13   ; rela_off
-        vuta r12   ; shstrtab_off
-        ; shoff tayari imetumiwa
+        vuta r15   ; umbali wa jedwali la alama (tulivuta vibaya, rekebisha)
+        vuta r14   ; umbali wa jedwali la majina
+        vuta r13   ; umbali wa urekebishaji
+        vuta r12   ; umbali wa jedwali la majina ya sehemu
+        ; umbali wa maelezo ya sehemu tayari imetumiwa
 
         ; === ANDIKA .text ===
         r6 = &[chombo_msimbo]
@@ -14950,10 +14950,10 @@ toa_elf_rahisi:
 .pita_data:
 
         ; === ANDIKA .symtab ===
-        sukuma r15   ; symtab_off (hifadhi kwa maelezo ya sehemu)
-        sukuma r14   ; strtab_off
-        sukuma r13   ; rela_off
-        sukuma r12   ; shstrtab_off
+        sukuma r15   ; umbali wa jedwali la alama (hifadhi kwa maelezo ya sehemu)
+        sukuma r14   ; umbali wa jedwali la majina
+        sukuma r13   ; umbali wa urekebishaji
+        sukuma r12   ; umbali wa jedwali la majina ya sehemu
 
         ita zalisha_elf_jedwali_la_alama_rahisi
 
@@ -14969,10 +14969,10 @@ toa_elf_rahisi:
         ita mfumo_andika_chombo
 
         ; === ANDIKA MAELEZO YA SEHEMU ===
-        vuta r12   ; shstrtab_off
-        vuta r13   ; rela_off
-        vuta r14   ; strtab_off
-        vuta r15   ; symtab_off
+        vuta r12   ; umbali wa jedwali la majina ya sehemu
+        vuta r13   ; umbali wa urekebishaji
+        vuta r14   ; umbali wa jedwali la majina
+        vuta r15   ; umbali wa jedwali la alama
 
         ita zalisha_elf_maelezo_ya_sehemu_rahisi
 
@@ -15000,48 +15000,48 @@ zalisha_elf_jedwali_la_alama_rahisi:
         zunguka .sifuri_mzunguko
 
         ; Alama ya sehemu: .text (faharisi 1)
-        r7d = 0   ; st_name = 0
+        r7d = 0   ; jina la alama = 0
         ita andika_neno4_moja_kwa_moja
         r7b = 3   ; STB_LOCAL | STT_SECTION
         ita andika_baiti_moja_kwa_moja
         r7b = 0
         ita andika_baiti_moja_kwa_moja
-        r7w = 1   ; st_shndx = .text
+        r7w = 1   ; faharisi ya sehemu = .text
         ita andika_neno2_moja_kwa_moja
-        r7d = 0   ; st_value = 0
+        r7d = 0   ; thamani ya alama = 0
         ita andika_neno8_moja_kwa_moja
-        r7d = 0   ; st_size = 0
+        r7d = 0   ; ukubwa wa alama = 0
         ita andika_neno8_moja_kwa_moja
 
         ; Alama ya sehemu: .data (faharisi 2)
-        r7d = 0   ; st_name = 0
+        r7d = 0   ; jina la alama = 0
         ita andika_neno4_moja_kwa_moja
         r7b = 3   ; STB_LOCAL | STT_SECTION
         ita andika_baiti_moja_kwa_moja
         r7b = 0
         ita andika_baiti_moja_kwa_moja
-        r7w = 2   ; st_shndx = .data
+        r7w = 2   ; faharisi ya sehemu = .data
         ita andika_neno2_moja_kwa_moja
-        r7d = 0   ; st_value = 0
+        r7d = 0   ; thamani ya alama = 0
         ita andika_neno8_moja_kwa_moja
-        r7d = 0   ; st_size = 0
+        r7d = 0   ; ukubwa wa alama = 0
         ita andika_neno8_moja_kwa_moja
 
         ; Alama ya sehemu: .bss (faharisi 3)
-        r7d = 0   ; st_name = 0
+        r7d = 0   ; jina la alama = 0
         ita andika_neno4_moja_kwa_moja
         r7b = 3   ; STB_LOCAL | STT_SECTION
         ita andika_baiti_moja_kwa_moja
         r7b = 0
         ita andika_baiti_moja_kwa_moja
-        r7w = 7   ; st_shndx = .bss (sehemu ya 7)
+        r7w = 7   ; faharisi ya sehemu = .bss (sehemu ya 7)
         ita andika_neno2_moja_kwa_moja
-        r7d = 0   ; st_value = 0
+        r7d = 0   ; thamani ya alama = 0
         ita andika_neno8_moja_kwa_moja
-        r7d = 0   ; st_size = 0
+        r7d = 0   ; ukubwa wa alama = 0
         ita andika_neno8_moja_kwa_moja
 
-        ; Kokotoa umbali wa strtab kwa kila jina
+        ; Kokotoa umbali wa jedwali la majina kwa kila jina
         r14d = 1   ; umbali wa kwanza baada ya '\0'
 
         ; Andika mahali
@@ -15086,7 +15086,7 @@ zalisha_elf_jedwali_la_alama_rahisi:
         ita andika_baiti_moja_kwa_moja
         r7b = 0
         ita andika_baiti_moja_kwa_moja
-        ; st_shndx = 2 (.data) au 7 (.bss) kulingana na ulimwengu_ni_tupu
+        ; faharisi ya sehemu = 2 (.data) au 7 (.bss) kulingana na ulimwengu_ni_tupu
         r7d = n32[ulimwengu_ni_tupu + r12*4]
         linganisha r7d, 0
         ruka .ulimwengu_data kama ==
@@ -15119,7 +15119,7 @@ zalisha_elf_jedwali_la_alama_rahisi:
 
         r7d = r14d
         ita andika_neno4_moja_kwa_moja
-        r7b = 16   ; STB_GLOBAL | STT_FUNC (UNDEF kwa kuwa shndx=0)
+        r7b = 16   ; STB_GLOBAL | STT_FUNC (UNDEF kwa kuwa faharisi ya sehemu=0)
         ita andika_baiti_moja_kwa_moja
         r7b = 0
         ita andika_baiti_moja_kwa_moja
@@ -15219,11 +15219,11 @@ zalisha_elf_urekebishaji_rahisi:
         linganisha r12, r13
         ruka .kwisha kama >=a
 
-        ; r_offset
+        ; umbali wa urekebishaji
         r7d = n32[umbali_wa_urekebishaji_wa_elf + r12*4]
         ita andika_neno8_moja_kwa_moja
 
-        ; r_info (aina = 2 kwa R_X86_64_PC32, sym = faharisi)
+        ; habari ya urekebishaji (aina = 2 kwa R_X86_64_PC32, sym = faharisi)
         r14d = n32[alama_ya_urekebishaji + r12*4]
         ; Angalia ikiwa ni rekebisho la .data (alama_ya_urekebishaji == -1)
         linganisha r14d, -1
@@ -15254,7 +15254,7 @@ zalisha_elf_urekebishaji_rahisi:
         r7 = r14
         ita andika_neno8_moja_kwa_moja
 
-        ; r_addend kutoka nyongeza_ya_urekebishaji (inaweza kuwa hasi)
+        ; nyongeza kutoka nyongeza_ya_urekebishaji (inaweza kuwa hasi)
         r7 = n32[nyongeza_ya_urekebishaji + r12*4]
         ita andika_neno8_moja_kwa_moja
 
@@ -15279,21 +15279,21 @@ zalisha_elf_maelezo_ya_sehemu_rahisi:
         ; Badala ya kufanya hivyo, tunaandika maelezo kwa mkono.
 
         ; Data tunayoihitaji:
-        ; text_size = [chombo_cha_msimbo_wapi]
-        ; data_size = [chombo_cha_data_wapi]
-        ; symtab_size = (3 + idadi_ya_mahali + ulimwengu_idadi + nje_idadi) * 24
-        ; strtab_size = tunahitaji kuhesabu
-        ; rela_size = idadi_ya_urekebishaji_wa_elf * 24
+        ; ukubwa wa msimbo = [chombo_cha_msimbo_wapi]
+        ; ukubwa wa data = [chombo_cha_data_wapi]
+        ; ukubwa wa jedwali la alama = (3 + idadi_ya_mahali + ulimwengu_idadi + nje_idadi) * 24
+        ; ukubwa wa jedwali la majina = tunahitaji kuhesabu
+        ; ukubwa wa urekebishaji = idadi_ya_urekebishaji_wa_elf * 24
 
         ; Hebu tukokotoe umbali:
 
-        ; text_off = 64
-        ; data_off = 64 + text_size
-        ; symtab_off = data_off + data_size
-        ; strtab_off = symtab_off + symtab_size
-        ; rela_off = strtab_off + strtab_size
-        ; shstrtab_off = rela_off + rela_size
-        ; shoff = shstrtab_off + 55
+        ; umbali wa msimbo = 64
+        ; umbali wa data = 64 + ukubwa wa msimbo
+        ; umbali wa jedwali la alama = umbali wa data + ukubwa wa data
+        ; umbali wa jedwali la majina = umbali wa jedwali la alama + ukubwa wa jedwali la alama
+        ; umbali wa urekebishaji = umbali wa jedwali la majina + ukubwa wa jedwali la majina
+        ; umbali wa jedwali la majina ya sehemu = umbali wa urekebishaji + ukubwa wa urekebishaji
+        ; umbali wa maelezo ya sehemu = umbali wa jedwali la majina ya sehemu + 55
 
         ; 0: NULL (baiti 64 za sifuri)
         r1d = 16
@@ -15304,30 +15304,30 @@ zalisha_elf_maelezo_ya_sehemu_rahisi:
         vuta r1
         zunguka .sifuri_mzunguko
 
-        ; 1: .text -- sh_name=1, SHT_PROGBITS (1), SHF_ALLOC|SHF_EXECINSTR (6),
-        ;    offset=64, size=text_size, align=16
-        r7d = 1   ; sh_name
+        ; 1: .text -- jina la sehemu=1, SHT_PROGBITS (1), SHF_ALLOC|SHF_EXECINSTR (6),
+        ;    umbali=64, ukubwa=ukubwa wa msimbo, mpangilio=16
+        r7d = 1   ; jina la sehemu
         ita andika_neno4_moja_kwa_moja
-        r7d = 1   ; sh_type = PROGBITS
+        r7d = 1   ; aina ya sehemu = PROGBITS
         ita andika_neno4_moja_kwa_moja
-        r7 = 6   ; sh_flags
+        r7 = 6   ; machaguo ya sehemu
         ita andika_neno8_moja_kwa_moja
-        r7 = 0   ; sh_addr
+        r7 = 0   ; anwani ya sehemu
         ita andika_neno8_moja_kwa_moja
-        r7d = 64   ; sh_offset
+        r7d = 64   ; umbali wa sehemu
         ita andika_neno8_moja_kwa_moja
-        r7d = n32[chombo_cha_msimbo_wapi]   ; sh_size
+        r7d = n32[chombo_cha_msimbo_wapi]   ; ukubwa wa sehemu
         ita andika_neno8_moja_kwa_moja
-        r7d = 0   ; sh_link
+        r7d = 0   ; kiungo cha sehemu
         ita andika_neno4_moja_kwa_moja
-        r7d = 0   ; sh_info
+        r7d = 0   ; habari ya sehemu
         ita andika_neno4_moja_kwa_moja
-        r7 = 16   ; sh_addralign
+        r7 = 16   ; mpangilio wa sehemu
         ita andika_neno8_moja_kwa_moja
-        r7 = 0   ; sh_entsize
+        r7 = 0   ; ukubwa wa ingizo la sehemu
         ita andika_neno8_moja_kwa_moja
 
-        ; 2: .data -- sh_name=7, SHT_PROGBITS (1), SHF_WRITE|SHF_ALLOC (3)
+        ; 2: .data -- jina la sehemu=7, SHT_PROGBITS (1), SHF_WRITE|SHF_ALLOC (3)
         r7d = 7
         ita andika_neno4_moja_kwa_moja
         r7d = 1
@@ -15350,7 +15350,7 @@ zalisha_elf_maelezo_ya_sehemu_rahisi:
         r7 = 0
         ita andika_neno8_moja_kwa_moja
 
-        ; 3: .symtab -- sh_name=18, SHT_SYMTAB (2), link=4 (.strtab), info=1
+        ; 3: .symtab -- jina la sehemu=18, SHT_SYMTAB (2), kiungo=4 (.strtab), habari=1
         r7d = 18
         ita andika_neno4_moja_kwa_moja
         r7d = 2
@@ -15359,13 +15359,13 @@ zalisha_elf_maelezo_ya_sehemu_rahisi:
         ita andika_neno8_moja_kwa_moja
         r7 = 0
         ita andika_neno8_moja_kwa_moja
-        ; sh_offset = data_off + data_size (itakokotolewa)
+        ; umbali wa sehemu = umbali wa data + ukubwa wa data (itakokotolewa)
         ; Kwa sasa, tunaikadiria:
         r7d = 64
         r7d += n32[chombo_cha_msimbo_wapi]
         r7d += n32[chombo_cha_data_wapi]
         ita andika_neno8_moja_kwa_moja
-        ; sh_size = symtab_size
+        ; ukubwa wa sehemu = ukubwa wa jedwali la alama
         r14 = n64[idadi_ya_mahali]
         r14 += n64[ulimwengu_idadi]
         r14 += n64[nje_idadi]
@@ -15373,16 +15373,16 @@ zalisha_elf_maelezo_ya_sehemu_rahisi:
         r14 = r14 * 24
         r7d = r14d
         ita andika_neno8_moja_kwa_moja
-        r7d = 4   ; sh_link = .strtab
+        r7d = 4   ; kiungo cha sehemu = .strtab
         ita andika_neno4_moja_kwa_moja
-        r7d = 4   ; sh_info = faharisi ya alama ya kwanza ya ulimwengu (baada ya .text, .data, .bss)
+        r7d = 4   ; habari ya sehemu = faharisi ya alama ya kwanza ya ulimwengu (baada ya .text, .data, .bss)
         ita andika_neno4_moja_kwa_moja
-        r7 = 8   ; sh_addralign
+        r7 = 8   ; mpangilio wa sehemu
         ita andika_neno8_moja_kwa_moja
-        r7 = 24   ; sh_entsize
+        r7 = 24   ; ukubwa wa ingizo la sehemu
         ita andika_neno8_moja_kwa_moja
 
-        ; 4: .strtab -- sh_name=26, SHT_STRTAB (3)
+        ; 4: .strtab -- jina la sehemu=26, SHT_STRTAB (3)
         r7d = 26
         ita andika_neno4_moja_kwa_moja
         r7d = 3
@@ -15391,13 +15391,13 @@ zalisha_elf_maelezo_ya_sehemu_rahisi:
         ita andika_neno8_moja_kwa_moja
         r7 = 0
         ita andika_neno8_moja_kwa_moja
-        ; sh_offset = baada ya symtab
+        ; umbali wa sehemu = baada ya jedwali la alama
         r7d = 64
         r7d += n32[chombo_cha_msimbo_wapi]
         r7d += n32[chombo_cha_data_wapi]
         r7d += r14d
         ita andika_neno8_moja_kwa_moja
-        ; sh_size = strtab_size (tunakokotoa kwa kutumia zalisha_elf_hesabu_ya_jedwali_la_majina)
+        ; ukubwa wa sehemu = ukubwa wa jedwali la majina (tunakokotoa kwa kutumia zalisha_elf_hesabu_ya_jedwali_la_majina)
         sukuma r14
         ita zalisha_elf_hesabu_ya_jedwali_la_majina
         vuta r14
@@ -15412,7 +15412,7 @@ zalisha_elf_maelezo_ya_sehemu_rahisi:
         r7 = 0
         ita andika_neno8_moja_kwa_moja
 
-        ; 5: .rela.text -- sh_name=34, SHT_RELA (4), link=3 (.symtab), info=1 (.text)
+        ; 5: .rela.text -- jina la sehemu=34, SHT_RELA (4), kiungo=3 (.symtab), habari=1 (.text)
         r7d = 34
         ita andika_neno4_moja_kwa_moja
         r7d = 4
@@ -15421,12 +15421,12 @@ zalisha_elf_maelezo_ya_sehemu_rahisi:
         ita andika_neno8_moja_kwa_moja
         r7 = 0
         ita andika_neno8_moja_kwa_moja
-        ; sh_offset = baada ya strtab
+        ; umbali wa sehemu = baada ya jedwali la majina
         ; Tutumie makadirio
         r7d = 64
         r7d += n32[chombo_cha_msimbo_wapi]
         r7d += n32[chombo_cha_data_wapi]
-        r7d += r14d   ; symtab_size
+        r7d += r14d   ; ukubwa wa jedwali la alama
         sukuma r7   ; Hifadhi offset iliyokokotolewa
         sukuma r14
         sukuma r0
@@ -15434,23 +15434,23 @@ zalisha_elf_maelezo_ya_sehemu_rahisi:
         vuta r15
         vuta r14
         vuta r7   ; Rejesha offset iliyokokotolewa
-        r7d += r0d   ; + strtab_size
+        r7d += r0d   ; + ukubwa wa jedwali la majina
         ita andika_neno8_moja_kwa_moja
-        ; sh_size = idadi_ya_urekebishaji_wa_elf * 24
+        ; ukubwa wa sehemu = idadi_ya_urekebishaji_wa_elf * 24
         r7 = n64[idadi_ya_urekebishaji_wa_elf]
         r7 = r7 * 24
         r7d = r7d
         ita andika_neno8_moja_kwa_moja
-        r7d = 3   ; sh_link = .symtab
+        r7d = 3   ; kiungo cha sehemu = .symtab
         ita andika_neno4_moja_kwa_moja
-        r7d = 1   ; sh_info = .text
+        r7d = 1   ; habari ya sehemu = .text
         ita andika_neno4_moja_kwa_moja
         r7 = 8
         ita andika_neno8_moja_kwa_moja
         r7 = 24
         ita andika_neno8_moja_kwa_moja
 
-        ; 6: .shstrtab -- sh_name=45, SHT_STRTAB (3)
+        ; 6: .shstrtab -- jina la sehemu=45, SHT_STRTAB (3)
         r7d = 45
         ita andika_neno4_moja_kwa_moja
         r7d = 3
@@ -15459,20 +15459,20 @@ zalisha_elf_maelezo_ya_sehemu_rahisi:
         ita andika_neno8_moja_kwa_moja
         r7 = 0
         ita andika_neno8_moja_kwa_moja
-        ; sh_offset = baada ya rela.text
+        ; umbali wa sehemu = baada ya .rela.text
         r7d = 64
         r7d += n32[chombo_cha_msimbo_wapi]
         r7d += n32[chombo_cha_data_wapi]
-        r7d += r14d   ; symtab_size tuliyohifadhi
+        r7d += r14d   ; ukubwa wa jedwali la alama tuliyohifadhi
         sukuma r7   ; Hifadhi offset iliyokokotolewa
         sukuma r0
         ita zalisha_elf_hesabu_ya_jedwali_la_majina
         vuta r1
         vuta r7   ; Rejesha offset iliyokokotolewa
-        r7d += r0d   ; + strtab_size
+        r7d += r0d   ; + ukubwa wa jedwali la majina
         r1 = n64[idadi_ya_urekebishaji_wa_elf]
         r1 = r1 * 24
-        r7d += r1d   ; + rela_size
+        r7d += r1d   ; + ukubwa wa urekebishaji
         ita andika_neno8_moja_kwa_moja
         r7d = UKUBWA_WA_JEDWALI_LA_MAJINA_YA_SEHEMU
         ita andika_neno8_moja_kwa_moja
@@ -15485,27 +15485,27 @@ zalisha_elf_maelezo_ya_sehemu_rahisi:
         r7 = 0
         ita andika_neno8_moja_kwa_moja
 
-        ; 7: .bss -- sh_name=13, SHT_NOBITS (8), SHF_WRITE|SHF_ALLOC (3)
+        ; 7: .bss -- jina la sehemu=13, SHT_NOBITS (8), SHF_WRITE|SHF_ALLOC (3)
         ; .bss haichukui nafasi kwenye faili (SHT_NOBITS)
-        r7d = 13   ; sh_name = ".bss"
+        r7d = 13   ; jina la sehemu = ".bss"
         ita andika_neno4_moja_kwa_moja
-        r7d = 8   ; sh_type = NOBITS
+        r7d = 8   ; aina ya sehemu = NOBITS
         ita andika_neno4_moja_kwa_moja
-        r7 = 3   ; sh_flags = WRITE|ALLOC
+        r7 = 3   ; machaguo ya sehemu = WRITE|ALLOC
         ita andika_neno8_moja_kwa_moja
-        r7 = 0   ; sh_addr
+        r7 = 0   ; anwani ya sehemu
         ita andika_neno8_moja_kwa_moja
-        r7 = 0   ; sh_offset = 0 (hakuna data kwenye faili)
+        r7 = 0   ; umbali wa sehemu = 0 (hakuna data kwenye faili)
         ita andika_neno8_moja_kwa_moja
-        r7 = n64[ukubwa_wa_tupu]   ; sh_size = ukubwa wa .bss
+        r7 = n64[ukubwa_wa_tupu]   ; ukubwa wa sehemu = ukubwa wa .bss
         ita andika_neno8_moja_kwa_moja
-        r7d = 0   ; sh_link
+        r7d = 0   ; kiungo cha sehemu
         ita andika_neno4_moja_kwa_moja
-        r7d = 0   ; sh_info
+        r7d = 0   ; habari ya sehemu
         ita andika_neno4_moja_kwa_moja
-        r7 = 8   ; sh_addralign
+        r7 = 8   ; mpangilio wa sehemu
         ita andika_neno8_moja_kwa_moja
-        r7 = 0   ; sh_entsize
+        r7 = 0   ; ukubwa wa ingizo la sehemu
         ita andika_neno8_moja_kwa_moja
 
         rudi
