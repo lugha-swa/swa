@@ -118,7 +118,7 @@ n32 mkaguzi_ni_biti(n32 usimbaji) {
 // yenye nakala ya usemi kushoto), ili thamani yoyote inayoingia kwenye
 // b1 ibaki biti moja -- kwa KILA njia ya kuhifadhi (mrundikano, ulimwengu,
 // sehemu, safu, rejesta) bila kugusa mzalishaji. Usemi lazima uwe
-// umeshakaguliwa. ni_kiungo: 1 ikiwa ast_tiga ya nodi ni kiungo cha
+// umeshakaguliwa. ni_kiungo: 1 ikiwa tatu_ya_nodi ya nodi ni kiungo cha
 // mfululizo wa hoja (kinabaki kwenye nodi); 0 ikiwa ni data ya nodi.
 // Hesabu ya % badala ya &: awali ina hitilafu katika & na |.
 w0 mkaguzi_funga_b1(n32 nodi_hii, n32 ni_kiungo) {
@@ -154,7 +154,7 @@ n32 mkaguzi_ni_kielekezi(n32 usimbaji) {
 
 // Linganisha aina kwa ukaguzi: familia lazima zilingane.
 // Upana na biti za mshale zinaweza kutofautiana -- maktaba huchanganya
-// n8/n16/n32/n64 na kielekezi+n32 (hesabu ya anwani: ast_pool + umbali)
+// n8/n16/n32/n64 na kielekezi+n32 (hesabu ya anwani: ghala_la_majina + umbali)
 // kwa hiari, na mzalishaji hutoa upana sahihi kila mahali.
 // usimbaji hasi = muundo au kielekezi cha muundo (zote zina familia maalum).
 n32 mkaguzi_aina_zifanane(n32 a, n32 b) {
@@ -212,7 +212,7 @@ n32 mkaguzi_mpaka_wa_desimali(n32 a, n32 b) {
 // ulioukwepa (structs 33+) ulipata (a) hitilafu za AINA za uwongo
 // (muundo usiopatikana kwenye akiba hurudi (1<<8)|32, "i32
 // chaguo-msingi", badala ya aina yake halisi) NA (b) uharibifu wa
-// wakati wa kukimbia (ast_nne[nodi], umbali wa sehemu, kamwe
+// wakati wa kukimbia (nne_ya_nodi[nodi], umbali wa sehemu, kamwe
 // haiandikwi kwa muundo usiopatikana kwenye akiba, kwa hiyo uzalishaji
 // hutumia thamani ya zamani/isiyoanzishwa) -- angalia
 // lugha-swa/swa#189. 1024 inaendana na jedwali dada kwenye faili
@@ -403,7 +403,7 @@ n32 mkaguzi_angalia(n32 nodi_ya_programu) {
 // UREKEBISHO (override ya aina ya hoja kutoka saini ya kazi
 // iliyosajiliwa) ambao ungerekebisha vinginevyo hitilafu TOFAUTI
 // (angalia uzalishaji.swa, uzalishaji_wito -- ukusanyaji wa hoja
-// ulikuwa ukisoma ast_thamani ghafi badala ya aina_ya_usemi(),
+// ulikuwa ukisoma thamani_ya_nodi ghafi badala ya aina_ya_usemi(),
 // ukichukua aina ya OPERANDI kwa hoja ya ulinganishi (== != < > <=
 // >=) badala ya matokeo yake 0/1 -- rekebisho kamili la #295). Suluhisho
 // hapa: (1) ongeza ukubwa (mara 64), (2) ukaguzi wa kufurika sasa
@@ -668,11 +668,11 @@ n32 mkaguzi_kagua_wito(n32 nodi_hii) {
         n32 idadi_ya_hoja = 0;
         n32 a = nodi_ya_kulia[nodi_hii];
         wakati (a != -1) {
-            n32 ijayo = tatu_ya_nodi[a];  // Hifadhi kabla mkaguzi_kagua_usemi abadilishe ast_tiga[a]
+            n32 ijayo = tatu_ya_nodi[a];  // Hifadhi kabla mkaguzi_kagua_usemi abadilishe tatu_ya_nodi[a]
             n32 usimbaji_wa_hoja = mkaguzi_kagua_usemi(a);
             tatu_ya_nodi[a] = ijayo;  // Rejesha kiungo cha mfululizo wa hoja
             // Halisi kamili inarudisha 0 ("aina yoyote") -- usimbaji wake
-            // halisi iko ast_nne (288 kwa n32, 320 kwa n64). Halisi
+            // halisi iko nne_ya_nodi (288 kwa n32, 320 kwa n64). Halisi
             // haiwezi kamwe kuwa kielekezi; itumie usimbaji halisi kwenye
             // ukaguzi mkali wa kielekezi (hitilafu ya 2026-09-01: f(5)
             // kwa kigezo cha n32* ilipita kwa usimbaji 0 na kuanguka SEGV).
@@ -883,13 +883,13 @@ w0 mkaguzi_kagua_taarifa(n32 nodi_hii) {
         rudisha;
     }
     kama (aina == 10) {  // WAKATI
-        // Kwa mzunguko wa "kwa", ast_tiga ina taarifa ya anzisha.
+        // Kwa mzunguko wa "kwa", tatu_ya_nodi ina taarifa ya anzisha.
         // Tangazo (n32 j = 0) lazima lisajiriwe kwenye wigo -- usemi
         // pekee hupitia mkaguzi_kagua_usemi. Zamani j haikujulikana
         // kwenye hatua na maudhui (mkaguzi haukujali -- vitambulisho
         // visivyojulikana havikuwa makosa); ukaguzi wa kihifadhi
         // unategemea wigo kamili. MUHIMU: hii LAZIMA ifanyike KABLA
-        // ya ast_kushoto (hali, mfano "j < 10") kukaguliwa -- vinginevyo
+        // ya nodi_ya_kushoto (hali, mfano "j < 10") kukaguliwa -- vinginevyo
         // "j" bado haijasajiliwa wakati hali yenyewe inarejelea "j",
         // ikitoa kosa la uwongo "kitambulisho hakijafafanuliwa: j"
         // (pengo lililopatikana wakati wa uthibitisho wa ukaguzi mpya
@@ -910,7 +910,7 @@ w0 mkaguzi_kagua_taarifa(n32 nodi_hii) {
         mkaguzi_kagua_taarifa(nne_ya_nodi[nodi_hii]);
         rudisha;
     }
-    kama (aina == 36) {  // SIVYO (maudhui ya tawi la sivyo uko ast_kushoto)
+    kama (aina == 36) {  // SIVYO (maudhui ya tawi la sivyo uko nodi_ya_kushoto)
         wigo_sukuma();
         mkaguzi_kagua_taarifa(nodi_ya_kushoto[nodi_hii]);
         wigo_toa();
@@ -1110,12 +1110,12 @@ n32 mkaguzi_kagua_usemi(n32 nodi_hii) {
     n32 aina = aina_ya_nodi[nodi_hii];
 
     // Halisi ya nambari kamili -- inafaa kwa aina yoyote (bila upana maalum).
-    // Thamani iko ast_thamani; weka usimbaji wa chaguo-msingi (n32)
-    // kwenye ast_nne kwa ukusanyaji wa hoja za wito (uzalishaji_wito
-    // unasoma usimbaji hapo -- si ast_thamani, ambayo ni thamani ya namba).
+    // Thamani iko thamani_ya_nodi; weka usimbaji wa chaguo-msingi (n32)
+    // kwenye nne_ya_nodi kwa ukusanyaji wa hoja za wito (uzalishaji_wito
+    // unasoma usimbaji hapo -- si thamani_ya_nodi, ambayo ni thamani ya namba).
     kama (aina == 4) {
-        // Alama ya n64 iko ast_kulia (ast_tiga ni kiungo cha mfululizo
-        // wa hoja -- mkaguzi wa wito huiandika juu ya ast_tiga).
+        // Alama ya n64 iko nodi_ya_kulia (tatu_ya_nodi ni kiungo cha mfululizo
+        // wa hoja -- mkaguzi wa wito huiandika juu ya tatu_ya_nodi).
         kama (nodi_ya_kulia[nodi_hii] == 1) {
             nne_ya_nodi[nodi_hii] = 320;  // n64: familia 1, upana 64
         } sivyo {
@@ -1178,7 +1178,7 @@ n32 mkaguzi_kagua_usemi(n32 nodi_hii) {
 
     // Ternary (hali ? kweli : uwongo)
     kama (aina == 45) {  // NODI_HALISI_D -- desimali halisi (d64)
-        // ast_thamani/tiga hubeba baiti za thamani; usimbaji unawekwa ast_nne
+        // thamani_ya_nodi/tiga hubeba baiti za thamani; usimbaji unawekwa nne_ya_nodi
         // kwa matumizi ya ukusanyaji wa hoja za wito.
         nne_ya_nodi[nodi_hii] = 832;
         rudisha 832;  // d64: familia 3, upana 64
@@ -1187,11 +1187,11 @@ n32 mkaguzi_kagua_usemi(n32 nodi_hii) {
     kama (aina == 44) {  // NODI_CHAGUZI_TATU
         mkaguzi_kagua_usemi(nodi_ya_kushoto[nodi_hii]);  // hali
         n32 usimbaji_wa_kweli = mkaguzi_kagua_usemi(nodi_ya_kulia[nodi_hii]);  // tawi la kweli
-        // Tawi la uwongo liko ast_nne -- ast_tiga hubeba kiungo cha hoja
+        // Tawi la uwongo liko nne_ya_nodi -- tatu_ya_nodi hubeba kiungo cha hoja
         // cha mfululizo wa wito (mchanganuzi/mkaguzi huiandika).
         n32 usimbaji_wa_uongo = mkaguzi_kagua_usemi(nne_ya_nodi[nodi_hii]);  // tawi la uwongo
         // Halisi kamili inarudisha 0 ("aina yoyote") -- usimbaji halisi uko
-        // ast_nne; iresolvi kwa mpaka wa desimali.
+        // nne_ya_nodi; iresolvi kwa mpaka wa desimali.
         kama (aina_ya_nodi[nodi_ya_kulia[nodi_hii]] == 4) { usimbaji_wa_kweli = nne_ya_nodi[nodi_ya_kulia[nodi_hii]]; }
         kama (aina_ya_nodi[nne_ya_nodi[nodi_hii]] == 4) { usimbaji_wa_uongo = nne_ya_nodi[nne_ya_nodi[nodi_hii]]; }
         // Angalia utangamano kati ya matawi
@@ -1219,7 +1219,7 @@ n32 mkaguzi_kagua_usemi(n32 nodi_hii) {
         kama (nodi_ya_kushoto[nodi_hii] == -1) {
             n32 kitendo = mkaguzi_kagua_usemi(nodi_ya_kulia[nodi_hii]);
             // Halisi kamili inarudisha 0 ("aina yoyote") -- usimbaji halisi
-            // iko ast_nne. Iihifadhi ili kukanusha kwa upana sahihi
+            // iko nne_ya_nodi. Iihifadhi ili kukanusha kwa upana sahihi
             // (-10000000000 inahitaji ukanushaji wa 64-bit; -90 wa 32).
             kama (aina_ya_nodi[nodi_ya_kulia[nodi_hii]] == 4) { kitendo = nne_ya_nodi[nodi_ya_kulia[nodi_hii]]; }
             kama (mkaguzi_ni_biti(kitendo)) {
@@ -1266,15 +1266,15 @@ n32 mkaguzi_kagua_usemi(n32 nodi_hii) {
             }
         }
         // Ukubwa wa matokeo hukokotolewa na mzalishaji kutoka usimbaji
-        // (ukubwa_kutoka_enc) -- si ast_tiga, kwani mkaguzi wa wito
-        // huandika kiungo cha mfululizo wa hoja juu ya ast_tiga.
+        // (ukubwa_kutoka_enc) -- si tatu_ya_nodi, kwani mkaguzi wa wito
+        // huandika kiungo cha mfululizo wa hoja juu ya tatu_ya_nodi.
         // Hifadhi usimbaji kamili kwa mzalishaji (kwa kutofautisha N/D/B/W)
         //
         // PANDISHA: operesheni yenye upana mchanganyiko ndani ya familia
         // moja inachukua upana MKUBWA (C-semantiki) -- 0 - 10000000000
         // ni n64, si n32 (hitilafu: ilikuwa ikikatwa hadi biti 32).
         // Halisi kamili inarudisha 0 ("aina yoyote") -- usimbaji halisi uko
-        // ast_nne; d64 inarudisha usimbaji wake yenyewe (832).
+        // nne_ya_nodi; d64 inarudisha usimbaji wake yenyewe (832).
         n32 kushoto_usimbaji = kushoto;
         kama (aina_ya_nodi[nodi_ya_kushoto[nodi_hii]] == 4) { kushoto_usimbaji = nne_ya_nodi[nodi_ya_kushoto[nodi_hii]]; }
         n32 kulia_usimbaji = kulia;
@@ -1284,7 +1284,7 @@ n32 mkaguzi_kagua_usemi(n32 nodi_hii) {
             kama (kulia_usimbaji > 0) {
                 // Hesabu ya anwani (C-semantiki): kielekezi + namba ->
                 // kielekezi. Zamani biti ya mshale ilipotea hapa
-                // (ast_pool + umbali ulikadiriwa n32) na hoja ya kielekezi
+                // (ghala_la_majina + umbali ulikadiriwa n32) na hoja ya kielekezi
                 // kwa kigezo cha n8* ilipita kama namba (hitilafu ya
                 // 2026-09-01). Mshale iko kwenye biti 0-1 za usimbaji.
                 n32 kushoto_mshale = kushoto_usimbaji - ((kushoto_usimbaji / 4) * 4);
@@ -1340,7 +1340,7 @@ n32 mkaguzi_kagua_usemi(n32 nodi_hii) {
         thamani_ya_nodi[nodi_hii] = usimbaji_ya_kitendo;
         // b1 << n inaweza kuweka biti juu ya biti 0 -- ibaki biti moja.
         kama (aina == 39 && usimbaji_ya_kitendo == B1_USIMBAJI) { mkaguzi_funga_b1(nodi_hii, 1); }
-        // Ulinganishi (20-25: == != < > <= >=): ast_thamani hubaki aina
+        // Ulinganishi (20-25: == != < > <= >=): thamani_ya_nodi hubaki aina
         // ya OPERANDI -- mzalishaji huisoma kuchagua upana wa linganisha
         // (linganisha ya 64 kwa n64/kielekezi, ucomisd kwa d64). Lakini aina
         // ya MATOKEO ni n32 (0 au 1) daima. Zamani usimbaji wa operandi
@@ -1381,7 +1381,7 @@ n32 mkaguzi_kagua_usemi(n32 nodi_hii) {
     kama (aina == 28) {  // SI (!)
         n32 kitendo = mkaguzi_kagua_usemi(nodi_ya_kushoto[nodi_hii]);
         // Halisi kamili inarudisha 0 ("aina yoyote") -- usimbaji halisi uko
-        // ast_nne. Iisome ili upana wa matokeo usikose (0 - 10000000000
+        // nne_ya_nodi. Iisome ili upana wa matokeo usikose (0 - 10000000000
         // inahitaji upana wa 64; ~0 kwenye n64 vilevile).
         kama (aina_ya_nodi[nodi_ya_kushoto[nodi_hii]] == 4) { kitendo = nne_ya_nodi[nodi_ya_kushoto[nodi_hii]]; }
         // ! kwa desimali haijatekelezwa -- kataa kwa sauti badala ya
@@ -1398,7 +1398,7 @@ n32 mkaguzi_kagua_usemi(n32 nodi_hii) {
     kama (aina == 47) {  // KINYUME (~)
         n32 kitendo = mkaguzi_kagua_usemi(nodi_ya_kushoto[nodi_hii]);
         // Halisi kamili inarudisha 0 ("aina yoyote") -- usimbaji halisi uko
-        // ast_nne. Iisome ili upana wa matokeo usikose.
+        // nne_ya_nodi. Iisome ili upana wa matokeo usikose.
         kama (aina_ya_nodi[nodi_ya_kushoto[nodi_hii]] == 4) { kitendo = nne_ya_nodi[nodi_ya_kushoto[nodi_hii]]; }
         // ~ kwa desimali haijatekelezwa -- kataa kwa sauti.
         kama (ni_desimali_usimbaji(kitendo)) {
@@ -1445,7 +1445,7 @@ n32 mkaguzi_kagua_usemi(n32 nodi_hii) {
             sivyo { kama (mb == 1 || mb == 2) { msingi_bila_kielekezi = msingi_wake - 1; } }
         }
         // Hifadhi usimbaji wa matokeo; ukubwa wa elementi hukokotolewa na
-        // mzalishaji kutoka usimbaji (ast_tiga ya hoja huandikwa na kiungo
+        // mzalishaji kutoka usimbaji (tatu_ya_nodi ya hoja huandikwa na kiungo
         // cha mfululizo wa wito).
         thamani_ya_nodi[nodi_hii] = msingi_bila_kielekezi;
         rudisha msingi_bila_kielekezi;
@@ -1479,7 +1479,7 @@ n32 mkaguzi_kagua_usemi(n32 nodi_hii) {
                 n8* jina_la_kazi = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_jina_la_kazi];
                 n32 umbali_kwenye_faili = tatu_ya_nodi[nodi_ya_jina_la_kazi];
                 kama (jina_linganisha(jina_la_kazi, jina_la_sehemu)) {
-                    nne_ya_nodi[nodi_hii] = umbali_kwenye_faili;  // hifadhi umbali (si ast_tiga -- hoja za wito huiandika)
+                    nne_ya_nodi[nodi_hii] = umbali_kwenye_faili;  // hifadhi umbali (si tatu_ya_nodi -- hoja za wito huiandika)
                     n32 usimbaji_wa_sehemu = thamani_ya_nodi[nodi_ya_jina_la_kazi];
                     kama (usimbaji_wa_sehemu != 0) { thamani_ya_nodi[nodi_hii] = usimbaji_wa_sehemu; rudisha usimbaji_wa_sehemu; }
                     thamani_ya_nodi[nodi_hii] = (1 << 8) | 32;
@@ -1518,7 +1518,7 @@ n32 mkaguzi_kagua_usemi(n32 nodi_hii) {
                 n32 nodi_ya_jina_la_kazi = nodi_ya_kushoto[kazi_hii];
                 n8* jina_la_kazi = ghala_la_majina + umbali_wa_jina_la_nodi[nodi_ya_jina_la_kazi];
                 kama (jina_linganisha(jina_la_kazi, jina_la_sehemu)) {
-                    nne_ya_nodi[nodi_hii] = tatu_ya_nodi[nodi_ya_jina_la_kazi];  // hifadhi umbali (si ast_tiga -- hoja za wito huiandika)
+                    nne_ya_nodi[nodi_hii] = tatu_ya_nodi[nodi_ya_jina_la_kazi];  // hifadhi umbali (si tatu_ya_nodi -- hoja za wito huiandika)
                     n32 usimbaji_wa_sehemu = thamani_ya_nodi[nodi_ya_jina_la_kazi];
                     kama (usimbaji_wa_sehemu != 0) { thamani_ya_nodi[nodi_hii] = usimbaji_wa_sehemu; rudisha usimbaji_wa_sehemu; }
                     thamani_ya_nodi[nodi_hii] = (1 << 8) | 32;
