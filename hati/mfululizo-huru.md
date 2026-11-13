@@ -55,9 +55,9 @@ Uthibitisho: `gharama/jaribu-mfululizo-huru.mapishi` (kwenye CI; visa vyake viko
 | `gharama/jaribu-mfululizo.mapishi` | majaribio ya Swa asili + mkazo na semantiki (`majaribio/mkazo/`) |
 | `gharama/jaribu-mfululizo-huru.mapishi` | kila hatua ya mfululizo huru, kila kipengele na kosa (`msingi/mfululizo/majaribio/`) |
 | `gharama/jaribu-mifano.mapishi`, `jaribu-usakinishaji.mapishi` | mifano ya README; swa iliyosakinishwa nje ya hazina |
-| `gharama/jaribu-wasm.mapishi`, `jaribu-kiini.mapishi` | `--wasm` (nodi kama mkaguzi), `--kiini` (QEMU kama mkaguzi) |
+| `gharama/jaribu-wasm.mapishi`, `jaribu-kiini.mapishi` | `--wasm` (node kama mkaguzi), `--kiini` (QEMU kama mkaguzi) |
 
-Hakuna bash kwenye ujenzi wala kwenye majaribio ya CI: zana za nje pekee ni wakaguzi wa majaribio (nodi, python3 + QEMU).
+Hakuna bash kwenye ujenzi wala kwenye majaribio ya CI: zana za nje pekee ni wakaguzi wa majaribio (node na QEMU).
 
 ## Binari mbili za mwanzo: kwanza na kizinduzi
 

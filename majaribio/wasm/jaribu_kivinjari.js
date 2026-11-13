@@ -2,7 +2,7 @@
 // kiolesura kinachozalishwa (`swa --wasm-js`) bila kivinjari: hati bandia
 // yenye createElement/appendChild/setAttribute/textContent/
 // addEventListener tu -- yaani API ambazo kivinjari.swa inatumia.
-// Matumizi: nodi jaribu_kivinjari.js <kaunta.wasm> <swa-js.js>
+// Matumizi: node jaribu_kivinjari.js <kaunta.wasm> <swa-js.js>
 "use strict";
 const fs = require("fs");
 const path = require("path");
