@@ -1,0 +1,1061 @@
+husisha { msingi/maktaba/kumbukumbu.swa }
+husisha { msingi/maktaba/mfuatano.swa }
+husisha { msingi/maktaba/faili.swa }
+
+// kimbiza.swa -- mkalimani wa WebAssembly kwa Swa, kwa majaribio ya
+// `kamili --wasm`. Huchukua nafasi ya kimbiza.js, jaribu_kivinjari.js na
+// dom_bandia.js: mfululizo wa majaribio hauhitaji node.
+//
+// Matumizi: kimbiza <faili.wasm> <tarajiwa> [aina]
+//
+//   namba     -- anza() hurudisha i32 inayolinganishwa na <tarajiwa>.
+//   mfuatano  -- anza() hurudisha kielekezi; baiti hadi 0x00 hulinganishwa
+//                na <tarajiwa>.
+//   safu      -- anza() hurudisha kielekezi cha n32; <tarajiwa> ni namba
+//                zilizotenganishwa kwa mkato.
+//   dom       -- <tarajiwa> ni faili la JSON: mti tarajiwa, au
+//                {"chochea": [[nodi, "tukio"], ...], "mti": {...}} -- matukio
+//                huchochewa kwa mpangilio, kisha mti hulinganishwa.
+//
+// Mkalimani hutekeleza sehemu ya WASM ambayo kamili huzalisha: i32 pekee,
+// block/loop/if, br/br_if/br_table, call, vigeu, kumbukumbu moja,
+// jedwali moja la funcref (kwa kazi za mrejesho), data na element.
+// Uingizaji wa moduli "js" hutekelezwa hapa pamoja na DOM ndogo -- yale
+// yale ambayo msingi/swa-js.js hufanya kwenye kivinjari halisi.
+
+// ------------------------------------------------------------ moduli
+n8 moduli[2097152];
+n64 urefu_wa_moduli = 0;
+
+n32 aina_idadi = 0;
+n32 aina_hoja[1024];
+n32 aina_matokeo[1024];
+
+n32 kazi_idadi = 0;
+n32 idadi_ya_kazi_za_nje = 0;
+n32 kazi_aina[8192];
+n32 kazi_mwenyeji[8192];      // >0 kwa kazi ya nje (namba ya shughuli)
+n64 kazi_mwanzo[8192];        // pc ya agizo la kwanza
+n64 kazi_mwisho[8192];        // pc baada ya 'end' ya mwisho
+n32 kazi_vigeu[8192];         // vigeu vya ndani zaidi ya hoja
+
+n32 jedwali[4096];
+n32 ukubwa_wa_jedwali = 0;
+
+n8 kumbukumbu[16777216];
+n64 kurasa = 0;
+n64 kurasa_upeo = 256;
+
+n64 ulimwengu[256];
+n32 idadi_ya_ulimwengu = 0;
+
+n32 kazi_ya_anza = -1;
+
+n32 mwisho_wa[2097152];       // pc ya block/loop/if -> pc ya 'end' yake
+n32 sivyo_wa[2097152];        // pc ya if -> pc ya 'else' (au -1)
+
+// ------------------------------------------------------------ makosa
+w0 shindwa(n8* ujumbe) {
+    andika_kosa("SHINDWA: %s\n", ujumbe, 0, 0, 0, 0, 0);
+    wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+}
+
+n32 baiti(n64 i) {
+    kama (i >= urefu_wa_moduli) { shindwa("moduli imekatika (baiti zimeisha)"); }
+    rudisha moduli[i] & 255;
+}
+
+n64 pc_ya_leb = 0;            // nafasi baada ya LEB iliyosomwa mwisho
+
+n64 soma_leb_a(n64 i) {
+    n64 v = 0;
+    n64 sogeza = 0;
+    wakati (1 == 1) {
+        n32 b = baiti(i);
+        i = i + 1;
+        v = v | ((b & 127) << sogeza);
+        sogeza = sogeza + 7;
+        kama ((b & 128) == 0) { acha; }
+    }
+    pc_ya_leb = i;
+    rudisha v;
+}
+
+n64 soma_leb_n(n64 i) {
+    n64 v = 0;
+    n64 sogeza = 0;
+    n32 b = 0;
+    wakati (1 == 1) {
+        b = baiti(i);
+        i = i + 1;
+        v = v | ((b & 127) << sogeza);
+        sogeza = sogeza + 7;
+        kama ((b & 128) == 0) { acha; }
+    }
+    kama (sogeza < 64 && (b & 64) != 0) { v = v - (1 << sogeza); }
+    pc_ya_leb = i;
+    rudisha v;
+}
+
+// i32 kwa namna ya n64 yenye ishara. Namba za biti 32+ hukokotolewa kwa
+// kusogeza (si kuandikwa kama halisi) ili zisikatwe kuwa n32.
+n64 KINYAGO_32 = 0;          // 2^32 - 1
+n64 BITI_31 = 0;             // 2^31
+n64 BITI_32 = 0;             // 2^32
+
+w0 andaa_namba() {
+    n64 moja = 1;
+    BITI_31 = moja << 31;
+    BITI_32 = moja << 32;
+    KINYAGO_32 = BITI_32 - 1;
+}
+
+n64 kawaida(n64 x) {
+    x = x & KINYAGO_32;
+    kama (x >= BITI_31) { x = x - BITI_32; }
+    rudisha x;
+}
+
+n64 bila_ishara(n64 x) {
+    rudisha x & KINYAGO_32;
+}
+
+// ------------------------------------------------------------ mwenyeji: mifuatano
+n8 ghala[1048576];
+n64 ghala_wapi = 0;
+n32 mf_mwanzo[16384];
+n32 mf_urefu[16384];
+n32 idadi_ya_mf = 0;
+
+n32 mfuatano_mpya(n8* s, n64 urefu) {
+    kama (idadi_ya_mf >= 16384 || ghala_wapi + urefu + 1 > 1048576) { shindwa("ghala la mifuatano limejaa"); }
+    nakili(ghala + ghala_wapi, s, urefu);
+    ghala[ghala_wapi + urefu] = 0;
+    mf_mwanzo[idadi_ya_mf] = ghala_wapi;
+    mf_urefu[idadi_ya_mf] = urefu;
+    ghala_wapi = ghala_wapi + urefu + 1;
+    idadi_ya_mf = idadi_ya_mf + 1;
+    rudisha idadi_ya_mf - 1;
+}
+
+n8* mf(n32 i) {
+    rudisha ghala + mf_mwanzo[i];
+}
+
+n32 mfuatano_wa_namba(n64 v) {
+    n8 c[32];
+    n64 n = 0;
+    andika_n64_kwenye_chombo(c, 32, &n, v);
+    rudisha mfuatano_mpya(c, n);
+}
+
+// ------------------------------------------------------------ mwenyeji: DOM
+n32 el_tagi[4096];
+n32 el_maandishi[4096];
+n32 el_watoto[262144];        // el*64 + i
+n32 el_idadi_watoto[4096];
+n32 el_sifa_jina[65536];      // el*16 + i
+n32 el_sifa_thamani[65536];
+n32 el_idadi_sifa[4096];
+n32 el_msik_tukio[65536];     // el*16 + i
+n32 el_msik_kazi[65536];
+n32 el_idadi_msik[4096];
+n32 idadi_ya_el = 0;
+
+n32 elementi_mpya(n32 tagi) {
+    kama (idadi_ya_el >= 4096) { shindwa("elementi nyingi mno"); }
+    el_tagi[idadi_ya_el] = tagi;
+    el_maandishi[idadi_ya_el] = mfuatano_mpya("", 0);
+    el_idadi_watoto[idadi_ya_el] = 0;
+    el_idadi_sifa[idadi_ya_el] = 0;
+    el_idadi_msik[idadi_ya_el] = 0;
+    idadi_ya_el = idadi_ya_el + 1;
+    rudisha idadi_ya_el - 1;
+}
+
+// Vishiko: 0 = tupu, 1 = nodi kuu (elementi 0).
+// aina: 0 tupu, 1 elementi, 2 mfuatano, 3 namba, 4 kazi, 5 document,
+//       6 globalThis, 7 console, 8 tukio
+n32 ksh_aina[65536];
+n64 ksh_thamani[65536];
+n32 idadi_ya_ksh = 2;
+n32 huru[65536];
+n32 idadi_ya_huru = 0;
+
+n32 shika(n32 aina, n64 thamani) {
+    n32 h = 0;
+    kama (idadi_ya_huru > 0) {
+        idadi_ya_huru = idadi_ya_huru - 1;
+        h = huru[idadi_ya_huru];
+    } sivyo {
+        kama (idadi_ya_ksh >= 65536) { shindwa("vishiko vimejaa"); }
+        h = idadi_ya_ksh;
+        idadi_ya_ksh = idadi_ya_ksh + 1;
+    }
+    ksh_aina[h] = aina;
+    ksh_thamani[h] = thamani;
+    rudisha h;
+}
+
+w0 achilia_kishiko(n32 h) {
+    kama (h > 1 && h < idadi_ya_ksh && ksh_aina[h] != 0) {
+        ksh_aina[h] = 0;
+        huru[idadi_ya_huru] = h;
+        idadi_ya_huru = idadi_ya_huru + 1;
+    }
+}
+
+n32 aina_ya(n32 h) {
+    kama (h < 0 || h >= idadi_ya_ksh) { rudisha 0; }
+    rudisha ksh_aina[h];
+}
+
+n8* mfuatano_kutoka_kumbukumbu(n64 p) {
+    kama (p < 0 || p >= kurasa * 65536) { shindwa("kielekezi cha mfuatano nje ya kumbukumbu"); }
+    rudisha kumbukumbu + p;
+}
+
+n32 jina_ni(n64 p, n8* jina) {
+    rudisha linganisha_mfuatano(mfuatano_kutoka_kumbukumbu(p), jina) == 0;
+}
+
+// String(x) ya JS kwa mfuatano au namba
+n32 kuwa_mfuatano(n32 h) {
+    n32 a = aina_ya(h);
+    kama (a == 2) { rudisha ksh_thamani[h]; }
+    kama (a == 3) { rudisha mfuatano_wa_namba(ksh_thamani[h]); }
+    shindwa("String() ya kitu kisicho mfuatano wala namba");
+    rudisha 0;
+}
+
+n64 mwenyeji_pata(n64 h, n64 sifa) {
+    n32 a = aina_ya(h);
+    kama (a == 2 && jina_ni(sifa, "length")) { rudisha shika(3, mf_urefu[ksh_thamani[h]]); }
+    kama (a == 1 && jina_ni(sifa, "textContent")) { rudisha shika(2, el_maandishi[ksh_thamani[h]]); }
+    kama (a == 8 && jina_ni(sifa, "target")) { rudisha shika(1, ksh_thamani[h] & 65535); }
+    kama (a == 8 && jina_ni(sifa, "type")) { rudisha shika(2, ksh_thamani[h] >> 16); }
+    andika_kosa("sifa '%s' ya kitu cha aina %d\n", mfuatano_kutoka_kumbukumbu(sifa), a, 0, 0, 0, 0);
+    shindwa("pata: sifa isiyojulikana");
+    rudisha 0;
+}
+
+w0 mwenyeji_weka(n64 h, n64 sifa, n64 t) {
+    kama (aina_ya(h) == 1 && jina_ni(sifa, "textContent")) {
+        el_maandishi[ksh_thamani[h]] = kuwa_mfuatano(t);
+        rudisha;
+    }
+    andika_kosa("sifa '%s'\n", mfuatano_kutoka_kumbukumbu(sifa), 0, 0, 0, 0, 0);
+    shindwa("weka: sifa isiyojulikana");
+}
+
+n64 mwenyeji_ita(n64 h, n64 njia, n32 idadi, n64 a, n64 b, n64 c) {
+    n32 k = aina_ya(h);
+    kama (k == 5 && jina_ni(njia, "createElement") && idadi == 1) {
+        rudisha shika(1, elementi_mpya(kuwa_mfuatano(a)));
+    }
+    kama (k == 1 && jina_ni(njia, "appendChild") && idadi == 1 && aina_ya(a) == 1) {
+        n32 e = ksh_thamani[h];
+        kama (el_idadi_watoto[e] >= 64) { shindwa("watoto wengi mno"); }
+        el_watoto[e * 64 + el_idadi_watoto[e]] = ksh_thamani[a];
+        el_idadi_watoto[e] = el_idadi_watoto[e] + 1;
+        rudisha shika(1, ksh_thamani[a]);
+    }
+    kama (k == 1 && jina_ni(njia, "setAttribute") && idadi == 2) {
+        n32 e = ksh_thamani[h];
+        n32 jina = kuwa_mfuatano(a);
+        n32 thamani = kuwa_mfuatano(b);
+        n32 i = 0;
+        wakati (i < el_idadi_sifa[e]) {
+            kama (linganisha_mfuatano(mf(el_sifa_jina[e * 16 + i]), mf(jina)) == 0) {
+                el_sifa_thamani[e * 16 + i] = thamani;
+                rudisha 0;
+            }
+            i = i + 1;
+        }
+        kama (el_idadi_sifa[e] >= 16) { shindwa("sifa nyingi mno"); }
+        el_sifa_jina[e * 16 + i] = jina;
+        el_sifa_thamani[e * 16 + i] = thamani;
+        el_idadi_sifa[e] = i + 1;
+        rudisha 0;
+    }
+    kama (k == 1 && jina_ni(njia, "addEventListener") && idadi == 2 && aina_ya(b) == 4) {
+        n32 e = ksh_thamani[h];
+        kama (el_idadi_msik[e] >= 16) { shindwa("wasikilizaji wengi mno"); }
+        el_msik_tukio[e * 16 + el_idadi_msik[e]] = kuwa_mfuatano(a);
+        el_msik_kazi[e * 16 + el_idadi_msik[e]] = ksh_thamani[b];
+        el_idadi_msik[e] = el_idadi_msik[e] + 1;
+        rudisha 0;
+    }
+    kama (k == 6 && jina_ni(njia, "String") && idadi == 1) {
+        rudisha shika(2, kuwa_mfuatano(a));
+    }
+    kama (k == 7 && jina_ni(njia, "log")) {
+        kama (idadi >= 1) { andika("%s\n", mf(kuwa_mfuatano(a)), 0, 0, 0, 0, 0); }
+        rudisha 0;
+    }
+    andika_kosa("njia '%s' kwa kitu cha aina %d (hoja %d)\n", mfuatano_kutoka_kumbukumbu(njia), k, idadi, 0, 0, 0);
+    shindwa("ita: njia isiyojulikana");
+    rudisha 0;
+}
+
+// Number(x) | 0
+n64 mwenyeji_kwa_namba(n64 h) {
+    n32 a = aina_ya(h);
+    kama (a == 3) { rudisha kawaida(ksh_thamani[h]); }
+    kama (a == 2) { rudisha kawaida(mfuatano_hadi_n64(mf(ksh_thamani[h]))); }
+    rudisha 0;
+}
+
+// shughuli za moduli "js" -- majina yale yale ya msingi/swa-js.js
+n32 namba_ya_shughuli(n8* jina) {
+    kama (linganisha_mfuatano(jina, "nodi_kuu") == 0) { rudisha 1; }
+    kama (linganisha_mfuatano(jina, "kimataifa") == 0) { rudisha 2; }
+    kama (linganisha_mfuatano(jina, "pata") == 0) { rudisha 3; }
+    kama (linganisha_mfuatano(jina, "weka") == 0) { rudisha 4; }
+    kama (linganisha_mfuatano(jina, "ita0") == 0) { rudisha 5; }
+    kama (linganisha_mfuatano(jina, "ita1") == 0) { rudisha 6; }
+    kama (linganisha_mfuatano(jina, "ita2") == 0) { rudisha 7; }
+    kama (linganisha_mfuatano(jina, "ita3") == 0) { rudisha 8; }
+    kama (linganisha_mfuatano(jina, "mfuatano") == 0) { rudisha 9; }
+    kama (linganisha_mfuatano(jina, "namba") == 0) { rudisha 10; }
+    kama (linganisha_mfuatano(jina, "kwa_namba") == 0) { rudisha 11; }
+    kama (linganisha_mfuatano(jina, "kazi") == 0) { rudisha 12; }
+    kama (linganisha_mfuatano(jina, "achilia") == 0) { rudisha 13; }
+    rudisha 0;
+}
+
+n64 mwenyeji(n32 shughuli, n64* h) {
+    kama (shughuli == 1) { rudisha 1; }
+    kama (shughuli == 2) {
+        kama (jina_ni(h[0], "document")) { rudisha shika(5, 0); }
+        kama (jina_ni(h[0], "globalThis")) { rudisha shika(6, 0); }
+        kama (jina_ni(h[0], "console")) { rudisha shika(7, 0); }
+        andika_kosa("kimataifa '%s'\n", mfuatano_kutoka_kumbukumbu(h[0]), 0, 0, 0, 0, 0);
+        shindwa("kimataifa isiyojulikana");
+    }
+    kama (shughuli == 3) { rudisha mwenyeji_pata(h[0], h[1]); }
+    kama (shughuli == 4) { mwenyeji_weka(h[0], h[1], h[2]); rudisha 0; }
+    kama (shughuli >= 5 && shughuli <= 8) { rudisha mwenyeji_ita(h[0], h[1], shughuli - 5, h[2], h[3], h[4]); }
+    kama (shughuli == 9) {
+        n8* s = mfuatano_kutoka_kumbukumbu(h[0]);
+        rudisha shika(2, mfuatano_mpya(s, urefu_wa_mfuatano(s)));
+    }
+    kama (shughuli == 10) { rudisha shika(3, h[0]); }
+    kama (shughuli == 11) { rudisha mwenyeji_kwa_namba(h[0]); }
+    kama (shughuli == 12) { rudisha shika(4, h[0]); }
+    kama (shughuli == 13) { achilia_kishiko(h[0]); rudisha 0; }
+    shindwa("shughuli ya mwenyeji isiyojulikana");
+    rudisha 0;
+}
+
+// ------------------------------------------------------------ uchanganuzi wa moduli
+// Ruka hoja za agizo moja; hurudisha pc ya agizo linalofuata.
+n64 ruka_agizo(n64 pc) {
+    n32 op = baiti(pc);
+    pc = pc + 1;
+    kama (op == 2 || op == 3 || op == 4) { rudisha pc + 1; }   // aina ya ubeti (baiti moja)
+    kama (op == 12 || op == 13 || op == 16 || (op >= 32 && op <= 36)) { soma_leb_a(pc); rudisha pc_ya_leb; }
+    kama (op == 14) {
+        n64 n = soma_leb_a(pc);
+        pc = pc_ya_leb;
+        n64 i = 0;
+        wakati (i <= n) { soma_leb_a(pc); pc = pc_ya_leb; i = i + 1; }
+        rudisha pc;
+    }
+    kama (op == 17) { soma_leb_a(pc); soma_leb_a(pc_ya_leb); rudisha pc_ya_leb; }
+    kama (op >= 40 && op <= 62) { soma_leb_a(pc); soma_leb_a(pc_ya_leb); rudisha pc_ya_leb; }
+    kama (op == 63 || op == 64) { rudisha pc + 1; }
+    kama (op == 65) { soma_leb_n(pc); rudisha pc_ya_leb; }
+    rudisha pc;
+}
+
+// Kwa kila block/loop/if ndani ya kazi: pc ya 'end' na ya 'else'.
+n32 ramani_mrundikano[4096];
+w0 tengeneza_ramani(n64 mwanzo, n64 mwisho) {
+    n32 kina = 0;
+    n64 pc = mwanzo;
+    wakati (pc < mwisho) {
+        n32 op = baiti(pc);
+        kama (op == 2 || op == 3 || op == 4) {
+            kama (kina >= 4096) { shindwa("viota vingi mno"); }
+            ramani_mrundikano[kina] = pc;
+            sivyo_wa[pc] = -1;
+            kina = kina + 1;
+        } sivyo { kama (op == 5) {
+            kama (kina == 0) { shindwa("'else' bila 'if'"); }
+            sivyo_wa[ramani_mrundikano[kina - 1]] = pc;
+        } sivyo { kama (op == 11) {
+            kama (kina > 0) {
+                kina = kina - 1;
+                mwisho_wa[ramani_mrundikano[kina]] = pc;
+            }
+        } } }
+        pc = ruka_agizo(pc);
+    }
+}
+
+w0 changanua_moduli() {
+    kama (urefu_wa_moduli < 8 || baiti(0) != 0 || baiti(1) != 97 || baiti(2) != 115 || baiti(3) != 109) {
+        shindwa("si moduli ya WASM (alama ya mwanzo)");
+    }
+    kama (baiti(4) != 1 || baiti(5) != 0 || baiti(6) != 0 || baiti(7) != 0) { shindwa("toleo la WASM si 1"); }
+    n64 pc = 8;
+    n32 kazi_zilizotangazwa = 0;
+    wakati (pc < urefu_wa_moduli) {
+        n32 kitambulisho = baiti(pc);
+        n64 urefu = soma_leb_a(pc + 1);
+        n64 p = pc_ya_leb;
+        n64 mwisho = p + urefu;
+        kama (mwisho > urefu_wa_moduli) { shindwa("sehemu imekatika"); }
+        kama (kitambulisho == 1) {                  // aina
+            n64 n = soma_leb_a(p); p = pc_ya_leb;
+            n64 i = 0;
+            wakati (i < n) {
+                kama (baiti(p) != 96) { shindwa("aina si ya kazi (0x60)"); }
+                n64 hoja = soma_leb_a(p + 1); p = pc_ya_leb;
+                n64 j = 0;
+                wakati (j < hoja) { kama (baiti(p) != 127) { shindwa("hoja si i32"); } p = p + 1; j = j + 1; }
+                n64 matokeo = soma_leb_a(p); p = pc_ya_leb;
+                j = 0;
+                wakati (j < matokeo) { kama (baiti(p) != 127) { shindwa("matokeo si i32"); } p = p + 1; j = j + 1; }
+                aina_hoja[aina_idadi] = hoja;
+                aina_matokeo[aina_idadi] = matokeo;
+                aina_idadi = aina_idadi + 1;
+                i = i + 1;
+            }
+        } sivyo { kama (kitambulisho == 2) {       // uingizaji
+            n64 n = soma_leb_a(p); p = pc_ya_leb;
+            n64 i = 0;
+            wakati (i < n) {
+                n64 u = soma_leb_a(p); p = pc_ya_leb;
+                n8* jina_la_moduli = moduli + p; n64 urefu_m = u; p = p + u;
+                u = soma_leb_a(p); p = pc_ya_leb;
+                n8 jina[64];
+                kama (u >= 64) { shindwa("jina la uingizaji ni refu mno"); }
+                nakili(jina, moduli + p, u); jina[u] = 0; p = p + u;
+                kama (baiti(p) != 0) { shindwa("uingizaji usio wa kazi"); }
+                n64 t = soma_leb_a(p + 1); p = pc_ya_leb;
+                kama (urefu_m != 2 || jina_la_moduli[0] != 106 || jina_la_moduli[1] != 115) { shindwa("uingizaji wa moduli isiyo 'js'"); }
+                n32 s = namba_ya_shughuli(jina);
+                kama (s == 0) { andika_kosa("js.%s\n", jina, 0, 0, 0, 0, 0); shindwa("shughuli ya js isiyojulikana"); }
+                kazi_aina[kazi_idadi] = t;
+                kazi_mwenyeji[kazi_idadi] = s;
+                kazi_idadi = kazi_idadi + 1;
+                idadi_ya_kazi_za_nje = idadi_ya_kazi_za_nje + 1;
+                i = i + 1;
+            }
+        } sivyo { kama (kitambulisho == 3) {       // kazi
+            n64 n = soma_leb_a(p); p = pc_ya_leb;
+            n64 i = 0;
+            wakati (i < n) {
+                kazi_aina[kazi_idadi + i] = soma_leb_a(p); p = pc_ya_leb;
+                kazi_mwenyeji[kazi_idadi + i] = 0;
+                i = i + 1;
+            }
+            kazi_zilizotangazwa = n;
+        } sivyo { kama (kitambulisho == 4) {       // jedwali
+            soma_leb_a(p); p = pc_ya_leb;
+            p = p + 1;                               // funcref
+            n32 bendera = baiti(p); p = p + 1;
+            ukubwa_wa_jedwali = soma_leb_a(p); p = pc_ya_leb;
+            kama (bendera == 1) { soma_leb_a(p); }
+            kama (ukubwa_wa_jedwali > 4096) { shindwa("jedwali kubwa mno"); }
+        } sivyo { kama (kitambulisho == 5) {       // kumbukumbu
+            soma_leb_a(p); p = pc_ya_leb;
+            n32 bendera = baiti(p); p = p + 1;
+            kurasa = soma_leb_a(p); p = pc_ya_leb;
+            kama (bendera == 1) { kurasa_upeo = soma_leb_a(p); }
+            kama (kurasa_upeo > 256) { kurasa_upeo = 256; }
+            kama (kurasa > 256) { shindwa("kumbukumbu ya mwanzo kubwa mno"); }
+        } sivyo { kama (kitambulisho == 6) {       // ya ulimwengu
+            n64 n = soma_leb_a(p); p = pc_ya_leb;
+            n64 i = 0;
+            wakati (i < n) {
+                kama (baiti(p) != 127) { shindwa("ya ulimwengu si i32"); }
+                p = p + 2;                            // aina + kubadilika
+                kama (baiti(p) != 65) { shindwa("kianzio cha ulimwengu si i32.const"); }
+                ulimwengu[idadi_ya_ulimwengu] = kawaida(soma_leb_n(p + 1)); p = pc_ya_leb;
+                kama (baiti(p) != 11) { shindwa("kianzio cha ulimwengu hakijaisha"); }
+                p = p + 1;
+                idadi_ya_ulimwengu = idadi_ya_ulimwengu + 1;
+                i = i + 1;
+            }
+        } sivyo { kama (kitambulisho == 7) {       // uhamishaji
+            n64 n = soma_leb_a(p); p = pc_ya_leb;
+            n64 i = 0;
+            wakati (i < n) {
+                n64 u = soma_leb_a(p); p = pc_ya_leb;
+                n32 ni_anza = (u == 4 && baiti(p) == 97 && baiti(p + 1) == 110 && baiti(p + 2) == 122 && baiti(p + 3) == 97);
+                p = p + u;
+                n32 aina = baiti(p);
+                n64 faharisi = soma_leb_a(p + 1); p = pc_ya_leb;
+                kama (ni_anza && aina == 0) { kazi_ya_anza = faharisi; }
+                i = i + 1;
+            }
+        } sivyo { kama (kitambulisho == 9) {       // element
+            n64 n = soma_leb_a(p); p = pc_ya_leb;
+            n64 i = 0;
+            wakati (i < n) {
+                kama (baiti(p) != 0) { shindwa("element ya aina isiyosaidiwa"); }
+                kama (baiti(p + 1) != 65) { shindwa("umbali wa element si i32.const"); }
+                n64 umbali = soma_leb_n(p + 2); p = pc_ya_leb + 1;   // + 'end'
+                n64 m = soma_leb_a(p); p = pc_ya_leb;
+                n64 j = 0;
+                wakati (j < m) {
+                    kama (umbali + j >= ukubwa_wa_jedwali) { shindwa("element nje ya jedwali"); }
+                    jedwali[umbali + j] = soma_leb_a(p); p = pc_ya_leb;
+                    j = j + 1;
+                }
+                i = i + 1;
+            }
+        } sivyo { kama (kitambulisho == 10) {      // msimbo
+            n64 n = soma_leb_a(p); p = pc_ya_leb;
+            kama (n != kazi_zilizotangazwa) { shindwa("idadi ya msimbo si sawa na ya kazi"); }
+            n64 i = 0;
+            wakati (i < n) {
+                n64 ukubwa = soma_leb_a(p); p = pc_ya_leb;
+                n64 mwisho_wa_mwili = p + ukubwa;
+                n64 makundi = soma_leb_a(p); p = pc_ya_leb;
+                n64 vigeu = 0;
+                n64 j = 0;
+                wakati (j < makundi) {
+                    vigeu = vigeu + soma_leb_a(p); p = pc_ya_leb;
+                    kama (baiti(p) != 127) { shindwa("kigeu cha ndani si i32"); }
+                    p = p + 1;
+                    j = j + 1;
+                }
+                n32 f = kazi_idadi + i;
+                kazi_vigeu[f] = vigeu;
+                kazi_mwanzo[f] = p;
+                kazi_mwisho[f] = mwisho_wa_mwili;
+                tengeneza_ramani(p, mwisho_wa_mwili);
+                p = mwisho_wa_mwili;
+                i = i + 1;
+            }
+            kazi_idadi = kazi_idadi + n;
+        } sivyo { kama (kitambulisho == 11) {      // data
+            n64 n = soma_leb_a(p); p = pc_ya_leb;
+            n64 i = 0;
+            wakati (i < n) {
+                kama (baiti(p) != 0) { shindwa("data ya aina isiyosaidiwa"); }
+                kama (baiti(p + 1) != 65) { shindwa("umbali wa data si i32.const"); }
+                n64 umbali = soma_leb_n(p + 2); p = pc_ya_leb + 1;
+                n64 u = soma_leb_a(p); p = pc_ya_leb;
+                kama (umbali < 0 || umbali + u > kurasa * 65536) { shindwa("data nje ya kumbukumbu"); }
+                nakili(kumbukumbu + umbali, moduli + p, u);
+                p = p + u;
+                i = i + 1;
+            }
+        } } } } } } } } } }
+        pc = mwisho;
+    }
+    kama (kazi_ya_anza < 0) { shindwa("moduli haitoi 'anza'"); }
+}
+
+// ------------------------------------------------------------ utekelezaji
+n64 mr[1048576];              // mrundikano wa operandi
+n64 mr_juu = 0;
+n64 vg[1048576];              // vigeu vya fremu zote
+n64 vg_juu = 0;
+n32 ud_aina[65536];           // udhibiti: 2 block, 3 loop, 4 if
+n64 ud_pc[65536];             // loop: pc ya mwanzo; vingine: pc ya 'end'
+n64 ud_kimo[65536];           // urefu wa mrundikano wakati wa kuingia
+n32 ud_matokeo[65536];
+n32 ud_juu = 0;
+n32 kina_cha_wito = 0;
+
+w0 sukuma(n64 v) {
+    kama (mr_juu >= 1048576) { shindwa("mrundikano wa operandi umejaa"); }
+    mr[mr_juu] = v;
+    mr_juu = mr_juu + 1;
+}
+
+n64 vuta() {
+    kama (mr_juu <= 0) { shindwa("mrundikano wa operandi ni mtupu"); }
+    mr_juu = mr_juu - 1;
+    rudisha mr[mr_juu];
+}
+
+n64 anwani_ya(n64 msingi_wa_anwani, n64 umbali, n64 upana) {
+    n64 a = bila_ishara(msingi_wa_anwani) + umbali;
+    kama (a + upana > kurasa * 65536) { shindwa("ufikiaji wa kumbukumbu nje ya mipaka"); }
+    rudisha a;
+}
+
+n64 soma32(n64 a) {
+    rudisha kawaida((kumbukumbu[a] & 255) | ((kumbukumbu[a + 1] & 255) << 8) | ((kumbukumbu[a + 2] & 255) << 16) | ((kumbukumbu[a + 3] & 255) << 24));
+}
+
+w0 andika32(n64 a, n64 v) {
+    kumbukumbu[a] = v & 255;
+    kumbukumbu[a + 1] = (v >> 8) & 255;
+    kumbukumbu[a + 2] = (v >> 16) & 255;
+    kumbukumbu[a + 3] = (v >> 24) & 255;
+}
+
+n32 matokeo_ya_ubeti(n32 b) {
+    kama (b == 64) { rudisha 0; }
+    kama (b == 127) { rudisha 1; }
+    shindwa("aina ya ubeti isiyosaidiwa");
+    rudisha 0;
+}
+
+// br kina: hurudisha pc mpya
+n64 ruka_kwa_kina(n64 kina, n32 ud_msingi) {
+    n32 lengo = ud_juu - 1 - kina;
+    kama (lengo < ud_msingi) { shindwa("br nje ya kazi"); }
+    kama (ud_aina[lengo] == 3) {
+        mr_juu = ud_kimo[lengo];
+        ud_juu = lengo + 1;
+        rudisha ud_pc[lengo];
+    }
+    n64 thamani = 0;
+    kama (ud_matokeo[lengo] == 1) { thamani = vuta(); }
+    mr_juu = ud_kimo[lengo];
+    kama (ud_matokeo[lengo] == 1) { sukuma(thamani); }
+    ud_juu = lengo;
+    rudisha ud_pc[lengo] + 1;
+}
+
+n64 endesha_kazi(n32 f) {
+    kama (kina_cha_wito > 2000) { shindwa("kujirudia kwa kina mno"); }
+    n32 t = kazi_aina[f];
+    n32 hoja = aina_hoja[t];
+    n32 idadi_ya_matokeo = aina_matokeo[t];
+    kama (kazi_mwenyeji[f] > 0) {
+        n64 h[8];
+        n32 i = hoja - 1;
+        wakati (i >= 0) { h[i] = vuta(); i = i - 1; }
+        n64 v = mwenyeji(kazi_mwenyeji[f], h);
+        kama (idadi_ya_matokeo == 1) { sukuma(kawaida(v)); }
+        rudisha 0;
+    }
+    kina_cha_wito = kina_cha_wito + 1;
+    n64 fremu = vg_juu;
+    n32 jumla = hoja + kazi_vigeu[f];
+    kama (vg_juu + jumla >= 1048576) { shindwa("vigeu vimejaa"); }
+    n32 i = hoja - 1;
+    wakati (i >= 0) { vg[fremu + i] = vuta(); i = i - 1; }
+    i = hoja;
+    wakati (i < jumla) { vg[fremu + i] = 0; i = i + 1; }
+    vg_juu = vg_juu + jumla;
+    n64 kimo_cha_kazi = mr_juu;
+    n32 ud_msingi = ud_juu;
+    n64 pc = kazi_mwanzo[f];
+    n64 mwisho = kazi_mwisho[f];
+    wakati (pc < mwisho) {
+        n32 op = moduli[pc] & 255;
+        pc = pc + 1;
+        kama (op == 32) { n64 x = soma_leb_a(pc); pc = pc_ya_leb; sukuma(vg[fremu + x]); endelea; }
+        kama (op == 33) { n64 x = soma_leb_a(pc); pc = pc_ya_leb; vg[fremu + x] = vuta(); endelea; }
+        kama (op == 34) { n64 x = soma_leb_a(pc); pc = pc_ya_leb; vg[fremu + x] = mr[mr_juu - 1]; endelea; }
+        kama (op == 65) { n64 x = soma_leb_n(pc); pc = pc_ya_leb; sukuma(kawaida(x)); endelea; }
+        kama (op >= 70 && op <= 79) {
+            n64 b = vuta(); n64 a = vuta(); n64 r = 0;
+            n64 ua = bila_ishara(a); n64 ub = bila_ishara(b);
+            kama (op == 70) { r = a == b; }
+            kama (op == 71) { r = a != b; }
+            kama (op == 72) { r = a < b; }
+            kama (op == 73) { r = ua < ub; }
+            kama (op == 74) { r = a > b; }
+            kama (op == 75) { r = ua > ub; }
+            kama (op == 76) { r = a <= b; }
+            kama (op == 77) { r = ua <= ub; }
+            kama (op == 78) { r = a >= b; }
+            kama (op == 79) { r = ua >= ub; }
+            sukuma(r);
+            endelea;
+        }
+        kama (op >= 106 && op <= 120) {
+            n64 b = vuta(); n64 a = vuta(); n64 r = 0;
+            kama (op == 106) { r = a + b; }
+            kama (op == 107) { r = a - b; }
+            kama (op == 108) { r = (a * b) & KINYAGO_32; }
+            kama (op == 109) {
+                kama (b == 0) { shindwa("mtego: kugawanya kwa sifuri"); }
+                kama (a == 0 - BITI_31 && b == -1) { shindwa("mtego: kufurika kwa kugawanya"); }
+                r = a / b;
+            }
+            kama (op == 110) { kama (b == 0) { shindwa("mtego: kugawanya kwa sifuri"); } r = bila_ishara(a) / bila_ishara(b); }
+            kama (op == 111) { kama (b == 0) { shindwa("mtego: baki kwa sifuri"); } kama (b == -1) { r = 0; } sivyo { r = a % b; } }
+            kama (op == 112) { kama (b == 0) { shindwa("mtego: baki kwa sifuri"); } r = bila_ishara(a) % bila_ishara(b); }
+            kama (op == 113) { r = a & b; }
+            kama (op == 114) { r = a | b; }
+            kama (op == 115) { r = a ^ b; }
+            kama (op == 116) { r = bila_ishara(a) << (b & 31); }
+            kama (op == 117) { r = a >> (b & 31); }
+            kama (op == 118) { r = bila_ishara(a) >> (b & 31); }
+            kama (op == 119) { n64 s = b & 31; r = (bila_ishara(a) << s) | (bila_ishara(a) >> ((32 - s) & 31)); kama (s == 0) { r = a; } }
+            kama (op == 120) { n64 s = b & 31; r = (bila_ishara(a) >> s) | (bila_ishara(a) << ((32 - s) & 31)); kama (s == 0) { r = a; } }
+            sukuma(kawaida(r));
+            endelea;
+        }
+        kama (op == 69) { sukuma(vuta() == 0); endelea; }
+        kama (op == 40 || op == 44 || op == 45 || op == 46 || op == 47) {
+            soma_leb_a(pc); n64 umbali = soma_leb_a(pc_ya_leb); pc = pc_ya_leb;
+            n64 msingi_wa_anwani = vuta();
+            kama (op == 40) { sukuma(soma32(anwani_ya(msingi_wa_anwani, umbali, 4))); endelea; }
+            kama (op == 44) { n64 v = kumbukumbu[anwani_ya(msingi_wa_anwani, umbali, 1)] & 255; kama (v >= 128) { v = v - 256; } sukuma(v); endelea; }
+            kama (op == 45) { sukuma(kumbukumbu[anwani_ya(msingi_wa_anwani, umbali, 1)] & 255); endelea; }
+            n64 a = anwani_ya(msingi_wa_anwani, umbali, 2);
+            n64 v = (kumbukumbu[a] & 255) | ((kumbukumbu[a + 1] & 255) << 8);
+            kama (op == 46 && v >= 32768) { v = v - 65536; }
+            sukuma(v);
+            endelea;
+        }
+        kama (op == 54 || op == 58 || op == 59) {
+            soma_leb_a(pc); n64 umbali = soma_leb_a(pc_ya_leb); pc = pc_ya_leb;
+            n64 v = vuta();
+            n64 msingi_wa_anwani = vuta();
+            kama (op == 54) { andika32(anwani_ya(msingi_wa_anwani, umbali, 4), v); endelea; }
+            kama (op == 58) { kumbukumbu[anwani_ya(msingi_wa_anwani, umbali, 1)] = v & 255; endelea; }
+            n64 a = anwani_ya(msingi_wa_anwani, umbali, 2);
+            kumbukumbu[a] = v & 255;
+            kumbukumbu[a + 1] = (v >> 8) & 255;
+            endelea;
+        }
+        kama (op == 2 || op == 3 || op == 4) {
+            n64 mwanzo_wa_ubeti = pc - 1;
+            n32 matokeo_ya_huu = matokeo_ya_ubeti(moduli[pc] & 255);
+            pc = pc + 1;
+            kama (ud_juu >= 65536) { shindwa("viota vya udhibiti vingi mno"); }
+            ud_aina[ud_juu] = op;
+            ud_matokeo[ud_juu] = matokeo_ya_huu;
+            kama (op == 3) { ud_pc[ud_juu] = pc; } sivyo { ud_pc[ud_juu] = mwisho_wa[mwanzo_wa_ubeti]; }
+            kama (op == 4) {
+                n64 sharti = vuta();
+                ud_kimo[ud_juu] = mr_juu;
+                ud_juu = ud_juu + 1;
+                kama (sharti == 0) {
+                    kama (sivyo_wa[mwanzo_wa_ubeti] >= 0) {
+                        pc = sivyo_wa[mwanzo_wa_ubeti] + 1;
+                    } sivyo {
+                        ud_juu = ud_juu - 1;
+                        pc = mwisho_wa[mwanzo_wa_ubeti] + 1;
+                    }
+                }
+                endelea;
+            }
+            ud_kimo[ud_juu] = mr_juu;
+            ud_juu = ud_juu + 1;
+            endelea;
+        }
+        kama (op == 5) {                              // 'else' ikifikiwa kutoka 'then'
+            ud_juu = ud_juu - 1;
+            pc = ud_pc[ud_juu] + 1;
+            endelea;
+        }
+        kama (op == 11) {                             // end
+            kama (ud_juu > ud_msingi) { ud_juu = ud_juu - 1; endelea; }
+            acha;                                     // mwisho wa kazi
+        }
+        kama (op == 12) { n64 k = soma_leb_a(pc); pc = ruka_kwa_kina(k, ud_msingi); endelea; }
+        kama (op == 13) {
+            n64 k = soma_leb_a(pc); pc = pc_ya_leb;
+            kama (vuta() != 0) { pc = ruka_kwa_kina(k, ud_msingi); }
+            endelea;
+        }
+        kama (op == 14) {
+            n64 n = soma_leb_a(pc); pc = pc_ya_leb;
+            n64 i_chagua = bila_ishara(vuta());
+            n64 lengo = 0;
+            n64 j = 0;
+            wakati (j <= n) {
+                n64 k = soma_leb_a(pc); pc = pc_ya_leb;
+                kama (j == i_chagua || (j == n && i_chagua >= n)) { lengo = k; kama (j == i_chagua) { j = n; } }
+                j = j + 1;
+            }
+            pc = ruka_kwa_kina(lengo, ud_msingi);
+            endelea;
+        }
+        kama (op == 15) { acha; }                     // return
+        kama (op == 16) {
+            n64 g = soma_leb_a(pc); pc = pc_ya_leb;
+            kama (g >= kazi_idadi) { shindwa("call kwa kazi isiyokuwepo"); }
+            endesha_kazi(g);
+            endelea;
+        }
+        kama (op == 26) { vuta(); endelea; }
+        kama (op == 27) { n64 s = vuta(); n64 b = vuta(); n64 a = vuta(); kama (s != 0) { sukuma(a); } sivyo { sukuma(b); } endelea; }
+        kama (op == 35) { n64 x = soma_leb_a(pc); pc = pc_ya_leb; sukuma(ulimwengu[x]); endelea; }
+        kama (op == 36) { n64 x = soma_leb_a(pc); pc = pc_ya_leb; ulimwengu[x] = vuta(); endelea; }
+        kama (op == 63) { pc = pc + 1; sukuma(kurasa); endelea; }
+        kama (op == 64) {
+            pc = pc + 1;
+            n64 ziada = bila_ishara(vuta());
+            kama (kurasa + ziada > kurasa_upeo) { sukuma(-1); } sivyo {
+                weka_sifuri(kumbukumbu + kurasa * 65536, ziada * 65536);
+                sukuma(kurasa);
+                kurasa = kurasa + ziada;
+            }
+            endelea;
+        }
+        kama (op == 0) { shindwa("mtego: unreachable"); }
+        kama (op == 1) { endelea; }
+        andika_kosa("opkodi %d kwenye pc %d\n", op, pc - 1, 0, 0, 0, 0);
+        shindwa("opkodi isiyosaidiwa");
+    }
+    // rudisha: matokeo juu, mrundikano wa kazi urejeshwe
+    n64 thamani = 0;
+    kama (idadi_ya_matokeo == 1) { thamani = vuta(); }
+    mr_juu = kimo_cha_kazi;
+    kama (idadi_ya_matokeo == 1) { sukuma(thamani); }
+    ud_juu = ud_msingi;
+    vg_juu = fremu;
+    kina_cha_wito = kina_cha_wito - 1;
+    rudisha 0;
+}
+
+// ------------------------------------------------------------ matukio na mti
+n32 chochea(n32 el, n8* tukio) {
+    kama (el < 0 || el >= idadi_ya_el) { rudisha 0; }
+    n32 idadi = 0;
+    n32 i = 0;
+    n32 jumla = el_idadi_msik[el];
+    wakati (i < jumla) {
+        kama (linganisha_mfuatano(mf(el_msik_tukio[el * 16 + i]), tukio) == 0) {
+            n32 k = el_msik_kazi[el * 16 + i];
+            kama (k < 0 || k >= ukubwa_wa_jedwali) { shindwa("kazi ya mrejesho nje ya jedwali"); }
+            n32 f = jedwali[k];
+            n32 h = shika(8, (mfuatano_mpya(tukio, urefu_wa_mfuatano(tukio)) << 16) | el);
+            n32 t = kazi_aina[f];
+            kama (aina_hoja[t] >= 1) { sukuma(h); }
+            n32 j = 1;
+            wakati (j < aina_hoja[t]) { sukuma(0); j = j + 1; }
+            n64 kimo = mr_juu - aina_hoja[t];
+            endesha_kazi(f);
+            mr_juu = kimo;
+            achilia_kishiko(h);
+            idadi = idadi + 1;
+        }
+        i = i + 1;
+    }
+    rudisha idadi;
+}
+
+n8 json[1048576];
+n64 json_wapi = 0;
+
+w0 j_herufi(n64 c) { andika_herufi_kwenye_chombo(json, 1048576, &json_wapi, c); }
+w0 j_maandishi(n8* s) { andika_mfuatano_kwenye_chombo(json, 1048576, &json_wapi, s); }
+
+// Mfuatano wa JSON kama JSON.stringify
+w0 j_mfuatano(n8* s) {
+    j_herufi(34);
+    n64 i = 0;
+    wakati (s[i] != 0) {
+        n64 c = s[i] & 255;
+        kama (c == 34 || c == 92) { j_herufi(92); j_herufi(c); }
+        sivyo { kama (c == 10) { j_herufi(92); j_herufi(110); }
+        sivyo { kama (c == 9) { j_herufi(92); j_herufi(116); }
+        sivyo { kama (c == 13) { j_herufi(92); j_herufi(114); }
+        sivyo { kama (c < 32) {
+            j_maandishi("\u00");
+            andika_herufi_kwenye_chombo(json, 1048576, &json_wapi, 48 + c / 16);
+            n64 d = c % 16;
+            kama (d < 10) { j_herufi(48 + d); } sivyo { j_herufi(87 + d); }
+        } sivyo { j_herufi(c); } } } } }
+        i = i + 1;
+    }
+    j_herufi(34);
+}
+
+w0 j_ufunguo(n8* jina) { j_mfuatano(jina); j_herufi(58); }
+
+w0 andika_mti(n32 e) {
+    j_herufi(123);
+    j_ufunguo("tag"); j_mfuatano(mf(el_tagi[e])); j_herufi(44);
+    j_ufunguo("attrs"); j_herufi(123);
+    n32 i = 0;
+    wakati (i < el_idadi_sifa[e]) {
+        kama (i > 0) { j_herufi(44); }
+        j_ufunguo(mf(el_sifa_jina[e * 16 + i]));
+        j_mfuatano(mf(el_sifa_thamani[e * 16 + i]));
+        i = i + 1;
+    }
+    j_herufi(125); j_herufi(44);
+    j_ufunguo("text"); j_mfuatano(mf(el_maandishi[e])); j_herufi(44);
+    j_ufunguo("watoto"); j_herufi(91);
+    i = 0;
+    wakati (i < el_idadi_watoto[e]) {
+        kama (i > 0) { j_herufi(44); }
+        andika_mti(el_watoto[e * 64 + i]);
+        i = i + 1;
+    }
+    j_herufi(93);
+    j_herufi(125);
+}
+
+// ------------------------------------------------------------ JSON tarajiwa (sehemu ndogo)
+n8 tj[1048576];
+n64 tj_urefu = 0;
+
+n64 ruka_nafasi(n64 i) {
+    wakati (i < tj_urefu && (tj[i] == 32 || tj[i] == 10 || tj[i] == 13 || tj[i] == 9)) { i = i + 1; }
+    rudisha i;
+}
+
+n64 mwisho_wa_mfuatano_json(n64 i) {   // i iko kwenye '"'
+    i = i + 1;
+    wakati (i < tj_urefu && tj[i] != 34) {
+        kama (tj[i] == 92) { i = i + 1; }
+        i = i + 1;
+    }
+    kama (i >= tj_urefu) { shindwa("JSON tarajiwa: mfuatano haukuisha"); }
+    rudisha i + 1;
+}
+
+// Ruka thamani moja ya JSON; hurudisha nafasi baada yake.
+n64 ruka_thamani(n64 i) {
+    i = ruka_nafasi(i);
+    kama (tj[i] == 34) { rudisha mwisho_wa_mfuatano_json(i); }
+    kama (tj[i] == 123 || tj[i] == 91) {
+        n32 kina = 0;
+        wakati (i < tj_urefu) {
+            kama (tj[i] == 34) { i = mwisho_wa_mfuatano_json(i); endelea; }
+            kama (tj[i] == 123 || tj[i] == 91) { kina = kina + 1; }
+            kama (tj[i] == 125 || tj[i] == 93) { kina = kina - 1; kama (kina == 0) { rudisha i + 1; } }
+            i = i + 1;
+        }
+        shindwa("JSON tarajiwa: haikuisha");
+    }
+    wakati (i < tj_urefu && tj[i] != 44 && tj[i] != 125 && tj[i] != 93 && tj[i] != 32 && tj[i] != 10) { i = i + 1; }
+    rudisha i;
+}
+
+// JSON.stringify ya kipande [a, b): ondoa nafasi nje ya mifuatano
+w0 ongeza_kwa_ufupi(n8* lengwa, n64* n, n64 a, n64 b) {
+    n64 i = a;
+    wakati (i < b) {
+        kama (tj[i] == 34) {
+            n64 m = mwisho_wa_mfuatano_json(i);
+            wakati (i < m) { lengwa[n[0]] = tj[i]; n[0] = n[0] + 1; i = i + 1; }
+            endelea;
+        }
+        kama (tj[i] != 32 && tj[i] != 10 && tj[i] != 13 && tj[i] != 9) { lengwa[n[0]] = tj[i]; n[0] = n[0] + 1; }
+        i = i + 1;
+    }
+    lengwa[n[0]] = 0;
+}
+
+n8 tarajiwa_mti[1048576];
+n64 urefu_wa_tarajiwa_mti = 0;
+
+w0 kisa_dom(n8* njia_ya_json) {
+    tj_urefu = faili_soma_yote(njia_ya_json, tj, 1048575);
+    kama (tj_urefu < 0) {
+        n8* njia2 = tenga(512);
+        unganisha_mfuatano(njia2, "majaribio/wasm/", njia_ya_json);
+        tj_urefu = faili_soma_yote(njia2, tj, 1048575);
+    }
+    kama (tj_urefu < 0) { shindwa("faili la mti tarajiwa halisomeki"); }
+    n64 i = ruka_nafasi(0);
+    n64 mti_a = i;
+    n64 mti_b = ruka_thamani(i);
+    // {"chochea": [...], "mti": {...}} ?
+    kama (tj[i] == 123) {
+        n64 k = ruka_nafasi(i + 1);
+        n64 p = k;
+        n32 ina_mti = 0;
+        wakati (p < tj_urefu && tj[p] == 34) {
+            n64 mwisho_wa_ufunguo = mwisho_wa_mfuatano_json(p);
+            n32 ni_chochea = (mwisho_wa_ufunguo - p == 9 && linganisha_mfuatano_n(tj + p + 1, "chochea", 7) == 0);
+            n32 ni_mti = (mwisho_wa_ufunguo - p == 5 && linganisha_mfuatano_n(tj + p + 1, "mti", 3) == 0);
+            p = ruka_nafasi(mwisho_wa_ufunguo);
+            kama (tj[p] != 58) { acha; }
+            p = ruka_nafasi(p + 1);
+            n64 mwisho_wa_thamani = ruka_thamani(p);
+            kama (ni_mti) { mti_a = p; mti_b = mwisho_wa_thamani; ina_mti = 1; }
+            kama (ni_chochea) {
+                // [[n, "tukio"], ...]
+                n64 q = ruka_nafasi(p + 1);
+                wakati (q < mwisho_wa_thamani && tj[q] == 91) {
+                    q = ruka_nafasi(q + 1);
+                    n64 nodi = mfuatano_hadi_n64(tj + q);
+                    wakati (tj[q] != 44) { q = q + 1; }
+                    q = ruka_nafasi(q + 1);
+                    n64 m = mwisho_wa_mfuatano_json(q);
+                    n8* tukio = tenga(m - q);
+                    nakili(tukio, tj + q + 1, m - q - 2);
+                    tukio[m - q - 2] = 0;
+                    kama (chochea(nodi, tukio) == 0) {
+                        andika_kosa("nodi %d, tukio '%s'\n", nodi, tukio, 0, 0, 0, 0);
+                        shindwa("hakuna msikilizaji wa tukio");
+                    }
+                    q = ruka_nafasi(m);
+                    wakati (q < mwisho_wa_thamani && tj[q] != 91) { q = q + 1; }
+                }
+            }
+            p = ruka_nafasi(mwisho_wa_thamani);
+            kama (tj[p] == 44) { p = ruka_nafasi(p + 1); }
+        }
+        kama (ina_mti == 0) { mti_a = i; mti_b = ruka_thamani(i); }
+    }
+    ongeza_kwa_ufupi(tarajiwa_mti, &urefu_wa_tarajiwa_mti, mti_a, mti_b);
+    json_wapi = 0;
+    andika_mti(0);
+    json[json_wapi] = 0;
+    kama (linganisha_mfuatano(json, tarajiwa_mti) != 0) {
+        andika_kosa("  tarajiwa=%s\n  halisi=  %s\n", tarajiwa_mti, json, 0, 0, 0, 0);
+        shindwa("mti wa DOM si sawa");
+    }
+}
+
+n32 anza(n32 idadi_ya_hoja, n8** hoja_za_mstari) {
+    kama (idadi_ya_hoja < 3) { shindwa("matumizi: kimbiza <faili.wasm> <tarajiwa> [aina]"); }
+    n8* njia = hoja_za_mstari[1];
+    n8* tarajiwa = hoja_za_mstari[2];
+    n8* aina = "namba";
+    kama (idadi_ya_hoja > 3) { aina = hoja_za_mstari[3]; }
+
+    andaa_namba();
+    urefu_wa_moduli = faili_soma_yote(njia, moduli, 2097151);
+    kama (urefu_wa_moduli < 0) { shindwa("faili la WASM halifunguki"); }
+    changanua_moduli();
+
+    // nodi kuu: elementi 0, kishiko 1
+    elementi_mpya(mfuatano_mpya("#nodi_kuu", 9));
+    ksh_aina[1] = 1;
+    ksh_thamani[1] = 0;
+
+    endesha_kazi(kazi_ya_anza);
+    n64 matokeo = 0;
+    kama (aina_matokeo[kazi_aina[kazi_ya_anza]] == 1) { matokeo = vuta(); }
+
+    kama (linganisha_mfuatano(aina, "dom") == 0) { kisa_dom(tarajiwa); rudisha 0; }
+    kama (linganisha_mfuatano(aina, "namba") == 0) {
+        n64 t = mfuatano_hadi_n64(tarajiwa);
+        kama (matokeo != t) {
+            andika_kosa("tarajiwa=%d halisi=%d\n", t, matokeo, 0, 0, 0, 0);
+            shindwa("matokeo si sawa");
+        }
+        rudisha 0;
+    }
+    kama (linganisha_mfuatano(aina, "mfuatano") == 0) {
+        n8* s = mfuatano_kutoka_kumbukumbu(matokeo);
+        kama (linganisha_mfuatano(s, tarajiwa) != 0) {
+            andika_kosa("tarajiwa='%s' halisi='%s'\n", tarajiwa, s, 0, 0, 0, 0);
+            shindwa("mfuatano si sawa");
+        }
+        rudisha 0;
+    }
+    kama (linganisha_mfuatano(aina, "safu") == 0) {
+        n8* p = tarajiwa;
+        n64 i = 0;
+        wakati (1 == 1) {
+            n64 t = mfuatano_hadi_n64(p);
+            n64 h = soma32(anwani_ya(matokeo, i * 4, 4));
+            kama (h != t) {
+                andika_kosa("kipengele %d: tarajiwa=%d halisi=%d\n", i, t, h, 0, 0, 0);
+                shindwa("safu si sawa");
+            }
+            wakati (p[0] != 0 && p[0] != 44) { p = p + 1; }
+            kama (p[0] == 0) { acha; }
+            p = p + 1;
+            i = i + 1;
+        }
+        rudisha 0;
+    }
+    shindwa("aina isiyojulikana (namba, mfuatano, safu, dom)");
+    rudisha 1;
+}
