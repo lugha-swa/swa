@@ -225,6 +225,15 @@ kiolesura kipo, lakini kina umbo la `syscall/js` ya Go na `wasm_exec.js`:
   `mfuatano`, `namba`, `kwa_namba`, `kazi` (kazi ya Swa kama kazi ya
   kurudi), `achilia`, `nodi_kuu`. Halina mantiki ya programu; ni sawa kwa
   kila programu, kama utangulizi wa ELF.
+- **Kianzio kilichogandishwa.** Baiti za `swa-js.js` zimehifadhiwa kwenye
+  `msingi/swa-js.js`, na `gharama/jaribu-wasm.mapishi` hukataa ikiwa
+  `swa --wasm-js` itatoa kitu tofauti -- kama `kwanza.bin` kwa msimbo wa
+  mashine, ndicho kipande pekee kisicho Swa kati ya kivinjari na programu,
+  na ni kidogo vya kutosha kusomwa chote kwa mara moja (mistari 71).
+- **Ukurasa usio na JS.** Kianzio hujianzisha kutoka kwenye tagi yake:
+  `<script src="swa-js.js" data-swa="p.wasm" data-nodi="kitambulisho">`.
+  Ukurasa ukiwa bado unapakiwa husubiri `DOMContentLoaded`. `anzishaSwa`
+  inabaki kwa wanaohitaji uingizaji wa ziada.
 - **`nje` ni uingizaji wa WASM.** `nje "js" { n32 js_pata(n32 kitu, n8* sifa) = "pata"; }`
   huwa uingizaji (moduli `js`, alama `pata`). Moduli nyingine yoyote
   (mf. `wasi_snapshot_preview1`) hufanya kazi vivyo hivyo; mwenyeji
