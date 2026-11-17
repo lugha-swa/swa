@@ -38,19 +38,19 @@ n32 msimbo_umefurika = 0;
 // umeongezwa kwenye kila eneo la uandishi.
 n8 chombo_cha_data[2097152];
 n32 chombo_cha_data_wapi = 0;
-n32 umbali_wa_data_ya_ulimwengu[1024];
-n32 ukubwa_wa_data_ya_ulimwengu[1024];
-n32 umbali_wa_jina_la_data_ya_ulimwengu[1024];
-n32 usimbaji_wa_data_ya_ulimwengu[1024];  // usimbaji wa aina kwa upakiaji sahihi
-n32 data_ulimwengu_ni_safu[1024];  // 1 = safu (upakiaji unatumia LEA ya anwani)
-n32 data_ya_ulimwengu_iko_tupu[1024];  // 1 = hakuna kianzio, kigezo kinaenda .bss
+n32 umbali_wa_data_ya_ulimwengu[65536];
+n32 ukubwa_wa_data_ya_ulimwengu[65536];
+n32 umbali_wa_jina_la_data_ya_ulimwengu[65536];
+n32 usimbaji_wa_data_ya_ulimwengu[65536];  // usimbaji wa aina kwa upakiaji sahihi
+n32 data_ulimwengu_ni_safu[65536];  // 1 = safu (upakiaji unatumia LEA ya anwani)
+n32 data_ya_ulimwengu_iko_tupu[65536];  // 1 = hakuna kianzio, kigezo kinaenda .bss
 // Idadi ya vipengele vilivyotangazwa vya safu (mfano n8 x[131072] -> 131072).
 // Inatumika na urefu(x) (angalia uzalishaji_wito) -- lugha-swa/swa#197
 // ilitokea kwa sababu ukubwa wa safu na namba ya ukaguzi wa kufurika
 // zilikuwa namba mbili zilizowekwa kwa mkono zinazopaswa kuendana;
 // urefu(x) inaruhusu namba ya pili kutokana moja kwa moja kutoka
 // tangazo la safu badala ya kunakiliwa kwa mkono.
-n32 data_ulimwengu_idadi_ya_kipengele[1024];
+n32 data_ulimwengu_idadi_ya_kipengele[65536];
 n32 idadi_ya_data_ya_ulimwengu = 0;
 n32 tupu_wapi = 0;
 
@@ -10201,8 +10201,8 @@ w0 kigeni_andaa(n32 nodi_ya_programu, n32 hali_ya_towe) {
             }
             j = j + 1;
         }
-        kama (idadi_ya_data_ya_ulimwengu >= 1024) {
-            andika_kosa("KOSA: jedwali la data la ulimwengu (data_ulimwengu_*) limejaa (kikomo 1024)\n");
+        kama (idadi_ya_data_ya_ulimwengu >= 65536) {
+            andika_kosa("KOSA: jedwali la data la ulimwengu (data_ulimwengu_*) limejaa (kikomo 65536)\n");
             wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
         }
         // Sloti: kigezo cha ulimwengu kisicho na jina (umbali 0 ya
@@ -10315,6 +10315,12 @@ w0 kigeni_andika_maelezo_ya_kipande(n32 aina, n32 machaguo, n32 umbali, n32 anwa
 // Baada ya .text kukamilika: jedwali la kiungo-hai mwishoni mwa .data.
 // Anwani zote ni za kudumu (ET_EXEC kwenye 0x400000): .data huanza
 // 0x400078 + ukubwa wa msimbo, na faili zima ni PT_LOAD moja.
+// Umbali wa majina ndani ya .strtab: kwa kila kazi (hadi 65536, sawa na
+// jina_la_mahali) na kila kigezo cha ulimwengu (hadi 65536). Zilikuwa safu
+// za ndani za 1024, zilizofurika kimya kwenye programu yenye kazi zaidi.
+n32 umbali_wa_mahali_kwenye_jedwali_la_majina[65536];
+n32 umbali_wa_data_kwenye_jedwali_la_majina[65536];
+
 w0 kigeni_andika_jedwali(n32 ukubwa_wa_msimbo, n32 ukubwa_wa_tupu) {
     kama (kigeni_idadi_ya_kazi + kigeni_idadi_ya_data == 0) { rudisha; }
     n32 anwani_pepe_ya_data = 4194424 + ukubwa_wa_msimbo;
@@ -10539,16 +10545,16 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
     // 0b. Kusanya vigezo vya ulimwengu (pre-scan)
     n32 gn = nodi_ya_kushoto[nodi_ya_programu];
     wakati (gn != -1) {
-        kama (aina_ya_nodi[gn] == 35 && idadi_ya_data_ya_ulimwengu >= 1024) {  // NODI_TANGAZO_ULIMWENGU
+        kama (aina_ya_nodi[gn] == 35 && idadi_ya_data_ya_ulimwengu >= 65536) {  // NODI_TANGAZO_ULIMWENGU
             // lugha-swa/swa#298 -- kuendelea kimya hapa kungeacha
             // kigezo hiki cha ulimwengu bila kutolewa KABISA (hakuna
             // nafasi ya .data/.bss), huku matumizi yake kwenye msimbo
             // yakiendelea kuandikwa kana kwamba kipo -- ufikiaji wa
             // kumbukumbu YA UONGO kimya.
-            andika_kosa("KOSA: jedwali la data la ulimwengu (data_ulimwengu_*) limejaa (kikomo 1024)\n");
+            andika_kosa("KOSA: jedwali la data la ulimwengu (data_ulimwengu_*) limejaa (kikomo 65536)\n");
             wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
         }
-        kama (aina_ya_nodi[gn] == 35 && idadi_ya_data_ya_ulimwengu < 1024) {  // NODI_TANGAZO_ULIMWENGU
+        kama (aina_ya_nodi[gn] == 35 && idadi_ya_data_ya_ulimwengu < 65536) {  // NODI_TANGAZO_ULIMWENGU
             n32 nodi_ya_jina = nodi_ya_kushoto[gn];
             n32 usimbaji = thamani_ya_nodi[gn];  // usimbaji wa aina (sasa umejaa!)
             // Ukubwa wa kipengele unakokotolewa KABLA ya kuongeza mshale
@@ -10799,11 +10805,9 @@ w0 uzalishaji_kuu(n32 nodi_ya_programu, n32 hali_ya_towe) {
 
     // .strtab: "\0" + majina ya kazi + majina ya vigeu vya ulimwengu + majina ya nje
     n32 hesabu_ya_jedwali_la_majina = 1;  // "\0"
-    n32 umbali_wa_mahali_kwenye_jedwali_la_majina[1024];
     n32 si = 0;
     wakati (si < idadi_ya_mahali) { umbali_wa_mahali_kwenye_jedwali_la_majina[si] = hesabu_ya_jedwali_la_majina; hesabu_ya_jedwali_la_majina = hesabu_ya_jedwali_la_majina + urefu_wa_jina(jina_la_mahali[si]) + 1; si = si + 1; }
     // Majina ya vigezo vya ulimwengu (kati ya kazi na nje)
-    n32 umbali_wa_data_kwenye_jedwali_la_majina[1024];
     si = 0;
     wakati (si < idadi_ya_data_ya_ulimwengu) {
         umbali_wa_data_kwenye_jedwali_la_majina[si] = hesabu_ya_jedwali_la_majina;
