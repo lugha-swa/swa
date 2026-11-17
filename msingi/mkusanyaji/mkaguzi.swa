@@ -216,14 +216,15 @@ n32 mkaguzi_mpaka_wa_desimali(n32 a, n32 b) {
 // haiandikwi kwa muundo usiopatikana kwenye akiba, kwa hiyo uzalishaji
 // hutumia thamani ya zamani/isiyoanzishwa) -- angalia
 // lugha-swa/swa#189. 1024 inaendana na jedwali dada kwenye faili
-// hili (kazi_jina_off[1024], global_jina_off[1024], na kadhalika).
+// hili (kazi_jina_off[1024], na kadhalika). Jedwali la vigezo vya
+// ulimwengu ni 65536, sawa na mteremko.swa (kati_*_cha_ulimwengu).
 n32 nodi_ya_muundo[1024];
 n32 idadi_ya_miundo = 0;
 
 // Jedwali la vigezo vya ulimwengu (jina + aina) kwa utatuzi wa majina
 n8* ghala_la_majina_ya_ulimwengu;
-n32 umbali_wa_jina_la_ulimwengu[1024];
-n32 aina_ya_ulimwengu[1024];
+n32 umbali_wa_jina_la_ulimwengu[65536];
+n32 aina_ya_ulimwengu[65536];
 n32 idadi_ya_vigeu_vya_ulimwengu = 0;
 
 // Alama ya muktadha: hoja ya ukubwa(...) inayokaguliwa SASA hivi
@@ -301,7 +302,7 @@ n32 mkaguzi_angalia(n32 nodi_ya_programu) {
     n32 gn = nodi_ya_kushoto[nodi_ya_programu];
     wakati (gn != -1) {
         kama (aina_ya_nodi[gn] == 35) {
-            kama (idadi_ya_vigeu_vya_ulimwengu < 1024) {
+            kama (idadi_ya_vigeu_vya_ulimwengu < 65536) {
                 umbali_wa_jina_la_ulimwengu[idadi_ya_vigeu_vya_ulimwengu] = umbali_wa_jina_la_nodi[nodi_ya_kushoto[gn]];
                 n32 usimbaji_wa_ulimwengu = thamani_ya_nodi[gn];
                 // Safu: usemi unapaswa kuiona kama kielekezi (anwani ya msingi)
@@ -309,7 +310,7 @@ n32 mkaguzi_angalia(n32 nodi_ya_programu) {
                 aina_ya_ulimwengu[idadi_ya_vigeu_vya_ulimwengu] = usimbaji_wa_ulimwengu;
                 idadi_ya_vigeu_vya_ulimwengu = idadi_ya_vigeu_vya_ulimwengu + 1;
             } sivyo {
-                andika_kosa("KOSA: jedwali la vigezo vya ulimwengu (global_idadi) limejaa (kikomo 1024) -- mradi una vigezo vya ulimwengu vingi mno\n");
+                andika_kosa("KOSA: jedwali la vigezo vya ulimwengu (global_idadi) limejaa (kikomo 65536) -- mradi una vigezo vya ulimwengu vingi mno\n");
                 mkaguzi_makosa = mkaguzi_makosa + 1;
             }
         }
