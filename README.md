@@ -116,8 +116,9 @@ Chini ya Swa yenyewe kuna lugha ya mashine ya Swa ([`hati/kusanyiko-x86.md`](hat
 |---|---|---|
 | Linux x86-64 | `bin/swa --programu p.swa > p` | ELF inayojitegemea |
 | WebAssembly | `bin/swa --wasm p.swa > p.wasm` | moduli ya `.wasm` kwa kivinjari; `bin/swa --wasm-js > swa-js.js` huandika kiolesura cha jumla, na DOM na matukio ni Swa ([`msingi/maktaba/kivinjari.swa`](msingi/maktaba/kivinjari.swa); mfano: [`mifano/kivinjari/`](mifano/kivinjari/)) |
+| Linux ARM64 | `bin/swa --arm64 p.swa > p` | ELF tuli ya AArch64 kutoka [IR ya mstari](hati/ir.md); vipande vimepangwa kwa KB 64 kwa ajili ya simu zenye kurasa za KB 16 au 64 |
 | Ring 0 | `bin/swa --kiini p.swa > p.bin` | msimbo bapa kwa [Kawira](https://github.com/lugha-swa/kawira) (kazi ya kwanza lazima iwe `anza`) |
-| IR | `bin/swa --tafsiri p.swa` / `bin/swa --kati p.swa` | tekeleza au chapisha [IR ya mstari](hati/ir.md) -- msingi wa ARM64 na Mizani |
+| IR | `bin/swa --tafsiri p.swa` / `bin/swa --kati p.swa` | tekeleza au chapisha [IR ya mstari](hati/ir.md) -- msingi wa RISC-V 64, ARM64 na Mizani |
 
 </details>
 

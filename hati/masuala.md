@@ -54,7 +54,7 @@ umehamishiwa hazina ya kumbukumbu lugha-swa/swa-dereva. Angalia
 | 2 | Maneno halisi 64-bit kwenye awali (mfululizo wa .swa umeshafanyika kwa [2^31, 2^63); halisi >= 2^63 na hoja za wito bado wazi) | wastani | wazi |
 | 3 | Viungo vya ndani (`husisha`) -- mifululizo yote miwili | wastani | wazi |
 | 4 | Mwisho wa LLVM kuwa wa kuaminika (si majaribio) | kubwa | IMEFUNGWA -- dereva kuhamishiwa lugha-swa/swa-dereva (2026-09-05) |
-| 5 | Malengo zaidi (ARM64, RISC-V) | kubwa | wazi |
+| 5 | Malengo zaidi (ARM64, RISC-V) | kubwa | awamu 1: zote mbili kutoka IR (ELF tuli ya Linux); miundo, desimali na kujikusanya bado |
 
 ## Kilichorekebishwa (Agosti 2026)
 

@@ -9,7 +9,7 @@ bin/swa --kati programu.swa                  # chapisha IR
 
 ## Kwa nini
 
-- **Sehemu za nyuma nyingi, sehemu ya mbele moja.** x86-64 (`uzalishaji.swa`) na WebAssembly (`uzalishaji_wasm.swa`) kila moja hutafsiri AST nzima. ARM64 (lugha-swa/swa#321) na Mizani (`swa --mizani`) zinapaswa kutafsiri amri hizi rahisi badala yake: miundo, upeo wa majina, `&&`/`||` za mzunguko mfupi, `kwa`/`endelea` na hesabu ya vielekezi tayari vimeteremshwa.
+- **Sehemu za nyuma nyingi, sehemu ya mbele moja.** x86-64 (`uzalishaji.swa`) na WebAssembly (`uzalishaji_wasm.swa`) kila moja hutafsiri AST nzima. RISC-V 64 (`uzalishaji_riscv64.swa`) na ARM64 (`uzalishaji_arm64.swa`) hutafsiri amri hizi rahisi badala yake, na Mizani (`swa --mizani`) itafanya vivyo hivyo: miundo, upeo wa majina, `&&`/`||` za mzunguko mfupi, `kwa`/`endelea` na hesabu ya vielekezi tayari vimeteremshwa.
 - **Mkaguzi huru.** `gharama/jaribu-ir.mapishi` huendesha kila programu ya `majaribio/ir/WIGO.txt` kama msimbo wa mashine NA kupitia IR; namba ya kutoka na stdout lazima viwe sawa kabisa. Hitilafu ya sehemu ya mbele au ya nyuma hujitokeza kama tofauti.
 - **Rejea.** Matokeo ya mtafsiri ndiyo jibu sahihi ambalo kila sehemu mpya ya nyuma lazima ilingane nalo.
 
