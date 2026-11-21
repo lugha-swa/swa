@@ -1,0 +1,649 @@
+husisha { mkusanyaji/mteremko.swa }
+husisha { mkusanyaji/uzalishaji_riscv64.swa }
+
+// uzalishaji_arm64.swa -- IR ya mstari (mteremko.swa) -> ARM64 (AArch64),
+// ELF tuli ya Linux. Maana ni ile ile ya mtafsiri.swa na ya
+// uzalishaji_riscv64.swa; tofauti ni usimbaji wa maagizo tu.
+//
+// Muundo (sawa na RISC-V 64, kwa makusudi):
+//   - kila rejista pepe ina sloti ya baiti 8 kwenye fremu: [sp + 8*v];
+//     eneo la fremu la IR (vigeu vya ndani, safu) hufuata: [sp + 8*nv + x];
+//   - hoja za wito hupita kwenye CHOMBO_CHA_HOJA; mwitwa huzinakili kwenye
+//     fremu yake mara moja anapoingia;
+//   - kazi asili 7 za IR ni msimbo mdogo wa mwenyeji unaotolewa mara moja;
+//   - ARM64 na RISC-V 64 zote hutumia namba za Linux za jumla (asm-generic),
+//     kwa hiyo mpangilio wa data, jedwali la wito wa mfumo (rv_jaza_jedwali)
+//     na anwani za data (rv_anwani_ya_data) vinatoka uzalishaji_riscv64.swa.
+//
+// Rejista zinazotumika: x0-x5 (hoja za wito wa mfumo na matokeo), x8 (namba
+// ya wito wa mfumo), x9-x11 (thamani za kazi), x12 (CHOMBO_CHA_HOJA), x13,
+// x14, x15, x16/x17 (za muda), x19/x20 (hoja za mstari za anza), x30
+// (anwani ya kurudi), sp. Rejista 31 ni sp kwa kupakia/kuhifadhi na kwa
+// kuongeza kwa namba; ni sifuri (xzr) kwa matendo ya rejista mbili.
+//
+// Kurasa za kumbukumbu: simu nyingi za ARM64 hutumia kurasa za KB 4, lakini
+// nyingine hutumia KB 16 au KB 64 -- vipande vya ELF hupangwa kwa KB 64 ili
+// faili lile lile lifanye kazi kwenye zote.
+
+n64 A64_MSIMBO_VA = 65536;          // 0x10000
+n64 A64_UPANGAJI = 65536;           // upangaji wa vipande vya ELF
+
+n8 a64_msimbo[16777216];
+n64 a64_wapi = 0;
+
+// marekebisho: aina 1 = b hadi amri ya IR, 2 = bl hadi kazi ya IR,
+// 3 = b hadi msimbo wa mwenyeji, 4 = bl hadi mwenyeji
+n64 a64_rk_nafasi[1048576];
+n32 a64_rk_aina[1048576];
+n32 a64_rk_lengo[1048576];
+n32 a64_idadi_ya_rk = 0;
+n64 a64_nafasi_ya_amri[1048576];
+n64 a64_nafasi_ya_kazi[16384];
+n64 a64_mwenyeji[16];
+
+// masharti ya ulinganisho (sehemu ya 'cond' ya b.cond na csinc)
+n64 A64_SAWA = 0;          // eq
+n64 A64_SI_SAWA = 1;       // ne
+n64 A64_JUU_SAWA_B = 2;    // hs: >= bila ishara
+n64 A64_CHINI_B = 3;       // lo: <  bila ishara
+n64 A64_JUU_B = 8;         // hi: >  bila ishara
+n64 A64_CHINI_SAWA_B = 9;  // ls: <= bila ishara
+n64 A64_JUU_SAWA = 10;     // ge
+n64 A64_CHINI = 11;        // lt
+n64 A64_JUU = 12;          // gt
+n64 A64_CHINI_SAWA = 13;   // le
+
+w0 a64_kosa(n8* ujumbe) {
+    andika_kosa("arm64: %s\n", ujumbe);
+    wito_wa_mfumo(60, 1, 0, 0, 0, 0, 0);
+}
+
+w0 a64_neno(n64 x) {
+    kama (a64_wapi + 4 > 16777216) { a64_kosa("msimbo umezidi MB 16"); }
+    a64_msimbo[a64_wapi] = x & 255;
+    a64_msimbo[a64_wapi + 1] = (x >> 8) & 255;
+    a64_msimbo[a64_wapi + 2] = (x >> 16) & 255;
+    a64_msimbo[a64_wapi + 3] = (x >> 24) & 255;
+    a64_wapi = a64_wapi + 4;
+}
+
+w0 a64_rekebisho(n32 aina, n32 lengo) {
+    a64_rk_nafasi[a64_idadi_ya_rk] = a64_wapi;
+    a64_rk_aina[a64_idadi_ya_rk] = aina;
+    a64_rk_lengo[a64_idadi_ya_rk] = lengo;
+    a64_idadi_ya_rk = a64_idadi_ya_rk + 1;
+}
+
+// ---------------------------------------------------------------- usimbaji
+// rejista tatu: msingi | rm << 16 | rn << 5 | rd
+w0 a64_r3(n64 msingi, n64 rd, n64 rn, n64 rm) { a64_neno(msingi | (rm << 16) | (rn << 5) | rd); }
+
+w0 a64_ongeza(n64 rd, n64 a, n64 b) { a64_r3(2332033024, rd, a, b); }        // add (0x8B000000)
+w0 a64_ondoa(n64 rd, n64 a, n64 b) { a64_r3(3405774848, rd, a, b); }         // sub (0xCB000000)
+w0 a64_zidisha(n64 rd, n64 a, n64 b) { a64_r3(2600468480 | (31 << 10), rd, a, b); }  // madd ..., xzr
+w0 a64_na(n64 rd, n64 a, n64 b) { a64_r3(2315255808, rd, a, b); }            // and (0x8A000000)
+w0 a64_au(n64 rd, n64 a, n64 b) { a64_r3(2852126720, rd, a, b); }            // orr (0xAA000000)
+w0 a64_au_pekee(n64 rd, n64 a, n64 b) { a64_r3(3388997632, rd, a, b); }      // eor (0xCA000000)
+w0 a64_hamisha(n64 rd, n64 rm) { a64_r3(2852126720, rd, 31, rm); }           // orr rd, xzr, rm
+// rd = a - q * b  (msub; kwa modulo)
+w0 a64_toa_zao(n64 rd, n64 q, n64 b, n64 a) { a64_neno(2600501248 | (b << 16) | (a << 10) | (q << 5) | rd); }
+
+// sp kama rejista ya kuongeza: rd = rn + rm (rn, rd = 31 ni sp)
+w0 a64_ongeza_sp(n64 rd, n64 rn, n64 rm) { a64_r3(2334154752, rd, rn, rm); } // add (uxtx)
+w0 a64_ondoa_sp(n64 rd, n64 rn, n64 rm) { a64_r3(3407896576, rd, rn, rm); }  // sub (uxtx)
+w0 a64_ongeza_namba(n64 rd, n64 rn, n64 x) { a64_neno(2432696320 | ((x & 4095) << 10) | (rn << 5) | rd); }
+w0 a64_ondoa_namba(n64 rd, n64 rn, n64 x) { a64_neno(3506438144 | ((x & 4095) << 10) | (rn << 5) | rd); }
+w0 a64_linganisha(n64 a, n64 b) { a64_r3(3942645760, 31, a, b); }           // subs xzr, a, b
+w0 a64_linganisha_namba(n64 a, n64 x) { a64_neno(4043309056 | ((x & 4095) << 10) | (a << 5) | 31); }
+// rd = sharti ? 1 : 0  (csinc rd, xzr, xzr, kinyume_cha_sharti)
+w0 a64_weka_hali(n64 rd, n64 sharti) { a64_neno(2592080896 | (31 << 16) | ((sharti ^ 1) << 12) | (31 << 5) | rd); }
+
+// sehemu za biti: sbfm / ubfm (immr, imms)
+w0 a64_sbfm(n64 rd, n64 rn, n64 r, n64 s) { a64_neno(2470445056 | (r << 16) | (s << 10) | (rn << 5) | rd); }
+w0 a64_ubfm(n64 rd, n64 rn, n64 r, n64 s) { a64_neno(3544186880 | (r << 16) | (s << 10) | (rn << 5) | rd); }
+w0 a64_hamisha_kushoto_namba(n64 rd, n64 rn, n64 s) { a64_ubfm(rd, rn, (64 - s) & 63, 63 - s); }
+w0 a64_hamisha_kulia_namba(n64 rd, n64 rn, n64 s) { a64_ubfm(rd, rn, s, 63); }
+
+// pakia/hifadhi baiti 8, umbali chanya unaogawanyika kwa 8 (hadi 32760)
+w0 a64_pakia(n64 rt, n64 rn, n64 u) { a64_neno(4181721088 | ((u / 8) << 10) | (rn << 5) | rt); }
+w0 a64_hifadhi(n64 rt, n64 rn, n64 u) { a64_neno(4177526784 | ((u / 8) << 10) | (rn << 5) | rt); }
+w0 a64_hifadhi_baiti(n64 rt, n64 rn) { a64_neno(956301312 | (rn << 5) | rt); }   // strb
+w0 a64_pakia_baiti(n64 rt, n64 rn) { a64_neno(960495616 | (rn << 5) | rt); }     // ldrb
+
+w0 a64_wito_wa_mfumo() { a64_neno(3556769793); }      // svc #0
+w0 a64_rudi() { a64_neno(3596551104); }               // ret (x30)
+
+// matawi kwenda nafasi kamili ya msimbo
+w0 a64_ruka_hadi(n64 lengo) { a64_neno(335544320 | (((lengo - a64_wapi) >> 2) & 67108863)); }
+w0 a64_ruka_hali(n64 sharti, n64 lengo) { a64_neno(1409286144 | ((((lengo - a64_wapi) >> 2) & 524287) << 5) | sharti); }
+w0 a64_ruka_sifuri(n64 rt, n64 lengo) { a64_neno(3019898880 | ((((lengo - a64_wapi) >> 2) & 524287) << 5) | rt); }
+w0 a64_ruka_si_sifuri(n64 rt, n64 lengo) { a64_neno(3036676096 | ((((lengo - a64_wapi) >> 2) & 524287) << 5) | rt); }
+
+// weka namba yoyote ya n64 kwenye rejista rd: movz/movn kisha movk kwa
+// kila kipande cha biti 16 kinachobaki
+w0 a64_weka(n64 rd, n64 v) {
+    n64 vipande[4];
+    n32 sifuri = 0;
+    n32 jaa = 0;
+    n32 i = 0;
+    wakati (i < 4) {
+        vipande[i] = (v >> (i * 16)) & 65535;
+        kama (vipande[i] == 0) { sifuri = sifuri + 1; }
+        kama (vipande[i] == 65535) { jaa = jaa + 1; }
+        i = i + 1;
+    }
+    n64 tupu = 0;                     // kipande ambacho msingi tayari unakitoa
+    n64 msingi = 3531603968;          // movz (0xD2800000)
+    kama (jaa > sifuri) { tupu = 65535; msingi = 2457862144; }   // movn (0x92800000)
+    n32 kwanza = 1;
+    i = 0;
+    wakati (i < 4) {
+        kama (vipande[i] != tupu) {
+            kama (kwanza) {
+                n64 x = vipande[i];
+                kama (tupu == 65535) { x = (~x) & 65535; }
+                a64_neno(msingi | (i << 21) | (x << 5) | rd);
+                kwanza = 0;
+            } sivyo {
+                a64_neno(4068474880 | (i << 21) | (vipande[i] << 5) | rd);   // movk
+            }
+        }
+        i = i + 1;
+    }
+    kama (kwanza) { a64_neno(msingi | rd); }   // vipande vyote ni tupu: movz 0 au movn 0 (= -1)
+}
+
+// rd = sp + u
+w0 a64_anwani_ya_fremu(n64 rd, n64 u) {
+    kama (u < 4096) { a64_ongeza_namba(rd, 31, u); rudisha; }
+    a64_weka(rd, u);
+    a64_ongeza_sp(rd, 31, rd);
+}
+
+// rejista pepe v <-> rejista r (sloti [sp + 8v]; umbali mkubwa kupitia x16)
+w0 a64_pakia_v(n64 r, n32 v) {
+    n64 u = v * 8;
+    kama (u <= 32760) { a64_pakia(r, 31, u); rudisha; }
+    a64_anwani_ya_fremu(16, u);
+    a64_pakia(r, 16, 0);
+}
+w0 a64_hifadhi_v(n64 r, n32 v) {
+    n64 u = v * 8;
+    kama (u <= 32760) { a64_hifadhi(r, 31, u); rudisha; }
+    a64_anwani_ya_fremu(16, u);
+    a64_hifadhi(r, 16, 0);
+}
+
+w0 a64_sawazisha(n64 r, n32 upana, n32 ishara) {
+    kama (upana <= 0 || upana >= 8) { rudisha; }
+    n64 biti = upana * 8;
+    kama (ishara) { a64_sbfm(r, r, 0, biti - 1); } sivyo { a64_ubfm(r, r, 0, biti - 1); }
+}
+
+// pakia/hifadhi kwa upana: anwani kwenye rn, thamani kwenye r
+w0 a64_pakia_upana(n64 r, n64 rn, n32 upana, n32 ishara) {
+    n64 msingi = 4181721088;                                   // ldr x
+    kama (upana == 1) { msingi = 960495616; kama (ishara) { msingi = 964689920; } }    // ldrb / ldrsb
+    kama (upana == 2) { msingi = 2034237440; kama (ishara) { msingi = 2038431744; } }  // ldrh / ldrsh
+    kama (upana == 4) { msingi = 3107979264; kama (ishara) { msingi = 3112173568; } }  // ldr w / ldrsw
+    a64_neno(msingi | (rn << 5) | r);
+}
+w0 a64_hifadhi_upana(n64 r, n64 rn, n32 upana) {
+    n64 msingi = 4177526784;                                   // str x
+    kama (upana == 1) { msingi = 956301312; }                  // strb
+    kama (upana == 2) { msingi = 2030043136; }                 // strh
+    kama (upana == 4) { msingi = 3103784960; }                 // str w
+    a64_neno(msingi | (rn << 5) | r);
+}
+
+// hoja za wito -> CHOMBO_CHA_HOJA
+w0 a64_hoja_kwenye_chombo(n32 mwanzo, n32 idadi) {
+    kama (idadi > 64) { a64_kosa("hoja zaidi ya 64"); }
+    a64_weka(12, RV_DATA_VA + RV_CHOMBO_CHA_HOJA);
+    n32 i = 0;
+    wakati (i < idadi) {
+        a64_pakia_v(9, ir_hoja[mwanzo + i]);
+        a64_hifadhi(9, 12, i * 8);
+        i = i + 1;
+    }
+}
+
+// ---------------------------------------------------------------- kazi moja
+w0 a64_amri(n32 i, n32 k);
+
+n64 a64_ukubwa_wa_fremu = 0;
+n32 a64_nv = 0;
+
+w0 a64_mwisho_wa_kazi(n32 k) {
+    a64_sawazisha(0, kati_upana_wa_matokeo_ya_kazi[k], kati_ishara_ya_matokeo_ya_kazi[k]);
+    a64_anwani_ya_fremu(9, a64_ukubwa_wa_fremu - 8);
+    a64_pakia(30, 9, 0);
+    kama (a64_ukubwa_wa_fremu < 4096) { a64_ongeza_namba(31, 31, a64_ukubwa_wa_fremu); }
+    sivyo { a64_weka(9, a64_ukubwa_wa_fremu); a64_ongeza_sp(31, 31, 9); }
+    a64_rudi();
+}
+
+w0 a64_kazi(n32 k) {
+    a64_nafasi_ya_kazi[k] = a64_wapi;
+    a64_nv = kati_rejista_pepe_za_kazi[k];
+    n64 fremu_ya_ir = (kati_fremu_ya_kazi[k] + 7) / 8 * 8;
+    a64_ukubwa_wa_fremu = (a64_nv * 8 + fremu_ya_ir + 8 + 15) / 16 * 16;
+    // utangulizi: sp -= ukubwa; [sp + ukubwa - 8] = x30
+    kama (a64_ukubwa_wa_fremu < 4096) { a64_ondoa_namba(31, 31, a64_ukubwa_wa_fremu); }
+    sivyo { a64_weka(9, a64_ukubwa_wa_fremu); a64_ondoa_sp(31, 31, 9); }
+    a64_anwani_ya_fremu(9, a64_ukubwa_wa_fremu - 8);
+    a64_hifadhi(30, 9, 0);
+    // fremu ya IR huanza na sifuri (kama mtafsiri)
+    kama (fremu_ya_ir > 0) {
+        a64_anwani_ya_fremu(9, a64_nv * 8);
+        a64_weka(10, fremu_ya_ir / 8);
+        n64 mzunguko = a64_wapi;
+        a64_hifadhi(31, 9, 0);                       // str xzr, [x9]
+        a64_ongeza_namba(9, 9, 8);
+        a64_ondoa_namba(10, 10, 1);
+        a64_ruka_si_sifuri(10, mzunguko);
+    }
+    // vigezo kutoka CHOMBO_CHA_HOJA kwenda fremu
+    n32 idadi_ya_vigezo = kati_idadi_ya_vigezo_vya_kazi[k];
+    kama (idadi_ya_vigezo > 64) { a64_kosa("vigezo zaidi ya 64"); }
+    kama (idadi_ya_vigezo > 0) { a64_weka(12, RV_DATA_VA + RV_CHOMBO_CHA_HOJA); }
+    n32 pi = 0;
+    wakati (pi < idadi_ya_vigezo) {
+        n32 pk = kati_mwanzo_wa_vigezo_vya_kazi[k] + pi;
+        a64_pakia(9, 12, pi * 8);
+        a64_anwani_ya_fremu(10, a64_nv * 8 + kati_umbali_wa_kigezo[pk]);
+        a64_hifadhi_upana(9, 10, kati_upana_wa_kigezo[pk]);
+        pi = pi + 1;
+    }
+    n32 i = kati_mwanzo_wa_kazi[k];
+    wakati (i < kati_mwisho_wa_kazi[k]) {
+        a64_nafasi_ya_amri[i] = a64_wapi;
+        a64_amri(i, k);
+        i = i + 1;
+    }
+    // kazi isiyo na rudisha ya mwisho: rudisha 0
+    a64_weka(0, 0);
+    a64_mwisho_wa_kazi(k);
+}
+
+w0 a64_binari(n32 tendo, n32 upana, n32 ishara) {
+    // x9 = a, x10 = b -> x9
+    kama (tendo == IR_JUMLISHA) { a64_ongeza(9, 9, 10); }
+    kama (tendo == IR_TOFAUTI) { a64_ondoa(9, 9, 10); }
+    kama (tendo == IR_ZIDISHA) { a64_zidisha(9, 9, 10); }
+    kama (tendo == IR_GAWANYA || tendo == IR_MODULO) {
+        kama (ishara == 0) { a64_sawazisha(9, upana, 0); a64_sawazisha(10, upana, 0); }
+        // ARM64 haitegi kugawanya kwa sifuri -- tunaruka kwenda mwenyeji 0 wenyewe
+        a64_neno(3036676096 | (2 << 5) | 10);        // cbnz x10, +8
+        a64_rekebisho(3, 0);
+        a64_neno(0);
+        n64 gawa = 2596277248;                       // sdiv
+        kama (ishara == 0) { gawa = 2596276224; }    // udiv
+        kama (tendo == IR_GAWANYA) { a64_r3(gawa, 9, 9, 10); }
+        sivyo { a64_r3(gawa, 11, 9, 10); a64_toa_zao(9, 11, 10, 9); }
+    }
+    kama (tendo == IR_BITI_NA) { a64_na(9, 9, 10); }
+    kama (tendo == IR_BITI_AU) { a64_au(9, 9, 10); }
+    kama (tendo == IR_AU_PEKEE) { a64_au_pekee(9, 9, 10); }
+    kama (tendo == IR_HAMISHA_K) { a64_r3(2596282368, 9, 9, 10); }            // lslv
+    kama (tendo == IR_HAMISHA_KULIA) {
+        kama (ishara) { a64_r3(2596284416, 9, 9, 10); }                       // asrv
+        sivyo { a64_sawazisha(9, upana, 0); a64_r3(2596283392, 9, 9, 10); }   // lsrv
+    }
+    kama (tendo >= IR_SAWA) {
+        a64_linganisha(9, 10);
+        n64 sharti = A64_SAWA;
+        kama (tendo == IR_TOFAUTI_SI) { sharti = A64_SI_SAWA; }
+        kama (tendo == IR_CHINI) { sharti = A64_CHINI; kama (ishara == 0) { sharti = A64_CHINI_B; } }
+        kama (tendo == IR_JUU) { sharti = A64_JUU; kama (ishara == 0) { sharti = A64_JUU_B; } }
+        kama (tendo == IR_CHINI_SAWA) { sharti = A64_CHINI_SAWA; kama (ishara == 0) { sharti = A64_CHINI_SAWA_B; } }
+        kama (tendo == IR_JUU_SAWA) { sharti = A64_JUU_SAWA; kama (ishara == 0) { sharti = A64_JUU_SAWA_B; } }
+        a64_weka_hali(9, sharti);
+        rudisha;
+    }
+    a64_sawazisha(9, upana, ishara);
+}
+
+w0 a64_amri(n32 i, n32 k) {
+    n32 amri = ir_amri[i];
+    n32 lengo = ir_lengo[i];
+    n32 a = ir_a[i];
+    n32 b = ir_b[i];
+    n32 c = ir_c[i];
+    n32 upana = ir_upana[i];
+    n32 ishara = ir_ishara[i];
+    kama (amri == IR_NAMBA) { a64_weka(9, ir_namba[i]); a64_hifadhi_v(9, lengo); rudisha; }
+    kama (amri == IR_ANWANI) { a64_weka(9, rv_anwani_ya_data(ir_namba[i])); a64_hifadhi_v(9, lengo); rudisha; }
+    kama (amri == IR_FREMU) { a64_anwani_ya_fremu(9, a64_nv * 8 + ir_namba[i]); a64_hifadhi_v(9, lengo); rudisha; }
+    kama (amri == IR_NAKILI) { a64_pakia_v(9, a); a64_sawazisha(9, upana, ishara); a64_hifadhi_v(9, lengo); rudisha; }
+    kama (amri == IR_BINARI) { a64_pakia_v(9, a); a64_pakia_v(10, b); a64_binari(c, upana, ishara); a64_hifadhi_v(9, lengo); rudisha; }
+    kama (amri == IR_UNARI) {
+        a64_pakia_v(9, a);
+        kama (c == IR_HASI) { a64_ondoa(9, 31, 9); }
+        kama (c == IR_KINYUME) { a64_r3(2854223872, 9, 31, 9); }          // orn x9, xzr, x9
+        kama (c == IR_SI) { a64_linganisha_namba(9, 0); a64_weka_hali(9, A64_SAWA); }
+        a64_sawazisha(9, upana, ishara);
+        a64_hifadhi_v(9, lengo);
+        rudisha;
+    }
+    kama (amri == IR_PAKIA) { a64_pakia_v(10, a); a64_pakia_upana(9, 10, upana, ishara); a64_hifadhi_v(9, lengo); rudisha; }
+    kama (amri == IR_HIFADHI) { a64_pakia_v(10, a); a64_pakia_v(9, b); a64_hifadhi_upana(9, 10, upana); rudisha; }
+    kama (amri == IR_MAHALI) { rudisha; }
+    kama (amri == IR_RUKA) { a64_rekebisho(1, ir_nafasi_ya_mahali[a]); a64_neno(0); rudisha; }
+    kama (amri == IR_RUKA_KAMA || amri == IR_RUKA_SIVYO) {
+        a64_pakia_v(9, a);
+        // ruka juu ya b inayofuata: kama -> ikiwa sifuri, sivyo -> ikiwa si sifuri
+        n64 msingi = 3019898880;                                 // cbz
+        kama (amri == IR_RUKA_SIVYO) { msingi = 3036676096; }    // cbnz
+        a64_neno(msingi | (2 << 5) | 9);
+        a64_rekebisho(1, ir_nafasi_ya_mahali[b]);
+        a64_neno(0);
+        rudisha;
+    }
+    kama (amri == IR_WITO) {
+        a64_hoja_kwenye_chombo(b, c);
+        a64_rekebisho(2, a);
+        a64_neno(0);
+        kama (lengo >= 0) { a64_hifadhi_v(0, lengo); }
+        rudisha;
+    }
+    kama (amri == IR_WITO_ASILI) {
+        a64_hoja_kwenye_chombo(b, c);
+        kama (a < 1 || a > 7) { a64_kosa("kazi asili isiyojulikana"); }
+        a64_rekebisho(4, a);
+        a64_neno(0);
+        kama (lengo >= 0) { a64_hifadhi_v(0, lengo); }
+        rudisha;
+    }
+    kama (amri == IR_RUDISHA) {
+        kama (a >= 0) { a64_pakia_v(0, a); } sivyo { a64_weka(0, 0); }
+        a64_mwisho_wa_kazi(k);
+        rudisha;
+    }
+    a64_kosa("amri ya IR isiyojulikana");
+}
+
+// ---------------------------------------------------------------- mwenyeji
+// Hoja zote za kazi asili ziko kwenye CHOMBO_CHA_HOJA ([x12 + 8i]).
+w0 a64_hoja_za_mwenyeji() { a64_weka(12, RV_DATA_VA + RV_CHOMBO_CHA_HOJA); }
+
+n64 a64_andika_msingi = 0;   // x0 = fd, x1 = anwani, x2 = urefu; hurudisha x0 = 0
+
+w0 a64_mwenyeji_andika() {
+    a64_andika_msingi = a64_wapi;
+    a64_hamisha(14, 0); a64_hamisha(15, 1); a64_hamisha(11, 2);   // x14 fd, x15 p, x11 n
+    n64 mzunguko = a64_wapi;
+    n64 tawi_mwisho_1 = a64_wapi; a64_neno(0);                    // cbz x11, mwisho
+    a64_hamisha(0, 14); a64_hamisha(1, 15); a64_hamisha(2, 11);
+    a64_weka(8, 64); a64_wito_wa_mfumo();
+    a64_linganisha_namba(0, 0);
+    n64 tawi_mwisho_2 = a64_wapi; a64_neno(0);                    // b.le mwisho
+    a64_ongeza(15, 15, 0); a64_ondoa(11, 11, 0);
+    a64_ruka_hadi(mzunguko);
+    n64 mwisho = a64_wapi;
+    a64_weka(0, 0); a64_rudi();
+    n64 hifadhi = a64_wapi;
+    a64_wapi = tawi_mwisho_1; a64_ruka_sifuri(11, mwisho);
+    a64_wapi = tawi_mwisho_2; a64_ruka_hali(A64_CHINI_SAWA, mwisho);
+    a64_wapi = hifadhi;
+}
+
+w0 a64_mwenyeji_wote() {
+    a64_mwenyeji_andika();
+
+    // 0: kugawanya kwa sifuri -> toka 136 (kama SIGFPE ya x86)
+    a64_mwenyeji[0] = a64_wapi;
+    a64_weka(0, 136); a64_weka(8, 93); a64_wito_wa_mfumo();
+
+    // 1: wito_wa_mfumo(namba_ya_x86, a1..a6)
+    a64_mwenyeji[1] = a64_wapi;
+    a64_hoja_za_mwenyeji();
+    a64_pakia(9, 12, 0);
+    a64_pakia(0, 12, 8); a64_pakia(1, 12, 16); a64_pakia(2, 12, 24);
+    a64_pakia(3, 12, 32); a64_pakia(4, 12, 40); a64_pakia(5, 12, 48);
+    // maalum: kazi zisizokuwepo kwenye Linux ya jumla hugeuzwa kuwa *at n.k.
+    n64 maalum[8];
+    maalum[0] = 2; maalum[1] = 83; maalum[2] = 87; maalum[3] = 21; maalum[4] = 89;
+    maalum[5] = 33; maalum[6] = 57; maalum[7] = 22;
+    n64 marekebisho_ya_maalum[8];
+    n32 m = 0;
+    wakati (m < 8) {
+        a64_linganisha_namba(9, maalum[m]);
+        marekebisho_ya_maalum[m] = a64_wapi;
+        a64_neno(0);                                         // b.eq maalum_m
+        m = m + 1;
+    }
+    // ya kawaida: x8 = jedwali[x9]; 0 = haipo -> -38 (ENOSYS)
+    a64_linganisha_namba(9, RV_IDADI_YA_MFUMO);
+    n64 tawi_nje = a64_wapi; a64_neno(0);                    // b.hs haipo
+    a64_weka(10, RV_DATA_VA + RV_JEDWALI_LA_MFUMO);
+    a64_hamisha_kushoto_namba(11, 9, 1); a64_ongeza(10, 10, 11);
+    a64_neno(2034237440 | (10 << 5) | 8);                    // ldrh w8, [x10]
+    n64 tawi_haipo = a64_wapi; a64_neno(0);                  // cbz x8, haipo
+    n64 piga = a64_wapi;
+    a64_wito_wa_mfumo(); a64_rudi();
+    n64 haipo = a64_wapi;
+    a64_weka(0, 0 - 38); a64_rudi();
+    // maalum
+    n64 nafasi_za_maalum[8];
+    // open(njia, bendera, ruhusa) -> openat(AT_FDCWD, ...)
+    nafasi_za_maalum[0] = a64_wapi;
+    a64_hamisha(3, 2); a64_hamisha(2, 1); a64_hamisha(1, 0); a64_weka(0, 0 - 100); a64_weka(8, 56); a64_ruka_hadi(piga);
+    // mkdir(njia, ruhusa) -> mkdirat(AT_FDCWD, ...)
+    nafasi_za_maalum[1] = a64_wapi;
+    a64_hamisha(2, 1); a64_hamisha(1, 0); a64_weka(0, 0 - 100); a64_weka(8, 34); a64_ruka_hadi(piga);
+    // unlink(njia) -> unlinkat(AT_FDCWD, njia, 0)
+    nafasi_za_maalum[2] = a64_wapi;
+    a64_hamisha(1, 0); a64_weka(0, 0 - 100); a64_weka(2, 0); a64_weka(8, 35); a64_ruka_hadi(piga);
+    // access(njia, namna) -> faccessat(AT_FDCWD, njia, namna, 0)
+    nafasi_za_maalum[3] = a64_wapi;
+    a64_hamisha(2, 1); a64_hamisha(1, 0); a64_weka(0, 0 - 100); a64_weka(3, 0); a64_weka(8, 48); a64_ruka_hadi(piga);
+    // readlink(njia, chombo, ukubwa) -> readlinkat(AT_FDCWD, ...)
+    nafasi_za_maalum[4] = a64_wapi;
+    a64_hamisha(3, 2); a64_hamisha(2, 1); a64_hamisha(1, 0); a64_weka(0, 0 - 100); a64_weka(8, 78); a64_ruka_hadi(piga);
+    // dup2(a, b) -> dup3(a, b, 0)
+    nafasi_za_maalum[5] = a64_wapi;
+    a64_weka(2, 0); a64_weka(8, 24); a64_ruka_hadi(piga);
+    // fork() -> clone(SIGCHLD, 0, 0, 0, 0)
+    nafasi_za_maalum[6] = a64_wapi;
+    a64_weka(0, 17); a64_weka(1, 0); a64_weka(2, 0); a64_weka(3, 0); a64_weka(4, 0); a64_weka(8, 220); a64_ruka_hadi(piga);
+    // pipe(fds) -> pipe2(fds, 0)
+    nafasi_za_maalum[7] = a64_wapi;
+    a64_weka(1, 0); a64_weka(8, 59); a64_ruka_hadi(piga);
+    n64 hifadhi = a64_wapi;
+    m = 0;
+    wakati (m < 8) {
+        a64_wapi = marekebisho_ya_maalum[m]; a64_ruka_hali(A64_SAWA, nafasi_za_maalum[m]);
+        m = m + 1;
+    }
+    a64_wapi = tawi_nje; a64_ruka_hali(A64_JUU_SAWA_B, haipo);
+    a64_wapi = tawi_haipo; a64_ruka_sifuri(8, haipo);
+    a64_wapi = hifadhi;
+
+    // 2: tenga(ukubwa) -- lundo la kusogeza ndani ya vipande vya mmap
+    a64_mwenyeji[2] = a64_wapi;
+    a64_hoja_za_mwenyeji();
+    a64_pakia(9, 12, 0);
+    a64_ongeza_namba(9, 9, 15);                                          // ukubwa = (n + 15) & -16
+    a64_hamisha_kulia_namba(9, 9, 4); a64_hamisha_kushoto_namba(9, 9, 4);
+    a64_weka(13, RV_DATA_VA + RV_LUNDO_WAPI);
+    a64_pakia(10, 13, 0); a64_pakia(11, 13, 8);                           // x10 = wapi, x11 = mwisho
+    a64_ongeza(14, 10, 9);                                               // x14 = wapi + n
+    a64_linganisha(11, 14);
+    n64 tawi_inatosha = a64_wapi; a64_neno(0);                            // b.hs inatosha
+    // kipande kipya: max(n, MB 64)
+    a64_weka(1, 67108864);
+    a64_linganisha(1, 9);
+    n64 tawi_kubwa = a64_wapi; a64_neno(0);                               // b.hs endelea
+    a64_hamisha(1, 9);
+    n64 endelea_mmap = a64_wapi;
+    a64_weka(0, 0); a64_weka(2, 3); a64_weka(3, 34); a64_weka(4, 0 - 1); a64_weka(5, 0);
+    a64_weka(8, 222); a64_wito_wa_mfumo();
+    a64_hamisha(10, 0); a64_ongeza(11, 0, 1); a64_hifadhi(11, 13, 8);
+    a64_ongeza(14, 10, 9);
+    n64 inatosha = a64_wapi;
+    a64_hifadhi(14, 13, 0);
+    a64_hamisha(0, 10); a64_rudi();
+    hifadhi = a64_wapi;
+    a64_wapi = tawi_inatosha; a64_ruka_hali(A64_JUU_SAWA_B, inatosha);
+    a64_wapi = tawi_kubwa; a64_ruka_hali(A64_JUU_SAWA_B, endelea_mmap);
+    a64_wapi = hifadhi;
+
+    // 3: achilia -- hakuna kitu (kama mtafsiri)
+    a64_mwenyeji[3] = a64_wapi;
+    a64_weka(0, 0); a64_rudi();
+
+    // 4: andika_sehemu(fd, anwani, urefu)
+    a64_mwenyeji[4] = a64_wapi;
+    a64_hoja_za_mwenyeji();
+    a64_pakia(0, 12, 0); a64_pakia(1, 12, 8); a64_pakia(2, 12, 16);
+    a64_ruka_hadi(a64_andika_msingi);
+
+    // 5: andika_namba(fd, x) -- algorithimu ya mt_andika_namba
+    a64_mwenyeji[5] = a64_wapi;
+    a64_hoja_za_mwenyeji();
+    a64_pakia(13, 12, 0);                                  // x13 = fd
+    a64_pakia(9, 12, 8);                                   // x9 = u
+    a64_weka(10, RV_DATA_VA + RV_CHOMBO_CHA_NAMBA + 31);   // x10 = &chombo[31]
+    a64_weka(14, 0);                                       // x14 = hasi
+    a64_linganisha_namba(9, 0);
+    n64 tawi_hasi = a64_wapi; a64_neno(0);                  // b.lt ni_hasi
+    a64_ondoa(9, 31, 9);                                   // u = -x (u <= 0)
+    n64 tawi_baada = a64_wapi; a64_neno(0);                 // b baada
+    n64 ni_hasi = a64_wapi;
+    a64_weka(14, 1);
+    n64 baada = a64_wapi;
+    a64_weka(11, 10);                                      // x11 = 10
+    n64 tawi_si_sifuri = a64_wapi; a64_neno(0);             // cbnz x9, tarakimu
+    a64_weka(15, 48); a64_hifadhi_baiti(15, 10); a64_ondoa_namba(10, 10, 1);
+    n64 tarakimu = a64_wapi;
+    n64 tawi_imeisha = a64_wapi; a64_neno(0);               // cbz x9, alama
+    a64_r3(2596277248, 16, 9, 11);                         // x16 = u / 10
+    a64_toa_zao(15, 16, 11, 9);                            // x15 = u % 10 (hasi au 0)
+    a64_weka(17, 48); a64_ondoa(15, 17, 15);               // x15 = 48 - x15
+    a64_hifadhi_baiti(15, 10); a64_ondoa_namba(10, 10, 1);
+    a64_hamisha(9, 16);                                    // u = u / 10
+    a64_ruka_hadi(tarakimu);
+    n64 alama = a64_wapi;
+    n64 tawi_bila_alama = a64_wapi; a64_neno(0);            // cbz x14, andika
+    a64_weka(15, 45); a64_hifadhi_baiti(15, 10); a64_ondoa_namba(10, 10, 1);
+    n64 andika_sasa = a64_wapi;
+    a64_ongeza_namba(1, 10, 1);                            // x1 = x10 + 1
+    a64_weka(2, RV_DATA_VA + RV_CHOMBO_CHA_NAMBA + 31);
+    a64_ondoa(2, 2, 10);                                   // x2 = &chombo[31] - x10
+    a64_hamisha(0, 13);
+    a64_ruka_hadi(a64_andika_msingi);
+    hifadhi = a64_wapi;
+    a64_wapi = tawi_hasi; a64_ruka_hali(A64_CHINI, ni_hasi);
+    a64_wapi = tawi_baada; a64_ruka_hadi(baada);
+    a64_wapi = tawi_si_sifuri; a64_ruka_si_sifuri(9, tarakimu);
+    a64_wapi = tawi_imeisha; a64_ruka_sifuri(9, alama);
+    a64_wapi = tawi_bila_alama; a64_ruka_sifuri(14, andika_sasa);
+    a64_wapi = hifadhi;
+
+    // 6: andika_mfuatano(fd, s)
+    a64_mwenyeji[6] = a64_wapi;
+    a64_hoja_za_mwenyeji();
+    a64_pakia(0, 12, 0); a64_pakia(1, 12, 8);
+    a64_hamisha(9, 1);
+    n64 hesabu = a64_wapi;
+    a64_pakia_baiti(10, 9);                                // ldrb w10, [x9]
+    n64 tawi_mwisho_wa_s = a64_wapi; a64_neno(0);           // cbz x10, mwisho
+    a64_ongeza_namba(9, 9, 1); a64_ruka_hadi(hesabu);
+    n64 mwisho_wa_s = a64_wapi;
+    a64_ondoa(2, 9, 1);
+    a64_ruka_hadi(a64_andika_msingi);
+    hifadhi = a64_wapi;
+    a64_wapi = tawi_mwisho_wa_s; a64_ruka_sifuri(10, mwisho_wa_s);
+    a64_wapi = hifadhi;
+
+    // 7: andika_herufi(fd, baiti)
+    a64_mwenyeji[7] = a64_wapi;
+    a64_hoja_za_mwenyeji();
+    a64_pakia(0, 12, 0); a64_pakia(9, 12, 8);
+    a64_weka(1, RV_DATA_VA + RV_BAITI_MOJA);
+    a64_hifadhi_baiti(9, 1);
+    a64_weka(2, 1);
+    a64_ruka_hadi(a64_andika_msingi);
+}
+
+// ---------------------------------------------------------------- ELF
+n8 a64_utangulizi[176];
+n64 a64_kichwa_wapi = 0;
+w0 a64_k(n64 v, n32 baiti) {
+    n32 i = 0;
+    wakati (i < baiti) { a64_utangulizi[a64_kichwa_wapi] = (v >> (i * 8)) & 255; a64_kichwa_wapi = a64_kichwa_wapi + 1; i = i + 1; }
+}
+
+n32 arm64_zalisha() {
+    n32 kuu = tm_kazi_tafuta("anza");
+    kama (kuu < 0) { andika_kosa("arm64: kazi 'anza' haipo\n"); rudisha 1; }
+    rv_jaza_jedwali();
+    n64 mwanzo = 176;
+    a64_wapi = mwanzo;
+    // kiingilio: x19 = idadi ya hoja, x20 = hoja; vianzio, kisha anza(x19, x20), kisha toka(x0)
+    a64_pakia(19, 31, 0);
+    a64_ongeza_namba(20, 31, 8);
+    kama (ir_kianzio_cha_kazi >= 0) { a64_rekebisho(2, ir_kianzio_cha_kazi); a64_neno(0); }
+    a64_weka(12, RV_DATA_VA + RV_CHOMBO_CHA_HOJA);
+    a64_hifadhi(19, 12, 0); a64_hifadhi(20, 12, 8);
+    a64_rekebisho(2, kuu); a64_neno(0);
+    a64_weka(8, 93); a64_wito_wa_mfumo();
+    a64_mwenyeji_wote();
+    n32 k = 0;
+    wakati (k < kati_idadi_ya_kazi) { a64_kazi(k); k = k + 1; }
+
+    // marekebisho: b / bl zina umbali wa MB 128 -- msimbo wote (MB 16) unatoshea
+    n32 r = 0;
+    wakati (r < a64_idadi_ya_rk) {
+        n64 p = a64_rk_nafasi[r];
+        n32 aina = a64_rk_aina[r];
+        n64 lengo = 0;
+        kama (aina == 1) { lengo = a64_nafasi_ya_amri[a64_rk_lengo[r]]; }
+        kama (aina == 2) { lengo = a64_nafasi_ya_kazi[a64_rk_lengo[r]]; }
+        kama (aina == 3 || aina == 4) { lengo = a64_mwenyeji[a64_rk_lengo[r]]; }
+        n64 msingi = 335544320;                                  // b
+        kama (aina == 2 || aina == 4) { msingi = 2483027968; }   // bl
+        n64 hifadhi = a64_wapi;
+        a64_wapi = p;
+        a64_neno(msingi | (((lengo - p) >> 2) & 67108863));
+        a64_wapi = hifadhi;
+        r = r + 1;
+    }
+
+    // data: eneo la mwenyeji + data ya IR (bila sifuri za mwisho)
+    n8* data = ir_data;
+    n64 data_ya_faili = ir_data_wapi;
+    wakati (data_ya_faili > 0 && data[data_ya_faili - 1] == 0) { data_ya_faili = data_ya_faili - 1; }
+    n64 ukubwa_wa_msimbo = a64_wapi;
+    n64 umbali_wa_data = (ukubwa_wa_msimbo + A64_UPANGAJI - 1) / A64_UPANGAJI * A64_UPANGAJI;
+    n64 data_faili = RV_ENEO_LA_MWENYEJI + data_ya_faili;
+    n64 data_kumbukumbu = RV_ENEO_LA_MWENYEJI + (ir_data_wapi + 15) / 16 * 16;
+
+    a64_kichwa_wapi = 0;
+    a64_k(1179403647, 4); a64_k(2, 1); a64_k(1, 1); a64_k(1, 1); a64_k(0, 1); a64_k(0, 8);   // ELF, 64, LE
+    a64_k(2, 2); a64_k(183, 2); a64_k(1, 4);                      // EXEC, EM_AARCH64, toleo
+    a64_k(A64_MSIMBO_VA + mwanzo, 8); a64_k(64, 8); a64_k(0, 8);  // kiingilio, maelezo ya vipande, sehemu
+    a64_k(0, 4); a64_k(64, 2); a64_k(56, 2); a64_k(2, 2); a64_k(64, 2); a64_k(0, 2); a64_k(0, 2);
+    // kipande 1: msimbo (soma + tekeleza)
+    a64_k(1, 4); a64_k(5, 4); a64_k(0, 8); a64_k(A64_MSIMBO_VA, 8); a64_k(A64_MSIMBO_VA, 8);
+    a64_k(ukubwa_wa_msimbo, 8); a64_k(ukubwa_wa_msimbo, 8); a64_k(A64_UPANGAJI, 8);
+    // kipande 2: data (soma + andika)
+    a64_k(1, 4); a64_k(6, 4); a64_k(umbali_wa_data, 8); a64_k(RV_DATA_VA, 8); a64_k(RV_DATA_VA, 8);
+    a64_k(data_faili, 8); a64_k(data_kumbukumbu, 8); a64_k(A64_UPANGAJI, 8);
+    nakili(a64_msimbo, a64_utangulizi, 176);
+
+    rv_andika_baiti_zote(a64_msimbo, ukubwa_wa_msimbo);
+    n8 sifuri[4096];
+    weka_sifuri(sifuri, 4096);
+    n64 pengo = umbali_wa_data - ukubwa_wa_msimbo;
+    wakati (pengo > 0) {
+        n64 sasa = pengo;
+        kama (sasa > 4096) { sasa = 4096; }
+        rv_andika_baiti_zote(sifuri, sasa);
+        pengo = pengo - sasa;
+    }
+    rv_andika_baiti_zote(rv_eneo_la_mwenyeji, RV_ENEO_LA_MWENYEJI);
+    kama (data_ya_faili > 0) { rv_andika_baiti_zote(data, data_ya_faili); }
+    rudisha 0;
+}

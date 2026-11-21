@@ -4,6 +4,7 @@ husisha { mkusanyaji/mtafsiri.swa }
 husisha { mkusanyaji/uzalishaji.swa }
 husisha { mkusanyaji/uzalishaji_wasm.swa }
 husisha { mkusanyaji/uzalishaji_riscv64.swa }
+husisha { mkusanyaji/uzalishaji_arm64.swa }
 
 // ==========================================================
 // Kusoma na kutatua chanzo -- mkusanyaji anatatua mistari ya
@@ -587,6 +588,7 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     n32 ni_tafsiri = 0;
     n32 ni_ir = 0;
     n32 ni_riscv64 = 0;
+    n32 ni_arm64 = 0;
     n32 faharasa_ya_faili = 1;
     kama (idadi_ya_hoja_za_mstari > 1) {
         n8* a = hoja_za_mstari[1];
@@ -609,6 +611,8 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         kama (linganisha_mfuatano(a, "--kati") == 0) { ni_ir = 1; faharasa_ya_faili = 2; }
         // --riscv64: IR hadi RV64IM, ELF tuli ya Linux (uzalishaji_riscv64.swa)
         kama (linganisha_mfuatano(a, "--riscv64") == 0) { ni_riscv64 = 1; faharasa_ya_faili = 2; }
+        // --arm64: IR hadi AArch64, ELF tuli ya Linux (uzalishaji_arm64.swa)
+        kama (linganisha_mfuatano(a, "--arm64") == 0) { ni_arm64 = 1; faharasa_ya_faili = 2; }
         // --wasm-js: kiolesura cha JS cha moduli za --wasm (hati/kiolesura-cha-mashine.md)
         kama (linganisha_mfuatano(a, "--wasm-js") == 0) {
             wasm_andika_kiolesura_js();
@@ -630,6 +634,7 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
         tatua_husisha("mkusanyaji/uzalishaji.swa");
         tatua_husisha("mkusanyaji/uzalishaji_wasm.swa");
         tatua_husisha("mkusanyaji/uzalishaji_riscv64.swa");
+        tatua_husisha("mkusanyaji/uzalishaji_arm64.swa");
         tatua_husisha("maktaba/orodha.swa");
         tatua_husisha("maktaba/ramani.swa");
         tatua_husisha("mkusanyaji/kiendeshaji.swa");
@@ -711,15 +716,16 @@ n32 anza(n32 idadi_ya_hoja_za_mstari, n8** hoja_za_mstari) {
     // hutajwa kwa sauti na kutoka kwa 2.
     // Kazi za nje (kiolesura cha mashine) zinahitaji kipakiaji cha mfumo
     // (--programu) au mwenyeji wa WASM (--wasm: uingizaji); mtafsiri hana.
-    kama (kigeni_idadi_ya_kazi + kigeni_idadi_ya_data > 0 && (ni_tafsiri || ni_ir || ni_riscv64)) {
+    kama (kigeni_idadi_ya_kazi + kigeni_idadi_ya_data > 0 && (ni_tafsiri || ni_ir || ni_riscv64 || ni_arm64)) {
         andika_kosa("Hitilafu: kazi za nje (kizuizi cha nje) zinahitaji --programu au --wasm -- hazipatikani kwenye --tafsiri wala --kati\n");
         rudisha 1;
     }
 
-    kama (ni_tafsiri || ni_ir || ni_riscv64) {
+    kama (ni_tafsiri || ni_ir || ni_riscv64 || ni_arm64) {
         kama (teremsha(nodi_ya_programu) != 0) { rudisha 2; }
         kama (ni_ir) { ir_chapisha(); rudisha 0; }
         kama (ni_riscv64) { rudisha riscv64_zalisha(); }
+        kama (ni_arm64) { rudisha arm64_zalisha(); }
         rudisha mtafsiri_endesha(idadi_ya_hoja_za_mstari - faharasa_ya_faili, hoja_za_mstari + faharasa_ya_faili);
     }
 
