@@ -18,6 +18,7 @@ Hakuna kusanyiko. Hakuna GNU as.
 - [x] Mfululizo mzima unajithibitisha: kamili2 == kamili3 (sawa kwa baiti)
 
 ### Hatua ya 2: JIT halisi (kama HolyC) [IMEFANYIKA]
+Yanayofuata kutoka HolyC (ganda, kubadilisha kazi ikiendesha, picha kwenye Kawira): [mafunzo-kutoka-holyc.md](mafunzo-kutoka-holyc.md).
 Swa inatoa maelekezo moja kwa moja kwenye kumbukumbu na kuyatekeleza.
 Hakuna faili. Hakuna binari. Hakuna OS kati.
 - [x] `mmap()` -> andika opkodi -> rukia (PR #143)
